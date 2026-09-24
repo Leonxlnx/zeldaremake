@@ -241,10 +241,29 @@ export function moundHeight(a: number, c: number): number {
   const shoulder = smoothstep(M.rise, M.face[0], a) * smoothstep(M.shoulder[0], M.shoulder[1], ac) * back;
   const body = Math.max(plateau, shoulder) * width;
   const away = smoothstep(M.shoulder[1] - 0.3, M.shoulder[1] + 1.7, ac);
-  if (away <= 0) return M.height * body;
-  const swell = bankNoise.fbm(a * 0.16 + c * 0.05, c * 0.17 + 3.1, 2);
-  const knobs = bankNoise.noise(a * 0.3 + 11.7, c * 0.3 - 4.3);
-  return Math.max(0, M.height * body * (1 + 0.2 * away * swell) + 0.35 * away * body * knobs);
+  let h = M.height * body;
+  if (away > 0) {
+    const swell = bankNoise.fbm(a * 0.16 + c * 0.05, c * 0.17 + 3.1, 2);
+    const knobs = bankNoise.noise(a * 0.3 + 11.7, c * 0.3 - 4.3);
+    h = Math.max(0, M.height * body * (1 + 0.2 * away * swell) + 0.35 * away * body * knobs);
+  }
+  const k = cleftWeight(a, c);
+  return k > 0 ? h + (Math.min(h, EXPANSION_SOUTH.tunnel.cleft.lift) - h) * k : h;
+}
+
+const cleftNoise = new Noise2D('south-bank/cleft');
+/**
+ * The cleft behind the log's end (layout `tunnel.cleft`; 0 … 1): 1 on its bed, easing to 0 up its
+ * walls. The bed widens from `floor[0]` at the log's end to `floor[1]` at the bank's back, the
+ * walls wander (± 0.35 m) so the cut reads as worn, not ruled.
+ */
+export function cleftWeight(a: number, c: number): number {
+  const T = EXPANSION_SOUTH.tunnel;
+  const K = T.cleft;
+  if (a <= K.from) return 0;
+  const along = smoothstep(K.from, K.from + 0.6, a);
+  const half = K.floor[0] + (K.floor[1] - K.floor[0]) * smoothstep(K.from + 0.5, T.mound.back, a) + 0.35 * cleftNoise.noise(a * 0.45, c > 0 ? 3.1 : 7.9);
+  return along * (1 - smoothstep(half, half + K.wall, Math.abs(c)));
 }
 
 /**
@@ -304,8 +323,12 @@ export const CARVE_DEPTH = 0.5;
 export function tunnelCarve(a: number, c: number, h: number, floorY: number): { w: number; y: number } {
   const T = EXPANSION_SOUTH.tunnel;
   const wA = smoothstep(0.15, 0.5, a) * (1 - smoothstep(T.carveEnd, T.carveEnd + 0.4, a));
-  const c0 = T.innerRadius - 0.2;
-  const c1 = T.innerRadius + 0.1;
+  // under the bank's face (from the lattice line at a ≈ 7.1 on) the natural ground is the face's
+  // full height, and a lattice column only partly carved there would stand inside the hollow: the
+  // carve takes the whole bore (the nearest columns sit at |c| ≈ 1.46 … 1.57)
+  const wide = smoothstep(6.4, 6.95, a);
+  const c0 = T.innerRadius - 0.2 + 0.24 * wide;
+  const c1 = T.innerRadius + 0.1 + 0.2 * wide;
   const ac = Math.abs(c);
   if (wA <= 0 || ac >= c1) return { w: 0, y: h };
   const base = floorY - CARVE_DEPTH;

@@ -10,14 +10,18 @@
  * zig-zag of cord; a pod lantern on an arm at every post's head.
  *
  * The log: a fallen giant's hollow trunk with its broken end as the mouth — ridged bark under a
- * moss cap, a splintered rim of end grain, the hollow's heartwood inside, a litter floor, and a
- * warm glow closing the tube at `deadEnd`. No light source joins the scene: the inside's own
- * materials emit per vertex (`aGlow`, falling off from the glow, times the surface's albedo — so
- * the fissures stay dark in it), the glow disc and haze cards are unlit colour peaking over the
- * height fog's 2.0 exemption (heightfog.ts), and the pods are the scene's emissive pods.
+ * moss cap, a splintered rim of end grain, the hollow's heartwood inside, a litter floor. At
+ * `deadEnd` a curtain of roots grown down through the rotten wood closes the walk; past it the
+ * tube runs on under the bank's face to its snapped far end, which opens into the cleft behind
+ * the bank (terrain/south.ts `cleftWeight`): real ground, lit by the sun, with ferns, roots,
+ * saplings and a thicket of young trees where it runs out — daylight at the end of the tunnel,
+ * not a lamp. No light source
+ * joins the scene: the hollow's own materials emit per vertex (`aGlow`, the daylight bounced in
+ * from the far end, falling off along the bore, times the surface's albedo — so the fissures stay
+ * dark in it), and the pods are the scene's emissive pods.
  *
  * The character walks the planks as built (`walkSpans`: the deck line sill to sill, the log's
- * floor to the glow). structures/index.ts consolidates the group on its own and hides it beyond
+ * floor to the roots). structures/index.ts consolidates the group on its own and hides it beyond
  * SOUTH_VISIBLE_M of the south boxes or when neither it nor its shadow footprint meets the
  * camera's frustum (util/expansionLocality.ts `southVisible`).
  *
@@ -34,7 +38,6 @@ import {
   LineCurve3,
   Matrix4,
   Mesh,
-  MeshBasicMaterial,
   MeshStandardMaterial,
   type MeshStandardMaterialParameters,
   Vector2,
@@ -49,7 +52,7 @@ import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
 import { SOUTH_FLOOR_Y, SOUTH_NORTH_SILL_Y } from '../terrain/heightfield';
-import { bridgeDeckY, bridgeLocal, ravineHit, tunnelWorld } from '../terrain/south';
+import { bridgeDeckY, bridgeLocal, cleftWeight, ravineHit, tunnelLocal, tunnelWorld } from '../terrain/south';
 import { casterSpheres, southVisible, sunVector, type Caster } from '../util/expansionLocality';
 import { ropeTube } from './fence';
 import { FoliageBuilder } from './foliage';
@@ -89,10 +92,10 @@ function bw(a: number, c: number, y: number, out = new Vector3()): Vector3 {
   return out.set(B.north[0] + BF.ax * a + BF.cx * c, y, B.north[1] + BF.az * a + BF.cz * c);
 }
 
-/** the log's floor (the far route's level), its axis height, the glow's plane */
+/** the log's floor (the far route's level), its axis height, where the daylight comes in (the far end's mean) */
 const FLOOR_Y = SOUTH_FLOOR_Y;
 const AXIS_Y = FLOOR_Y + T.axisY;
-const DISC_A = T.deadEnd + 0.3;
+const LIGHT_A = T.length - 0.1;
 /** the shell, the rim and the hollow span this angle either side of the crown (the rest is under the floor / ground) */
 const PHI_MAX = (150 * Math.PI) / 180;
 function tw(a: number, c: number, y: number, out = new Vector3()): Vector3 {
@@ -104,12 +107,12 @@ function ring(a: number, phi: number, r: number, out = new Vector3()): Vector3 {
   return tw(a, r * Math.sin(phi), AXIS_Y + r * Math.cos(phi), out);
 }
 
-/** the glow's hue (linear) and the gain on a surface's albedo at `aGlow` 1 */
-const GLOW_TINT: RGB = [1.0, 0.62, 0.3];
-export const SOUTH_GLOW_GAIN = 30;
-/** the glow's fall-off along the hollow: 1 at the glow, ½ at `GLOW_REACH` m from it */
-const GLOW_REACH = 1.45;
-const glowAt = (a: number) => 1 / (1 + ((Math.max(0, DISC_A - a)) / GLOW_REACH) ** 2);
+/** the daylight's hue (linear: the sun off the cleft's ground and leaves) and the gain on a surface's albedo at `aGlow` 1 */
+const GLOW_TINT: RGB = [0.94, 0.92, 0.72];
+export const SOUTH_GLOW_GAIN = 12;
+/** the daylight's fall-off along the hollow: 1 at the far end, ½ at `GLOW_REACH` m from it */
+const GLOW_REACH = 1.6;
+const glowAt = (a: number) => 1 / (1 + ((Math.max(0, LIGHT_A - a)) / GLOW_REACH) ** 2);
 
 /**
  * A lit material that also emits per vertex: `aGlow` (0 … 1) × `uGlowTint` × the surface's own
@@ -160,7 +163,7 @@ export interface SouthBuild {
     triangles: { bridge: number; log: number; foliage: number; walls: number };
     /** the ravine walls' roots and vines near the bridge */
     walls: { roots: number; vines: number };
-    log: { mouth: [number, number, number]; floorY: number; axisY: number; glowA: number; walkEnd: number; endRoots: number };
+    log: { mouth: [number, number, number]; floorY: number; axisY: number; lightA: number; farEnd: [number, number]; walkEnd: number; barrierRoots: number; cleft: { roots: number; saplings: number; plants: number; trees: number; shrubs: number } };
     pointLights: 0;
   };
 }
@@ -615,13 +618,29 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     }
     return a;
   };
+  // the far end: snapped where the cleft opens behind the bank's face — a torn rim, a few long
+  // splinters standing out into the daylight on the upper side
+  const farRng = logRng.fork('far-end');
+  const farSplinters: { phi: number; half: number; len: number }[] = [];
+  for (let k = 0; k < 5; k++) {
+    const side = k % 2 === 0 ? 1 : -1;
+    farSplinters.push({ phi: side * (0.08 + farRng() * 1.2), half: 0.07 + farRng() * 0.1, len: 0.16 + farRng() * 0.34 });
+  }
+  const aFar = (phi: number) => {
+    let a = T.length - 0.16 + 0.08 * rimN.noise(phi * 2.4, 9.3) + 0.04 * rimN.noise(phi * 8.5, 5.1);
+    for (const sp of farSplinters) {
+      const d = Math.abs(phi - sp.phi) / sp.half;
+      if (d < 1) a += sp.len * Math.pow(1 - d, 1.5);
+    }
+    return a;
+  };
   const shellR = (phi: number, a: number) => {
     const arc = phi * T.outerRadius;
     const ridge = barkN.ridged(arc * 1.9, a * 0.2 + 7.7, 3);
     const fine = barkN.noise(arc * 7 + 3.3, a * 1.3);
     const lumps = barkN.fbm(arc * 0.35 + 20, a * 0.3, 2);
     const oval = 1 - 0.03 * Math.cos(2 * phi);
-    const peel = 1 - 0.035 * (1 - smoothstep(0, 0.45, a - aRim(phi)));
+    const peel = 1 - 0.035 * (1 - smoothstep(0, 0.45, a - aRim(phi))) - 0.03 * (1 - smoothstep(0, 0.4, aFar(phi) - a));
     return T.outerRadius * oval * peel + 0.06 * (ridge - 0.45) + 0.012 * fine + 0.05 * lumps;
   };
   const innerR = (phi: number, a: number) => {
@@ -644,7 +663,7 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     (u, v, out) => {
       const phi = phiAt(u);
       const r0 = aRim(phi);
-      const a = r0 + (T.length - r0) * Math.pow(v, 1.3);
+      const a = r0 + (aFar(phi) - r0) * Math.pow(v, 1.3);
       const r = shellR(phi, a);
       ring(a, phi, r, out.position);
       const arc = phi * T.outerRadius;
@@ -657,7 +676,7 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       const belly = lerp(0.62, 1, smoothstep(-0.9, 0.3, up));
       const shade = ao * vari * belly;
       const m = moss(phi, a);
-      const rimDamp = 1 - 0.08 * (1 - smoothstep(0, 0.6, a - r0));
+      const rimDamp = (1 - 0.08 * (1 - smoothstep(0, 0.6, a - r0))) * (1 - 0.08 * (1 - smoothstep(0, 0.5, aFar(phi) - a)));
       const barkC: RGB = [0.78 * shade * rimDamp, 0.74 * shade * rimDamp, 0.68 * shade * rimDamp];
       const mossC: RGB = [1.3 + 0.8 * shade, 2.3 + 1.3 * shade, 0.5 + 0.3 * shade];
       out.color = [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
@@ -712,14 +731,55 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     );
   }
 
-  // the hollow: heartwood walls from the rim to past the glow, faces toward the axis, emitting the glow's light
-  const HOLLOW_END = DISC_A + 0.35;
+  // the far rim: end grain across the wall at the snapped end, facing the cleft, and its splinters
+  const farRim = gridSurface(
+    (u, v, out) => {
+      const phi = phiAt(u);
+      const a0 = aFar(phi);
+      const rIn = innerR(phi, a0);
+      const rOut = shellR(phi, a0);
+      const tear = 0.06 * rimN.noise(phi * 6.3 + 11, v * 2 + 4.5) * Math.sin(Math.PI * v);
+      ring(a0 + tear, phi, lerp(rIn, rOut, v), out.position);
+      out.uv = [(phi * 1.9) / 1.5 + 0.41, v];
+      // weathered grey where the daylight and the rain reach it, browner deeper in the check
+      const d = lerp(0.42, 0.6, v) * (0.85 + 0.3 * rimN.noise(phi * 5 + 3, v * 3)) * (1 + 0.12 * rimN.noise(phi * 37, v * 2 + 6));
+      out.color = [d, d * 0.84, d * 0.7];
+    },
+    { cols, rows: 5 },
+  );
+  faceTowards(farRim, (p, o) => o.copy(p).add(new Vector3(TF_AX * 5, 0, TF_AZ * 5)));
+  endParts.push(farRim);
+  for (let k = 0; k < 9; k++) {
+    const phi = phiAt(0.15 + farRng() * 0.7);
+    const a0 = aFar(phi);
+    const rr = lerp(innerR(phi, a0) + 0.05, shellR(phi, a0) - 0.06, farRng());
+    const base = ring(a0 - 0.1, phi, rr);
+    const radial = ring(a0, phi, 1).sub(logAxis(a0)).normalize();
+    const dir = new Vector3(TF_AX, 0, TF_AZ).addScaledVector(radial, (farRng() - 0.4) * 0.5).normalize();
+    const len = 0.14 + farRng() * 0.36;
+    const r0 = 0.02 + farRng() * 0.03;
+    const tip = base.clone().addScaledVector(dir, len);
+    const mid = base.clone().lerp(tip, 0.5).addScaledVector(radial, (farRng() - 0.5) * 0.04);
+    const pale = 0.5 + farRng() * 0.3;
+    endParts.push(
+      sweepTube(new CatmullRomCurve3([base, mid, tip]), {
+        radius: (t) => r0 * (1 - 0.9 * t),
+        tubularSegments: 4,
+        radialSegments: 4,
+        uvMetres: 0.5,
+        color: (t) => [pale * (1 - 0.25 * t), pale * 0.84 * (1 - 0.25 * t), pale * 0.7 * (1 - 0.25 * t)],
+      }),
+    );
+  }
+
+  // the hollow: heartwood walls from rim to rim, faces toward the axis, emitting the daylight let in at the far end
   const hollowGlow: number[] = [];
   const hollow = gridSurface(
     (u, v, out) => {
       const phi = phiAt(u);
       const r0 = aRim(phi);
-      const a = r0 + (HOLLOW_END - r0) * Math.pow(v, 1.15);
+      const a1 = aFar(phi);
+      const a = r0 + (a1 - r0) * Math.pow(v, 1.1);
       const r = innerR(phi, a);
       ring(a, phi, r, out.position);
       const arc = phi * T.innerRadius;
@@ -727,15 +787,17 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       const fissure = barkN.ridged(arc * 2.4 + 40, a * 0.3 + 2, 2);
       const up = upness(phi);
       const ao = clamp(1.25 - 1.6 * (fissure - 0.4), 0.35, 1.3);
-      // damp and mossy by the mouth on the upper wall, pale dry checks deeper in, dark near the floor
+      // damp and mossy by both open ends on the upper wall, pale dry checks deeper in, dark near the floor
       const mouthM = (1 - smoothstep(0.1, 0.9, a - r0)) * smoothstep(-0.2, 0.5, up) * clamp(0.6 + 0.6 * barkN.noise(arc * 2, a * 2), 0, 1);
+      const farM = (1 - smoothstep(0.1, 1.1, a1 - a)) * smoothstep(-0.3, 0.4, up) * clamp(0.55 + 0.7 * barkN.noise(arc * 2.3 + 7, a * 2.2), 0, 1);
       const foot = lerp(0.62, 1, smoothstep(-0.8, -0.35, up));
       const d = ao * foot * (0.88 + 0.24 * barkN.noise(arc * 1.1 + 5, a * 0.9));
       const woodC: RGB = [0.95 * d, 0.72 * d, 0.52 * d];
       const mossC: RGB = [0.5, 0.7, 0.2];
-      out.color = [lerp(woodC[0], mossC[0], mouthM), lerp(woodC[1], mossC[1], mouthM), lerp(woodC[2], mossC[2], mouthM)];
+      const m = Math.max(mouthM, 0.85 * farM);
+      out.color = [lerp(woodC[0], mossC[0], m), lerp(woodC[1], mossC[1], m), lerp(woodC[2], mossC[2], m)];
     },
-    { cols, rows: 40 },
+    { cols, rows: 48 },
   );
   faceTowards(hollow, (p, o) => o.copy(tw(tunnelLocalA(p), 0, AXIS_Y)));
   {
@@ -748,24 +810,28 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
   }
 
   // the litter floor: level with the far route, dipping under the apron in front of the rim,
-  // heaped a little against the walls; walked paler down the middle
+  // heaped a little against the walls; walked paler down the middle as far as the roots, untrodden
+  // and heaped with blown leaves past them, sagging over the far rim onto the cleft's bed
+  const FLOOR_END = T.length + 0.06;
   const floorGeo = gridSurface(
     (u, v, out) => {
-      const a = lerp(-0.14, DISC_A + 0.12, v);
+      const a = lerp(-0.14, FLOOR_END, v);
       const hwF = lerp(1.1, 1.22, smoothstep(-0.1, 0.35, a));
       const c = lerp(-hwF, hwF, u);
-      const heap = 0.05 * smoothstep(0.75, 1.15, Math.abs(c));
+      const heap = 0.05 * smoothstep(0.75, 1.15, Math.abs(c)) + 0.05 * smoothstep(T.deadEnd, T.deadEnd + 0.8, a) * (0.6 + 0.4 * barkN.noise(c * 2.2 + 4, a * 1.7));
       const lumps = 0.012 * barkN.noise(c * 3 + 50, a * 3) + 0.006 * barkN.noise(c * 11, a * 11 + 3);
       const dip = -0.05 * (1 - smoothstep(-0.14, 0.02, a));
-      tw(a, c, FLOOR_Y + 0.02 + heap + lumps + dip, out.position);
+      const sag = -0.2 * smoothstep(T.length - 0.45, FLOOR_END, a);
+      tw(a, c, FLOOR_Y + 0.02 + heap + lumps + dip + sag, out.position);
       const [x, z] = tunnelWorld(a, c);
       out.uv = [x / 1.3, z / 1.3];
-      const path = 1 + 0.12 * (1 - smoothstep(0.2, 0.6, Math.abs(c)));
+      const trod = 1 - smoothstep(T.deadEnd - 0.5, T.deadEnd + 0.1, a);
+      const path = 1 + 0.12 * trod * (1 - smoothstep(0.2, 0.6, Math.abs(c)));
       const edge = lerp(1, 0.7, smoothstep(0.7, 1.15, Math.abs(c)));
       const d = path * edge * (0.9 + 0.2 * barkN.noise(c * 2 + 9, a * 2));
       out.color = [d, d * 0.95, d * 0.88];
     },
-    { cols: 14, rows: 36 },
+    { cols: 14, rows: 46 },
   );
   faceTowards(floorGeo, (p, o) => o.copy(p).add(new Vector3(0, 5, 0)));
   {
@@ -775,65 +841,6 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     floorGeo.setAttribute('aGlow', new Float32BufferAttribute(g, 1));
   }
 
-  // the glow closing the tube: a shallow bowl of warm light (its centre recessed), hottest at the middle
-  const glowRng = logRng.fork('glow');
-  const glowPhase = glowRng() * 10;
-  const disc = gridSurface(
-    (u, v, out) => {
-      const phi = u * TAU;
-      const rho = v;
-      ring(DISC_A + 0.5 * (1 - rho * rho), phi, rho * (T.innerRadius + 0.14), out.position);
-      out.uv = [u, v];
-      // a hot pale core over an amber ring that deepens toward the bore (the whole disc used to tone-map to one flat cream)
-      const wisp = 0.88 + 0.24 * barkN.noise(Math.cos(phi) * 2.4 * rho + glowPhase, Math.sin(phi) * 2.4 * rho);
-      const k = Math.pow(1 - rho, 2.1) * wisp;
-      const edge = smoothstep(0.55, 1, rho);
-      out.color = [lerp(1.35, 3.2, k) * (1 - 0.45 * edge), lerp(0.66, 2.6, k) * (1 - 0.55 * edge), lerp(0.24, 1.75, k) * (1 - 0.65 * edge)];
-    },
-    { cols: 40, rows: 10, closedU: true },
-  );
-  faceTowards(disc, (p, o) => o.copy(p).add(new Vector3(-TF_AX * 5, 0, -TF_AZ * 5)));
-  const glowMat = new MeshBasicMaterial({ vertexColors: true, side: DoubleSide, toneMapped: true });
-  owned.push(glowMat);
-  const discMesh = new Mesh(disc, glowMat);
-  discMesh.name = 'south-log-glow';
-  group.add(discMesh);
-
-  // haze in front of the glow: two soft warm veils (vertex alpha), inside the walk's end so the camera never crosses them
-  const hazeParts: BufferGeometry[] = [];
-  for (const [a, alpha] of [
-    [T.deadEnd - 0.08, 0.12],
-    [T.deadEnd + 0.12, 0.2],
-  ] as const) {
-    const card = gridSurface(
-      (u, v, out) => {
-        const phi = u * TAU;
-        ring(a, phi, v * (T.innerRadius - 0.02), out.position);
-        out.uv = [u, v];
-      },
-      { cols: 28, rows: 6, closedU: true },
-    );
-    const pos = card.attributes.position;
-    const rgba = new Float32Array(pos.count * 4);
-    const rows = 6;
-    const nu = 29;
-    for (let i = 0; i < pos.count; i++) {
-      const v = Math.floor(i / nu) / (rows - 1);
-      const k = Math.pow(1 - v, 1.6);
-      rgba[i * 4] = 1.6;
-      rgba[i * 4 + 1] = 1.05;
-      rgba[i * 4 + 2] = 0.55;
-      rgba[i * 4 + 3] = alpha * k;
-    }
-    card.setAttribute('color', new Float32BufferAttribute(rgba, 4));
-    hazeParts.push(card);
-  }
-  const hazeMat = new MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: DoubleSide, fog: false, toneMapped: true });
-  owned.push(hazeMat);
-  const hazeMesh = new Mesh(merge(hazeParts), hazeMat);
-  hazeMesh.name = 'south-log-haze';
-  hazeMesh.renderOrder = 2;
-  group.add(hazeMesh);
 
   // two pods at the mouth on short branch stubs out of the bark, framing the opening
   const mouthRng = logRng.fork('mouth-pods');
@@ -914,35 +921,384 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     const gain = 0.8 + mossRng() * 0.4;
     logTufts.push({ position: p, normal: n, rx: rad, rz: rad * (0.7 + mossRng() * 0.5), h: rad * (0.5 + mossRng() * 0.4), yaw: mossRng() * TAU, color: [0.36 * gain, 0.5 * gain, 0.11 * gain], uv: [(phi * T.outerRadius) / 1.6, a / 1.6], sink: rad * 0.5, seed: 1 + Math.floor(mossRng() * 1e6) });
   }
-  // the glow's foreground, past the walk's end: rootlets and a few leafy strands hanging from the
-  // bore's roof, dark against the light — they give the far end a depth the bare disc lacked
-  const endRng = logRng.fork('end-roots');
-  let endRoots = 0;
-  for (let k = 0; k < 8; k++) {
+  // the walk's end: roots of the bank's trees come down through cracks in the rotten roof in
+  // bunches — each strand clings along the wood from its crack, then hangs, wandering and
+  // forking; the thick ones reach the litter and splay into it, the thin ones end in the air in
+  // wisps of hair roots, and a runner crosses the bore high up, sagging under its rootlets — with
+  // gaps the daylight shows through. Nothing below head height nearer than
+  // `BARRIER_A0` (the walker's front stops ~0.3 m past the walk's end).
+  const BARRIER_A0 = T.deadEnd + 0.12;
+  const HEAD_Y = FLOOR_Y + 1.35;
+  const barrierRng = logRng.fork('root-barrier');
+  let barrierRoots = 0;
+  const UP = new Vector3(0, 1, 0);
+  const rootTube = (pts: Vector3[], r0: number, r1: number, tone: number, radial: number, gnarl = 0) =>
+    sweepTube(new CatmullRomCurve3(pts, false, 'centripetal'), {
+      radius: (t) => lerp(r0, r1, Math.pow(t, 0.7)),
+      tubularSegments: Math.max(5, Math.round(pts.length * 2.2)),
+      radialSegments: radial,
+      uvMetres: 0.35,
+      capEnd: true,
+      displace: gnarl > 0 ? (t, ang) => gnarl * r0 * (1 - 0.6 * t) * (0.6 * Math.sin(ang * 3 + t * 31 + r0 * 900) + 0.4 * Math.sin(t * 57 + r0 * 300)) : undefined,
+      color: (t) => [tone * (0.4 - 0.08 * t), tone * (0.33 - 0.06 * t), tone * (0.25 - 0.05 * t)],
+    });
+  /** `p` kept `margin` m inside the heartwood, off the litter, and past `BARRIER_A0` below head height */
+  const fitBore = (p: Vector3, margin: number) => {
+    const { a, c } = tunnelLocal(p.x, p.z);
+    const dy = p.y - AXIS_Y;
+    const r = Math.hypot(c, dy);
+    const rMax = innerR(Math.atan2(c, dy), a) - margin;
+    const k = r > rMax ? rMax / r : 1;
+    const y = Math.max(AXIS_Y + dy * k, FLOOR_Y + 0.03);
+    return tw(y < HEAD_Y ? Math.max(a, BARRIER_A0 + 0.04) : a, c * k, y, p);
+  };
+  /** a strand hanging on from `start`: 0.12 m steps, its sideways heading `drift` wandering by `wander` a step and dying away as it hangs */
+  const hang = (start: Vector3, drift: Vector3, len: number, wander: number, margin: number) => {
+    const pts = [start.clone()];
+    const p = start.clone();
+    const h = drift.clone();
+    for (let s = 0; s < len; s += 0.12) {
+      h.x += (barrierRng() - 0.5) * wander;
+      h.z += (barrierRng() - 0.5) * wander;
+      if (barrierRng() < 0.12) h.applyAxisAngle(UP, (barrierRng() - 0.5) * 2.4).multiplyScalar(1.6);
+      h.multiplyScalar(0.86);
+      p.addScaledVector(new Vector3(h.x, -1, h.z).normalize(), 0.12);
+      fitBore(p, margin);
+      pts.push(p.clone());
+      if (p.y <= FLOOR_Y + 0.031) break;
+    }
+    return pts;
+  };
+  const sideways = (len: number) => new Vector3(len, 0, 0).applyAxisAngle(UP, barrierRng() * TAU);
+  /** a wisp of hair roots off `at` */
+  const wisp = (at: Vector3, n: number, tone: number) => {
+    for (let j = 0; j < n; j++) {
+      const pts = hang(at, sideways(0.2 + barrierRng() * 0.5), 0.1 + barrierRng() * 0.28, 0.7, 0.01);
+      if (pts.length > 2) logParts.push(rootTube(pts, 0.0035 + barrierRng() * 0.002, 0.001, tone * 1.1, 3));
+    }
+  };
+  for (let b = 0; b < 7; b++) {
+    const side = b % 2 === 0 ? -1 : 1;
+    const phi0 = side * (0.05 + barrierRng() * 0.95);
+    const a0 = BARRIER_A0 + 0.08 + barrierRng() * 0.62;
+    const crack = ring(a0, phi0, innerR(phi0, a0) + 0.04);
+    const strands = 3 + Math.floor(barrierRng() * 4);
+    for (let s = 0; s < strands; s++) {
+      const thick = s === 0 && b < 5;
+      const r0 = thick ? 0.03 + barrierRng() * 0.026 : 0.006 + barrierRng() * 0.014;
+      const tone = 0.8 + barrierRng() * 0.4;
+      // along the wood from the crack (mostly along the bore: runs across it would ring the far
+      // opening like the ribs of a cage), then letting go
+      const phi1 = phi0 + (barrierRng() - 0.5) * 0.22;
+      const a1 = a0 + (barrierRng() - 0.5) * (thick ? 0.7 : 0.45);
+      const pts: Vector3[] = [crack.clone()];
+      for (let j = 1; j <= 2; j++) {
+        const f = j / 2;
+        const ph = lerp(phi0, phi1, f);
+        const aa = lerp(a0, a1, f);
+        pts.push(ring(aa, ph, innerR(ph, aa) - r0 - 0.004 - 0.04 * f * f));
+      }
+      const last = pts[pts.length - 1];
+      const drift = last.clone().sub(pts[pts.length - 2]).setY(0).normalize().multiplyScalar(0.5 + barrierRng() * 0.4);
+      const reach = thick || barrierRng() < 0.28;
+      const len = reach ? 4.5 : 0.35 + barrierRng() * 1.4;
+      pts.push(...hang(last, drift, len, thick ? 0.28 : 0.45, r0 + 0.02).slice(1));
+      if (pts.length < 5) continue;
+      const tip = pts[pts.length - 1];
+      if (reach && tip.y <= FLOOR_Y + 0.04) {
+        // splayed into the litter: a toe or two off the foot, diving in
+        const toes = thick ? 2 : 1;
+        for (let j = 0; j < toes; j++) {
+          const run = sideways(0.14 + barrierRng() * 0.22).add(new Vector3(TF_AX, 0, TF_AZ).multiplyScalar(0.06));
+          const q1 = tip.clone().addScaledVector(run, 0.5).add(new Vector3(0, 0.012, 0));
+          const q2 = tip.clone().add(run).add(new Vector3(0, -0.05, 0));
+          fitBore(q1, 0.02);
+          if (j === 0) pts.push(q1, q2);
+          else logParts.push(rootTube([tip.clone().add(new Vector3(0, 0.03, 0)), q1, q2], r0 * 0.4, r0 * 0.15, tone, 5));
+        }
+      }
+      logParts.push(rootTube(pts, r0, reach ? r0 * (thick ? 0.3 : 0.5) : 0.0015, tone, thick ? 7 : 4, thick ? 0.28 : 0));
+      barrierRoots++;
+      // forks off the hanging part, and hair roots where free strands end
+      const forks = thick ? 2 + Math.floor(barrierRng() * 2) : barrierRng() < 0.35 ? 1 : 0;
+      for (let j = 0; j < forks; j++) {
+        const i0 = 4 + Math.floor(barrierRng() * Math.max(1, pts.length - 7));
+        const at = pts[Math.min(i0, pts.length - 2)];
+        const fork = hang(at, sideways(0.5 + barrierRng() * 0.5), 0.3 + barrierRng() * 1.0, 0.5, r0 * 0.4 + 0.015);
+        if (fork.length < 3) continue;
+        logParts.push(rootTube(fork, r0 * (0.3 + barrierRng() * 0.2), 0.0012, tone, 4));
+        if (barrierRng() < 0.5) wisp(fork[fork.length - 1], 3, tone);
+      }
+      if (!reach) wisp(tip, 2 + Math.floor(barrierRng() * 3), tone);
+    }
+  }
+  // a runner high across the bore from wall to wall, skewed along it and sagging, with rootlets
+  // hanging off it (more than one, or one low, reads as a rail)
+  for (let k = 0; k < 1; k++) {
+    const aa = BARRIER_A0 + 0.3 + barrierRng() * 0.3;
+    const phiW = 0.4 + barrierRng() * 0.25;
+    const phiE = -(0.4 + barrierRng() * 0.25);
+    const aW = aa - 0.3 - barrierRng() * 0.2;
+    const aE = aa + 0.3 + barrierRng() * 0.2;
+    const pW = ring(aW, phiW, innerR(phiW, aW) + 0.03);
+    const pE = ring(aE, phiE, innerR(phiE, aE) + 0.03);
+    const sag = 0.18 + barrierRng() * 0.3;
+    const r0 = 0.012 + barrierRng() * 0.012;
+    const tone = 0.8 + barrierRng() * 0.35;
+    const pts: Vector3[] = [];
+    for (let j = 0; j <= 10; j++) {
+      const f = j / 10;
+      const q = pW.clone().lerp(pE, f);
+      q.y -= sag * 4 * f * (1 - f);
+      q.addScaledVector(new Vector3(TF_AX, 0, TF_AZ), 0.05 * Math.sin(f * 6.3 + k * 2.1));
+      if (j > 0 && j < 10) fitBore(q, r0 + 0.01);
+      pts.push(q);
+    }
+    logParts.push(rootTube(pts, r0, r0 * 0.6, tone, 5, 0.2));
+    barrierRoots++;
+    for (let j = 0; j < 4; j++) {
+      const at = pts[2 + Math.floor(barrierRng() * 7)];
+      const drop = hang(at, sideways(0.3), 0.2 + barrierRng() * 0.7, 0.5, 0.02);
+      if (drop.length > 2) logParts.push(rootTube(drop, r0 * 0.45, 0.0012, tone, 4));
+      if (barrierRng() < 0.4) wisp(drop[drop.length - 1], 2, tone);
+    }
+  }
+  // moss strands and a few leafy runners between the roots, and cushions where the thick ones meet the wood
+  for (let k = 0; k < 7; k++) {
+    const phi = (barrierRng() - 0.5) * 1.7;
+    const a0 = BARRIER_A0 + 0.05 + barrierRng() * 0.5;
+    const hook = ring(a0, phi, innerR(phi, a0) - 0.02);
+    logFoliage.addHangingVine(hook, Math.min(hook.y - (FLOOR_Y + 0.6), 0.4 + barrierRng() * 0.8), { drift: new Vector3((barrierRng() - 0.5) * 0.1, 0, 0.04), leafSize: 0.065, thickness: 0.007, amount: 0.1 });
+  }
+  for (let k = 0; k < 14; k++) {
+    const phi = (barrierRng() - 0.5) * 1.9;
+    const a0 = BARRIER_A0 + barrierRng() * 0.7;
+    const n = logAxis(a0).sub(ring(a0, phi, 1)).normalize();
+    const p = ring(a0, phi, innerR(phi, a0) - 0.01);
+    const rad = 0.03 + barrierRng() * 0.06;
+    const gain = 0.7 + barrierRng() * 0.3;
+    tuftSpecs.push({ position: p, normal: n, rx: rad, rz: rad * (0.7 + barrierRng() * 0.5), h: rad * 0.6, yaw: barrierRng() * TAU, color: [0.3 * gain, 0.42 * gain, 0.1 * gain], uv: [p.x / 1.6, p.z / 1.6], sink: rad * 0.4, seed: 1 + Math.floor(barrierRng() * 1e6) });
+  }
+
+  // ================= the cleft past the far end =================
+  // real ground behind the bank's face (terrain/south.ts `cleftWeight`), seen through the log:
+  // ferns and grass on its bed and banked at the walls' feet, roots out of the cut walls, runners
+  // off the rims, two white-bark saplings, a fallen branch, and a thicket where it runs out
+  const cleftRng = rng.fork('cleft');
+  const cleftFoliage = new FoliageBuilder(cleftRng.fork('foliage'), `${seed}/cleft`);
+  const cleftParts: BufferGeometry[] = [];
+  const K = T.cleft;
+  const CLEFT_END = T.mound.back + 0.8;
+  const cn = new Vector3();
+  const onGround = (a: number, c: number, lift = 0) => {
+    const [x, z] = tunnelWorld(a, c);
+    return new Vector3(x, terrain.height(x, z) + lift, z);
+  };
+  const cleftStats = { roots: 0, saplings: 0, plants: 0, trees: 0, shrubs: 0 };
+  // the bed and the walls' feet
+  for (let k = 0; k < 230; k++) {
+    const a = K.from + 0.55 + Math.pow(cleftRng(), 0.8) * (CLEFT_END - K.from - 0.55);
+    const c = (cleftRng() * 2 - 1) * 4.6;
+    const w = cleftWeight(a, c);
+    const roll = cleftRng();
+    const size = cleftRng();
+    if (w < 0.12) continue;
+    // ferns bank against the walls' feet, grass on the open bed, a clear middle for the view
+    const foot = 1 - Math.min(1, Math.abs(w - 0.45) / 0.4);
+    const mid = 1 - smoothstep(0.35, 1.1, Math.abs(c)) * (1 - smoothstep(T.length, T.length + 2.5, a) * 0.3);
+    if (cleftRng() < mid * 0.75) continue;
+    const p = onGround(a, c, -0.02);
+    terrain.normal(p.x, p.z, cn);
+    const up = cn.clone().lerp(new Vector3(0, 1, 0), 0.6).normalize();
+    if (roll < 0.25 + 0.45 * foot) cleftFoliage.addTuft(p, up, 0.32 + size * 0.34, 1, 0.05, [0.92, 1.0, 0.86]);
+    else if (roll < 0.93) cleftFoliage.addTuft(p, up, 0.16 + size * 0.22, 0, 0.06, [1.0, 1.02, 0.9]);
+    else cleftFoliage.addFlower(p, up, 0.05 + size * 0.03, 0.14 + size * 0.12, 0.04, roll < 0.965 ? [1.0, 0.96, 0.82] : [1.0, 0.82, 0.45]);
+    cleftStats.plants++;
+  }
+  // ferns leaning in at the far rim's foot, framing the opening from outside
+  for (const [a, c, s] of [
+    [T.length + 0.28, 1.25, 0.5],
+    [T.length + 0.2, -1.4, 0.56],
+    [T.length + 0.62, 1.7, 0.44],
+    [T.length + 0.5, -1.05, 0.38],
+  ] as const) {
+    const p = onGround(a, c, -0.03);
+    const lean = new Vector3(-TF_AX * 0.35, 1, -TF_AZ * 0.35).normalize();
+    cleftFoliage.addTuft(p, lean, s, 1, 0.05, [0.88, 0.98, 0.84]);
+    cleftStats.plants++;
+  }
+  // roots out of the cut walls: from under the plateau's turf, down and out over the face
+  for (let k = 0; k < 16; k++) {
     const side = k % 2 === 0 ? -1 : 1;
-    const phi = side * (0.22 + endRng() * 0.8);
-    const a0 = T.deadEnd + 0.04 + endRng() * (DISC_A - T.deadEnd - 0.16);
-    const top = ring(a0, phi, innerR(phi, a0) - 0.02);
-    const len = Math.min(top.y - (FLOOR_Y + 0.35), 0.3 + endRng() * 1.05);
-    const sx = (endRng() - 0.5) * 0.14;
-    const sz = (endRng() - 0.5) * 0.1;
-    const r0 = 0.011 + endRng() * 0.016;
-    if (len < 0.2) continue;
-    logParts.push(
-      sweepTube(new CatmullRomCurve3([top.clone().add(new Vector3(0, 0.05, 0)), top.clone().add(new Vector3(sx * 0.4, -len * 0.45, sz * 0.4)), top.clone().add(new Vector3(sx, -len, sz))]), {
-        radius: (t) => r0 * (1 - 0.8 * t) + 0.002,
-        tubularSegments: 6,
-        radialSegments: 5,
-        uvMetres: 0.5,
-        color: (t) => [0.34 - 0.08 * t, 0.27 - 0.06 * t, 0.2 - 0.05 * t],
+    const a = T.length + 0.4 + cleftRng() * (T.mound.crest + 1.5 - T.length);
+    // walk out from the axis to where the wall climbs past `y`
+    const want = 1.2 + cleftRng() * 1.8;
+    let c = 0.5;
+    let p = onGround(a, side * c);
+    while (c < 6 && p.y < want) {
+      c += 0.05;
+      p = onGround(a, side * c);
+    }
+    if (c >= 6) continue;
+    terrain.normal(p.x, p.z, cn);
+    const outward = new Vector3(cn.x, 0, cn.z).normalize();
+    const drop = 0.4 + cleftRng() * 1.1;
+    const r0 = 0.018 + cleftRng() * 0.03;
+    const pts: Vector3[] = [p.clone().addScaledVector(outward, -0.12)];
+    for (let j = 1; j <= 5; j++) {
+      const f = j / 5;
+      const q = p.clone().addScaledVector(outward, 0.12 * Math.sin(f * Math.PI) + 0.04).add(new Vector3(0, -drop * f, 0)).add(new Vector3(TF_AX, 0, TF_AZ).multiplyScalar(0.08 * Math.sin(f * 5 + k)));
+      // stay out of the wall: never under the ground there
+      const g = terrain.height(q.x, q.z);
+      if (q.y < g + 0.03) q.y = g + 0.03;
+      pts.push(q);
+    }
+    cleftParts.push(sweepTube(new CatmullRomCurve3(pts), { radius: (t) => r0 * (1 - 0.8 * t) + 0.002, tubularSegments: 10, radialSegments: 5, uvMetres: 0.35, capEnd: true, color: () => [0.42, 0.35, 0.27] }));
+    cleftStats.roots++;
+    // a runner or a tuft where it comes out
+    if (cleftRng() < 0.6) cleftFoliage.addHangingVine(p.clone().addScaledVector(outward, 0.02), 0.5 + cleftRng() * 1.2, { drift: outward.clone().multiplyScalar(0.06), leafSize: 0.07, thickness: 0.007, amount: 0.08 });
+    else cleftFoliage.addTuft(p.clone(), cn.clone(), 0.2 + cleftRng() * 0.16, 1, 0.05, [0.9, 1.0, 0.85]);
+  }
+  // runners hanging off both rims
+  for (let k = 0; k < 12; k++) {
+    const side = k % 2 === 0 ? -1 : 1;
+    const a = T.length + 0.3 + cleftRng() * (T.mound.crest - T.length + 1);
+    let c = 1;
+    let p = onGround(a, side * c);
+    while (c < 6.5 && p.y < 2.9) {
+      c += 0.05;
+      p = onGround(a, side * c);
+    }
+    if (c >= 6.5) continue;
+    terrain.normal(p.x, p.z, cn);
+    const outward = new Vector3(cn.x, 0, cn.z).normalize();
+    cleftFoliage.addHangingVine(p.clone().addScaledVector(outward, 0.05), 0.8 + cleftRng() * 1.6, { drift: outward.multiplyScalar(0.1), leafSize: 0.075, thickness: 0.008, amount: 0.1 });
+  }
+  // two white-bark saplings in the light, and a fallen branch across the bed
+  for (const [a, c, h] of [
+    [9.7, -1.05, 2.3],
+    [11.9, 1.45, 1.7],
+  ] as const) {
+    const base = onGround(a, c, -0.06);
+    const lean = new Vector3((cleftRng() - 0.5) * 0.25, 1, (cleftRng() - 0.5) * 0.25).normalize();
+    const pts: Vector3[] = [];
+    for (let j = 0; j <= 6; j++) {
+      const f = j / 6;
+      pts.push(base.clone().addScaledVector(lean, h * f).add(new Vector3(0.05 * Math.sin(f * 4.1 + a), 0, 0.05 * Math.cos(f * 3.3 + c))));
+    }
+    const r0 = 0.035 + cleftRng() * 0.015;
+    cleftParts.push(sweepTube(new CatmullRomCurve3(pts), { radius: (t) => r0 * (1 - 0.75 * t) + 0.004, tubularSegments: 12, radialSegments: 7, uvMetres: 0.4, color: (t) => [0.9 - 0.1 * t, 0.87 - 0.1 * t, 0.78 - 0.1 * t] }));
+    const curve = new CatmullRomCurve3(pts);
+    for (let j = 0; j < 5; j++) {
+      const f = 0.45 + j * 0.12;
+      const at = curve.getPoint(Math.min(f, 1));
+      const out = new Vector3(Math.cos(j * 2.4 + a), 0.35, Math.sin(j * 2.4 + a)).normalize();
+      const tip = at.clone().addScaledVector(out, 0.25 + 0.2 * (1 - f));
+      cleftParts.push(sweepTube(new CatmullRomCurve3([at, at.clone().lerp(tip, 0.5).add(new Vector3(0, 0.03, 0)), tip]), { radius: (t) => r0 * 0.35 * (1 - 0.8 * t) + 0.002, tubularSegments: 4, radialSegments: 4, uvMetres: 0.4, color: () => [0.8, 0.77, 0.68] }));
+      cleftFoliage.addLeafCluster(tip, 0.16 + 0.1 * (1 - f), 12, { size: 0.09, droop: 0.35, flatten: 0.45, tint: [0.95, 1.05, 0.8], tintSpread: 0.15 });
+    }
+    cleftFoliage.addLeafCluster(pts[6].clone().add(new Vector3(0, 0.08, 0)), 0.3, 22, { size: 0.1, droop: 0.3, flatten: 0.5, tint: [0.95, 1.05, 0.8], tintSpread: 0.15 });
+    cleftStats.saplings++;
+  }
+  {
+    const a0 = 8.5;
+    const p0 = onGround(a0 - 0.2, 1.6, 0.05);
+    const p1 = onGround(a0 + 0.35, 0.3, 0.07);
+    const p2 = onGround(a0 + 0.55, -1.3, 0.04);
+    const pts = [p0, p1, p2];
+    cleftParts.push(sweepTube(new CatmullRomCurve3(pts), { radius: (t) => 0.075 - 0.035 * t, tubularSegments: 14, radialSegments: 8, uvMetres: 0.45, capEnd: true, displace: (t, ang) => 0.006 * Math.sin(ang * 4 + t * 9), color: (t) => [0.5 - 0.05 * t, 0.44 - 0.04 * t, 0.36 - 0.04 * t] }));
+    for (let j = 0; j < 9; j++) {
+      const t = 0.08 + j * 0.1;
+      const q = new CatmullRomCurve3(pts).getPoint(t).add(new Vector3(0, 0.055, 0));
+      const rad = 0.035 + cleftRng() * 0.04;
+      tuftSpecs.push({ position: q, normal: new Vector3(0, 1, 0), rx: rad, rz: rad * 0.8, h: rad * 0.6, yaw: cleftRng() * TAU, color: [0.34, 0.47, 0.11], uv: [q.x / 1.6, q.z / 1.6], sink: rad * 0.4, seed: 1 + Math.floor(cleftRng() * 1e6) });
+    }
+  }
+  // the thicket where the cleft runs out behind the bank: young white-barks and hazel-like shrubs
+  // in the sun, so the view down the log ends in lit leaves and pale stems, not the plain's horizon
+  const thicketRng = cleftRng.fork('thicket');
+  const youngTree = (a: number, c: number, h: number, r0: number) => {
+    const base = onGround(a, c, -0.08);
+    const lean = new Vector3((thicketRng() - 0.5) * 0.3, 1, (thicketRng() - 0.5) * 0.3).normalize();
+    const ph = thicketRng() * 10;
+    const pts: Vector3[] = [];
+    for (let j = 0; j <= 8; j++) {
+      const f = j / 8;
+      pts.push(base.clone().addScaledVector(lean, h * f).add(new Vector3(Math.sin(f * 3.7 + ph), 0, Math.cos(f * 3.1 + ph)).multiplyScalar(0.09 * f)));
+    }
+    const trunk = new CatmullRomCurve3(pts);
+    cleftParts.push(
+      sweepTube(trunk, {
+        radius: (t) => r0 * (1 - 0.8 * t) * (1 + 0.3 * (1 - smoothstep(0, 0.07, t))) + 0.004,
+        tubularSegments: 18,
+        radialSegments: 8,
+        uvMetres: 0.4,
+        color: (t, ang) => {
+          // birch-pale bark with dark lenticel bands, darker and rougher at the foot
+          const mark = smoothstep(0.5, 0.85, Math.sin(t * h * 7.3 + ph) * Math.sin(ang * 2 + t * 13 + ph));
+          const d = (0.96 - 0.1 * t) * (1 - 0.6 * mark) * (1 - 0.4 * (1 - smoothstep(0, 0.1, t)));
+          return [d, d * 0.97, d * 0.88];
+        },
       }),
     );
-    endRoots++;
+    const branches = 5 + Math.floor(thicketRng() * 3);
+    for (let j = 0; j < branches; j++) {
+      const f = Math.min(0.42 + (j / branches) * 0.5 + thicketRng() * 0.05, 0.96);
+      const at = trunk.getPoint(f);
+      const ang = j * 2.4 + thicketRng() * 0.6;
+      const out = new Vector3(Math.cos(ang), 0.45 + thicketRng() * 0.4, Math.sin(ang)).normalize();
+      const len = (0.55 + thicketRng() * 0.5) * (1.25 - f) * h * 0.42;
+      const tip = at.clone().addScaledVector(out, len);
+      cleftParts.push(sweepTube(new CatmullRomCurve3([at, at.clone().lerp(tip, 0.5).add(new Vector3(0, 0.06 * len, 0)), tip]), { radius: (t) => r0 * 0.3 * (1 - 0.8 * t) + 0.002, tubularSegments: 5, radialSegments: 4, uvMetres: 0.4, color: () => [0.8, 0.78, 0.7] }));
+      cleftFoliage.addLeafCluster(tip, 0.32 + 0.25 * (1 - f) + thicketRng() * 0.12, 24 + Math.floor(thicketRng() * 12), { size: 0.11, droop: 0.4, flatten: 0.55, tint: [0.95, 1.05, 0.78], tintSpread: 0.18 });
+    }
+    cleftFoliage.addLeafCluster(pts[8].clone().add(new Vector3(0, 0.12, 0)), 0.55, 40, { size: 0.11, droop: 0.3, flatten: 0.6, tint: [0.95, 1.05, 0.78], tintSpread: 0.18 });
+    casters.push({ x: base.x, z: base.z, r: 1.6, y0: base.y, y1: base.y + h + 0.6, shadow: true });
+    cleftStats.trees++;
+  };
+  const shrub = (a: number, c: number, h: number) => {
+    const base = onGround(a, c, -0.02);
+    const lobes = 3 + Math.floor(thicketRng() * 3);
+    for (let j = 0; j < lobes; j++) {
+      const ang = thicketRng() * TAU;
+      const d = thicketRng() * 0.5;
+      const q = base.clone().add(new Vector3(Math.cos(ang) * d, h * (0.4 + 0.5 * thicketRng()), Math.sin(ang) * d));
+      cleftParts.push(sweepTube(new CatmullRomCurve3([base.clone().add(new Vector3(0, -0.05, 0)), base.clone().lerp(q, 0.5).add(new Vector3(0, 0.05, 0)), q]), { radius: (t) => 0.018 * (1 - 0.7 * t) + 0.002, tubularSegments: 4, radialSegments: 4, uvMetres: 0.4, color: () => [0.5, 0.44, 0.36] }));
+      cleftFoliage.addLeafCluster(q, 0.32 + thicketRng() * 0.26, 22 + Math.floor(thicketRng() * 12), { size: 0.11, droop: 0.25, flatten: 0.4, tint: [0.9, 1.0, 0.74], tintSpread: 0.2 });
+    }
+    cleftStats.shrubs++;
+  };
+  for (const [a, c, h, r0] of [
+    [12.3, -1.1, 4.6, 0.075],
+    [13.2, 1.5, 5.2, 0.085],
+    [11.8, 2.6, 3.7, 0.06],
+    [13.6, -2.6, 4.2, 0.07],
+  ] as const)
+    youngTree(a, c, h, r0);
+  for (const [a, c, h] of [
+    [11.5, -0.2, 1.3],
+    [12.0, 1.0, 1.6],
+    [12.9, -0.4, 1.9],
+    [11.3, -2.2, 1.2],
+    [12.6, 2.9, 1.5],
+    [13.5, 0.4, 2.1],
+    [12.1, -3.2, 1.4],
+  ] as const)
+    shrub(a, c, h);
+  // ferns and grass at the thicket's feet
+  for (let k = 0; k < 40; k++) {
+    const a = 11 + thicketRng() * 3;
+    const c = (thicketRng() * 2 - 1) * 3.6;
+    const p = onGround(a, c, -0.02);
+    terrain.normal(p.x, p.z, cn);
+    const up = cn.clone().lerp(new Vector3(0, 1, 0), 0.6).normalize();
+    if (thicketRng() < 0.6) cleftFoliage.addTuft(p, up, 0.34 + thicketRng() * 0.3, 1, 0.05, [0.9, 1.0, 0.84]);
+    else cleftFoliage.addTuft(p, up, 0.2 + thicketRng() * 0.2, 0, 0.06, [1.0, 1.02, 0.9]);
+    cleftStats.plants++;
   }
-  for (let k = 0; k < 3; k++) {
-    const phi = (k - 1) * 0.6 + (endRng() - 0.5) * 0.24;
-    const a0 = T.deadEnd + 0.1 + endRng() * 0.18;
-    logFoliage.addHangingVine(ring(a0, phi, innerR(phi, a0) - 0.03), 0.35 + endRng() * 0.6, { drift: new Vector3(0, 0, 0), leafSize: 0.075, thickness: 0.008, amount: 0.12 });
+  for (let a = T.length; a <= CLEFT_END; a += 2) {
+    const p = onGround(a, 0);
+    casters.push({ x: p.x, z: p.z, r: 4.2, y0: p.y - 0.5, y1: p.y + 3.4, shadow: true });
   }
 
   // ================= the ravine's walls =================
@@ -1110,8 +1466,9 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
   const bridgeFoliage = foliage.build(mats, 'south-bridge');
   const logFoliageMeshes = logFoliage.build(mats, 'south-log');
   const wallFoliageMeshes = wallFoliage.build(mats, 'south-ravine');
-  for (const m of [...bridgeFoliage, ...logFoliageMeshes, ...wallFoliageMeshes]) group.add(m);
-  const rootsGeo = rootParts.length ? merge(rootParts) : null;
+  const cleftFoliageMeshes = cleftFoliage.build(mats, 'south-cleft');
+  for (const m of [...bridgeFoliage, ...logFoliageMeshes, ...wallFoliageMeshes, ...cleftFoliageMeshes]) group.add(m);
+  const rootsGeo = rootParts.length + cleftParts.length ? merge([...rootParts, ...cleftParts]) : null;
   if (rootsGeo) add(rootsGeo, mats.bark, 'south-ravine-roots');
   const tufts = buildMossTufts([...tuftSpecs, ...logTufts], new Noise3D(logRng.fork('moss-noise')), { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
   if (tufts.count > 0) add(tufts.geometry, mats.capMoss, 'south-foot-moss', false, true);
@@ -1162,10 +1519,11 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
   let minDeck = Infinity;
   for (let a = 0; a <= BF.len; a += 0.05) minDeck = Math.min(minDeck, deckY(a));
   const bridgeTris = tri(planksGeo) + tri(ropeGeo) + tri(postGeo);
-  const logTris = tri(barkGeo) + tri(endsGeo) + tri(hollow) + tri(floorGeo) + tri(disc);
-  const foliageTris = [...bridgeFoliage, ...logFoliageMeshes].reduce((n, m) => n + tri(m.geometry), 0) + tufts.triangles;
+  const logTris = tri(barkGeo) + tri(endsGeo) + tri(hollow) + tri(floorGeo);
+  const foliageTris = [...bridgeFoliage, ...logFoliageMeshes, ...cleftFoliageMeshes].reduce((n, m) => n + tri(m.geometry), 0) + tufts.triangles;
   const wallTris = wallFoliageMeshes.reduce((n, m) => n + tri(m.geometry), 0) + (rootsGeo ? tri(rootsGeo) : 0);
   const mouth = tw(0, 0, FLOOR_Y);
+  const farEnd = tw(LIGHT_A, 0, FLOOR_Y);
   return {
     group,
     lanterns,
@@ -1183,7 +1541,16 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       podClearance: +podClearance.toFixed(3),
       triangles: { bridge: bridgeTris, log: logTris, foliage: foliageTris, walls: wallTris },
       walls: { roots: wallRoots, vines: wallVines },
-      log: { mouth: [+mouth.x.toFixed(2), +mouth.y.toFixed(3), +mouth.z.toFixed(2)], floorY: +FLOOR_Y.toFixed(3), axisY: +AXIS_Y.toFixed(3), glowA: DISC_A, walkEnd: T.deadEnd - 0.2, endRoots },
+      log: {
+        mouth: [+mouth.x.toFixed(2), +mouth.y.toFixed(3), +mouth.z.toFixed(2)],
+        floorY: +FLOOR_Y.toFixed(3),
+        axisY: +AXIS_Y.toFixed(3),
+        lightA: LIGHT_A,
+        farEnd: [+farEnd.x.toFixed(2), +farEnd.z.toFixed(2)],
+        walkEnd: T.deadEnd - 0.2,
+        barrierRoots,
+        cleft: cleftStats,
+      },
       pointLights: 0,
     },
   };

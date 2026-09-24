@@ -898,6 +898,13 @@ export const EXPANSION_SOUTH = {
    * and `halfBase` m off the axis — a broad forested rise the log burrows into (a bank ending at
    * the shoulders read as a lone cone from the bridge), uneven past the trough and eased out
    * before the ravine's lip (terrain/south.ts `bankHeight`).
+   *
+   * `cleft` (exp-south2): behind the face the bank is split along the axis from `from` m on — a
+   * sunken cleft `floor` m either side of the axis (widening from the log's end to the bank's
+   * back), its walls climbing to the plateau over `wall` m, its bed `lift` m over the plain — so
+   * the tube runs on under the face to its broken far end and opens into daylight: the forest
+   * beyond is what the walker sees through the log, past the roots that close the walk at
+   * `deadEnd`. The carve under the hollow runs on to `carveEnd`, the far end.
    */
   tunnel: {
     mouth: [4.25, 46.9] as [number, number],
@@ -907,8 +914,9 @@ export const EXPANSION_SOUTH = {
     innerRadius: 1.66,
     axisY: 1.28,
     deadEnd: 5.6,
-    carveEnd: 6.35,
+    carveEnd: 7.4,
     mound: { rise: 0.4, face: [6.2, 7.1] as [number, number], crest: 9.5, back: 13.0, shoulder: [2.3, 4.8] as [number, number], halfTop: 8.0, halfBase: 14.0, height: 4.0 },
+    cleft: { from: 7.05, floor: [1.7, 2.9] as [number, number], wall: 2.4, lift: 0.4 },
   },
   /**
    * The ravine's centreline (x, z, top half width W, depth D) west → east: a gorge closing to

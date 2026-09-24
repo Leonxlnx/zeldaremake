@@ -247,7 +247,11 @@ const ground = createGround(live, LAYOUT, {
     }
   }
   assert.ok(bankCells > 500, `the far bank rises round the log (${bankCells} half-metre cells)`);
-  assert.ok(south.bankHeight(...south.tunnelWorld(9, 0)) > 3, 'the bank stands over the log\'s end');
+  assert.ok(south.bankHeight(...south.tunnelWorld(7, 0)) > 3, 'the bank\'s face stands over the log\'s end');
+  // behind the face the cleft opens the far end onto daylight: its bed at `lift`, its walls standing
+  const bed = south.bankHeight(...south.tunnelWorld(9, 0));
+  assert.ok(Math.abs(bed - T.cleft.lift) < 0.05, `the cleft's bed behind the log sits at its lift (${bed.toFixed(2)})`);
+  for (const c of [4.5, -4.5]) assert.ok(south.bankHeight(...south.tunnelWorld(9, c)) > 3, `the cleft's wall stands ${c} m off the axis`);
 }
 
 // 4. the bridge
