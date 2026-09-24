@@ -277,7 +277,12 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     const cam = pose?.position ?? [0, 2, 0];
     const p: Vector3 | null = player?.position ?? null;
     const listener: Vec3 = p ? { x: p.x, y: p.y + 1.2, z: p.z } : { x: cam[0], y: cam[1], z: cam[2] };
-    const fwd = pose?.direction ?? [0, 0, -1];
+    // Which way the listener faces. In play mode that is Link, and his heading is a plain number
+    // the character system maintains — `cameraPose()` reads the camera's world MATRIX, which is
+    // only refreshed when the world draws, so with the bag open or under a harness that steps the
+    // simulation without rendering it hands back whichever way the camera was pointing at start-up.
+    const heading = player?.playMode?.() ? player.heading() : null;
+    const fwd = heading === null ? (pose?.direction ?? [0, 0, -1]) : [Math.sin(heading), 0, Math.cos(heading)];
     const fl = Math.hypot(fwd[0], fwd[2]) || 1;
     // one ground lookup a frame, shared by the bed's enclosure and the boots' surface
     const s = surfaceAt(listener.x, listener.z);
@@ -290,7 +295,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const at = fairyAt(fairyObjects[i], fairySlots[i]);
       if (at) fairyBuf.push(at);
     }
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy });
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -386,7 +391,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       canopy,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {
@@ -456,7 +461,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0) });
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);

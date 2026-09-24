@@ -117,6 +117,58 @@ Walking it (`walk-audio.json`), the field behaves: the plaza, the lawn, the main
 beside the girl all read 0; the north path rises to 0.51 as he goes up it; off the path on the
 forest floor it is 0.84–0.97; the log tunnel is 1 with its own enclosure on top.
 
+## The wind has a side now
+
+The canopy roll leans toward upwind — the air arrives from where the wind comes *from*, projected
+onto the listener's right (`windLeanFor`). It is a **lean, not a pan**: `WIND_LEAN` is 0.35, so the
+bed never collapses to one side, and it moves on a 1.2 s time constant, because turning your head
+should move the weather rather than flick it. Only the far roll leans; the leaf hush is in the trees
+all around you.
+
+Verified as arithmetic rather than by probe (`footsteps.test.mjs`): facing across an easterly wind
+leans left, the reverse leans right, head-on and from behind are exactly zero, a full turn traces one
+cycle reaching ±0.35 and never exceeding it, and a zero-length wind vector does not produce NaN. In
+play the value sits at −0.25 in the plaza, which is the correct sign and size for the world's wind
+direction and a listener facing north.
+
+The harness cannot turn Link on the spot to sweep it — `__ZR_PLAY__.place()` sets a rest facing that
+the next simulated frame overrides back to the held heading — so the route that tried to was removed
+rather than left in reporting a constant.
+
+**Which way the listener faces** changed with this. It was `__ZR__.cameraPose()`, which reads the
+camera's world MATRIX — refreshed only when the world draws. With the bag open, or under a harness
+that steps the simulation without rendering, it hands back whichever way the camera pointed at
+start-up, and every pan in the system (lanterns, fairies, now the wind) silently froze with it. In
+play mode the facing now comes from `player.heading()`, a plain number the character system keeps,
+which is also consistent with the listener POSITION already being Link's rather than the camera's.
+
+## The whole mix, measured as a mix
+
+Every change so far was A/B'd on its own. `balance.py` is new and asks the questions that only make
+sense about the finished thing: gated integrated loudness (ITU-R BS.1770 style, K-weighted with the
+−70 LUFS absolute and −10 LU relative gates), each stem's loudness against the mix's, true peak and
+clipping, and loudness range. The merged head against this branch, 60 s of the same walk:
+
+| | head | this branch |
+| --- | ---: | ---: |
+| mix | −30.3 LUFS | **−33.3 LUFS** |
+| loudness range | 5.3 LU | **10.5 LU** |
+| true peak | −13.6 dBFS | −14.0 dBFS, 0 samples clipped |
+| the forest under the mix | 12.1 LU | **9.1 LU** |
+| the footsteps under the mix | 8.5 LU | **5.5 LU** |
+| the music under the mix | 0.6 LU | 0.9 LU |
+| always-on 60–250 Hz | −42.1 | **−53.8** |
+
+Twice as dynamic, better balanced, the constant low end 11.7 dB down, nothing clipping.
+
+**One finding for the owner, not acted on.** The whole mix sits at −33.3 LUFS with 14 dB of unused
+headroom; a game master is normally around −20 to −23 LUFS. Everything in the build is therefore
+roughly 10–13 dB quieter than a player's volume knob expects. Raising the master is one constant
+(`createBuses`, `master.gain`) and would not disturb any of the balance above — but **level is the
+one axis the owner has commented on twice, most recently "LOWER THE WHITE NOISE", so this lane is
+not going to raise it unasked.** If he wants it, +6 dB puts the mix at −27.3 LUFS and still leaves
+the always-on 60–250 Hz band 5.7 dB below the head he was last playing.
+
 ## Tests
 
 `src/audio/music.test.mjs` is new: the rests fall inside `REST_SECONDS`, the duty cycle lands

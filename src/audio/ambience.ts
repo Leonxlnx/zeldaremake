@@ -49,6 +49,8 @@ export interface AmbienceState {
   enclosure?: number;
   /** 0 under open sky, 1 under a closed canopy (index.ts `surfaceAt`) */
   canopy?: number;
+  /** the direction the wind travels (unit xz, `wind.direction`) — the canopy roll comes from upwind */
+  windDir?: { x: number; z: number };
 }
 
 export interface Ambience {
@@ -68,6 +70,8 @@ export interface AmbienceStats {
   glints: number;
   /** fairies the listener can currently hear */
   fairiesNear: number;
+  /** where the canopy roll is sitting: −1 hard left, +1 hard right (the wind's lean) */
+  windLean: number;
 }
 
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
@@ -128,6 +132,24 @@ const ENCLOSURE_DUCK = 0.45;
 const CANOPY_CLOSE = 0.5;
 const CANOPY_HALL = 0.8;
 const CANOPY_FLUTTER = 0.7;
+/**
+ * How far the canopy roll leans toward upwind. Wind in a wood is not a point source, so this is a
+ * lean and not a pan: turn to face into it and the weight of the air moves across you, but the bed
+ * never collapses to one side. Only the far roll leans — the leaf hush is in the trees all around.
+ */
+export const WIND_LEAN = 0.35;
+
+/**
+ * Where the canopy roll sits for a listener facing `forward` while the wind travels along `dir`
+ * (both unit xz): −1 hard left … +1 hard right. The air arrives from where the wind comes FROM, so
+ * the source is upwind — behind its direction of travel — projected onto the listener's right.
+ */
+export function windLeanFor(forward: { x: number; z: number }, dir: { x: number; z: number }): number {
+  const rx = -forward.z;
+  const rz = forward.x;
+  const len = Math.hypot(dir.x, dir.z) || 1;
+  return Math.max(-1, Math.min(1, ((-dir.x * rx - dir.z * rz) / len) * WIND_LEAN));
+}
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
 /** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
@@ -182,7 +204,8 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const canopyLp = filter(ctx, 'lowpass', 620, 0.5);
   const canopyTilt = filter(ctx, 'lowshelf', 140, 0.7, -5);
   const canopyGain = gain(ctx, CANOPY_FLOOR);
-  bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(out);
+  const canopyPan = ctx.createStereoPanner();
+  bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(canopyPan).connect(out);
   const canopySend = gain(ctx, 0.3);
   canopyGain.connect(canopySend).connect(reverbSend);
   // the irregular wander is GATED by the swell. Ungated it was its own always-on floor — up to
@@ -230,7 +253,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
-  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0 };
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
   /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
@@ -566,6 +589,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, 0.35);
     out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
     canopySend.gain.setTargetAtTime(0.3 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
+    // the roll leans upwind: the air arrives from where the wind comes FROM, which is behind its
+    // direction of travel. Slow (1.2 s) — turning your head should move the weather, not flick it.
+    if (s.windDir) {
+      counts.windLean = windLeanFor(s.forward, s.windDir);
+      canopyPan.pan.setTargetAtTime(counts.windLean, t, 1.2);
+    }
     hushSend.gain.setTargetAtTime(0.2 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
   };
 
