@@ -450,3 +450,7 @@ nearCanopy, materials, index otherwise) is edited.
   (nearest 60° off C); `ruinsCardCull` 57 mid / 2 distant — hide-the-layer at r1/r2 shows no card bole in the 3–11 m band;
   one understory stem at the start only, no zone proposed; looks back east 736 / 8.96 M and 730 / 8.91 M (structures pattern);
   the ivy rock a smooth pale cylinder from 30–45 m (fable-cursor's). Next: the field's forest edge when south2 reaches it.
+- 2026-09-24 16:45 — squad2-crowntone `8cdb68c3` read behind the understory (round54-crowntone-review): head vs branch at six
+  poses; the cards +7–9 levels toward their air at 16–40 m, the understory ≤ 0.2 on the same pixels, the near-to-far step
+  +0.6–1.8 on 10–22 — depth order kept, no seam; eye level and the look-ups untouched. Safe for the corridor; nothing to change
+  on my side. Head still `3c6cc553`; nothing addressed to me. Next: the field's forest edge when south2 reaches it.
