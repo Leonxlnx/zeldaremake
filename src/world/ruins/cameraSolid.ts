@@ -5,8 +5,9 @@
  *  - the rock as built: the cliff, the ivy rock, the slab bridge and its pile (the cliff builder's
  *    geometry), and the gate boulders (as balls);
  *  - the masonry the walker never stands on: the terrace block's outer faces and the retaining wall
- *    up to UNDER_TOP under the walked tops, the parapet with its posts and finials, the arch's ring
- *    and pendant, the colonnade's lintel, the broken arch's piers and surviving ring.
+ *    up to UNDER_TOP under the walked tops, the ruined parapet on the terrace section's wall top, the
+ *    parapet with its posts and finials, the arch's ring and pendant, the colonnade's lintel, the
+ *    broken arch's piers and surviving ring.
  * The walked surfaces (paving, treads, the outcrop) stay out: the camera's lift keeps it over the
  * character's ground already, and a shell there would pull it in whenever it stood low behind Link.
  * The columns are slim (`ruinsColumnBlockers`, published with the fallen pieces: the camera refuses
@@ -98,6 +99,9 @@ export function buildRuinsCameraSolid(rock: BufferGeometry, ground: Ground): Rui
 
   // the retaining wall under the terrace's and the outcrop's walked tops, the parapet over it
   fillBox(W.x0, T.x1, bottom, top, W.z - W.half, W.z + W.half);
+  // the terrace section's ruined parapet on the wall's outer half (masonry.ts: blocks up to 0.62 m
+  // over the paving, some lost; the gaps are filled too)
+  fillBox(W.x0, T.x1 - 0.4, top, T.y + 0.62, W.z + W.half - 0.44, W.z + W.half - 0.02);
   fillBox(T.x1, W.x1, bottom, R.platform.y - UNDER_TOP, W.z - W.half, W.z + W.half);
   const base = R.platform.y - 0.02;
   fillBox(Math.min(P.x0, P.x1), Math.max(P.x0, P.x1), base, base + P.height, PARAPET_Z - P.half, PARAPET_Z + P.half);
