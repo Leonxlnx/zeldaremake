@@ -176,7 +176,9 @@ test('below the gust knee the wind layers are silent, not faint', () => {
 
 test('a full gust is louder than the constant bed it replaced', () => {
   const { ctx, amb } = bed();
-  amb.update(1, { gust: 1, listener: LISTENER, forward: NORTH, pods: [] });
+  // under the crowns: the whole gust term. The roll is the leaves OVERHEAD, so its level is the
+  // canopy's share of them (CANOPY_SHARE) — see the open-sky half of this in the next test.
+  amb.update(1, { gust: 1, listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
   const full = gains(ctx);
   assert.ok(full.some((v) => Math.abs(v - (A.CANOPY_FLOOR + A.CANOPY_GUST)) < 1e-9), 'the canopy roll should reach its floor plus the whole gust term');
   assert.ok(full.some((v) => Math.abs(v - (A.HUSH_FLOOR + A.HUSH_GUST)) < 1e-9), 'so should the leaf hush');
@@ -187,6 +189,28 @@ test('a full gust is louder than the constant bed it replaced', () => {
     assert.ok(v >= last, 'the swell must not fall as the wind rises');
     last = v;
   }
+});
+
+test('the leaf roll knows whether there is a roof over it', () => {
+  // The crowns used to change only a filter and a reverb send. Measured standing still at one spot
+  // with the same seed and the canopy forced to 0, 0.5 and 1, that moved the bed 0.8 dB rms across
+  // the whole range of the term — so the roll was the same level in the middle of a paved clearing
+  // as under a closed roof of leaves, and walking out of the north corridor into the clearing
+  // sounded identical at both ends. A filter cannot take away what is not there.
+  const roll = (canopy) => {
+    const { ctx, amb } = bed();
+    amb.update(1, { gust: 1, listener: LISTENER, forward: NORTH, pods: [], canopy });
+    return Math.max(...gains(ctx).filter((v) => v <= A.CANOPY_FLOOR + A.CANOPY_GUST + 1e-9));
+  };
+  const under = roll(1);
+  const open = roll(0);
+  assert.ok(open < under, 'fewer leaves overhead must be less leaf sound');
+  const dB = 20 * Math.log10(under / open);
+  assert.ok(dB > 3.5, `stepping into the open drops the roll ${dB.toFixed(1)} dB — under four is not an arrival`);
+  assert.ok(dB < 9, `${dB.toFixed(1)} dB is a gate, not a share: an open place is still ringed by trees you can hear`);
+  assert.ok(Math.abs(roll(1) - (A.CANOPY_FLOOR + A.CANOPY_GUST)) < 1e-9, 'under a full roof the roll is unchanged from before this term existed');
+  // and it only ever removes
+  for (const c of [0, 0.25, 0.5, 0.75, 1]) assert.ok(roll(c) <= A.CANOPY_FLOOR + A.CANOPY_GUST + 1e-9, `an open sky must not make the forest louder (canopy ${c})`);
 });
 
 test('no oscillator holds a tone under the bed', () => {

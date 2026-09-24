@@ -99,6 +99,22 @@ export const LANTERN_CROWD_SHARE = 0.2;
 export const GUST_KNEE = 0.22;
 export const CANOPY_FLOOR = 0.0003;
 export const CANOPY_GUST = 0.055;
+/**
+ * How much of the leaf roll is the crowns **directly overhead**, as against the ring of trees round
+ * any open place.
+ *
+ * Until now the roll did not know: `canopy` closed a filter and lifted the hall, and the level was
+ * the same standing under a closed roof of leaves as standing in the middle of a paved clearing.
+ * Measured, that filter moves the bed 0.8 dB across the whole range of the term, so the crowns'
+ * only audible contribution was nothing at all — and walking the north corridor out into the
+ * clearing, the one arrival in that half of the world, sounded identical at both ends.
+ *
+ * A roof of leaves is most of what you hear when the wind moves and you are under it. In the open
+ * you still hear the ring around you, which is why this is a share and not a gate: 0.55 of the roll
+ * survives with no crowns overhead. It only ever removes — an open sky cannot make the forest
+ * louder — and the forest floor, where canopy is ~1, is unchanged to the digit.
+ */
+export const CANOPY_SHARE = 0.45;
 export const HUSH_FLOOR = 0.00008;
 export const HUSH_GUST = 0.02;
 /** 0 below the knee, 1 at a full gust — every continuous layer's level and modulation rides this */
@@ -130,6 +146,21 @@ const ENCLOSURE_DUCK = 0.45;
  * leaves is a hint of the tunnel's wood, not the same thing): at 1 the bed's top sits near 4 kHz.
  * Under the crowns the air is also more reverberant and the leaves overhead move more often — in
  * the open plaza you hear the sky, in the north corridor you hear the wood close above you.
+ */
+/**
+ * How far the crowns close the bed's filter, as a fraction of the log tunnel's full enclosure.
+ *
+ * Left at 0.5 deliberately. Standing still at one spot with the same seed and the canopy forced to
+ * 0, 0.5 and 1 (`art/audio/2026-09-24-standing/term.mjs`), this filter moves the bed **0.8 dB rms
+ * end to end** and no band between 125 Hz and 8 kHz moves monotonically. The reason is arithmetic:
+ * 0.5 puts the cutoff at 18000 × (900/18000)^0.5 ≈ 4.0 kHz, and the bed's mean level at 4–8 kHz is
+ * −74 dB against −47 at its 1–2 kHz peak — there is nothing up there to take away. Raising it to
+ * 0.7 (cutoff 2.2 kHz) was tried and measured: 11 dB more removed at 4–8 kHz, where the bed sits at
+ * −75, and the rms end to end still 0.8 dB. Moving a tuned constant for an inaudible gain is churn,
+ * so it went back.
+ *
+ * What the crowns actually do to this bed is `CANOPY_SHARE`, below. A filter cannot take away what
+ * is not there.
  */
 const CANOPY_CLOSE = 0.5;
 const CANOPY_HALL = 0.8;
@@ -533,11 +564,14 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const update = (t: number, s: AmbienceState) => {
     const gust = Math.max(0, Math.min(1, s.gust));
     gustNow = gust;
+    // read before anything uses it: the roll's own level is the first thing that does, and it used
+    // to sit above this line and take the previous tick's roof
+    canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
     const sw = swell(gust);
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
-    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 + gorge * GORGE_WIND), t, 0.9);
+    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, 0.9);
     canopyMod.gain.setTargetAtTime(sw, t, 0.9);
     hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
     hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
@@ -600,7 +634,6 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // the log tunnel closing over the forest (index.ts surfaceAt: 0 at the mouth, 1 a metre and a
     // half in), geometric in frequency so the change is even as he walks in
     const enc = Math.max(0, Math.min(1, s.enclosure ?? 0));
-    canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
     // the crowns close the same filter part of the way and hand more of the bed to the hall; only
     // the tunnel's wood ducks the level, because only the tunnel puts something between him and it
     const closed = Math.max(enc, canopyNow * CANOPY_CLOSE);
