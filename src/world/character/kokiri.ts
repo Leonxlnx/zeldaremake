@@ -869,10 +869,56 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
     flap.applyMatrix4(_m4.makeTranslation(-side * p.hipHalfWidth, 0, 0));
     part(thigh, flap, tunic, 'kid-tunic-flap');
   }
-  // leather belt at the waist with a small square buckle at the front
+  // leather belt (lane 7, owner 23:00 JOB 7 "the belt"): a flat strap, 3 cm tall and 6 mm thick, on
+  // the waist's oval — stitched along both edges and burnished at them on the strap canvas — passing
+  // through a square buckle frame at the front with its tongue, the tail hanging a hand below the
+  // buckle. Round 48's torus and plate read as a rubber ring at 2 m.
   const y = hl(0.555);
-  part(rig.hips, place(new TorusGeometry(0.104, 0.015, 8, 26), 0, y, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), kidMat('belt', KID.belt), 'kid-belt', false);
-  part(rig.hips, merge([place(new BoxGeometry(0.036, 0.03, 0.008), 0, y, 0.088), place(new BoxGeometry(0.006, 0.03, 0.01), 0, y, 0.09)]), kidMat('buckle', KID.buckle, 0.6), 'kid-buckle', false);
+  const strap = ovalLathe([[0.106, y - 0.015], [0.106, y + 0.015], [0.1, y + 0.015], [0.1, y - 0.015]], { segments: 26, scaleZ: 0.8 });
+  const tail = place(new BoxGeometry(0.022, 0.07, 0.005), 0.03, y - 0.032, 0.088, [0, 0, 0.22]);
+  part(rig.hips, merge([strap, tail]), beltMaterial(), 'kid-belt', false);
+  const bar = 0.005;
+  const bz = 0.089;
+  part(
+    rig.hips,
+    merge([
+      place(new BoxGeometry(0.038, bar, 0.007), 0, y + 0.0135, bz),
+      place(new BoxGeometry(0.038, bar, 0.007), 0, y - 0.0135, bz),
+      place(new BoxGeometry(bar, 0.032, 0.007), -0.0165, y, bz),
+      place(new BoxGeometry(bar, 0.032, 0.007), 0.0165, y, bz),
+      // the tongue, off-centre where it lies over the strap's end
+      place(new BoxGeometry(0.0035, 0.03, 0.005), -0.004, y, bz + 0.002),
+    ]),
+    kidMat('buckle', KID.buckle, 0.6),
+    'kid-buckle',
+    false,
+  );
+}
+
+/**
+ * The strap canvas (lane 7): the lathe's v runs outer face (0–⅓) → top edge → inner face, so the
+ * outer third carries the leather — a fine grain, a burnished darker line at each edge and a row
+ * of pale stitches a few millimetres inside them, six per repeat and six repeats round the waist.
+ */
+function beltMaterial(): MeshStandardMaterial {
+  const id = 'belt-strap';
+  let m = mats.get(id);
+  if (!m) {
+    const tex = shadedCanvas(128, 48, KID.belt, 'kid-belt-strap', (u, v, x, y) => {
+      if (v > 0.34) return 0.78;
+      const f = v / 0.34;
+      const grain = 1 + 0.06 * (hash2(x * 0.37, y * 0.61) - 0.5);
+      const edge = f < 0.07 || f > 0.93 ? 0.72 : 1;
+      const stitchRow = Math.abs(f - 0.17) < 0.045 || Math.abs(f - 0.83) < 0.045;
+      const stitch = stitchRow && Math.sin(u * Math.PI * 2 * 6 + 0.4) > 0.25 ? 1.55 : 1;
+      return grain * edge * stitch;
+    });
+    tex.repeat.set(6, 1);
+    m = new MeshStandardMaterial({ map: tex, roughness: 0.72, metalness: 0 });
+    m.name = 'char-kid-belt-strap';
+    mats.set(id, m);
+  }
+  return m;
 }
 
 /**

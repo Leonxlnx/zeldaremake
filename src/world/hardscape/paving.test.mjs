@@ -217,15 +217,18 @@ test('V17: the main flight lightens foot → top; the other flights and the nosi
   // the bearing are unchanged, so the foot and the top tread are where they were — only the tread
   // count inside that envelope moved). Before that they were take-0123's audit values for the
   // 20-step flight, the first of which was [7.873, 0.27, 0.747].
+  // 2026-09-24 11:05 (fable-cursor: W02 counts 26 against its 16–20): the flight is 20 × 0.27 × 0.54 again in
+  // the same envelope, and these are take-0123's values once more — the stream is the flight's, so the
+  // 20-step noses come back exactly (the 26-step pins were [7.873, 0.207, 0.747], [6.952, 0.207, −0.435], …).
   const expected = [
-    [7.873, 0.207, 0.747],
-    [6.952, 0.207, -0.435],
-    [7.569, 0.418, -0.318],
-    [8.495, 0.618, 0.163],
-    [7.574, 0.618, -1.017],
-    [8.227, 0.83, -0.836],
-    [9.281, 1.034, -0.183],
-    [8.345, 1.034, -1.383],
+    [7.873, 0.27, 0.747],
+    [6.952, 0.27, -0.435],
+    [7.667, 0.543, -0.395],
+    [8.691, 0.805, 0.009],
+    [7.771, 0.805, -1.17],
+    [8.521, 1.079, -1.066],
+    [9.41, 1.342, -0.792],
+    [8.474, 1.342, -1.992],
   ];
   for (let i = 0; i < expected.length; i++) {
     for (let k = 0; k < 3; k++) assert.ok(Math.abs(main.b.treadNose[i][k] - expected[i][k]) <= 0.0015, `tread nose ${i} component ${k}: ${main.b.treadNose[i][k]} vs ${expected[i][k]}`);

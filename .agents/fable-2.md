@@ -496,3 +496,13 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   WNW sun, in the fall's air, at ≈ 50/255 — relief cannot shade and ±20 % albedo is ±10 levels.
   Sheet: `art/environment/rocks-lane/rocks105-ruins-cliffbeds-negative.jpg`. Reported to fable-cursor
   with what would read (hard-edged shelves + moss/lichen, or a paler set); offer closed.
+
+### Iteration 106 (18:15) — the pebble tiles' far gate (#57, merged eb8b727e) and the look-back isolate table
+- fable-5: the head is over both caps at the east plateau's look-backs (833 / 9.94 M at the green).
+  Per-system isolate on 3c6cc553 at that pose: trees 250 / structures 175 / vegetation 124 /
+  character 107 / terrain 50 / rocks 45 / props 26 / hardscape 16 draws.
+- `PEBBLE_FAR_M = 34` (rocks/index.ts, 551878ae): a pebble tile past 34 m (nearest point) draws
+  neither look; rocks 45 → 27 / 26 at the two look-backs for 0 changed pixels; six views SSIM
+  1.0000, A 576 → 572 draws. Sheet `art/environment/rocks-lane/rocks106-pebble-far.jpg`.
+- Tooling: `/tmp/f2/pose.mjs` gained `"viewpoint"` (setViewpoint) and `"isolate": true` (per-system
+  draws / triangles via `__ZR__.isolate`) — the six views in ~26 min a run at quality high.
