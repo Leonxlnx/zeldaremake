@@ -4,10 +4,13 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: idle
 branch: codex/walk-arms-sept24
-updated: 2026-09-24T20:07:01.888Z
+updated: 2026-09-24T20:27:07.417Z
 ---
 
 # Astra motion continuation
+
+Owner assigned a new30-second cinematic to their own Opus agent in Claude Code. Complete brief is docs/OPUS_CINEMATIC_HANDOFF.md: strong frame0, no text/UI, world wide/detail shots, actual rear-view walk/run/stair ascent, native capture and final export. Recording is delegated to owner’s Opus; Astra has not started another movie. Start from origin/codex/walk-arms-sept24 in a separate worktree to retain the8d7efa78 leg repair; origin/main still carries the older cinematic. Existing capture/audio tools and exact validation/known stair limits are linked. All accepted character work and final gameplay evidence are pushed; rejected local studies and unrelated edits remain local.
+
 
 Final leg delivery: implementation8a11e881 pushed on PR59; exact-source final forest replay2026-09-24T19-58-05-058Z-play-motion completes300ticks/150frames at1080p, walk→run→idle, no page errors or reach clamps. Final floor fix is included. Source, asset and bundle bound in natural-legs/game-receipt.json. Local preview61024 serves index-Cd1OjRhz.js. New heel recovery and smooth pelvis reviewed in actual runtime studio and forest frame sequences; original arm/hand repairs retained. Runtime/native tests and build/typecheck pass. Ready for Fable integration after required CI; immutable cinematic unchanged.
 
