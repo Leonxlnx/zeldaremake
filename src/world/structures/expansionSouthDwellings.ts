@@ -394,7 +394,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     // no builder pod: its eave pod would hang at chest height over the gallery's walk; the gallery's
     // own pods hang from the gate post and the lamp post, clear of it
     pods: 1,
-    dressing: { interior: true, fringe: true },
+    dressing: { interior: true, fringe: true, interiorLight: 0.3 },
     // herbs drying by the door (compass −100°), flowers on the ledge of the window that watches the bridge, a brow over it
     character: { flowerBox: true, awning: true, herbs: { deg: -67 } },
   };

@@ -137,9 +137,13 @@ export interface DistantHouseDef {
    *  - `buttresses`: two knotted bark buttress roots framing the doorway, feet on the platform;
    *  - `interior`: the door's dark back becomes a lit room glimpse — a warm lamp-lit back wall,
    *    a plank floor, a shelf and a second lamp deeper in, still under the fog's 2.0 exemption;
-   *  - `fringe`: hanging moss beards and leaf clumps along the cap's lobed edge.
+   *  - `fringe`: hanging moss beards and leaf clumps along the cap's lobed edge;
+   *  - `interiorLight`: the room lamp's reach as a factor (default 1). exp-south2: in the forest's
+   *    shade at 3–5 m a 0.7 m room lit at full reach saturates wall to wall and reads as one flat
+   *    card; the bridge keeper's hut takes 0.3, so the lamp stays the room's one bright point and
+   *    the corners and the floor fall away dark.
    */
-  dressing?: { doorBough?: { length: number; pods: number }; buttresses?: boolean; interior?: boolean; fringe?: boolean };
+  dressing?: { doorBough?: { length: number; pods: number }; buttresses?: boolean; interior?: boolean; fringe?: boolean; interiorLight?: number };
   /**
    * 2026-09-23 (owner review: "repeated bungalows need purposeful variation"): what a village
    * hut's people built for their own use, beyond its size and pods. Placed from the hut's own
@@ -1152,8 +1156,9 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         .addScaledVector(doorDir, shallowRoom ? -(ROOM_DEPTH - 0.06) : -ROOM_DEPTH * lampT)
         .addScaledVector(right, roomRng.range(-0.18, 0.18))
         .setY(floorY + roomH - 0.28);
+      const roomReach = def.dressing?.interiorLight ?? 1;
       const roomLit = (p: Vector3, n: Vector3, grain: number): RGB => {
-        const irr = lampIrradiance(roomLamp!, p, n);
+        const irr = lampIrradiance(roomLamp!, p, n) * roomReach;
         const lit = clamp(Math.pow(Math.min(1, irr * 0.36), 0.75) * grain, 0, 1);
         return mix(REVEAL_DARK, REVEAL_WOOD, lit);
       };
