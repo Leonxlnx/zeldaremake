@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-24T03:55:00Z
+updated: 2026-09-24T04:30:00Z
 ---
 
 # fable-3 — work log
@@ -205,7 +205,11 @@ needs its own lid opening, not the girls' with the lashes thinned.
 Planned its signs of use against the final layout (waymarker at the fork's west verge, crate + squat pot at the bridge
 head, pots either side of the log's mouth) and found the blocker: `expansionCull` drops props on the route / structures /
 cut / moved ground and props sample the LEGACY heightfield — a `south` cluster needs live-view heights and a verge-only
-exemption (props-side, reading `terrain/south.ts`). INBOX 03:55 with the plan; building when `exp-south` lands. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+exemption (props-side, reading `terrain/south.ts`). INBOX 03:55 with the plan; building when `exp-south` lands.
+04:20–04:30 UTC: the head moved to `ad4d5537` (the owner-23:00 squad round; fable-2's tracked `node_modules` link accident
+fixed — I add paths explicitly, never `-A`; my worktree links were never staged). My branch not in that round → merged the
+head into it (`6d28ad46`; INBOX conflict resolved by rebuilding both note lists newest-first, 185 notes), build + 119 tests
+green. INBOX 04:30: merge-ready with the two JOB 7 landings. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
