@@ -138,10 +138,13 @@ export interface DistantHouseDef {
    *  - `interior`: the door's dark back becomes a lit room glimpse — a warm lamp-lit back wall,
    *    a plank floor, a shelf and a second lamp deeper in, still under the fog's 2.0 exemption;
    *  - `fringe`: hanging moss beards and leaf clumps along the cap's lobed edge;
-   *  - `interiorLight`: the room lamp's reach as a factor (default 1). exp-south2: in the forest's
-   *    shade at 3–5 m a 0.7 m room lit at full reach saturates wall to wall and reads as one flat
-   *    card; the bridge keeper's hut takes 0.3, so the lamp stays the room's one bright point and
-   *    the corners and the floor fall away dark.
+   *  - `interiorLight`: the reach of the room's lamp and of the door reveal's lamp as a factor
+   *    (default 1; with `interior` only). exp-south2: in the forest's shade at 3–5 m a 0.7 m room lit
+   *    at full reach saturates wall to wall and reads as one flat card, and a reveal lit at full
+   *    reach in front of a dim room reads as a flat beige arch (the keeper's hut at 0.3: walls and
+   *    jambs one band of lit wood, 3–4× the bark beside it); the bridge keeper's hut takes 0.1, so
+   *    the lamp stays the room's one bright point, the jambs stay dark wood and the corners and the
+   *    floor fall away dark.
    */
   dressing?: { doorBough?: { length: number; pods: number }; buttresses?: boolean; interior?: boolean; fringe?: boolean; interiorLight?: number };
   /**
@@ -1060,6 +1063,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const doorBase = wallSurface(aDoor, floorY + 0.02, new Vector3());
     const doorLamp = wallSurface(aDoor + (-toDoor * DOOR_LAMP_X) / R, floorY + DOOR_LAMP_H * doorH, new Vector3()).addScaledVector(doorDir, -LAMP_DEPTH * DOOR_DEPTH);
     const doorSplaySlope = DOOR_SPLAY / DOOR_DEPTH;
+    const lampReach = def.dressing?.interior ? (def.dressing.interiorLight ?? 1) : 1;
     const doorTunnel = gridSurface(
       (u, v, out) => {
         const e = doorEdge(u);
@@ -1069,7 +1073,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         _n.copy(doorTangent).multiplyScalar(-e.nx);
         _n.y -= e.ny;
         _n.addScaledVector(doorDir, doorSplaySlope).normalize();
-        out.color = revealTint(lampIrradiance(doorLamp, out.position, _n), doorGrain(u * TAU));
+        out.color = revealTint(lampIrradiance(doorLamp, out.position, _n) * lampReach, doorGrain(u * TAU));
       },
       { cols: 24, rows: 4 },
     );
@@ -1079,7 +1083,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         wallSurface(aDoor + lerp(-half, half, u) / R, floorY + 0.015, out.position).addScaledVector(doorDir, -v * DOOR_DEPTH);
         out.uv = [u * doorW, (v * DOOR_DEPTH) / 1.6];
         _n.set(0, 1, 0);
-        out.color = revealTint(lampIrradiance(doorLamp, out.position, _n), 0.8);
+        out.color = revealTint(lampIrradiance(doorLamp, out.position, _n) * lampReach, 0.8);
       },
       { cols: 2, rows: 2 },
     );
@@ -1156,9 +1160,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         .addScaledVector(doorDir, shallowRoom ? -(ROOM_DEPTH - 0.06) : -ROOM_DEPTH * lampT)
         .addScaledVector(right, roomRng.range(-0.18, 0.18))
         .setY(floorY + roomH - 0.28);
-      const roomReach = def.dressing?.interiorLight ?? 1;
       const roomLit = (p: Vector3, n: Vector3, grain: number): RGB => {
-        const irr = lampIrradiance(roomLamp!, p, n) * roomReach;
+        const irr = lampIrradiance(roomLamp!, p, n) * lampReach;
         const lit = clamp(Math.pow(Math.min(1, irr * 0.36), 0.75) * grain, 0, 1);
         return mix(REVEAL_DARK, REVEAL_WOOD, lit);
       };
