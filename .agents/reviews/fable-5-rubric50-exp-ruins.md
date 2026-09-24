@@ -273,8 +273,10 @@ Three routes, the probes and the sweep (`walk-ruins-fdb4d338.json`); ten poses (
   elsewhere; SwiftShader's compile — a GPU's would be shorter but real). At 14:55 the site held 204 programs constant with the
   default warm-up; the new sheet and the stair are outside it.
 - **The fall's sheet in two layers** reads (the front core parting from the back as it falls — `fall-close` before / after, in kind).
-  **The rubble seating** I could not judge at my east-shore pose (the blocks are 10 m off); a pose in the shallows at the wall's foot
-  is the read, next tick. The boots on the stair: p95 1.4 cm, one frame at 20 cm (the landing's edge).
+  **The rubble seating holds** (`it118-rubble-seated-ba.jpg`, the camera over the pool at (−60, 0.85, 5.1) facing the wall's foot):
+  before, the block at the foot hangs with its underside open over the shelf's slope — a dark gap under its pool-side edge; after, it
+  reaches down to the bed with its top where it was. #22 = 4 for the loose stone. (A note on the pose: (−60, 0.8) is the pool proper —
+  Link stands at y −0.90 under a 0.55 m surface — the shelf is narrower than the layout's 1.6 m reads at this x.) The boots on the stair: p95 1.4 cm, one frame at 20 cm (the landing's edge).
 
 **Scores:** #46 ★ 3 → **4** (the look-back east under both caps; every pose of the site's own 83–660); **#44 3 → 2** (the stair's
 three pops and its 0.6 m headings — the site's older poses hold at 3). 175 stands at **175 / 200 with one check at 2** — not
