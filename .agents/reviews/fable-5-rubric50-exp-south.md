@@ -186,3 +186,25 @@ publishes none.
 
 **#44: 1 → 3** (no pop on the route, 16 / 16 on his check; the standing pull-in keeps it from 4). **#46 ★ stays 2** until
 the far bank's look-back is under. The dwellings' other checks as at 12:41.
+
+## Re-read of `exp-south2` @ `c2d8546d` (17:55 `de967e3d` the far bank's shadow and detail distance, part 1; 18:18 `c2d8546d` the keeper's doorway dimmed) — 18:31–18:42 UTC
+
+**The far-bank row of the bill moves** (`fable-5-lane10-lookback-costs.md`; `lookback-isolate-south2-c2d8546d.json`, Link at
+the south sill (4.06, −0.17, 42.8) facing the village): **structures 171 → 126 draws / 2.36 → 1.65 M** (−45 / −0.71 M at my pose;
+his probe −53 / −1.0 M at his) — the village's casters off and its tufts undrawn south of the bridge. The frame: **863 → 810
+draws / 10.48 → 9.48 M** (−53 / −1.0 M, his claim to the draw). Every other row is the head's (trees 256 / 3.60 M, vegetation
+142 / 2.15 M, character 123, terrain 50, rocks 46 — this branch does not carry the pebble gate yet; merged it will be ≈ 794).
+Two more poses on the far bank: the log's dead end looking back 760 isolate-sum / 9.91 M, the bridge's south end 769 / 9.00 M.
+**Still over both caps**, and what is left there is the head's: trees and vegetation are 398 of the 796 draws and 5.75 M of
+the 9.51 M — the trees' far tier and the vegetation's one-pack-per-LOD are the next two rows, not this lane's.
+
+**The keeper's doorway** (`it115-keeper-doorway-ba-c2d8546d.jpg`, `it115-keeper-poses-ba-c2d8546d.jpg`): from the bridge head
+(Link (5.2, −0.48, 29.4) facing the door) the doorway band's luma **0.385 → 0.303**, its p90 0.651 → 0.505, mean colour (126, 94, 56)
+→ (99, 73, 47); from the path (3.9, 27.4) 0.304 → 0.248. Before, the reveal and the room were one flat beige arch with a lamp disc;
+now the jambs read darker than the room and the band is a fifth dimmer. The room is still a pale plane with a lamp — no shelf
+or pot reads from the path, where the village's doors show theirs (the tall house's on `exp-east`, the trunk house's). **#27 = 3**
+(lit, the right value now; depth is what is left). Nothing else moves at the keeper (the gallery's frames 0.0 % changed but for
+the door).
+
+Scores now on the dwellings' own checks: #1 4, #6 3, #13 3, #18 3, #25 4, #27 3, #36 3, #41 4, #42 4, #43 3, **#44 3**, **#46 ★ 2**
+(the far bank 810 / 9.48 M — the head's trees and vegetation), #50 3.
