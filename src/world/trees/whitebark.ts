@@ -810,6 +810,8 @@ export interface RootPlacement {
   z: number;
   yaw: number;
   scale: number;
+  /** the toes' shape stream (default: the tree's index in the list) — a list with trees left out keeps the others' toes */
+  toeStream?: number;
 }
 
 /**
@@ -877,7 +879,7 @@ export function createWhiteBarkRoots(
     if (p.age === 'sapling') return;
     const segments = p.age === 'young' ? 8 : 12;
     const toes = whiteBarkToeSpecs(p);
-    const rng = baseRngFor(p).fork(`toe-shape-${i}`);
+    const rng = baseRngFor(p).fork(`toe-shape-${pl.toeStream ?? i}`);
     const frame: TreeFrame = { origin: new Vector3(pl.x, pl.y, pl.z), yaw: pl.yaw, scale: pl.scale, groundAt };
     for (const toe of toes) rootToe(wood, toe, frame, rootColor, rng, segments);
   });

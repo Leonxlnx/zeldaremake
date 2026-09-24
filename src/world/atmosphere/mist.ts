@@ -14,12 +14,14 @@
 import {
   Color,
   DoubleSide,
+  Group,
   InstancedBufferAttribute,
   InstancedBufferGeometry,
   Mesh,
   PlaneGeometry,
   Scene,
   ShaderMaterial,
+  Sphere,
   Vector2,
   Vector3,
   CustomBlending,
@@ -29,7 +31,10 @@ import {
   type Texture,
   type PerspectiveCamera,
 } from 'three';
+import { southBridgeFrame, EXPANSION_SOUTH, southRavineLine } from '../layout';
 import type { WorldContext } from '../system';
+import { getTerrain } from '../terrain/heightfield';
+import { southVisible } from '../util/expansionLocality';
 import { HEIGHT_FOG_DEFAULTS } from './heightfog';
 
 export interface MistVolume {
@@ -38,6 +43,8 @@ export interface MistVolume {
   sheets: number;
   /** tall, very thin mid-distance layers (see the curtain placements below) */
   curtains: number;
+  /** round 56: the ravine's pools (sheets, billboards) and whether they were drawn last frame */
+  south: { sheets: number; billboards: number; visible: () => boolean };
   /** `viewportSize` is the pixel size of the target the mist is rendered into */
   update(t: number, camera: PerspectiveCamera, depth: Texture | null, viewportSize: Vector2): void;
   dispose(): void;
@@ -336,11 +343,27 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
   cu.mesh.renderOrder = 2;
   scene.add(sh.mesh, up.mesh, cu.mesh);
 
+  // Round 56 (expansion-south): the ravine's own pools — sheets lying along the gorge a metre or
+  // three over its floor and uprights standing on the floor, every top kept ≥ 2 m under the
+  // lips (camera C, the one fixed frame that looks south, sees the far lip at 45 m over the near
+  // one and nothing below it). Seated on the LIVE ground (the legacy view has no ravine), from
+  // their own stream, and drawn only while the camera can see the locality (southVisible).
+  const south = createRavineMist(ctx);
+  const ssh = build(south.sheets, false, 0.44, [2, 6.5], [45, 100], [0.15, 1.0], [0.3, 0.8], 'mist-south-sheets');
+  const sup = build(south.uprights, true, 0.3, [2.5, 8], [45, 100], [0.2, 1.0], [0.32, 0.84], 'mist-south-billboards');
+  ssh.mesh.renderOrder = 0;
+  sup.mesh.renderOrder = 1;
+  const southGroup = new Group();
+  southGroup.name = 'mist-south';
+  southGroup.add(ssh.mesh, sup.mesh);
+  scene.add(southGroup);
+
   return {
     scene,
     billboards: uprights.length,
     sheets: sheets.length,
     curtains: curtains.length,
+    south: { sheets: south.sheets.length, billboards: south.uprights.length, visible: () => southGroup.visible },
     update(t, camera, depth, size) {
       shared.uTime.value = t;
       shared.tDepth.value = depth;
@@ -349,6 +372,7 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
       shared.uFar.value = camera.far;
       viewportSize.copy(size);
       shared.uWind.value.copy(ctx.wind.direction);
+      southGroup.visible = southVisible(camera, south.spheres);
     },
     dispose() {
       up.geo.dispose();
@@ -357,6 +381,77 @@ export function createMistVolume(ctx: WorldContext, sunDir: Vector3): MistVolume
       sh.mat.dispose();
       cu.geo.dispose();
       cu.mat.dispose();
+      ssh.geo.dispose();
+      ssh.mat.dispose();
+      sup.geo.dispose();
+      sup.mat.dispose();
     },
   };
+}
+
+/**
+ * The ravine's mist placements (layout `EXPANSION_SOUTH.ravine`): along the gorge from 26 m west
+ * to 26 m east of the bridge, a sheet every ~3.6 m (long along the gorge where it runs east–west,
+ * square in its bends — the sheets are axis-aligned) and an upright every ~4.5 m on the floor,
+ * plus the spheres the locality test reads.
+ */
+function createRavineMist(ctx: WorldContext): { sheets: Placement[]; uprights: Placement[]; spheres: Sphere[] } {
+  const rng = ctx.rng.fork('mist-south');
+  const live = getTerrain();
+  const line = southRavineLine();
+  const arc: number[] = [0];
+  for (let i = 1; i < line.length; i++) arc.push(arc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1]));
+  const B = EXPANSION_SOUTH.bridge;
+  const BF = southBridgeFrame();
+  const bx = B.north[0] + BF.ax * BF.len * 0.5;
+  const bz = B.north[1] + BF.az * BF.len * 0.5;
+  let sBridge = 0;
+  let best = Infinity;
+  line.forEach(([x, z], i) => {
+    const d = Math.hypot(x - bx, z - bz);
+    if (d < best) {
+      best = d;
+      sBridge = arc[i];
+    }
+  });
+  const at = (s: number) => {
+    let i = 1;
+    while (i < line.length - 1 && arc[i] < s) i++;
+    const f = Math.min(1, Math.max(0, (s - arc[i - 1]) / Math.max(arc[i] - arc[i - 1], 1e-6)));
+    const [x0, z0, w0, d0] = line[i - 1];
+    const [x1, z1, w1, d1] = line[i];
+    const tl = Math.hypot(x1 - x0, z1 - z0) || 1;
+    return { x: x0 + (x1 - x0) * f, z: z0 + (z1 - z0) * f, W: w0 + (w1 - w0) * f, D: d0 + (d1 - d0) * f, tx: (x1 - x0) / tl, tz: (z1 - z0) / tl };
+  };
+  const sheets: Placement[] = [];
+  const uprights: Placement[] = [];
+  const spheres: Sphere[] = [];
+  const s0 = Math.max(4, sBridge - 26);
+  const s1 = Math.min(arc[arc.length - 1] - 4, sBridge + 26);
+  for (let s = s0; s <= s1; s += 3.6) {
+    const p = at(s + rng.range(-0.8, 0.8));
+    if (p.D < 3) continue;
+    const floor = live.height(p.x, p.z);
+    const lift = rng.range(0.7, Math.min(3.4, p.D - 2.6));
+    const along = rng.range(8, 13);
+    const across = rng.range(4.5, 7.5);
+    const eastWest = Math.abs(p.tx) > 0.82;
+    const w = eastWest ? along : (along + across) * 0.5;
+    const h = eastWest ? across : (along + across) * 0.5;
+    sheets.push({ center: new Vector3(p.x, floor + lift, p.z), w, h, seed: rng(), tint: rng() });
+    spheres.push(new Sphere(new Vector3(p.x, floor + lift, p.z), Math.max(w, h) * 0.6));
+  }
+  for (let s = s0 + 1.5; s <= s1; s += 4.5) {
+    const p = at(s + rng.range(-1, 1));
+    if (p.D < 3.5) continue;
+    const off = rng.range(-0.8, 0.8);
+    const x = p.x - p.tz * off;
+    const z = p.z + p.tx * off;
+    const floor = live.height(x, z);
+    const h = Math.min(rng.range(3.6, 6.2), p.D - 2.2);
+    const w = rng.range(6, 10);
+    uprights.push({ center: new Vector3(x, floor - 0.15, z), w, h, seed: rng(), tint: rng() });
+    spheres.push(new Sphere(new Vector3(x, floor + h * 0.5, z), Math.max(w * 0.5, h * 0.6)));
+  }
+  return { sheets, uprights, spheres };
 }
