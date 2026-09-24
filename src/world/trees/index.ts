@@ -34,7 +34,7 @@ import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
 import { inExpansionNorth } from '../layout';
-import { groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
+import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
@@ -1832,12 +1832,20 @@ const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number
   // share one stream, so a zone appended here re-rolls none before it.
   { xMin: -8, xMax: 17, zMin: 46, zMax: 57, count: 4, live: true, spacing: 4.5, south: true },
   // 2026-09-24 (expansion-north): the grove above the ledge terrace (terrain/north.ts) — leafy trees
-  // beside its trail, round its shelf and under its decks, the band the card crowns leave
-  // (GROVE_CARD_WALK_M); `grove` zones keep each crown GROVE_UNDERSTORY_CLEAR_M off the walks, decks
-  // and houses and each stem within GROVE_UNDERSTORY_MAX_M of them
+  // beside its trail and round its shelf and decks, the band the card crowns leave
+  // (GROVE_CARD_WALK_M); `grove` zones keep each crown GROVE_UNDERSTORY_GROUND_M off the walkable
+  // ground and the trunk house, GROVE_UNDERSTORY_DECK_M off the raised decks and huts, and each stem
+  // within GROVE_UNDERSTORY_MAX_M of the walks
   { xMin: -14, xMax: 23, zMin: -111, zMax: -80, count: 16, live: true, spacing: 3.4, grove: true },
 ];
-const GROVE_UNDERSTORY_CLEAR_M = 1.0;
+/**
+ * The grove understory's crowns hang from 1.5–3 m (4.5–9 m trees, 1.8–4 m crowns): 1 m off the
+ * decks put their laminae across the play camera trailing Link on the veranda, so the raised decks
+ * and huts keep the crowns GROVE_UNDERSTORY_DECK_M off (the camera's trail); the ground walks
+ * GROVE_UNDERSTORY_GROUND_M, where a crown frames the trail without closing over it.
+ */
+const GROVE_UNDERSTORY_GROUND_M = 2.2;
+const GROVE_UNDERSTORY_DECK_M = 4.5;
 const GROVE_UNDERSTORY_MAX_M = 10;
 /** the 60–215 m layer's card crowns keep at least this far (m) off the grove's walks and decks — the mid grove's MID_WALK_MIN_M, where the cards hold */
 const GROVE_CARD_WALK_M = 11;
@@ -2441,10 +2449,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const scale = placeRng.range(0.85, 1.15);
         if (zone.grove) {
           const cr = understory[variant].params.crownRadius * scale;
-          const gw = groveWalkDistance(x, z);
-          if (gw < cr + GROVE_UNDERSTORY_CLEAR_M || gw > GROVE_UNDERSTORY_MAX_M) continue;
+          if (groveWalkDistance(x, z) > GROVE_UNDERSTORY_MAX_M) continue;
+          if (groveGroundDistance(x, z) < cr + GROVE_UNDERSTORY_GROUND_M || groveDeckDistance(x, z) < cr + GROVE_UNDERSTORY_DECK_M) continue;
           if (northGroveClear(x, z, understory[variant].params.trunkRadius * scale + 0.2)) continue;
-          if (northGroveHuts().some((h) => Math.hypot(x - h.x, z - h.z) < h.r + cr + GROVE_UNDERSTORY_CLEAR_M)) continue;
+          if (northGroveHuts().some((h) => Math.hypot(x - h.x, z - h.z) < h.r + cr + (h.id === 'house' ? GROVE_UNDERSTORY_GROUND_M : GROVE_UNDERSTORY_DECK_M))) continue;
         }
         const y = liveTerrain.height(x, z);
         if (coversWindow(x, y, z, variant, scale)) continue;
@@ -3402,7 +3410,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const groveUnderstory = understoryPlacements
     .filter((p) => p.z < -76 && inExpansionNorth(p.x, p.z))
     .map((p) => ({ x: p.x, z: p.z, cr: understory[p.variant].params.crownRadius * p.scale }));
-  const northGrove = { culled: [] as [number, number][], reseated: 0, understory: groveUnderstory.length, cardWalkM: GROVE_CARD_WALK_M };
+  const northGrove = { culled: [] as [number, number][], reseated: 0, understory: groveUnderstory.length, cardWalkM: GROVE_CARD_WALK_M, understoryGroundM: GROVE_UNDERSTORY_GROUND_M, understoryDeckM: GROVE_UNDERSTORY_DECK_M };
   {
     const reach = distantVariants.map((v) => {
       const pos = v.near.attributes.position;
