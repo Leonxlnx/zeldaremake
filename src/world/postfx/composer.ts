@@ -56,6 +56,7 @@ import {
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { perfRuntime } from '../../perfFlags';
 import { cullShadowCasters, type ShadowCullStats } from './shadowcull';
+import { farBankShadowRule } from '../util/farBankLocality';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { SCREEN_FAN, SHAFT_COLUMNS } from '../atmosphere/shafts';
 import {
@@ -1081,7 +1082,7 @@ export function createComposer(opts: ComposerOptions): Composer {
     const prevOnBeforeRender = scene.onBeforeRender;
     if (s.shadowCasterCull && renderer.shadowMap.enabled) {
       scene.onBeforeRender = () => {
-        casters.restore = cullShadowCasters(scene, camera, opts.sunDirection, SHADOW_CULL_MARGIN_M, shadowCull);
+        casters.restore = cullShadowCasters(scene, camera, opts.sunDirection, SHADOW_CULL_MARGIN_M, shadowCull, farBankShadowRule(camera.position));
       };
     } else shadowCull.tested = shadowCull.culled = 0;
     renderer.setRenderTarget(hdr);
@@ -1307,6 +1308,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       shadowCasterCull: settings.shadowCasterCull,
       shadowCastersTested: shadowCull.tested,
       shadowCastersCulled: shadowCull.culled,
+      /** of those, the small far casters the camera's locality turned off (util/farBankLocality.ts) */
+      shadowCastersCulledSmall: shadowCull.small ?? 0,
       shadowCullMarginM: SHADOW_CULL_MARGIN_M,
       /** stages switched off by the performance flags / auto quality (perfFlags.ts); all on as shipped */
       stagesEnabled: { ...perfRuntime().fx, soft: settings.softening && perfRuntime().fx.soft },

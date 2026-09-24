@@ -33,7 +33,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { FAR_BANK_ZONE, inFarBankZone, farBankDistance } = loadTs(path.join(here, 'farBankLocality.ts'));
+const { FAR_BANK_ZONE, FAR_BANK_SMALL_SHADOWS, inFarBankZone, farBankDistance, farBankShadowRule } = loadTs(path.join(here, 'farBankLocality.ts'));
 const { LAYOUT, EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS } = loadTs(path.join(here, '../layout.ts'));
 
 // the box was measured with the bridge's far sill at z 43.7 and the log's mouth at (4.25, 46.9):
@@ -69,6 +69,15 @@ test('the bridge north of its last 1.2 m, the dwellings and every fixed viewpoin
   assert.equal(inFarBankZone(W.centre[0], 2, W.centre[1]), false, 'the waystation');
   assert.ok(LAYOUT.viewpoints.length >= 6);
   for (const v of LAYOUT.viewpoints) assert.equal(inFarBankZone(v.position[0], v.position[1], v.position[2]), false, v.id);
+});
+
+test('the small-caster shadow distance applies inside the zone only, never at a fixed viewpoint', () => {
+  assert.equal(farBankShadowRule({ x: 4.8, y: 2.6, z: 43.6 }), FAR_BANK_SMALL_SHADOWS, 'the far-bank look-back');
+  assert.equal(farBankShadowRule({ x: 4.33, y: 1.3, z: 59.5 }), FAR_BANK_SMALL_SHADOWS, 'the cleft');
+  assert.equal(farBankShadowRule({ x: 4.0, y: 1.9, z: 37.0 }), undefined, 'on the bridge');
+  assert.equal(farBankShadowRule({ x: 4.8, y: FAR_BANK_ZONE.yMax + 0.1, z: 43.6 }), undefined, 'above the cap');
+  for (const v of LAYOUT.viewpoints) assert.equal(farBankShadowRule({ x: v.position[0], y: v.position[1], z: v.position[2] }), undefined, v.id);
+  assert.ok(FAR_BANK_SMALL_SHADOWS.minDistanceM >= 20 && FAR_BANK_SMALL_SHADOWS.maxRadiusM <= 2, 'a distance past the far bank, a radius for figures and small props');
 });
 
 test('farBankDistance: 0 for a box over the zone, the horizontal gap otherwise', () => {

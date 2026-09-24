@@ -108,4 +108,40 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
   restore2();
 }
 
+{
+  // the optional distance rule: a small caster beyond the distance is switched off even in view; a big
+  // one, or a small one nearer, is not; the stats count the rule's share; without a rule nothing changes
+  const scene = new THREE.Scene();
+  const mk = (z, size) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshBasicMaterial());
+    m.position.set(0, 0, z);
+    m.castShadow = true;
+    scene.add(m);
+    return m;
+  };
+  const r1 = Math.sqrt(3) / 2;
+  const nearSmall = mk(-10, 1);
+  const farSmall = mk(-40, 1);
+  const farBig = mk(-40, 4);
+  const justBeyond = mk(-(25 + r1 + 0.05), 1);
+  const justShort = mk(-(25 + r1 - 0.05), 1);
+  scene.updateMatrixWorld(true);
+  const rule = { maxRadiusM: 1.5, minDistanceM: 25 };
+  const stats = { tested: 0, culled: 0 };
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, rule);
+  assert.equal(nearSmall.castShadow, true, 'a small caster 9 m off keeps casting');
+  assert.equal(farSmall.castShadow, false, 'a small caster 39 m off is switched off');
+  assert.equal(farBig.castShadow, true, 'a caster over the radius keeps casting at any distance');
+  assert.equal(justBeyond.castShadow, false, 'the distance is measured to the sphere, not its centre');
+  assert.equal(justShort.castShadow, true);
+  assert.equal(stats.tested, 5);
+  assert.equal(stats.culled, 2);
+  assert.equal(stats.small, 2);
+  restore();
+  for (const m of [nearSmall, farSmall, farBig, justBeyond, justShort]) assert.equal(m.castShadow, true, 'restored');
+  cullShadowCasters(scene, camera, sunDirection, 1.0, stats)();
+  assert.equal(stats.culled, 0, 'no rule: every caster here is in view and keeps casting');
+  assert.equal(stats.small, 0);
+}
+
 console.log('shadowcull: ok');

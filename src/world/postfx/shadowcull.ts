@@ -14,6 +14,10 @@
  * samples the air in front of it). Objects without a bounding sphere, or with `frustumCulled` off,
  * keep casting. The image is unchanged by construction — the six fixed captures are byte-identical
  * — while the shadow pass draws only the casters whose shadows are in frame.
+ *
+ * An optional `ShadowDistanceRule` also switches off small casters far from the camera — a shadow
+ * distance by caster size, which does change the image; the composer passes one only where a
+ * locality asks for it (util/farBankLocality.ts).
  */
 import { Frustum, Matrix4, Object3D, Plane, Sphere, Vector3, type Camera, type InstancedMesh, type Mesh } from 'three';
 
@@ -21,6 +25,16 @@ const _sphere = new Sphere();
 const _proj = new Matrix4();
 const _frustum = new Frustum();
 const _light = new Vector3();
+const _eye = new Vector3();
+
+/**
+ * Casters whose world bounding sphere (before the margin) has a radius of at most `maxRadiusM` and
+ * lies farther than `minDistanceM` from the camera (centre distance minus radius) cast nothing.
+ */
+export interface ShadowDistanceRule {
+  maxRadiusM: number;
+  minDistanceM: number;
+}
 
 /** the planes to test: right, left, bottom, top, far — never the near plane (index 5) */
 const PLANES = [0, 1, 2, 3, 4];
@@ -58,20 +72,25 @@ export interface ShadowCullStats {
   tested: number;
   /** casters switched off for the frame */
   culled: number;
+  /** of `culled`, those the distance rule switched off (0 without one) */
+  small?: number;
 }
 
 /**
- * Switch off `castShadow` on every caster whose swept sphere misses the camera frustum; call the
- * returned function after the render to restore them. `sunDirection` points toward the sun.
+ * Switch off `castShadow` on every caster whose swept sphere misses the camera frustum, and with a
+ * `rule` on every small caster beyond its distance; call the returned function after the render to
+ * restore them. `sunDirection` points toward the sun.
  */
-export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: Vector3, marginM: number, stats?: ShadowCullStats): () => void {
+export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: Vector3, marginM: number, stats?: ShadowCullStats, rule?: ShadowDistanceRule): () => void {
   const light = _light.copy(sunDirection).multiplyScalar(-1).normalize();
   camera.updateMatrixWorld();
   _proj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   _frustum.setFromProjectionMatrix(_proj, camera.coordinateSystem, camera.reversedDepth);
+  _eye.setFromMatrixPosition(camera.matrixWorld);
   const planes = _frustum.planes;
   const off: Object3D[] = [];
   let tested = 0;
+  let small = 0;
   root.traverseVisible((obj) => {
     const m = obj as Mesh;
     if (!m.castShadow || !(m.isMesh || (m as unknown as { isPoints?: boolean }).isPoints || (m as unknown as { isLine?: boolean }).isLine)) return;
@@ -79,6 +98,12 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
     const s = worldSphere(m, _sphere);
     if (!s) return;
     tested++;
+    if (rule && s.radius <= rule.maxRadiusM && s.center.distanceTo(_eye) - s.radius > rule.minDistanceM) {
+      m.castShadow = false;
+      off.push(m);
+      small++;
+      return;
+    }
     s.radius += marginM;
     if (sweptSphereMissesFrustum(s, light, planes)) {
       m.castShadow = false;
@@ -88,6 +113,7 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
   if (stats) {
     stats.tested = tested;
     stats.culled = off.length;
+    stats.small = small;
   }
   return () => {
     for (const o of off) o.castShadow = true;
