@@ -749,6 +749,20 @@ function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
 }
 
 /**
+ * A thumb on each mitten hand (owner 23:00, "make the other characters look a bit better" at
+ * 2–6 m): `buildArms`' hand is a flattened ball; a small ellipsoid on the palm's inner side,
+ * angled forward, makes it read as a hand at 2–3 m. Skin material, shadows on, so it rides in the
+ * skin's skinned submission — no extra draw.
+ */
+function buildThumbs(rig: Rig, skin: MeshStandardMaterial): void {
+  const p = rig.props;
+  for (const side of [1, -1] as const) {
+    const elbow = side > 0 ? rig.elbowL : rig.elbowR;
+    part(elbow, place(new SphereGeometry(0.012, 8, 6), -side * 0.03, -p.forearm - 0.008, 0.016, [0.35, 0, side * 0.55], [1, 1.6, 0.9]), skin, 'thumb');
+  }
+}
+
+/**
  * An open skirt panel: the (radius, y) profile revolved over the angle range [a0, a1] (angle a
  * measured from +X toward +Z, so the front centre is π/2), oval in Z, with fold ridges and a
  * scalloped, ragged hem like `ovalLathe`. Rows hem→top; UVs (u = a / 2π, so the cloth canvas's
@@ -871,6 +885,7 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   const p = rig.props;
   const tunic = clothMaterial(`boy-${variant}`, BOY_TUNIC);
   buildArms(rig, { skin, sleeve: null });
+  buildThumbs(rig, skin);
   const hl = (y: number) => y - p.hipY;
   const cl = (y: number) => y - p.chestY;
   part(
@@ -948,6 +963,7 @@ export function createKokiri(variant: number): Character {
   // (0.81 m) and the bob's hem covers the back — the cylinder link.ts's buildNeck would add is enclosed
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
+    buildThumbs(rig, skin);
     buildWristbands(rig, kidMat('belt', KID.belt));
     buildGirlTunic(rig, girlCloth(look));
     buildGirlFace(rig, look);
