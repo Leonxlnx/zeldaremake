@@ -38,12 +38,11 @@ nothing existed beyond the disc.
 
 Walk `south-bridge-to-log` 21/21 and the 41 south probes pass on `bc757dfa`.
 
-## 2. Dwellings on the way out (interim)
+## 2. Dwellings on the way out
 
-**Status (interim, `661f7205`):** the two structures are built, typecheck, build and pass the world tests
-(104 / 104). The walk, probe, camera-spot, pose-count and render evidence, and the 50-check rubric tables,
-are queued behind the box's two capture slots and follow in the next commit. The counts in this section
-come from the structures' own audit (`__ZR__.audit()` fields, reproduced in Node from the same sources).
+**Status (interim, `a0795842`):** the description below is final. Typecheck, build and the tests (187 / 187) pass
+on `a0795842`. The walk, probe, camera-spot, pose-count and render evidence and the 50-check rubric tables
+(`docs/RUBRIC_50_STRUCTURES.md`) are queued behind the box's two capture slots and follow in the next commit.
 
 Two structures stand where the path straightens for the bridge (layout.ts `EXPANSION_SOUTH_DWELLINGS`, built by
 `structures/expansionSouthDwellings.ts`). Both sit in the wedge that `plaza-south`'s trunk hides from camera C, clear of
@@ -54,8 +53,10 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
 
 - A round hut (the village huts' builder, `distantHouse.ts`, with its walkway turned off): wall radius 1.15 m, wall
   1.9 m, a moss cap 1.1 m high with a fringe, platform top at y −0.07. The round door (0.70 × 1.35 m, recessed, with a
-  threshold and a dim room behind it lit by one small lamp) faces the gallery's entrance at 220°. The round window at
-  123° watches the bridge, with a brow over it and flowers on its ledge. Herbs dry under the eave by the door.
+  threshold) faces the gallery's entrance at 220°. Behind it is a dim room lit by one small lamp: the reveal's lamp
+  scales with the room's (`interiorLight` 0.1 for this hut, 1 for every other), so the jambs stay dark bark and the
+  doorway is no longer one band of lit beige wood (`c2d8546d`). The round window at 123° watches the bridge, with a brow
+  over it and flowers on its ledge. Herbs dry under the eave by the door.
 - The mast: a dead snag trimmed to a pole, footed 3 m down the slope, rising through the cap and leaning 0.22 m over the
   gorge to a broken top at y 5.6. A stub arm out of its head carries the beacon pod over the gorge (7.01, 4.8, 32.73),
   its hauling rope running down to a cleat.
@@ -79,19 +80,31 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   4.9 m over the deck, lights nothing).
 - By the north wall: 15 split logs in three rows between two stakes under the eave, and a chopping block (a log round
   with a checked, dished top) with a billet leaning on it, moss at its foot on the shaded side.
+- The follow camera: the wall is an exact camera cylinder (radius 1.29 m, `5b8dde39`; grown by one voxel it had
+  reached 1.93 m on the diagonals, over the gallery, and pinned the camera), and walking round the gallery the camera
+  swings off the wall instead of snapping in (`066144ad`, `collision.ts` `wallSwing`).
 - 59,446 triangles (its rope work 21,152 of them).
 
 ### The waystation: centre (5.12, 25.95), facing −74° (open to the path), floor y 0.22
 
-- A lean-to between `plaza-south`'s root flare and fable-3's waymarker, 2.0 × 1.35 m. A plank floor of 12 boards on two
-  bearer logs on sunk stumps, each board pegged over both bearers (24 peg heads); four corner posts, plates and five
-  rafters; a moss cushion roof with lobed edges curling over a bark underside, 1.95 m high at the front and 1.3 m at the
-  back, with moss beards, leaf clusters and hanging vines along the front eave.
+- A lean-to built against `plaza-south`, 2.0 × 1.35 m, beside fable-3's waymarker. One of the giant's roots is its
+  front-north corner post: it leaves the bole 2.4 m up (4.32, 2.42, 23.54), 0.25 m above the front plate, runs under
+  the roof's north edge and turns down at the corner into the ground at (4.27, 25.24), 4.72 m long; its radius is
+  0.27 m at the bole, 0.09 m as a post and 0.11 m at the ground. Moss grows along its top, ivy where it leaves the
+  bole, and a collar of foot moss where it roots. The front plate's north end rests in its elbow, lashed with two
+  turns of rope. The other three posts are sawn poles. (Without the trees system's seat the builder falls back to
+  four sawn posts.)
+- A plank floor of 12 boards on two bearer logs on sunk stumps, each board pegged over both bearers (24 peg heads);
+  plates and five rafters, each ending 0.1 m inside the roof's lobed edge. The roof is a moss cushion, 1.95 m high at
+  the front and 1.3 m at the back, over a bark underside: its rim rolls over and down all round (the roll's depth
+  wanders along the edge), 84 moss lumps sit along the rim and 90 on the cushion, and where the root passes the moss
+  drapes over it. Moss beards, leaf clusters and hanging vines hang along the front eave, a few along the back and
+  the ends.
 - A palisade of split poles at the back, with a round window and a shutter propped open outside it (hinged on withy
-  loops round two poles), and a palisade at the north end.
+  loops round two poles), and a palisade at the north end whose two withy ties end at the root.
 - Inside: a bench (a split log on two stubs with a board seat) along the back wall, a woven basket beside it, a walking
-  stick against the front-south post, and a rope coil hung on the front-north post. Outside: 18 split logs in three rows
-  against the north end.
+  stick against the front-south post, and a rope coil hung on the root. Outside: 18 split logs in three rows against
+  the north end.
 - Use and repair: 7 floor boards over the step are trodden paler, most at the front edge where feet land, and the
   step's top is worn too; the north corner board has lost 0.13 m of its front end.
 - The step up from the path: a split log along the front whose top sits halfway between the ground in front of it and
@@ -99,10 +112,48 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   ground falls away), on two stumps where it clears the ground.
 - A pod (4.66, 1.82, 26.66) hangs from a hanger under the front plate; it lays a soft pool on the floor and out of the
   open front onto the path, never past the back or the north wall.
-- 27,816 triangles.
+- 32,956 triangles.
 
 Both: no point light, 5 light pools, 39 walk surfaces appended to `ctx.shared.walkSurfaces`, parts named for the
 follow camera's solids (`cameraSolids.ts`: the walls solid, the keeper's eave over the gallery and the waystation's
-roof slim), own rng fork, meshes folded into the south group's existing buckets before consolidation. With the
-parts they share (the four static pods, 19,698; foot moss, the hut's fringe, hangers, leaves, vines, the pools) the
-dwellings add 119,028 triangles. Pools and wear draw no random numbers, so nothing else in the stream moves.
+roof, posts and root slim), own rng fork, meshes folded into the south group's existing buckets before consolidation.
+With the parts they share (the four static pods, 19,698; foot moss, the hut's fringe, hangers, leaves, vines, the
+pools) the dwellings add 125,042 triangles. Pools and wear draw no random numbers, so nothing else in the stream
+moves.
+
+## 3. The look back from the far bank: a far-bank LOD
+
+The integrator measured the look-back from the far bank (camera (4.8, 2.6, 43.6) → (2, 0.8, 24), fov 46) at
+**818 draws / 9.30 M triangles** on the canonical head (cc02a9cf), against the 700 / 9.0 M budget. From
+there the frustum takes in the whole village, 27.7 m and more away (the structures' audit
+`farBank.nearestVillageM`) and seen through haze between the south giants' boles. Hiding the village is
+not an option: it is on screen from all 10 far-bank poses tried, with up to 7,481 pixels changed.
+
+While the camera is inside `FAR_BANK_ZONE` (`util/farBankLocality.ts`: x −2…11, z 42.5…62, under y 4,
+which covers the bridge's last 1.2 m, the far path, the log and the cleft), four things change. Every
+fixed viewpoint, the bridge, and both dwellings stay outside the zone, and tests pin the box to the
+layout.
+
+1. **The village's shadows and tufts** (`de967e3d`): the village structures stop casting shadows, and
+   their roof and trunk tuft buckets are not drawn.
+2. **Pods at rest** (`f46c4835`): the village's swinging pods, one draw each, fold into one static draw
+   per material and visibility group. The swing moves a pod by at most 4 cm, under a pixel from 40 m.
+   The south's own pods stay live.
+3. **Fine dressing and small far shadows** (`86e9b380`): the village's centimetre-scale dressing is not
+   drawn: room props seen through doorways, fringes, flowers, the bough's vines, post ropes, hanger
+   toggles, fence foot moss and sign runes. Frames, thresholds and every glow stay. Casters with a
+   bounding radius ≤ 1.5 m whose near side is more than 25 m away cast no shadow
+   (`FAR_BANK_SMALL_SHADOWS`); the player 3–6 m away is untouched.
+4. **A draw distance for small far things** (`48877906`): drawables with a bounding radius ≤ 1 m more
+   than 110 m away are not drawn (`FAR_BANK_SMALL_DRAWS`, `postfx/shadowcull.ts` `hideSmallFar`). From
+   the zone that is the girl on the upper ledge, 120 m north and 6 px tall in the haze, with her fairy
+   and contact decal. Such a sphere spans at most 12 of 540 rows at fov 46.
+
+`globalThis.__KF_FARBANK_OFF__ = true` switches all four off from the next frame, without a reload,
+so the A/B below compares exactly what the LOD changes. It is unset as shipped.
+
+(The A/B table, LOD on / off / on at the look-back, P3, L9, F4, F6 and mid-span, follows with the capture queue.)
+
+Rejected along the way: hiding the whole village (on screen from every far-bank pose); judging each
+instance of an instanced batch by its own size (it also switched off the ravine strata's shadows at
+the cleft). An instanced batch is judged by its whole batch, and a test pins that.
