@@ -186,6 +186,47 @@ depth ramp rather than the share: the crowns in that box stand at 20–30 m, whe
 quarter in. Shortening it pulls nearer crowns in with it, so it wants a pass of its own with the near
 poses checked — the next item, with these numbers as its brief.
 
+## 5. The ramp, and the near band it must not touch (10:20–10:45)
+
+§4 left the level veil short of the reference with the share already at 0.85, and named the depth ramp as
+the reason: the crowns in hero A's box stand at 25–30 m, where `m = [14, 52]` is only a fifth to a third
+in. `m = [16, 38]` puts **0.31 of the veil at 25 m and 0.59 at 30 m** where there was 0.17 and 0.33, and
+leaves the near edge where it was — a crown 17 m off takes 0.01 — because the reference's own trees at
+that range are still dark and saturated, and this lane's mid canopy is what made the middle distance read
+as trees at all. The floor also stops at the reference's own relation now: its foliage sits at **0.809 of
+its air** (0.436 / 0.539), so `lift = [0.55, 0.82]` gives nothing more to a fragment already that bright —
+the review's "only as much as the reference's r_025 band" as a per-fragment rule.
+
+Hero A's crown box (`hero-A-ramp-three.jpg`; the box mean is split-independent, which matters because a
+veil moves pale foliage across a fixed split and confuses the class means):
+
+| hero A, x 0.72–1, y 0.08–0.32 | box mean | leaf-to-sky | outline step | boundary density |
+| --- | --- | --- | --- | --- |
+| no crown veil | 74.3 | 0.198 | 7.5 % | 3.89 % |
+| ramp 14–52 | 77.4 | 0.181 | 6.6 % | 4.84 % |
+| **ramp 16–38** | **79.4** | **0.168** | **6.2 %** | **5.73 %** |
+| `r_025`'s canopy band | 124.3 | 0.103 | 2.6 % | 3.11 % |
+
+![hero A: no crown veil, the long ramp, the short ramp](hero-A-ramp-three.jpg)
+
+Hero D's canopy box goes 130.0 → 136.2 and is unchanged between the two ramps (its crowns are already past
+38 m, where both saturate).
+
+**The near band holds, which was the risk.** The owner's two walking poses move by a fifth of a level:
+`owner-0650-north` 79.7 → 79.9 mean (its middle third 71.5 → 71.6) and `rec-r024-plaza-fork` 88.4 → 88.5.
+The ferns, the paving, the trunks and the mist corridor all read exactly as before, and what changed is the
+canopy band above them (`owner-north-pair.jpg`):
+
+![the owner's north walking pose, before and after](owner-north-pair.jpg)
+
+The look-ups stay at 0.00 % changed, since the crown gate is shut above 26°.
+
+Still open: 79.4 against the reference band's 124.3 is most of the distance, and it is no longer a knob on
+this term — at `share` 0.85 with the ramp reaching, the veil is nearly saturated where these crowns stand.
+Closing the rest means the crowns' own albedo and the sun on them (their tint constants), which is a
+colour pass over `MID_CROWN_LOOK` and the far cards' tints with the near poses re-checked, not another
+distance curve.
+
 ## What is in the branch
 
 - `src/world/trees/distant.ts` — `CANOPY_DEPTH_VEIL` (the giants' cards, gate rising) and `CROWN_VEIL`

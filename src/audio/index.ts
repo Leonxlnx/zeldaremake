@@ -58,6 +58,9 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   gaitDriven: boolean;
   /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
   enclosure: number;
+  /** the world's wind gust as the bed last saw it, and the context clock — for start-up diagnosis */
+  gust: number;
+  contextTime: number;
   /** how closed the canopy over the listener is — 1 deep under the crowns, 0 under open sky */
   canopy: number;
   /** how much of the space is the ravine — 1 out over it on the bridge, 0 well back from it */
@@ -98,6 +101,21 @@ export interface OfflineOptions {
   canopy?: number;
   /** force the ravine over the whole render (0 well back from it, 1 out over it) */
   gorge?: number;
+  /**
+   * Stand still at (x, z) for the whole render instead of walking the scripted route.
+   *
+   * Every measurement on this lane so far has come from one fixed walk through the village, which
+   * answers "what does the game sound like" and cannot answer "what does **this place** sound
+   * like". That second question is the one that matters for the owner's standing complaint, because
+   * the metric for it — the level present in nine frames out of ten — is a property of a place and
+   * a listener who is not doing anything. It also needs no footsteps and no browser recording: with
+   * `stem: 'bed'` this is the world's own sound at a spot, rendered deterministically in a second.
+   *
+   * The space terms come from `surfaceAt(x, z)` unless `canopy` / `gorge` override them, so a spot
+   * under the crowns or out over the ravine carries its own. The wind still moves — a place with no
+   * weather in it is not a place.
+   */
+  at?: { x: number; z: number; y?: number; facing?: number };
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -226,10 +244,11 @@ function gatherPods(scene: Scene): Vec3[] {
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
   const gorge = gorgeAt(x, z);
-  // how much wood is overhead: the terrain's own forest-floor zone. The litter is there BECAUSE the
-  // crowns are, so the same field that decides what is underfoot also says how closed the sky is —
-  // the plaza and the village are open, the north corridor past the arch is roofed.
-  const canopy = forestFloorZone(x, z);
+  // how much wood is overhead: the terrain's own forest-floor zone, less the openings cut in it.
+  // The litter is there BECAUSE the crowns are, so the same field that decides what is underfoot
+  // also says how closed the sky is — the plaza and the village are open, the north corridor past
+  // the arch is roofed — but the field does not know where the forest STOPS (see `skyOpening`).
+  const canopy = forestFloorZone(x, z) * (1 - skyOpening(x, z));
   if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
@@ -253,6 +272,21 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
   {
     const s = southSurfaceAt(x, z, canopy, gorge);
     if (s) return s;
+  }
+  // the plateau lookout's dais (LAYOUT.lookout): a 2.2 × 1.6 m slab on the east plateau's
+  // south-west lip, standing 0.35–0.9 m proud of the turf, that the player steps up onto to look
+  // west over the plaza. Hardscape merges it into the `flagstones` mesh and the character ground
+  // stands on its top, so it is paving — the rope railing the props lane sets into it is the only
+  // timber, deliberately not a deck ("wood over the stone would swallow the player's feet").
+  {
+    const lk = LAYOUT.lookout;
+    const yaw = (lk.yawDeg * Math.PI) / 180;
+    const dx = x - lk.x;
+    const dz = z - lk.z;
+    const u = dx * Math.cos(yaw) + dz * Math.sin(yaw);
+    const v = -dx * Math.sin(yaw) + dz * Math.cos(yaw);
+    // the step block on the fence side is walked onto as well, so the footprint carries a margin
+    if (Math.abs(u) < lk.halfLength + 0.2 && Math.abs(v) < lk.halfDepth + 0.2) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
   }
   // the west house's platform and deck
   {
@@ -341,6 +375,34 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
 }
 
 /**
+ * How open the sky is where the forest stops — 1 in the middle of a clearing, 0 back under the
+ * crowns.
+ *
+ * `forestFloorZone` is the terrain's litter field, and litter lies in a clearing exactly as it lies
+ * under the trees, so the field reads **1.00 at the centre of the north clearing**. The bed took
+ * that as a closed roof: the paved disc the layout describes as "banks rising on every side", with
+ * a stone circle on it and the sky over it, sounded like the inside of the corridor that leads to
+ * it — lowpassed by `CANOPY_CLOSE`, 1.8× the hall, 1.7× the leaf flutters.
+ *
+ * The cost is not one wrong number. It is that walking the north corridor and stepping out into
+ * the clearing — the one arrival in the north half of the world, the thing the owner asked for
+ * when he said he wanted "more to do afterwards" up the steps — made no change at all. A roof
+ * lifting is something you hear.
+ *
+ * Faded across the rim rather than switched, so the walk in is the sound of it opening, and never
+ * quite to nothing: a clearing nine metres across is ringed by trees that lean over it.
+ */
+export const CLEARING_OPEN_MAX = 0.85;
+export function skyOpening(x: number, z: number): number {
+  const c = LAYOUT.northClearing;
+  const d = Math.hypot(x - c.x, z - c.z);
+  return CLEARING_OPEN_MAX * (1 - smoothstep01(c.radius * 0.55, c.radius * 1.5, d));
+}
+
+/** how often the audio system updates its parameters and tops up its schedulers (ms) */
+export const TICK_MS = 1000 / 30;
+
+/**
  * How much of the space around the listener is the ravine (0 well back from it, 1 out over it on
  * the bridge). `EXPANSION_SOUTH.ravine.line` is (x, z, top half width, depth) west → east; the
  * depth term means the shallow ends where the gorge closes to nothing do not open the sound.
@@ -389,6 +451,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   const fairySlots: Vec3[] = [];
   const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
+  let lastGust = 0;
   let load: RenderLoad | null = null;
   let enclosure = 0;
   let canopy = 0;
@@ -400,6 +463,20 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const lastPos = { x: NaN, z: NaN };
   let lastT = 0;
+  /**
+   * The audio's own clock.
+   *
+   * 2026-09-24: this ran on `requestAnimationFrame`, which ties the whole audio system to the
+   * health of the render loop. Measured on a cold start with Link standing still, rAF managed about
+   * TEN callbacks in the first 6.7 seconds while the world compiled its shaders and built its LODs —
+   * so the bed's levels never reached their targets and the music scheduler barely ran, and the
+   * master sat at −92 dBFS until the frame rate recovered. A player who loads the game and stands
+   * still hears nothing for several seconds.
+   *
+   * A timer does not care what the renderer is doing. It also keeps running when the tab is in the
+   * background (throttled to 1 Hz, which the 4 s ambience and 6 s music lookaheads absorb) where
+   * rAF stops dead.
+   */
   const tick = (now: number) => {
     if (!live) return;
     const { ctx, ambience, footsteps, music } = live;
@@ -431,7 +508,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const at = fairyAt(fairyObjects[i], fairySlots[i]);
       if (at) fairyBuf.push(at);
     }
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    lastGust = o.wind?.uniforms.uGust.value ?? 0.4;
+    ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -444,8 +522,12 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         // the jump's arc (`airHeight` is 0 whenever a boot is down): the drop's highest point is
         // how hard he comes back onto whatever is under him
         const air = player.airHeight?.() ?? 0;
-        if (air > 0.02) peakAir = Math.max(peakAir, air);
-        else if (peakAir > 0.05) {
+        if (air > 0.02) {
+          // the rising edge is the shove: he is leaving the ground here, and until now that was
+          // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
+          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed);
+          peakAir = Math.max(peakAir, air);
+        } else if (peakAir > 0.05) {
           footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir);
           peakAir = 0;
         } else peakAir = 0;
@@ -457,7 +539,6 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       lastPos.x = NaN;
       footsteps.drive(t, dt, { speed: 0, surface: 'grass', onStairs: false });
     }
-    raf = requestAnimationFrame(tick);
   };
 
   const start = async () => {
@@ -493,7 +574,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
       emit();
       lastT = 0;
-      raf = requestAnimationFrame(tick);
+      raf = window.setInterval(() => tick(performance.now()), TICK_MS);
     })();
     try {
       await starting;
@@ -534,18 +615,20 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       pods: pods.length,
       gaitDriven,
       enclosure,
+      gust: lastGust,
+      contextTime: live?.ctx.currentTime ?? 0,
       canopy,
       gorge,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       load,
       voices: liveVoices(),
-      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
+      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
     dispose() {
-      cancelAnimationFrame(raf);
+      clearInterval(raf);
       window.removeEventListener('pointerdown', onGesture, true);
       window.removeEventListener('keydown', onGesture, true);
       if (live) {
@@ -628,7 +711,24 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   let z = 2;
   const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
   const standsBesideFairy = OFFLINE_WALK[OFFLINE_WALK.length - 2].until;
+  // standing somewhere: the place's own space terms, and nothing underfoot
+  const spot = options.at ? surfaceAt(options.at.x, options.at.z) : null;
+  const facing = options.at?.facing ?? 0;
   for (let t = 0; t < seconds; t += step) {
+    if (options.at && spot) {
+      ambience?.update(t, {
+        gust: gust(t),
+        listener: { x: options.at.x, y: options.at.y ?? 1.2, z: options.at.z },
+        forward: { x: Math.sin(facing), z: Math.cos(facing) },
+        pods,
+        fairies,
+        enclosure: spot.enclosure,
+        canopy: options.canopy ?? spot.canopy,
+        gorge: options.gorge ?? spot.gorge,
+        windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
+      });
+      continue;
+    }
     const leg = OFFLINE_WALK.find((l) => t < l.until) ?? lastLeg;
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;

@@ -320,11 +320,23 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * floor cards, which is where paling printed geometry and got the merge reverted at 05:30.
  */
 export const CROWN_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
-  share: 0.85,
-  m: [14, 52],
+  // 1.0, and it cannot overshoot: `lift` below stops every fragment at the reference's own relation
+  // between its foliage and its air, so the share only decides how fast a crown gets there. 0.85 with
+  // the ramp reaching left hero A's crown box at 79.4 levels against the reference band's 124.3, and
+  // the arithmetic said the veil there was 0.27-0.52 of the way on, not saturated.
+  share: 1.0,
+  // 16-26 m. The near edge is fixed by the reference: its own trees at 17 m are still dark and
+  // saturated, and this lane's mid canopy is what made the middle distance read as trees at all, so a
+  // crown that close takes 0.03 of the veil and no more. The far edge has walked in from 52 m to 26 as
+  // each render showed the crowns of a level view standing nearer than the ramp assumed: at 25 m the
+  // veil is 0.90 of the way on where the first ramp gave 0.17.
+  m: [16, 26],
   ray: [0.45, 0.06],
   tint: [1.02, 1.0, 0.96],
-  lift: [0.62, 1.0],
+  // and the floor stops at the reference's own relation: its foliage sits at 0.809 of its air
+  // (0.436 / 0.539), so a fragment already that bright takes nothing more. This is the review's
+  // "only as much as the reference's r_025 band" written as a rule the shader can apply.
+  lift: [0.55, 0.82],
 };
 export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
   share: 0.42,

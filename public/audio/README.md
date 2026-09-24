@@ -1,7 +1,7 @@
 # `public/audio/` — the music slot
 
 The game's audio system (`src/audio/`) plays whatever it finds here as the background music,
-looped, 12 dB under the forest ambience:
+looped, at the same level as the placeholder:
 
 | file | what happens |
 | --- | --- |
@@ -19,7 +19,34 @@ looped, 12 dB under the forest ambience:
    rules). The speaker glyph under the hearts shows the state; **M** or clicking it mutes.
 
 The file is fetched relative to the page (`audio/music.ogg`), so it also works from a sub-path
-deploy. The console logs `[audio] music: file (… s loop)` or `[audio] music: original placeholder`.
+deploy. The console logs `[audio] music: original placeholder`, or for a file:
+
+```
+[audio] music: file (50.5 s loop, -13.2 dBFS gated, -11.7 dB to meet the placeholder)
+```
+
+## Your track's own volume is ignored, on purpose
+
+A finished track arrives mastered, and masters run −14 to −8 LUFS — thirty-odd decibels over a
+forest that sits at −40. Before this was handled, a track normalised to −10 LUFS dropped in here
+played 17.7 dB over the wind and the birds (the placeholder sits 5.6 over) and took the whole mix
+from −33 to −22.6 LUFS: the forest was inaudible, and nothing in the game had chosen that.
+
+So the file is measured when it decodes — mean power over 400 ms blocks, with everything more than
+20 dB under its own 95th percentile dropped so an intro or a fade does not pull the answer down —
+and its gain set to reach the bus at the level the placeholder plays at (`MUSIC_BUS_TARGET_DB` in
+`src/audio/music.ts`). **Normalise your file however you like; the game will match it either way.**
+The match is limited to −30 … +12 dB so a silent or a clipped file cannot ask for an absurd gain.
+
+If you want it louder or quieter than the placeholder, change `MUSIC_BUS_TARGET_DB` — it is one
+number, and it moves the placeholder and the file together.
+
+## One thing the file does not get
+
+The placeholder **rests 16–30 s between passes** (`REST_SECONDS`) so the wood can be heard between
+them. A file loops back to back with no gap, because a finished track usually has its own shape and
+cutting it up is the owner's call rather than the sound lane's. Say the word and it can take the
+same rests.
 
 ## What must not go here
 
