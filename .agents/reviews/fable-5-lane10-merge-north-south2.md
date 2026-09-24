@@ -65,3 +65,15 @@ line), `heightfield.ts` (its cull box), `structures/index.ts` (its build and aud
 same anchors. A merge order that takes the camera decision first — north + south2 (the two exact-wall types made one,
 the `following` block joined), then ruins (the grids folded into the same sweep), then east (no camera change; structures
 and hardscape) — pays the camera bill once.
+
+## Addendum 22:28 — the head took `exp-north` (`b9993008`); the map is now head × branch
+
+| pair (scratch-merged onto `b9993008`, aborted) | conflicting files (hunks) |
+| --- | --- |
+| **head × south2** | 9 — `camera/follow.ts` (2), `camera/collision.ts` (1), `structures/cameraSolids.ts` (6), `system.ts` (1), `structures/index.ts` (6), `structures/distantHouse.ts` (4), `layout.ts` (1), `audio/index.ts` (1), `playtest.mjs` (3) |
+| head × ruins | 8 — `camera/collision.ts` (3), `system.ts` (1), `vegetation/index.ts` (6), `terrain/heightfield.ts` (3), `character/ground.ts` (2), `audio/index.ts` (2), `trees/index.ts` (1), `playtest.mjs` (4) |
+| head × east | 8 — `structures/index.ts` (6), `hardscape/index.ts` (5), `hardscape/flagstones.ts` (2), `character/ground.ts` (2), `heightfield.ts` (2), `audio/index.ts` (3), `layout.ts` (1), `playtest.mjs` (1) |
+
+The grove's `ringGoal` / `RING_IN` and `CameraWall[]` are the head's camera now; `exp-south2`'s `wallSwing` / `cameraCylinders`
+and `exp-ruins`' `cameraSolidGrids` each meet it in `collision.ts` and `system.ts`. The decision in the first section is
+unchanged and now due at the next merge, whichever branch it is.
