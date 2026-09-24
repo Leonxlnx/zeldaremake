@@ -57,6 +57,44 @@ export function passIsQuiet(index: number, rnd: () => number): boolean {
   return index > 0 && rnd() < QUIET_PASS_SHARE;
 }
 
+/** beats in one phrase — the score is four of them, A A' B A'' */
+export const PHRASE_BEATS = 16;
+/**
+ * What each phrase is for, as a gain: the statement, the answer under it, the lift, the descent
+ * home.
+ *
+ * 2026-09-24: measured, the placeholder breathed **6.4 dB** from one end of a fifty-second pass to
+ * the other, and the whole mix breathed 6.3 — the tune's own span *was* the mix's, because the
+ * forest under it (which breathes 26) never got through. Every note was at one velocity: the only
+ * variation written into the piece was a ±1.4 dB sine wobble. A score with no shape is the thing
+ * a wood cannot be heard under, whatever its level, and lowering it would only have made a flat
+ * quiet tune out of a flat loud one.
+ */
+export const PHRASE_LEVEL = [0.82, 0.55, 1, 0.7];
+
+/** the lead's and the harp's gain at `beat`: the phrase's level, swelling in and easing at the cadence */
+export function phraseGain(beat: number): number {
+  const p = Math.max(0, Math.min(PHRASE_LEVEL.length - 1, Math.floor(beat / PHRASE_BEATS)));
+  const u = (beat - p * PHRASE_BEATS) / PHRASE_BEATS;
+  // up over the first two fifths, then down past the peak so a phrase ends softer than it began
+  const arch = u < 0.42 ? 0.7 + (0.3 * u) / 0.42 : 1 - (0.42 * (u - 0.42)) / 0.58;
+  return PHRASE_LEVEL[p] * arch;
+}
+
+/**
+ * How many of each phrase's sixteen beats carry a pad (0 = none).
+ *
+ * The pad used to start every two bars and run eight beats with a 1.1 s release, so every one
+ * overlapped the next: a 73–110 Hz sine that **never once stopped** in a pass. Its always-on level
+ * measured −42 dB in the 60–125 Hz band against the forest's −77 in the same band — 35 dB over the
+ * wood, permanently. That is the same fault as the pod lanterns' 96 Hz hum this lane removed in the
+ * morning, and it survived because it was inside the music rather than the bed.
+ *
+ * One pad per phrase now, stopping before the cadence, and none at all under the answer: the low
+ * end goes quiet three times a pass and again through every rest.
+ */
+export const PHRASE_PAD_BEATS = [11, 0, 11, 7];
+
 /** melody: [start beat, midi, beats] — 16 bars, phrases A A' B A'' */
 const MELODY: [number, number, number][] = [
   // A
@@ -210,6 +248,7 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
     let loopStart = startAt + 0.3;
     let scheduledLoops = 0;
     const harpRng = rng.fork('harp');
+    const leadRng = rng.fork('lead');
     const restRng = rng.fork('rest');
     return (t: number) => {
       while (loopStart < t) {
@@ -217,18 +256,34 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
         // back to back at one volume is the most tiring thing in a world you walk around in
         const quiet = passIsQuiet(scheduledLoops, restRng);
         const lead = quiet ? 0.62 : 1;
-        for (const [beat, midi, beats] of MELODY) woodwind(loopStart + beat * BEAT, midi, beats * BEAT * 0.94, lead * (0.85 + 0.15 * Math.sin(beat * 0.7 + scheduledLoops)));
+        // the player is meant to hear a phrase arrive and a phrase end, so the level follows the
+        // writing (phraseGain) and the note-to-note variation is a small seeded jitter — the old
+        // sine over the beat was a rate the ear locks onto, which is what a wobble is
+        for (const [beat, midi, beats] of MELODY) woodwind(loopStart + beat * BEAT, midi, beats * BEAT * 0.94, lead * phraseGain(beat) * (0.93 + 0.14 * leadRng()));
         for (let bar = 0; bar < BARS; bar++) {
           const chord = CHORDS[bar];
           const t0 = loopStart + bar * 4 * BEAT;
+          const phrase = Math.floor((bar * 4) / PHRASE_BEATS);
           for (let i = 0; i < HARP.length; i++) {
             const [idx, lift] = HARP[i];
-            // rest the harp on a few 8ths so it breathes; a quiet pass rests on every other one
+            const beat = bar * 4 + i * 0.5;
+            // the last bar is the lead's alone, so the piece finishes rather than stopping; under
+            // the answer the harp keeps time on two beats instead of running eighths; and it rests
+            // on a few eighths elsewhere so it breathes. A quiet pass rests on every other one.
+            if (bar === BARS - 1) continue;
+            if (phrase === 1 && i !== 0 && i !== 4) continue;
             if ((bar % 4 === 3 && i >= 6) || (i === 5 && bar % 2 === 1) || (quiet && i % 2 === 1)) continue;
-            const vel = (quiet ? 0.6 : 1) * (0.55 + 0.35 * (i % 2 === 0 ? 1 : 0.5) + (harpRng() - 0.5) * 0.15);
+            const vel = (quiet ? 0.6 : 1) * phraseGain(beat) * (0.55 + 0.35 * (i % 2 === 0 ? 1 : 0.5) + (harpRng() - 0.5) * 0.15);
             pluck(t0 + i * BEAT * 0.5, chord[idx] + 12 * (lift + 1), vel, (i / (HARP.length - 1) - 0.5) * 0.7);
           }
-          if (bar % 2 === 0 && !quiet) pad(t0, chord[0] - 12, 8 * BEAT);
+        }
+        if (!quiet) {
+          for (let phrase = 0; phrase < PHRASE_PAD_BEATS.length; phrase++) {
+            const beats = PHRASE_PAD_BEATS[phrase];
+            if (!beats) continue;
+            const bar = (phrase * PHRASE_BEATS) / 4;
+            pad(loopStart + phrase * PHRASE_BEATS * BEAT, CHORDS[bar][0] - 12, beats * BEAT);
+          }
         }
         // and then it stops and lets the wood be heard. The pad and the last note ring out into
         // the rest, so the piece ends rather than being cut off.
