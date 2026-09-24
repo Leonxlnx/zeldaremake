@@ -488,7 +488,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z
 
-### Iteration 105 (16:05) — the ruins' cliff: bedded relief tried on fable-cursor's surface — negative result
+### Iteration 105 (15:57) — the ruins' cliff: bedded relief tried on fable-cursor's surface — negative result
 - Branch `agent/fable-2-ruins-cliffbeds` (3fd08256) off exp-ruins 2c47fc66: `rocks/cliffBeds.ts`
   (bed stack profile, pure) + hooks in `terrain/ruins.ts` / `ruins/rock.ts` (their files — proposal
   only, not for merge). Typecheck + ruins.test.mjs green.
