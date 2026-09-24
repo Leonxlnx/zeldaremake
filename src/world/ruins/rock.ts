@@ -30,6 +30,13 @@ const n1 = new Noise2D('ruins-rock-a');
 const n2 = new Noise2D('ruins-rock-b');
 const n3 = new Noise2D('ruins-rock-c');
 
+/** the outcrop's pale skin over the live ground `g` at (x, z): a few lumpy centimetres where it covers, diving under the turf at its edge */
+export function outcropSkin(x: number, z: number, g: number): number {
+  const cover = outcropCover(x, z);
+  const lump = 0.07 * Math.max(0, noise3(x * 0.8, z * 0.8, 2.2)) + 0.03 * noise3(x * 2.7, z * 2.7, 5.1);
+  return g + lerp(-0.12, 0.03 + lump, cover);
+}
+
 /**
  * A grid patch (MeshBuilder.grid) with smooth normals, turned to face `dir` at the probe cell
  * (u, v) — the winding is checked after the fact, so no caller has to get it right by hand.
@@ -213,11 +220,9 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
         const z = lerp(zA, zB, v);
         const g = ground(x, z);
         const sd = platformSigned(x, z);
-        const cover = outcropCover(x, z);
-        const lump = 0.07 * Math.max(0, noise3(x * 0.8, z * 0.8, 2.2)) + 0.03 * noise3(x * 2.7, z * 2.7, 5.1);
         const k = 0.93 + 0.1 * n3.noise(x * 0.6, z * 0.6);
         const moss = clamp(0.2 + 0.55 * smoothstep(0.3, 0.9, n2.noise(x * 0.45 + 3, z * 0.45 - 2) * 0.5 + 0.5) + 0.3 * smoothstep(-0.8, 0.4, sd), 0, 1);
-        return { p: new Vector3(x, g + lerp(-0.12, 0.03 + lump, cover), z), c: [k, k * 0.985, k * 0.95], moss };
+        return { p: new Vector3(x, outcropSkin(x, z, g), z), c: [k, k * 0.985, k * 0.95], moss };
       },
       [0.5, 0.5],
       new Vector3(0, 1, 0),

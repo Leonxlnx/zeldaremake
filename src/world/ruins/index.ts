@@ -18,6 +18,7 @@ import { EXPANSION_RUINS } from '../layout';
 import type { WorldContext, WorldSystem } from '../system';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
 import { buildRuinsCameraSolid, ruinsColumnBlockers } from './cameraSolid';
+import { buildLanterns } from './lanterns';
 import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
 import { buildRock } from './rock';
@@ -90,6 +91,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   add('ruins-carving', new Mesh(masonry.carving.build(), carvingMat), false);
 
   const rock = buildRock(rng.fork('rock'), (x, z) => terrain.height(x, z), sun);
+  // (before the boulders are built: the posts' foot stones go into their builder)
+  const lanterns = await buildLanterns(rng.fork('lanterns'), (x, z) => terrain.height(x, z), ctx.textures, ctx.config.palette.lanternGlow, rock.boulder);
   const [cliffMat, boulderMat] = await Promise.all([
     createStone(ctx.textures, ctx.config, { name: 'cliff', set: 'rock_face_03', meanL: 0.163, tile: 3.2, tint: [0.34, 0.335, 0.315], keep: 0.3, contrast: 1.0, normalScale: 1.0, roughness: 0.92, tone: 0.14 }),
     createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.44, 0.425, 0.39], keep: 0.3, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
@@ -97,6 +100,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   materials.push(cliffMat, boulderMat);
   const cliff = add('ruins-cliff', new Mesh(rock.cliff.build(), cliffMat), true);
   add('ruins-boulders', new Mesh(rock.boulder.build(), boulderMat), true);
+  const [postMesh, podMesh, poolMesh] = lanterns.meshes;
+  add(postMesh.name, postMesh, true);
+  add(podMesh.name, podMesh, true);
+  group.add(poolMesh);
+  materials.push(...lanterns.materials);
 
   const water = buildWater(rng.fork('water'), (x, z) => terrain.height(x, z));
   for (const m of water.meshes) group.add(m);
@@ -105,12 +113,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // the character ground reads these at its creation (the character system comes after this one)
   const columns = ruinsColumnBlockers();
   (ctx.shared.walkSpans ??= []).push(...masonry.spans);
-  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers, ...columns);
+  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers, ...columns, ...lanterns.blockers);
   // the play camera's shells over the rock and the masonry nobody walks on (cameraSolid.ts)
   const cameraSolid = ctx.headless ? null : buildRuinsCameraSolid(cliff.geometry, (x, z) => terrain.height(x, z));
   if (cameraSolid) (ctx.shared.cameraSolidGrids ??= []).push(cameraSolid.grid);
 
-  const spheres = ruinsCasters().flatMap((c) => casterSpheres(c, sun));
+  const spheres = [...ruinsCasters(), ...lanterns.casters].flatMap((c) => casterSpheres(c, sun));
   const refresh = (camera: Camera) => {
     group.visible = ruinsVisible(camera, spheres);
   };
@@ -131,9 +139,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     meshes,
     triangles: tris,
     walkSpans: masonry.spans.length,
-    blockers: masonry.blockers.length + rock.blockers.length + columns.length,
+    blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length,
     cameraSolid: cameraSolid?.report ?? null,
-    counts: { ...masonry.counts, ...rock.counts },
+    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length },
+    lanternTriangles: lanterns.triangles,
+    pods: lanterns.pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
     plunge: water.plunge.map((v) => +v.toFixed(2)),
     pointLights: 0,
   }));
@@ -154,6 +164,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         if (m.isMesh) m.geometry.dispose();
       });
       for (const m of materials) m.dispose();
+      for (const t of lanterns.textures) t.dispose();
     },
   };
 }

@@ -1207,6 +1207,16 @@ export const EXPANSION_RUINS = {
     [-52.9, -7.2, 1.5],
     [-53.2, -1.2, 1.3],
   ] as [number, number, number][],
+  /**
+   * The trail's pod-lantern posts (x, z, facing x, facing z, height): bent posts on the verge,
+   * 0.6–0.7 m outside the packed earth, their hooks reaching toward the path — the last one on the
+   * outcrop by the parapet's east end. All west of x −44 (no fixed frame sees them).
+   */
+  lanterns: [
+    [-45.6, -1.14, 0.25, -0.97, 2.35],
+    [-49.74, -5.32, -0.21, 0.98, 2.25],
+    [-55.1, -2.62, -0.2, -0.98, 2.45],
+  ] as [number, number, number, number, number][],
 } as const;
 
 const RUINS_TRAIL_LINE = smoothLine(EXPANSION_RUINS.trail, 0.5);
