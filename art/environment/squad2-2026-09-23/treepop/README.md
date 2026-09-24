@@ -85,6 +85,31 @@ most because its composition looks straight down the band the rung sits in.
 * `systems.trees.whiteBarkLodTriangles` / `columnLodTriangles` — mean per-instance triangles of each
   rung, so the cost of moving a rung is arithmetic.
 
+## Lever (c), the cross-fade at the crown swap — measured before building it
+
+fable-cursor's 22:05 INBOX note offers lane 2 two levers on top of the 1.5 s prebuild: (b) a larger
+build budget while the frame has room, and (c) a cross-fade at the giants' near-canopy swap band
+(`NEAR_LOD_TIERS.large.canopySwapM`, 26 / 30 m). The knob's fourth component scales that band, so the
+same measurement applies. At the owner's 06:50 north pose and at `rec-r024-plaza-fork`, widening it to
+41.6 / 48 m changes **0.00 % of the frame — every cell exactly zero.**
+
+That is not "the swap is invisible", and the audit says why. With the band at 26 m and at 41.6 m the
+shown set is byte-identical: 426 parts exist, 79 are shown (67 lobes), `shownTriangles` 692 909 and
+`foldedTriangles` 119 166 in both, and **every shown part sits between 4.5 m and 16.4 m of the
+camera**. There is nothing between 16.4 m and the 26 m in-radius to swap, so a cross-fade over 26–30 m
+would have nothing to fade at the pose the owner complained about. `audit-canopy-band-26.json` and
+`audit-canopy-band-41.json` are the two reads.
+
+Where the band *would* bind is a walker crossing open ground toward a giant whose lobes sit at 26–30 m
+— the arch approach and the north clearing are the candidates. So lever (c) is worth building for
+those, not for his pose; I would rather spend the next iteration on something he sees.
+
+One thing the same audit does flag: **67 lobes are wanted inside 16.4 m against `NEAR_CANOPY_SLOTS` =
+64.** The cap is all but binding at the plaza, so a few metres of walking can admit and evict a lobe
+by rank rather than by distance — a pop with no hysteresis behind it, much closer than 26 m. That is
+the more likely cause of a crown changing in front of the owner, and it is a slot-count question
+(lever b's neighbour), not a swap-band one.
+
 ## What is left of the pop
 
 The 1.82 % that remains is the rung itself, now at 28 m instead of 20 m. Removing it entirely needs
