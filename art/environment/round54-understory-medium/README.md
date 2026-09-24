@@ -36,7 +36,21 @@ draws at 7 sides) — so read the 3× crop: with every leaf at 1 × the medium r
 L to 0.1), and the swap at 28 m becomes the wood's sides only. The white-barks' medium (1 in 8 at 2.53 ×) is not the pop at these
 poses: densifying it to 1 in 4 or 1 in 2 moves 35–49 pixels of the north frame.
 
-## The change (branch `agent/fable-4-usmed`, pending the six views' counts)
+## The six fixed views, 1280 × 720 (`capture.mjs --settle 12`, head `b31042a2` vs `agent/fable-4-usmed` `28f95b56`; SSIM vs `reference/frames`)
+
+| view | head draws / tris | branch draws / tris | pixels changed (> 8) | SSIM head → branch |
+|---|---|---|---|---|
+| A_stairs | 637 / 8.85 M | 637 / 8.87 M | 0.41 % | 0.1952 → 0.1955 (+0.0003) |
+| B_house | 628 / 8.27 M | 628 / 8.29 M | 0.52 % | 0.1769 → 0.1774 (+0.0005) |
+| C_lookback | 574 / 7.92 M | 574 / 7.92 M | 0 | 0.1839 → 0.1839 (0) |
+| D_log | 561 / 8.63 M | 561 / 8.66 M | 1.33 % | 0.2511 → 0.2526 (**+0.0015**) |
+| E_ground | 628 / 8.27 M | 628 / 8.29 M | 0.52 % | 0.1999 → 0.2001 (+0.0002) |
+| F_canopy | 601 / 7.99 M | 601 / 8.00 M | 0 | 0.2192 → 0.2192 (0) |
+
+No view moves away from the reference; D, whose corridor crowns at 28–44 m get their finer leaves, moves toward it. A stays
+130 K under the 9.0 M gate on this head (exp-north merged since; the branch merges clean — north does not touch `understory.ts`).
+
+## The change (branch `agent/fable-4-usmed` `28f95b56`, PR #65)
 
 `understory.ts` `leafOpts`: `mediumEvery: 1, mediumScale: 1` — the understory's medium LOD keeps every lamina at its size (the
 low LOD stays 1 in 8 at 2.6 × past 44 m). +34 K at the owner's north pose, +20 K at the west; the six fixed views' counts follow.

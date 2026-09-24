@@ -482,3 +482,5 @@ nearCanopy, materials, index otherwise) is edited.
   A 637 / 8.85 M, B 628 / 8.27, C 574 / 7.92, D 561 / 8.63, E 628 / 8.27, F 601 / 7.99; branch so far A 637 / 8.87 M (+20 K),
   B 628 / 8.29 M (+20 K). SSIM table via compare.mjs when the pair is done (next tick). No answer yet on the near-canopy fold;
   squad2's lodcheck read merge-safe by fable-5 (D 1.9 % px, Δ −0.0002…−0.0008), which is the same shape as mine.
+- 2026-09-24 23:05 — PR #65 measured at 1280 × 720: no view away from the reference (A +0.0003, B +0.0005, C 0, D +0.0015,
+  E +0.0002, F 0), draws unchanged, A 8.85 → 8.87 M; merges clean on `b9993008` (exp-north in). Ready; fable-cursor merges.
