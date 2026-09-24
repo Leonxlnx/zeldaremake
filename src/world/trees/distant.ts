@@ -55,23 +55,7 @@ export interface DistantPlacement {
  * (the disc crown with them). The cards are drawn by createDistantCrownMaterial below.
  * [near LOD cards, far LOD cards]
  */
-export const FAR_CROWN_CARDS: [number, number] = [7, 5];
-/**
- * How a crown's main cards make a cluster instead of one shape: [each card's half-width as a share of
- * FAR_CROWN_CARD_HALF, how far off the crown's centre it sits as a share of R, how far it rides up or
- * down as a share of R].
- *
- * The three round-47 cards were each 2.8 R across and centred on the axis, so a crown's whole outline
- * was one card's edge — and the previous hour proved that adding or enlarging LOBES cannot change that,
- * because everything inboard of that edge is invisible (three builds, 1.29 % of the pinned frame, one
- * dark corner). Against the reference the deficit is granularity: in a box around the biggest mass at
- * `u-open-up` the reference frames carry 4.6 × our boundary density at a quarter of our step (r_025
- * 3.06 % / 2.3 %, ours 0.66 % / 10.5 %; `cutout.mjs`). So the main cards themselves become the clumps:
- * more of them, each smaller, pushed off the centre so each one owns a piece of the rim. The product of
- * the first two keeps the span the skyline is built on (0.62 × 1.4 = 0.87 R half plus a 0.42 R push
- * reaches 1.08 R against the old 1.06 R), which is why `FAR_CROWN_CARD_HALF` below can stay as it is.
- */
-export const CROWN_CLUSTER: [number, number, number] = [0.62, 0.42, 0.12];
+export const FAR_CROWN_CARDS: [number, number] = [3, 3];
 /** near LOD only: crossed pairs of smaller cards off the axis (a second silhouette layer) */
 export const FAR_CROWN_LOBES: [number, number] = [2, 1];
 /**
@@ -314,6 +298,34 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * depth behind it can take the air's colour; an isolated card cannot, because paling it prints its
  * geometry. The crown cards keep the shade-gate repair and take the dissolve instead.
  */
+/**
+ * The crown cards' own veil, and it is the giants' one turned upside down. Measured like for like at
+ * 09:35 — the reference's DISTANT CANOPY band against ours in a level view, which is how the owner
+ * walks (x 0.3–0.7, y 0.05–0.35; `cutout.mjs`):
+ *
+ *     r_025  foliage 0.436 / saturation 0.060 · step 2.6 % · boundary density 3.11 %
+ *     r_026          0.435 / 0.058            · 2.7 %      · 3.05 %
+ *     ours, A_stairs 0.298 / 0.149            · 6.4 %      · 6.31 %
+ *     ours, D_log    0.390 / 0.093            · 5.3 %      · 3.87 %
+ *
+ * Our granularity is not the deficit there — our boundary density is at or above theirs, so the hour
+ * spent on lobes and on clustering the main cards was aimed at a gap that does not exist in a level
+ * view (the earlier box that said otherwise was r_025's NEAR FOREGROUND ferns against our distant
+ * canopy: unlike content, my error, and it is corrected in the report). The deficit is tone, exactly as
+ * fable-5 measured in the squad log at 10:28: our 14–58 m crowns are too dark and too saturated.
+ *
+ * And it is the level ray that is short of veil, not the climbing one. That is why `ray` falls here:
+ * full on the level, gone by 26°, the opposite of the giants' cards. A crown seen on the level shows its
+ * upright cards, which is the mass the reference pales into the mist; a crown seen from below shows its
+ * floor cards, which is where paling printed geometry and got the merge reverted at 05:30.
+ */
+export const CROWN_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
+  share: 0.55,
+  m: [14, 52],
+  ray: [0.45, 0.06],
+  tint: [1.02, 1.0, 0.96],
+  lift: [0.62, 1.0],
+};
 export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
   share: 0.42,
   // full at or below the first share of the air's own level, nothing at or above the second
@@ -331,10 +343,18 @@ export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?:
   const tint = veil.tint ?? CANOPY_DEPTH_VEIL.tint;
   const lift = veil.lift ?? CANOPY_DEPTH_VEIL.lift;
   const t = tint.map((c) => c.toFixed(3)).join(', ');
+  // `ray` reads either way round: rising (the giants' cards, which need the veil as the eye climbs out
+  // of the mist) or falling, first > second (the crown cards, which need it on the level and not
+  // overhead — see CROWN_VEIL)
+  const climb =
+    ray[0] <= ray[1]
+      ? `smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, rayUp)`
+      : `1.0 - smoothstep(${ray[1].toFixed(3)}, ${ray[0].toFixed(3)}, rayUp)`;
   return /* glsl */ `
     #ifdef USE_FOG
     {
-      float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
+      float rayUp = normalize(-vViewPosition * mat3(viewMatrix)).y;
+      float veilClimb = ${climb};
       float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
       // the floor (CANOPY_DEPTH_VEIL.lift): only foliage still darker than the air takes the veil,
       // measured as a share of the air's own level so the test holds in the material's space
@@ -464,14 +484,8 @@ function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, 
   for (let k = 0; k < count; k++) {
     const a = yaw0 + (k / count) * Math.PI + r.range(-0.12, 0.12);
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
-    const s = r.range(0.92, 1.08) * CROWN_CLUSTER[0];
-    // CROWN_CLUSTER: the cards are smaller and pushed off the centre, so the rim is theirs in turn
-    const out = yaw0 + (k / count) * TAU + r.range(-0.35, 0.35);
-    const push = R * CROWN_CLUSTER[1] * r.range(0.8, 1.15);
-    const c = centre
-      .clone()
-      .add(new Vector3(r.range(-0.06, 0.06) * R, r.range(-0.05, 0.05) * R, r.range(-0.06, 0.06) * R))
-      .add(new Vector3(Math.cos(out) * push, R * CROWN_CLUSTER[2] * r.range(-1, 1), Math.sin(out) * push));
+    const s = r.range(0.92, 1.08);
+    const c = centre.clone().add(new Vector3(r.range(-0.06, 0.06) * R, r.range(-0.05, 0.05) * R, r.range(-0.06, 0.06) * R));
     const shade = r.range(0.9, 1.06);
     crownCard(writer, c, dir, half * s, cells[k % cells.length], r.chance(0.5), tint.clone().multiplyScalar(shade * 0.82), topTint.clone().multiplyScalar(shade), centre, R * 1.05, 0.9, r());
   }
@@ -672,6 +686,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, crownPreFog, roofNearF * climbF * ${f(fogCut)});
     }
+    ${canopyVeilGlsl(look?.veil ?? CROWN_VEIL)}
     `,
         )
         .replace(
@@ -1198,7 +1213,7 @@ export const MID_TRUNK_R = 0.031;
 export const MID_SIDES = 12;
 export const MID_CORDS: [number, number] = [7, 0.1];
 /** crossed cards through the crown's axis, crossed lobe pairs around it, dark floor cards under it */
-export const MID_CROWN_CARDS = 7;
+export const MID_CROWN_CARDS = 3;
 export const MID_CROWN_LOBES = 6;
 export const MID_CROWN_FLOORS = 2;
 /** lobe radius and offset as shares of the crown radius: [upper tier, lower tier] */
@@ -1235,9 +1250,7 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   // across-column sd 18.9 → 15.4 at the owner's pose — see art/environment/squad2-2026-09-23)
   rim: 0.38,
   roundFloors: true,
-  // the mid layer stands in 13.7–58 m (placeMidTrees), so its veil is that band: a crown at the far
-  // edge of it is nearly mist, which is what puts light and depth between the layers he looked through
-  veil: { share: 0.55, m: [12, 40], ray: [0.05, 0.4] },
+  // no veil of its own: both crown layers share CROWN_VEIL, whose gate falls with the view ray
 };
 
 /**
@@ -1252,14 +1265,8 @@ function midCrownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: numbe
   const yaw0 = r.range(0, TAU);
   for (let k = 0; k < MID_CROWN_CARDS; k++) {
     const a = yaw0 + (k / MID_CROWN_CARDS) * Math.PI + r.range(-0.14, 0.14);
-    // the cluster (CROWN_CLUSTER), as for the far layer: each card owns a piece of the rim
-    const out = yaw0 + (k / MID_CROWN_CARDS) * TAU + r.range(-0.35, 0.35);
-    const push = R * CROWN_CLUSTER[1] * r.range(0.8, 1.15);
-    const c = centre
-      .clone()
-      .add(new Vector3(r.range(-0.07, 0.07) * R, r.range(-0.06, 0.06) * R, r.range(-0.07, 0.07) * R))
-      .add(new Vector3(Math.cos(out) * push, R * CROWN_CLUSTER[2] * r.range(-1, 1), Math.sin(out) * push));
-    card(c, new Vector3(Math.cos(a), 0, Math.sin(a)), R * FAR_CROWN_CARD_HALF * CROWN_CLUSTER[0] * r.range(0.94, 1.06), cells[k % cells.length], r.range(0.92, 1.05), 0.86);
+    const c = centre.clone().add(new Vector3(r.range(-0.07, 0.07) * R, r.range(-0.06, 0.06) * R, r.range(-0.07, 0.07) * R));
+    card(c, new Vector3(Math.cos(a), 0, Math.sin(a)), R * FAR_CROWN_CARD_HALF * r.range(0.94, 1.06), cells[k % cells.length], r.range(0.92, 1.05), 0.86);
   }
   for (let l = 0; l < MID_CROWN_LOBES; l++) {
     const upper = l % 2 === 0;
