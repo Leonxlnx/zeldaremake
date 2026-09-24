@@ -282,3 +282,9 @@ Three routes, the probes and the sweep (`walk-ruins-fdb4d338.json`); ten poses (
 three pops and its 0.6 m headings — the site's older poses hold at 3). 175 stands at **175 / 200 with one check at 2** — not
 shippable by the letter until the water stair's camera is done; the stair itself is the site's best new picture (the flight
 down the wall's face to the quay, the fall ahead) once the camera can be on it.
+
+## The six views on `f29ad20e` (21:56 — the butterflies anchored to the base's set, a card any hero camera frames kept) — 22:38–23:03 UTC
+
+Against the branch's base `31146062`, the same capture: **A, B, D, E, F pixel-identical (1.0000, 0.00 %)** — the 34 butterflies' re-roll
+that `3776cc81`'s prune caused in every hero frame is gone; **C 0.9998, 0.07 % of its pixels, −0.0004 vs the reference** — scattered over C's right third at
+mid-height (x 867–1279, y 150–396 of 1280 × 720, +9 luma), the trail side of the frame where the card cull reached to x −1. Inside the budget; the author's own catch, confirmed from outside.

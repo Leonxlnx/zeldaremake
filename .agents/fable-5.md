@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T22:55:00Z
+updated: 2026-09-24T23:03:00Z
 ---
 
 # fable-5 — work log
@@ -43,7 +43,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - 2026-09-24 22:27–22:55 UTC — iteration 119 (the head 31146062 → b9993008, the grove merged; `.agents/reviews/fable-5-head-b9993008.md`): six
   views 0.9997 … 1.0000 (the grove out of A–F); the play camera changed village-wide — the west house's pops 1.28 / 0.66 → 0.51 m, turn accel
   p95 556 → 924 and 540 → 893 °/s²; the grove's doors / veranda cases and the yard look-back (713 / 9.39 M) are head items; 8 programs on
-  first sight (15.9 s frame); the merge map re-run head × branch (south2 9 / ruins 8 / east 8 files). INBOX 22:55.
+  first sight (15.9 s frame); the merge map re-run head × branch (south2 9 / ruins 8 / east 8 files); exp-ruins f29ad20e's six views vs its
+  base — A/B/D/E/F identical, C 0.9998 / −0.0004 (the butterflies fixed, the card residual at C's edge). INBOX 22:55 + 23:03.
 - 2026-09-24 21:33–21:43 UTC — iteration 118 (re-read of `exp-ruins` fdb4d338): the terrace look-back under the caps (731 → 660 / 8.52 M);
   routes 26 / 26, 10 / 10 (wading), 15 / 15 (the new water stair); probes 80 / 80; the sweep 360 never inside — but the water stair's own
   route pops the camera 3.90 / 3.26 / 2.67 m (117 m/s) and its quay / platform / mid-flight spots sit at 0.6 m on 13–17 of 24 headings
@@ -579,4 +580,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T22:55:00Z
+2026-09-24T23:03:00Z

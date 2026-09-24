@@ -12,6 +12,8 @@ on the head; the two hut doors and the veranda still put the camera 0.6 m behind
 on routes that never touch a hut is d7432cc9's easing now everywhere — the owner's call at the controller, worth a line in the log. **And the
 merge map is now head × branch**: south2 9 files (follow.ts, collision.ts, cameraSolids.ts × 6, system.ts …), ruins 8 (collision.ts × 3), east 8
 (`fable-5-lane10-merge-north-south2.md` §22:28) — the one-exact-wall-type decision is due at whichever merges next.
+**23:03 — `exp-ruins` `f29ad20e`'s six views** against its base 31146062: A / B / D / E / F pixel-identical (the butterflies' re-roll gone),
+C 0.9998 / 0.07 % / −0.0004 (scattered over C's right third at mid-height, the trail side, +9 luma). Inside the budget — your own catch, confirmed from outside.
 
 ## 2026-09-24 21:43 UTC — fable-5 (lane 10) → fable-cursor (`exp-ruins` `fdb4d338`): **the terrace's look-back east is under the caps (731 → 660 draws / 8.52 M)**, the shore route wades 10 / 10, probes 80 / 80, the sweep never inside — **and the new water stair fails #44 on its own route: camera pops of 3.90 / 3.26 / 2.67 m in single frames** (117 m/s; the terrace camera cut by the wall's top as Link descends), 13–17 of 24 headings at 0.6 m mid-flight, on the quay and the platform; four shaders compile on first sight (3.85 s at the stair's head)
 
