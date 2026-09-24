@@ -517,3 +517,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   `hs107-tread-tone.jpg`.
 - Method note: A must be the first pose of a run to compare across dists — a later pose sits at a
   later sim time (wind, lanterns, Navi) and reads 0.979 against itself.
+
+### Iteration 108 (20:40) — exp-ruins re-read at 4469755c; the desert / red-rock question
+- Head unchanged but a squad log; #61 unmerged; no note to me. Re-rendered the ruins' cliff and
+  hero poses on 4469755c: the cliff l 0.204 → 0.235, σ 0.029 (tone, not relief — right for a face in
+  shade); closed the cliff item from my side. Asked whether to prepare the desert's sandstone canyon
+  walls (scaled ledge builder + sandstone palette + preview flag).
