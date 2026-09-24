@@ -43,6 +43,8 @@ export interface AmbienceState {
   forward: { x: number; z: number };
   /** pod lantern positions (world) */
   pods: readonly Vec3[];
+  /** fairy positions (world) — they move, so this is read fresh every frame */
+  fairies?: readonly Vec3[];
   /** 0 out in the open, 1 with wood closed over the listener (inside the log tunnel's bore) */
   enclosure?: number;
 }
@@ -52,7 +54,18 @@ export interface Ambience {
   scheduleUntil(t: number): void;
   /** set the continuous parameters as of context time t */
   update(t: number, state: AmbienceState): void;
+  /** what the forest has done so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
+  stats(): AmbienceStats;
   dispose(): void;
+}
+
+export interface AmbienceStats {
+  /** bird calls, leaf flutters and fairy glints sounded since the context started */
+  birds: number;
+  flutters: number;
+  glints: number;
+  /** fairies the listener can currently hear */
+  fairiesNear: number;
 }
 
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
@@ -87,6 +100,18 @@ export function swell(gust: number): number {
 /** the leaf flutters' level range (before the gust scale) and their share into the hall */
 const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
 const FLUTTER_SEND = 0.25;
+/** the longest the wood is ever left with nothing at all in it (s) */
+export const QUIET_GAP_MAX = 2.2;
+/**
+ * A fairy's glint: how close you have to be for half level, its peak, and the gap between glints.
+ * Events only, and small ones — the owner's standing complaint is that there is too much sound, so
+ * a fairy is a few grains of light every couple of seconds, never a shimmer laid over the forest.
+ */
+export const FAIRY_REACH_M = 2.5;
+export const FAIRY_LEVEL = 0.014;
+export const FAIRY_GAP: [number, number] = [1.4, 4];
+/** past this she is not heard at all (the inverse-square reach alone runs on to eleven metres) */
+export const FAIRY_AUDIBLE_M = FAIRY_REACH_M * Math.sqrt(1 / 0.25 - 1);
 /** the bed's top in the open, and with the log tunnel's wood closed over the listener */
 const ENCLOSURE_OPEN_HZ = 18000;
 const ENCLOSURE_CLOSED_HZ = 900;
@@ -194,6 +219,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
 
@@ -202,6 +228,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * cluster read as a branch shaking; a continuous band of the same noise reads as hiss.
    */
   const flutter = (t: number, centre: number, level: number, pan: number, decay: number) => {
+    counts.flutters++;
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     panner.connect(out);
@@ -235,8 +262,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
         const level = (FLUTTER_LEVEL[0] + eventRng() * (FLUTTER_LEVEL[1] - FLUTTER_LEVEL[0])) * (0.35 + g * 0.9);
         flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
       }
-      // gusts crowd the flutters together; still air leaves long gaps
-      nextFlutter += (0.5 + eventRng() * 3.2) / (0.3 + g * 1.1);
+      // gusts crowd the flutters together; still air leaves long gaps — but never longer than
+      // QUIET_GAP_MAX. With the bed gated below the gust knee and the tune resting between passes,
+      // the wood could otherwise fall to nothing for five seconds at a time, which reads as the
+      // sound having broken rather than as a quiet forest. A leaf turning over is the answer to
+      // that, not a floor put back under everything.
+      nextFlutter += Math.min(QUIET_GAP_MAX, (0.5 + eventRng() * 3.2) / (0.3 + g * 1.1));
     }
   };
 
@@ -263,6 +294,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   };
 
   const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number) => {
+    counts.birds++;
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
     const lv = level * (1 - 0.66 * distance);
     const soft = 1 + distance * 1.6;
@@ -372,6 +404,50 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     osc.stop(end + 0.1);
   };
 
+  /**
+   * A fairy at `pan`, `level` loud: two or three tiny bell partials climbing over about 120 ms.
+   * Short and sparse on purpose — the ear should catch a glint of light beside it, not a chime.
+   */
+  const glint = (t: number, pan: number, level: number) => {
+    counts.glints++;
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = pan;
+    const hp = filter(ctx, 'highpass', 1200, 0.6);
+    hp.connect(panner).connect(out);
+    const send = gain(ctx, 0.3);
+    panner.connect(send).connect(reverbSend);
+    const notes = 2 + Math.floor(eventRng() * 2);
+    let end = t;
+    const nodes: AudioNode[] = [hp, panner, send];
+    for (let i = 0; i < notes; i++) {
+      const at = t + i * (0.045 + eventRng() * 0.05);
+      const f = 2600 * (1 + i * 0.26) * (0.92 + eventRng() * 0.18);
+      const g = gain(ctx, 0);
+      g.connect(hp);
+      for (const [mult, share, wave] of [
+        [1, 1, 'sine'],
+        [2.74, 0.22, 'triangle'],
+      ] as [number, number, OscillatorType][]) {
+        const osc = ctx.createOscillator();
+        osc.type = wave;
+        osc.frequency.value = f * mult;
+        const og = gain(ctx, share);
+        osc.connect(og).connect(g);
+        osc.start(at);
+        osc.stop(at + 0.24);
+        nodes.push(og);
+      }
+      adEnvelope(g.gain, at, level * (1 - i * 0.15), 0.004, 0.09 + eventRng() * 0.06);
+      nodes.push(g);
+      end = at + 0.16;
+    }
+    cleanupAt(ctx, end + 0.4, () => {
+      for (const n of nodes) n.disconnect();
+    });
+  };
+
+  let nextGlint = startAt + 1;
+
   const pickBird = () => {
     let r = eventRng() * BIRD_WEIGHT;
     for (const b of BIRDS) {
@@ -438,6 +514,35 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
     flamePan.pan.setTargetAtTime(pan, t, 0.3);
+    // the nearest fairy: a glint every second or three while one is within a couple of metres
+    if (t >= nextGlint && s.fairies?.length) {
+      let best = 0;
+      let bx = 0;
+      let bz = 0;
+      for (const f of s.fairies) {
+        const dx = f.x - s.listener.x;
+        const dy = f.y - s.listener.y;
+        const dz = f.z - s.listener.z;
+        const a = 1 / (1 + (Math.sqrt(dx * dx + dy * dy + dz * dz) / FAIRY_REACH_M) ** 2);
+        if (a > best) {
+          best = a;
+          bx = dx;
+          bz = dz;
+        }
+      }
+      counts.fairiesNear = s.fairies.filter((f) => Math.hypot(f.x - s.listener.x, f.y - s.listener.y, f.z - s.listener.z) < FAIRY_AUDIBLE_M).length;
+      // only when she is close enough to be heard: the attenuation runs on for ten metres, and a
+      // glint out there is −63 dBFS, which is not a sound, just a scheduled event
+      if (best > 0.25) {
+        const rx = -s.forward.z;
+        const rz = s.forward.x;
+        const len = Math.hypot(bx, bz) || 1;
+        glint(t, Math.max(-1, Math.min(1, ((bx * rx + bz * rz) / len) * 0.85)), best * FAIRY_LEVEL);
+        nextGlint = t + FAIRY_GAP[0] + eventRng() * (FAIRY_GAP[1] - FAIRY_GAP[0]);
+      } else {
+        nextGlint = t + 0.5;
+      }
+    }
     // the log tunnel closing over the forest (index.ts surfaceAt: 0 at the mouth, 1 a metre and a
     // half in), geometric in frequency so the change is even as he walks in
     const enc = Math.max(0, Math.min(1, s.enclosure ?? 0));
@@ -448,6 +553,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   return {
     scheduleUntil,
     update,
+    stats: () => ({ ...counts }),
     dispose() {
       for (const n of nodes) {
         try {
