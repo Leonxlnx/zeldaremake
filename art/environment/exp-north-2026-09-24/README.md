@@ -10,14 +10,15 @@ Branch `agent/fable-cursor-exp-north`.
 
 On 59e970d6, the grove's last code commit:
 
-- **Rubric** (`docs/RUBRIC_50_STRUCTURES.md`, 50 checks scored 0–4): the trunk house 174, the stilt house 171, the
-  tree hut 172 and the grove as a place 170, out of 200. No check is under 2 (the one 2: the stilt house's cap ties to
+- **Rubric** (`docs/RUBRIC_50_STRUCTURES.md`, 50 checks scored 0–4): the trunk house 174, the stilt house 170, the
+  tree hut 171 and the grove as a place 170, out of 200. No check is under 2 (the one 2: the stilt house's cap ties to
   nothing above it) and every ★ check scores 3 or 4.
 - **Walking** (checks 41–43): in Chrome the real controller walks the `north-grove` route from the second clearing to
   the tree hut's walkway deck and reaches 28 / 28 waypoints with 0 stuck frames. `northProbes` answers as intended at
   all 64 points: every railing, deck side and shut wall blocks him, and every deck holds him at its height.
 - **Cost** (checks 46–47): the grove's heaviest view, the look back over the hamlet (`g-back`), is 689 draws and
-  8.88 M triangles (730 draws before the fix). The other 18 of the grove's 24 views are being re-counted on 59e970d6 (the 15 of them counted on e994114a: 184–503 draws, 1.64–6.36 M triangles). The fixed cameras A–F never draw the grove.
+  8.88 M triangles (730 draws before the fix); the other 23 of the grove's 24 views count 161–648 draws and
+  1.58–8.63 M triangles. The fixed cameras A–F never draw the grove and count the same as phase1's own.
 - **Camera** (check 44): in the node replays the grove's worst pop is 0.26 m (phase1's camera: 4.28 m); in Chrome the
   one frame over 100 m/s² on the grove's route is a 0.14 m second difference at the trunk house's door.
   `node --test src/camera/*.test.mjs` passes (16 tests).
@@ -62,11 +63,15 @@ Link on the real controller and the follow camera.
 
 ![The grove's ten views](grove-views.jpg)
 
-`grove-views.jpg` (e994114a): from the grove flight's foot, the trail's middle, the trail's west bend, the shelf's east
+`grove-views.jpg` (59e970d6): from the grove flight's foot, the trail's middle, the trail's west bend, the shelf's east
 side, the trunk house's door, low over the lawn, from above, the look back over the hamlet from the bank behind the
 trunk house (`g-back`), from the veranda to the rope walk, and under the tree hut.
 
-*The details sheet on 59e970d6 is being rendered and lands with the next commit.*
+![Thirteen details at 2–6 m](grove-details.jpg)
+
+`grove-details.jpg` (59e970d6): the trunk house's door and yard, the stilts from below and from the east slope, the
+veranda's ring, the gangway, the rope walk, under the tree hut, the nest from below, the tree hut's walkway deck, the
+broken pot, the gangway's pod and a walkway post's pod.
 
 ![Six play-mode frames](play-views.jpg)
 
@@ -110,7 +115,7 @@ Evidence names a tile on one of the sheets: *views* (`grove-views.jpg`), *detail
 | 8 | load paths make sense | 3 | 4 | 4 | 3 | S: deck boards on the ring beam, the ring beam on stilts, the stilts on pads (details d-stilts-below, d-stilts-east). H: the platform on the column, the nest's ring on the column over the cap, the rope walk sagging 0.12 m between its posts. T: the house.ts root arch carries the trunk. G: the posts stand in the ground, the sign on its post |
 | 9 | trim and edges finished | 4 | 3 | 3 | 3 | T: the threshold slab, the door frame and the eave board (details d-house-door). S/H: a sill plank across each hut's door, a fascia round each deck, the veranda's rail capped, a sill log across the gangway's foot (details d-veranda-ring, d-gangway) |
 | 10 | small detail at 2–5 m | 4 | 4 | 4 | 4 | details d-gangway-pod and d-post-pod (brackets, cords, toggles), d-rope-walk (plank ends, rope lashings), d-gangway (cleats every 0.36 m, one lost with its two pegs left), d-pot-broken (shards); 64 veranda boards, 34 railing posts, 19 treads |
-| 11 ★ | wood reads as wood, bark as bark, stone as stone | 4 | 4 | 4 | 4 | the planks carry the plank atlas along their length with end grain on the cut ends; the logs are bark tubes with checked end caps; the pads and discs are stone (details d-gangway, d-stilts-east, d-rope-walk; views g-trail-mid). The walkway stubs' posts are round poles now: as square 9 cm bars in the caps' shade they read as black boxes a metre from the play camera (pods, play p-rope-walk) |
+| 11 ★ | wood reads as wood, bark as bark, stone as stone | 4 | 3 | 3 | 4 | the planks carry the plank atlas along their length with end grain on the cut ends; the logs are bark tubes with checked end caps; the pads and discs are stone (details d-gangway, d-stilts-east, d-rope-walk; views g-trail-mid). S/H 3: the walkway stubs' posts were square 9 cm bars that read as black boxes in the caps' shade; they are capped round poles with rope lashings now and read as wood at 2–3 m (details d-hut-deck), but a metre from the play camera, still in that shade, they are near-black with no grain (pods, play p-rope-walk and p-hut-door) |
 | 12 | texel density matches the neighbours | 3 | 3 | 3 | 3 | the rings' maps now run 1.2–1.6 texture tiles a metre where they had folded to 18–39 (the stump 1.20 against 0.74 on the wall next to it, f427afda); the decks and rails share the village's 1.6 m tile |
 | 13 | colour and value in the village's palette | 4 | 3 | 3 | 3 | warm browns and moss greens throughout; the lime pods are the village's lime; nothing in the grove is near white (check 38) |
 | 14 | believable roughness and sheen | 3 | 3 | 3 | 3 | the village's own materials: matte wood, soft moss, dry stone. Nothing in the grove is wet, so no stone is glossy |
@@ -137,20 +142,20 @@ Evidence names a tile on one of the sheets: *views* (`grove-views.jpg`), *detail
 | 35 | the roof line ties to the tree or rock | 4 | 2 | 4 | 3 | T is a tree. H's column runs on up through the nest into its crown. S's cap ties to nothing above it: a hut on a cut stump under open sky and the understory's crowns |
 | 36 ★ | pods glow warm and steady, each on a believable hanger | 4 | 4 | 4 | 4 | the crafted pods (ribs, panels, a flame) glow and cast no sun shadow (a husk's shadow under a lit lamp read as a smudge; e52bc63a); they hang from pegs, toggled cords and brackets; the gangway's pod and the huts' post pods now hang from brackets outboard of the rails (details d-gangway-pod, d-post-pod; pods), clear of Link by 8 cm or more (all 17 pods; four hung in his way before, e994114a) |
 | 37 | light pools restrained and soft | 3 | 3 | 3 | 3 | 15 pools of additive `lanternGlow` at ≤ 0.085 linear, soft-edged, clipped to the surface they fall on and faded by the haze (views g-house-door, play p-hut-door) |
-| 38 | no clipped whites | 3 | 3 | 3 | 3 | on e994114a no pixel of the 25 views and details has all three channels over 235; the brightest are the pods' flames at (253, 200, 107). In the six play frames 0–3 pixels pass 235 and none 245, all of them in the fairy's glow beside Link |
+| 38 | no clipped whites | 3 | 3 | 3 | 3 | on 59e970d6 no pixel of the 23 views and details has all three channels over 235; the brightest are the pods' flames at (253, 200, 107). In the six play frames 0–3 pixels pass 235 and none 245, all of them in the fairy's glow beside Link |
 | 39 | reads in the shafts and in shade | 3 | 3 | 3 | 3 | the stilt house in the light and the tree hut in the column's shade (views g-shelf-east, g-hut-below); the trunk house's door in shade with its room lit (details d-house-door) |
 | 40 | no new real-time light | 4 | 4 | 4 | 4 | the grove adds none: the structures system has 18 point lights on phase1 and 18 here; the house's and posts' 6 are taken out, every glow is emissive |
 | 41 ★ | Link walks every intended surface | 4 | 4 | 4 | 4 | in Chrome on 59e970d6 the real controller walks the `north-grove` route from the second clearing up both flights, along the trail to the trunk house's door, back across the yard, up the gangway, round the veranda and over the rope walk onto the tree hut's walkway deck: 28 / 28 waypoints, 0 stuck frames (as on e156566f). The node replays walk the grove 48 more ways and reach every waypoint |
 | 42 | walls, rails and edges block him | 4 | 4 | 4 | 4 | `northProbes` on 59e970d6: 64 / 64 as intended. Every railing, deck side, shut wall and door, the tree hut's railed platform and the trunk house's bole block him; the veranda, the gangway, the rope walk and the walkway deck hold him at their heights. The decorative ladders' heads are railed (probes on the veranda railing and the hut's railing) |
-| 43 | walkable rise, even underfoot | 3 | 3 | 3 | 4 | flight 0.27 m rise per 0.42 m tread, gangway 20.6° with a cleat every 0.36 m, rope walk 0.3 m drop and 0.12 m sag, trail 24 % easing to 15 %; all under the 0.55 m step guard; the feet's sole gap 3 mm median, 28 mm p95 along the route |
+| 43 | walkable rise, even underfoot | 3 | 3 | 3 | 4 | flight 0.27 m rise per 0.42 m tread, gangway 20.5° with a cleat every 0.36 m, rope walk 0.3 m drop and 0.12 m sag, trail 24 % easing to 15 %; all under the 0.55 m step guard; the feet's sole gap 3 mm median, 28 mm p95 along the route |
 | 44 | camera never inside, never pops over 0.3 m | 3 | 4 | 4 | 3 | the camera section: in the node replays the grove's worst pop is 0.26 m (phase1's camera 4.28 m); in Chrome one frame over 100 m/s² at T's door, a 0.14 m second difference |
 | 45 | footsteps play the right surface | 3 | 4 | 4 | 4 | wood on the veranda, gangway, stubs, rope walk and hut platform (`onGrovePlanks`), stone on the discs, grass on the lawn (`src/world/terrain/expansionNorth.test.mjs`); T's yard is grass and its threshold plays grass |
-| 46 ★ | every hero view ≤ 9.0 M triangles and ≤ 700 draws, its own too | 4 | 3 | 4 | 3 | Chrome, 59e970d6 (the cost section). T: its door and yard views on e994114a 184–206 draws / ≤ 1.70 M (being re-counted). S: its heaviest view, `d-stilts-east`, 648 draws / 8.63 M. H: `d-hut-deck` 572 / 7.26 M, `d-rope-walk` 564 / 7.43 M. G: the look back over the hamlet, `g-back`, 689 / 8.88 M (730 draws before the fix). All 24 of the grove's views are within budget (18 of them are being re-counted on 59e970d6); A–F are phase1's own, the grove hidden there. S and G score 3: their heaviest views sit 7 % and 2 % under the draw budget |
+| 46 ★ | every hero view ≤ 9.0 M triangles and ≤ 700 draws, its own too | 4 | 3 | 4 | 3 | Chrome, 59e970d6 (the cost section). T: its door, yard and broken-pot views 161–183 draws / ≤ 1.71 M. S: its heaviest view, `d-stilts-east`, 648 draws / 8.63 M. H: `d-hut-deck` 572 / 7.26 M, `d-rope-walk` 564 / 7.43 M. G: the look back over the hamlet, `g-back`, 689 / 8.88 M (730 draws before the fix). All 24 of the grove's views are within budget; A–F count the same as phase1's own, the grove hidden there. S and G score 3: their heaviest views sit 7 % and 2 % under the draw budget |
 | 47 | hidden when far or off-screen | 4 | 4 | 4 | 4 | drawn only within 60 m (`GROVE_VISIBLE_M`) and when the frustum meets its spheres (`util/groveLocality.ts`); off-screen it costs 0 draws |
-| 48 | deterministic | 3 | 3 | 3 | 3 | the structures' 186 meshes (47 of them the grove's) hash identically in two separate builds of 59e970d6; no `Math.random` in `src/world` (seeded `prng` forks); the 108 node camera replays reproduce to the digit on 59e970d6; A, B and C count the same draws and triangles on two builds that differ only inside the grove |
+| 48 | deterministic | 3 | 3 | 3 | 3 | the structures' 186 meshes (47 of them the grove's) hash identically in two separate builds of 59e970d6; no `Math.random` in `src/world` (seeded `prng` forks); the 108 node camera replays reproduce to the digit on 59e970d6; A, B and C count the same draws and triangles on two builds that differ only inside the grove. Rendered twice at the same clock, four of the pods sheet's five shots are pixel-identical and the rope walk differs in 6 of 518 400 pixels by one level, all in the foliage at the frame's upper right, none on the structures |
 | 49 | belongs to this forest | 4 | 3 | 3 | 3 | the village's own house, huts, pods, posts, sign, rope and materials, in its palette (views g-trail-west, g-house-door) |
 | 50 | the owner would stop and look | 3 | 4 | 4 | 4 | the hamlet from the trail's bend (views g-trail-west), the rope walk from the veranda (views g-veranda), the nest over the tree hut (details d-nest-up) |
-| | **total** | 174 | 171 | 172 | 170 | ship at ≥ 170 with no check under 2 and every ★ at 3 or more |
+| | **total** | 174 | 170 | 171 | 170 | ship at ≥ 170 with no check under 2 and every ★ at 3 or more |
 
 ## Walking it (checks 41–45)
 
@@ -209,7 +214,7 @@ as on e156566f:
 
 On e156566f the south expansion's 41 probes hold too (41 / 41).
 
-**Steps and ramps (check 43).** The flight rises 0.27 m per 0.42 m tread, the gangway 1.52 m over 4.05 m (20.6°) with
+**Steps and ramps (check 43).** The flight rises 0.27 m per 0.42 m tread, the gangway 1.52 m over 4.05 m (20.5°) with
 a cleat every 0.36 m, the rope walk falls 0.3 m with 0.12 m of sag, the trail climbs at 24 % out of the landing, easing
 to 15 %. All of it is well under the 0.55 m step guard. Along the route the feet's sole gap is 3 mm at the median and
 28 mm at p95 on 59e970d6 (47 mm on e156566f).
@@ -235,8 +240,12 @@ grove's views before the draw fix (e994114a) and after it (59e970d6):
 | `d-hut-deck`, the tree hut's walkway deck | 599 / 7.34 M | 572 / 7.26 M |
 | `d-rope-walk`, along the rope walk | 583 / 7.46 M | 564 / 7.43 M |
 | `d-stilts-below`, under the veranda | 551 / 7.44 M | 512 / 7.41 M |
-| the other 15 views counted on both builds (the flight's foot, the trail, the shelf, the doors, the yard, the gangway, under the tree hut, the nest …) | 184–503 / 1.64–6.36 M | being re-counted |
-| the broken pot and the two pod close-ups (new since e994114a) | | being counted |
+| `g-shelf-east`, the shelf's east side | 503 / 5.89 M | 469 / 5.91 M |
+| `d-gangway`, the gangway from the shelf | 496 / 6.36 M | 462 / 6.35 M |
+| `d-hut-below`, under the tree hut | 475 / 6.35 M | 448 / 6.27 M |
+| the other 12 views counted on both builds: `g-flight-foot`, `g-trail-mid`, `g-trail-west`, `g-lawn-low`, `g-house-door`, `d-house-door`, `d-yard`, `g-aerial`, `g-hut-below`, `g-veranda-out`, `d-veranda-ring`, `d-nest-up` | 184–335 / 1.64–4.56 M | 161–304 / 1.65–4.48 M |
+| `d-post-pod`, a walkway post's pod (new since e994114a) | | 383 / 4.73 M |
+| `d-pot-broken`, `d-gangway-pod` (new since e994114a) | | 163 / 1.58 M, 164 / 1.66 M |
 
 The fix is two commits. In e52bc63a the pods, the log ends and the lichen plates stop casting: every caster is a
 second draw in the sun's shadow pass, and the pods glow (a husk's shadow under a lit lamp reads as a smudge), the
@@ -247,13 +256,15 @@ the grove holds tens to a few hundred. Only whole merge buckets changed (`consol
 pack's unused slots draw zero-area triangles.
 
 **The hero views.** Every fixed camera stands 74 m or more from the grove's box, where the grove draws nothing, and
-59e970d6 changes nothing outside the grove (the 139 meshes outside it hash identically). On e994114a they count A 639
+59e970d6 changes nothing outside the grove (the 139 meshes outside it hash identically). On 59e970d6 they count A 639
 draws / 8.87 M triangles, B 628 / 8.29 M, C 571 / 7.93 M, D 562 / 8.63 M, E 628 / 8.29 M and F 599 / 8.01 M, the same
-as phase1's own full check (f04d9529), and A, B and C re-counted here on phase1 (3c6cc553) are identical.
+as on e994114a and as phase1's own full check (f04d9529), and A, B and C re-counted here on phase1 (3c6cc553) are
+identical.
 
 **Hidden (check 47).** The grove's structures, paving, dressing and understory are drawn only within 60 m of its box
 and when the frustum meets its spheres (`util/groveLocality.ts`). In view, the grove's structures are 47 draws; from
-the fixed cameras A, B and C the counts are the same with the grove (e994114a) as without it (phase1, 3c6cc553).
+the fixed cameras A–F the counts are the same with the grove (e994114a, 59e970d6) as without it (phase1's full
+check, f04d9529; A, B and C re-counted on 3c6cc553).
 
 ## The camera change (check 44; `src/camera/follow.ts`, `src/camera/collision.ts`)
 
@@ -364,6 +375,9 @@ The grove's own:
   thing over it is sky and the understory's crowns.
 - The huts are glimpsed, not entered: their doors are shut, and behind each is a warm-lit recess (a shelf, two cups,
   two lamp discs), not a room. From 2 m the recess's back wall reads as smooth tan.
+- The walkway stubs' posts and pod brackets sit in the caps' shade, and a metre from the play camera on the rope walk
+  and at the tree hut's door they are near-black (check 11 scores 3 for both huts; play p-rope-walk, p-hut-door). They
+  are round poles now, not boxes; a lighter wood tint or a little ambient lift on those posts would let the grain read.
 - Every pool of light takes the village's `lanternGlow`, so the two lime pods (the gangway's and the shelf-lip post's)
   lay an amber pool. A per-pod tint in the pools' builder would fix it.
 - The trunk house is `house.ts` with the upper house's settings, so it keeps that builder's two shortfalls: its
@@ -382,9 +396,9 @@ Not the grove's, seen while checking:
   where the wall's wobble swells Link's shoulder can overlap the wall (on the stilt house, before `WALL_CLEAR`, that
   was 0.16 m).
 - `climb.main.reachedTop` is false since the hero flight grew to 26 treads (W02).
-- Two views outside the grove are over budget on e994114a, and the grove draws nothing in either: the south far bank's
-  look-back (818 draws, 9.30 M triangles, as on phase1; exp-south2's, flagged in f04d9529) and the perf lane's
-  `perf-stairs2-base` (622 draws, 9.45 M triangles).
+- Two views outside the grove are over budget, and the grove draws nothing in either: the south far bank's look-back
+  (818 draws, 9.30 M triangles; exp-south2's, flagged in f04d9529) and the perf lane's `perf-stairs2-base` (622 draws,
+  9.45 M triangles). Both count the same on e994114a and on phase1 (3c6cc553).
 - The views that look back over the village carry its background characters, a few pixels tall 100 m off: 57 draws
   and 6 more in the shadow pass at `g-back` (node count). A distance cull in the character lane is the largest saving
   left there.
