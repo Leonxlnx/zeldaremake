@@ -370,3 +370,11 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the decals under the bucket, pots and crate hold still (no z-fight, no crawl); walks `plaza-to-upper-house` 6 / 6 and
   `saria-front-arc` 3 / 3, nothing stuck. Filed in `props-fable-3/contact-ao/`. Note: `--only walk` steps without
   drawing (no frames); `--only video --video` is the drawn sequence.
+
+## 2026-09-24 13:31 tick — exp-south2 reviewed with the props tip merged
+
+- Head still at 11:20; exp-south2 and a new exp-ruins moving on fable-cursor's side. Built exp-south2 in a worktree,
+  merged my tip into it (clean), rendered three poses on both: the dwellings and the south props clear each other; the
+  toll pile reads as the keeper's stock. Filed `props-fable-3/reviews/`; offered wall-hugging (their pad) and `aoDecal`
+  for their posts. Correction: `62bf7fcd` (marker yaw) has been on the head since 07:20 — I mis-tracked it in two notes.
+- Stopped my own playtest video run (PID 197427, the staircase climb at 25 s/frame) once the Saria-side sweep was in.
