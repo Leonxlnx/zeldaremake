@@ -111,15 +111,39 @@ export const RUN_SPEED = 2.4;
 /** the shortest gap between two steps — a guard against a noisy stance flag double-triggering */
 export const MIN_STEP_GAP = 0.16;
 
-/** steps per second at a ground speed: a walker's cadence, then a runner's */
+/**
+ * The two speeds this game travels at, and the gait's own step rate at each.
+ *
+ * Measured in play (`art/audio/2026-09-24-cadence/`), counting the character system's stance edges
+ * over four seven-second legs on two surfaces: a held W walks at **1.60 m/s and plants 3.63 boots a
+ * second** (0.44 m a step), and W with shift runs at **4.60 m/s and plants 4.92** (0.93 m). The
+ * audio fires exactly one step per edge — 25/25, 26/26, 35/35 — so it is faithful; the rate is the
+ * animation's.
+ *
+ * Both are far off what this file used to model (2.02 and 2.95 a second, 0.79 m and 1.56 m). Those
+ * numbers are an adult's, and Link is a 1.25 m child who really does patter at 1.6 m/s. The model
+ * is only consulted when the character system is not reporting boot plants — which is never in
+ * play, but is **always in an offline render**, so every evidence WAV this lane has produced had
+ * its footsteps at roughly half the rate the owner hears. The step design is unaffected (each step
+ * is the same sound either way); anything about step *density* was measured at the wrong cadence.
+ *
+ * A keyboard reaches exactly these two speeds, so two calibration points are the whole domain; the
+ * line between them is an interpolation and the ends are clamped rather than extrapolated.
+ */
+export const WALK_SPEED = 1.6;
+export const WALK_CADENCE = 3.63;
+export const RUN_CADENCE = 4.92;
+const CADENCE_SLOPE = (RUN_CADENCE - WALK_CADENCE) / (4.6 - WALK_SPEED);
+
+/** steps per second at a ground speed, as the gait plants them */
 export function cadence(speed: number): number {
-  return speed > RUN_SPEED ? 2.4 + 0.12 * speed : 1.35 + 0.42 * speed;
+  return Math.max(1.2, Math.min(5.6, WALK_CADENCE + (speed - WALK_SPEED) * CADENCE_SLOPE));
 }
 
 /** how far the boot travels between two steps (m) */
 export function strideFor(speed: number, onStairs: boolean): number {
   if (onStairs) return 0.54;
-  return Math.max(0.35, speed / cadence(speed));
+  return Math.max(0.3, speed / cadence(speed));
 }
 
 /**
