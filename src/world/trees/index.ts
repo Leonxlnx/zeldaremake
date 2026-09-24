@@ -3683,6 +3683,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     nc.inM = Math.min(nc.inM, NEAR_LOD_TIER.canopySwapM[0]) * TREE_LOD_SCALE[3];
     nc.outM = Math.min(nc.outM, NEAR_LOD_TIER.canopySwapM[1]) * TREE_LOD_SCALE[3];
   }
+  /**
+   * How much nearer a challenger must be to take a shown part's slot (see byRank): an incumbent ranks
+   * at this share off its own distance. 0.25 is one step of the walk probe's 4 m at the ~16 m boundary
+   * the cap puts in the village, so ordinary forward walking still hands slots over — it is the
+   * near-ties that stop trading places.
+   */
+  const NEAR_CANOPY_KEEP = 0.25;
+  /** the parts shown by the previous non-reset update (byRank's incumbents) */
+  const shownLastFrame = new Set<NearCanopy>();
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
     nearCanopyPool.begin();
     for (const nc of nearCanopies) {
@@ -3691,11 +3700,33 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else if (nc.active) nc.active = nc.dist <= nc.outM;
       else nc.active = nc.dist < nc.inM;
     }
+    /**
+     * 2026-09-24 (lane 2, the owner's 20:08 "why don't the trees immediately spawn instead of needing
+     * me to get close"): the in / out radii carry hysteresis, but the SLOT CAP had none, and the cap is
+     * what actually decides. Walked from the plaza to the north clearing (12 poses, the probe
+     * `art/environment/squad2-2026-09-23/canopy-walk.mjs`): 135–218 lobes are active against
+     * `NEAR_CANOPY_SLOTS` = 64 at EVERY step — an overflow of 71 to 154 — so the shown set is the "64
+     * nearest" and nothing damps it: 22.5 of the 79 shown parts were admitted or evicted per 4 m of
+     * walking, each one a crown flipping between its near laminae and its folded far foliage within
+     * 17 m of the camera. (It also means the effective swap boundary is not the nominal 26 m: the
+     * farthest shown part ran 16.3 m in the village and 42.2 m in the clearing, wherever the 64th
+     * nearest lobe happened to fall — which is why widening the 26 / 30 band changed 0.00 %.)
+     *
+     * An incumbent now ranks as if it were `NEAR_CANOPY_KEEP` nearer than it is, so a challenger must
+     * be meaningfully nearer to take its slot. Both are inside their own in-radius either way, so the
+     * frame is as correct as before and stops changing under the walker; it also spares the pool the
+     * rebuilds that the evictions caused. NOT applied on `reset` — an explicit re-pose (every capture)
+     * must draw the same parts whether the pool was cold or warm, so the six fixed frames are
+     * untouched by construction.
+     */
     const byDist = (a: NearCanopy, b: NearCanopy) => a.dist - b.dist || a.center.distanceToSquared(cam) - b.center.distanceToSquared(cam);
+    const keep = reset ? 1 : 1 - NEAR_CANOPY_KEEP;
+    const rankOf = (nc: NearCanopy) => nc.dist * (shownLastFrame.has(nc) ? keep : 1);
+    const byRank = (a: NearCanopy, b: NearCanopy) => rankOf(a) - rankOf(b) || byDist(a, b);
     const resident = (nc: NearCanopy) => nearCanopyPool.isResident(nc.item);
     const persistent = nearCanopies.filter((nc) => nc.persistent);
-    const lobeCandidates = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
-    const limbCandidates = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byDist).slice(0, NEAR_CANOPY_LIMBS_MAX);
+    const lobeCandidates = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byRank).slice(0, NEAR_CANOPY_SLOTS);
+    const limbCandidates = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byRank).slice(0, NEAR_CANOPY_LIMBS_MAX);
     if (reset) {
       // Explicit re-poses retain the capture contract: the same pose draws the same parts,
       // whether the pool was cold or warm. Ordinary updates keep their chunked prefetch.
@@ -3717,6 +3748,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const shownLimbs = limbCandidates.filter(resident).filter(fits);
     // A walking camera keeps far foliage for parts still queued through work()'s frame budget.
     for (const nc of nearCanopies) nc.mesh.visible = shownPersistent.includes(nc) || shownLobes.includes(nc) || shownLimbs.includes(nc);
+    // the incumbents the next update ranks with NEAR_CANOPY_KEEP (see byRank)
+    shownLastFrame.clear();
+    for (const nc of shownLobes) shownLastFrame.add(nc);
+    for (const nc of shownLimbs) shownLastFrame.add(nc);
     for (const nc of [...shownPersistent, ...shownLobes, ...shownLimbs]) nearCanopyPool.pin(nc.item);
     if (reset) nearCanopyPool.work(0);
     const slots = mats.nearCanopy.value;
@@ -4162,6 +4197,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         shown: nearCanopies
           .filter((nc) => nc.mesh.visible)
           .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
+        /**
+         * How hard the SLOT CAP is pressing (2026-09-24, lane 2). `nearCanopyUpdate` takes the nearest
+         * `NEAR_CANOPY_SLOTS` active non-persistent lobes; `activeLobes` is how many were eligible, so
+         * `slotOverflow` above zero means the selection is decided by RANK, and a lobe can be admitted
+         * or evicted by a metre of walking with no hysteresis behind it — unlike the in / out radii,
+         * which have some. `farthestShownM` says where the effective boundary actually is, which is not
+         * the 26 m in-radius when the cap binds.
+         */
+        activeLobes: nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe' && !nc.persistent).length,
+        slotOverflow: Math.max(0, nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe' && !nc.persistent).length - NEAR_CANOPY_SLOTS),
+        farthestShownM: nearCanopies.filter((nc) => nc.mesh.visible).reduce((m, nc) => Math.max(m, Math.round(nc.dist * 10) / 10), 0),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
         foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
