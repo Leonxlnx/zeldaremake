@@ -1098,13 +1098,18 @@ export const EXPANSION_SOUTH_DWELLINGS = {
 } as const;
 
 /**
- * true where a dwelling stands (`pad` m beyond its footprint): the keeper's hut and gallery disc,
- * the waystation's rectangle with its roof's overhang — the legacy streams' instances and the
- * south dressing's plants keep off them
+ * true where a dwelling stands (`pad` m beyond its footprint): the keeper's gallery out to its rim
+ * (from the chopping block beside its east end round the gorge to 6° past its west end), the hut
+ * and its firewood under the north eave on the landward side (which reaches 1.97 m; fable-3's
+ * squat pot by the bridge stands 2.35 m out there), the waystation's rectangle with its roof's
+ * overhang — the legacy streams' instances and the south dressing's plants keep off them
  */
 export function inSouthDwelling(x: number, z: number, pad = 0): boolean {
   const K = EXPANSION_SOUTH_DWELLINGS.keeper;
-  if (Math.hypot(x - K.centre[0], z - K.centre[1]) < K.gallery.outer + 0.15 + pad) return true;
+  const kr = Math.hypot(x - K.centre[0], z - K.centre[1]);
+  const arcFrom = K.gallery.from - 30;
+  const kth = ((((Math.atan2(z - K.centre[1], x - K.centre[0]) * 180) / Math.PI - arcFrom) % 360) + 360) % 360;
+  if (kr < (kth < K.gallery.to + 6 - arcFrom ? K.gallery.outer + 0.15 : 2.05) + pad) return true;
   const W = EXPANSION_SOUTH_DWELLINGS.waystation;
   const a = (W.facingDeg * Math.PI) / 180;
   const fx = Math.sin(a);
