@@ -442,8 +442,12 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         // the jump's arc (`airHeight` is 0 whenever a boot is down): the drop's highest point is
         // how hard he comes back onto whatever is under him
         const air = player.airHeight?.() ?? 0;
-        if (air > 0.02) peakAir = Math.max(peakAir, air);
-        else if (peakAir > 0.05) {
+        if (air > 0.02) {
+          // the rising edge is the shove: he is leaving the ground here, and until now that was
+          // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
+          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed);
+          peakAir = Math.max(peakAir, air);
+        } else if (peakAir > 0.05) {
           footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir);
           peakAir = 0;
         } else peakAir = 0;
@@ -538,7 +542,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       load,
       voices: liveVoices(),
-      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
+      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
