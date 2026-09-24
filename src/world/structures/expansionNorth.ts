@@ -166,6 +166,8 @@ export interface GroveBuild {
   walkSpans: WalkSpan[];
   walkEdges: WalkEdge[];
   bases: P3[];
+  /** everything standing on the grove's ground the vegetation keeps off (`ctx.shared.builtFootprints`): the props, woodpiles, ladder feet, the hoist's basket at rest, the posts and the sign */
+  footprints: { x: number; z: number; r: number }[];
   /** materials this build created (structures/index.ts disposes them; the textures are the library's) */
   owned: { dispose(): void }[];
   /** the group's visibility for this camera (util/groveLocality.ts `groveVisible`) */
@@ -472,6 +474,8 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   const foliage = new FoliageBuilder(rng.fork('foliage'), `${seed}/foliage`);
   /** round props standing on walk surfaces or paths: each becomes a one-point walk edge */
   const blockers: { id: string; x: number; z: number; r: number }[] = [];
+  /** ground footprints that are not walk blockers (out of reach, or decorative) */
+  const footprints: { x: number; z: number; r: number }[] = [];
   const ropeTint = (r: Rng): RGB => scaleRGB(ROPE_TINT, 0.84 + r() * 0.26);
   const groundAt = (p: Vector3) => p.clone().setY(T.height(p.x, p.z));
 
@@ -492,6 +496,11 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   if (huts.soffit) group.add(huts.soffit);
   lanterns.push(...huts.lanterns);
   for (const a of huts.audit) for (const p of a.pods) pods.push(new Vector3(p[0], p[1], p[2]));
+  for (const a of huts.audit) {
+    const ch = a.character;
+    if (ch?.ladder) footprints.push({ x: ch.ladder.foot[0], z: ch.ladder.foot[2], r: 0.45 });
+    if (ch?.hoist && ch.hoist.basket[1] - T.height(ch.hoist.basket[0], ch.hoist.basket[2]) < 0.6) footprints.push({ x: ch.hoist.basket[0], z: ch.hoist.basket[2], r: 0.35 });
+  }
   const stiltWalk = huts.walk.find((w) => w.id === 'grove-stilt')!;
   const hutWalk = huts.walk.find((w) => w.id === 'grove-tree-hut')!;
   // the doors are shut: the wall ring has no gap (the play camera never enters a room)
@@ -731,6 +740,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       railParts.push(rod(c.clone().addScaledVector(side, -0.26), c.clone().addScaledVector(side, 0.26), 0.02, scaleRGB(PLANK, lr.range(0.85, 1.15) * (y < 1.3 ? 1.1 : 1)), 6));
     }
     bases.push(p3(footC));
+    footprints.push({ x: footC.x, z: footC.z, r: 0.45 });
   }
 
   // ================= the gangway: cleated treads on two stringers, a trestle, a sill, hand rails =================
@@ -914,6 +924,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   const colTop = new Vector3(hc.x, colGround + COL.height, hc.z);
   let limbs = 0;
   let roots = 0;
+  const rootAngles: number[] = [];
   {
     const phase = cr.range(0, TAU);
     const y0 = colGround - 0.4;
@@ -953,6 +964,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       }
       const curve = new CatmullRomCurve3(pts);
       frameParts.push(logTube(curve, (t) => lerp(0.3, 0.05, Math.pow(t, 0.8)), barkN, 120 + i * 4.4, 0.7, 12, 10, true));
+      rootAngles.push(a);
       roots++;
     }
     // limbs from the crown height, forking once, leaf clusters at their tips; a cluster crowns the top
@@ -1101,10 +1113,12 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     lanterns.push(...pb.lanterns);
     for (const l of pb.lanterns) pods.push(l.pod.clone());
     bases.push(pb.base);
+    footprints.push({ x: pb.base[0], z: pb.base[2], r: 0.35 });
   }
   const sign = buildSignpost(N.signpost, ctx, mats, rng.fork('sign'));
   group.add(sign.group);
   bases.push(sign.base);
+  footprints.push({ x: sign.base[0], z: sign.base[2], r: 0.3 });
 
   // ================= signs of life =================
   const pr = rng.fork('props');
@@ -1176,6 +1190,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     }
     stoneParts.push(padStone(g.clone().setY(g.y - 0.06), width * 0.55, 0.08, depth * 0.6, Math.atan2(face.x, face.z), noise, 700 + woodLogs, 0.6));
     if (block) blockers.push({ id, x: g.x, z: g.z, r: Math.max(width, depth) * 0.6 });
+    else footprints.push({ x: g.x, z: g.z, r: Math.max(width, depth) * 0.6 });
   };
 
   // the trunk house's yard: pots by the door, a basket of kindling, the woodpile, a chopping block, a bench
@@ -1297,10 +1312,17 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     const wp = sc.clone().addScaledVector(dirAt(angleOf(az(130))), STILT_STUMP.foot + 0.5);
     woodpile('grove-stilt-woodpile', wp, dirAt(angleOf(az(130))), 1.1, 5, 0.5, false);
   }
-  // the tree hut: kindling against the column's foot, a basket by the ladder's stakes
+  // the tree hut: kindling against the column's foot in the roots' gap nearest its west face, a basket
+  // by the ladder's stakes. A prop's blocker holds at every height (character/ground.ts), so the pile
+  // keeps off the walkway stub's bearing and the rope ladder's.
   {
-    const wp = hc.clone().addScaledVector(az(-150), COL.baseRadius + 0.95);
-    woodpile('grove-hut-woodpile', wp, az(-150), 1.0, 3, 0.45);
+    const off = (a: number, b: number) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    const aStub = angleOf(new Vector3(RW.hut[0] - hc.x, 0, RW.hut[2] - hc.z));
+    const aLadder = angleOf(az(TH.ladderAbsDeg));
+    const gaps = rootAngles.map((a, i) => (a + rootAngles[(i + 1) % rootAngles.length] + (i + 1 === rootAngles.length ? TAU : 0)) / 2);
+    const aPile = gaps.filter((a) => off(a, aStub) > 0.8 && off(a, aLadder) > 0.7).sort((p, q) => off(p, Math.PI) - off(q, Math.PI))[0] ?? aStub + Math.PI;
+    const wp = hc.clone().addScaledVector(dirAt(aPile), COL.baseRadius + 0.95);
+    woodpile('grove-hut-woodpile', wp, dirAt(aPile), 1.0, 3, 0.45);
     basketAt('grove-hut-basket', hc.clone().addScaledVector(az(TH.ladderAbsDeg + 22), TH.radius + 1.4), 0.3, 0.22, 'leaves');
   }
 
@@ -1412,6 +1434,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     walkSpans,
     walkEdges,
     bases,
+    footprints: [...blockers.map(({ x, z, r }) => ({ x: r4(x), z: r4(z), r })), ...footprints.map(({ x, z, r }) => ({ x: r4(x), z: r4(z), r }))],
     owned,
     visible,
     audit: {

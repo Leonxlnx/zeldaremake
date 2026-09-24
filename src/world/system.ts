@@ -114,6 +114,12 @@ export interface SharedGeometry {
    */
   walkEdges?: WalkEdge[];
   /**
+   * 2026-09-24 (expansion-north): ground footprints of built things the vegetation keeps off that
+   * `propFootprints` (the props system's own, assigned after structures) does not carry — the
+   * grove's pots, baskets, woodpiles, ladder feet, posts and sign — published by structures.
+   */
+  builtFootprints?: { x: number; z: number; r: number }[];
+  /**
    * The play camera's collision grids over the structures (structures/cameraSolids.ts; never built
    * under a headless capture): `solid` shells it keeps Link in front of, `slim` parts it only
    * refuses to stand inside.

@@ -201,6 +201,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...grove.walkSurfaces];
   ctx.shared.walkSpans = [...(ctx.shared.walkSpans ?? []), ...grove.walkSpans];
   ctx.shared.walkEdges = [...(ctx.shared.walkEdges ?? []), ...grove.walkEdges];
+  ctx.shared.builtFootprints = [...(ctx.shared.builtFootprints ?? []), ...grove.footprints];
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
   // below rename them; never under a headless capture
