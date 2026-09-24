@@ -72,7 +72,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 14 | roughness and sheen | 3 | matte wood and clay |
 | 15 | no stretching or tiling | 3 | lathed UVs around; no repeats at 3–10 m in the sheets |
 | 16 ★ | weathering follows exposure | 3 (was 2) | `c35559ab`: the moss band climbs the faces looking away from the sun (3× in full shade), tops within 35° of up take a sun-bleach — `before-after-weathering-*.jpg` |
-| 17 | wear follows use | 2 | no worn rims or handles modelled |
+| 17 | wear follows use | 3 (was 2) | `ca05e910`: the pots' lips rubbed pale where hands take them — `../wear/` |
 | 18 | signs of life, placed not scattered | 3 | the toll pile at the bridge head, the pots at the mouth — five props with reasons |
 | 19 | damage plausible and sparse | 3 (was 2) | the toll crate's missing lid board, dark inside — `../crates/before-after-bridge-crate-open.jpg`; one of four crates open here, two of four in the world |
 | 20 | nothing brand-new | 3 | weathered planks, foot grime |
@@ -98,9 +98,11 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
 | 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
 
-**Total: 110 / 144 applicable (scaled 153 / 200)** after `c6a2e74d` (106 / 147 at `62bf7fcd`: ★16 at 2 — the props'
+**Total: 111 / 144 applicable (scaled 154 / 200)** after `ca05e910` (106 / 147 at `62bf7fcd`: ★16 at 2 — the props'
 weathering was a foot band regardless of sun or shade — #23 at 2, no contact AO, #4 and #19 at 2, every crate a whole
-closed copy). Still below the doc's 170 gate; every ★ ≥ 3. #17 wear (worn rims, handles) is the remaining 2. The n/a treatment is mine — the doc has no
+closed copy, #17 at 2, no wear). No check below 3 now; every ★ ≥ 3; still below the doc's 170 gate — the rest of the
+way is 3 → 4 ("matches the reference demo"), which for a pot beside a path is the reference's own pots: plainer
+clay, no slip band, and that is a look call for the owner, not a score to chase. The n/a treatment is mine — the doc has no
 rule for checks a prop cluster cannot meet; asked fable-cursor.
 
 ### ★16 — weathering follows exposure (`25459fda` + `c35559ab`, the shared pass in `props/index.ts weather()`)
