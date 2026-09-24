@@ -1,0 +1,27 @@
+[
+ {
+  "pose": "A_stairs",
+  "drawCalls": 628,
+  "triangles": 8980168
+ },
+ {
+  "pose": "D_log",
+  "drawCalls": 546,
+  "triangles": 8539330
+ },
+ {
+  "pose": "owner-0650-north",
+  "drawCalls": 510,
+  "triangles": 8787089
+ },
+ {
+  "pose": "rec-r024-plaza-fork",
+  "drawCalls": 624,
+  "triangles": 8078063
+ },
+ {
+  "pose": "owner-0650-west",
+  "drawCalls": 470,
+  "triangles": 6646368
+ }
+]

@@ -51,8 +51,8 @@ function ropeColor(tint: [number, number, number], ang: number, phase: number, f
   return [tint[0] * s * f, tint[1] * s * f, tint[2] * s * f];
 }
 
-/** a laid rope swept along `curve` (rails and lashings share this) */
-function ropeTube(curve: CatmullRomCurve3, ropeR: number, twist: number, tint: [number, number, number], noise: Noise2D, seed: number): BufferGeometry {
+/** a laid rope swept along `curve` (rails and lashings share this; so do the south bridge's ropes) */
+export function ropeTube(curve: CatmullRomCurve3, ropeR: number, twist: number, tint: [number, number, number], noise: Noise2D, seed: number): BufferGeometry {
   const len = curve.getLength();
   // twist pitch: one full turn of the lay every ≈ 4 rope diameters
   const pitch = TAU / (ropeR * 8);

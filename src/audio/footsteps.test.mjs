@@ -183,6 +183,28 @@ test('the wind bed is a swell, not a floor: still air is silent', () => {
   }
 });
 
+test('the canopy roll leans upwind, and only leans', () => {
+  const { windLeanFor, WIND_LEAN } = loadTs(path.join(here, 'ambience.ts'));
+  const north = { x: 0, z: -1 };
+  // wind travelling east (+x): it comes from the west, so facing north it arrives on your left
+  assert.ok(windLeanFor(north, { x: 1, z: 0 }) < -0.3, 'facing north, an easterly-travelling wind should lean left');
+  assert.ok(windLeanFor(north, { x: -1, z: 0 }) > 0.3, 'and the other way round');
+  // straight into it or straight away from it: no side at all
+  for (const dir of [north, { x: 0, z: 1 }]) assert.ok(Math.abs(windLeanFor(north, dir)) < 1e-9, 'head-on or from behind the wind has no side');
+  // turning through a full circle traces one cycle and never exceeds the lean
+  const seen = [];
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 32) {
+    const v = windLeanFor({ x: Math.sin(a), z: Math.cos(a) }, { x: 1, z: 0 });
+    assert.ok(Math.abs(v) <= WIND_LEAN + 1e-9, `|lean| ${Math.abs(v).toFixed(3)} exceeds ${WIND_LEAN} — it is a lean, not a pan`);
+    seen.push(v);
+  }
+  assert.ok(Math.max(...seen) > WIND_LEAN * 0.99 && Math.min(...seen) < -WIND_LEAN * 0.99, 'a full turn should reach both extremes');
+  // it is a lean: the bed never collapses to one side
+  assert.ok(WIND_LEAN <= 0.5, 'wind in a wood is not a point source');
+  // a zero-length direction must not produce NaN
+  assert.equal(Number.isFinite(windLeanFor(north, { x: 0, z: 0 })), true);
+});
+
 test('every step is quiet: nothing in a design can reach full scale on its own', () => {
   for (const surface of SURFACES) {
     for (const d of designs(surface, true, 1)) {

@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T22:30:00Z
+updated: 2026-09-24T04:35:00Z
 ---
 
 # fable-3 — work log
@@ -175,7 +175,42 @@ the atlas step (3 submissions a kid) if the budget calls for it.
 (`character/index.ts` `moveRoot` edge-slide — `ground.blocked()` now makes props slide-able edges; `ground.ts` walk spans for
 the deck / tunnel floor and the off-deck ravine block, `builtTop()` clearing the deck first): sound, no overlap with the
 kids' code, clean merge. `EXPANSION_SOUTH` (path nodes, bridge sills, tunnel mouth) is specified — the signs of use wait
-for fable-cursor's word. Nothing landed this tick. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+for fable-cursor's word. Nothing landed this tick.
+23:25 UTC: the head merged my notes (`77c4a7bc`) and lanes 1 / 5 (corridor air, gust-gated wind). Read the people on
+`81430baf` at the walker's 5 m and a 10 m pose (the follow lens's distance): unchanged at 5 m, the Kokiri read holds at
+10 m under lane 1's air (`head-81430baf-corridor-air-5m.jpg`). INBOX 23:40 (a read, not a landing). No ask for lane 7 / 9.
+00:27–00:45 UTC: **owner 23:00 review** (`pass5/README.md` on squad4's branch): "make the other characters look a bit
+better" → JOB 7, lane 7's; he records at 01:00. Landed small and safe (`a0262ae1`): thumbs on the mitten hands
+(`buildThumbs`, in the skin's skinned submission) and the standing idle's arms — upper arm a touch back, elbow bent
+−0.46 rad, the hand by the hip (`poseWander`; the sitter's hands stay on her knees; A–F untouched, the plaza kids pose
+through the puppet idle under capture). Verified at the walker's 2.6 m vs the head `81430baf`
+(`before-after-hands-arms.jpg`): reads, modest. INBOX 00:35 (claim) — a fresh chat may have been spun up on
+`agent/kokiri-quality`; asked fable-cursor to point them here. After the recording: the rest of JOB 7's list at 2–6 m.
+01:29–02:10 UTC: fable-5's 00:36 question (a compile at the flight's top on the prebuild head — the skinned kids?):
+measured with `programs.mjs` (`?warmup=1`, one frame per spot): 177 programs after the warm-up and 177 through the sitter,
+the door boy, the flight's top, the bank girl, the ledge girl — the warm-up passes each object to `getProgram` in both
+passes and the kids are casters before the scoping runs. INBOX 01:45. Then JOB 7's idle (`437b7166`): weight shift 2.5 cm
++ 0.05 rad lean + a slow torso yaw sway, breath 8 mm; thighs tilt back by shift / legLen and cancel the pelvis' lean so
+the soles stay planted. Verified at t 14.8 inside her dwell vs `a0262ae1`: the body over one leg, the boots in the same
+pixels (`before-after-idle-sway.jpg`). A two-time motion metric (t 13.6 vs 14.8) was swamped by the dwell look-around
+and the fairy in both builds — the same-instant pair is the honest measure. Play-mode note: the flight's top looking down
+draws 730 (not a fixed view).
+02:31–02:55 UTC: the head still at 23:05; squad4 built an integration candidate (`8fb5049c`, six branches) without my two
+JOB 7 landings — offered them (INBOX 02:40). Tried JOB 7's "faces as geometry" for the boy: `buildKidFace` parametrised
+(`KidFace`: skin / iris / blush / lips / lash / flick) and the boy on it (`ed5b43c6`). At 2.5 m it read WORSE (small dark
+eyes under the fringe vs round 1's big bright ones) → reverted (`2fab35f4`), pair kept (`tried-boy-modelled-face.jpg`),
+INBOX 02:55 correction. Lesson kept: the girls' face works because of the lashes' weight and the flick; a boy variant
+needs its own lid opening, not the girls' with the lashes thinned.
+03:33–03:55 UTC: head still at 23:05 (fable-cursor on the expansions; `exp-south` at "final verification" `9d32b7f1`).
+Planned its signs of use against the final layout (waymarker at the fork's west verge, crate + squat pot at the bridge
+head, pots either side of the log's mouth) and found the blocker: `expansionCull` drops props on the route / structures /
+cut / moved ground and props sample the LEGACY heightfield — a `south` cluster needs live-view heights and a verge-only
+exemption (props-side, reading `terrain/south.ts`). INBOX 03:55 with the plan; building when `exp-south` lands.
+04:20–04:30 UTC: the head moved to `ad4d5537` (the owner-23:00 squad round; fable-2's tracked `node_modules` link accident
+fixed — I add paths explicitly, never `-A`; my worktree links were never staged). My branch not in that round → merged the
+head into it (`6d28ad46`; INBOX conflict resolved by rebuilding both note lists newest-first, 185 notes), build + 119 tests
+green. INBOX 04:30: merge-ready with the two JOB 7 landings. Read the people on the merged branch vs the 23:05 head at the
+walker's 5 / 10 m (lane 1's sky light, lane 4's verge tier in): unchanged but for my own arms and sway — nothing to flag. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);

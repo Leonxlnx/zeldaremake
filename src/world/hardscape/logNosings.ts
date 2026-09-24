@@ -25,12 +25,18 @@ import { stairFrame, stairToWorld } from './stairs';
 /** the log nosings on the main flight (false: the cut-stone flight as it was) */
 export const STAIR_LOGS = true;
 /**
- * flights that take the logs — and, with them, the earth treads (stairs.ts `logNosed`): the hero
- * flight (the demo's `d_010` / `d_104`) and the raised stair to the north ledge (the owner's ref-03
- * right-bank steps: round timbers with cut ends and stakes, dark earth between — fable-2, lane 6).
- * The house-west and expansion flights stay stone.
+ * flights that take the logs — and, with them, the earth treads (stairs.ts `logNosed`): the raised
+ * stair to the north ledge (the owner's ref-03 right-bank steps: round timbers with cut ends and
+ * stakes, dark earth between — fable-2, lane 6). The house-west and expansion flights stay stone.
+ *
+ * 2026-09-23 23:00: the HERO flight comes off this list. The owner sent the real game's main
+ * stairway as his reference for it (`pass5/owner-2300-reference-stairs.png`, and the same climb in
+ * `demo61/d_001–d_022`): a long narrow flight of worn STONE treads whose thin wavy nosings catch
+ * the light over dark tread surfaces, no timber anywhere on it. Ours read as sandy earth steps
+ * with a straight round log at every nose — the log treatment is right for the ledge's flight,
+ * which is what `d_094` / `d_104` and ref-03 show, but not for the one he circled.
  */
-export const LOG_FLIGHTS = new Set(['main', 'ledge']);
+export const LOG_FLIGHTS = new Set(['ledge']);
 /** log radius range (m): ≈ 0.16–0.20 m across, §9 */
 export const LOG_RADIUS: [number, number] = [0.08, 0.1];
 /**

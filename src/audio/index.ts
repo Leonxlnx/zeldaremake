@@ -20,7 +20,7 @@ import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, LAYOUT } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
-import { createAmbience, type Ambience, type Vec3 } from './ambience';
+import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
@@ -41,7 +41,7 @@ export interface AudioHandle {
   dispose(): void;
 }
 
-export interface AudioStats extends FootstepStats {
+export interface AudioStats extends FootstepStats, AmbienceStats {
   state: AudioState;
   music: MusicSource;
   /** pod lanterns found in the scene (the flame's distance sources) */
@@ -50,6 +50,10 @@ export interface AudioStats extends FootstepStats {
   gaitDriven: boolean;
   /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
   enclosure: number;
+  /** how closed the canopy over the listener is — 1 deep under the crowns, 0 under open sky */
+  canopy: number;
+  /** where the audio thinks the fairies are (world), so a harness can stand beside one */
+  fairySpots: [number, number, number][];
   /**
    * How hard the audio thread is working, from Chrome's render-capacity monitor: the share of each
    * render quantum used on average and at its worst, and the share of quanta that MISSED. An
@@ -80,6 +84,8 @@ export interface OfflineOptions {
   music?: boolean;
   /** mute the shared hall's return — the same stem dry, so the tail can be measured on its own */
   reverb?: boolean;
+  /** force the canopy over the whole render (0 open sky, 1 closed crowns) instead of the walk's own */
+  canopy?: number;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -123,6 +129,54 @@ interface Live {
   music: Music;
 }
 
+/**
+ * Every fairy in the scene (`navi.ts` names its root from `FairyOptions.name`: the Kokiri kids'
+ * are `kokiri-fairy-<slot>`). Unlike the pod lanterns these MOVE — they hover, and the girl walks —
+ * so the objects are kept and their world position read each frame rather than sampled once.
+ */
+function gatherFairies(scene: Scene): FairyRef[] {
+  const roots = new Map<string, Object3D>();
+  const lights = new Map<string, Object3D>();
+  scene.updateMatrixWorld(true);
+  // the ROOT only: createFairy names every child from the same prefix (`-body`, `-core`, `-halo`,
+  // `-sparkle`…), so a prefix match collects fifteen objects per fairy
+  scene.traverse((o: Object3D) => {
+    if (FAIRY_ROOT.test(o.name)) roots.set(o.name, o);
+    else if (FAIRY_LIGHT.test(o.name)) lights.set(o.name.slice(0, -6), o);
+  });
+  // The root itself never moves. `npc.ts` reparents the fairy's point light onto the NPC group (a
+  // light joining or leaving the scene changes the light count every lit program is keyed on, and
+  // recompiles them all) and writes `anchor + offset(t)` to THAT every frame — so the light is
+  // where she is, and the root only says whether she is shown.
+  return [...roots].map(([name, root]) => ({ root, at: lights.get(name) ?? root }));
+}
+
+interface FairyRef {
+  /** the fairy's group: carries her visibility */
+  root: Object3D;
+  /** the object that is actually at her hover point */
+  at: Object3D;
+}
+
+const FAIRY_ROOT = /^(navi|kokiri-fairy-\d+)$/;
+const FAIRY_LIGHT = /^(navi|kokiri-fairy-\d+)-light$/;
+
+/**
+ * A fairy's world position, or null while it or anything above it is hidden. The matrix is brought
+ * up to date here rather than trusted: the audio runs on its own animation frame, and the world's
+ * matrices are only refreshed when it draws — with the bag open, or under a harness that steps the
+ * simulation without rendering, a trusted `matrixWorld` is whatever it was when the context started.
+ */
+function fairyAt(f: FairyRef, out: Vec3): Vec3 | null {
+  for (let n: Object3D | null = f.root; n; n = n.parent) if (!n.visible) return null;
+  f.at.updateWorldMatrix(true, false);
+  const e = f.at.matrixWorld.elements;
+  out.x = e[12];
+  out.y = e[13];
+  out.z = e[14];
+  return out;
+}
+
 /** world-space centres of every `pod-lantern` mesh (structures/lantern.ts) */
 function gatherPods(scene: Scene): Vec3[] {
   const pods: Vec3[] = [];
@@ -154,9 +208,13 @@ function gatherPods(scene: Scene): Vec3[] {
  *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
  */
-export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number } {
+export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } {
   const m = surfaceMask(x, z, 'live');
-  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0 };
+  // how much wood is overhead: the terrain's own forest-floor zone. The litter is there BECAUSE the
+  // crowns are, so the same field that decides what is underfoot also says how closed the sky is —
+  // the plaza and the village are open, the north corridor past the arch is roofed.
+  const canopy = forestFloorZone(x, z);
+  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
   {
@@ -171,7 +229,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       // how far in he is: the wood closes over the forest across the first 1.6 m of the bore
       const fromMouth = Math.min(u + 8.5, -0.5 - u) / 1.6;
       const fromWall = (la.radius * 0.8 - Math.abs(v)) / 0.5;
-      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))) };
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))), canopy };
     }
   }
   // the west house's platform and deck
@@ -179,7 +237,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0 };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -189,13 +247,13 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     if (t > 0 && t < 1) {
       const px = hx + ax * t;
       const pz = hz + az * t;
-      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0 };
+      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
     }
   }
-  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0 };
-  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0 };
-  if (forestFloorZone(x, z) > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0 };
-  return { surface: 'grass', stairs: false, enclosure: 0 };
+  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy };
+  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy };
+  if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy };
+  return { surface: 'grass', stairs: false, enclosure: 0, canopy };
 }
 
 export const AUDIO_SEED = 'kokiri-audio-r47';
@@ -208,9 +266,14 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let starting: Promise<void> | null = null;
   let raf = 0;
   let pods: Vec3[] = [];
+  let fairyObjects: FairyRef[] = [];
+  /** reused per-fairy vectors so the per-frame read allocates nothing */
+  const fairySlots: Vec3[] = [];
+  const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
   let load: RenderLoad | null = null;
   let enclosure = 0;
+  let canopy = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
   let peakAir = 0;
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
@@ -230,12 +293,25 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     const cam = pose?.position ?? [0, 2, 0];
     const p: Vector3 | null = player?.position ?? null;
     const listener: Vec3 = p ? { x: p.x, y: p.y + 1.2, z: p.z } : { x: cam[0], y: cam[1], z: cam[2] };
-    const fwd = pose?.direction ?? [0, 0, -1];
+    // Which way the listener faces. In play mode that is Link, and his heading is a plain number
+    // the character system maintains — `cameraPose()` reads the camera's world MATRIX, which is
+    // only refreshed when the world draws, so with the bag open or under a harness that steps the
+    // simulation without rendering it hands back whichever way the camera was pointing at start-up.
+    const heading = player?.playMode?.() ? player.heading() : null;
+    const fwd = heading === null ? (pose?.direction ?? [0, 0, -1]) : [Math.sin(heading), 0, Math.cos(heading)];
     const fl = Math.hypot(fwd[0], fwd[2]) || 1;
     // one ground lookup a frame, shared by the bed's enclosure and the boots' surface
     const s = surfaceAt(listener.x, listener.z);
     enclosure = s.enclosure;
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, enclosure: s.enclosure });
+    canopy = s.canopy;
+    // the fairies hover and their owners walk, so their positions are read fresh (and skipped
+    // while the background cast is hidden)
+    fairyBuf.length = 0;
+    for (let i = 0; i < fairyObjects.length; i++) {
+      const at = fairyAt(fairyObjects[i], fairySlots[i]);
+      if (at) fairyBuf.push(at);
+    }
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -280,6 +356,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
       pods = gatherPods(o.scene);
+      fairyObjects = gatherFairies(o.scene);
+      fairySlots.length = 0;
+      for (let i = 0; i < fairyObjects.length; i++) fairySlots.push({ x: 0, y: 0, z: 0 });
       // Chrome's render-capacity monitor (AudioContext.renderCapacity): the only direct read on
       // whether the audio thread is missing its deadline, which is what a listener hears as the
       // music shaking. Absent elsewhere; the diagnostic just reports null then.
@@ -291,7 +370,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         cap.start({ updateInterval: 0.25 });
       }
       await ctx.resume().catch(() => undefined);
-      console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns)`);
+      console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
       emit();
       lastT = 0;
       raf = requestAnimationFrame(tick);
@@ -335,9 +414,12 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       pods: pods.length,
       gaitDriven,
       enclosure,
+      canopy,
+      fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {
@@ -382,6 +464,12 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
+  // the fairies do not move in an offline render (nothing steps the character system), so one
+  // sample of each is enough; the walk's last leg stands beside the nearest one so the glints are
+  // in the evidence WAV — in play they are wherever their Kokiri is
+  const fairies = gatherFairies(o.scene)
+    .map((f) => fairyAt(f, { x: 0, y: 0, z: 0 }))
+    .filter((v): v is Vec3 => !!v);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
     const g = 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3);
@@ -391,11 +479,17 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const step = 1 / 20;
   let x = 0;
   let z = 2;
+  const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
+  const standsBesideFairy = OFFLINE_WALK[OFFLINE_WALK.length - 2].until;
   for (let t = 0; t < seconds; t += step) {
-    const leg = OFFLINE_WALK.find((l) => t < l.until) ?? OFFLINE_WALK[OFFLINE_WALK.length - 1];
+    const leg = OFFLINE_WALK.find((l) => t < l.until) ?? lastLeg;
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;
-    ambience?.update(t, { gust: gust(t), listener: { x, y: 1.2, z }, forward: { x: 0.6, z: -0.8 }, pods });
+    // the closing stand is beside a fairy, so its glints are in the evidence WAV
+    const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
+    const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
+    // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);

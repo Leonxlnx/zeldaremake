@@ -35,6 +35,27 @@ const BPM = 76;
 const BEAT = 60 / BPM;
 const BARS = 16;
 export const LOOP_SECONDS = BARS * 4 * BEAT;
+/**
+ * How long the placeholder rests between passes (seconds, seeded inside this range).
+ *
+ * 2026-09-23: the loop ran back to back for ever at one level, and after the wind bed became a
+ * gust-gated swell the forest measured 15 dB under it — so between gusts the wood the owner is
+ * walking around in could not be heard at all under a 50 s tune on repeat. A score that stops is
+ * also how the demo's own forest sounds: the theme comes and goes over the wind and the birds.
+ */
+export const REST_SECONDS: [number, number] = [16, 30];
+/** share of passes after the first that are voiced down to the lead and a thinner harp */
+export const QUIET_PASS_SHARE = 0.45;
+
+/** how long the wood is left to itself after a pass (s) */
+export function restAfter(rnd: () => number): number {
+  return REST_SECONDS[0] + rnd() * (REST_SECONDS[1] - REST_SECONDS[0]);
+}
+
+/** whether pass `index` drops the pad and half the harp; the first pass is always the full one */
+export function passIsQuiet(index: number, rnd: () => number): boolean {
+  return index > 0 && rnd() < QUIET_PASS_SHARE;
+}
 
 /** melody: [start beat, midi, beats] — 16 bars, phrases A A' B A'' */
 const MELODY: [number, number, number][] = [
@@ -80,7 +101,9 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
 
   // ---- procedural voices -------------------------------------------------------------------
   const setupProcedural = () => {
-    const bus = gain(ctx, 0.9);
+    // −3.2 dB on the placeholder: the forest sat 15 dB under it, so a gust was the only time the
+    // wood was audible at all beside the tune
+    const bus = gain(ctx, 0.62);
     bus.connect(out);
     const send = gain(ctx, 0.55);
     bus.connect(send).connect(reverbSend);
@@ -183,22 +206,29 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
     let loopStart = startAt + 0.3;
     let scheduledLoops = 0;
     const harpRng = rng.fork('harp');
+    const restRng = rng.fork('rest');
     return (t: number) => {
       while (loopStart < t) {
-        for (const [beat, midi, beats] of MELODY) woodwind(loopStart + beat * BEAT, midi, beats * BEAT * 0.94, 0.85 + 0.15 * Math.sin(beat * 0.7 + scheduledLoops));
+        // every other pass or so is voiced down to the lead and a thinner harp: a 50 s loop played
+        // back to back at one volume is the most tiring thing in a world you walk around in
+        const quiet = passIsQuiet(scheduledLoops, restRng);
+        const lead = quiet ? 0.62 : 1;
+        for (const [beat, midi, beats] of MELODY) woodwind(loopStart + beat * BEAT, midi, beats * BEAT * 0.94, lead * (0.85 + 0.15 * Math.sin(beat * 0.7 + scheduledLoops)));
         for (let bar = 0; bar < BARS; bar++) {
           const chord = CHORDS[bar];
           const t0 = loopStart + bar * 4 * BEAT;
           for (let i = 0; i < HARP.length; i++) {
             const [idx, lift] = HARP[i];
-            // rest the harp on a few 8ths so it breathes
-            if ((bar % 4 === 3 && i >= 6) || (i === 5 && bar % 2 === 1)) continue;
-            const vel = 0.55 + 0.35 * (i % 2 === 0 ? 1 : 0.5) + (harpRng() - 0.5) * 0.15;
+            // rest the harp on a few 8ths so it breathes; a quiet pass rests on every other one
+            if ((bar % 4 === 3 && i >= 6) || (i === 5 && bar % 2 === 1) || (quiet && i % 2 === 1)) continue;
+            const vel = (quiet ? 0.6 : 1) * (0.55 + 0.35 * (i % 2 === 0 ? 1 : 0.5) + (harpRng() - 0.5) * 0.15);
             pluck(t0 + i * BEAT * 0.5, chord[idx] + 12 * (lift + 1), vel, (i / (HARP.length - 1) - 0.5) * 0.7);
           }
-          if (bar % 2 === 0) pad(t0, chord[0] - 12, 8 * BEAT);
+          if (bar % 2 === 0 && !quiet) pad(t0, chord[0] - 12, 8 * BEAT);
         }
-        loopStart += LOOP_SECONDS;
+        // and then it stops and lets the wood be heard. The pad and the last note ring out into
+        // the rest, so the piece ends rather than being cut off.
+        loopStart += LOOP_SECONDS + restAfter(restRng);
         scheduledLoops++;
       }
     };
