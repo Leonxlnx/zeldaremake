@@ -81,6 +81,14 @@ const MAST_LEAN_DIR: [number, number] = [Math.cos(100 * DEG), Math.sin(100 * DEG
 const MAST_FOOT_Y = -3.0;
 /** where the cap's dome meets the mast (the builder's crown: eave + capHeight − a little) */
 const CAP_EXIT_Y = K.floorY + K.wall + K.capHeight - 0.02;
+/** gallery boards within this angle of the keeper's door (rad) are trodden pale */
+const TRODDEN_HALF = 0.34;
+/** wood worn by feet (w 0 … 1): greyer and paler (the north grove's) */
+const trodden = (c: RGB, w: number): RGB => {
+  const l = (c[0] + c[1] + c[2]) / 3;
+  const k = 1 + 0.18 * w;
+  return [lerp(c[0], l, 0.32 * w) * k, lerp(c[1], l, 0.32 * w) * k, lerp(c[2], l, 0.32 * w) * k];
+};
 /** a pod's pool of light on the surface under it (additive, linear) for a pod 1.3 m up; a higher pod's is wider and dimmer (the north grove's) */
 const POOL_PEAK = 0.085;
 /** the pools fade with distance like the haze's extinction (1/m past 2.5 m) and add none of its airlight */
@@ -103,6 +111,8 @@ export interface SouthDwellingsBuild {
       window: [number, number, number];
       door: [number, number, number];
       galleryBoards: number;
+      /** gallery boards trodden pale between the entrance's step and the door */
+      troddenBoards: number;
       railingPosts: number;
       braces: number;
       props: number;
@@ -116,6 +126,8 @@ export interface SouthDwellingsBuild {
       centre: [number, number, number];
       floorY: number;
       floorBoards: number;
+      /** floor boards trodden pale over the step */
+      troddenBoards: number;
       posts: number;
       rafters: number;
       pods: [number, number, number][];
@@ -151,6 +163,8 @@ interface BoardSpec {
   seed: number;
   /** metres broken off the +along end (0: whole) */
   broken?: number;
+  /** worn by feet at the −along and the +along end (0 … 1): the top greyer and paler, its moss worn off */
+  trodden?: [number, number];
 }
 
 /** one board: a displaced box (cup, bow, soft top edges, a worn tread), uv on one board of the planks map */
@@ -202,10 +216,13 @@ function board(p: BoardSpec, noise: Noise2D): BufferGeometry {
     const damp = 1 - 0.25 * smoothstep(0.62, 1, Math.abs(xu));
     const under = ny < -0.5 ? 0.5 : Math.abs(nz) > 0.5 ? 0.78 : Math.abs(nx) > 0.5 ? 0.7 : 1;
     const shade = p.tone * tread * damp * under * (0.92 + 0.12 * grainN);
-    const mossy = p.moss * smoothstep(0.6, 1, Math.abs(xu)) * clamp(0.5 + 0.8 * noise.noise(x * 9 + p.seed, bz * 9), 0, 1) * (ny > 0.5 ? 1 : 0.6);
-    col[i * 3] = lerp(base[0] * shade, 0.3, mossy);
-    col[i * 3 + 1] = lerp(base[1] * shade, 0.42, mossy);
-    col[i * 3 + 2] = lerp(base[2] * shade, 0.1, mossy);
+    const worn = p.trodden && ny > 0.5 ? lerp(p.trodden[0], p.trodden[1], xu * 0.5 + 0.5) : 0;
+    const mossy = p.moss * smoothstep(0.6, 1, Math.abs(xu)) * clamp(0.5 + 0.8 * noise.noise(x * 9 + p.seed, bz * 9), 0, 1) * (ny > 0.5 ? 1 : 0.6) * (1 - worn);
+    let c: RGB = [lerp(base[0] * shade, 0.3, mossy), lerp(base[1] * shade, 0.42, mossy), lerp(base[2] * shade, 0.1, mossy)];
+    if (worn > 0) c = trodden(c, worn);
+    col[i * 3] = c[0];
+    col[i * 3 + 1] = c[1];
+    col[i * 3 + 2] = c[2];
   }
   g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.computeVertexNormals();
@@ -629,9 +646,15 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   const midR = (platR + GAL_OUT) / 2;
   const boardCount = Math.round((galArc * midR) / 0.168);
   const step = galArc / boardCount;
+  // the boards between the entrance's step and the door are trodden pale
+  const doorTh = Math.atan2(hutAudit.door[2] - cz, hutAudit.door[0] - cx);
   let boards = 0;
+  let troddenBoards = 0;
   for (let i = 0; i < boardCount; i++) {
     const th = GAL_FROM + (i + 0.5) * step + galRng.range(-0.08, 0.08) * step;
+    const offDoor = Math.abs(((((th - doorTh + Math.PI) % TAU) + TAU) % TAU) - Math.PI);
+    const wear = offDoor < TRODDEN_HALF ? 1 - offDoor / TRODDEN_HALF : 0;
+    if (wear > 0) troddenBoards++;
     const out = new Vector3(Math.cos(th), 0, Math.sin(th));
     const tan = new Vector3(-Math.sin(th), 0, Math.cos(th));
     const r0 = platR - 0.03 + galRng.range(-0.01, 0.02);
@@ -658,6 +681,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
           board: Math.floor(galRng() * 8),
           seed: galRng() * 100,
           broken,
+          trodden: wear > 0 ? [wear, wear] : undefined,
         },
         noise,
       ),
@@ -1056,13 +1080,17 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   // corner board's front end broken off, clear of the step ----
   const floorBoards = 12;
   const bw = (2 * HW) / floorBoards;
+  let troddenFloor = 0;
   for (let i = 0; i < floorBoards; i++) {
     const s = -HW + (i + 0.5) * bw;
     const L = 2 * HD + wRng.range(-0.03, 0.04);
+    // trodden pale over the step (its middle at s −0.1), most at the front where feet land
+    const wear = 0.85 * clamp(1 - Math.abs(s + 0.1) / 0.6, 0, 1);
+    if (wear > 0) troddenFloor++;
     put(
       'waystation-floor',
       mats.fenceWood,
-      board({ centre: at(wRng.range(-0.015, 0.015), s, FT + wRng.range(-0.003, 0.003)), along: F, across: S, L, w0: bw - 0.012, w1: bw - 0.012, t: 0.045, tone: 0.62 + wRng() * 0.3, age: i === 7 ? 0.8 : wRng() * 0.3, moss: i < 2 || i > 9 ? 0.4 : wRng() * 0.15, board: Math.floor(wRng() * 8), seed: wRng() * 100, broken: i === 0 ? 0.13 : 0 }, noise),
+      board({ centre: at(wRng.range(-0.015, 0.015), s, FT + wRng.range(-0.003, 0.003)), along: F, across: S, L, w0: bw - 0.012, w1: bw - 0.012, t: 0.045, tone: 0.62 + wRng() * 0.3, age: i === 7 ? 0.8 : wRng() * 0.3, moss: i < 2 || i > 9 ? 0.4 : wRng() * 0.15, board: Math.floor(wRng() * 8), seed: wRng() * 100, broken: i === 0 ? 0.13 : 0, trodden: wear > 0 ? [0.2 * wear, wear] : undefined }, noise),
     );
   }
   const BEARER_R = 0.075;
@@ -1401,7 +1429,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         { cols: 8, rows: 8 },
       ),
     );
-    put('waystation-floor', mats.fenceWood, board({ centre: p.clone().lerp(q, 0.5).setY((tp + tq) / 2), along: q.clone().setY(tq).sub(p.clone().setY(tp)), across: F, L: len + 0.08, w0: 0.27, w1: 0.27, t: 0.02, tone: 0.85, age: 0.35, moss: 0.3, board: 5, seed: 33 }, noise));
+    put('waystation-floor', mats.fenceWood, board({ centre: p.clone().lerp(q, 0.5).setY((tp + tq) / 2), along: q.clone().setY(tq).sub(p.clone().setY(tp)), across: F, L: len + 0.08, w0: 0.27, w1: 0.27, t: 0.02, tone: 0.85, age: 0.35, moss: 0.3, board: 5, seed: 33, trodden: [0.6, 0.6] }, noise));
     tuftSpecs.push(...footMoss(ctx, p.clone().setY(terrain.height(p.x, p.z)), sr.fork('m0'), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
     tuftSpecs.push(...footMoss(ctx, q.clone().setY(terrain.height(q.x, q.z)), sr.fork('m1'), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
     // the round underside reaches 0.13 m under the top
@@ -1554,6 +1582,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         window: hutAudit.window,
         door: hutAudit.door,
         galleryBoards: boards,
+        troddenBoards,
         railingPosts: posts,
         braces,
         props: keeperProps,
@@ -1567,6 +1596,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         centre: [W.centre[0], FT, W.centre[1]],
         floorY: FT,
         floorBoards,
+        troddenBoards: troddenFloor,
         posts: wPosts,
         rafters,
         pods: wPods.map((p) => p3(p)),
