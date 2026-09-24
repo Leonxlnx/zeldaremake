@@ -74,6 +74,43 @@ const southFrames = () => {
     log: (a, c = 0) => [SOUTH.mouth[0] + tx * a - tz * c, SOUTH.mouth[1] + tz * a + tx * c],
   };
 };
+/**
+ * layout.ts EXPANSION_NORTH (the grove): its flight, the trail's centreline, the trunk house's door
+ * front, the gangway's foot and head (the shelf's y and the deck's), the stilt house's veranda
+ * (centre, floor, walkable ring, railing radius, the door's and the walkway's angles — rad from +x
+ * toward +z, in degrees), the rope walk's ends and deck heights, the tree hut (centre, floor,
+ * platform and railing radii)
+ */
+const GROVE = {
+  flight: { base: [0.5, 5.62, -79.85], dir: [-0.12, -1], steps: 9, rise: 0.27, tread: 0.42, width: 1.4 },
+  trail: [[-0.15, -85.25], [-0.95, -87.45], [-0.45, -89.85], [1.05, -91.95], [2.3, -93.9], [2.5, -96]],
+  house: { c: [-3.9, -101.4], trunkR: 2.2, door: [-1.75, -99.1] },
+  gangway: { foot: [6.161, -94.683], head: [9.717, -92.745], y: [10.1, 11.616], halfWidth: 0.42 },
+  stilt: { c: [12, -91.5], floorY: 11.616, walkR: 2.05, railR: 2.58, doorDeg: -151.4, walkDeg: 52.7 },
+  rope: { a: [14.03, -88.835], b: [15.364, -87.085], y: [11.6, 11.3], sag: 0.12, halfWidth: 0.42 },
+  hut: { c: [16.8, -85.2], floorY: 11.3, platR: 1.67, railR: 1.6 },
+};
+const groveFrames = () => {
+  const G = GROVE;
+  const lerp2 = (a, b, s) => [a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s];
+  const across = (a, b, s, c) => {
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const p = lerp2(a, b, s);
+    return [p[0] - ((b[1] - a[1]) / l) * c, p[1] + ((b[0] - a[0]) / l) * c];
+  };
+  const polar = (c, r, deg) => [c[0] + r * Math.cos(rad(deg)), c[1] + r * Math.sin(rad(deg))];
+  return {
+    /** up the gangway (s 0 foot … 1 head), across it (c) */
+    gangway: (s, c = 0) => across(G.gangway.foot, G.gangway.head, s, c),
+    gangwayY: (s) => G.gangway.y[0] + (G.gangway.y[1] - G.gangway.y[0]) * s,
+    /** along the rope walk (s 0 stilt stub … 1 hut stub), across it (c) */
+    rope: (s, c = 0) => across(G.rope.a, G.rope.b, s, c),
+    ropeY: (s) => G.rope.y[0] + (G.rope.y[1] - G.rope.y[0]) * s - G.rope.sag * 4 * s * (1 - s),
+    stilt: (r, deg) => polar(G.stilt.c, r, deg),
+    hut: (r, deg) => polar(G.hut.c, r, deg),
+    hutWalkDeg: (Math.atan2(G.rope.b[1] - G.hut.c[1], G.rope.b[0] - G.hut.c[0]) * 180) / Math.PI,
+  };
+};
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
   const dx = f.dir[0] / l;
@@ -687,6 +724,8 @@ async function walkScenario(page, results) {
   const hw = flightFrame(ROUTE_FLIGHTS['house-west']);
   const ledge = flightFrame(ROUTE_FLIGHTS.ledge);
   const sf = southFrames();
+  const gf = flightFrame(GROVE.flight);
+  const gv = groveFrames();
   const routes = [
     // round Saria's trunk pad (its cap reaches the plateau) to the upper house's east side
     ['plaza-to-upper-house', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]]],
@@ -708,6 +747,11 @@ async function walkScenario(page, results) {
     // round 56 (expansion-south): out of the plaza down the south approach, between the giants'
     // roots to the ravine, over the rope bridge on its axis and into the hollow log to near its glow
     ['south-bridge-to-log', [[0.5, 3], [0.8, 10], [1, 16], [-0.5, 17.2], [-1.2, 19.4], [-1.32, 21.6], [-0.8, 23.55], [0.4, 25.15], [2.0, 26.55], [3.3, 27.9], [3.68, 28.95], sf.bridge(-0.6), sf.bridge(1.4), sf.bridge(4.1), sf.bridge(6.9), sf.bridge(9.8), sf.bridge(12.2), sf.bridge(sf.len + 0.5), [4.14, 45.2], sf.log(0), sf.log(2), sf.log(4.8)], 2400],
+    // 2026-09-24 (expansion-north): from the second clearing up the ledge flight, past the grove's
+    // sign and up its flight, along the trail to the shelf and the trunk house's door, back across
+    // the yard, up the gangway onto the stilt house's veranda, round it the south way (past the
+    // decorative ladder's gap) to the walkway, over the rope walk onto the tree hut's walkway deck
+    ['north-grove', [[3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6), gf.at(-0.9), gf.at(gf.run * 0.5), gf.at(gf.run + 0.6), ...GROVE.trail.slice(1), GROVE.house.door, [2.0, -97.2], [4.9, -95.4], gv.gangway(-0.1), gv.gangway(0.5), gv.gangway(1), gv.stilt(GROVE.stilt.walkR + 0.05, -165), gv.stilt(GROVE.stilt.walkR + 0.05, 160), gv.stilt(GROVE.stilt.walkR + 0.05, 120), gv.stilt(GROVE.stilt.walkR + 0.05, 80), gv.stilt(2.65, GROVE.stilt.walkDeg), gv.rope(0), gv.rope(0.5), gv.rope(1), gv.hut(1.8, gv.hutWalkDeg)], 3600],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
@@ -721,6 +765,51 @@ async function walkScenario(page, results) {
     results.southProbes = await southProbes(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
+  if (!pickRoutes || pickRoutes.has('north-grove')) {
+    results.northProbes = await northProbes(page);
+    fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  }
+}
+
+/**
+ * The grove's built walks hold Link and its walls stop him: the play hook's ground on the veranda
+ * ring, the gangway's treads, the rope walk's planks and the tree hut's walkway deck (not blocked,
+ * at the deck's height); on the railings, the deck sides, the huts' shut walls, the tree hut's
+ * railed platform and the trunk house's bole (blocked); the trail, the flight and the door front
+ * (walk).
+ */
+async function northProbes(page) {
+  const G = GROVE;
+  const gv = groveFrames();
+  const gf = flightFrame(G.flight);
+  const probes = [];
+  for (const a of [-170, 160, 120, 90, 20, -60, -100]) probes.push({ where: 'veranda', a, c: G.stilt.walkR, at: gv.stilt(G.stilt.walkR, a), expect: 'deck', y: G.stilt.floorY });
+  for (const a of [-170, 160, 120, 108, 90, 20, -60, -100]) probes.push({ where: 'veranda-rail', a, c: G.stilt.railR, at: gv.stilt(G.stilt.railR, a), expect: 'blocked' });
+  for (const a of [G.stilt.doorDeg, 90, -30]) probes.push({ where: 'stilt-wall', a, c: 1.4, at: gv.stilt(1.4, a), expect: 'blocked' });
+  for (const s of [0.25, 0.5, 0.75]) {
+    for (const c of [0, 0.28, -0.28]) probes.push({ where: 'gangway', a: s, c, at: gv.gangway(s, c), expect: 'deck', y: gv.gangwayY(s) });
+    for (const c of [0.47, -0.47]) probes.push({ where: 'gangway-side', a: s, c, at: gv.gangway(s, c), expect: 'blocked' });
+  }
+  for (const s of [0.25, 0.5, 0.75]) {
+    for (const c of [0, 0.25, -0.25]) probes.push({ where: 'rope-walk', a: s, c, at: gv.rope(s, c), expect: 'deck', y: gv.ropeY(s) });
+    for (const c of [0.46, -0.46]) probes.push({ where: 'rope-walk-side', a: s, c, at: gv.rope(s, c), expect: 'blocked' });
+  }
+  probes.push({ where: 'hut-walkway', a: gv.hutWalkDeg, c: 1.9, at: gv.hut(1.9, gv.hutWalkDeg), expect: 'deck', y: G.hut.floorY });
+  for (const d of [70, 140, 180, 250]) probes.push({ where: 'hut-platform', a: gv.hutWalkDeg + d, c: 1.5, at: gv.hut(1.5, gv.hutWalkDeg + d), expect: 'blocked' });
+  for (const d of [90, 180, 270]) probes.push({ where: 'hut-rail', a: gv.hutWalkDeg + d, c: G.hut.railR, at: gv.hut(G.hut.railR, gv.hutWalkDeg + d), expect: 'blocked' });
+  probes.push({ where: 'hut-door', a: gv.hutWalkDeg, c: 1.35, at: gv.hut(1.35, gv.hutWalkDeg), expect: 'blocked' });
+  const toDoor = Math.atan2(G.house.door[1] - G.house.c[1], G.house.door[0] - G.house.c[0]);
+  probes.push({ where: 'house-bole', a: 0, c: G.house.trunkR - 0.3, at: [G.house.c[0] + Math.cos(toDoor + 0.9) * (G.house.trunkR - 0.3), G.house.c[1] + Math.sin(toDoor + 0.9) * (G.house.trunkR - 0.3)], expect: 'blocked' });
+  probes.push({ where: 'house-door-front', a: 0, c: 0, at: G.house.door, expect: 'walk' });
+  for (const p of G.trail.slice(1, 5)) probes.push({ where: 'trail', a: 0, c: 0, at: p, expect: 'walk' });
+  probes.push({ where: 'flight', a: gf.run * 0.5, c: 0, at: gf.at(gf.run * 0.5), expect: 'deck', y: G.flight.base[1] + G.flight.rise * G.flight.steps * 0.5, tol: 0.3 });
+  const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
+  const rows = probes.map((p, i) => {
+    const g = got[i];
+    const ok = p.expect === 'blocked' ? g.blocked === true : p.expect === 'deck' ? g.blocked === false && Math.abs(g.walk - p.y) < (p.tol ?? 0.1) : g.blocked === false;
+    return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, want: p.y !== undefined ? +p.y.toFixed(3) : undefined, ok };
+  });
+  return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }
 
 /**
