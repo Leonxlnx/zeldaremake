@@ -1309,12 +1309,21 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       else put('waystation-rope', rope, lashRound(at(a, s, y), 0.085, 2, 0.03, 0.01, noise, 450 + a * 10 + s));
     }
   }
+  // the moss sheet's lobed outline, set before the rafters so their ends stay under the cushion
+  // (the rim's roll dips below the rafters' tops in the last 0.1 m)
+  const roofRng = wRng.fork('roof');
+  const roofPh = roofRng() * TAU;
+  const roofLobe = (x: number) => 0.045 * Math.sin(x * 5.3 + roofPh) + 0.025 * Math.sin(x * 11.7 - roofPh * 1.3);
+  const ROOF_A0 = -POST_A - 0.3;
+  const ROOF_A1 = POST_A + 0.34;
   const rafters = 5;
   for (let k = 0; k < rafters; k++) {
     const s = lerp(-HW + 0.02, HW - 0.02, k / (rafters - 1)) + wRng.range(-0.03, 0.03);
     const ya = (a: number) => roofU(a) - RAFTER_R;
-    const p0 = at(-POST_A - 0.17, s, ya(-POST_A - 0.17));
-    const p1 = at(POST_A + 0.24, s, ya(POST_A + 0.24));
+    const aBack = Math.max(-POST_A - 0.17, ROOF_A0 - roofLobe(s) + 0.1 + RAFTER_R);
+    const aFront = Math.min(POST_A + 0.24, ROOF_A1 + roofLobe(s + 3.1) - 0.1 - RAFTER_R);
+    const p0 = at(aBack, s, ya(aBack));
+    const p1 = at(aFront, s, ya(aFront));
     const mid = p0.clone().lerp(p1, 0.5).add(new Vector3(0, 0.012, 0));
     put('waystation-posts', mats.bark, barkPole([p0, mid, p1], RAFTER_R, RAFTER_R * 0.85, noise, 460 + k, { tone: 0.95, moss: 0.15, ts: 8, rs: 8 }));
     capPole('waystation-posts', [p0, mid, p1], 8, RAFTER_R * 0.85, false, wRng.fork(`rafter/${k}`));
@@ -1322,13 +1331,13 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
 
   // ---- the roof: a moss cushion on the rafters, lobed edges curling over a bark underside ----
   {
-    const rr = wRng.fork('roof');
-    const A0 = -POST_A - 0.3;
-    const A1 = POST_A + 0.34;
+    const rr = roofRng;
+    const A0 = ROOF_A0;
+    const A1 = ROOF_A1;
     const S0 = -HW - 0.24;
     const S1 = HW + 0.26;
-    const ph = rr() * TAU;
-    const lobe = (x: number) => 0.045 * Math.sin(x * 5.3 + ph) + 0.025 * Math.sin(x * 11.7 - ph * 1.3);
+    const ph = roofPh;
+    const lobe = roofLobe;
     const edgeA0 = (s: number) => A0 - lobe(s);
     const edgeA1 = (s: number) => A1 + lobe(s + 3.1);
     const edgeS0 = (a: number) => S0 - lobe(a + 5.7);
