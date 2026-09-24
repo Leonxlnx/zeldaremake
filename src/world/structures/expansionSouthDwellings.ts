@@ -140,6 +140,8 @@ export interface SouthDwellingsBuild {
       rafters: number;
       pods: [number, number, number][];
       step: { top: number[]; floorRiser: number[]; groundRiser: number[]; stumps: number };
+      /** the trunk seat whose root is the front-north post (null: a sawn post), where it leaves the bole, its corner at the ground, length (m), radii along it */
+      root: { seat: string | null; bole: [number, number, number] | null; corner: [number, number, number] | null; length: number; radii: number[] };
       triangles: number;
     };
     /** the pods that are lime (the rest orange) */
@@ -283,6 +285,48 @@ function barkPole(pts: Vector3[], r0: number, r1: number, noise: Noise2D, seed: 
       return [lerp(d, 0.22, m), lerp(d * 0.92, 0.29, m), lerp(d * 0.83, 0.07, m)];
     },
   });
+}
+
+/**
+ * A living root along `pts` (its ends buried: in a bole, in the ground): `barkPole`'s relief and
+ * grain, its radius eased through `radii` at the points' chord fractions, moss on its top where it
+ * runs level and round it near the ground. `sample` gets the centre line and radius (for draping).
+ */
+function rootTube(pts: Vector3[], radii: number[], noise: Noise2D, seed: number, groundY: number): { geo: BufferGeometry; length: number; sample: (t: number, out: Vector3) => number } {
+  const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+  const len = curve.getLength();
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+  const fr = cum.map((c) => c / cum[cum.length - 1]);
+  const radiusAt = (t: number) => {
+    let i = 1;
+    while (i < fr.length - 1 && fr[i] < t) i++;
+    return lerp(radii[i - 1], radii[i], smoothstep(0, 1, clamp((t - fr[i - 1]) / Math.max(1e-6, fr[i] - fr[i - 1]), 0, 1)));
+  };
+  const _p = new Vector3();
+  const _t = new Vector3();
+  const geo = sweepTube(curve, {
+    radius: (t) => radiusAt(t) * (1 + 0.04 * Math.sin(t * len * 4.1 + seed)),
+    tubularSegments: Math.max(8, Math.ceil(len / 0.06)),
+    radialSegments: 12,
+    uvMetres: 0.7,
+    displace: (t, ang) => {
+      const r = radiusAt(t);
+      return (noise.ridged(ang * 1.3 + seed * 2.1, t * len * 1.6, 2) - 0.5) * 0.3 * r + (woodGrain(noise, t * len, ang, 16, 1.2, seed + 11) - 0.5) * 0.06 * r;
+    },
+    color: (t, ang, up) => {
+      curve.getPointAt(t, _p);
+      curve.getTangentAt(t, _t);
+      const fine = woodGrain(noise, t * len, ang, 16, 1.2, seed + 11);
+      const coarse = noise.ridged(ang * 1.3 + seed * 2.1, t * len * 1.6, 2);
+      const d = 0.6 * lerp(0.62, 1.1, 0.5 * fine + 0.5 * coarse) * lerp(0.72, 1, smoothstep(0, 0.5, _p.y - groundY));
+      const top = smoothstep(0.25, 0.8, up) * (1 - Math.abs(_t.y));
+      const low = (1 - smoothstep(0.15, 0.9, _p.y - groundY)) * 0.8;
+      const m = 0.6 * clamp(Math.max(top, low) * (1.15 - fine * 0.5), 0, 1);
+      return [lerp(d, 0.22, m), lerp(d * 0.92, 0.29, m), lerp(d * 0.83, 0.07, m)];
+    },
+  });
+  return { geo, length: len, sample: (t, out) => (curve.getPointAt(t, out), radiusAt(t)) };
 }
 
 /** a peeled pole (the top rail, the davit's crossbar): pale long grain, polished paler on its top */
@@ -1154,38 +1198,123 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     }
   }
 
-  // ---- frame: four corner posts, the plates, five rafters ----
+  // ---- frame: four corner posts (the front-north one is plaza-south's root when the trees system
+  // publishes the seat), the plates, five rafters ----
   const postTop = (a: number) => (a > 0 ? frontTop : backTop);
   const postAt: Vector3[] = [];
+  const rootSeat = ctx.shared.trunkSeats?.find((s) => s.id === 'plaza-south') ?? null;
+  let postK = 0;
   for (const a of [-POST_A, POST_A]) {
     for (const s of [-POST_S, POST_S]) {
       const c = at(a, s, 0);
       const gy = terrain.height(c.x, c.z);
       const p0 = new Vector3(c.x, gy - 0.3, c.z);
       const p1 = new Vector3(c.x + wRng.range(-0.01, 0.01), postTop(a) + PLATE_R * 0.4, c.z + wRng.range(-0.01, 0.01));
-      put('waystation-posts', mats.bark, barkPole([p0, p1], 0.068, 0.056, noise, 420 + wPosts, { tone: 0.92, moss: 0.4, groundY: gy, ts: 8, rs: 10 }));
-      capPole('waystation-posts', [p0, p1], 8, 0.056, false, wRng.fork(`post-cap/${wPosts}`));
-      tuftSpecs.push(...footMoss(ctx, new Vector3(c.x, gy, c.z), wRng.fork(`post-moss/${wPosts}`), { postRadius: 0.068, count: 12, color: FOOT_MOSS, favour: SHADE_SIDE }));
-      bases.push([c.x, gy, c.z]);
       postAt.push(p1);
-      wPosts++;
+      if (!(rootSeat && a > 0 && s < 0)) {
+        put('waystation-posts', mats.bark, barkPole([p0, p1], 0.068, 0.056, noise, 420 + postK, { tone: 0.92, moss: 0.4, groundY: gy, ts: 8, rs: 10 }));
+        capPole('waystation-posts', [p0, p1], 8, 0.056, false, wRng.fork(`post-cap/${postK}`));
+        tuftSpecs.push(...footMoss(ctx, new Vector3(c.x, gy, c.z), wRng.fork(`post-moss/${postK}`), { postRadius: 0.068, count: 12, color: FOOT_MOSS, favour: SHADE_SIDE }));
+        bases.push([c.x, gy, c.z]);
+        wPosts++;
+      }
+      postK++;
     }
   }
+
+  // ---- plaza-south's root: it leaves the bole a hand over the front plate on this side, runs under
+  // the roof's north edge to the front-north corner and turns down into the ground as that corner's
+  // post; the front plate's north end rests in its elbow and the roof's moss drapes over it ----
+  const waystationRoot: { seat: string | null; bole: [number, number, number] | null; corner: [number, number, number] | null; length: number; radii: number[] } = { seat: null, bole: null, corner: null, length: 0, radii: [] };
+  const drapePts: { x: number; y: number; z: number; r: number }[] = [];
+  if (rootSeat) {
+    const rr = wRng.fork('root');
+    const corner = at(POST_A, -POST_S, 0);
+    const gy = terrain.height(corner.x, corner.z);
+    const hE = frontTop + 0.25 - rootSeat.y;
+    const axis = rootSeat.axisAt(hE, new Vector3());
+    const R = rootSeat.radiusAt(hE);
+    const d = new Vector3(corner.x - axis.x, 0, corner.z - axis.z).normalize();
+    const out = (m: number, y: number) => new Vector3(axis.x + d.x * m, y, axis.z + d.z * m);
+    const back = (m: number, y: number) => new Vector3(corner.x - d.x * m, y, corner.z - d.z * m);
+    const pts = [
+      out(R - 0.5, axis.y + 0.12),
+      out(R + 0.08, axis.y),
+      out(R + 0.5, axis.y - 0.1),
+      back(0.42, frontTop - 0.06),
+      back(0.16, frontTop - 0.11),
+      new Vector3(corner.x + rr.range(-0.01, 0.01), frontTop - 0.27, corner.z + rr.range(-0.01, 0.01)),
+      new Vector3(corner.x + rr.range(-0.015, 0.015), lerp(gy, frontTop, 0.45), corner.z + rr.range(-0.015, 0.015)),
+      new Vector3(corner.x, gy - 0.3, corner.z),
+    ];
+    const radii = [0.27, 0.2, 0.14, 0.115, 0.1, 0.092, 0.086, 0.12];
+    const root = rootTube(pts, radii, noise, 480, gy);
+    put('waystation-posts', mats.bark, root.geo);
+    tuftSpecs.push(...footMoss(ctx, new Vector3(corner.x, gy, corner.z), rr.fork('foot-moss'), { postRadius: 0.1, count: 14, color: FOOT_MOSS, favour: SHADE_SIDE }));
+    bases.push([corner.x, gy, corner.z]);
+    // the aerial run, sampled for the roof's drape and the moss along its top
+    const _c = new Vector3();
+    let chord = 0;
+    for (let i = 1; i < pts.length; i++) chord += pts[i].distanceTo(pts[i - 1]);
+    const tExit = pts[0].distanceTo(pts[1]) / chord;
+    for (let i = 0; i <= 80; i++) {
+      const r = root.sample(i / 80, _c);
+      if (_c.y > frontTop - 0.45) drapePts.push({ x: _c.x, y: _c.y, z: _c.z, r });
+    }
+    for (let i = 0; i < 12; i++) {
+      const t = lerp(tExit, 0.5, (i + rr()) / 12);
+      const r = root.sample(t, _c);
+      if (_c.y < frontTop - 0.2) continue;
+      const rad = 0.04 + rr() * 0.035;
+      const bright = 0.35 + 0.4 * rr();
+      const m = MOSS_ALBEDO_PEAK * 0.8;
+      const n = new Vector3(rr.range(-0.2, 0.2), 1, rr.range(-0.2, 0.2)).normalize();
+      tuftSpecs.push({ position: _c.clone().addScaledVector(n, r * 0.9), normal: n, rx: rad * (1 + rr() * 0.5), rz: rad * (0.8 + rr() * 0.3), h: rad * (0.5 + rr() * 0.3), yaw: rr() * TAU, color: [lerp(MOSS_DEEP[0], MOSS_SUN[0], bright) * m, lerp(MOSS_DEEP[1], MOSS_SUN[1], bright) * m, lerp(MOSS_DEEP[2], MOSS_SUN[2], bright) * m], uv: [_c.x / 1.6, _c.z / 1.6], sink: rad * 0.4, seed: 1 + Math.floor(rr() * 1e6) });
+    }
+    // ivy off the bole where the root leaves it
+    for (let i = 0; i < 3; i++) {
+      const r = root.sample(tExit + 0.03 + i * 0.05, _c);
+      foliage.addLeafCluster(_c.clone().add(new Vector3(0, r * 0.7, 0)).addScaledVector(S, rr.range(-0.08, 0.08)), 0.09 + rr() * 0.04, 5 + Math.floor(rr() * 3), { size: 0.08, droop: 0.6, flatten: 0.4 });
+    }
+    const mid = pts[2].clone().lerp(corner, 0.5);
+    casters.push({ x: mid.x, z: mid.z, r: pts[1].distanceTo(new Vector3(corner.x, pts[1].y, corner.z)) / 2 + 0.3, y0: gy - 0.3, y1: axis.y + 0.4, shadow: true });
+    waystationRoot.seat = rootSeat.id;
+    waystationRoot.bole = [+pts[1].x.toFixed(2), +pts[1].y.toFixed(2), +pts[1].z.toFixed(2)];
+    waystationRoot.corner = [+corner.x.toFixed(2), +gy.toFixed(2), +corner.z.toFixed(2)];
+    waystationRoot.length = +root.length.toFixed(2);
+    waystationRoot.radii = radii;
+  }
+  /** the least height a roof point at (x, z) may take to lie over the root (−∞ off it) */
+  const rootDrape = (x: number, z: number) => {
+    let y = -Infinity;
+    for (const q of drapePts) {
+      const R = q.r + 0.03;
+      const dh = Math.hypot(x - q.x, z - q.z);
+      if (dh < R) y = Math.max(y, q.y + Math.sqrt(R * R - dh * dh));
+    }
+    return y;
+  };
+
   for (const a of [-POST_A, POST_A]) {
     const y = postTop(a);
-    const p0 = at(a, -HW - 0.16, y + wRng.range(-0.01, 0.01));
+    // the front plate's north end rests in the root's elbow instead of running past the corner
+    const onRoot = rootSeat !== null && a > 0;
+    const p0 = at(a, onRoot ? -POST_S - 0.03 : -HW - 0.16, y + wRng.range(-0.01, 0.01));
     const p1 = at(a, HW + 0.18, y + wRng.range(-0.01, 0.01));
     put('waystation-posts', mats.bark, barkPole([p0, p1], PLATE_R, PLATE_R * 0.9, noise, 440 + a * 10, { tone: 0.9, moss: 0.2, ts: 8, rs: 10 }));
     capPole('waystation-posts', [p0, p1], 8, PLATE_R, true, wRng.fork(`plate-a/${a}`));
     capPole('waystation-posts', [p0, p1], 8, PLATE_R * 0.9, false, wRng.fork(`plate-b/${a}`));
-    for (const s of [-POST_S, POST_S]) put('waystation-rope', rope, lashRound(at(a, s, y), 0.085, 2, 0.03, 0.01, noise, 450 + a * 10 + s));
+    for (const s of [-POST_S, POST_S]) {
+      if (onRoot && s < 0) put('waystation-rope', rope, lashRound(at(a, s + 0.01, y - 0.025), 0.115, 2, 0.035, 0.011, noise, 450 + a * 10 + s));
+      else put('waystation-rope', rope, lashRound(at(a, s, y), 0.085, 2, 0.03, 0.01, noise, 450 + a * 10 + s));
+    }
   }
   const rafters = 5;
   for (let k = 0; k < rafters; k++) {
     const s = lerp(-HW + 0.02, HW - 0.02, k / (rafters - 1)) + wRng.range(-0.03, 0.03);
     const ya = (a: number) => roofU(a) - RAFTER_R;
-    const p0 = at(-POST_A - 0.24, s, ya(-POST_A - 0.24));
-    const p1 = at(POST_A + 0.28, s, ya(POST_A + 0.28));
+    const p0 = at(-POST_A - 0.17, s, ya(-POST_A - 0.17));
+    const p1 = at(POST_A + 0.24, s, ya(POST_A + 0.24));
     const mid = p0.clone().lerp(p1, 0.5).add(new Vector3(0, 0.012, 0));
     put('waystation-posts', mats.bark, barkPole([p0, mid, p1], RAFTER_R, RAFTER_R * 0.85, noise, 460 + k, { tone: 0.95, moss: 0.15, ts: 8, rs: 8 }));
     capPole('waystation-posts', [p0, mid, p1], 8, RAFTER_R * 0.85, false, wRng.fork(`rafter/${k}`));
@@ -1204,22 +1333,35 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const edgeA1 = (s: number) => A1 + lobe(s + 3.1);
     const edgeS0 = (a: number) => S0 - lobe(a + 5.7);
     const edgeS1 = (a: number) => S1 + lobe(a + 8.3);
-    const roofPoint = (u: number, v: number, lift: number, out: Vector3) => {
-      const s0 = edgeS0(lerp(A0, A1, v));
-      const s1 = edgeS1(lerp(A0, A1, v));
-      const s = lerp(s0, s1, u);
-      const a = lerp(edgeA0(s), edgeA1(s), v);
-      // distance to the nearest edge (m)
-      const e = Math.min((s - s0), (s1 - s), (a - edgeA0(s)), (edgeA1(s) - a));
-      const k = clamp(e / 0.14, 0, 1);
+    /** the moss's rise over the rafters' plane, `e` m inside the nearest edge: a cushion that rolls
+     * over the rim, the roll's depth wandering along the edge so no straight band shows */
+    const mossRise = (a: number, s: number, e: number) => {
+      const k = clamp(e / 0.18, 0, 1);
       const cushion = 0.1 + 0.05 * noise.noise(s * 3.1 + 9, a * 3.1) + 0.03 * noise.noise(s * 8 + 2, a * 8);
-      const h = lift * (cushion * Math.sqrt(k) - 0.06 * (1 - k));
-      const p = at(a, s, roofU(a) + h);
+      const roll = 0.085 + 0.03 * noise.noise(s * 4.3 + a * 4.3 + 17, 3.7);
+      return cushion * Math.sqrt(k) - roll * (1 - k) ** 1.6;
+    };
+    /** (a, s) of the sheet's (u, v), `inset` m inside its lobed edges, and how far inside the nearest edge it is */
+    const sheetAS = (u: number, v: number, inset: number) => {
+      const s0 = edgeS0(lerp(A0, A1, v)) + inset;
+      const s1 = edgeS1(lerp(A0, A1, v)) - inset;
+      const s = lerp(s0, s1, u);
+      const a = lerp(edgeA0(s) + inset, edgeA1(s) - inset, v);
+      return { a, s, e: inset + Math.min(s - s0, s1 - s, a - edgeA0(s) - inset, edgeA1(s) - inset - a) };
+    };
+    const roofPoint = (u: number, v: number, lift: number, out: Vector3) => {
+      const { a, s, e } = sheetAS(u, v, 0);
+      const p = at(a, s, roofU(a) + lift * mossRise(a, s, e));
+      p.y = Math.max(p.y, rootDrape(p.x, p.z));
       return out.copy(p);
     };
+    /** grid rows crowd toward the edges, where the roll bends fastest */
+    const edgeBias = (w: number) => lerp(w, 0.5 - 0.5 * Math.cos(Math.PI * w), 0.75);
     const _q = new Vector3();
     const top = gridSurface(
-      (u, v, o) => {
+      (u0, v0, o) => {
+        const u = edgeBias(u0);
+        const v = edgeBias(v0);
         roofPoint(u, v, 1, o.position);
         const s = lerp(S0, S1, u);
         const a = lerp(A0, A1, v);
@@ -1230,7 +1372,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         const under = lerp(0.5, 1, smoothstep(0.0, 0.1, e));
         o.color = [lerp(MOSS_DEEP[0], MOSS_SUN[0], bright) * m * under, lerp(MOSS_DEEP[1], MOSS_SUN[1], bright) * m * under, lerp(MOSS_DEEP[2], MOSS_SUN[2], bright) * m * under];
       },
-      { cols: 26, rows: 16 },
+      { cols: 30, rows: 20 },
     );
     faceTowards(top, (p, o) => o.copy(p).add(_q.set(0, 1, 0)));
     // cushion tufts on the sheet (the hut caps' lumps)
@@ -1252,19 +1394,56 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       const m = MOSS_ALBEDO_PEAK * 0.8;
       specs.push({ position: _tp.clone(), normal: n, rx: rad * (0.8 + rr() * 0.4), rz: rad * (0.8 + rr() * 0.4), h: rad * (0.5 + rr() * 0.35), yaw: rr() * TAU, color: [lerp(MOSS_DEEP[0], MOSS_SUN[0], bright) * m, lerp(MOSS_DEEP[1], MOSS_SUN[1], bright) * m, lerp(MOSS_DEEP[2], MOSS_SUN[2], bright) * m], uv: [_tp.x / 1.6, _tp.z / 1.6], sink: rad * 0.35, seed: 1 + Math.floor(rr() * 1e6) });
     }
+    // lumps rolling over the rim all round, so the edge reads as a cushion and not a cut sheet
+    const rim = wRng.fork('roof-rim');
+    const cz0 = at(0, 0, 0);
+    const sides: [number, number, number, number, number][] = [
+      [0, 0.012, 1, 0.012, S1 - S0],
+      [0.988, 0, 0.988, 1, A1 - A0],
+      [1, 0.988, 0, 0.988, S1 - S0],
+      [0.012, 1, 0.012, 0, A1 - A0],
+    ];
+    const perimeter = sides.reduce((n, sd) => n + sd[4], 0);
+    const rimTufts = 84;
+    for (let i = 0; i < rimTufts; i++) {
+      let w = ((i + 0.2 + 0.6 * rim()) / rimTufts) * perimeter;
+      let sd = sides[0];
+      for (const q of sides) {
+        sd = q;
+        if (w <= q[4]) break;
+        w -= q[4];
+      }
+      const f = clamp(w / sd[4], 0.02, 0.98);
+      const u = lerp(sd[0], sd[2], f);
+      const v = lerp(sd[1], sd[3], f);
+      roofPoint(u, v, 1, _tp);
+      roofPoint(clamp(u + 0.01, 0, 1), v, 1, _tq);
+      const du = _tq.clone().sub(_tp);
+      roofPoint(u, clamp(v + 0.01, 0, 1), 1, _tq);
+      const dv = _tq.clone().sub(_tp);
+      const n = new Vector3().crossVectors(dv, du).normalize();
+      const outward = new Vector3(_tp.x - cz0.x, 0.3, _tp.z - cz0.z);
+      if (n.dot(outward) < 0) n.negate();
+      n.add(new Vector3(0, 0.25, 0)).normalize();
+      const rad = 0.05 + rim() * 0.035;
+      const bright = 0.3 + 0.35 * rim();
+      const m = MOSS_ALBEDO_PEAK * 0.72;
+      specs.push({ position: _tp.clone(), normal: n, rx: rad * (0.9 + rim() * 0.4), rz: rad * (0.75 + rim() * 0.3), h: rad * (0.5 + rim() * 0.3), yaw: rim() * TAU, color: [lerp(MOSS_DEEP[0], MOSS_SUN[0], bright) * m, lerp(MOSS_DEEP[1], MOSS_SUN[1], bright) * m, lerp(MOSS_DEEP[2], MOSS_SUN[2], bright) * m], uv: [_tp.x / 1.6, _tp.z / 1.6], sink: rad * 0.3, seed: 1 + Math.floor(rim() * 1e6) });
+    }
     const lumps = buildMossTufts(specs, tuftNoise, { segments: [6, 6], rings: [2, 2], topGain: 1.18, rimGain: 0.55 });
     put('waystation-roof', mats.capMoss, merge([top, lumps.geometry]));
-    // the bark underside, a little inside the curl
+    // the bark underside on the rafters, rolling down under the moss near the rim (and over the
+    // root where it passes)
     const under = gridSurface(
       (u, v, o) => {
-        const s = lerp(S0 + 0.06, S1 - 0.06, u);
-        const a = lerp(A0 + 0.06, A1 - 0.06, v);
-        o.position.copy(at(a, s, roofU(a) - 0.012));
+        const { a, s, e } = sheetAS(edgeBias(u), edgeBias(v), 0.03);
+        o.position.copy(at(a, s, roofU(a) + Math.min(-0.012, mossRise(a, s, e) - 0.018)));
+        o.position.y = Math.max(o.position.y, rootDrape(o.position.x, o.position.z) - 0.015);
         o.uv = [s / 0.9, a / 0.9];
         const d = 0.34 * (0.8 + 0.3 * noise.ridged(s * 4 + 1, a * 9, 2));
         o.color = [d, d * 0.9, d * 0.78];
       },
-      { cols: 10, rows: 6 },
+      { cols: 20, rows: 14 },
     );
     faceTowards(under, (p, o) => o.copy(p).add(_q.set(0, -1, 0)));
     put('waystation-roof', mats.bark, under);
@@ -1278,6 +1457,16 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     for (let i = 0; i < 4; i++) {
       const s = lerp(S0 + 0.2, S1 - 0.2, (i + rr()) / 4);
       foliage.addLeafCluster(at(edgeA0(s) + 0.05, s, roofU(A0) - 0.05), 0.07, 5, { size: 0.07, droop: 0.6, flatten: 0.4 });
+    }
+    // and a few on the ends
+    for (const north of [true, false]) {
+      for (let i = 0; i < 3; i++) {
+        const a = lerp(A0 + 0.25, A1 - 0.25, (i + rim()) / 3);
+        const p = at(a, north ? edgeS0(a) + 0.05 : edgeS1(a) - 0.05, roofU(a) - 0.07);
+        p.y = Math.max(p.y, rootDrape(p.x, p.z) - 0.02);
+        foliage.addLeafCluster(p, 0.07 + rim() * 0.04, 5, { size: 0.07, droop: 0.65, flatten: 0.4 });
+        if (rim() < 0.5) foliage.addHangingVine(p.clone().add(new Vector3(0, -0.02, 0)), 0.08 + rim() * 0.1, { leafSize: 0.045, leafEvery: 0.06, thickness: 0.006, amount: 0.03 });
+      }
     }
   }
 
@@ -1337,7 +1526,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const northS = -POST_S - 0.005;
     const m = 9;
     for (let i = 0; i < m; i++) {
-      const a = lerp(-POST_A + 0.07, POST_A - 0.07, i / (m - 1)) + pr.range(-0.01, 0.01);
+      const a = lerp(-POST_A + 0.07, POST_A - (rootSeat ? 0.11 : 0.07), i / (m - 1)) + pr.range(-0.01, 0.01);
       const r = 0.055 + pr() * 0.012;
       const yTop = lerp(backTop, frontTop, (a + POST_A) / (2 * POST_A)) - 0.03 + pr.range(-0.04, 0.02);
       const gyN = terrain.height(at(a, northS, 0).x, at(a, northS, 0).z);
@@ -1407,9 +1596,9 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const stickFoot = at(POST_A + 0.02, POST_S - 0.2, FT + 0.005);
     const stickTop = new Vector3(fp.x, FT + 1.25, fp.z).addScaledVector(S, -0.06).addScaledVector(F, -0.02);
     put('waystation-posts', mats.bark, barkPole([stickFoot, stickFoot.clone().lerp(stickTop, 0.5).add(new Vector3(0.01, 0, 0.01)), stickTop], 0.018, 0.015, noise, 610, { moss: 0, ts: 5, rs: 6 }));
-    // a rope coil hung on the front-north post
+    // a rope coil hung on the front-north post (the root, when it is one)
     const np = postAt[2];
-    const coilC = new Vector3(np.x, FT + 1.35, np.z).addScaledVector(F, 0.1);
+    const coilC = new Vector3(np.x, FT + 1.35, np.z).addScaledVector(F, rootSeat ? 0.14 : 0.1);
     for (let t = 0; t < 3; t++) {
       const loop: Vector3[] = [];
       const rr = 0.13 + t * 0.012;
@@ -1645,6 +1834,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         rafters,
         pods: wPods.map((p) => p3(p)),
         step: waystationStep,
+        root: waystationRoot,
         triangles: wayTris,
       },
       limePods: [...limePods].map((p) => p3(p)),
