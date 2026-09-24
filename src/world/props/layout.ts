@@ -20,7 +20,7 @@ export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platf
  * backside (round 49) is 8–25 m from every plaza camera but behind them all, and follows
  * `util/expansionLocality.ts` (frustum + swept shadow footprints) like the house and its stair.
  */
-const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing', 'west-house': 'backside' };
+const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing', 'west-house': 'backside', south: 'south' };
 export function localityOf(cluster: string): string {
   return CLUSTER_LOCALITY[cluster] ?? 'village';
 }
@@ -66,6 +66,13 @@ export interface PropDef {
    * the fallback / documentation of where that lands. Skipped when no surface is published.
    */
   onDeck?: { surface: number; along: number; side: -1 | 1 };
+  /**
+   * Round 56 (the south exit): the prop stands on the LIVE heightfield view — its masks, height,
+   * normal and underside conform read `getTerrain()` instead of the legacy view the props build
+   * on, and it is exempt from `expansionCull` (which drops legacy-placed props wherever the live
+   * ground moved). The live mask still keeps it off the route's paving and the bridge / log.
+   */
+  live?: boolean;
 }
 
 export const PROP_LAYOUT: readonly PropDef[] = [
@@ -189,4 +196,22 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   { id: 'circle-pot-marker-squat', kind: 'pot', x: 0.9, z: -64.15, size: 0.46, yaw: 0.3, cluster: 'north-clearing', variant: 2 },
   { id: 'circle-pot-flight', kind: 'pot', x: 4.75, z: -68.45, size: 0.66, yaw: 0.6, cluster: 'north-clearing', variant: 0 },
   { id: 'circle-pot-flight-squat', kind: 'pot', x: 4.15, z: -68.7, size: 0.44, yaw: -1.4, cluster: 'north-clearing', variant: 2 },
+
+  // ---- the south exit (round 56, `EXPANSION_SOUTH`; fable-3 2026-09-24): signs of use along the way out,
+  // all on the EAST side of the route — fable-cursor composed the exit so camera C (the only fixed camera
+  // looking south) sees only what `plaza-south`'s trunk leaves uncovered: x ≥ 0.11 (z − 0.5) is hidden from
+  // C, and every spot here is. The path leaves the spine's end cap (1, 16) south-west round that trunk's
+  // foot (its paving reaches x 3.0 at z 17.4) and swings back east to the bridge's north sill (3.72, 30.45;
+  // half width 1.2 by then); the far path runs from the south sill (4.08, 43.7) to the hollow log's mouth
+  // (4.25, 46.9). On the live ground (`live`): a waymarker on the east verge where the path straightens
+  // for the bridge (at the fork itself the verge is `plaza-south`'s root ground and the trunk hides a post
+  // from the walker leaving the plaza — tried at (3.4, 17.4)), its board toward the bridge; a crate and a
+  // squat pot on the verge at the bridge head, 1.3 m from the east post and 2.5 m short of the lip's
+  // rounding — the toll pile every bridge has; a pot pair east of the log's mouth on the far bank, 0.7 m
+  // clear of the rim's flank.
+  { id: 'south-way-marker', kind: 'marker', x: 5.6, z: 27.7, size: 1.7, yaw: 2.4, cluster: 'south', live: true },
+  { id: 'bridge-crate', kind: 'crate', x: 5.4, z: 29.3, size: 0.62, yaw: 0.35, cluster: 'south', live: true },
+  { id: 'bridge-pot-squat', kind: 'pot', x: 5.95, z: 29.85, size: 0.46, yaw: -1.6, cluster: 'south', variant: 2, live: true },
+  { id: 'log-mouth-pot', kind: 'pot', x: 7.0, z: 46.05, size: 0.6, yaw: 0.9, cluster: 'south', variant: 1, live: true },
+  { id: 'log-mouth-pot-squat', kind: 'pot', x: 7.7, z: 45.3, size: 0.5, yaw: -2.3, cluster: 'south', variant: 0, live: true },
 ];

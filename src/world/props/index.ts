@@ -11,7 +11,7 @@
 import { Box3, type BufferAttribute, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
-import { expansionCull } from '../terrain/heightfield';
+import { expansionCull, getTerrain, type TerrainMask } from '../terrain/heightfield';
 import { type Caster, casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
@@ -183,6 +183,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   root.name = 'props';
   const materials = await createPropMaterials(ctx);
   const terrain = ctx.terrain;
+  /**
+   * Round 56: the live view for `live` props (the south exit's verges) — its height / normal for the
+   * seating, and a mask that is the LIVE mask over the system's own (max per channel): the live one
+   * knows the south paving and the bridge / log, the system's whatever ground it was told is closed
+   */
+  const liveTerrain = getTerrain();
+  const liveCtx: PlacementCtx = {
+    terrain: {
+      ...liveTerrain,
+      mask: (x: number, z: number): TerrainMask => {
+        const a = terrain.mask(x, z);
+        const b = liveTerrain.mask(x, z);
+        return { path: Math.max(a.path, b.path), stairs: Math.max(a.stairs, b.stairs), cliff: Math.max(a.cliff, b.cliff), structure: Math.max(a.structure, b.structure), plateau: Math.max(a.plateau, b.plateau) };
+      },
+    },
+    layout: ctx.layout,
+    shared: ctx.shared,
+  };
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
   const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, lightStrings: 0, lightPods: 0, ropeRailings: 0 };
@@ -226,6 +244,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   for (const def of PROP_LAYOUT) {
     const rng = createRng(`${ctx.config.seed}/props/${def.id}`);
+    /** the heightfield view this prop stands on: the legacy one, or the live one for the south exit's props */
+    const T = def.live ? liveTerrain : terrain;
     let x = def.x;
     let z = def.z;
     let yaw = def.yaw;
@@ -382,7 +402,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     } else {
       const radius = footprintRadius(def);
-      const spot = findSpot(ctx, def, radius, taken);
+      const spot = findSpot(def.live ? liveCtx : ctx, def, radius, taken);
       if (!spot) {
         skipped.push(def.id);
         continue;
@@ -390,19 +410,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       [x, z] = spot;
       // round 49: props build on the LEGACY heightfield view; a spot that the expansion's live-only
       // ground has since raised, paved or built on (the south bank, the far hut's knoll, the west
-      // discs and flights) is dropped here — a filter after placement, so no stream re-rolls
-      if (expansionCull(x, z)) {
+      // discs and flights) is dropped here — a filter after placement, so no stream re-rolls.
+      // Round 56: a `live` prop was placed against the live masks (the route's paving and the
+      // bridge / log are structure there) and takes its height from the live ground, so it is exempt
+      if (!def.live && expansionCull(x, z)) {
         skipped.push(def.id);
         culledByExpansion.push(def.id);
         continue;
       }
-      groundY = terrain.height(x, z);
+      groundY = T.height(x, z);
       if (def.kind === 'platform') {
         const spec = def.platform ?? { deck: 1.2, width: 1.8, depth: 1.4, rail: true, ladder: true };
         const q = new Quaternion().setFromAxisAngle(UP, yaw);
         const groundAt = (lx: number, lz: number) => {
           tmp.set(lx, 0, lz).applyQuaternion(q);
-          return terrain.height(x + tmp.x, z + tmp.z) - groundY;
+          return T.height(x + tmp.x, z + tmp.z) - groundY;
         };
         parts = platformGeometry(rng, { ...spec, groundAt });
         orientation = new Quaternion();
@@ -419,7 +441,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       } else {
         // small prop: follow the terrain normal, but only so far — beyond MAX_TILT the prop is
         // set level into the slope and the underside conform below closes the gap
-        const n = terrain.normal(x, z, new Vector3());
+        const n = T.normal(x, z, new Vector3());
         const tilt = Math.acos(Math.min(1, n.y));
         tiltUsed = Math.min(tilt, MAX_TILT);
         if (tilt > MAX_TILT) {
@@ -448,7 +470,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const world = new Quaternion().setFromAxisAngle(UP, yaw).premultiply(orientation);
     const position = new Vector3(x, groundY, z);
     // (a prop on a published walk deck meets a built surface, not the ground — no terrain base for it)
-    if (!def.onDeck) bases.push([x, terrain.height(x, z), z]);
+    if (!def.onDeck) bases.push([x, T.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
     if (def.kind === 'pot' || def.kind === 'barrel' || def.kind === 'marker') solidTop = def.size;
@@ -478,12 +500,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // conform the underside to the sampled heightfield: a rigid tangent-plane seat leaves
           // gaps on curved ground; above the band the silhouette stays rigid
           const w = Math.min(1, Math.max(0, (contactBand - localY) / (contactBand * 0.75)));
-          const seated = terrain.height(v.x, v.z) - EMBED;
+          const seated = T.height(v.x, v.z) - EMBED;
           v.y += (seated - v.y) * w;
           if (w >= 0.99999) contact.push(i);
         } else if (feet.has(i)) {
           // platform posts / ladder rails: the builder's foot vertices, re-seated on the world heightfield
-          v.y = terrain.height(v.x, v.z) - EMBED;
+          v.y = T.height(v.x, v.z) - EMBED;
           contact.push(i);
         }
         p.setXYZ(i, v.x, v.y, v.z);
