@@ -45,4 +45,5 @@ buttress): a sign nobody sees. The west verge would stand in C's frame. It moved
 
 Only C looks south. Against the head `03e1127a`, settle 12: **C 0 px changed, SSIM 0.1878 = 0.1878**; draws 560 → 568
 (the locality's meshes are inside C's frustum behind the trunk, so they are submitted; no pixel of them shows),
-triangles 7.68 → 7.70 M. A, B, D, E, F look north and hold no south prop in their frustums (asserted in the test).
+triangles 7.68 → 7.70 M — measured with the marker at the fork and again at the final `62bf7fcd` (the marker at the bridge
+approach): 0 px both times. A, B, D, E, F look north and hold no south prop in their frustums (asserted in the test).
