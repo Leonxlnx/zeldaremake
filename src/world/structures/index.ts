@@ -25,6 +25,7 @@ import { buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { NORTH_LANTERN_POSTS, NORTH_ROPE_FENCES, NORTH_SIGNPOSTS, NORTH_VISIBLE_M } from './north';
+import { rangedTriangles } from './shadowProxy';
 import { buildSignpost } from './signpost';
 
 /** the village houses' moss tufts draw within this distance of either trunk (the east houses' detail reach, util/eastLane.ts EAST_DETAIL_M) */
@@ -298,7 +299,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           group: which,
           centre: [+s.center.x.toFixed(2), +s.center.y.toFixed(2), +s.center.z.toFixed(2)],
           radius: +s.radius.toFixed(2),
-          triangles: Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3),
+          triangles: rangedTriangles(g),
         });
       });
     };
@@ -325,7 +326,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const b of bases) gap = Math.max(gap, Math.abs(b[1] - ctx.terrain.height(b[0], b[2])));
     return gap;
   };
-  /** meshes (= draw calls when all are in view) and triangles owned by this system */
+  /** meshes (= draw calls when all are in view) and the triangles their colour pass submits */
   const budget = () => {
     let meshes = 0;
     let triangles = 0;
@@ -333,8 +334,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const m = o as Mesh;
       if (!m.isMesh) return;
       meshes++;
-      const g = m.geometry;
-      triangles += Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+      triangles += rangedTriangles(m.geometry);
     });
     return { meshes, triangles };
   };

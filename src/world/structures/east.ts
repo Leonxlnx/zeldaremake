@@ -85,6 +85,7 @@ import { bakeSwingingPods, type LanternRig } from './lantern';
 import { buildLanternPost } from './lanternPost';
 import { Noise3D, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
+import { attachShadowProxy, rangedTriangles } from './shadowProxy';
 import { grainPlank } from './signpost';
 import { checkedCap, endFrame, footMoss, woodGrain } from './woodGrain';
 
@@ -291,7 +292,7 @@ function meshOf(name: string, mat: Material, parts: BufferGeometry[], cast = tru
   return m;
 }
 
-const tri = (g: BufferGeometry) => Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+const tri = (g: BufferGeometry) => rangedTriangles(g);
 
 /** a grained plank `len` along local x, `wid` along y, `thick` along z (grain relief on ± z) */
 function plank(len: number, wid: number, thick: number, rng: Rng, noise: Noise2D, base: RGB, relief = 0.003): BufferGeometry {
@@ -1984,9 +1985,38 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       out.after += r.after;
       out.merged += r.merged;
     }
+    for (const [tier, material, cell] of PROXY_CELLS) {
+      tier.traverse((o) => {
+        const m = o as Mesh;
+        if (!m.isMesh || !m.castShadow || (material ? m.material !== material : !podMeshes.includes(m))) return;
+        const p = attachShadowProxy(m, cell);
+        if (p) proxies.push({ tier: tier.name.replace('structures-east-', ''), name: m.name, ...p });
+      });
+    }
     draws = out;
     return out;
   };
+  /**
+   * Shadow proxies (shadowProxy.ts) for the lane's big smooth casters, per tier and material (null =
+   * the tier's baked pods). The caps' moss and pale branches cluster on 12 cm (the cap's relief is
+   * 0.4–3 m across: 99.9 % of its vertices lie within 1.7 cm of the proxy, none 3 cm out), the cap
+   * vines on 5 cm, the deck's, counter's, sign's and frames' wood, the ropes, the posts' bark, the
+   * crates and the goods on 8 cm, the pods on 4 cm (≤ 2.5 cm out). The trunks, roots, eave bands and
+   * leaves keep their own triangles in the shadow pass: at a cell that saves a third, their cords and
+   * blades stray past the bias.
+   */
+  const PROXY_CELLS: [Object3D, Material | null, number][] = [
+    [core, mats.capMoss, 0.12],
+    [core, mats.barkPale, 0.12],
+    [core, mats.vine, 0.05],
+    [mid, mats.fenceWood, 0.08],
+    [mid, rope, 0.08],
+    [mid, mats.bark, 0.08],
+    [detail, mats.fenceWood, 0.08],
+    [detail, goods, 0.08],
+    [detail, null, 0.04],
+  ];
+  const proxies: { tier: string; name: string; fine: number; coarse: number; cell: number }[] = [];
 
   const audit = () => ({
     houses: EXPANSION_EAST.houses.map((h, i) => ({
@@ -2031,6 +2061,8 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     /** the pods' meshes after the bake (one per tier and material) and how many of those cast */
     podMeshes: podMeshes.length,
     podCasters: podMeshes.filter((m) => m.castShadow).length,
+    /** the casters the shadow pass draws from a coarser triangle list (shadowProxy.ts), and the shadow triangles that saves when all of them cast */
+    shadowProxies: { casters: proxies, saved: proxies.reduce((n, p) => n + p.fine - p.coarse, 0) },
     coreTriangles: countTris(core),
     baseTriangles: countTris(base),
     midTriangles: countTris(mid),
