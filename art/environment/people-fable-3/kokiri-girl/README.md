@@ -319,3 +319,7 @@ in the stride the flaps swing half the thigh's angle and clear the knee at 26°.
   should, to mid-thigh between the legs. **Honestly:** the thighs' tops stay bare — with the flare kept, the cloth
   hangs *between* the thighs rather than lying on them; a drape over the thighs needs front flaps that hug the legs (a
   narrower skirt front, a look change) or a proper cloth solve. Left for fable-cursor's call.
+
+Views A and C (the two that hold the sitter and the walker), before `732bb3b8` → after `83cffdcc` on the same head, high,
+settle 12: A 0.1952 → 0.1952 (35 px), C 0.1839 → 0.1839 (12 px), head ↔ tip 1.0000, draws 636 / 564 both sides — in
+the fixed frames the girls stand, and standing the blend changes nothing.
