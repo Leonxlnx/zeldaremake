@@ -235,6 +235,25 @@ test('the log tunnel closes the bed and the canopy closes it part of the way', (
   assert.ok(read({ enclosure: 1, canopy: 1 }) <= bore + 1e-6, 'wood over you beats leaves over you');
 });
 
+test('the ravine opens the space where the tunnel and the crowns close it', () => {
+  const { ctx, amb } = bed();
+  const lp = ctx.made.filter.find((f) => f.type === 'lowpass' && f.frequency.value > 10000);
+  const read = (state) => {
+    amb.update(1, { gust: 0.5, listener: LISTENER, forward: NORTH, pods: [], ...state });
+    return { top: lp.frequency.target, sends: ctx.made.gain.map((g) => g.gain.target) };
+  };
+  const flat = read({ gorge: 0 });
+  const over = read({ gorge: 1 });
+  // more of the forest comes back as reflection, and the wind funnels along it
+  const risen = over.sends.filter((v, i) => v > flat.sends[i] * 1.5).length;
+  assert.ok(risen >= 2, `only ${risen} gains rise over the gorge — the hall sends and the wind should`);
+  assert.ok(over.top === flat.top, 'the gorge is open air, not a lid: it must not touch the bed\'s top');
+  // and the crowns still win where both apply: wood and leaves over you beat open air beside you
+  const both = read({ gorge: 1, canopy: 1 });
+  assert.ok(both.top < flat.top, 'a canopy over the gorge still closes the top');
+  assert.ok(read({ gorge: 1, enclosure: 1 }).top < 1200, 'and the tunnel shuts it whatever is outside');
+});
+
 test('the bed is deterministic and draws only from the seeded stream', () => {
   const a = bed({ seed: 'same' });
   const b = bed({ seed: 'same' });
