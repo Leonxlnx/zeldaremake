@@ -25,11 +25,11 @@ running** (17.1 / 17.8 / 13.8). The music is exact.
 Take the envelope of each stem over a leg of the scripted walk, remove its mean, and look at its
 spectrum between 1 and 12 Hz: the tallest line is the rhythm the LEVEL is moving to (`beat.py`).
 
-| stem | leg | before | after |
+| stem | leg | before (head `03e1127a`) | after |
 | --- | --- | --- | --- |
-| mix | walking stone | 1.20 Hz (the music) ×6.5 | 1.20 Hz ×10.9 |
-| **mix** | **running stone** | **2.80 Hz — the step rate — ×4.5** | **1.20 Hz — the music — ×7.0** |
-| mix | standing | 1.75 Hz ×13.0 | 1.75 Hz ×12.9 |
+| mix | walking stone | 1.20 Hz (the music) ×4.5 | 1.20 Hz ×10.9 |
+| **mix** | **running stone** | **2.80 Hz — the step rate — ×5.0** | **1.20 Hz — the music — ×6.9** |
+| mix | standing | 1.75 Hz ×11.7 | 1.75 Hz ×12.4 |
 | music | every leg | 1.20 / 1.20 / 1.75 Hz | **unchanged, byte for byte** |
 | steps | running stone | 2.80 Hz ×7.2 | 2.80 Hz ×8.5 |
 
@@ -62,14 +62,23 @@ running already multiplies the steps by cadence as well as by weight.
 these settings it put the steps stem **8.1 dB louder** than before it was added. `SFX_TRIM` takes
 that back and 2 dB besides, measured on the offline stem rather than guessed.
 
+**And the music's −3.2 dB trim is reverted — it was mine, and it made this worse.** It came in with
+the rests (`8bc41e0e`) to let the forest be heard beside the tune, but the rests already do that far
+better: between passes there is no tune at all. What the trim actually bought was the footsteps
+punching 3.2 dB further over the music, so on the build the owner plays next his complaint was worse
+than when he made it. With the compressor alone on this head the running leg still moved to the step
+rate (2.80 Hz ×5.4); with the level back it moves to the music (1.20 Hz ×6.9). Level belongs to the
+music, space belongs to the rests.
+
 | 60 s of the same walk | before | after |
 | --- | ---: | ---: |
-| mix RMS | −32.6 | −32.8 — as loud |
-| mix peak | −14.1 | **−17.2** — 3 dB more headroom |
-| mix crest | 18.5 dB | 15.5 dB |
+| mix RMS | −35.9 | −33.4 |
+| mix peak | −14.7 | **−17.2** — 2.5 dB more headroom |
+| mix crest | 21.2 dB | **16.2 dB** |
 | footsteps RMS | −42.9 | −45.0 — still plainly there |
+| footsteps peak | −15.2 | **−21.1** |
 | footsteps crest | 27.8 dB | **23.9 dB** |
-| music RMS / peak | −33.1 / −20.2 | **−33.1 / −20.2** |
+| music RMS / peak | −37.2 / −23.7 | −33.9 / −20.4 — the trim below |
 
 And the steps keep their character — the whole point of the surface work — with only their peak
 coming down:

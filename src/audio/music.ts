@@ -101,9 +101,13 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
 
   // ---- procedural voices -------------------------------------------------------------------
   const setupProcedural = () => {
-    // −3.2 dB on the placeholder: the forest sat 15 dB under it, so a gust was the only time the
-    // wood was audible at all beside the tune
-    const bus = gain(ctx, 0.62);
+    // 2026-09-24: the −3.2 dB trim that came in with the rests is REVERTED. Its purpose was to let
+    // the forest be heard beside the tune, and the rests already do that far better — between
+    // passes there is no tune at all. What the trim actually bought was the owner's job 8 getting
+    // worse: with the music 3.2 dB down, the footsteps punched further over it, and running, the
+    // mix's dominant rhythm stayed the step rate even with the step compressor in. Level belongs to
+    // the music; space belongs to the rests.
+    const bus = gain(ctx, 0.9);
     bus.connect(out);
     const send = gain(ctx, 0.55);
     bus.connect(send).connect(reverbSend);
