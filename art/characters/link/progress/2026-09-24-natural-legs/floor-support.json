@@ -1,0 +1,221 @@
+{
+  "assetSha256": "8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd",
+  "beforeSourceHashes": {
+    "src/world/character/glbLink.ts": "a256eaff1b126a4f79b8ac5b1ff338d0ae18cc4d062799f2ba6178b8a5c4e45f",
+    "src/world/character/animation.ts": "2d23f55ec8de6ee8dea7cd5049cbf20be6742d3ea4c8324f4b441e4c6d36a3fa",
+    "src/world/character/puppet.ts": "89990ec5913dce53855788361891ff3feb084c7cad38b33527af8f5fdcc4ec82",
+    "src/world/character/gaitChain.ts": "e6a6e1c59459841d4a331a8703e8529ca9023a68347631634b4b13e211992ca8"
+  },
+  "exactOneLineCandidateRuntimeSha256": "afc7f60cbe6c77bc5b8524bc16c24b23a1600fbc1445ce358087439c108bb3f0",
+  "productionUnchangedDuringIsolatedChecks": true,
+  "change": {
+    "file": "src/world/character/glbLink.ts",
+    "before": "let target = Math.min(leg.g + lift, Math.max(leg.g + hold, gMin + FOLD_MAX));",
+    "after": "let target = Math.max(leg.g + hold, Math.min(leg.g + lift, gMin + FOLD_MAX));",
+    "reason": "The current blended boot footprint must not fall below support when its sole marker remains above support."
+  },
+  "protocol": {
+    "core": "120 warm-up + 600 steady 60 Hz ticks per flat/±15% slope; 360 ticks idle→run→stop",
+    "assetContract": {
+      "strideM": 1.2,
+      "speedMps": 2.2
+    },
+    "extra": "idle/walk/stairs × flat/±15% slopes; all four gaits jump crouch/air/land and entry/exit boundaries"
+  },
+  "references": {
+    "before": {
+      "path": "gauntlet/out/floor-support-run-before.json",
+      "sha256": "0646e57a9b734d727b418d338dabd91bc310dd06ef190dfa36c47b85ec748f78"
+    },
+    "candidate": {
+      "path": "gauntlet/out/floor-support-run-candidate.json",
+      "sha256": "17a913dffb79c78c0301e05125373565ce625186bf854f8133c61042909ff989"
+    },
+    "extra": {
+      "path": "gauntlet/out/floor-support-extra.json",
+      "sha256": "8f0b5bf95faa07aef83a87e1f8c3beab09ce73222ab9f4788cd0115e6388f57d"
+    },
+    "baselineTransition": {
+      "path": "gauntlet/out/transition-contacts-baseline.json",
+      "sha256": "d39a44daca29f729cfca5ed562ad62a2f93635973f4904290a1868ec84dbaa5a"
+    },
+    "smoothTransition": {
+      "path": "gauntlet/out/transition-contacts-smooth.json",
+      "sha256": "f2d9ef343738e76a449429b4d1a1763cd41cb4df763982c4a22829b7603a594e"
+    }
+  },
+  "core": {
+    "flat": {
+      "before": {
+        "minimumShoeGapM": -0.002729309462412427,
+        "peakShoeLiftM": 0.11188461557171009,
+        "maximumStanceSpeedMps": 0.00004878757525555896,
+        "pelvisFrameStepM": 0.002309510866995046,
+        "pelvisSecondDifferenceM": 0.0008729022308453516,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "after": {
+        "minimumShoeGapM": -0.0000021063895836170854,
+        "peakShoeLiftM": 0.11188461557171009,
+        "maximumStanceSpeedMps": 0.000048776028857659143,
+        "pelvisFrameStepM": 0.002309510866995046,
+        "pelvisSecondDifferenceM": 0.0008729022308453516,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "maximumTargetLiftM": 0.0027277750729208794,
+      "pelvisHeightSummaryExact": true
+    },
+    "up": {
+      "before": {
+        "minimumShoeGapM": 0.001625873891224927,
+        "peakShoeLiftM": 0.08990182206895891,
+        "maximumStanceSpeedMps": 0.00009145430052322696,
+        "pelvisFrameStepM": 0.004387344391765247,
+        "pelvisSecondDifferenceM": 0.003250630638187868,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "after": {
+        "minimumShoeGapM": 0.0016275855785026216,
+        "peakShoeLiftM": 0.08990182206895891,
+        "maximumStanceSpeedMps": 0.00009056629107525385,
+        "pelvisFrameStepM": 0.003721565139484184,
+        "pelvisSecondDifferenceM": 0.0019190721336257432,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "maximumTargetLiftM": 0.002727775072920935,
+      "pelvisHeightSummaryExact": false
+    },
+    "down": {
+      "before": {
+        "minimumShoeGapM": 0.008736753392100338,
+        "peakShoeLiftM": 0.1424062249564364,
+        "maximumStanceSpeedMps": 0.00007438618472178747,
+        "pelvisFrameStepM": 0.0040143884326732104,
+        "pelvisSecondDifferenceM": 0.00782218263940937,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "after": {
+        "minimumShoeGapM": 0.009712887005149717,
+        "peakShoeLiftM": 0.1424062249564364,
+        "maximumStanceSpeedMps": 0.00007446028834916138,
+        "pelvisFrameStepM": 0.0040143884326732104,
+        "pelvisSecondDifferenceM": 0.00782218263940937,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "maximumTargetLiftM": 0.0027277750729208794,
+      "pelvisHeightSummaryExact": false
+    },
+    "transitions": {
+      "before": {
+        "minimumShoeGapM": -0.013768576041679248,
+        "peakShoeLiftM": 0.11190404473884716,
+        "maximumStanceSpeedMps": 1.6204949996810736,
+        "pelvisFrameStepM": 0.013717343482627375,
+        "pelvisSecondDifferenceM": 0.007981672368679416,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "after": {
+        "minimumShoeGapM": -0.0000019485423714271644,
+        "peakShoeLiftM": 0.11190404473884716,
+        "maximumStanceSpeedMps": 1.6204949996810736,
+        "pelvisFrameStepM": 0.013717343482627375,
+        "pelvisSecondDifferenceM": 0.007981672368679416,
+        "reachClamps": 0,
+        "maxHipClampRad": 0,
+        "zeroDtPelvisM": 0
+      },
+      "maximumTargetLiftM": 0.01376814645904078,
+      "pelvisHeightSummaryExact": true
+    }
+  },
+  "extraSteady": {
+    "scenarios": [
+      "idle-flat",
+      "idle-up",
+      "idle-down",
+      "walk-flat",
+      "walk-up",
+      "walk-down",
+      "stairs-flat",
+      "stairs-up",
+      "stairs-down"
+    ],
+    "minShoeGapImprovedOrEqual": true,
+    "reachClampsBefore": 0,
+    "reachClampsAfter": 0,
+    "maxHipHeightDifferenceM": 0.000041588540048209666,
+    "maxRootDifferenceM": 0.00004158854004809864,
+    "allFlatHipRootPosesUnchanged": true,
+    "maxAfterZeroDtHipM": 0
+  },
+  "extraJump": {
+    "gaits": [
+      "idle",
+      "walk",
+      "run",
+      "stairs"
+    ],
+    "maxZeroDtHipM": 0,
+    "maxAddedBoundarySnapM": 0,
+    "phases": {
+      "crouch": {
+        "minShoeGapBeforeM": -0.008365092986789724,
+        "minShoeGapAfterM": -0.000006516573903464495,
+        "reachClampsBefore": 0,
+        "reachClampsAfter": 0,
+        "maxHipHeightDifferenceM": 0,
+        "maxFootPositionDifferenceM": 0.008359505428012778
+      },
+      "air": {
+        "minShoeGapBeforeM": 0.10843456425703679,
+        "minShoeGapAfterM": 0.10843456425703679,
+        "reachClampsBefore": 0,
+        "reachClampsAfter": 0,
+        "maxHipHeightDifferenceM": 0,
+        "maxFootPositionDifferenceM": 0
+      },
+      "land": {
+        "minShoeGapBeforeM": -0.004190841687593899,
+        "minShoeGapAfterM": -0.000007575196098910664,
+        "reachClampsBefore": 24,
+        "reachClampsAfter": 0,
+        "maxHipHeightDifferenceM": 0,
+        "maxFootPositionDifferenceM": 0.0041874124155595665
+      }
+    }
+  },
+  "limits": [
+    "Historical downhill flotation remains. Minimum run shoe gap changes8.737→9.713mm (mean +0.09mm); slope contact is not claimed fixed.",
+    "Audit traces are not byte-identical because hold/correction values correctly change; flat pelvis and airborne pose remain unchanged."
+  ],
+  "productionVerification": {
+    "command": "node art/characters/link/progress/2026-09-24-natural-legs/check.mjs",
+    "path": "art/characters/link/progress/2026-09-24-natural-legs/check.json",
+    "reportSha256": "2b2ae30231d3f06ed79010732df2d670a48a48ae6556eebc6751ff7e7ca73315",
+    "passed": true,
+    "assetSha256": "8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd",
+    "sourceHashes": {
+      "src/world/character/glbLink.ts": "e547a5e5be1107302b08ad85370d5c45f31704477bc97516db58791945922020",
+      "src/world/character/animation.ts": "d86ac1e3786abc3b18f6a9dc0d4ae195af0a3c30a16456258525a256471dd367",
+      "src/world/character/puppet.ts": "89990ec5913dce53855788361891ff3feb084c7cad38b33527af8f5fdcc4ec82",
+      "src/world/character/gaitChain.ts": "e6a6e1c59459841d4a331a8703e8529ca9023a68347631634b4b13e211992ca8"
+    },
+    "flatMinimumShoeGapM": -0.0000021063895836170854,
+    "transitionMinimumShoeGapM": -0.0000019485423714271644,
+    "transitionContactAsserted": true
+  }
+}

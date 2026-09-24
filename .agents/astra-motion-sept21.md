@@ -2,12 +2,17 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: idle
+status: active
 branch: codex/walk-arms-sept24
-updated: 2026-09-24T19:00:00Z
+updated: 2026-09-24T19:59:46.302Z
 ---
 
 # Astra motion continuation
+
+September24 leg replacement: adopted 8d7efa78, original Blender-authored run hips + six leg rotations. Heel recovery112mm, ~31% support, stride1.2m / play2.2m/s (220steps/min). Native smooth12mm hip cycle replaces sharp reach-cap notches; final script reproduces GLB byte-for-byte. Shared measured-boot floor bound fixes startup penetration13.77mm and steady2.73mm to numerical residuals (~0.002mm), without changing pelvis motion. Production CPU regression, idle/walk/stairs/jump A/B, typecheck/build/gait-chain pass. Actual runtime studio review and first forest walk/run/stop replay complete; final forest replay with the floor fix is recording. PR59 remains draft until final media review. Character source only; world squads continue. Downhill clearance (~9.7mm) and bulky boot/toe-off appearance remain known limits.
+
+
+Owner rejects aa0520e0 leg movement. PR59 returned to draft and integration held. Root now replaces baked procedural leg motion using primary gait reference/CC0 donor; vertical_jitter and run_reference diagnose read-only. Current run has very low heel recovery and short support duty, knees forward most of cycle; the last hand/body pass did not repair this. No world changes.
 
 Final game review completed for implementation `d3e933a0` / GLB `aa0520e0`: native1080p RUN-only replay `2026-09-24T18-46-15-558Z-play-motion`, 300 ticks /150 frames, 12.933m, gaits run→idle, zero page errors/reach clamps. Reviewed cycle sheet and settled stop; original-speed before/after comparison and full5s clip in the running study README. `game-receipt.json` binds captured source/bundle/asset to implementation commit; capture began before commit. Local preview61024 serves index-D_KsP5a1.js. CPU terrain/transition/jump regression remains green on final asset. Follow-up source/evidence is ready for PR59; merge remains gated by GitHub CI. Steep-slope support roughness and residual outfit seams are documented limitations; no universal collision-free claim.
 

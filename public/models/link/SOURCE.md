@@ -1,8 +1,16 @@
 # Young Link runtime candidate — Blender source and validation
 
+## September 24 running leg replacement
+
+Current delivery: **8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd**, 54,439,952 bytes. The original Blender-authored run replaces the low, nearly horizontal boot return with a rear heel recovery, forward passage and extension into contact. Each leg supports approximately 30% of the cycle. Pelvis translation uses a smooth 12 mm two-step rise/fall below the leg reach limit. Only six leg rotation channels and run hips translation change; the original mesh, materials, weights, repaired arms/hands, other clips and original binary prefix are preserved.
+
+The paired runtime stride is **1.20 m**, stored cycle remains **28/60 seconds**, authored speed is `1.2 / (28/60)` m/s, and play-mode run speed is **2.2 m/s** (220 steps/minute). Walking stays at 1.2 m/s. The prior 1.82 m / 3.3 m/s run was rejected for its leg motion. Quaternius CC0 Jog and measured human running informed the recovery sequence; the direct donor-leg transplant was rejected for poor ground contact. This delivery uses the original fitted Blender trajectory, with no new downloaded model.
+
+[Native source, reproducible export, actual runtime video, checks and limitations](../../../art/characters/link/progress/2026-09-24-natural-legs/README.md). The final source script reproduces the delivered GLB byte-for-byte. The paired runtime also enforces the measured boot floor before leg IK: this removes a 13.8 mm startup-blend penetration and 2.73 mm steady-run corner penetration without changing the body's motion. Pre-existing downhill clearance remains about 9.7 mm; the evidence does not claim perfect terrain contact or photoreal anatomy.
+
 ## September 24 running hands and body-height repair
 
-Current delivery: **aa0520e0d7aaedcc452103ad14c81113866ff3c5adbd5307fdcedf711a248c89**, 54,422,264 bytes. This composes the run channels below with the reviewed Blender finger geometry. Native and preservation checks pass; the final game replay is pending.
+Previous delivery: **aa0520e0d7aaedcc452103ad14c81113866ff3c5adbd5307fdcedf711a248c89**, 54,422,264 bytes. This composes the run channels below with the reviewed Blender finger geometry. Its final game replay was completed in `2026-09-24T18-46-15-558Z-play-motion`; the owner subsequently rejected the remaining leg motion, replaced above.
 
 Native run export **7e907dd06a7a0cbce48ae157441832a834eb505305a38f3d53cfe33a75ef2692** changes only four shoulder/elbow rotation tracks on `46dcbcc3`. Shoulder correction is measured relative to the leaning torso: peak forward upper-arm angle drops from 8.26° to 2.26° on both sides, retaining the original rearward extrema. The elbow opens by up to 4° during the rearward half. It preserves the Quaternius CC0-derived run's leg phase, wrist tracks, body/leg animation, 28/60-second cycle and 1.82 m stride, with no outward arm offset. The same 113-pose native arm-contact census improves 1269 to 1266 total; peak 24 and below-armpit 21 remain unchanged. Residual contacts are not eliminated.
 

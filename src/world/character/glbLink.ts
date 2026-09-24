@@ -142,7 +142,7 @@ import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = 'aa0520e0d7aaedcc452103ad14c81113866ff3c5adbd5307fdcedf711a248c89';
+export const LINK_GLB_SHA256 = '8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -162,7 +162,7 @@ interface ClipSpec {
 export const CLIP_SPEC: Record<Gait, ClipSpec> = {
   idle: { strideM: 0, cycleS: 3.0, heroClipTime: 0 },
   walk: { strideM: 0.88, cycleS: 0.55, heroClipTime: 16 / 60 },
-  run: { strideM: 1.82, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
+  run: { strideM: 1.2, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
   stairs: { strideM: 0.8066667, cycleS: 0.7333333, heroClipTime: 22 / 60 },
 };
 /** simulation time of the hero captures (capture.mjs DEFAULT_SIM_TIME 12.5 + 6 settle frames) */
@@ -2337,7 +2337,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           if (-_p.y > hold) hold = -_p.y;
         }
         const floor = Math.max(leg.g, gMin + FOLD_MAX);
-        let target = Math.min(leg.g + lift, Math.max(leg.g + hold, gMin + FOLD_MAX));
+        // A gait blend can put a boot corner below its ankle marker. Enforce the
+        // measured sole floor as well as the upper lift bound before solving the leg.
+        let target = Math.max(leg.g + hold, Math.min(leg.g + lift, gMin + FOLD_MAX));
         leg.hold = Math.max(0, target - Math.min(leg.g + lift, floor));
         if (leg.hold > maxHold) maxHold = leg.hold;
         // round 47, play mode: a swing that climbs a riser follows its support's ramp (the eased

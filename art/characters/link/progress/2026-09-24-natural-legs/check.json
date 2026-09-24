@@ -1,0 +1,333 @@
+{
+  "assetFile": "public/models/link/link-runtime.glb",
+  "assetSha256": "8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd",
+  "sourceHashes": {
+    "src/world/character/glbLink.ts": "e547a5e5be1107302b08ad85370d5c45f31704477bc97516db58791945922020",
+    "src/world/character/animation.ts": "d86ac1e3786abc3b18f6a9dc0d4ae195af0a3c30a16456258525a256471dd367",
+    "src/world/character/puppet.ts": "89990ec5913dce53855788361891ff3feb084c7cad38b33527af8f5fdcc4ec82",
+    "src/world/character/gaitChain.ts": "e6a6e1c59459841d4a331a8703e8529ca9023a68347631634b4b13e211992ca8"
+  },
+  "passed": true,
+  "errors": [],
+  "results": {
+    "contract": {
+      "file": "models/link/link-runtime.glb",
+      "sha256": "8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd",
+      "strideM": 1.2,
+      "playerSpeedMps": 2.2,
+      "nativeSpeedMps": 2.571428571428571,
+      "cadenceStepsPerMinute": 220
+    },
+    "flat": {
+      "samples": 600,
+      "finite": true,
+      "pelvisHeightM": {
+        "min": 0.45108914266633804,
+        "max": 0.4630768993053642,
+        "mean": 0.457071415980636
+      },
+      "pelvisDeltaM": {
+        "min": -0.002309510866995046,
+        "max": 0.002289003516029453,
+        "mean": 0.00001827210520730923
+      },
+      "pelvisSecondDifferenceM": {
+        "min": -0.0008729022308453516,
+        "max": 0.0008729022308451295,
+        "mean": 0.0000019692882003393205
+      },
+      "reachClamps": 0,
+      "maxHipClampRad": 0,
+      "feet": [
+        {
+          "side": "L",
+          "minShoeGapM": {
+            "min": -0.000001398501479205061,
+            "max": 0.11188461557171009,
+            "mean": 0.035997414569478824
+          },
+          "stanceFraction": 0.31666666666666665,
+          "groundedFraction": 0.4216666666666667,
+          "stanceSpeedMps": {
+            "min": 7.078541977480882e-8,
+            "max": 0.000048776028857659143,
+            "mean": 0.000011317826224834545
+          },
+          "hipPitchDeg": {
+            "min": -21.47321321309432,
+            "max": 63.487657501739825,
+            "mean": 33.65298023174018
+          },
+          "kneeFlexDeg": {
+            "min": 12.700854035092977,
+            "max": 125.08485199122781,
+            "mean": 72.13329441714708
+          }
+        },
+        {
+          "side": "R",
+          "minShoeGapM": {
+            "min": -0.0000021063895836170854,
+            "max": 0.11187273695889416,
+            "mean": 0.0370203839107081
+          },
+          "stanceFraction": 0.305,
+          "groundedFraction": 0.4066666666666667,
+          "stanceSpeedMps": {
+            "min": 0.000011299471030271187,
+            "max": 0.000039366042777159374,
+            "mean": 0.0000191893884738339
+          },
+          "hipPitchDeg": {
+            "min": -21.47456812819816,
+            "max": 63.48773443407625,
+            "mean": 34.42698974968532
+          },
+          "kneeFlexDeg": {
+            "min": 12.700887476519474,
+            "max": 125.08440325053942,
+            "mean": 72.84180544652297
+          }
+        }
+      ],
+      "zeroDtPelvisM": 0,
+      "asserted": true
+    },
+    "up": {
+      "samples": 600,
+      "finite": true,
+      "pelvisHeightM": {
+        "min": 0.45381825158560396,
+        "max": 0.46452641753126667,
+        "mean": 0.4589834754582063
+      },
+      "pelvisDeltaM": {
+        "min": -0.003721565139484184,
+        "max": 0.0014669865265370952,
+        "mean": -0.000008398867486962509
+      },
+      "pelvisSecondDifferenceM": {
+        "min": -0.0017418346686983721,
+        "max": 0.0019190721336257432,
+        "mean": -0.0000025818439122630127
+      },
+      "reachClamps": 0,
+      "maxHipClampRad": 0,
+      "feet": [
+        {
+          "side": "L",
+          "minShoeGapM": {
+            "min": 0.0016275855785026216,
+            "max": 0.08990182206895891,
+            "mean": 0.04709183285766297
+          },
+          "stanceFraction": 0.31666666666666665,
+          "groundedFraction": 0.03166666666666667,
+          "stanceSpeedMps": {
+            "min": 8.382488454796966e-7,
+            "max": 0.00009056629107525385,
+            "mean": 0.000023035165028863854
+          },
+          "hipPitchDeg": {
+            "min": -26.26021160347884,
+            "max": 84.20374676952326,
+            "mean": 41.02765131492812
+          },
+          "kneeFlexDeg": {
+            "min": 12.680704553444746,
+            "max": 122.30399296890663,
+            "mean": 82.57885293881142
+          }
+        },
+        {
+          "side": "R",
+          "minShoeGapM": {
+            "min": 0.0016279332852811024,
+            "max": 0.08990051253391429,
+            "mean": 0.047473431436553436
+          },
+          "stanceFraction": 0.305,
+          "groundedFraction": 0.05,
+          "stanceSpeedMps": {
+            "min": 2.328654397732271e-7,
+            "max": 0.00007005586451900252,
+            "mean": 0.00002076185818374704
+          },
+          "hipPitchDeg": {
+            "min": -26.261017329004307,
+            "max": 84.20605148080877,
+            "mean": 42.05460866323475
+          },
+          "kneeFlexDeg": {
+            "min": 12.68074020595415,
+            "max": 122.30658929457478,
+            "mean": 83.56928685466255
+          }
+        }
+      ],
+      "zeroDtPelvisM": 0,
+      "asserted": false
+    },
+    "down": {
+      "samples": 600,
+      "finite": true,
+      "pelvisHeightM": {
+        "min": 0.40802742334152287,
+        "max": 0.42768675229778264,
+        "mean": 0.41605294216775535
+      },
+      "pelvisDeltaM": {
+        "min": -0.003833709289654985,
+        "max": 0.0040143884326732104,
+        "mean": 0.000027305090493439867
+      },
+      "pelvisSecondDifferenceM": {
+        "min": -0.00782218263940937,
+        "max": 0.00442801876201071,
+        "mean": 0.000010154650401085973
+      },
+      "reachClamps": 0,
+      "maxHipClampRad": 0,
+      "feet": [
+        {
+          "side": "L",
+          "minShoeGapM": {
+            "min": 0.009751453920924469,
+            "max": 0.1424062249564364,
+            "mean": 0.054664409603276974
+          },
+          "stanceFraction": 0.31666666666666665,
+          "groundedFraction": 0,
+          "stanceSpeedMps": {
+            "min": 3.9319565682468183e-7,
+            "max": 0.00007446028834916138,
+            "mean": 0.000024893308961219805
+          },
+          "hipPitchDeg": {
+            "min": 3.1246980278565846,
+            "max": 78.92562051610489,
+            "mean": 44.891951857913185
+          },
+          "kneeFlexDeg": {
+            "min": 19.97818265390647,
+            "max": 143.9402430092078,
+            "mean": 93.74790060053363
+          }
+        },
+        {
+          "side": "R",
+          "minShoeGapM": {
+            "min": 0.009712887005149717,
+            "max": 0.1423570914062222,
+            "mean": 0.055818169787282684
+          },
+          "stanceFraction": 0.305,
+          "groundedFraction": 0,
+          "stanceSpeedMps": {
+            "min": 2.5449172595183025e-7,
+            "max": 0.00005758427179309087,
+            "mean": 0.00002798693688780399
+          },
+          "hipPitchDeg": {
+            "min": 3.1186501243974987,
+            "max": 78.92180496389028,
+            "mean": 45.56387422572942
+          },
+          "kneeFlexDeg": {
+            "min": 19.96115910004985,
+            "max": 143.9301956498754,
+            "mean": 94.1824140273449
+          }
+        }
+      ],
+      "zeroDtPelvisM": 0,
+      "asserted": false
+    },
+    "transitions": {
+      "samples": 360,
+      "finite": true,
+      "pelvisHeightM": {
+        "min": 0.45108915365836444,
+        "max": 0.511994917972665,
+        "mean": 0.48329477779811025
+      },
+      "pelvisDeltaM": {
+        "min": -0.013717343482627375,
+        "max": 0.009381082598197366,
+        "mean": -1.0871431362285456e-7
+      },
+      "pelvisSecondDifferenceM": {
+        "min": -0.006736808824726437,
+        "max": 0.007981672368679416,
+        "mean": -2.246815973154631e-8
+      },
+      "reachClamps": 0,
+      "maxHipClampRad": 0,
+      "feet": [
+        {
+          "side": "L",
+          "minShoeGapM": {
+            "min": -0.0000013732067006555493,
+            "max": 0.11190404473884716,
+            "mean": 0.016985327413853828
+          },
+          "stanceFraction": 0.6638888888888889,
+          "groundedFraction": 0.7083333333333334,
+          "stanceSpeedMps": {
+            "min": 0,
+            "max": 1.6204949996810736,
+            "mean": 0.01680212834070332
+          },
+          "hipPitchDeg": {
+            "min": -21.282526153600795,
+            "max": 63.488044669900596,
+            "mean": 22.432894474660387
+          },
+          "kneeFlexDeg": {
+            "min": 12.70119551513313,
+            "max": 125.08485121439921,
+            "mean": 44.149129139022484
+          }
+        },
+        {
+          "side": "R",
+          "minShoeGapM": {
+            "min": -0.0000019485423714271644,
+            "max": 0.11185022076502182,
+            "mean": 0.021332938657568617
+          },
+          "stanceFraction": 0.6194444444444445,
+          "groundedFraction": 0.675,
+          "stanceSpeedMps": {
+            "min": 0,
+            "max": 0.9700482453262014,
+            "mean": 0.015982562278947406
+          },
+          "hipPitchDeg": {
+            "min": -19.6354985797587,
+            "max": 63.47973656623955,
+            "mean": 21.962026726461577
+          },
+          "kneeFlexDeg": {
+            "min": 12.712581105691479,
+            "max": 125.08257642898573,
+            "mean": 47.349767236756925
+          }
+        }
+      ],
+      "maxZeroDtPelvisM": 0,
+      "endGait": "idle",
+      "endSpeedMps": 0,
+      "asserted": [
+        "finite",
+        "no reach clamps",
+        "zero-dt pelvis invariance",
+        "ends stopped",
+        "shoe gap >= -4 mm"
+      ],
+      "contactAsserted": true
+    }
+  },
+  "transitionNote": "Foot targets respect the current boot footprint lower bound; steady-run gap >= -0.1 mm and start/stop gap >= -4 mm are asserted.",
+  "slopeNote": "Slopes are report-only: historical downhill sole flotation remains about 9.7 mm; no slope-contact pass is claimed."
+}
