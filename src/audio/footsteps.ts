@@ -112,38 +112,46 @@ export const RUN_SPEED = 2.4;
 export const MIN_STEP_GAP = 0.16;
 
 /**
- * The two speeds this game travels at, and the gait's own step rate at each.
+ * How far the boot travels between two steps, and at what ground speed — **the animation's own
+ * numbers, not this lane's**.
  *
- * Measured in play (`art/audio/2026-09-24-cadence/`), counting the character system's stance edges
- * over four seven-second legs on two surfaces: a held W walks at **1.60 m/s and plants 3.63 boots a
- * second** (0.44 m a step), and W with shift runs at **4.60 m/s and plants 4.92** (0.93 m). The
- * audio fires exactly one step per edge — 25/25, 26/26, 35/35 — so it is faithful; the rate is the
- * animation's.
+ * `glbLink.ts` publishes the clip contract from Astra's pipeline as `CLIP_SPEC`: the walk clip
+ * covers a 0.88 m stride in 0.55 s, the run clip 1.82 m in 28/60 s. A stride is two steps, so the
+ * boot lands every **0.44 m** at a walk and every **0.91 m** at a run, and `animation.ts` gives the
+ * ground speeds the player controller drives at — `PLAYER_SPEED` 1.6 and 4.6 m/s. The clips follow
+ * the speed actually covered, so there is no foot slide and the step rate falls straight out:
+ * 1.6 / 0.44 = 3.64 a second at a walk, 4.6 / 0.91 = 5.06 at a run.
  *
- * Both are far off what this file used to model (2.02 and 2.95 a second, 0.79 m and 1.56 m). Those
- * numbers are an adult's, and Link is a 1.25 m child who really does patter at 1.6 m/s. The model
- * is only consulted when the character system is not reporting boot plants — which is never in
- * play, but is **always in an offline render**, so every evidence WAV this lane has produced had
- * its footsteps at roughly half the rate the owner hears. The step design is unaffected (each step
- * is the same sound either way); anything about step *density* was measured at the wrong cadence.
+ * Those are exactly what a play-mode probe counted off the character system's stance edges — 3.56
+ * and 3.71 walking, 4.85 and 4.99 running (`art/audio/2026-09-24-cadence/`) — which is the check
+ * that the derivation is the right one rather than a coincidence.
  *
- * A keyboard reaches exactly these two speeds, so two calibration points are the whole domain; the
- * line between them is an interpolation and the ends are clamped rather than extrapolated.
+ * It matters because the model is consulted wherever the character system is **not** reporting boot
+ * plants: never in play, always in an offline render. Before this it was an adult's guess (2.02 a
+ * second, a 0.79 m step) and every evidence WAV this lane published stepped at 55 % of the rate the
+ * owner hears. Fixed once by measuring, which left a copy of the animation's number sitting here to
+ * go stale the moment anyone re-authors a clip — and PR #59 is re-authoring the walk. Deriving it
+ * instead means there is nothing to go stale, and `footsteps.test.mjs` reads `CLIP_SPEC` out of
+ * `glbLink.ts` and fails with the new numbers if it ever moves. (Read as source, not imported:
+ * `glbLink.ts` is 2,700 lines and pulls in the GLTF loader, which has no business in the audio.)
  */
 export const WALK_SPEED = 1.6;
-export const WALK_CADENCE = 3.63;
-export const RUN_CADENCE = 4.92;
-const CADENCE_SLOPE = (RUN_CADENCE - WALK_CADENCE) / (4.6 - WALK_SPEED);
-
-/** steps per second at a ground speed, as the gait plants them */
-export function cadence(speed: number): number {
-  return Math.max(1.2, Math.min(5.6, WALK_CADENCE + (speed - WALK_SPEED) * CADENCE_SLOPE));
-}
+export const RUN_GROUND_SPEED = 4.6;
+export const WALK_STEP_M = 0.88 / 2;
+export const RUN_STEP_M = 1.82 / 2;
+/** on a flight, one step is one tread whatever the speed */
+export const STAIR_STEP_M = 0.54;
 
 /** how far the boot travels between two steps (m) */
 export function strideFor(speed: number, onStairs: boolean): number {
-  if (onStairs) return 0.54;
-  return Math.max(0.3, speed / cadence(speed));
+  if (onStairs) return STAIR_STEP_M;
+  const t = Math.max(0, Math.min(1, (speed - WALK_SPEED) / (RUN_GROUND_SPEED - WALK_SPEED)));
+  return WALK_STEP_M + (RUN_STEP_M - WALK_STEP_M) * t;
+}
+
+/** steps per second at a ground speed, as the gait plants them */
+export function cadence(speed: number): number {
+  return Math.max(0.8, Math.min(6, speed / strideFor(speed, false)));
 }
 
 /**
