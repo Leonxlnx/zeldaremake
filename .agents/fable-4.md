@@ -425,3 +425,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-24 06:36 — heartbeat: head `92a4fd66` (the owner's 06:07 50-point rubric for structures / areas — not the tree
   systems); fable-5 finds the roofed poses dark under squad4's near veil (lane 1's). Nothing open here; the east lane
   still on its branch.
+- 2026-09-24 07:32 — exp-north's trail/shelf cross the stand's north band and the east band's edge; offered the post-filter
+  recipe (northFooting) or to do the tree side on their branch. Head `b306d6a9`; nothing else open.
