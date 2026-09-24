@@ -291,3 +291,12 @@ one draw too — the rope was already alone on its material).
 View B (the only fixed view that holds the boy, at 12 m), before → after on the same head (`3c6cc553` + this branch):
 SSIM vs the reference 0.1780 → 0.1780 (−0.0001), before↔after 1.0000, 30 px changed, 630 draws / 8.29 M both.
 (B's reference SSIM moved from 0.1862 to 0.1780 with the head's PRs #40–#46 — the softedge veil — not with anything here.)
+
+## The wristbands on the strap canvas (2026-09-24 18:50)
+
+The cuffs were a plain cylinder on the `belt` colour material that the belt itself no longer used — one draw per girl for
+two dark bands. Now an open tube on the strap canvas (v folded onto the canvas's leather face so the stitch rows sit a few
+millimetres inside each edge, u carrying two repeats — twelve stitches round a 23 cm cuff), sharing `beltMaterial()`
+with the strap; the skinned merge folds cuffs and strap into one mesh per girl. `before-after-wristbands-2.6m.jpg`
+(the walker's right wrist at 2.6 m, 2.9×): a lighter stitched edge on the band, matching the belt. Counts on the
+same head (`732bb3b8`), `pose-counts.mjs`: A 637 → 636, B 628 → 627. 160 / 160 tests.
