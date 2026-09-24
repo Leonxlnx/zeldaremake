@@ -105,6 +105,7 @@ merged locally and rendered against each one alone (`combined-hero-A.jpg`, `comb
 | hero A, canopy crop (mean) | 80.3 | 82.4 | 80.4 | **82.4** |
 | `owner-0650-north` (mean / top third / eye level) | 79.8 / 95.8 / 71.7 | 80.2 / 97.3 / 71.7 | — | **80.2 / 97.3 / 71.7** |
 | `u-open-up` (mean / top third) | 107.4 / 137.7 | (gated off) | 71.9 / 74.4 | **71.8 / 74.3** |
+| `u-plaza-up`, his job-6 pose (mean / top / eye) | 96.2 / 74.2 / 93.0 | (gated off) | 95.8 / 76.6 / 89.5 | **95.8 / 76.6 / 89.5** |
 
 Each pose lands on whichever change owns it, to a tenth of a level: the veil is shut above 26° so it adds
 nothing at `u-open-up`, and the roof's shadow adds 0.1 at hero A where the veil adds 2.1. The merge is
