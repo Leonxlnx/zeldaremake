@@ -58,6 +58,9 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   gaitDriven: boolean;
   /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
   enclosure: number;
+  /** the world's wind gust as the bed last saw it, and the context clock — for start-up diagnosis */
+  gust: number;
+  contextTime: number;
   /** how closed the canopy over the listener is — 1 deep under the crowns, 0 under open sky */
   canopy: number;
   /** where the audio thinks the fairies are (world), so a harness can stand beside one */
@@ -311,6 +314,9 @@ function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surfac
   return null;
 }
 
+/** how often the audio system updates its parameters and tops up its schedulers (ms) */
+export const TICK_MS = 1000 / 30;
+
 export const AUDIO_SEED = 'kokiri-audio-r47';
 
 export function mountAudio(o: AudioOptions): AudioHandle {
@@ -326,6 +332,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   const fairySlots: Vec3[] = [];
   const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
+  let lastGust = 0;
   let load: RenderLoad | null = null;
   let enclosure = 0;
   let canopy = 0;
@@ -336,6 +343,20 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const lastPos = { x: NaN, z: NaN };
   let lastT = 0;
+  /**
+   * The audio's own clock.
+   *
+   * 2026-09-24: this ran on `requestAnimationFrame`, which ties the whole audio system to the
+   * health of the render loop. Measured on a cold start with Link standing still, rAF managed about
+   * TEN callbacks in the first 6.7 seconds while the world compiled its shaders and built its LODs —
+   * so the bed's levels never reached their targets and the music scheduler barely ran, and the
+   * master sat at −92 dBFS until the frame rate recovered. A player who loads the game and stands
+   * still hears nothing for several seconds.
+   *
+   * A timer does not care what the renderer is doing. It also keeps running when the tab is in the
+   * background (throttled to 1 Hz, which the 4 s ambience and 6 s music lookaheads absorb) where
+   * rAF stops dead.
+   */
   const tick = (now: number) => {
     if (!live) return;
     const { ctx, ambience, footsteps, music } = live;
@@ -366,7 +387,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const at = fairyAt(fairyObjects[i], fairySlots[i]);
       if (at) fairyBuf.push(at);
     }
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    lastGust = o.wind?.uniforms.uGust.value ?? 0.4;
+    ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -392,7 +414,6 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       lastPos.x = NaN;
       footsteps.drive(t, dt, { speed: 0, surface: 'grass', onStairs: false });
     }
-    raf = requestAnimationFrame(tick);
   };
 
   const start = async () => {
@@ -428,7 +449,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
       emit();
       lastT = 0;
-      raf = requestAnimationFrame(tick);
+      raf = window.setInterval(() => tick(performance.now()), TICK_MS);
     })();
     try {
       await starting;
@@ -469,6 +490,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       pods: pods.length,
       gaitDriven,
       enclosure,
+      gust: lastGust,
+      contextTime: live?.ctx.currentTime ?? 0,
       canopy,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       load,
@@ -479,7 +502,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
     dispose() {
-      cancelAnimationFrame(raf);
+      clearInterval(raf);
       window.removeEventListener('pointerdown', onGesture, true);
       window.removeEventListener('keydown', onGesture, true);
       if (live) {
