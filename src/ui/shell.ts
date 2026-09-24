@@ -61,6 +61,7 @@ export function mountShell(o: ShellOptions): ShellHandle {
     renderOffline: (seconds = 20, sampleRate = 44100, options = {}) => renderOffline({ scene: o.scene, wind: o.wind ?? null }, AUDIO_SEED, seconds, sampleRate, options),
     music: () => audio?.music() ?? 'none',
     stats: () => audio?.stats() ?? null,
+    record: (seconds = 20) => audio?.record(seconds) ?? Promise.reject(new Error('audio not mounted')),
   };
 
   if (!headless && hud) {
