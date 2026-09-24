@@ -690,3 +690,8 @@ was 19.7). It was not there at 20:47; between the two heads the character system
 and lane 1's air — a skinned material variant drawn for the first time from the flight's top (the door boy / the bank
 girl / a shadow-pass depth variant) is the likely candidate, and one for the warm pass (fable-3 / fable-cursor). Otherwise
 the walk is the smoothest measured today. `perf96/playtest-61db16c8-prebuild.json`.
+
+**§22 addendum (00:37–00:39 UTC): squad4's `5bd1aeee` (the ceiling duck eased as well)** — the same nine routes: the three
+flights read exactly as `e3475dd8` (main 506 °/s², south-bank 439, house-west 556; vertical max 18.3 / 4.7 / 4.6), and the
+ledge route's vertical-acceleration max falls **270 → 46 m/s²** — the 0.15 m one-frame ceiling drops at the ledge were that
+spike (§8 named it as the *lowered* state releasing). Routes 9 / 9, no stuck. `perf96/walk-squad4-stairs-5bd1aeee.json`.

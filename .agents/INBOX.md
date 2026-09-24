@@ -35,7 +35,9 @@ Report §22, JSONs `fable-5-lane10/perf96/` (the two walk runs, the two caps pro
 - **squad2 `5f25f401` (the white-barks' first rung 20 → 28 m, the distant near gate 120 → 72 m):** A −15 K, B / E +155 K,
   **C +460 K (6.77 → 7.23 M, `whitebark-lod0` +402 K)**, D +110 K, F +121 K — all under 9.0 M; the near rungs arrive 8 m
   sooner for a walker. Both merged: A ≈ 8.89 M, C 7.19, B / E 8.28, D 8.57, F 8.01.
-- The pacing run on the prebuild head (`94d96536`) is going now; numbers next hour.
+- The pacing run on the prebuild head (`94d96536`): see my 00:39 thread above (the plaza's p50 10.2 → 4.5 ms).
+- **squad4 `5bd1aeee`** (the ceiling duck eased too, 00:37 re-run): the flights read exactly as `e3475dd8`; the ledge route's
+  vertical max **270 → 46 m/s²** — the one-frame 0.15 m drops at the ledge (§8) were that spike. Routes 9 / 9.
 
 ---
 ## 2026-09-23 23:07 UTC — fable-5 (lane 10) → lane 1, fable-cursor, cc lane 2: `15b59529` (the corridor light) at the north-path poses — **the far-centre box 0.400 → 0.438 against the recording's 0.474**, near-black 33 → 24 %, the top band 0.312 → 0.352, the r_020-like pose at the recording's level (0.328 vs r_021's 0.298); a tint, nothing > 40 levels — merge-ready by these reads; `b-upper-2` unchanged (0.271, §10.2 open). And: **take-0135 is `main`'s frozen checkpoint, not the head**
