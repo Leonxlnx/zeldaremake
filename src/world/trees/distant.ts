@@ -222,8 +222,13 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * mid layer at 30 m is half mist in a probe of the plaza looking north), so nothing is added there
  * and a walker's forward view — and the six fixed frames, which look level — keep their air. It is
  * only as the eye climbs out of the mist's layer that the veil replaces what the mist stops giving.
+ *
+ * `m` is short on purpose. The first ramp tried was the mid layer's own extent (18-62 m) and it
+ * moved his look-up by nothing measurable (leaf lightness 0.226 → 0.229, outline hardness 11.5 %
+ * → 11.3 %): a canopy overhead is 15-35 m away, so a ramp that reaches half strength at 40 m has
+ * barely started where the leaves are. Depth for a look-up is the tree's height, not the forest's.
  */
-export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number] } = { share: 0.5, m: [18, 62], ray: [0.05, 0.45] };
+export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number] } = { share: 0.5, m: [10, 32], ray: [0.05, 0.45] };
 /** the veil as a fragment-shader line, for the crown cards and the giants' leaf cards alike */
 export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number] } = CANOPY_DEPTH_VEIL): string {
   const ray = veil.ray ?? CANOPY_DEPTH_VEIL.ray;
@@ -1118,7 +1123,7 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   roundFloors: true,
   // the mid layer stands in 13.7–58 m (placeMidTrees), so its veil is that band: a crown at the far
   // edge of it is nearly mist, which is what puts light and depth between the layers he looked through
-  veil: { share: 0.55, m: [16, 56], ray: [0.05, 0.4] },
+  veil: { share: 0.55, m: [14, 44], ray: [0.05, 0.4] },
 };
 
 /**
