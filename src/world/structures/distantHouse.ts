@@ -119,9 +119,12 @@ export interface DistantHouseDef {
   /**
    * walkway stub: azimuth relative to the window (deg) and length (m). Round 49: `end` (world
    * x, y, z) instead lays the deck from the platform rim to exactly that point — the head of a
-   * flight — and `deg` / `length` are derived and ignored as authored.
+   * flight — and `deg` / `length` are derived and ignored as authored. exp-south2: `none` builds
+   * no walkway at all — no deck, posts, rails, end-post pod or deck underside (the caller builds
+   * the hut's own access); the walk surface keeps the platform and the wall, its deck collapsed
+   * onto the platform's centre.
    */
-  walkway: { deg: number; length: number; end?: [number, number, number] };
+  walkway: { deg: number; length: number; end?: [number, number, number]; none?: boolean };
   /** 2–3 pods: end post, eave, mid post */
   pods: number;
   /**
@@ -1430,39 +1433,42 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const L = wEnd ? Math.hypot(wEnd.x - c.x, wEnd.z - c.z) - platR : def.walkway.length;
     const deckStart = c.clone().addScaledVector(wDir, platR - 0.15).setY(floorY - 0.06);
     const deckEnd = wEnd ? wEnd.clone().setY(wEnd.y - 0.06) : c.clone().addScaledVector(wDir, platR + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
+    const noWalkway = def.walkway.none === true;
     walk.push({
       id: def.id,
       disc: { x: c.x, z: c.z, r: platR, y: floorY + 0.01 },
-      deck: { a: [deckStart.x, deckStart.y + 0.06, deckStart.z], b: [deckEnd.x, deckEnd.y + 0.06, deckEnd.z], hw: 0.475 },
+      deck: noWalkway ? { a: [c.x, floorY + 0.01, c.z], b: [c.x, floorY + 0.01, c.z], hw: 0 } : { a: [deckStart.x, deckStart.y + 0.06, deckStart.z], b: [deckEnd.x, deckEnd.y + 0.06, deckEnd.z], hw: 0.475 },
       wall: { r: R * WALL_TAPER, half: 0.2, gap: [aDoor - (doorW * 0.5 + 0.1) / R, aDoor + (doorW * 0.5 + 0.1) / R] },
     });
-    const deck = new BoxGeometry(0.95, 0.12, L + 0.15);
-    deck.applyMatrix4(basisMatrix(deckStart.clone().lerp(deckEnd, 0.5), deckEnd.clone().sub(deckStart)));
-    plankParts.push(setColorAttribute(deck, PLANK));
     const postTops: Vector3[][] = [[], []];
-    for (const s of [0.5, 1]) {
-      const foot = deckStart.clone().lerp(deckEnd, s);
-      for (const side of [-1, 1]) {
-        const base = foot.clone().addScaledVector(wSide, side * 0.42);
-        const top = base.clone().setY(base.y + 1.05);
-        plankParts.push(bar(base, top, 0.09, PLANK_DARK));
-        postTops[side < 0 ? 0 : 1].push(top);
+    if (!noWalkway) {
+      const deck = new BoxGeometry(0.95, 0.12, L + 0.15);
+      deck.applyMatrix4(basisMatrix(deckStart.clone().lerp(deckEnd, 0.5), deckEnd.clone().sub(deckStart)));
+      plankParts.push(setColorAttribute(deck, PLANK));
+      for (const s of [0.5, 1]) {
+        const foot = deckStart.clone().lerp(deckEnd, s);
+        for (const side of [-1, 1]) {
+          const base = foot.clone().addScaledVector(wSide, side * 0.42);
+          const top = base.clone().setY(base.y + 1.05);
+          plankParts.push(bar(base, top, 0.09, PLANK_DARK));
+          postTops[side < 0 ? 0 : 1].push(top);
+        }
       }
-    }
-    for (const side of [0, 1]) {
-      const wallAnchor = c
-        .clone()
-        .addScaledVector(wDir, R - 0.05)
-        .addScaledVector(wSide, (side === 0 ? -1 : 1) * 0.42)
-        .setY(floorY + 1.0);
-      const pts = [wallAnchor, ...postTops[side]];
-      for (let i = 0; i + 1 < pts.length; i++) {
-        const a = pts[i];
-        const b = pts[i + 1];
-        const mid = a.clone().lerp(b, 0.5);
-        mid.y -= 0.09;
-        plankParts.push(bar(a, mid, 0.035, PLANK_DARK));
-        plankParts.push(bar(mid, b, 0.035, PLANK_DARK));
+      for (const side of [0, 1]) {
+        const wallAnchor = c
+          .clone()
+          .addScaledVector(wDir, R - 0.05)
+          .addScaledVector(wSide, (side === 0 ? -1 : 1) * 0.42)
+          .setY(floorY + 1.0);
+        const pts = [wallAnchor, ...postTops[side]];
+        for (let i = 0; i + 1 < pts.length; i++) {
+          const a = pts[i];
+          const b = pts[i + 1];
+          const mid = a.clone().lerp(b, 0.5);
+          mid.y -= 0.09;
+          plankParts.push(bar(a, mid, 0.035, PLANK_DARK));
+          plankParts.push(bar(mid, b, 0.035, PLANK_DARK));
+        }
       }
     }
 
@@ -1499,15 +1505,17 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     };
     // the post pods hang short (0.22 / 0.2 m cords): the pod is 0.48 s tall against the sphere's
     // 2 podR, so a round-16 drop would have set its tip on the deck
-    const endPostTop = postTops[1][1];
-    const endHook = endPostTop.clone().addScaledVector(wDir, 0.12).setY(endPostTop.y + 0.02);
-    hang(endHook, 0.22, GLOW_AMBER, endPostTop.clone().setY(endPostTop.y + 0.02));
+    if (!noWalkway) {
+      const endPostTop = postTops[1][1];
+      const endHook = endPostTop.clone().addScaledVector(wDir, 0.12).setY(endPostTop.y + 0.02);
+      hang(endHook, 0.22, GLOW_AMBER, endPostTop.clone().setY(endPostTop.y + 0.02));
+    }
     if (def.pods >= 2) {
       const eaveDir = az(def.facingDeg + def.doorDeg * 0.5);
       const hook = c.clone().addScaledVector(eaveDir, eaveR - 0.1).setY(eaveY - 0.02);
       hang(hook, 0.45, def.pods >= 3 ? GLOW_LIME : GLOW_AMBER);
     }
-    if (def.pods >= 3) {
+    if (def.pods >= 3 && !noWalkway) {
       const midPostTop = postTops[0][0];
       const midHook = midPostTop.clone().addScaledVector(wSide, -0.12).setY(midPostTop.y + 0.02);
       hang(midHook, 0.2, GLOW_AMBER, midPostTop.clone().setY(midPostTop.y + 0.02));
@@ -1791,7 +1799,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         const railR = platR - 0.07;
         const aW = Math.atan2(wDir.z, wDir.x);
         const gaps: [number, number][] = [
-          [aW, (0.95 / 2 + 0.12) / railR],
+          ...(noWalkway ? [] : [[aW, (0.95 / 2 + 0.12) / railR] as [number, number]]),
           [aDoor, (doorW / 2 + 0.22) / railR],
         ];
         if (C.ladder) gaps.push([angleOf(C.ladder.deg), 0.4 / railR]);
@@ -2139,7 +2147,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       // the deck's bottom: four boards along it, 1.5 mm under the box's lower face
       const deckM = basisMatrix(deckStart.clone().lerp(deckEnd, 0.5), deckEnd.clone().sub(deckStart));
       const deckLen = L + 0.15;
-      const deckBoards = 4;
+      const deckBoards = noWalkway ? 0 : 4;
       const deckGap = 0.03;
       for (let b = 0; b < deckBoards; b++) {
         const tone = sr.range(0.72, 1.28);
@@ -2174,15 +2182,17 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         }
       }
       // under the deck: two bearers along it, three cross joists
-      for (const side of [-1, 1]) {
-        const a = deckStart.clone().addScaledVector(wSide, side * 0.36).setY(deckStart.y - 0.1);
-        const b = deckEnd.clone().addScaledVector(wSide, side * 0.36).setY(deckEnd.y - 0.1);
-        plankParts.push(bar(a, b, 0.07, PLANK_DARK, 0.08));
-      }
-      for (const s of [0.12, 0.5, 0.88]) {
-        const mid = deckStart.clone().lerp(deckEnd, s);
-        mid.y -= 0.1;
-        plankParts.push(bar(mid.clone().addScaledVector(wSide, -0.47), mid.clone().addScaledVector(wSide, 0.47), 0.08, PLANK_DARK, 0.08));
+      if (!noWalkway) {
+        for (const side of [-1, 1]) {
+          const a = deckStart.clone().addScaledVector(wSide, side * 0.36).setY(deckStart.y - 0.1);
+          const b = deckEnd.clone().addScaledVector(wSide, side * 0.36).setY(deckEnd.y - 0.1);
+          plankParts.push(bar(a, b, 0.07, PLANK_DARK, 0.08));
+        }
+        for (const s of [0.12, 0.5, 0.88]) {
+          const mid = deckStart.clone().lerp(deckEnd, s);
+          mid.y -= 0.1;
+          plankParts.push(bar(mid.clone().addScaledVector(wSide, -0.47), mid.clone().addScaledVector(wSide, 0.47), 0.08, PLANK_DARK, 0.08));
+        }
       }
     }
 

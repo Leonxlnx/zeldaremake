@@ -7,7 +7,7 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, inExpansionSouth, southBankFrameVectors, southBridgeFrame, southPathHalfWidth, southPathLine, type StairDef } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, inExpansionSouth, inSouthDwelling, southBankFrameVectors, southBridgeFrame, southPathHalfWidth, southPathLine, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 import { BERM_BELOW_AXIS, bankHeight, bridgeDeckY, bridgeLocal, ravineProfile, tunnelBerm, tunnelCarve, tunnelFootprint, tunnelLocal } from './south';
@@ -1381,6 +1381,9 @@ export function expansionCull(x: number, z: number, lift = 0.3): boolean {
   // `lift` up)
   if (z > 10 && inExpansionSouth(x, z)) {
     if (southRouteSurface(x, z) > 0.5 || southStructure(x, z) > 0.5) return true;
+    // exp-south2: the keeper's hut and the waystation (a rule after placement, not a mask — the
+    // splat and every stream that samples `southStructure` keep their draws)
+    if (inSouthDwelling(x, z)) return true;
     const rp = ravineProfile(x, z);
     if (rp && rp.cut > 0.04) return true;
     const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);

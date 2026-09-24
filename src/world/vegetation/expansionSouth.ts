@@ -18,7 +18,7 @@
  * (util/expansionLocality.ts `southVisible`), so the frames that never look south pay nothing.
  */
 import { Group, Sphere, Vector3 } from 'three';
-import { EXPANSION_SOUTH, southBridgeFrame, southPathHalfWidth, southPathLine, southRavineLine } from '../layout';
+import { EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS, inSouthDwelling, southBridgeFrame, southPathHalfWidth, southPathLine, southRavineLine } from '../layout';
 import type { WorldContext } from '../system';
 import { getTerrain, type Terrain } from '../terrain/heightfield';
 import { RAVINE_BOX, bankHeight, bridgeLocal, inFarCorridor, ravineCut, ravineHit, ravineProfile, southOfRavine, tunnelFootprint, tunnelLocal, tunnelWorld } from '../terrain/south';
@@ -597,6 +597,16 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
     Object.assign(counts, { thicketBushes, thicketFerns, thicketTufts, bankBushes, bankFerns, bankFlowers, flankFerns, flankMoss });
   }
 
+  // exp-south2: nothing grows through the dwellings' floors (layout.ts `inSouthDwelling`, pruned
+  // after placement so every stream above keeps its draws); under the keeper's gallery, where the
+  // lip has fallen more than 1.4 m below the boards, the plants stay
+  {
+    const K = EXPANSION_SOUTH_DWELLINGS.keeper;
+    const under = (x: number, z: number) => inSouthDwelling(x, z) && (Math.hypot(x - K.centre[0], z - K.centre[1]) > K.gallery.outer + 0.15 || T.height(x, z) > K.floorY - 1.4);
+    let pruned = 0;
+    for (const set of sets) pruned += set.prune((it) => under(it.x, it.z));
+    counts.dwellingPruned = pruned;
+  }
   for (const set of sets) group.add(set.build());
 
   // ---- the locality's spheres: the ravine as a chain of spheres from its floor to over its lips

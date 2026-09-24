@@ -1049,6 +1049,71 @@ export function inExpansionSouth(x: number, z: number): boolean {
   return false;
 }
 
+/**
+ * exp-south2 (the owner, 2026-09-24 06:07 UTC: "more structures along the path further down"):
+ * the people who live on the way out, built by structures/expansionSouthDwellings.ts. Apart from
+ * `EXPANSION_SOUTH` so nothing that iterates it re-rolls; both stand in the wedge `plaza-south`'s
+ * trunk hides from camera C.
+ *
+ * `keeper` — the bridge keeper's hut on the ravine's north lip, 3.4 m east of the north sill: a
+ * round hut on a mast (a dead snag trimmed to a pole, its broken top carrying a beacon pod over
+ * the gorge) with a plank gallery wrapped round its gorge side on raking struts. `floorY` is
+ * absolute; the lip falls from −0.4 under the hut's north rim to −8 under the gallery's south
+ * edge. Angles: `facingDeg` / `doorDeg` as the village huts (compass, from +Z toward +X; the
+ * window watches the bridge, the door opens onto the gallery's entrance); `gallery` and
+ * `entrance` are WALL angles (deg, atan2(dz, dx): 0 east, 90 south — the builder's own), the
+ * gallery running from `from` round the south to `to` between the platform's rim and `outer`.
+ *
+ * `waystation` — a lean-to by the path where it straightens for the bridge, between
+ * `plaza-south`'s root flare (0.5 m off its north-east corner) and fable-3's waymarker (whose
+ * short board reaches 0.45 m north of its post, 0.3 m short of the roof's south eave): a
+ * moss-roofed shelter open to the path (`facingDeg`), `width` × `depth`, on a plank floor at
+ * `floorY` (the flare's ground is +0.16 under its back corner, −0.47 under its front one), its
+ * back wall with a round window, a bench, firewood stacked against its north end.
+ */
+export const EXPANSION_SOUTH_DWELLINGS = {
+  keeper: {
+    centre: [7.1, 31.9] as [number, number],
+    floorY: -0.08,
+    radius: 1.15,
+    wall: 1.9,
+    capHeight: 1.1,
+    facingDeg: -33,
+    doorDeg: -97,
+    gallery: { from: 10, to: 228, outer: 2.1 },
+    entrance: [188, 228] as [number, number],
+    mast: { radius: 0.3, top: 5.6 },
+  },
+  waystation: {
+    centre: [5.12, 25.95] as [number, number],
+    facingDeg: -74,
+    width: 2.0,
+    depth: 1.35,
+    floorY: 0.22,
+    frontHeight: 1.95,
+    backHeight: 1.3,
+  },
+} as const;
+
+/**
+ * true where a dwelling stands (`pad` m beyond its footprint): the keeper's hut and gallery disc,
+ * the waystation's rectangle with its roof's overhang — the legacy streams' instances and the
+ * south dressing's plants keep off them
+ */
+export function inSouthDwelling(x: number, z: number, pad = 0): boolean {
+  const K = EXPANSION_SOUTH_DWELLINGS.keeper;
+  if (Math.hypot(x - K.centre[0], z - K.centre[1]) < K.gallery.outer + 0.15 + pad) return true;
+  const W = EXPANSION_SOUTH_DWELLINGS.waystation;
+  const a = (W.facingDeg * Math.PI) / 180;
+  const fx = Math.sin(a);
+  const fz = Math.cos(a);
+  const dx = x - W.centre[0];
+  const dz = z - W.centre[1];
+  const along = dx * fx + dz * fz;
+  const across = dx * fz - dz * fx;
+  return Math.abs(along) < W.depth / 2 + 0.45 + pad && Math.abs(across) < W.width / 2 + 0.35 + pad;
+}
+
 export function v3(a: readonly [number, number, number]): Vector3 {
   return new Vector3(a[0], a[1], a[2]);
 }
