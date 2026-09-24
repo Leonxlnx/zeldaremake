@@ -104,11 +104,51 @@ Where the band *would* bind is a walker crossing open ground toward a giant whos
 — the arch approach and the north clearing are the candidates. So lever (c) is worth building for
 those, not for his pose; I would rather spend the next iteration on something he sees.
 
-One thing the same audit does flag: **67 lobes are wanted inside 16.4 m against `NEAR_CANOPY_SLOTS` =
-64.** The cap is all but binding at the plaza, so a few metres of walking can admit and evict a lobe
-by rank rather than by distance — a pop with no hysteresis behind it, much closer than 26 m. That is
-the more likely cause of a crown changing in front of the owner, and it is a slot-count question
-(lever b's neighbour), not a swap-band one.
+One thing the same audit did flag: **67 lobes wanted inside 16.4 m against `NEAR_CANOPY_SLOTS` = 64.**
+That turned out to be the real mechanism — next section.
+
+## The slot cap is what decides, and it had no hysteresis
+
+`canopy-walk.mjs` (new, in this directory's parent) walks Link from the plaza to the north clearing in
+1 m steps and reads the trees audit at each one. It runs in **play mode** on purpose: a walk
+re-buckets with `reset = false`, which is where the selection's hysteresis lives, while the capture
+harness's `setPose` goes through `onCameraMove` → `reset = true`. `__ZR_PLAY__.step(n, dt, false)` steps
+the simulation without drawing, so a 44 m walk costs no rasterisation at all.
+
+On the head, over 44 m:
+
+| | |
+| --- | --- |
+| lobes ACTIVE (eligible) per step | **135 – 218** |
+| slots (`NEAR_CANOPY_SLOTS`) | 64 |
+| lobes turned away | **71 – 154, at every one of the 45 steps** |
+| parts shown | 79, saturated at every step |
+| farthest shown part | **16.3 m at the plaza, rising to 42.2 m in the clearing** |
+| admissions + evictions | **270 over 44 m = 6.14 a metre** |
+
+Two things were true at once. The shown set is simply "the 64 nearest" and nothing damped it: six crown
+parts a metre flipped between their near laminae and their folded far foliage, all within 17 m of the
+camera. And the **effective** swap boundary was never the nominal 26 m — it is wherever the 64th-nearest
+lobe happens to fall, which is exactly why widening the 26 / 30 band changed 0.00 %.
+
+**The fix — `NEAR_CANOPY_KEEP` = 0.25:** an incumbent ranks as if it were a quarter nearer than it is, so
+a challenger must be meaningfully nearer to take its slot. Both parts are inside their own in-radius
+either way, so the frame is as correct as before and stops changing under the walker; the pool also stops
+paying for the rebuilds the evictions caused. **Churn 6.14 → 4.55 admissions + evictions a metre, −26 %**
+(`canopy-walk-base.json`, `canopy-walk-hysteresis.json`).
+
+It is **not** applied on `reset`, so every capture of a pose is unbiased and the six fixed frames cannot
+move. Rendered both ways at the owner's pose, A and D to prove it: **0.0015–0.0060 % of pixels differ at
+any tolerance at all, SSIM 0.999999–1.000000** — SwiftShader's own run-to-run noise. `lodPool.test.mjs`
+pins both halves: an incumbent holds its slot against a challenger 18 % nearer and loses it to one four
+times nearer, and a re-pose ignores the bias.
+
+What this does **not** fix is the shortage behind it: 60–70 % of the eligible lobes can never hold a slot,
+so most crowns around the player stay on far foliage whatever happens. Raising real capacity is the next
+lever and it is not free — `NEAR_CANOPY_SLOTS` is the length of a uniform array the tree vertex shader
+loops over for every tagged foliage vertex, so 64 → 128 doubles that loop. A cheaper route worth
+measuring first: several lobes of the same tree could share one slot if a slot carried a group range
+rather than a single group.
 
 ## What is left of the pop
 
