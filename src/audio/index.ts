@@ -19,7 +19,7 @@ import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_SOUTH, LAYOUT } from '../world/layout';
-import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
+import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
@@ -526,7 +526,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const ctx = new Ctor({ latencyHint: 'interactive' });
       const rng = createRng(seed);
       const buses = createBuses(ctx, rng.fork('buses'));
-      buses.master.gain.value = muted ? 0 : 1;
+      buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
       const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
       const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
@@ -570,7 +570,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const setMuted = (m: boolean) => {
     muted = m;
-    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : 1, live.ctx.currentTime, 0.03);
+    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : MASTER_LEVEL, live.ctx.currentTime, 0.03);
     emit();
   };
 
