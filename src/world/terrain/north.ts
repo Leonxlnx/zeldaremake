@@ -278,8 +278,10 @@ export function groveShape(x: number, z: number, h0: number, wob: number): Grove
 
 /** the stilt house's cut stump under the platform: radius at its top and at its flared foot (m) */
 export const STILT_STUMP = { top: N.stilt.radius * 0.55 + 0.02, foot: N.stilt.radius * 0.55 + 0.2 };
-/** the stilts' radial distance from the stilt house's centre at the platform and at the ground (m) */
-export const STILT_R = { top: N.stilt.radius + 0.22 - 0.12, foot: N.stilt.radius + 0.22 + 0.13 };
+/** the veranda's outer radius round the stilt house's centre (m) */
+export const VERANDA_R = N.stilt.radius + N.stilt.veranda;
+/** the stilts' radial distance from the stilt house's centre under the veranda's ring beam and at the ground (m) */
+export const STILT_R = { top: VERANDA_R - 0.22, foot: VERANDA_R + 0.05 };
 
 /** the four stilts' feet (world x, z) */
 export function stiltFeet(): [number, number][] {
@@ -354,7 +356,7 @@ export function northGroveClear(x: number, z: number, r = 0.8): boolean {
   const th = trailHit(x, z, 2.6 + r + 0.1);
   if (th && th.d < 2.6 + r) return true;
   if (shelfDistance(x, z) < 1 + r) return true;
-  if (Math.hypot(x - N.stilt.host[0], z - N.stilt.host[1]) < N.stilt.radius + N.stilt.capOverhang + 1.4 + r) return true;
+  if (Math.hypot(x - N.stilt.host[0], z - N.stilt.host[1]) < VERANDA_R + 1.4 + r) return true;
   if (Math.hypot(x - N.hut.host[0], z - N.hut.host[1]) < N.hut.radius + N.hut.capOverhang + 1.4 + r) return true;
   if (segDist(x, z, GANGWAY.foot[0], GANGWAY.foot[2], GANGWAY.head[0], GANGWAY.head[2]) < 1.6 + r) return true;
   if (segDist(x, z, ROPE.stilt[0], ROPE.stilt[2], ROPE.hut[0], ROPE.hut[2]) < 1.6 + r) return true;

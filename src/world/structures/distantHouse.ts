@@ -119,9 +119,12 @@ export interface DistantHouseDef {
   /**
    * walkway stub: azimuth relative to the window (deg) and length (m). Round 49: `end` (world
    * x, y, z) instead lays the deck from the platform rim to exactly that point — the head of a
-   * flight — and `deg` / `length` are derived and ignored as authored.
+   * flight — and `deg` / `length` are derived and ignored as authored. 2026-09-24: `from` (m from
+   * the hut's centre) starts the deck there instead of at the platform rim, the rails' inner ends
+   * standing there instead of on the wall (the grove's stilt house: a veranda runs round the hut
+   * out to that radius).
    */
-  walkway: { deg: number; length: number; end?: [number, number, number] };
+  walkway: { deg: number; length: number; end?: [number, number, number]; from?: number };
   /** 2–3 pods: end post, eave, mid post */
   pods: number;
   /**
@@ -1427,9 +1430,10 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const wEnd = def.walkway.end ? new Vector3(def.walkway.end[0], def.walkway.end[1], def.walkway.end[2]) : null;
     const wDir = wEnd ? new Vector3(wEnd.x - c.x, 0, wEnd.z - c.z).normalize() : az(def.facingDeg + def.walkway.deg);
     const wSide = new Vector3(-wDir.z, 0, wDir.x);
-    const L = wEnd ? Math.hypot(wEnd.x - c.x, wEnd.z - c.z) - platR : def.walkway.length;
-    const deckStart = c.clone().addScaledVector(wDir, platR - 0.15).setY(floorY - 0.06);
-    const deckEnd = wEnd ? wEnd.clone().setY(wEnd.y - 0.06) : c.clone().addScaledVector(wDir, platR + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
+    const wRim = def.walkway.from ?? platR;
+    const L = wEnd ? Math.hypot(wEnd.x - c.x, wEnd.z - c.z) - wRim : def.walkway.length;
+    const deckStart = c.clone().addScaledVector(wDir, wRim - 0.15).setY(floorY - 0.06);
+    const deckEnd = wEnd ? wEnd.clone().setY(wEnd.y - 0.06) : c.clone().addScaledVector(wDir, wRim + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
     walk.push({
       id: def.id,
       disc: { x: c.x, z: c.z, r: platR, y: floorY + 0.01 },
@@ -1452,7 +1456,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     for (const side of [0, 1]) {
       const wallAnchor = c
         .clone()
-        .addScaledVector(wDir, R - 0.05)
+        .addScaledVector(wDir, def.walkway.from ?? R - 0.05)
         .addScaledVector(wSide, (side === 0 ? -1 : 1) * 0.42)
         .setY(floorY + 1.0);
       const pts = [wallAnchor, ...postTops[side]];

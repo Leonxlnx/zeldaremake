@@ -1087,11 +1087,12 @@ export const EXPANSION_NORTH = {
   house: { id: 'grove-house', position: [-3.9, 10.0, -101.4], trunkRadius: 2.2, facing: [0.68, 0.73], roofHeight: 4.3, lanterns: 2 } as HouseDef,
   /**
    * The stilt house: a `distantHouse` hut with no bole through it, on a cut stump (the braces'
-   * seat, radius 0.55 R) and four log stilts at the rim over the east slope (natural ground 8.2–
-   * 9.2 m under the platform). Window toward the trail, door toward the gangway, walkway stub toward
-   * the tree hut (the rope walkway's start).
+   * seat, radius 0.55 R) and four log stilts under the rim of a plank veranda `veranda` m wide
+   * round the wall, over the east slope (natural ground 8.2–9.2 m under the platform). Window
+   * toward the trail, door toward the gangway's head, the walkway stub (the rope walkway's start)
+   * leaving the veranda's rim toward the tree hut.
    */
-  stilt: { host: [12.0, -91.5] as [number, number], floorY: 11.6, radius: 1.55, wall: 1.9, capHeight: 1.05, capOverhang: 0.5, facingDeg: -58, doorAbsDeg: -118.6, ladderAbsDeg: -18, stiltAbsDeg: [22, 92, 162, -52] },
+  stilt: { host: [12.0, -91.5] as [number, number], floorY: 11.6, radius: 1.55, veranda: 1.1, wall: 1.9, capHeight: 1.05, capOverhang: 0.5, facingDeg: -58, doorAbsDeg: -118.6, ladderAbsDeg: -18, stiltAbsDeg: [22, 92, 162, -52] },
   /** the plank gangway from the shelf's pad up to the stilt house's door: horizontal run (m) and cleat spacing */
   gangway: { run: 4.05, halfWidth: 0.42, cleat: 0.36 },
   /**
@@ -1125,7 +1126,7 @@ export function northSteppingStones(): SteppingStone[] {
   return steppingStonesAlong(EXPANSION_NORTH.trail, { ...EXPANSION_NORTH.discs, skip: [Infinity, Infinity] });
 }
 
-/** the stilt house's and the tree hut's `distantHouse` walkway ends: each stub `ropeWalk.stub` m past its rim toward the other hut */
+/** the stilt house's and the tree hut's `distantHouse` walkway ends: each stub `ropeWalk.stub` m past its rim (the stilt house's veranda, the tree hut's platform) toward the other hut */
 export function northRopeWalkEnds(): { stilt: [number, number, number]; hut: [number, number, number] } {
   const N = EXPANSION_NORTH;
   const [sx, sz] = N.stilt.host;
@@ -1133,18 +1134,18 @@ export function northRopeWalkEnds(): { stilt: [number, number, number]; hut: [nu
   const l = Math.hypot(hx - sx, hz - sz);
   const ux = (hx - sx) / l;
   const uz = (hz - sz) / l;
-  const sr = N.stilt.radius + 0.22 + N.ropeWalk.stub;
+  const sr = N.stilt.radius + N.stilt.veranda + N.ropeWalk.stub;
   const hr = N.hut.radius + 0.22 + N.ropeWalk.stub;
   return { stilt: [sx + ux * sr, N.stilt.floorY, sz + uz * sr], hut: [hx - ux * hr, N.hut.floorY, hz - uz * hr] };
 }
 
-/** the gangway: foot on the shelf's pad (x, y, z) and head on the stilt house's platform rim in front of its door */
+/** the gangway: foot on the shelf's pad (x, y, z) and head on the stilt house's veranda rim in front of its door */
 export function northGangway(): { foot: [number, number, number]; head: [number, number, number]; dir: [number, number] } {
   const N = EXPANSION_NORTH;
   const a = (N.stilt.doorAbsDeg * Math.PI) / 180;
   const dx = Math.sin(a);
   const dz = Math.cos(a);
-  const rim = N.stilt.radius + 0.22;
+  const rim = N.stilt.radius + N.stilt.veranda;
   const head: [number, number, number] = [N.stilt.host[0] + dx * (rim - 0.05), N.stilt.floorY + 0.01, N.stilt.host[1] + dz * (rim - 0.05)];
   const foot: [number, number, number] = [head[0] + dx * N.gangway.run, N.shelf.y, head[2] + dz * N.gangway.run];
   return { foot, head, dir: [-dx, -dz] };

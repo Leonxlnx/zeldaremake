@@ -108,6 +108,12 @@ export interface SharedGeometry {
    */
   walkSpans?: WalkSpan[];
   /**
+   * 2026-09-24 (expansion-north): railings and unguarded deck edges — the grove's gangway, veranda,
+   * rope walk and hut platforms — published by structures for the character ground
+   * (character/ground.ts `blocked()`; nothing else reads them).
+   */
+  walkEdges?: WalkEdge[];
+  /**
    * The play camera's collision grids over the structures (structures/cameraSolids.ts; never built
    * under a headless capture): `solid` shells it keeps Link in front of, `slim` parts it only
    * refuses to stand inside.
@@ -119,6 +125,13 @@ export interface SharedGeometry {
 
 /** a walkable polyline: (x, top y, z) along its centre line, walkable within `hw` m of it */
 export interface WalkSpan {
+  id: string;
+  pts: [number, number, number][];
+  hw: number;
+}
+
+/** a railing or deck edge: (x, top y, z) along it; the character is blocked within `hw` m of the line at any height */
+export interface WalkEdge {
   id: string;
   pts: [number, number, number][];
   hw: number;
