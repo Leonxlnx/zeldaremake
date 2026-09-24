@@ -125,15 +125,22 @@ bed never collapses to one side, and it moves on a 1.2 s time constant, because 
 should move the weather rather than flick it. Only the far roll leans; the leaf hush is in the trees
 all around you.
 
-Verified as arithmetic rather than by probe (`footsteps.test.mjs`): facing across an easterly wind
-leans left, the reverse leans right, head-on and from behind are exactly zero, a full turn traces one
-cycle reaching ±0.35 and never exceeding it, and a zero-length wind vector does not produce NaN. In
-play the value sits at −0.25 in the plaza, which is the correct sign and size for the world's wind
-direction and a listener facing north.
+Verified as arithmetic (`footsteps.test.mjs`): facing across an easterly wind leans left, the reverse
+leans right, head-on and from behind are exactly zero, a full turn traces one cycle reaching ±0.35
+and never exceeding it, and a zero-length wind vector does not produce NaN.
 
-The harness cannot turn Link on the spot to sweep it — `__ZR_PLAY__.place()` sets a rest facing that
-the next simulated frame overrides back to the held heading — so the route that tried to was removed
-rather than left in reporting a constant.
+And in play it tracks the facing across the probe's routes, which is the check that matters:
+
+| route (facing) | lean |
+| --- | ---: |
+| up the main flight (340°) | **+0.15** |
+| the plaza and the north path (180°) | −0.25 |
+| the lawn west of the spine (200°) | −0.32 |
+| beside the girl at the signpost (225°) | **−0.35** |
+
+The harness cannot turn Link *on the spot* to sweep it in one route — `__ZR_PLAY__.place()` sets a
+rest facing that the next simulated frame overrides back to the held heading — so the route that
+tried to was removed rather than left in reporting a constant.
 
 **Which way the listener faces** changed with this. It was `__ZR__.cameraPose()`, which reads the
 camera's world MATRIX — refreshed only when the world draws. With the bag open, or under a harness
