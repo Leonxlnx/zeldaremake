@@ -4103,6 +4103,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
+        /** parts inside their swap-in radius whose near buffers are not resident yet — the crown a walker sees pop in when its build lands (owner 2026-09-23 20:08) */
+        late: nearCanopies.filter((nc) => nc.dist < nc.inM && !nearCanopyPool.isResident(nc.item)).length,
         foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
       },
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
