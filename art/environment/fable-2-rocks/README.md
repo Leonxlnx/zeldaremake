@@ -52,6 +52,16 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 97 — the stone value on the merged head, at the flight's own poses (verification only)
+
+`8ee50f7d` (stairs-look + §96 + the second wave) against stairs-look alone, stairs-look's poses: **s2-approach** flight box
+(0.30–0.62 × 0.30–0.95) dark 47.5 → **20.1 %**, pale 9.2 → 18.5 %, mean l 0.271 → **0.344**, p10 0.137 → 0.219 — the flight climbs into
+the light as the reference's does; **s2-climb** (0.35–1.0 × 0.55–1.0, the bough and the ferns inside the box) dark 59.8 → 45.8 %, mean
+0.238 → 0.281. The bough across s2-climb's left third is in both builds (the pose stands under the giant's limb; stairs-look's own
+capture of that pose framed it into a corner) — not a regression of the second wave.
+
+![approach and climb](steps97-approach-climb.jpg)
+
 ## Iteration 96 — lane 6: the hero stone flight's value up into the owner's reference band (`agent/fable-2-stone-value` @ `f90821e8`, on top of `agent/stairs-look`)
 
 The owner (23:00) sent the real game's main stairway as the reference for the hero flight (`pass5/owner-2300-reference-stairs.png`,
