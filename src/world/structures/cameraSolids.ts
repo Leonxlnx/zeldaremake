@@ -5,10 +5,11 @@
  *  - SOLID: the shells the camera keeps Link in front of — house trunks, roofs, eaves, porches,
  *    root arches, door and window frames; the log arch's bark, ends, passage tube and cheeks; the
  *    huts' bark, caps and planks, the far hut's column; the bridge keeper's mast, the waystation's
- *    roof and walls;
+ *    walls;
  *  - SLIM: the parts it only refuses to stand inside — fence and lantern posts, the sign, the pods,
  *    the keeper's railing, braces, davit, firewood and beacon arm, the waystation's posts, bench
- *    and firewood,
+ *    and firewood, and its roof (0.42 m over Link's aim where he stands on its floor: as a shell
+ *    it stopped every line but those out of the open front at the camera's minimum distance),
  *    the buttress roots, the boughs, the plaza bough's sleeve and the bough itself (the trees
  *    system's limb path, as spheres). A slim part between Link and the camera is allowed to pass.
  * A SOLID part may carry `userData.cameraShell` (a vertical cylinder: world x, z, radius): its
@@ -24,8 +25,8 @@ import { VoxelGrid, worldBounds } from '../util/voxelGrid';
 
 export const CAMERA_SOLID_CELL = 0.25;
 
-const SOLID = /^(trunk|trunk-eave-band|porch|roof|roof-straw|roof-eave|roof-eave-bark|roots-arch|door-frame|window-frame|window-socket|log-bark|log-ends|log-tunnel|log-tunnel-cheeks|log-bark-plates|far-hut-column|keeper-mast|waystation-roof|waystation-walls(-ends)?)$|^distant-house-(bark|cap|cap-skirt|planks):/;
-const SLIM = /^(roots|support-boughs|roof-branches|signpost-wood|lantern-post|lantern-peg|lantern-hanger|pod-lantern|pod-lantern-static|lantern-branch-bark|fence-.+|distant-house-ladder:.+|keeper-(beacon|braces|davit|firewood|rail|rail-posts)(-ends)?|waystation-(bench|firewood|posts)(-ends)?)$/;
+const SOLID = /^(trunk|trunk-eave-band|porch|roof|roof-straw|roof-eave|roof-eave-bark|roots-arch|door-frame|window-frame|window-socket|log-bark|log-ends|log-tunnel|log-tunnel-cheeks|log-bark-plates|far-hut-column|keeper-mast|waystation-walls(-ends)?)$|^distant-house-(bark|cap|cap-skirt|planks):/;
+const SLIM = /^(roots|support-boughs|roof-branches|signpost-wood|lantern-post|lantern-peg|lantern-hanger|pod-lantern|pod-lantern-static|lantern-branch-bark|fence-.+|distant-house-ladder:.+|keeper-(beacon|braces|davit|firewood|rail|rail-posts)(-ends)?|waystation-(bench|firewood|posts|roof)(-ends)?)$/;
 const NOT_SLIM = /-(rope|foot-moss)$/;
 
 export interface CameraSolids {
