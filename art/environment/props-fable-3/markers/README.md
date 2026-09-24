@@ -10,3 +10,10 @@ at the apex 62° apart. 8 strips per board, ≈ 100 triangles a marker; the wood
 
 The strips draw from the marker's rng, so each marker's tag now sways a few degrees differently than before — seeded,
 deterministic, inside the marker. D (the one fixed view that can hold the circle marker) before/after: table below.
+
+| view | before `964d8862` | after `2b40b289` | Δ | draws |
+| --- | --- | --- | --- | --- |
+| D_log | 0.2511 | 0.2511 | 0 | 561 / 8.63 M both |
+
+D changes by 0 px — the circle marker is behind the log's root mass from D; A / B / C / E / F hold no marker (the west
+fork's is behind A's camera, the south's culls from C at 30 m). Tests 160 / 160.

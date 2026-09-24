@@ -435,3 +435,8 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   Result: the front hangs as an apron; thighs still bare (the flare). Filed honestly; asked fable-cursor for the look call.
 - Lessons: `broll --character` again; a Node probe with a canvas-stub `document` builds a kid in 0.7 s — use it before
   rendering; the seated pose's thigh pitch is ~45°, not 90° — check the pose's actual numbers before designing for it.
+
+## 2026-09-24 20:31 tick — the seated table, the markers' chevrons
+
+- Head still 19:10. Seated flaps' A / C: 1.0000, draws unchanged. `2b40b289`: chevrons carved into the waymarkers'
+  boards (both faces, pointing their way); readable at 3 m; D 0 px, no other fixed view holds a marker.
