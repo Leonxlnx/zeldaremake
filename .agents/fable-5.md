@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T19:59:00Z
+updated: 2026-09-24T20:23:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 19:59–20:23 UTC — iteration 116b (`squad2-lodcheck` 43c48259): six views head 31146062 ↔ branch A 0.9994 … F 1.0000, Δ vs reference
+  −0.0002 … −0.0008 (merge-safe; D 1.9 % where its trees change tier); the look-backs' trees row untouched at the far bank (256 / 3.60 M) and
+  heavier at the green (+0.07 M) and the ruins' trail (+0.20 M) — row 2 of the bill still open. INBOX 20:23.
 - 2026-09-24 19:34–19:59 UTC — iteration 116 (`exp-south2` 86e9b380, the far bank): the frame 863 → 810 → 731 / 9.32 M across the three
   pushes, structures 171 → 84 (isolate), the small-caster rule takes 34 casters inside the zone (the kids' shadows) — 31 draws / 0.32 M over,
   all the head's trees + vegetation; `cull-audit.mjs` (the composer's counts, drawn frames only — a stale-read lesson recorded). INBOX 19:59.
@@ -564,4 +567,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T19:59:00Z
+2026-09-24T20:23:00Z
