@@ -1376,15 +1376,25 @@ export function southRouteSurface(x: number, z: number): number {
 export function expansionCull(x: number, z: number, lift = 0.3): boolean {
   // round 56: the south exit (`EXPANSION_SOUTH_BOXES`) — its paving, the log / sills / posts, and
   // wherever its live ground left the legacy ground (the ravine, the mound, the carve)
-  // (an instance left FLOATING over lowered ground reads worse than one sunk a little: 8 cm down
-  // culls, `lift` up)
+  // (an instance left FLOATING over lowered ground reads worse than one sunk a little: 4 cm down
+  // culls — a leaf or a pebble that far up casts a detached shadow, and W07's litter gap is 5 cm —
+  // `lift` up)
   if (z > 10 && inExpansionSouth(x, z)) {
     if (southRouteSurface(x, z) > 0.5 || southStructure(x, z) > 0.5) return true;
     const rp = ravineProfile(x, z);
     if (rp && rp.cut > 0.04) return true;
     const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);
-    if (dh < -0.08 || dh > lift) return true;
+    if (dh < -0.04 || dh > lift) return true;
   }
+  return westExpansionCull(x, z, lift);
+}
+
+/**
+ * `expansionCull` without the south exit's rules: the round-49 expansion alone (the west bank, the
+ * stepping discs, the far hut's knoll). Its box overlaps the south exit's first box (x −6.6…−2.7,
+ * z 10.8…25.7), so a stream that must keep the set it drew before round 56 filters by this.
+ */
+export function westExpansionCull(x: number, z: number, lift = 0.3): boolean {
   const F = EXPANSION.farHut;
   const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
   if (!onKnoll && (x < EXPANSION_BOX.x0 || x > EXPANSION_BOX.x1 || z < EXPANSION_BOX.z0 || z > EXPANSION_BOX.z1)) return false;
@@ -1403,41 +1413,38 @@ export function expansionCull(x: number, z: number, lift = 0.3): boolean {
  * `EXPANSION_SOUTH_BOXES` (`expansionCull` decides there). 'cull' where its point or a ring `reach`
  * m out touches the paving or the log / sills / posts, where the gorge cuts more than
  * `SOUTH_LIP_SINK_M` under it or a ring `lipReach` m out (the bole's own rim: a tree may stand at
- * the gorge's edge, its base sunk that much at most), or where the live ground is steeper than 0.7;
- * 'live' where the live ground left the legacy one (the far bank's rise, the lip's first
- * centimetres): the trunk stands on it (`southTrunkSeatY`); 'keep' where both views agree.
+ * the gorge's edge, its base sunk that much at most), or where the live ground is steeper than
+ * 0.55 (the white-barks' own rule, trees/placement.ts); 'keep' where both views agree; 'live'
+ * where the live ground left the legacy one (the far bank's rise, the lip's first centimetres):
+ * the trunk stands on it at its centre's height, like every sampled stem (W12 audits the base
+ * there), and is dropped instead where the ground under its rim ring falls further than its
+ * below-ground skirt reaches (`SOUTH_RIM_FALL_M`).
  */
 export function southFooting(x: number, z: number, reach: number, lipReach = reach): 'keep' | 'live' | 'cull' | null {
   if (!(z > 10 && inExpansionSouth(x, z))) return null;
   const built = (px: number, pz: number) => southRouteSurface(px, pz) > 0.5 || southStructure(px, pz) > 0.5;
   const cut = (px: number, pz: number) => ravineProfile(px, pz)?.cut ?? 0;
   if (built(x, z)) return 'cull';
+  const live = getTerrain();
+  const y = live.height(x, z);
   let deepest = cut(x, z);
+  let fall = 0;
   for (let i = 0; i < 8; i++) {
     const t = (i / 8) * Math.PI * 2;
     const cx = Math.cos(t);
     const sz = Math.sin(t);
     if (built(x + cx * reach, z + sz * reach)) return 'cull';
     deepest = Math.max(deepest, cut(x + cx * lipReach, z + sz * lipReach));
+    fall = Math.max(fall, y - live.height(x + cx * lipReach, z + sz * lipReach));
   }
-  const live = getTerrain();
-  if (deepest > SOUTH_LIP_SINK_M || live.slope(x, z) > 0.7) return 'cull';
-  const dh = live.height(x, z) - getLegacyTerrain().height(x, z);
-  return deepest > 0.04 || Math.abs(dh) > 0.02 ? 'live' : 'keep';
+  if (deepest > SOUTH_LIP_SINK_M || live.slope(x, z) > 0.55) return 'cull';
+  if (deepest <= 0.04 && Math.abs(y - getLegacyTerrain().height(x, z)) <= 0.02) return 'keep';
+  return fall > SOUTH_RIM_FALL_M ? 'cull' : 'live';
 }
-/** the deepest the gorge may cut under a trunk's rim at the lip before it is dropped (m): its base sinks that much on the low side */
+/** the deepest the gorge may cut under a trunk's rim at the lip before it is dropped (m) */
 const SOUTH_LIP_SINK_M = 0.35;
-
-/** the live seat of a trunk `radius` m thick at (x, z): the lowest ground under its rim, so no side of the bole stands proud of a slope */
-export function southTrunkSeatY(x: number, z: number, radius: number): number {
-  const live = getTerrain();
-  let y = live.height(x, z);
-  for (let i = 0; i < 6; i++) {
-    const t = (i / 6) * Math.PI * 2;
-    y = Math.min(y, live.height(x + Math.cos(t) * radius, z + Math.sin(t) * radius));
-  }
-  return y;
-}
+/** the furthest the live ground may fall under a live-seated trunk's rim ring (`lipReach`) (m) — inside the boles' 0.5–0.6 m below-ground skirts */
+const SOUTH_RIM_FALL_M = 0.45;
 
 const _n = new Vector3();
 

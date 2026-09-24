@@ -25,11 +25,11 @@ import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMateria
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
-import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
+import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type RootPlacement, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
-import { expansionCull, getTerrain, southFooting, southRouteSurface, southTrunkSeatY, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { expansionCull, getTerrain, southFooting, southRouteSurface, westExpansionCull, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
@@ -2121,25 +2121,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // dropped rather than left buried or floating. Take-0123's 80 sampled trees: none culled (the
   // audit's whiteBarkCulled), so the six frames keep every tree they show. The authored entries
   // below are not filtered (the knoll pair is seated on the live ground on purpose).
-  // Round 56 (expansion-south): on the south exit's ground `southFooting` decides instead — a trunk
+  // Round 56 (expansion-south): on the south exit's ground `southFooting` decides as well — a trunk
   // whose footing touches the paving, the log or the gorge is dropped (the stem that stood against
   // the log's mouth), and one the far bank's mound lifted stands on the live bank (it was culled as
-  // buried, which left the bank bald).
-  const sampledWhites = whitePlaced.placements.filter((p) => {
-    const trunkR = whites[p.variant].params.trunkRadius * p.scale;
-    const south = southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, trunkR + SOUTH_LIP_MARGIN_M);
-    if (south === null) return !expansionCull(p.x, p.z);
-    if (south === 'cull') return false;
-    if (south === 'live') {
-      p.y = southTrunkSeatY(p.x, p.z, trunkR);
-      p.view = 'live';
-    }
-    return true;
-  });
+  // buried, which left the bank bald). `drawnWhites` is the set as drawn before round 56: the
+  // streams after this one (the understory, the columns and their swap draws, the mid grove, the
+  // root toes) stand off IT, so a dropped south stem re-rolls none of them.
+  const drawnWhites = whitePlaced.placements.filter((p) => !westExpansionCull(p.x, p.z));
+  const southFootings = new Map(drawnWhites.map((p) => [p, southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, whites[p.variant].params.trunkRadius * p.scale + SOUTH_LIP_MARGIN_M)]));
+  const sampledWhites = drawnWhites.filter((p) => southFootings.get(p) !== 'cull');
   const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
-  const swappedWhites = sampledWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
+  const drawnSwaps = drawnWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
+  const swappedWhites = drawnSwaps.filter((p) => southFootings.get(p) !== 'cull');
+  const liveTerrain = getTerrain();
+  for (const p of sampledWhites) {
+    if (southFootings.get(p) !== 'live') continue;
+    p.y = liveTerrain.height(p.x, p.z);
+    p.view = 'live';
+  }
   const whitePlacements = sampledWhites.filter((p) => !swappedWhites.includes(p));
-  whitePlacements.push(...authoredWhiteBarks(whites.map((w) => w.params), terrain));
+  const authoredWhites = authoredWhiteBarks(whites.map((w) => w.params), terrain);
+  whitePlacements.push(...authoredWhites);
   // the two white-barks off the far hut's knoll (round 50, trees-32), seated on the LIVE ground
   // (both views agree there: −0.14 / 0.34 m — the knoll's rise ends 8 m from the hut), from their
   // own stream. Mature variants chosen for the crown radius: (−34, 45) stands 5.7 m west of camera
@@ -2147,7 +2149,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // smallest mature crown, 3.3 m); (−50, 39) is 23 m outside. Both are in every fixed camera's
   // FAR LOD (≥ 49.5 m, lodDist 44 at quality high), which does not cast — the (−34, 45) tree's
   // shadow would otherwise land 12 m inside C's frame.
-  const liveTerrain = getTerrain();
+  const knollWhites: WhiteBarkPlacement[] = [];
   {
     const knollRng = rng.fork('whitebark/knoll');
     const mature = whites.map((w, i) => (w.params.age === 'mature' ? i : -1)).filter((i) => i >= 0);
@@ -2155,9 +2157,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const byRadius = [...mature].sort((a, b) => whites[a].lods[2].radius - whites[b].lods[2].radius);
     for (const spot of KNOLL_WHITE_BARKS) {
       const variant = byRadius.length ? byRadius[spot.crown === 'small' ? 0 : byRadius.length - 1] : 0;
-      whitePlacements.push({ variant, x: spot.x, y: liveTerrain.height(spot.x, spot.z), z: spot.z, yaw: knollRng() * TAU, scale: knollRng.range(0.92, 1.08), view: 'live' });
+      knollWhites.push({ variant, x: spot.x, y: liveTerrain.height(spot.x, spot.z), z: spot.z, yaw: knollRng() * TAU, scale: knollRng.range(0.92, 1.08), view: 'live' });
     }
   }
+  whitePlacements.push(...knollWhites);
+  /** the white-barks the later streams stand off, in the order they were built before round 56 (see `drawnWhites`) */
+  const whiteClearance = [...drawnWhites.filter((p) => !drawnSwaps.includes(p)), ...authoredWhites, ...knollWhites];
   const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number, tilt: Quaternion | null = null) => {
     const w = variants[variant];
     w.placements.push(p);
@@ -2272,8 +2277,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ctx.layout.pathToHouse.map((p) => [p[0], p[2]] as [number, number]),
     ctx.layout.northPath.map((p) => [p[0], p[2]] as [number, number]),
   ];
-  const rootPlacements = whitePlacements.filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M));
-  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, terrain, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
+  // round 56: each tree's toes keep the stream they had in the drawn order (`whiteClearance`) when a
+  // south stem before them is dropped, and on the south exit they bed on the rendered ground
+  const rootPlacements: RootPlacement[] = [];
+  whiteClearance
+    .filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M))
+    .forEach((p, toeStream) => whitePlacements.includes(p) && rootPlacements.push({ ...p, toeStream }));
+  const rootGround = { height: (x: number, z: number) => (z > 10 && inExpansionSouth(x, z) ? liveTerrain : terrain).height(x, z) };
+  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
   await yieldFrame();
@@ -2295,7 +2306,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const tooClose = (x: number, z: number, spacing: number) => {
       if (viewpoints.some((v) => Math.hypot(v.x - x, v.z - z) < 7)) return true;
       if (seats.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) return true;
-      if (whitePlacements.some((w) => Math.hypot(w.x - x, w.z - z) < 2.6)) return true;
+      if (whiteClearance.some((w) => Math.hypot(w.x - x, w.z - z) < 2.6)) return true;
       if (understoryPlacements.some((u) => Math.hypot(u.x - x, u.z - z) < spacing)) return true;
       return false;
     };
@@ -2405,14 +2416,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (t.slope(x, z) > 0.6) return 'slope';
     for (const h of ctx.layout.houses) if (Math.hypot(x - h.position[0], z - h.position[2]) < h.trunkRadius + COLUMN_CLEARANCE.house) return `house:${h.id}`;
     for (const g of giantDefsAll) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + COLUMN_CLEARANCE.giant) return `giant:${g.id}`;
-    for (const p of whitePlacements) if (Math.hypot(x - p.x, z - p.z) < COLUMN_CLEARANCE.whiteBark) return 'white-bark';
+    for (const p of whiteClearance) if (Math.hypot(x - p.x, z - p.z) < COLUMN_CLEARANCE.whiteBark) return 'white-bark';
     return null;
   };
-  // the swapped white-barks first (their seats are already clear), then the authored seats
-  for (const p of swappedWhites) {
+  // the swapped white-barks first (their seats are already clear), then the authored seats; every
+  // drawn swap takes its three draws, one the south exit dropped too (unbuilt), so none after it re-rolls
+  for (const p of drawnSwaps) {
     const variant = seatRng.int(0, COLUMN_VARIANTS);
     const id = `swap-${whitePlaced.placements.indexOf(p)}`;
-    seatFamily(columns, { id, x: p.x, y: p.y, z: p.z, yaw: seatRng() * TAU, scale: seatRng.range(0.95, 1.05), source: 'swap', view: 'legacy', casts: true }, variant);
+    const yaw = seatRng() * TAU;
+    const scale = seatRng.range(0.95, 1.05);
+    if (!swappedWhites.includes(p)) continue;
+    seatFamily(columns, { id, x: p.x, y: p.y, z: p.z, yaw, scale, source: 'swap', view: p.view === 'live' ? 'live' : 'legacy', casts: true }, variant);
   }
   for (let i = 0; i < COLUMN_SEATS.length; i++) {
     const seat = COLUMN_SEATS[i];
@@ -3231,8 +3246,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const midOccupied: { x: number; z: number; r: number }[] = [
     ...giantDefsAll.map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius + 4.5 })),
     ...ctx.layout.houses.map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius + 4 })),
-    ...whitePlacements.map((p) => ({ x: p.x, z: p.z, r: whites[p.variant].params.trunkRadius * p.scale + 2.4 })),
-    ...columnPlacements.map((p) => ({ x: p.x, z: p.z, r: 3.2 })),
+    // (the white-barks and columns as drawn before round 56: see `drawnWhites`)
+    ...whiteClearance.map((p) => ({ x: p.x, z: p.z, r: whites[p.variant].params.trunkRadius * p.scale + 2.4 })),
+    ...[...columnPlacements, ...drawnSwaps.filter((p) => !swappedWhites.includes(p))].map((p) => ({ x: p.x, z: p.z, r: 3.2 })),
     // only the distant boles that can reach the grove's annulus (the layer starts at 60 m; the
     // depth rows and the far-trunk poles stand inside it)
     ...distantPlacements.filter((p) => Math.hypot(p.x, p.z) < 74).map((p) => ({ x: p.x, z: p.z, r: 3.5 })),
@@ -3272,13 +3288,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
   // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
   const midSpec0 = distantVariants.length - MID_SPECS.length;
+  /** the mid boles standing on the south exit's live ground, for the base-gap audit */
+  const midLive = new Set<(typeof midSampled)[number]>();
   const midPlacements = midSampled.filter((p) => {
     if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M) return false;
     const trunkR = MID_TRUNK_R * (MID_SPECS[p.variant - midSpec0]?.height ?? 12) * p.scale;
     const south = southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, trunkR + SOUTH_LIP_MARGIN_M);
     if (south === null) return !expansionCull(p.x, p.z);
-    if (south === 'cull') return false;
-    if (south === 'live') p.y = southTrunkSeatY(p.x, p.z, trunkR);
+    if (south === 'cull' || westExpansionCull(p.x, p.z)) return false;
+    if (south === 'live') {
+      p.y = liveTerrain.height(p.x, p.z);
+      midLive.add(p);
+    }
     return true;
   });
   distantPlacements.push(...midPlacements);
@@ -3751,6 +3772,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   whitePlacements.forEach((p, i) => p.view === 'live' && liveSeated.add(whiteBases[i]));
   columnPlacements.forEach((p, i) => p.view === 'live' && liveSeated.add(columnBases[i]));
   liveContacts.forEach((c) => liveSeated.add(c));
+  distantPlacements.forEach((p, i) => midLive.has(p) && liveSeated.add(distantBases[i]));
   let maxBaseGap = 0;
   for (const b of allBases) maxBaseGap = Math.max(maxBaseGap, Math.abs(b[1] - (liveSeated.has(b) ? liveTerrain : terrain).height(b[0], b[2])));
   const sampleBases = (() => {

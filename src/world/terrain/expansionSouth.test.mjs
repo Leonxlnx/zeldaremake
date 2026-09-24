@@ -16,8 +16,9 @@
  *      shell and the rest of the far bank blocked; the hollow carved under the floor deck;
  *   6. the legacy streams' filters: `expansionCull` on the paving, the posts and in the gorge, not
  *      at Link's spawn or any fixed camera; `southFooting` culls a bole on the paving, at the
- *      mouth or over the lip, seats one on the bank at its lowest ground, keeps one where the two
- *      views agree.
+ *      mouth or over the lip, seats one on the bank's live ground (never steeper than 0.55),
+ *      keeps one where the two views agree; `westExpansionCull` is `expansionCull` outside the
+ *      south boxes.
  */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -354,15 +355,31 @@ const ground = createGround(live, LAYOUT, {
     }
   }
   assert.ok(kept !== null && kept < 2.2, `a bole stands at the north lip from ${kept?.toFixed(1)} m back`);
-  // on the bank: seated on its live ground, at the lowest point under its rim
+  // on the bank: seated on its live ground at its centre (W12), never steeper than a sampled stem's
+  // 0.55, and a 0.6 m bole's rim (0.9 m ring) never below the white-barks' 0.5 m skirt
   const [bx, bz] = south.tunnelWorld(9, 7.5);
   assert.ok(south.bankHeight(bx, bz) > 0.5, 'the bank point is on the rise');
-  assert.equal(hf.southFooting(bx, bz, 1.5, 0.8), 'live', 'a bole on the bank stands on the live ground');
-  const seat = hf.southTrunkSeatY(bx, bz, 0.5);
-  assert.ok(seat <= live.height(bx, bz) && seat > live.height(bx, bz) - 0.6, `the bank bole's seat ${seat.toFixed(3)} under its centre ${live.height(bx, bz).toFixed(3)}`);
-  for (let i = 0; i < 6; i++) {
-    const t = (i / 6) * Math.PI * 2;
-    assert.ok(seat <= live.height(bx + Math.cos(t) * 0.5, bz + Math.sin(t) * 0.5) + 1e-9, 'no side of the bole stands proud');
+  assert.equal(hf.southFooting(bx, bz, 1.5, 0.9), 'live', 'a bole on the bank stands on the live ground');
+  let liveFootings = 0;
+  for (let z = 12; z <= 60; z += 0.5) {
+    for (let x = -28; x <= 30; x += 0.5) {
+      if (hf.southFooting(x, z, 1.5, 0.9) !== 'live') continue;
+      liveFootings++;
+      assert.ok(live.slope(x, z) <= 0.55, `a live footing's slope at ${fmt(x, z)}: ${live.slope(x, z).toFixed(3)}`);
+      for (let i = 0; i < 12; i++) {
+        const t = ((i + 0.5) / 12) * Math.PI * 2;
+        const fall = live.height(x, z) - live.height(x + Math.cos(t) * 0.6, z + Math.sin(t) * 0.6);
+        assert.ok(fall < 0.5, `a 0.6 m bole's rim ${fall.toFixed(3)} m under its seat at ${fmt(x, z)}`);
+      }
+    }
+  }
+  assert.ok(liveFootings > 50, `boles stand on the far bank's live ground (${liveFootings} half-metre cells)`);
+  // outside the south boxes the round-49 rules alone decide, exactly as `expansionCull` does
+  for (let z = -60; z <= 60; z += 1.5) {
+    for (let x = -60; x <= 60; x += 1.5) {
+      if (z > 10 && inExpansionSouth(x, z)) continue;
+      assert.equal(hf.westExpansionCull(x, z), hf.expansionCull(x, z), `westExpansionCull = expansionCull at ${fmt(x, z)}`);
+    }
   }
   // somewhere in the boxes both views agree and nothing is built: kept as sampled
   let keeps = 0;
