@@ -193,70 +193,6 @@ export const CROWN_UNDER_FOG_CUT = 0.6;
 export const CROWN_UNDER_FOG_RAY: [number, number] = [0.35, 0.7];
 export const CROWN_FLOOR_ROUND: [number, number] = [0.9, 1.1];
 /**
- * 2026-09-24 (owner review 23:00, `owner-2300-foliage-lookup.png`: "the foliage in the beginning
- * looks great, but when you go outward … something's wrong"): the shade gate above is a distance,
- * and the two treatments it carries are different claims. That a crown is a leaf roof in its own
- * shade is only true when it is genuinely overhead — a crown 30 m off is a mass across the middle
- * distance, and taking it to CROWN_NEAR_DARK × CROWN_UNDER_DARK = 0.27 of its albedo (and giving it
- * 0.6 of its haze back) is what made the band he circled dark hard-edged blobs over a pale wash.
- * The colour treatments move to this tighter window; CROWN_UNDER_M keeps gating the geometry ones
- * (the floor cards' own normal and round edge), which fix a different artefact and still hold out
- * to 48 m.
- */
-export const CROWN_SHADE_M: [number, number] = [12, 26];
-/**
- * The mist is a ground layer (atmosphere/heightfog.ts, kfAltitudeMean), so a ray that climbs into
- * the canopy meets almost none of it: a leaf mass 25 m up keeps its full local shade and reads as a
- * dark card with a hard edge against the pale sky, while the same leaves seen level at 25 m are half
- * dissolved. That asymmetry is what the owner's look-up shows, and what fable-5 measured (our
- * 14–58 m crowns at saturation 0.15 / lightness 0.29 against the reference's 0.05 / 0.42). Leaves —
- * thin, lit from both sides, the surface that scatters the air's light most — take `share` of the
- * mist's colour over `m` metres on top of whatever the height fog laid, so a crown pales with depth
- * wherever it stands in the sky, the layers separate by value, and the gaps of sky between them stay
- * bright. Laid after `<fog_fragment>` so the deep-forest shade in it (kfShade, which darkens with
- * distance) cannot take it back. The colour mixed toward is `kfColor`, the air colour that chunk
- * computed for this fragment's own ray and distance — the exact hue the pixels around the leaf are
- * painted with, which is what "the leaf takes the air's colour" means. The plain `fogColor` uniform
- * was tried first and moved nothing: `<fog_fragment>` sits after `<colorspace_fragment>`, so
- * gl_FragColor is encoded there while that uniform is linear (≈ 0.22 against the mist's 0.53 on
- * screen), and a leaf at 0.226 mixed toward 0.22 stays where it was — the measured non-result.
- *
- * `ray` is why this is a repair and not a second fog: it is the world y of the view ray, and the
- * veil comes in over it. On a level ray the height fog already dissolves the middle distance (the
- * mid layer at 30 m is half mist in a probe of the plaza looking north), so nothing is added there
- * and a walker's forward view — and the six fixed frames, which look level — keep their air. It is
- * only as the eye climbs out of the mist's layer that the veil replaces what the mist stops giving.
- *
- * `m` is short on purpose. The first ramp tried was the mid layer's own extent (18-62 m) and it
- * moved his look-up by nothing measurable (leaf lightness 0.226 → 0.229, outline hardness 11.5 %
- * → 11.3 %): a canopy overhead is 15-35 m away, so a ramp that reaches half strength at 40 m has
- * barely started where the leaves are. Depth for a look-up is the tree's height, not the forest's.
- */
-export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number] } = {
-  share: 0.5,
-  m: [8, 30],
-  ray: [0.05, 0.45],
-  // the mist's colour alone veiled the far layers to a dead grey-green (first render at m 10-32; the
-  // layers separated but read as dirty haze). His recording's far crowns are pale and WARM — the
-  // light in the air over a canopy is sun through leaves, so the veil's colour is the mist warmed.
-  tint: [1.08, 1.0, 0.88],
-};
-/** the veil as a fragment-shader line, for the crown cards and the giants' leaf cards alike */
-export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number]; tint?: [number, number, number] } = CANOPY_DEPTH_VEIL): string {
-  const ray = veil.ray ?? CANOPY_DEPTH_VEIL.ray;
-  const tint = veil.tint ?? CANOPY_DEPTH_VEIL.tint;
-  const t = tint.map((c) => c.toFixed(3)).join(', ');
-  return /* glsl */ `
-    #ifdef USE_FOG
-    {
-      float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
-      float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth);
-    }
-    #endif
-  `;
-}
-/**
  * Round 48: the near LOD's toes DIVE — their local ground falls this much per metre out from the
  * axis, so a toe's tip is buried 0.3–0.45 m on flat ground and the toe reads as a root going
  * under, and on a bank of slope ≤ 0.1 the downhill toe still touches instead of floating (the
@@ -442,10 +378,6 @@ export interface CrownLook {
   edgeSteepNearM?: [number, number];
   /** share of the haze over a crown given back on a climbing ray inside the gate */
   fogCut?: number;
-  /** the colour treatments' window (m); unset = `underM`, so a look tuned before CROWN_SHADE_M is unchanged */
-  shadeM?: [number, number];
-  /** the depth veil for this layer (see CANOPY_DEPTH_VEIL) */
-  veil?: { share: number; m: [number, number]; ray?: [number, number] };
   /** albedo at the crown's core (1 at its shell) */
   coreDark?: number;
   /** floor cards always end in the crown's round edge (the far layer only rounds them inside its near gate) */
@@ -474,8 +406,6 @@ export interface CrownLook {
 export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palette, sunDir: Vector3, look?: CrownLook): MeshStandardMaterial {
   const atlas: Texture = look?.atlas ?? createFarCrownAtlas(rng, palette);
   const underM = look?.underM ?? CROWN_UNDER_M;
-  // the colour treatments' own window (CROWN_SHADE_M); a look that sets only underM keeps both on it
-  const shadeM = look?.shadeM ?? look?.underM ?? CROWN_SHADE_M;
   const nearDark = look?.nearDark ?? CROWN_NEAR_DARK;
   const underDark = look?.underDark ?? CROWN_UNDER_DARK;
   const edgeSteep = look?.edgeSteep ?? CROWN_EDGE_STEEP;
@@ -538,14 +468,12 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       diffuseColor.rgb *= mix(vec3(1.0), hue, ${f(CROWN_JITTER[0])}) * (1.0 + (vCrownJit.y - 0.5) * ${f(2 * CROWN_JITTER[1])});
       diffuseColor.rgb *= mix(${f(coreDark)}, 1.0, smoothstep(0.1, 0.95, rr));
       // round 48 (CROWN_UNDER_M): within the near gate the crown is a leaf roof seen from below —
-      // its lower half in its own shade, the whole mass a step darker; on CROWN_SHADE_M, so only a
-      // crown genuinely overhead takes it (the geometry terms below keep the wider gate)
+      // its lower half in its own shade, the whole mass a step darker; zero at 48 m+
       float roofNear = 1.0 - smoothstep(${f(underM[0])}, ${f(underM[1])}, length(vViewPosition));
-      float shadeNear = 1.0 - smoothstep(${f(shadeM[0])}, ${f(shadeM[1])}, length(vViewPosition));
-      if (shadeNear > 0.0) {
+      if (roofNear > 0.0) {
         vec3 sw = normalize(vCrownOff * vec3(1.0, 0.8, 1.0) + vec3(0.0, 0.32, 0.0));
         float underside = smoothstep(0.3, -0.45, sw.y);
-        diffuseColor.rgb *= mix(1.0, ${f(nearDark)} * mix(1.0, ${f(underDark)}, underside), shadeNear);
+        diffuseColor.rgb *= mix(1.0, ${f(nearDark)} * mix(1.0, ${f(underDark)}, underside), roofNear);
       }
       // CROWN_EDGE_STEEP / CROWN_EDGE_FADE: vertical cards fade as the view climbs to them, floors
       // fade on edge — from below a crown is its leaf roof, from the side its crossed silhouettes
@@ -566,12 +494,11 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
           /* glsl */ `vec3 crownPreFog = gl_FragColor.rgb;
     #include <fog_fragment>
     {
-      // CROWN_UNDER_FOG_CUT: a crown overhead inside the shade gate keeps part of its own shade
-      float roofNearF = 1.0 - smoothstep(${f(shadeM[0])}, ${f(shadeM[1])}, length(vViewPosition));
+      // CROWN_UNDER_FOG_CUT: a crown overhead inside the gate keeps part of its own shade
+      float roofNearF = 1.0 - smoothstep(${f(underM[0])}, ${f(underM[1])}, length(vViewPosition));
       float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, crownPreFog, roofNearF * climbF * ${f(fogCut)});
     }
-    ${canopyVeilGlsl(look?.veil)}
     `,
         )
         .replace(
@@ -1116,9 +1043,6 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   // walker sees across the middle distance. A gentler gate over 10–30 m keeps the underside reading
   // as shade without crushing the tree.
   underM: [10, 30],
-  // and the colour half of it tighter still (owner 23:00, the look-up): past 20 m a mid crown is a
-  // mass across the middle distance, not a roof over the walker
-  shadeM: [8, 20],
   nearDark: 0.92,
   underDark: 0.6,
   // the far layer fades a vertical card once the view ray climbs 25–46° to it, at any distance — at
@@ -1135,9 +1059,6 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   // across-column sd 18.9 → 15.4 at the owner's pose — see art/environment/squad2-2026-09-23)
   rim: 0.38,
   roundFloors: true,
-  // the mid layer stands in 13.7–58 m (placeMidTrees), so its veil is that band: a crown at the far
-  // edge of it is nearly mist, which is what puts light and depth between the layers he looked through
-  veil: { share: 0.55, m: [12, 40], ray: [0.05, 0.4] },
 };
 
 /**

@@ -30,7 +30,7 @@ import { createWhiteBarkTextures } from './bark-texture';
 import { createLeafClusterDetail, createLeafClusterTexture } from './leaf-cluster-texture';
 import { BARK_AO_LIFT } from './bole';
 import { CUSHION_ROOT_W, CUSHION_ROOT_W_PER_M } from './writer';
-import { canopyVeilGlsl, DISTANT_NEAR_GAIN } from './distant';
+import { DISTANT_NEAR_GAIN } from './distant';
 import { injectTreeLeafWarmth } from './leaf-color';
 
 export interface TreeMaterials {
@@ -1526,10 +1526,6 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         ${LEAF_NEAR_MUL}
         `,
       );
-      // the depth veil (distant.ts, CANOPY_DEPTH_VEIL): the giants' lobes and their merged canopy
-      // are what a walker looking up sees at 15–40 m, and a climbing ray carries almost no ground
-      // mist, so they read as dark cards with hard edges against the pale sky
-      s.fragmentShader = s.fragmentShader.replace('#include <fog_fragment>', `#include <fog_fragment>\n${canopyVeilGlsl()}`);
       injectTreeLeafWarmth(s);
     },
     'giant-canopy-leaf-warmth',
