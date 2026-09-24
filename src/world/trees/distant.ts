@@ -325,11 +325,12 @@ export const CROWN_VEIL: { share: number; m: [number, number]; ray: [number, num
   // the ramp reaching left hero A's crown box at 79.4 levels against the reference band's 124.3, and
   // the arithmetic said the veil there was 0.27-0.52 of the way on, not saturated.
   share: 1.0,
-  // 16-30 m: the near edge stays where it is — a crown 17 m off takes 0.02 of the veil, because the
-  // reference's own trees at that range are still dark and saturated and this lane's mid canopy is
-  // what made the middle distance read as trees at all — while the far edge comes in from 38 m to 30,
-  // where a level view's crowns actually stand (the 14-52 m ramp was a fifth to a third in there).
-  m: [16, 30],
+  // 16-26 m. The near edge is fixed by the reference: its own trees at 17 m are still dark and
+  // saturated, and this lane's mid canopy is what made the middle distance read as trees at all, so a
+  // crown that close takes 0.03 of the veil and no more. The far edge has walked in from 52 m to 26 as
+  // each render showed the crowns of a level view standing nearer than the ramp assumed: at 25 m the
+  // veil is 0.90 of the way on where the first ramp gave 0.17.
+  m: [16, 26],
   ray: [0.45, 0.06],
   tint: [1.02, 1.0, 0.96],
   // and the floor stops at the reference's own relation: its foliage sits at 0.809 of its air
