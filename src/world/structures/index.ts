@@ -27,6 +27,9 @@ import { loadMaterials } from './materials';
 import { NORTH_LANTERN_POSTS, NORTH_ROPE_FENCES, NORTH_SIGNPOSTS, NORTH_VISIBLE_M } from './north';
 import { buildSignpost } from './signpost';
 
+/** the village houses' moss tufts draw within this distance of either trunk (the east houses' detail reach, util/eastLane.ts EAST_DETAIL_M) */
+const VILLAGE_TUFTS_M = 34;
+
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'structures';
@@ -223,6 +226,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // one in every view that sees a hut (distantHouse.ts).
   if (distant.soffit) group.add(distant.soffit);
   const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
+  /**
+   * The two houses' moss tufts — the caps' cushions and the trunks' furrow tufts (house.ts rounds
+   * 40 / 41), one bucket each — draw within VILLAGE_TUFTS_M of either trunk. Past it most of them
+   * span 1–1.5 px of a 540-px-tall 46° frame (the largest 3 px), and the colonies they gather in
+   * stay in the sheets' own mottle. Every fixed camera is within 24 m of Saria's trunk; the east
+   * lane's green and lookout (38–45 m off) are not.
+   */
+  const villageTufts: Mesh[] = [];
+  group.traverse((o) => {
+    if ((o as Mesh).isMesh && /^(merged:)?(roof-tufts|trunk-moss-tufts)$/.test(o.name)) villageTufts.push(o as Mesh);
+  });
+  const scopeVillageTufts = (x: number, z: number) => {
+    const on = ctx.layout.houses.some((h) => Math.hypot(x - h.position[0], z - h.position[2]) < VILLAGE_TUFTS_M);
+    for (const m of villageTufts) m.visible = on;
+  };
+  scopeVillageTufts(ctx.camera.position.x, ctx.camera.position.z);
   const distantDraws = consolidateStaticMeshes(distant.group);
   group.add(distant.group);
   draws.before += distantDraws.before;
@@ -423,6 +442,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseMossDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.mossDetail])),
     /** round 41: the trunks' furrow moss tufts, root / arch moss caps, lichen plates and root-foot trefoils, per house */
     houseTrunkDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.trunkDetail])),
+    /** exp-east: the houses' cap and trunk tuft buckets, drawn within `withinM` of either trunk */
+    villageTufts: {
+      withinM: VILLAGE_TUFTS_M,
+      meshes: villageTufts.map((m) => m.name),
+      triangles: villageTufts.reduce((n, m) => n + Math.floor((m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3), 0),
+      visible: villageTufts.some((m) => m.visible),
+    },
     /** round 47 (structures-30): Saria's furnished room (bed, rug, plants, table / hearth pieces) and the doorway's callus roll */
     houseFurnishing: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.furnishing,
     /** round 47: the signposts' carved lettering — strokes on the board, front-face vertices sunk */
@@ -466,6 +492,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the walk moves the camera every frame; pose jumps (captures) come through onCameraMove
     update(_dt, t, c) {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
+      scopeVillageTufts(c.camera.position.x, c.camera.position.z);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
@@ -473,6 +500,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       east.update(c.camera);
     },
     onCameraMove(camera) {
+      scopeVillageTufts(camera.position.x, camera.position.z);
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
