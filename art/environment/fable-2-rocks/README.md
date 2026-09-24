@@ -81,8 +81,10 @@ bridge frame, casters conservative, no hero camera draws it while a walker on th
 | rv-deck-east `[3.9,1,36.6] → [16,−4,36]` | 2.2 % | 0.1 % |
 | rv-north-rim-down (the rim's own boulder fills it) | 0 | 0 |
 
-Camera C (the only hero view that faces the south): SSIM 0.1878 → 0.1878, 0.00 % of pixels; A–F otherwise untouched by
-construction (the mesh is off outside 26 m of the gorge). Offered to fable-cursor as the rocks lane's part of the new area — denser
+Camera C (the only hero view that faces the south), against the branch's own base `92a4fd66`: **568 draws / 7.70 M on both**,
+SSIM 0.1878 → 0.1878, 0.00 % of pixels; A–F otherwise untouched by construction (the mesh is off outside 26 m of the gorge). (A
+first read against the older `8ee50f7d` showed C +8 draws / +20 K — those were fable-3's south props merged in between, not the
+rock; the head itself captures at 560 / 7.68 M twice, so the harness is stable to the draw.) Offered to fable-cursor as the rocks lane's part of the new area — denser
 shelves, scree at their feet or a root-and-rock wall under the bridge heads are the next knobs if the area's rubric row wants them.
 
 ![ravine rock](rocks98-ravine-sheet.jpg)

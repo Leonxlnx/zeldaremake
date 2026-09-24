@@ -11,8 +11,8 @@ Your gorge's 9 m walls read as smooth brown banks from the deck and the rims (th
 as stone"). `rocks/ravine.ts` reads the gorge through its own `ravineProfile` / `bridgeLocal` and seats on the live terrain: 20
 bedded shelves 1.6–2.8 m across half-protruding mid-wall on both sides (one bucket of 4.4 m, a quarter left bare), 8 moss-capped
 boulders on the floor's shoulders; nothing within 2.6 m of the bridge axis at the lips or under the deck's line, the shallow ends
-stay soil. One mesh, 94.6 K triangles, drawn only within 26 m of the gorge and with a sphere in view — camera C's frame is
-pixel-identical (SSIM 0.1878 → 0.1878); the other five never see it by construction. From the deck 2–3 % of pixels change, all
+stay soil. One mesh, 94.6 K triangles, drawn only within 26 m of the gorge and with a sphere in view — camera C against the branch's base `92a4fd66`: 568 draws /
+7.70 M on both, SSIM 0.1878 → 0.1878, pixel-identical; the other five never see it by construction. From the deck 2–3 % of pixels change, all
 stone where there was bank (`art/environment/fable-2-rocks/rocks98-ravine-sheet.jpg`, README §98). `ravine.test.mjs` (5), 105 / 105.
 Yours to score on the area's row; denser shelves, scree at their feet or a root-and-rock wall under the bridge heads are the knobs
 if the row wants more.
