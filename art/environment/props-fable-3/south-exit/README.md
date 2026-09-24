@@ -47,3 +47,59 @@ Only C looks south. Against the head `03e1127a`, settle 12: **C 0 px changed, SS
 (the locality's meshes are inside C's frustum behind the trunk, so they are submitted; no pixel of them shows),
 triangles 7.68 → 7.70 M — measured with the marker at the fork and again at the final `62bf7fcd` (the marker at the bridge
 approach): 0 px both times. A, B, D, E, F look north and hold no south prop in their frustums (asserted in the test).
+
+## The 50-point rubric (owner 06:07, `docs/RUBRIC_50_STRUCTURES.md`), scored at `62bf7fcd`
+
+Judged at player height from the bridge approach (2–6 m) and the log's mouth, play mode and the broll poses above; 0–4
+with evidence. A prop cluster has no openings, roof, lanterns, steps or footstep surface of its own: checks 26–37, 43
+and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 144 max.
+
+| # | check | score | evidence |
+| --- | --- | --- | --- |
+| 1 ★ | reads as what it is from 20 m | 3 | the post + boards and the crate read at 6 m (`before-after-bridge-approach.jpg`); no 20 m frame rendered yet |
+| 2 | Kokiri scale | 3 | post 1.7 m, crate 0.62 m, pots 0.46–0.6 m — the village's sizes (`props/layout.ts`) |
+| 3 | irregular, hand-built outline | 3 | lathed pots with wheel marks and ragged rims, chamfered boards, seeded sizes ±3 % |
+| 4 | varies from siblings with purpose | 2 | same builders as the west / circle markers and pots; only the seed varies |
+| 5 | holds up from above and below | 3 | pot mouths are open (round 52), crate tops boarded; the log-mouth pair seen from the bridge |
+| 6 ★ | every part visibly held | 3 | boards lashed to the post with rope wraps, crate boards on battens (`geometry.ts markerGeometry`, `crateGeometry`) |
+| 7 | joints meet, nothing floats | 3 | underside conform: contact gap = EMBED ± 6 mm asserted for every south mesh (`geometry.test.mjs`) |
+| 8 | load paths make sense | 3 | the post footed and conformed; the crate and pots on their undersides |
+| 9 | trim and edges finished | 3 | pot rims, board chamfers |
+| 10 | small detail at 2–5 m | 3 | wheel marks, plank seams and knots (`weathered_planks`), rope wraps — the 6 m sheet |
+| 11 ★ | wood reads as wood, clay as clay | 3 | grain along the boards, end grain on cuts; procedural wheel-marked clay; laid rope |
+| 12 | texel density matches neighbours | 3 | the village's prop maps at the village's density |
+| 13 | palette | 3 | warm browns, clay ochre, no whites |
+| 14 | roughness and sheen | 3 | matte wood and clay |
+| 15 | no stretching or tiling | 3 | lathed UVs around; no repeats at 3–10 m in the sheets |
+| 16 ★ | weathering follows exposure | **2** | grime and moss band at the foot only — not by shaded side / sun top (shared weathering pass, every cluster) |
+| 17 | wear follows use | 2 | no worn rims or handles modelled |
+| 18 | signs of life, placed not scattered | 3 | the toll pile at the bridge head, the pots at the mouth — five props with reasons |
+| 19 | damage plausible and sparse | 2 | none modelled |
+| 20 | nothing brand-new | 3 | weathered planks, foot grime |
+| 21 ★ | sits in the terrain | 3 | EMBED 4 cm, conformed undersides, grime at the foot; live-ground seating (test) |
+| 22 | no floating corners, nothing buried | 3 | contact assertion; the 6 m sheets |
+| 23 | contact shadow / AO | 2 | the sun's shadow only; no AO decal under the props |
+| 24 | vegetation grows around naturally | 3 | the scatter keeps out of `propFootprints`; grass to the foot, none through |
+| 25 | paths lead to it | 3 | on the route's verges, 0.5 m off the paving |
+| 26–30 | openings | n/a | a prop cluster |
+| 31–35 | roofs and tops | n/a | a prop cluster |
+| 36–37 | lanterns, light pools | n/a | no light of its own (the posts' lanterns are structures') |
+| 38 | no clipped whites | 3 | the sheets |
+| 39 | reads in shafts and in shade | 3 | the bridge head in the giants' shade, the mouth in the log's glow |
+| 40 | no toggling real-time light | 4 | none |
+| 41 ★ | Link walks every intended surface | 3 | the south path 1.46 m and the far path 2.40 m beyond any blocker (corridor test); the walk plaza → bridge → log unchanged |
+| 42 | walls / rails / edges block him | 3 | every solid publishes a `propBlocker` (test) |
+| 43 | steps and ramps | n/a | none |
+| 44 | the follow camera never inside it | 3 | the camera's collision reads `propBlockers` (round 52) |
+| 45 | footsteps play the right surface | n/a | no surface of its own |
+| 46 ★ | hero views ≤ 9.0 M / 700 | 4 | C 568 / 7.70 M, 0 px; A / B / D / E / F hold no south prop (test) |
+| 47 | hidden when far or off-screen | 3 | its own locality, distance-culled at 45 m, meshes frustum-culled |
+| 48 | deterministic | 4 | seeded `createRng` per prop; the test builds twice and compares arrays |
+| 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
+| 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
+
+**Total: 109 / 144 applicable (scaled 151 / 200).** Below the doc's 170 gate, and one ★ below 3: **#16 weathering by
+exposure** — the props' weathering is a foot band regardless of sun or shade; the fix is in the shared weathering pass
+(`props/index.ts` vertex colour: moss toward the shaded quadrant, bleach on tops), which touches every cluster's pixels and
+so the six views — a measured landing of its own, next. #4 / #17 / #19 / #23 are the other 2s (sibling variation, wear,
+damage, AO). The n/a treatment is mine — the doc has no rule for checks a prop cluster cannot meet; asked fable-cursor.
