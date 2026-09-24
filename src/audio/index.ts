@@ -38,6 +38,14 @@ export interface AudioHandle {
   stats(): AudioStats;
   /** render `seconds` of the mix offline: 16-bit stereo WAV bytes + the music source it used */
   renderOffline(seconds: number, sampleRate?: number, options?: OfflineOptions): Promise<OfflineRender>;
+  /**
+   * Record `seconds` of the LIVE graph — what the player is actually hearing, in real time, with
+   * the gust the world is really running, the boots the gait is really planting and the parameter
+   * automation the frame loop is really driving. Every other measurement on this lane comes from
+   * `renderOffline`, which builds the same graph against a perfect clock and a scripted walk; this
+   * is the only way to check that the twin tells the truth. Resolves with WebM/Opus bytes.
+   */
+  record(seconds: number): Promise<Uint8Array>;
   dispose(): void;
 }
 
@@ -469,6 +477,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
+    record: (seconds) => recordLive(live, seconds),
     dispose() {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointerdown', onGesture, true);
@@ -482,6 +491,31 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       }
     },
   };
+}
+
+/**
+ * Tap the live master into a MediaStreamDestination and record it. The tap is additive — the
+ * player's own output is untouched — and it is torn down afterwards, so nothing is left hanging off
+ * the master between captures.
+ */
+async function recordLive(live: Live | null, seconds: number): Promise<Uint8Array> {
+  if (!live) throw new Error('audio has not started (it needs a user gesture first)');
+  const Rec = (window as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
+  if (!Rec) throw new Error('MediaRecorder unavailable');
+  const dest = live.ctx.createMediaStreamDestination();
+  live.buses.master.connect(dest);
+  const chunks: Blob[] = [];
+  const rec = new Rec(dest.stream, { mimeType: 'audio/webm' });
+  rec.ondataavailable = (e) => {
+    if (e.data.size) chunks.push(e.data);
+  };
+  const done = new Promise<void>((resolve) => (rec.onstop = () => resolve()));
+  rec.start();
+  await new Promise((r) => setTimeout(r, seconds * 1000));
+  rec.stop();
+  await done;
+  live.buses.master.disconnect(dest);
+  return new Uint8Array(await new Blob(chunks).arrayBuffer());
 }
 
 /**
