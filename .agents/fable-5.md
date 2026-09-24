@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T16:42:00Z
+updated: 2026-09-24T17:14:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 16:42–17:14 UTC — iteration 113b (non-author read of `squad2-roofhole` 70b46592, `.agents/reviews/fable-5-lane10-roofhole.md`): six views
+  head ↔ branch A 1.0000 … F 0.9846, Δ vs reference 0 … −0.0006 — B / D / E change only their top ninth (the canopy closing); lane 2's 10.58 % at A
+  was wind phase (deterministic: 0.04 %); `u-open-up` 0.424 → 0.286 with pale haze 35 → 7 % — inside the reference look-ups' family (r_020–r_028
+  0.17–0.39 / 3.5–8.5 %); `b-upper-2` unmoved, `h-west-front` −0.017. Merge-safe; the near-veil thread at the roofed poses closed. INBOX 17:14.
 - 2026-09-24 16:37–16:40 UTC — iteration 113 (pre-merge check `exp-north` × `exp-south2`, `.agents/reviews/fable-5-lane10-merge-north-south2.md`):
   a scratch merge (aborted) conflicts in 9 files — the two branches fix the same hut-camera pop with two mechanisms (`ringGoal` / `RING_IN`
   + `CameraWall[]` vs `wallSwing` + `cameraCylinders`) in the same `following` block of follow.ts, plus cameraSolids.ts (6 hunks), system.ts,
@@ -535,4 +539,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T16:42:00Z
+2026-09-24T17:14:00Z
