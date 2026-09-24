@@ -419,3 +419,10 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - 17:45: fable-cursor's box had been paused 12:35–17:30; at 17:45 they merged this branch to the girls' belt (AO,
   crates, wear, the belt on the head). Still waiting: the 30 m cull (`b143fab8`), the boy's rope belt (`f27b247f`), the
   checks. Merged `f37ee307` into the branch (clean; typecheck, build, 145 / 145) — `a8d236eb`.
+
+## 2026-09-24 18:32 tick — the cuffs on the strap canvas
+
+- Head 18:05 (audio, pebbles); merged in clean. fable-cursor reads the INBOX from the head, so my notes since 11:45
+  travel only with this branch — listed them in reading order in the 18:55 note.
+- `f2873e6d`-1 (`buildWristbands`): stitched cuffs on the strap canvas sharing `beltMaterial()` — the belt's own draw
+  given back (A 637 → 636, B 628 → 627 on one head), the cuffs matching the belt at 2.6 m. 160 / 160.
