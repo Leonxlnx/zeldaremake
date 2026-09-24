@@ -408,6 +408,11 @@ float barkTouch = 0.0;
 // round 47: the near bases' touching-distance share (1 at BARK_TOUCH_M[0], 0 at [1]) on every
 // surface, moss included — set in the near-base colour block, read by its normal and light blocks
 float barkTouchNear = 0.0;
+// round 53: the analytic bark grain (BARK_GRAIN_M) as a shading factor about 1 — set in the far
+// programs' colour block, applied to the floored light after lights_fragment_end, because the
+// shade floor is a floor: it lifts a shaded face to a flat level whatever its albedo, so a grain
+// written into diffuseColor alone moves a shaded bole by ≈ 2 levels (measured: mean |Δ| 0.07).
+float barkGrain = 1.0;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -438,6 +443,21 @@ export const BARK_DETAIL_TILES = 3.7;
  */
 export const BARK_TOUCH_M: [number, number] = [0.6, 2.0];
 export const BARK_TOUCH_TILES = 11.0;
+/**
+ * Round 53 (the owner 20:08, "why don't the trees immediately spawn instead of needing me to get
+ * close"): the analytic bark grain on the FAR programs' wood — view distances [in from, in to,
+ * out from, out to] (m). It starts where the 1.6 m bark map begins to mip away and stops where
+ * the haze has taken it; the near bases, which carry real cords, never compile it.
+ */
+export const BARK_GRAIN_M: [number, number, number, number] = [5, 9, 38, 55];
+/**
+ * The grain's cord amplitude (a symmetric factor about 1) and the extra darkening in its furrows.
+ * At 0.30 / 0.26 the giants' bole at 20 m moved 0.18 mean levels over the frame — present but
+ * under the haze; 0.44 / 0.34 is a cord that reads at 10–30 m, which is where a walker meets a
+ * bole above the near base's 5 m cut. The six hero views cost 0.10–0.46 mean levels at 0.30.
+ */
+export const BARK_GRAIN_CORD = 0.44;
+export const BARK_GRAIN_FURROW = 0.34;
 /** mean LINEAR luminance of tree_bark_03/color.jpg (Rec. 709 over every texel after the sRGB
  *  transfer: 0.2538 on the 1K map, 0.2555 on the 2K) — the fine albedo term modulates around it so
  *  the bole's average colour does not shift. `texture2D(map)` on an SRGBColorSpace texture returns
@@ -721,6 +741,31 @@ const GIANT_BARK_COLOR = /* glsl */ `
   #endif
   float tone = treeNoise(vec3(vTreeWorld.x * 0.08, vTreeWorld.y * 0.15, vTreeWorld.z * 0.08));
   diffuseColor.rgb *= 0.86 + tone * 0.28;
+  #ifndef NEAR_BASE_DETAIL
+  // Round 53 — the owner, 20:08: "why don't the trees immediately spawn instead of needing me to
+  // get close". His red circle is a giant's FAR base at 15 m: a smooth grey-green ramp. Between
+  // the touching range, where the map's own fissures resolve (BARK_DETAIL_M), and the haze, a
+  // bole has nothing to read — the 1.6 m bark tile is 5–15 texels a pixel at 12–40 m and mips to
+  // its mean, and the shade floor is flat by construction. An analytic grain carries that gap:
+  // vertical cords ≈ 30 cm across drifting ≈ 1.8 m up the bole, from a world-space field so it
+  // needs no bole frame, no vertex and no draw. A factor about its own mean, so no bole's level
+  // moves. Off on the near bases (they carry real cords in geometry) and outside BARK_GRAIN_M.
+  {
+    float grainD = length(vViewPosition);
+    float grainNear = smoothstep(${BARK_GRAIN_M[0].toFixed(1)}, ${BARK_GRAIN_M[1].toFixed(1)}, grainD) * (1.0 - smoothstep(${BARK_GRAIN_M[2].toFixed(1)}, ${BARK_GRAIN_M[3].toFixed(1)}, grainD));
+    if (grainNear > 0.0) {
+      float cordA = treeNoise(vec3(vTreeWorld.x * 3.2, vTreeWorld.y * 0.55, vTreeWorld.z * 3.2));
+      float cordB = treeNoise(vec3(vTreeWorld.x * 7.5, vTreeWorld.y * 1.3, vTreeWorld.z * 7.5));
+      // trilinear value noise sits within ≈ ±0.1 of 0.5 and two octaves mixed narrow it further:
+      // unexpanded, a 0.30 cord amplitude was ±3 % and measured 0.28 mean levels on the pose
+      float cord = clamp(((cordA * 0.68 + cordB * 0.32) - 0.5) * 3.4 + 0.5, 0.0, 1.0);
+      float furrow = pow(1.0 - cord, 3.0);
+      barkGrain = mix(1.0, 1.0 + ${BARK_GRAIN_CORD.toFixed(2)} * (cord - 0.5) - ${BARK_GRAIN_FURROW.toFixed(2)} * (furrow - 0.22), grainNear);
+      // a third of it in the albedo as well, so a sunlit rim shows the same cords the shade does
+      diffuseColor.rgb *= mix(1.0, barkGrain, 0.34);
+    }
+  }
+  #endif
   // the near bases' moss (bole.ts, per vertex in vBarkMoss): sheets on the shaded foot, in the
   // furrows and over the root tops — laid over the bark as moss, with its own fine texture;
   // it also flattens the bark normal and roughens the surface (see the normal and roughness
@@ -735,13 +780,20 @@ const GIANT_BARK_COLOR = /* glsl */ `
     // the fine one only breaks its edge. mossField alone runs at 13 / 41 cycles per metre, so the
     // cover was 8 cm confetti of equal-sized blobs — the "camouflage" the owner's 09-23 walk-up
     // poses show on the emergent's foot. Mean cover is held (the factor's mean 0.98 → 0.93).
-    float mossPatch = treeNoise(vTreeWorld * 1.6 + 21.0) * 0.6 + treeNoise(vTreeWorld * 4.3 + 7.0) * 0.4;
+    // Round 53: both fields are EXPANDED about their mean before they are used. Trilinear value
+    // noise sits within ≈ ±0.1 of 0.5, so 0.85 mossPatch + 0.3 mossFine varied by ±0.1 on a
+    // factor whose mean is 0.91 — round 52's patch shape and the older ragged edge were both
+    // nearly inert, and what actually drew the moss was the smooth per-vertex vBarkMoss alone.
+    // That is why a sheet read as a long airbrushed smear with no bark showing through it.
+    float mossPatch = clamp(((treeNoise(vTreeWorld * 1.6 + 21.0) * 0.6 + treeNoise(vTreeWorld * 4.3 + 7.0) * 0.4) - 0.5) * 3.2 + 0.5, 0.0, 1.0);
+    float mossBreak = clamp((mossFine - 0.5) * 2.6 + 0.5, 0.0, 1.0);
     // the ramp is narrower than the old 0.5–0.9 so a patch has a margin, not a halo: at 0.5–0.9
     // over a smooth field every cushion was an airbrushed cloud with no edge anywhere
-    barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
+    barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossBreak));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
-    vec3 mossCushion = mix(vec3(0.055, 0.15, 0.028), vec3(0.185, 0.35, 0.072), mossFine) * (1.0 - 0.35 * mossRim);
+    // the cushion's own light and dark, on the expanded field so a sheet has internal texture
+    vec3 mossCushion = mix(vec3(0.055, 0.15, 0.028), vec3(0.185, 0.35, 0.072), mossBreak) * (1.0 - 0.35 * mossRim);
     #ifdef BARK_NEAR_DETAIL
     // round 44: a 3-D cushion's crown is lit and its flanks fall off — the fine field itself
     // (its slopes bend the normal in the near-detail normal block), plus a sub-cm sprig speckle
@@ -1065,6 +1117,13 @@ interface LeafVariant {
 }
 /** the share of the floored light a column's face turned from the sun keeps (LeafVariant.barkShadeSide) */
 export const COLUMN_SHADE_SIDE = 0.55;
+/**
+ * Round 53: the same for the giants' far bark. The owner's 20:08 red circle — the lantern tree's
+ * far base at 15 m — is not only untextured, it is flat-lit: the shade floor gives its whole
+ * shaded side one level, so a 2 m root reads as a paper ramp. Gentler than the columns' 0.55
+ * because the giants fill the hero frames.
+ */
+export const GIANT_SHADE_SIDE = 0.62;
 
 /**
  * `nearDetail`: false = a far program; 'base' = a near base (its own moss / lichen / tuft
@@ -1257,6 +1316,10 @@ ${sunThrough}
       // 1.0 on every vertex the plain sweeps write, so nothing else moves.
       reflectedLight.indirectDiffuse *= vBarkAO;
       reflectedLight.directDiffuse *= mix(1.0, vBarkAO, 0.5);
+      // round 53: the analytic grain, applied like the relief's own occlusion — after the floor,
+      // fully on the ambient and by half on the sun (a cord's furrow is only part-shadowed)
+      reflectedLight.indirectDiffuse *= barkGrain;
+      reflectedLight.directDiffuse *= mix(1.0, barkGrain, 0.5);
       ${shadeSideGlsl}
       #ifdef NEAR_BASE_DETAIL
       // round 47 (sn-bole-lantern-tree / sn-bole-stair-bank: the bark and moss at 0.4–0.6 m "one
@@ -1338,7 +1401,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR), 'giant-leaf-warmth');
+  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, false, { barkShadeSide: GIANT_SHADE_SIDE }), 'giant-leaf-warmth');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, depthSlots, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
