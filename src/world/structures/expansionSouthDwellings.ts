@@ -413,6 +413,9 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     podGeos.push(g);
     keeperPods.push(rig.pod.clone());
   }
+  // to the play camera the hut is solid only inside its wall (the wobble's +6.5 %, the cords and
+  // collars): the eave over the gallery's walk is slim (cameraSolids.ts `cameraShell`)
+  const cameraShell = { x: hutAudit.centre[0], z: hutAudit.centre[2], r: hutAudit.radius * 1.07 + 0.06 };
   for (const child of [...hut.group.children]) {
     const m = child as Mesh;
     if (!m.isMesh) continue;
@@ -421,6 +424,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       scaleColors(m.geometry, WOOD_ON_FENCE_WOOD);
       m.material = mats.fenceWood;
     }
+    m.userData.cameraShell = cameraShell;
     group.add(m);
   }
   if (hut.soffit) group.add(hut.soffit);

@@ -11,9 +11,14 @@
  *    and firewood,
  *    the buttress roots, the boughs, the plaza bough's sleeve and the bough itself (the trees
  *    system's limb path, as spheres). A slim part between Link and the camera is allowed to pass.
+ * A SOLID part may carry `userData.cameraShell` (a vertical cylinder: world x, z, radius): its
+ * triangles wholly outside it are SLIM. The bridge keeper's eave hangs 1.7 m over its gallery,
+ * where Link's aim (1.43 m) sits inside the eave's grown cells; as a shell the camera would snap
+ * to its minimum distance on the walk. So its soffit, skirt and cap overhang are slim and only
+ * the wall and the dome over the room stay solid.
  * Built for play only (never under a headless capture): ~0.1–0.3 s once at load.
  */
-import { Box3, type BufferGeometry, InstancedMesh, Matrix4, type Mesh, type Object3D, Vector3 } from 'three';
+import { Box3, BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, type Mesh, type Object3D, Vector3 } from 'three';
 import type { TubePath } from '../system';
 import { VoxelGrid, worldBounds } from '../util/voxelGrid';
 
@@ -36,6 +41,34 @@ interface Part {
   name: string;
 }
 
+interface Shell {
+  x: number;
+  z: number;
+  r: number;
+}
+
+const _tri = [new Vector3(), new Vector3(), new Vector3()];
+
+/** a part's triangles in world space: those wholly outside the shell's cylinder (`outside`), the rest (`inside`) */
+function splitShell(geometry: BufferGeometry, matrix: Matrix4, shell: Shell): { inside: BufferGeometry; outside: BufferGeometry } {
+  const pos = geometry.attributes.position;
+  const idx = geometry.index;
+  const n = idx ? idx.count : pos.count;
+  const inside: number[] = [];
+  const outside: number[] = [];
+  for (let t = 0; t + 2 < n; t += 3) {
+    let out = true;
+    for (let k = 0; k < 3; k++) {
+      const p = _tri[k].fromBufferAttribute(pos, idx ? idx.getX(t + k) : t + k).applyMatrix4(matrix);
+      if ((p.x - shell.x) ** 2 + (p.z - shell.z) ** 2 <= shell.r * shell.r) out = false;
+    }
+    const dst = out ? outside : inside;
+    for (const p of _tri) dst.push(p.x, p.y, p.z);
+  }
+  const geo = (a: number[]) => new BufferGeometry().setAttribute('position', new Float32BufferAttribute(a, 3));
+  return { inside: geo(inside), outside: geo(outside) };
+}
+
 function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
   const solid: Part[] = [];
   const slim: Part[] = [];
@@ -47,6 +80,13 @@ function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
       if (!m.isMesh || !m.geometry?.attributes?.position) return;
       const cls = SOLID.test(m.name) ? solid : SLIM.test(m.name) && !NOT_SLIM.test(m.name) ? slim : null;
       if (!cls) return;
+      const shell = m.userData.cameraShell as Shell | undefined;
+      if (shell && cls === solid && !(m instanceof InstancedMesh)) {
+        const { inside, outside } = splitShell(m.geometry, m.matrixWorld, shell);
+        if (inside.attributes.position.count) solid.push({ geometry: inside, matrix: new Matrix4(), name: m.name });
+        if (outside.attributes.position.count) slim.push({ geometry: outside, matrix: new Matrix4(), name: m.name });
+        return;
+      }
       if (m instanceof InstancedMesh) {
         for (let i = 0; i < m.count; i++) {
           m.getMatrixAt(i, inst);
