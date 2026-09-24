@@ -223,7 +223,11 @@ export const LAYOUT = {
     // width and therefore the top tread and the W04 probe at (18, −4) EXACTLY where they were; only
     // the tread count inside that envelope changes. The riser drops further under the player
     // controller's 0.28 m step guard.
-    { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 26, rise: 0.2076923, tread: 0.4153846, width: 3.0 },
+    // 2026-09-24 11:05 (fable-cursor: W02 regressed — "Hero stairway: 18 worn stone steps", the audit counts
+    // 26 against 16–20): back to 20 × 0.27 × 0.54 in the same envelope — inside W02's band, under the 0.28 m
+    // step guard Astra's whole-leg study set (18 × 0.30 is not), the top tread and the W04 probe where they
+    // were. The stone's value, wear and wandering nosing (stairs.ts) stay; only the count changes.
+    { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 20, rise: 0.27, tread: 0.54, width: 3.0 },
     // Round 32: the `north` steps are gone — a 7 × 0.26 × 0.5 m flight at base (−0.9, 0, −16),
     // bearing 217°, climbing WEST off the north path onto the boulder bank. Its frame-14 s
     // justification ("steps at (0.20–0.25, 0.33–0.40)") does not survive a 3× crop (a far warm
