@@ -19,7 +19,7 @@ import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, LAYOUT } from '../world/layout';
-import { createBuses, createRng, type Buses } from './graph';
+import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
@@ -54,6 +54,21 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   canopy: number;
   /** where the audio thinks the fairies are (world), so a harness can stand beside one */
   fairySpots: [number, number, number][];
+  /**
+   * How hard the audio thread is working, from Chrome's render-capacity monitor: the share of each
+   * render quantum used on average and at its worst, and the share of quanta that MISSED. An
+   * underrun is a gap in the output — which is what "the music shakes" sounds like. null where the
+   * browser does not report it.
+   */
+  load: RenderLoad | null;
+  /** scheduled voices alive in the graph (every event — step, leaf, bird, note — builds its own) */
+  voices: number;
+}
+
+export interface RenderLoad {
+  average: number;
+  peak: number;
+  underrun: number;
 }
 
 export interface OfflineRender {
@@ -256,6 +271,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   const fairySlots: Vec3[] = [];
   const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
+  let load: RenderLoad | null = null;
   let enclosure = 0;
   let canopy = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
@@ -343,6 +359,16 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       fairyObjects = gatherFairies(o.scene);
       fairySlots.length = 0;
       for (let i = 0; i < fairyObjects.length; i++) fairySlots.push({ x: 0, y: 0, z: 0 });
+      // Chrome's render-capacity monitor (AudioContext.renderCapacity): the only direct read on
+      // whether the audio thread is missing its deadline, which is what a listener hears as the
+      // music shaking. Absent elsewhere; the diagnostic just reports null then.
+      const cap = (ctx as unknown as { renderCapacity?: { start(o: { updateInterval: number }): void; addEventListener(t: string, f: (e: RenderCapacityEvent) => void): void } }).renderCapacity;
+      if (cap) {
+        cap.addEventListener('update', (e: RenderCapacityEvent) => {
+          load = { average: e.averageLoad, peak: e.peakLoad, underrun: e.underrunRatio };
+        });
+        cap.start({ updateInterval: 0.25 });
+      }
       await ctx.resume().catch(() => undefined);
       console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
       emit();
@@ -390,6 +416,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       enclosure,
       canopy,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
+      load,
+      voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
@@ -503,4 +531,10 @@ export function encodeWav(buffer: AudioBuffer): Uint8Array {
     }
   }
   return new Uint8Array(out);
+}
+
+interface RenderCapacityEvent {
+  averageLoad: number;
+  peakLoad: number;
+  underrunRatio: number;
 }
