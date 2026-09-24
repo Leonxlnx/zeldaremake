@@ -1,4 +1,4 @@
-# fable-5 — the 50-point rubric, non-author pre-merge read: the waterfall ruins (`agent/fable-cursor-exp-ruins` @ `744a3b1e`, the owner's 10:58 "ruins building") — 2026-09-24 13:31–14:55 UTC
+# fable-5 — the 50-point rubric, non-author pre-merge read: the waterfall ruins (`agent/fable-cursor-exp-ruins` @ `744a3b1e`, the owner's 10:58 "ruins building") — 2026-09-24 13:31–15:04 UTC
 
 The hidden valley 40–80 m west of the village: a packed-earth **trail** from the west house's stepping discs between three
 **pod-lantern posts** to two **gate boulders**, a pale **outcrop** with a tiled **parapet** over a **pool**, the worn **flight**
@@ -168,3 +168,38 @@ every spot to the pool's south shore** (trail start, trail middle, first post, g
 look-back, the fall's corner, the shore). The ten compiles seen under `warmup=0` (121 → 131) are the warm-up's job
 and it does it; the walk to the ruins compiles nothing on the first visit. #40 stands at 4; no pacing item from the
 ruins' materials.
+
+## Re-read on `7c4fb16f` (the author's 13:41–14:47 pass; 14:56–15:04 UTC)
+
+Seven commits landed while the read above was being taken — ivy over the great rock's stair-side face (`26206fc6`, 62
+strands / 1.7 k leaves) and over the hero arch's ring (`65b01dae`), the rock rebuilt as three courses of jointed
+leaning blocks (`0ee25e63`), the mid grove's and the distant layer's cards kept 11 m off the trail and 10 m off the
+site (`278c3762` — the village-path rule), the cliff paler and the lost slabs' beds grown over (`f2b286d2`), an
+offering at the arch (`39aa8002`), sixteen green motes over the water (`6f6b85ee`), and the masonry seated with the
+voussoir joints closed (`7c4fb16f`). The same poses again (`it110-ba-744a3b1e-vs-7c4fb16f.jpg`,
+`spots-ruins-7c4fb16f.json`, `walk-ruins-7c4fb16f.json`):
+
+- **Fail 1 closed.** At the reference pose the rock's box goes from bare stone to a wall of leaves (leafy pixels 5.4 →
+  60.0 %); the ring carries strands hanging into the opening. The frame is r_038's kind now. The leaves stand on the
+  rock's shaded face, so the box is darker, not lighter (l 0.166 → 0.145) — the reference's ivy is lit.
+- **Fail 4 closed.** The east shore facing the fall: the crown and the leaning bole are gone; the frame is the pool, the
+  slab bridge, the tiled wall and the ivied arch with the motes — the ruins' postcard from the shore (160 draws /
+  1.19 M). The far plain north-west of the pool — a flat misty lawn with bare trunks — is now what the left third of
+  that frame shows (fail 7's cousin: the site is open past the cliff's ends).
+- **Fail 2 stands.** The flight + terrace front l 0.286 → 0.294, the whole frame 0.298 → 0.303 against the reference's
+  0.581 / 0.452; the pillar's shadow still lies across the outcrop and the flight.
+- **Fail 3 stands** (the fall's corner: the same frame, Link out of it, Navi at the lens). Fail 6 (the third post at the
+  lens) and fail 5 (the look-backs: the trail's middle 822 / 10.14 M, the terrace 744 / 9.05 M) stand.
+- **Route and probes:** 26 / 26, 0 stuck, camera max 0.137 m, sweep minimum 1.56 m as before; **the author's probes
+  now 60 / 61** — `edge-inside:notch-east-face` at (−63.25, −9.5), expected to walk at the paving's height, is
+  blocked: the rebuilt rock's footprint (`0ee25e63` "walker/structure footprints follow the new outline") reaches the
+  paving's corner in the notch. His own check catches it.
+- **Cost at the site's poses** with the ivy, the motes and the offering: the reference pose 158 → 150 draws / 0.92 →
+  1.01 M; the gate 173 → 166 / 1.09 → 1.19 M; the arch 118 → 119 / 0.48 → 0.58 M; the east shore 167 → 160. The
+  ivy's leaves are ≈ +0.1 M; the card cull gives back the draws.
+
+Scores that move: **#16 3 → 4** (the ivy where the reference has it, moss on the ledges, damp streaks), **#3 2 → 3**
+(the rock as leaning jointed blocks, the barley twist, the grown-over beds), **#18 3 → 4** (the offering), **#44 2 → 3**
+(the shore case gone; the fall's corner remains), **#42 4 → 3** until the notch probe walks again. **150 / 172 →
+174 / 200 scaled — over the gate on this read**, with fail 2 (the value and the light on the flight) the one
+reference distance left that a number describes, and fails 3, 5, 6, 7 open.
