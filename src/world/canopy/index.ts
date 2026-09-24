@@ -17,6 +17,7 @@
 import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { WIND_GLSL } from '../wind/wind';
+import { canopyVeilGlsl } from '../trees/distant';
 import { createRoofAtlas, type RoofAtlas } from './atlas';
 import { buildRoof, HERO_DROP_STAND_M, ROOF_STAND_BANDS, type RoofBuild } from './roof';
 
@@ -115,9 +116,15 @@ function createRoofMaterial(ctx: WorldContext, atlas: RoofAtlas, sunDir: Vector3
     #endif
     `,
       )
-      .replace('#include <lights_fragment_end>', ROOF_FRAGMENT_BODY);
+      .replace('#include <lights_fragment_end>', ROOF_FRAGMENT_BODY)
+      // the depth veil (trees/distant.ts, CANOPY_DEPTH_VEIL): the roof is the other half of what a
+      // walker sees when he looks up (18–25 m over the hollow), and a climbing ray carries almost no
+      // ground mist, so it kept its full local shade against the pale sky. Its cards are leaf-shaped
+      // in the atlas and already fade edge-on above, so unlike a crown's floor cards they can take
+      // the whole veil without printing a quad's edge.
+      .replace('#include <fog_fragment>', `#include <fog_fragment>\n${canopyVeilGlsl()}`);
   };
-  mat.customProgramCacheKey = () => 'canopy-roof-v1';
+  mat.customProgramCacheKey = () => 'canopy-roof-v2-depth-veil';
   ctx.wind.bind(mat);
   return mat;
 }
