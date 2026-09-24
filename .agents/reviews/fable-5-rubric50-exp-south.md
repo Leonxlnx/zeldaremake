@@ -62,7 +62,7 @@ rest.
 | 49 | belongs to this forest | **3** | rope, plank, pod and bark are the village's vocabulary; the ravine's bare earth walls are the one surface the village did not have before |
 | 50 | the owner would stop and look | **3** | the glowing log across the bridge is the expansion's picture and a reason to cross; the walk to it is 50 m of path he already knows |
 
-**Scored: 44 of 50 checks (5 n.m., 1 n/a), 130 / 176 on those — 74 %, which scales to ≈ 148 / 200; the ship bar is
+**Scored: 43 of 50 checks (6 n.m., 1 n/a), 125 / 172 on those — 73 %, which scales to ≈ 145 / 200; the ship bar is
 170 / 200 with no check under 2 and the ★ checks ≥ 3.** Below 2: **#17 (wear) and #19 (damage)** — the bridge is
 brand-new. The ★ checks all sit at 3–4. What would lift it over the bar, in the order a walker meets it: a trodden line
 from the spine to the sill and worn plank centres (#17), one missing / split plank and a frayed rope end (#19), sun-bleach
