@@ -755,6 +755,7 @@ async function walkScenario(page, results) {
   }
   if (!pickRoutes || pickRoutes.has('south-dwellings')) {
     results.southDwellingProbes = await southDwellingProbes(page);
+    results.southDwellingCamera = await southDwellingCamera(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
 }
@@ -829,6 +830,43 @@ async function southDwellingProbes(page) {
     const { at, ...rest } = p;
     return { ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, ok };
   });
+  return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
+}
+
+/**
+ * exp-south2: the follow camera at the dwellings — Link set down on the keeper's gallery facing
+ * along it either way and on the waystation's floor facing in, out and along; once the camera has
+ * settled, the drawn frame's clearance (the share of the view nearer than 0.35 m, Link's chest
+ * hidden behind something nearer or off-screen) and whether the camera stands inside the hut (within
+ * its wall, under its eave).
+ */
+async function southDwellingCamera(page) {
+  const K = DWELLINGS.keeper;
+  const W = DWELLINGS.waystation;
+  const f = rad(W.facingDeg);
+  const spots = [];
+  for (const th of [221, 180, 135, 90, 45, 0]) {
+    spots.push({ where: 'keeper-gallery', th, facing: 'on', at: keeperAt(th, 1.7), yaw: Math.atan2(Math.sin(rad(th)), -Math.cos(rad(th))) });
+    spots.push({ where: 'keeper-gallery', th, facing: 'back', at: keeperAt(th, 1.7), yaw: Math.atan2(-Math.sin(rad(th)), Math.cos(rad(th))) });
+  }
+  spots.push({ where: 'waystation-floor', facing: 'in', at: waystationAt(0.3, 0), yaw: f + Math.PI });
+  spots.push({ where: 'waystation-floor', facing: 'out', at: waystationAt(0.3, 0), yaw: f });
+  spots.push({ where: 'waystation-floor', facing: 'south', at: waystationAt(0.3, -0.4), yaw: Math.atan2(Math.cos(f), -Math.sin(f)) });
+  spots.push({ where: 'waystation-floor', facing: 'north', at: waystationAt(0.3, 0.5), yaw: Math.atan2(-Math.cos(f), Math.sin(f)) });
+  const rows = [];
+  for (const s of spots) {
+    await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [s.at[0], s.at[1], s.yaw]);
+    await sim(page, 45);
+    const st = summarise(await state(page));
+    await draw(page);
+    const clear = await clearance(page);
+    const c = st.camera;
+    const rHut = Math.hypot(c[0] - K.centre[0], c[2] - K.centre[1]);
+    const inHut = rHut < 1.25 && c[1] < K.deckY + 3.0;
+    const ok = !inHut && clear.linkHidden === false && clear.nearShare < 0.01;
+    const { at, yaw, ...rest } = s;
+    rows.push({ ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), camera: c, cameraToLink: st.cameraToLink, cameraFromHutAxisM: +rHut.toFixed(3), inHut, ...clear, ok });
+  }
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }
 
