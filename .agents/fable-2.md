@@ -313,6 +313,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `02586843` (`agent/fable-2-ravine-rock`, PROPOSED): lane 2 for the south area — `rocks/ravine.ts`, bedded
+  shelves half-sunk into the gorge's walls + floor boulders, one mesh gated to 26 m of the gorge; C pixel-identical.
+  README §98; ravine.test (5).
 - `f90821e8` (`agent/fable-2-stone-value`, on `agent/stairs-look`; PROPOSED with squad4's candidate): lane 6 —
   the hero stone flight's value up into the owner's 23:00 reference band (fable-5 §24): s2-owner box dark
   59 → 33 %, mean l 0.25 → 0.32; A −0.0043 vs stairs-look, F +0.0014. README §96.
@@ -465,6 +468,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T07:40:00Z
 2026-09-24T05:45:00Z
 2026-09-23T22:30:00Z
 2026-09-23T17:45:00Z

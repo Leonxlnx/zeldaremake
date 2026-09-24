@@ -52,6 +52,41 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 98 — lane 2 for the new south area: the ravine's walls take stone (`agent/fable-2-ravine-rock` @ `02586843`)
+
+The owner's 06:07 rubric scores every new area on 50 checks ("the outline is irregular and hand-built", "stone as stone",
+"weathering follows exposure"). Expansion-south's gorge (fable-cursor, 04:25) is carved ground painted rock-and-moss by the splat,
+and from the deck and the rims its 9 m walls read as smooth brown banks. `rocks/ravine.ts` puts stone into them, read entirely
+through the gorge's own analytic profile (`ravineProfile`, `bridgeLocal` — no layout or terrain file touched):
+
+- **outcrops**: bedded shelves (rockgen `strata`) 1.6–2.8 m across, a thick bed flattened on the vertical, long axis along the
+  gorge's strike, sunk into the wall along its horizontal normal so half protrudes; mid-wall (depth 0.26–0.74), one bucket of 4.4 m
+  along each wall with one in four left bare; pale grey against the brown wall, moss on the upper side, damp below;
+- **floor boulders**: 1.5–2.7 m, moss-capped, half-buried on the channel's shoulders in the mist, one per 6.5 m with a third skipped;
+- nothing within 2.6 m of the bridge axis at the lips or on the floor under the deck's line, nothing on paving or a structure, the
+  shallow ends (< 3.5 m deep) stay soil. 20 outcrops + 8 boulders, **one mesh, 94.6 K triangles**, seated on the live gorge;
+  toggled by expansion locality's spheres AND a 26 m distance gate to the gorge's box (camera C's frustum reaches the spheres from
+  38 m: without the gate it paid +10 draws / +210 K for a frame that did not change by a pixel).
+
+Two false starts, for the record: the first cut sank the shelves along the terrain normal, toned them like the splat and sized them
+1.2–2 m — from the deck they did not read at all (0–1.9 % of pixels); and the candidate scan read `prof.hit` after `T.mask()`, whose
+own profile query overwrote the shared scratch — a build was not deterministic until every field was copied out first
+(`ravine.test` pins it). Tests: `ravine.test.mjs` (5 — attributes and casters, every seat inside the gorge on its band off the
+bridge frame, casters conservative, no hero camera draws it while a walker on the deck does, deterministic); 105 / 105.
+
+| pose | pixels > 8 levels | > 40 |
+|---|---|---|
+| rv-west-rim `[−7,3.2,35.5] → [4,−1.5,38.5]` | 1.3 % | 0.1 % |
+| rv-deck-west `[4.3,1,37] → [−8,−4,38.5]` | 2.8 % | 0.5 % |
+| rv-deck-east `[3.9,1,36.6] → [16,−4,36]` | 2.2 % | 0.1 % |
+| rv-north-rim-down (the rim's own boulder fills it) | 0 | 0 |
+
+Camera C (the only hero view that faces the south): SSIM 0.1878 → 0.1878, 0.00 % of pixels; A–F otherwise untouched by
+construction (the mesh is off outside 26 m of the gorge). Offered to fable-cursor as the rocks lane's part of the new area — denser
+shelves, scree at their feet or a root-and-rock wall under the bridge heads are the next knobs if the area's rubric row wants them.
+
+![ravine rock](rocks98-ravine-sheet.jpg)
+
 ## Iteration 97 — the stone value on the merged head, at the flight's own poses (verification only)
 
 `8ee50f7d` (stairs-look + §96 + the second wave) against stairs-look alone, stairs-look's poses: **s2-approach** flight box
