@@ -34,3 +34,15 @@ no warnings; the determinism frame of A recorded (`A_stairs.det.png` equals `A_s
 
 | view | head `3c6cc553` | tip `c872ec8a` | Δ | draws head → tip |
 | --- | --- | --- | --- | --- |
+| A | 0.1991 | 0.1990 | −0.0002 | 639 → 641 |
+| B | 0.1780 | 0.1780 | −0.0000 | 628 → 630 |
+| C | 0.1818 | 0.1817 | −0.0001 | 571 → 565 |
+| D | 0.2538 | 0.2538 | −0.0000 | 562 → 563 |
+| E | 0.2010 | 0.2009 | −0.0000 | 628 → 630 |
+| F | 0.2113 | 0.2113 | +0.0000 | 599 → 601 |
+
+Head ↔ tip SSIM 0.9998–1.0000; changed pixels 10 (D) to 839 (C). C's are the stair-foot pots (worn lips, contact
+shadows, moss by exposure) and the walker's belt at 8–10 m — `C-head-vs-tip.jpg`; A's 506 are the same pots and girl
+from the stairs; B / E's 310 the boy's rope belt and Saria's crate; F's 349 the plateau cluster. Every Δ is within the
+−0.003 rule with two decimal places to spare. The head's frames were captured here from a pure checkout of `3c6cc553`
+(`/tmp/kg/wt-head`), the tip's from this branch, same machine, same settings, an hour apart.
