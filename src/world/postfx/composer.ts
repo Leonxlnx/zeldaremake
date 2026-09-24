@@ -164,6 +164,13 @@ export interface ComposerSettings {
   rayIntensity: number;
   /** contrast curve (pow) applied to the smeared ray buffer so beams read as slabs */
   rayContrast: number;
+  /**
+   * 2026-09-24 — lengths (screen fraction) of the two smear passes over the marched ray buffer.
+   * They were constants; a probe cannot isolate what the smear (as against the march) puts on a
+   * near surface without them. 0 for both disables the smear.
+   */
+  raySmearA: number;
+  raySmearB: number;
   rayColor: Color;
   /** share of the beams laid over open-sky pixels (the dome already carries its own haze glow) */
   raySkyShare: number;
@@ -459,6 +466,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     rayMistNearEnd: 0,
     rayAirNearStart: 4,
     rayAirNearEnd: 16,
+    raySmearA: 0.08,
+    raySmearB: 0.14,
     // 2026-09-23 (owner review, the upper house from the plateau): the narrow × 7.5 columns were
     // tuned to read from shot F at 18–31 m; a walker standing in one (the plateau path passes
     // 0.7–1.1 m from the (13.3, 10, −14.6) axis) had that gain on every ray from its first step —
@@ -1132,7 +1141,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       pass(rayMarchMat, rayA);
       const fan = rayBlurMat.uniforms.uFan.value as Vector4;
       rayBlurMat.uniforms.tSrc.value = rayA.texture;
-      rayBlurMat.uniforms.uLength.value = 0.08;
+      rayBlurMat.uniforms.uLength.value = s.raySmearA;
       rayBlurMat.uniforms.uGamma.value = 1;
       fan.w = 0;
       pass(rayBlurMat, rayB);
@@ -1140,7 +1149,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       // already smooth, and a longer smear blurred the beams into one broad gradient; the
       // screen-anchored fan is laid over this last pass
       rayBlurMat.uniforms.tSrc.value = rayB.texture;
-      rayBlurMat.uniforms.uLength.value = 0.14;
+      rayBlurMat.uniforms.uLength.value = s.raySmearB;
       rayBlurMat.uniforms.uGamma.value = s.rayContrast;
       const lean = (s.fanLeanDeg * Math.PI) / 180;
       fan.set(Math.sin(lean), Math.cos(lean), W / H, s.fanMix);
