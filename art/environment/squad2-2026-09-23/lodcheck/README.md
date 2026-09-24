@@ -99,6 +99,22 @@ belongs in the record rather than in a footnote. `stairs2-base` remains above 9 
 change (9.50 → 9.54 M) — the pre-existing play-spot budget item already relayed to whoever owns it, which
 fable-5 attributed to lane 4's vegetation at 13:43.
 
+### The near-LOD pools are untouched by it
+
+A thicker ring of high-LOD trees could in principle load the pools, so `pool-check.mjs` was run on both
+builds at the spawn (`pools-head.json`, `pools-rung32.json`). The reports are **identical**:
+
+| pool | wanted | resident | wanted bytes | pending | evicted | sync builds | long steps | over budget |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `nearCanopyPool` | 374 → 374 | 390 → 390 | 146.8 → 146.8 MB | 0 → 0 | 0 → 0 | 63 → 63 | 0 → 0 | 0 → 0 |
+| `nearBasePool` | 23 → 23 | 23 → 23 | 28.0 → 28.0 MB | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+
+That is the answer and also the reason: these pools serve the giants' near canopy and near bases, sized by
+the memory tier's prefetch radii, while `TREE_LOD_NEAR_M` governs the instanced trees' own LOD rung. The
+two are orthogonal, so the ring cannot load them — nothing pending, nothing evicted, no step over the
+6 ms build budget, and the 63 synchronous builds are the load-time prebuild on both sides. The build-time
+p95 difference (7.6 → 8 ms) is one sample of noise.
+
 ## What is still open, with its number
 
 The rest of the pop — 1.85 % at the north pose — is still this rung's, and reaching it means 40 m, which A
