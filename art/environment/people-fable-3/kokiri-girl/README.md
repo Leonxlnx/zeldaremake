@@ -245,3 +245,33 @@ joint today) — roughly half the main-pass cost.
 ![where A changed](diff-A.jpg)
 ![where B changed](diff-B.jpg)
 ![where F changed](diff-F.jpg)
+
+## JOB 7, the belt (`0a36c3e3`, 2026-09-24 11:00)
+
+The owner's 23:00 list named "the tunic's hem and belt" at 2–6 m. Round 48's belt was a torus with a plate for a
+buckle — at 2.6 m a rubber ring with a gold tab. Now (`buildGirlTunic`): a flat leather strap 3 cm tall and 6 mm thick
+on the waist's oval (a four-point `ovalLathe`: outer face, top edge, inner face), a strap canvas on its outer face — fine
+grain, a burnished darker line at each edge, a row of pale stitches a few millimetres inside them, six per repeat and
+six repeats round the waist — through a square buckle frame (four bars and the tongue, off-centre where it lies over
+the strap's end) with the tail hanging a hand below. Same two meshes as before (strap + tail share the strap material;
+the frame is the buckle material), so the skinned girls' draw count does not move; still no shadow pass for either.
+
+- `before-after-belt-2.6m.jpg` — the walker on the plaza paving from `hands-shot`'s camera aimed at the waist
+  (fov 30): the strap's stitching, the frame, the tail.
+
+The hem (the skirt's scalloped, ragged edge, round 48) read as intended in the same frame and is left alone.
+
+Renders of the kids with `broll.mjs` need `--character` — the script hides the character group by default for B-roll.
+An hour of empty frames this morning before I re-read its usage line.
+
+Six views A / B / F, before `ca05e910` → after `0a36c3e3`, both at high:
+
+| view | SSIM vs the reference, before → after | Δ | SSIM before↔after | changed px | draws / tris after |
+| --- | --- | --- | --- | --- | --- |
+| A | 0.2013 → 0.2012 | −0.0001 | 0.9999 | 199 | 640 / 8.87 M |
+| B (= E's frame) | 0.1862 → 0.1862 | +0.0000 | 1.0000 | 222 | 629 / 8.29 M |
+| F | 0.2105 → 0.2105 | −0.0000 | 1.0000 | 66 | 600 / 8.01 M |
+
+One draw more per girl in frame (A 639 → 640, B 628 → 629, F 599 → 600): the strap's mapped material is its own,
+where round 48's belt shared the wristbands' plain one. Within budget; the wristbands could take the strap canvas too
+and give the draw back, but a torus maps the stitches round the tube — left for a look decision.
