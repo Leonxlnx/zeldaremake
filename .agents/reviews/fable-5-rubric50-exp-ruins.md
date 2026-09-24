@@ -1,4 +1,4 @@
-# fable-5 — the 50-point rubric, non-author pre-merge read: the waterfall ruins (`agent/fable-cursor-exp-ruins` @ `744a3b1e`, the owner's 10:58 "ruins building") — 2026-09-24 13:31–14:25 UTC
+# fable-5 — the 50-point rubric, non-author pre-merge read: the waterfall ruins (`agent/fable-cursor-exp-ruins` @ `744a3b1e`, the owner's 10:58 "ruins building") — 2026-09-24 13:31–15:00 UTC
 
 The hidden valley 40–80 m west of the village: a packed-earth **trail** from the west house's stepping discs between three
 **pod-lantern posts** to two **gate boulders**, a pale **outcrop** with a tiled **parapet** over a **pool**, the worn **flight**
@@ -121,14 +121,14 @@ is a free-standing opening), 31, 32 (no roof) — left out of the total and scal
 | 37 | light pools restrained | **3** | soft warm pools under the posts (`trail-lantern-1`) |
 | 38 | no clipped whites | **4** | 0.00 % of pixels at ≥ 250 in all 24 frames (the fall's sheet, Navi and the pods included) |
 | 39 | reads in lit shafts and in shade | **2** | the broken-arch corner 76.9 % under l 0.25, piers on cliff one grey; the flight in the pillar's shadow at the hero pose (fail 2) |
-| 40 | no distance-toggled real-time light | **4** | no light sources by the commit (emissive pods, ground pools); programs 121 → 131 along the walk under `warmup=0` — see §Pending for the default warm-up |
+| 40 | no distance-toggled real-time light | **4** | no light sources by the commit (emissive pods, ground pools); 204 programs constant from the plaza to the shore with the default warm-up (the 121 → 131 under `warmup=0` is the warm-up's job) |
 | 41 ★ | Link walks every surface | **4** | 26 / 26, 0 stuck, 77.9 m |
 | 42 | edges block him | **4** | probes 60 / 60; the pool holds him after 0.25–0.7 m of wading |
 | 43 | steps walkable and even | **4** | 8 × 0.2 m; boots on the flight ≤ 0.7 cm |
 | 44 | camera never inside, never pops > 0.3 m | **2** | route max 0.14 m, no inside on 216 sweep samples; but Link out of frame at the fall's viewing corner (fail 3), the camera in a crown at the east shore (fail 4), 1.6 m at the third post |
 | 45 | footsteps on the right surface | **3** | flight / paving stone, outcrop rock, trail earth by `744a3b1e`; not heard headless |
 | 46 ★ | caps at every hero view and the item's own | **3** | six views under both caps (A 638 / 8.87 M); the site's own poses 112–275 draws; the look-backs east 832 / 10.27 M and 744 / 8.97 M are the village's cost (fail 5) |
-| 47 | hidden when far or off-screen | **4** | `ruinsVisible` locality; the six views draw no ruins family; scene triangles +70 k, rendered −8 k (see §Pending) |
+| 47 | hidden when far or off-screen | **4** | `ruinsVisible` locality: 11 ruins meshes / 92 k triangles in the scene, none drawn at A / C / E; the six views inside −0.003 |
 | 48 | deterministic | **4** | `ctx.rng.fork('ruins')` and its forks; no `Math.random` in the branch's `src`; the water on one time uniform |
 | 49 | belongs to this forest | **4** | the trailer's ruins in the village's stone, moss and pod language |
 | 50 | the owner would stop and look | **4** | the fall behind the tiled parapet, the flight to the arch |
@@ -138,9 +138,33 @@ is a free-standing opening), 31, 32 (no roof) — left out of the total and scal
 the light on the flight) are what separates this from the reference; fixing them lifts #13, #16 and #39 and clears the
 gate.
 
-## Pending (filled below when the renders finish)
+## The six views, the one draw, and the warm-up (14:45–15:00 UTC)
 
-- the six-view SSIM pair head ↔ branch: every hero view loses one draw and 8,273 triangles on the branch (C two: −15,993)
-  with the tree families unchanged — a vegetation chunk emptied by the cull, to be named by the per-system audit;
-- the shader compiles with the default warm-up: whether the walk to the ruins compiles its ten programs at load or on
-  the first visit.
+**Six-view pair, head `3c6cc553` ↔ branch, same shot list and flags** (`broll.mjs --test --settle 8 --quality high
+--size 1280x720`, `it110-h-six` / `it110-r-six`):
+
+| view | SSIM head↔branch | pixels changed | vs reference head → branch | Δ |
+| --- | --- | --- | --- | --- |
+| A_stairs | 0.9998 | 0.01 % | 0.1765 → 0.1768 | +0.0003 |
+| B_house | 0.9988 | 0.06 % | 0.1705 → 0.1704 | −0.0001 |
+| C_lookback | 0.9993 | 0.06 % | 0.1742 → 0.1734 | −0.0008 |
+| D_log | 0.9984 | 0.04 % | 0.2362 → 0.2371 | +0.0009 |
+| E_ground | 0.9984 | 0.04 % | 0.1913 → 0.1913 | 0 |
+| F_canopy | 0.9846 | 2.0 % | 0.1955 → 0.1949 | −0.0006 |
+
+All six inside the −0.003 budget. F's 2 % is grass and leaf sway at a slightly different wind phase between the two
+runs (the diff mask is speckle over every blade and the near leaf clusters; the crops show the same leaves a few
+pixels over) — not geometry.
+
+**The one draw**: the per-system scene audit at A / C / E (`it110-bysystem.mjs`): the branch adds `ruins` (11 meshes,
+91,956 triangles in the scene, **none drawn** at the hero views — the locality holds, #47), adds 59 vegetation meshes
+(the site's own pass) while removing 6,473 grass instances under the trail and the site, and removes trees: 5.19 →
+4.92 M scene triangles, **one tree instance fewer in every hero frustum (two at C)** — a bole `ruinsTrunkCull` drops
+that every hero frame was drawing without showing it (the pixel change at A–E is 0.01–0.06 %). A draw the branch
+happens to save; the frames do not move.
+
+**Shader compiles with the default warm-up** (`spot.mjs` with `WARMUP=1`): **204 programs at the plaza and 204 at
+every spot to the pool's south shore** (trail start, trail middle, first post, gate, outcrop, flight, arch, terrace
+look-back, the fall's corner, the shore). The ten compiles seen under `warmup=0` (121 → 131) are the warm-up's job
+and it does it; the walk to the ruins compiles nothing on the first visit. #40 stands at 4; no pacing item from the
+ruins' materials.
