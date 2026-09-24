@@ -6,9 +6,9 @@
  * live view (terrain/ruins.ts); this system builds everything standing on it: the masonry
  * (masonry.ts), the natural rock — cliff, ivy rock, boulders, the slab bridge (rock.ts) — the ivy
  * hung over the great rock's stair-side face and the hero arch's ring (ivy.ts), the trail's pod
- * lanterns (lanterns.ts) and the water — the pool, the fall, its spray and mist (water.ts), the
- * green motes over it (wisps.ts) — and publishes the terrace's walk spans and the fallen pieces'
- * and boulders' blockers for the character ground.
+ * lanterns (lanterns.ts), the offering at the arch (offerings.ts) and the water — the pool, the
+ * fall, its spray and mist (water.ts), the green motes over it (wisps.ts) — and publishes the
+ * terrace's walk spans and the fallen pieces' and boulders' blockers for the character ground.
  *
  * Locality: the whole site is in the west sector no fixed frame looks at, but its casters are tall
  * (the arch to 9.6 m), so like the south exit it is drawn only while the camera is within
@@ -25,6 +25,7 @@ import { buildIvy, hangArchIvy } from './ivy';
 import { buildLanterns } from './lanterns';
 import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
+import { buildOfferings } from './offerings';
 import { buildRock, outcropSkin, pillarSpan } from './rock';
 import { buildWater } from './water';
 import { buildWisps } from './wisps';
@@ -103,8 +104,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.44, 0.425, 0.39], keep: 0.3, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
   ]);
   materials.push(cliffMat, boulderMat);
+  // (also before the boulders are built: the offering's cairn goes into their builder)
+  const offerings = buildOfferings(rng.fork('offerings'), rock.boulder);
   const cliff = add('ruins-cliff', new Mesh(rock.cliff.build(), cliffMat), true);
   add('ruins-boulders', new Mesh(rock.boulder.build(), boulderMat), true);
+  const offeringMat = new MeshStandardMaterial({ name: 'ruins:offerings', vertexColors: true, roughness: 0.82, metalness: 0, side: DoubleSide });
+  materials.push(offeringMat);
+  add('ruins-offerings', new Mesh(offerings.builder.build(), offeringMat), true);
   // the ivy over the great rock's stair-side face, each strand stopping on the outcrop or the paving under it
   const ivy = buildIvy(rng.fork('ivy'), pillarSpan((x, z) => terrain.height(x, z)), (x, z) => {
     const g = terrain.height(x, z);
@@ -144,7 +150,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // the character ground reads these at its creation (the character system comes after this one)
   const columns = ruinsColumnBlockers();
   (ctx.shared.walkSpans ??= []).push(...masonry.spans);
-  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers, ...columns, ...lanterns.blockers);
+  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers, ...columns, ...lanterns.blockers, ...offerings.blockers);
   // the play camera's shells over the rock and the masonry nobody walks on (cameraSolid.ts)
   const cameraSolid = ctx.headless ? null : buildRuinsCameraSolid(cliff.geometry, (x, z) => terrain.height(x, z));
   if (cameraSolid) (ctx.shared.cameraSolidGrids ??= []).push(cameraSolid.grid);
@@ -170,9 +176,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     meshes,
     triangles: tris,
     walkSpans: masonry.spans.length,
-    blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length,
+    blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length + offerings.blockers.length,
     cameraSolid: cameraSolid?.report ?? null,
-    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves, archIvyStrands: archIvy.strands, archIvyLeaves: archIvy.leaves, wisps: wisps.count },
+    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves, archIvyStrands: archIvy.strands, archIvyLeaves: archIvy.leaves, offerings: offerings.count, wisps: wisps.count },
     lanternTriangles: lanterns.triangles,
     pods: lanterns.pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
     plunge: water.plunge.map((v) => +v.toFixed(2)),

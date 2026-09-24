@@ -1190,6 +1190,8 @@ export const EXPANSION_RUINS = {
   parapet: { x0: -55.6, x1: -61.0, height: 0.95, half: 0.2, posts: [-55.6, -58.3, -61.0] },
   /** the hero arch at the stair head: clear span, column radius and height (over the terrace) */
   arch: { x: -64.75, z: -4.2, span: 2.9, columnR: 0.25, columnH: 2.9 },
+  /** an offering on the paving between the stair head, the arch's north column and the ivy rock: its centre */
+  offering: { x: -63.72, z: -6.28 },
   /** the colonnade along the terrace's north edge ([x, height]; a negative height is a broken stump that tall) */
   colonnade: { z: -9.1, columns: [[-66.8, 3.2], [-69.2, 3.2], [-71.6, -1.05]] as [number, number][] },
   /** the half-fallen arch at the terrace's west end: two piers across z at `x` */

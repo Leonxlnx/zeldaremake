@@ -83,6 +83,7 @@ const RUINS = {
   trail: [[-13.7, 8.3], [-13.75, 6.6], [-14.0, 4.9], [-14.9, 3.4], [-17.0, 2.55], [-19.6, 2.6], [-23.0, 2.6], [-26.4, 2.3], [-29.8, 1.6], [-33.4, 0.6], [-37.2, -0.5], [-41.0, -1.6], [-44.8, -2.6], [-48.4, -3.5], [-51.4, -4.1], [-54.2, -4.3], [-57.0, -4.3]],
   stair: { base: [-61.0, -4.2], run: 3.2 },
   arch: [-64.75, -4.2],
+  offering: [-63.72, -6.28],
   terrace: { x0: -74.9, x1: -61.0, z0: -9.8, z1: -1.85, y: 4.5, notchZ: -7.0, notchX: -63.0, edge: 0.45 },
   posts: [[-45.6, -1.14], [-49.74, -5.32], [-55.1, -2.62]],
 };
@@ -789,6 +790,7 @@ async function ruinsProbes(page) {
   for (const at of [[-73.3, -7.6], [-73.3, -4.2]]) P('broken-arch-pier', at, 'blocked');
   P('plunge', [-73.8, 2.7], 'blocked');
   for (const at of RUINS.posts) P('lantern-post', at, 'blocked');
+  P('offering', RUINS.offering, 'blocked');
   const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
   const rows = probes.map((p, i) => {
     const g = got[i];
