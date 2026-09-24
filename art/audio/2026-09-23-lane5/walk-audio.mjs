@@ -34,6 +34,10 @@ const ROUTES = [
   { name: 'the lawn west of the spine', at: [-6.5, 2, 200], key: 'KeyW', seconds: 6 },
   { name: 'up the main flight', at: [9.2, -1.4, 340], key: 'KeyW', seconds: 8 },
   { name: 'running the plaza', at: [0, 4, 180], key: 'KeyW', seconds: 6, shift: true },
+  { name: 'jumping on the plaza', at: [0, 2, 180], key: 'KeyW', seconds: 7, jumpEvery: 1.6 },
+  // the north path crosses the log arch's bore at log-frame u ≈ −4 … −6 (layout.logArch, yaw −16°):
+  // walking north from z −51 passes right through it
+  { name: 'through the log tunnel', at: [4.84, -51, 180], key: 'KeyW', seconds: 7 },
 ];
 
 const server = await serveStatic(dist);
@@ -73,19 +77,27 @@ try {
     // reads (and therefore the cadence it plays) to be the ones a player would produce. The gait's
     // stance flags are sampled on every one of those frames — a cadence that reads too fast can
     // then be told apart from a stance flag that flickers.
+    const frames = Math.round(route.seconds / DT);
+    const jumpEvery = route.jumpEvery ? Math.round(route.jumpEvery / DT) : 0;
     const gait = await page.evaluate(
-      async (n, dt) => {
+      async (n, dt, every) => {
         const rows = [];
         for (let i = 0; i < n; i++) {
+          // Space is the jump (camera/follow.ts); the harness presses it like a player would
+          if (every && i % every === 0) {
+            window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
+            setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true })), 90);
+          }
           window.__ZR_PLAY__.step(1, dt, false);
           const f = window.__ZR_PLAY__.state().feet;
-          rows.push((f ?? []).map((x) => (x.stance ? 1 : 0)));
+          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), window.__ZR_AUDIO__.stats()?.enclosure ?? 0]);
           await new Promise((r) => requestAnimationFrame(r));
         }
         return rows;
       },
-      Math.round(route.seconds / DT),
+      frames,
       DT,
+      jumpEvery,
     );
     await page.keyboard.up(route.key);
     if (route.shift) await page.keyboard.up('ShiftLeft');
@@ -97,8 +109,10 @@ try {
       const d = n - (before.surfaces[s] ?? 0);
       if (d > 0) surfaces[s] = d;
     }
-    const feet = gait[0]?.length ?? 0;
-    const pattern = Array.from({ length: feet }, (_, i) => gait.map((r) => (r[i] ? '#' : '.')).join(''));
+    const stance = gait.map((r) => r[0]);
+    const enclosure = gait.map((r) => r[1]);
+    const feet = stance[0]?.length ?? 0;
+    const pattern = Array.from({ length: feet }, (_, i) => stance.map((r) => (r[i] ? '#' : '.')).join(''));
     const plants = pattern.map((p) => (p.match(/\.#/g) ?? []).length);
     const stanceShare = pattern.map((p) => Number(((p.split('#').length - 1) / p.length).toFixed(2)));
     const row = {
@@ -106,6 +120,7 @@ try {
       seconds: route.seconds,
       steps: diff('steps'),
       gaitSteps: diff('gaitSteps'),
+      landings: diff('landings'),
       surfaces,
       endedAt: where?.link?.map?.((v) => Number(v.toFixed(2))) ?? where?.link ?? null,
       wallMs: Date.now() - t0,
@@ -113,10 +128,14 @@ try {
       gaitPattern: pattern,
       gaitPlantsPerFoot: plants,
       gaitStanceShare: stanceShare,
+      /** the bed's enclosure over the route: how closed the space above the listener got */
+      enclosureMax: Number(Math.max(...enclosure).toFixed(2)),
+      enclosureTrace: enclosure.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
     };
     results.routes.push(row);
-    log(`${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant) over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`);
+    log(`${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant), ${row.landings} landings over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`);
     for (const p of pattern) log(`  gait ${p.slice(0, 120)}`);
+    if (row.enclosureMax > 0) log(`  enclosure peaks at ${row.enclosureMax}: ${row.enclosureTrace.join(' ')}`);
   }
   results.end = await page.evaluate(() => window.__ZR_AUDIO__.stats());
 } finally {

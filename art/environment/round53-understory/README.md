@@ -60,3 +60,27 @@ vegetation bush**, not a tree — hide-one-group over the fork region (`fork-att
 `vegetation` 58.6 % of the region, `trees` 64.6 % of which giants 29.1 % (the limb above), distant 19.5 %,
 **understory 12.4 %**, white-bark 5.2 %. So the fork reading as "the path splits off into the forest" is
 lane 4's bush to open (or the marker's spot, fable-3's call); the understory now stays out of that corner.
+
+## Follow-up — the walk line keeps 6.5 m everywhere (`agent/fable-4-understory-walk`)
+fable-5 (17:56) and fable-cursor (18:40): at `h-west-front` and the owner's 06:50 pose a walker at eye
+height stood inside verge crowns seated 3.4 m from the centreline on the plaza stretch (the arch
+stretch's 6.5 m read right). `UNDERSTORY_WALK_CLEAR_M = 6.5` as a **post-filter** over the sampled list
+(the sampler's own 3.4 m stays, so the seeded draws are unchanged and no other stem moves): 32 → 27 stems.
+
+fable-cursor's pinned poses and metrics (`pass3/mid-walkclear-poses.json`, 960 × 540, whole frame,
+`--settle 6`, time 12.5), head `393fce60` → branch:
+
+| pose | mean luma | < 0.25 | > 0.6 | top band (rows 0–12 %) |
+|---|---|---|---|---|
+| `u-open-up` | 0.510 → 0.510 | 5.1 → 5.1 % | 40.7 → 40.7 % | 0.578 → 0.578 |
+| `h-west-front` | 0.316 → 0.317 | 44.8 → 44.4 % | 10.0 → 10.2 % | 0.323 → 0.332 |
+| `owner-0650-north` | 0.276 → **0.286** | 48.6 → **46.3 %** | 0.3 → 0.3 % | 0.321 → **0.330** |
+| owner level (1.5, 1.77, −9.7 → −40) | 0.294 → 0.306 | 40.7 → 38.6 % | | 0.320 → 0.339 |
+
+`owner-0650-north_head_vs_walk6.5.jpg`: the near-left crown over the path is gone, the corridor beyond
+keeps its trees. At `h-west-front` the hut was already in view on the head (the finer leaves did that);
+the remaining dark share there is the column bole in the left third.
+
+Six views, head vs branch: A +0.0018, B **+0.0071**, C 0, D +0.0002, E **+0.0085**, F 0; draws −3 at
+B / D / E, triangles −20…−50 K there. 5.5 m was measured too (28 stems; owner-0650 46 → 45.9 %): 6.5 is
+the arch stretch's rule and fable-cursor's number, so one rule everywhere.
