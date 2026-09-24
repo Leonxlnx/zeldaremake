@@ -70,6 +70,4 @@ the colour and shadow passes, 2 paving, 2 mist); the six pods stay separate draw
 as every village pod does. The look back from the far bank is the heaviest new view because it frames the whole
 village beyond the gorge.
 
-HERO_TABLE
-
-INTEGRATION_TABLE
+HERO_TABLE (the six fixed cameras at the capture's 1280×716: rendering)
