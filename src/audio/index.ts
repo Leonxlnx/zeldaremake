@@ -38,6 +38,14 @@ export interface AudioHandle {
   stats(): AudioStats;
   /** render `seconds` of the mix offline: 16-bit stereo WAV bytes + the music source it used */
   renderOffline(seconds: number, sampleRate?: number, options?: OfflineOptions): Promise<OfflineRender>;
+  /**
+   * Record `seconds` of the LIVE graph — what the player is actually hearing, in real time, with
+   * the gust the world is really running, the boots the gait is really planting and the parameter
+   * automation the frame loop is really driving. Every other measurement on this lane comes from
+   * `renderOffline`, which builds the same graph against a perfect clock and a scripted walk; this
+   * is the only way to check that the twin tells the truth. Resolves with WebM/Opus bytes.
+   */
+  record(seconds: number): Promise<Uint8Array>;
   dispose(): void;
 }
 
@@ -52,6 +60,8 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   enclosure: number;
   /** how closed the canopy over the listener is — 1 deep under the crowns, 0 under open sky */
   canopy: number;
+  /** how much of the space is the ravine — 1 out over it on the bridge, 0 well back from it */
+  gorge: number;
   /** where the audio thinks the fairies are (world), so a harness can stand beside one */
   fairySpots: [number, number, number][];
   /**
@@ -86,6 +96,8 @@ export interface OfflineOptions {
   reverb?: boolean;
   /** force the canopy over the whole render (0 open sky, 1 closed crowns) instead of the walk's own */
   canopy?: number;
+  /** force the ravine over the whole render (0 well back from it, 1 out over it) */
+  gorge?: number;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -211,13 +223,14 @@ function gatherPods(scene: Scene): Vec3[] {
  *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
  */
-export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } {
+export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
+  const gorge = gorgeAt(x, z);
   // how much wood is overhead: the terrain's own forest-floor zone. The litter is there BECAUSE the
   // crowns are, so the same field that decides what is underfoot also says how closed the sky is —
   // the plaza and the village are open, the north corridor past the arch is roofed.
   const canopy = forestFloorZone(x, z);
-  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy };
+  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
   {
@@ -232,13 +245,13 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       // how far in he is: the wood closes over the forest across the first 1.6 m of the bore
       const fromMouth = Math.min(u + 8.5, -0.5 - u) / 1.6;
       const fromWall = (la.radius * 0.8 - Math.abs(v)) / 0.5;
-      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))), canopy };
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))), canopy, gorge };
     }
   }
   // the south expansion (EXPANSION_SOUTH): the rope-and-plank bridge over the ravine, and the
   // hollow log burrowing into the far bank. Both are walked and both used to sound like lawn.
   {
-    const s = southSurfaceAt(x, z, canopy);
+    const s = southSurfaceAt(x, z, canopy, gorge);
     if (s) return s;
   }
   // the west house's platform and deck
@@ -246,7 +259,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -256,13 +269,13 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     if (t > 0 && t < 1) {
       const px = hx + ax * t;
       const pz = hz + az * t;
-      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
+      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
     }
   }
-  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy };
-  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy };
-  if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy };
-  return { surface: 'grass', stairs: false, enclosure: 0, canopy };
+  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
+  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
+  if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy, gorge };
+  return { surface: 'grass', stairs: false, enclosure: 0, canopy, gorge };
 }
 
 /**
@@ -275,7 +288,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
  *  - the hollow log at the far bank: the same bore sound as the arch by the plaza, with the same
  *    smooth enclosure as the wood closes over the listener.
  */
-function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } | null {
+function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } | null {
   const b = EXPANSION_SOUTH.bridge;
   {
     const ax = b.south[0] - b.north[0];
@@ -285,7 +298,7 @@ function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surfac
     if (t > -0.02 && t < 1.02) {
       const px = b.north[0] + ax * t;
       const pz = b.north[1] + az * t;
-      if (Math.hypot(x - px, z - pz) < b.walkHalfWidth + 0.12) return { surface: 'bridge', stairs: false, enclosure: 0, canopy: 0 };
+      if (Math.hypot(x - px, z - pz) < b.walkHalfWidth + 0.12) return { surface: 'bridge', stairs: false, enclosure: 0, canopy: 0, gorge };
     }
   }
   const tn = EXPANSION_SOUTH.tunnel;
@@ -297,11 +310,45 @@ function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surfac
     const u = (x - tn.mouth[0]) * dx + (z - tn.mouth[1]) * dz;
     const v = Math.abs(-(x - tn.mouth[0]) * dz + (z - tn.mouth[1]) * dx);
     if (u > -0.3 && u < tn.deadEnd && v < tn.innerRadius * 0.8) {
-      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(u / 1.6, (tn.innerRadius * 0.8 - v) / 0.5))), canopy };
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(u / 1.6, (tn.innerRadius * 0.8 - v) / 0.5))), canopy, gorge };
     }
   }
   return null;
 }
+
+/**
+ * How much of the space around the listener is the ravine (0 well back from it, 1 out over it on
+ * the bridge). `EXPANSION_SOUTH.ravine.line` is (x, z, top half width, depth) west → east; the
+ * depth term means the shallow ends where the gorge closes to nothing do not open the sound.
+ *
+ * Every space term the bed had until now CLOSED it — the log tunnel's bore and the canopy overhead.
+ * A gorge is the other direction: eight metres of open air with rock either side, the one place in
+ * the world where the forest should sound bigger than the village rather than smaller.
+ */
+export function gorgeAt(x: number, z: number): number {
+  const line = EXPANSION_SOUTH.ravine.line;
+  let best = 0;
+  for (let i = 0; i < line.length - 1; i++) {
+    const [ax, az, aw, ad] = line[i];
+    const [bx, bz, bw, bd] = line[i + 1];
+    const dx = bx - ax;
+    const dz = bz - az;
+    const len2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / len2));
+    const d = Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+    const w = aw + (bw - aw) * t;
+    const depth = ad + (bd - ad) * t;
+    // full out over the cut, gone by a little over twice its width; scaled by how deep it is there
+    const near = 1 - smoothstep01(w, w * 2.2 + 3, d);
+    best = Math.max(best, near * smoothstep01(1.5, 6, depth));
+  }
+  return best;
+}
+
+const smoothstep01 = (a: number, b: number, v: number) => {
+  const t = Math.max(0, Math.min(1, (v - a) / (b - a || 1)));
+  return t * t * (3 - 2 * t);
+};
 
 export const AUDIO_SEED = 'kokiri-audio-r47';
 
@@ -321,6 +368,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let load: RenderLoad | null = null;
   let enclosure = 0;
   let canopy = 0;
+  let gorge = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
   let peakAir = 0;
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
@@ -351,6 +399,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     const s = surfaceAt(listener.x, listener.z);
     enclosure = s.enclosure;
     canopy = s.canopy;
+    gorge = s.gorge;
     // the fairies hover and their owners walk, so their positions are read fresh (and skipped
     // while the background cast is hidden)
     fairyBuf.length = 0;
@@ -358,7 +407,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const at = fairyAt(fairyObjects[i], fairySlots[i]);
       if (at) fairyBuf.push(at);
     }
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -462,6 +511,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       gaitDriven,
       enclosure,
       canopy,
+      gorge,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       load,
       voices: liveVoices(),
@@ -469,6 +519,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
+    record: (seconds) => recordLive(live, seconds),
     dispose() {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointerdown', onGesture, true);
@@ -482,6 +533,31 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       }
     },
   };
+}
+
+/**
+ * Tap the live master into a MediaStreamDestination and record it. The tap is additive — the
+ * player's own output is untouched — and it is torn down afterwards, so nothing is left hanging off
+ * the master between captures.
+ */
+async function recordLive(live: Live | null, seconds: number): Promise<Uint8Array> {
+  if (!live) throw new Error('audio has not started (it needs a user gesture first)');
+  const Rec = (window as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
+  if (!Rec) throw new Error('MediaRecorder unavailable');
+  const dest = live.ctx.createMediaStreamDestination();
+  live.buses.master.connect(dest);
+  const chunks: Blob[] = [];
+  const rec = new Rec(dest.stream, { mimeType: 'audio/webm' });
+  rec.ondataavailable = (e) => {
+    if (e.data.size) chunks.push(e.data);
+  };
+  const done = new Promise<void>((resolve) => (rec.onstop = () => resolve()));
+  rec.start();
+  await new Promise((r) => setTimeout(r, seconds * 1000));
+  rec.stop();
+  await done;
+  live.buses.master.disconnect(dest);
+  return new Uint8Array(await new Blob(chunks).arrayBuffer());
 }
 
 /**
@@ -536,7 +612,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);

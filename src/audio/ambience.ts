@@ -51,6 +51,8 @@ export interface AmbienceState {
   canopy?: number;
   /** the direction the wind travels (unit xz, `wind.direction`) — the canopy roll comes from upwind */
   windDir?: { x: number; z: number };
+  /** 0 well back from the ravine, 1 out over it (index.ts `gorgeAt`) */
+  gorge?: number;
 }
 
 export interface Ambience {
@@ -132,6 +134,19 @@ const ENCLOSURE_DUCK = 0.45;
 const CANOPY_CLOSE = 0.5;
 const CANOPY_HALL = 0.8;
 const CANOPY_FLUTTER = 0.7;
+/**
+ * The ravine. Every other space term CLOSES the bed — the tunnel's bore, the crowns overhead. A
+ * gorge is the other direction: eight metres of open air with rock either side, so more of the
+ * forest comes back as reflection (`GORGE_HALL`) and the wind funnels along it (`GORGE_WIND`) —
+ * measured at +2.7 dB across the bed crossing the bridge, where 1.4 / 0.35 gave only +1.2 and the
+ * crossing did not read as anywhere in particular.
+ *
+ * There was a third term here, opening the bed's filter past its usual sky on the grounds that rock
+ * returns the high end leaves absorb. It is gone: measured, it moved 4–8 kHz by +0.3 dB and
+ * 8–16 kHz by −0.1, because this bed has almost nothing up there to return.
+ */
+const GORGE_HALL = 2.0;
+const GORGE_WIND = 0.7;
 /**
  * How far the canopy roll leans toward upwind. Wind in a wood is not a point source, so this is a
  * lean and not a pan: turn to face into it and the weight of the air moves across you, but the bed
@@ -519,7 +534,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const gust = Math.max(0, Math.min(1, s.gust));
     gustNow = gust;
     const sw = swell(gust);
-    canopyGain.gain.setTargetAtTime(CANOPY_FLOOR + sw * CANOPY_GUST, t, 0.9);
+    const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
+    // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
+    // leaves out over the cut)
+    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 + gorge * GORGE_WIND), t, 0.9);
     canopyMod.gain.setTargetAtTime(sw, t, 0.9);
     hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
     hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
@@ -588,14 +606,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const closed = Math.max(enc, canopyNow * CANOPY_CLOSE);
     enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, 0.35);
     out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
-    canopySend.gain.setTargetAtTime(0.3 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
+    // and more of the forest comes back as reflection off the walls
+    const hall = (1 + canopyNow * CANOPY_HALL) * (1 + gorge * GORGE_HALL);
+    canopySend.gain.setTargetAtTime(0.3 * hall, t, 0.6);
     // the roll leans upwind: the air arrives from where the wind comes FROM, which is behind its
     // direction of travel. Slow (1.2 s) — turning your head should move the weather, not flick it.
     if (s.windDir) {
       counts.windLean = windLeanFor(s.forward, s.windDir);
       canopyPan.pan.setTargetAtTime(counts.windLean, t, 1.2);
     }
-    hushSend.gain.setTargetAtTime(0.2 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
+    hushSend.gain.setTargetAtTime(0.2 * hall, t, 0.6);
   };
 
   return {
