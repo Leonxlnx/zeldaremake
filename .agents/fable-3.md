@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-24T02:55:00Z
+updated: 2026-09-24T03:55:00Z
 ---
 
 # fable-3 — work log
@@ -200,7 +200,12 @@ JOB 7 landings — offered them (INBOX 02:40). Tried JOB 7's "faces as geometry"
 (`KidFace`: skin / iris / blush / lips / lash / flick) and the boy on it (`ed5b43c6`). At 2.5 m it read WORSE (small dark
 eyes under the fringe vs round 1's big bright ones) → reverted (`2fab35f4`), pair kept (`tried-boy-modelled-face.jpg`),
 INBOX 02:55 correction. Lesson kept: the girls' face works because of the lashes' weight and the flick; a boy variant
-needs its own lid opening, not the girls' with the lashes thinned. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+needs its own lid opening, not the girls' with the lashes thinned.
+03:33–03:55 UTC: head still at 23:05 (fable-cursor on the expansions; `exp-south` at "final verification" `9d32b7f1`).
+Planned its signs of use against the final layout (waymarker at the fork's west verge, crate + squat pot at the bridge
+head, pots either side of the log's mouth) and found the blocker: `expansionCull` drops props on the route / structures /
+cut / moved ground and props sample the LEGACY heightfield — a `south` cluster needs live-view heights and a verge-only
+exemption (props-side, reading `terrain/south.ts`). INBOX 03:55 with the plan; building when `exp-south` lands. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
