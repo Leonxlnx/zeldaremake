@@ -103,7 +103,7 @@ export interface SouthDwellingsBuild {
       footings: number;
       mastTop: [number, number, number];
       pods: [number, number, number][];
-      steps: { west: { top: number; deckRiser: number; groundRiser: number[] }; east: { top: number[]; deckRiser: number[]; groundRiser: number[] } };
+      steps: { west: { top: number[]; deckRiser: number[]; groundRiser: number[] }; east: { top: number[]; deckRiser: number[]; groundRiser: number[] } };
       triangles: number;
     };
     waystation: {
@@ -845,7 +845,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   // ---- steps: a split log at the entrance, a log at the east end ----
   const kSteps: WalkSurface[] = [];
   /** audit: the steps' tops and risers (m) — deck to top, top to the ground under its ends */
-  const keeperSteps = { west: { top: 0, deckRiser: 0, groundRiser: [0, 0] }, east: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] } };
+  const keeperSteps = { west: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] }, east: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] } };
   {
     const sr = kRng.fork('steps');
     // west: a half log flat side up across the entrance, just off the boards
@@ -854,8 +854,10 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const rS = GAL_OUT + 0.24;
     const a = new Vector3(cx + Math.cos(e0) * rS, 0, cz + Math.sin(e0) * rS);
     const b = new Vector3(cx + Math.cos(e1) * rS, 0, cz + Math.sin(e1) * rS);
-    const top = Math.max(terrain.height(a.x, a.z), terrain.height(b.x, b.z), terrain.height((a.x + b.x) / 2, (a.z + b.z) / 2)) + 0.1;
-    kSteps.push(deckSurface('south-keeper-step-west', a.clone().setY(top), b.clone().setY(top), 0.15));
+    // bedded on the ground at either end (its round underside 2 cm in), sunk deeper into the rise between
+    const ta = terrain.height(a.x, a.z) + 0.1;
+    const tb = terrain.height(b.x, b.z) + 0.1;
+    kSteps.push(deckSurface('south-keeper-step-west', a.clone().setY(ta), b.clone().setY(tb), 0.15));
     const halfLog = (p: Vector3, q: Vector3, topY: number, topQ: number, r: number, name: string, tag: string) => {
       const ax = q.clone().sub(p).setY(0);
       const len = ax.length();
@@ -886,7 +888,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       tuftSpecs.push(...footMoss(ctx, q.clone().setY(terrain.height(q.x, q.z)), sr.fork(`m1/${tag}`), { postRadius: r, count: 7, color: FOOT_MOSS }));
       bases.push([mid.x, terrain.height(mid.x, mid.z), mid.z]);
     };
-    halfLog(a, b, top, top, 0.14, 'keeper-steps', 'west');
+    halfLog(a, b, ta, tb, 0.14, 'keeper-steps', 'west');
     // east: a log laid down the slope beside the gallery's open end, its top rising with the ground
     const th = (K.gallery.from - 6.5) * DEG;
     const out = new Vector3(Math.cos(th), 0, Math.sin(th));
@@ -897,7 +899,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     kSteps.push(deckSurface('south-keeper-step-east', p.clone().setY(tp), q.clone().setY(tq), 0.15));
     halfLog(p, q, tp, tq, 0.13, 'keeper-steps', 'east');
     const r2 = (v: number) => +v.toFixed(2);
-    keeperSteps.west = { top: r2(top), deckRiser: r2(DECK_TOP - top), groundRiser: [r2(top - terrain.height(a.x, a.z)), r2(top - terrain.height(b.x, b.z))] };
+    keeperSteps.west = { top: [r2(ta), r2(tb)], deckRiser: [r2(DECK_TOP - ta), r2(DECK_TOP - tb)], groundRiser: [r2(ta - terrain.height(a.x, a.z)), r2(tb - terrain.height(b.x, b.z))] };
     keeperSteps.east = { top: [r2(tp), r2(tq)], deckRiser: [r2(DECK_TOP - tp), r2(DECK_TOP - tq)], groundRiser: [r2(tp - terrain.height(p.x, p.z)), r2(tq - terrain.height(q.x, q.z))] };
   }
 
