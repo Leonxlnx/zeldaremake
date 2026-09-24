@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T06:43:00Z
+updated: 2026-09-24T07:40:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 07:29–07:40 UTC — iteration 104 (rubric-50 re-score on `b306d6a9`): 129 / 176 (≈ 147 / 200), ★16 2 → 3, #18 2 → 3,
+  #49 3 → 4, #45 scored; wear and damage still under 2; the white disc waits on `exp-south2`; caps A 638 / 8.87 M, C 7.93 M;
+  the south route and probes unchanged. INBOX 07:40.
 - 2026-09-24 06:35–06:43 UTC — iteration 103 (`fable-5-rubric50-exp-south.md`): the owner's 06:07 rubric as a non-author read of
   the south expansion — 43 / 50 checks scored with evidence, 125 / 172 (≈ 145 / 200; under 2: wear, damage; ★ all 3–4);
   pacing on `5cbe6ac8` unchanged (p50 5.0, the flight-top compile persists). INBOX 06:43.
@@ -474,4 +477,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T06:43:00Z
+2026-09-24T07:40:00Z

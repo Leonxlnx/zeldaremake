@@ -69,3 +69,29 @@ from the spine to the sill and worn plank centres (#17), one missing / split pla
 on the plank tops and grime at the posts' feet (#16), rope wraps and pegs readable at 2–5 m (#10), the lashing's X broken
 up (#3 / #15), the log's far glow with depth instead of a white disc (#27 / #38), and the `plaza-south` flare as a shell
 for the camera (#44). The n.m. checks (#5, #12, #23, #40, #45, #47) are the author's to evidence.
+
+## Re-score on the head `b306d6a9` (07:05 — fable-2's ravine rock, fable-3's south props + weathering by exposure, squad5's south-exit audio, squad4's east verge; 07:30–07:40 UTC)
+
+Same eight spots re-shot (`it104-ba-{bridge-mid,rim-west-look-east,bridge-north}.jpg`: before | after), the south route
+and probes re-run, the caps re-probed. What moved: the ravine walls carry bedded outcrops and moss-capped floor boulders
+(14–20 % of the bridge frames' pixels), a waymarker stands by the north head, the posts carry a moss band on their shaded
+side, the bridge has its own footstep surface and the log closes over the sound.
+
+| # | check | was | now | why |
+| --- | --- | --- | --- | --- |
+| 3 | irregular, hand-built outline | 2 | 2 | the deck and the lashing's X unchanged |
+| 15 | no tiling repeats at 3–10 m | 2 | 2 | the log's interior bark and the lashing unchanged |
+| 16 ★ | weathering follows exposure | 2 | **3** | the posts' shaded side takes a moss band, the tops a bleach — readable at the north sill (`it104-ba-bridge-north.jpg`); the deck's tops still even |
+| 17 | wear follows use | 1 | 1 | no trodden line to the sill, no worn plank centres |
+| 18 | signs of life | 2 | **3** | the waymarker at the north head (fable-3), the pods |
+| 19 | damage plausible and sparse | 1 | 1 | still brand-new |
+| 27 / 38 | the log's far glow | 2 / 2 | 2 / 2 | the white disc stands — the owner's 06:07 "why is it white?" is this; `exp-south2` (the exit as a sunlit glade) is the fix in progress |
+| 41 / 42 ★ | walk / edges | 4 / 4 | 4 / 4 | `south-bridge-to-log` 21 / 21, 0 stuck, camera ≥ 1.38 m; probes 41 / 41 |
+| 45 | footsteps play the right surface | n.m. | **3** | squad5 `ce5f6a7f`: the bridge its own surface, the log closes over the listener — by the commit and its tests; not heard here |
+| 46 ★ | caps | 4 | 4 | A 638 / 8.87 M, C 570 / 7.93 M (+243 K: the outcrops and boulders sit in C), all under 9.0 M / 700 |
+| 49 | belongs to this forest | 3 | **4** | the ravine's bare earth walls are stone-bedded and moss-capped now — the village's rock vocabulary (`it104-ba-bridge-mid.jpg`) |
+
+**Now 44 of 50 scored, 129 / 176 (73 %, ≈ 147 / 200)** — up from 125 / 172 with one check moved from n.m. to a score;
+the bar is 170. Still under 2: **#17 wear and #19 damage**; the disc (#27 / #38) is the owner's own question and has a
+builder on it. The three that would carry it over the line remain the walk's wear, one sparse damage and the exit's
+depth; the ★ checks are all 3–4.
