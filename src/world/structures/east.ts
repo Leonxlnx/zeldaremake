@@ -51,7 +51,7 @@ import {
   Vector3,
   type Camera,
 } from 'three';
-import { EXPANSION_EAST, eastDeckPlan, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
+import { EXPANSION_EAST, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
 import { applyShadeFloor } from '../materials/shadeFloor';
 import type { WalkSurface, WorldContext } from '../system';
 import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_VISIBLE_M, eastBoxDistance, eastFootSeen, eastHouseCasters, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
@@ -472,7 +472,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       mats,
       rng.fork(`house/${h.id}`),
       shared,
-      { rootKeepOut: keepOut },
+      { rootKeepOut: keepOut, rightFoot: h.rightFoot },
     );
     houses.push(hb);
     for (const l of hb.lights) {
@@ -1394,6 +1394,12 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       roots: houses[i].roots,
       window: houses[i].window,
       door: { width: houses[i].door.width, height: houses[i].door.height, sill: houses[i].door.sill },
+      // the root-buttress feet as built (left, right) against the live mask's walls (layout
+      // `eastHouseBlocks`): both come from the same door-space numbers, so the gap is 0
+      buttressFeet: houses[i].pillars.map((p, j) => {
+        const block = eastHouseBlocks().find((b) => b.id === h.id && b.kind === (j === 0 ? 'foot-left' : 'foot-right'));
+        return { foot: p.foot, footRadius: p.footRadius, blockRadius: block ? +block.r.toFixed(3) : null, blockGap: block ? +Math.hypot(p.foot[0] - block.x, p.foot[2] - block.z).toFixed(3) : null };
+      }),
       nearTriangles: nearTris[i],
       nearVisible: detail.visible,
     })),

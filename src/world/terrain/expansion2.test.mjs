@@ -522,10 +522,36 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
       assert.equal(ground.blocked(x, z), true, `${h.id}'s trunk is solid at ${fmt(x, z)}`);
     }
     const f = (h.facingDeg * Math.PI) / 180;
-    const dx = h.x + Math.sin(f) * (h.radius * 1.2 + 0.7);
-    const dz = h.z + Math.cos(f) * (h.radius * 1.2 + 0.7);
+    // (a house with a doorstep stops the character at its edge instead: the small house's arch)
+    const step = h.doorstep ? h.doorstep[0] + h.doorstep[1] + 0.1 : h.radius * 1.2 + 0.7;
+    const dx = h.x + Math.sin(f) * step;
+    const dz = h.z + Math.cos(f) * step;
     assert.equal(ground.blocked(dx, dz), false, `${h.id}'s door step is open at ${fmt(dx, dz)}`);
     assert.equal(hf.expansionCull(h.x, h.z), true, `${h.id}'s pad culls the legacy streams`);
+  }
+  // the entrance arches' root-buttress feet and the small house's doorstep are walls (live only),
+  // clear of the lane, the spurs and the deck's plank steps: no root stands in or hangs over a path
+  const blocks = layout.eastHouseBlocks();
+  assert.equal(blocks.filter((b) => b.kind !== 'doorstep').length, 2 * EXPANSION_EAST.houses.length, 'two buttress feet per east house');
+  const segDist = (x, z, a, b) => {
+    const ex = b[0] - a[0];
+    const ez = b[2] - a[2];
+    const t = Math.max(0, Math.min(1, ((x - a[0]) * ex + (z - a[2]) * ez) / (ex * ex + ez * ez)));
+    return Math.hypot(x - (a[0] + ex * t), z - (a[2] + ez * t));
+  };
+  const deckSteps = layout.eastDeckPlan().steps;
+  for (const b of blocks) {
+    assert.equal(ground.blocked(b.x, b.z), true, `${b.id} ${b.kind} is solid at ${fmt(b.x, b.z)}`);
+    assert.equal(hf.surfaceMask(b.x, b.z, 'legacy').structure, 0, `legacy mask has no ${b.id} ${b.kind} at ${fmt(b.x, b.z)}`);
+    if (b.kind === 'doorstep') continue;
+    for (const line of [EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs]) {
+      for (let i = 0; i + 1 < line.length; i++) {
+        const d = segDist(b.x, b.z, line[i], line[i + 1]);
+        assert.ok(d >= b.r + 0.45, `${b.id} ${b.kind} ${d.toFixed(2)} m off the path ${fmt(line[i][0], line[i][2])} → ${fmt(line[i + 1][0], line[i + 1][2])} (≥ ${(b.r + 0.45).toFixed(2)})`);
+      }
+    }
+    const sd = segDist(b.x, b.z, [deckSteps.bottom[0], 0, deckSteps.bottom[1]], [deckSteps.top[0], 0, deckSteps.top[1]]) - deckSteps.hw;
+    assert.ok(sd >= b.r, `${b.id} ${b.kind} ${sd.toFixed(2)} m off the deck steps' edge (≥ ${b.r.toFixed(2)})`);
   }
   // the lookout's bench, the sign post and the pod posts are solid
   const B = EXPANSION_EAST.lookout.bench;

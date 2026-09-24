@@ -827,15 +827,20 @@ export const EXPANSION_BOX = (() => {
  * (heightfield `eastLaneCull`, trees' mid-tree filter) only reaches trees none of A–E see.
  *
  * `facingDeg`: bearing of the door (atan2(x, z): 0° = +z south, 90° = east, ±180° = north).
+ * `rightFoot`: the entrance arch's right root-buttress lands here (door space, × k — see
+ * `HOUSE_BUTTRESS_FEET`) and drops steeply like the left one: round 20's long leg, made for
+ * Saria's ledge, sweeps 5.5 k out over flat ground — across the lane at the shop (1.45 m over the
+ * discs) and along the tall house's deck steps. `doorstep`: a disc (m out along the door axis,
+ * radius) the character stops at — the small house's arch hangs 1.5–1.6 m over its threshold.
  */
 export const EXPANSION_EAST = {
   houses: [
     /** the shop: a wide stump north of the green, its counter window and awning toward the lane as it leaves the trees */
-    { id: 'east-shop', kind: 'shop' as const, x: 40.0, z: -7.0, radius: 3.0, roofHeight: 5.3, facingDeg: -53, lanterns: 2 },
+    { id: 'east-shop', kind: 'shop' as const, x: 40.0, z: -7.0, radius: 3.0, roofHeight: 5.3, facingDeg: -53, lanterns: 2, rightFoot: [1.95, 3.35] as const, doorstep: null },
     /** the bossy kid's house at the far end of the green: the tallest dome, a side deck with plank steps and a ladder to the roof */
-    { id: 'east-tall', kind: 'tall' as const, x: 48.6, z: -1.6, radius: 3.0, roofHeight: 7.6, facingDeg: -84, lanterns: 2 },
+    { id: 'east-tall', kind: 'tall' as const, x: 48.6, z: -1.6, radius: 3.0, roofHeight: 7.6, facingDeg: -84, lanterns: 2, rightFoot: [1.95, 3.35] as const, doorstep: null },
     /** the small cosy house by the south lip: low dome, round window, flower boxes */
-    { id: 'east-small', kind: 'small' as const, x: 37.2, z: 6.0, radius: 2.1, roofHeight: 4.1, facingDeg: 200, lanterns: 1 },
+    { id: 'east-small', kind: 'small' as const, x: 37.2, z: 6.0, radius: 2.1, roofHeight: 4.1, facingDeg: 200, lanterns: 1, rightFoot: [1.95, 3.35] as const, doorstep: [3.0, 0.9] as const },
   ],
   /** the lane: head of the stairs → the gap in the trees → past the shop's door → across the green → east of the white-barks → the lookout */
   lane: [
@@ -848,7 +853,7 @@ export const EXPANSION_EAST = {
     [31.3, 0, -4.5],
     [33.7, 0, -4.45],
     [36.1, 0, -3.75],
-    [38.75, 0, -2.4],
+    [38.9, 0, -2.1],
     [40.9, 0, -2.2],
     [42.6, 0, -0.3],
     [43.0, 0, 2.3],
@@ -874,10 +879,10 @@ export const EXPANSION_EAST = {
       [44.3, 0, -1.1],
     ],
     [
-      [38.75, 0, -2.4],
+      [38.9, 0, -2.1],
       [38.0, 0, -0.6],
       [37.0, 0, 1.4],
-      [36.3, 0, 2.75],
+      [35.96, 0, 2.14],
     ],
   ] as [number, number, number][][],
   /** the lookout on the south lip: a rope fence where the ground starts to fall, a log bench behind it facing back over the lane */
@@ -966,6 +971,35 @@ export function eastShopSpots() {
     const dz = F[1] * Math.cos(g.a) + R[1] * Math.sin(g.a);
     return { kind: g.kind, a: g.a, foot: g.foot, x: h.x + dx * g.r, z: h.z + dz * g.r, out: [dx, dz] as [number, number] };
   });
+}
+
+/**
+ * The entrance arch's root-buttress feet (structures/house.ts) in door space — lateral w (+ = the
+ * viewer's right facing the door), depth d along the door axis from the trunk's centre — in units
+ * of the house's detail scale k = R / 3.2: in front of the left jamb, and round 20's long right leg.
+ */
+export const HOUSE_BUTTRESS_FEET = { left: [-2.05, 4.05], right: [2.35, 5.5] } as const;
+
+/**
+ * The east houses' root-buttress feet and doorsteps in world XZ, each with the radius the character
+ * stops at (the root's flared foot is 0.42–0.5 m on the terrain at k ≈ 0.94, plus the body's 0.2 m):
+ * walls in the live structure mask. The houses build their feet from the same numbers.
+ */
+export function eastHouseBlocks(): { id: string; kind: 'foot-left' | 'foot-right' | 'doorstep'; x: number; z: number; r: number }[] {
+  const out: ReturnType<typeof eastHouseBlocks> = [];
+  for (const h of EXPANSION_EAST.houses) {
+    const f = (h.facingDeg * Math.PI) / 180;
+    const F: [number, number] = [Math.sin(f), Math.cos(f)];
+    const R: [number, number] = [F[1], -F[0]];
+    const k = h.radius / 3.2;
+    const at = (w: number, d: number) => ({ x: h.x + F[0] * d + R[0] * w, z: h.z + F[1] * d + R[1] * w });
+    const left = HOUSE_BUTTRESS_FEET.left;
+    const right = h.rightFoot ?? HOUSE_BUTTRESS_FEET.right;
+    out.push({ id: h.id, kind: 'foot-left', ...at(left[0] * k, left[1] * k), r: 0.45 * k + 0.25 });
+    out.push({ id: h.id, kind: 'foot-right', ...at(right[0] * k, right[1] * k), r: 0.45 * k + 0.25 });
+    if (h.doorstep) out.push({ id: h.id, kind: 'doorstep', ...at(0, h.doorstep[0]), r: h.doorstep[1] });
+  }
+  return out;
 }
 
 /** the east lane's discs: the lane, then each spur from one spacing in (its first node is a lane node) */

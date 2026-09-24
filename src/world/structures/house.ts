@@ -111,7 +111,7 @@ import {
   Vector2,
   Vector3,
 } from 'three';
-import type { HouseDef } from '../layout';
+import { HOUSE_BUTTRESS_FEET, type HouseDef } from '../layout';
 import type { WorldContext } from '../system';
 import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
@@ -275,6 +275,11 @@ export interface HouseSharedMaterials {
 export interface HouseSiteOptions {
   /** ground circles the buttress roots keep off (paving, a deck's posts, neighbouring trunks), at any height */
   rootKeepOut?: { x: number; z: number; r: number }[];
+  /**
+   * the entrance arch's right root-buttress foot (door space, × k — layout `HOUSE_BUTTRESS_FEET`),
+   * landing steeply like the left one instead of round 20's long leg down Saria's ledge
+   */
+  rightFoot?: readonly [number, number];
 }
 
 /** Local frame: F = out of the door, Rt = viewer's right when facing the door. */
@@ -3793,16 +3798,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const pillarTops: { top: Vector3; foot: P3; side: -1 | 1; footRadius: number }[] = [];
   for (const side of [-1, 1] as const) {
     const jit6 = () => (pillarRng() - 0.5) * 0.06 * k;
-    const wFoot = side < 0 ? -2.05 * k : 2.35 * k;
-    const dFoot = side < 0 ? 4.05 * k : 5.5 * k;
+    const siteFoot = side > 0 ? site.rightFoot : undefined;
+    const footAt = siteFoot ?? (side < 0 ? HOUSE_BUTTRESS_FEET.left : HOUSE_BUTTRESS_FEET.right);
+    const wFoot = footAt[0] * k;
+    const dFoot = footAt[1] * k;
     const foot = frame.door(wFoot, 0, dFoot);
     foot.y = terrain.height(foot.x, foot.z);
     const start = archShoulder(side);
     // (the pillarRng draws stay in round 19's order: waypoint 1, waypoint 2, then the buried tip)
     const shoulderOut = frame.door(lateralOf(start) + side * 0.3 * k + jit6(), 2.25 * k, 3.75 * k + jit6());
-    // the third waypoint: the left one as in round 19; the right one hangs off the (lower,
-    // further) foot so the root arrives at the ground from above instead of through it
-    const knee = side < 0
+    // the third waypoint: the left one as in round 19 (and a site's own right foot); the long right
+    // leg hangs off its (lower, further) foot so the root arrives at the ground from above
+    const knee = side < 0 || siteFoot
       ? frame.door(wFoot - side * 0.12 * k + jit6(), 1.2 * k, dFoot - 0.05 * k + jit6())
       : frame.door(wFoot - side * 0.12 * k + jit6(), heightOf(foot) + 0.55 * k, dFoot - 0.4 * k + jit6());
     const pts = [

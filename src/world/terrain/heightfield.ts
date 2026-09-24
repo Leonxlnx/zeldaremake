@@ -7,7 +7,7 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { EAST_BOX, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_STAIRS, LAYOUT, eastDeckPlan, eastShopSpots, eastSteppingStones, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
+import { EAST_BOX, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_STAIRS, LAYOUT, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 
@@ -1176,11 +1176,12 @@ const EAST_BENCH = (() => {
  * deck is left by its plank steps only.
  */
 const EAST_RAILS = eastDeckPlan().rails.map(([a, b]) => ({ ax: a[0], az: a[1], bx: b[0], bz: b[1], r: 0.2 }));
-/** posts and goods standing on the lane's verges (the shop's sign, the pod-lantern posts, the shop's crates and baskets) */
+/** posts and goods standing on the lane's verges (the shop's sign, the pod-lantern posts, the shop's crates and baskets), the houses' root-buttress feet and the small house's doorstep */
 const EAST_POSTS = [
   { x: EXPANSION_EAST.shopSign.x, z: EXPANSION_EAST.shopSign.z, r: 0.22 },
   ...EXPANSION_EAST.lanternPosts.map((p) => ({ x: p.x, z: p.z, r: 0.2 })),
   ...eastShopSpots().map((s) => ({ x: s.x, z: s.z, r: s.foot })),
+  ...eastHouseBlocks().map((b) => ({ x: b.x, z: b.z, r: b.r })),
 ];
 
 /**
