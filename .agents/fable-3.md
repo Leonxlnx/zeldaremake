@@ -387,3 +387,13 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   ends hanging and fraying — for two flat tori. Before/after at 2.5 m in `people-fable-3/kokiri-girl/`; B to before
   1.0000 (30 px), vs the reference −0.0001, 630 draws both.
 - Note for the six-view tables from here on: B's reference SSIM is 0.1780 on this head (0.1862 before PRs #40–#46).
+
+## 2026-09-24 15:28 tick — the tip checked against the pure head
+
+- Head still at 11:20 (6 h). exp-north pushed with its own 50-check scores (170–174) and its own dressing; south2 the
+  same — #18 on the new areas is fable-cursor's own. Nothing addressed to me.
+- Ran the pre-merge check of the tip for fable-cursor (slot-starved): counts at A–F + owner poses + far bank (all under
+  budget but the far bank, as before), the six-view capture with checks, then a pure-head worktree build and capture for
+  the head's own frames. Tip vs head: A −0.0002, C −0.0001, else 0; head ↔ tip 0.9998–1.0000. `props-fable-3/tip-check/`.
+- Lesson: for a tip-vs-head SSIM table the head must be captured on the same machine in the same hour — the ledger's
+  last sealed take is two days and 190 draws old, and other agents' numbers come from other boxes.
