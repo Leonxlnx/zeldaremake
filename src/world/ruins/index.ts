@@ -31,8 +31,11 @@ import { buildWater } from './water';
 import { buildWisps } from './wisps';
 
 const R = EXPANSION_RUINS;
-/** the masonry's target albedo (linear): the reference's pale grey-cream limestone */
-const MASONRY_TINT: [number, number, number] = [0.37, 0.355, 0.32];
+/**
+ * the masonry's target albedo (linear): the reference's pale grey-cream limestone — near neutral,
+ * since the key (config.sun.color) already lays the cream on the lit faces
+ */
+const MASONRY_TINT: [number, number, number] = [0.36, 0.354, 0.338];
 
 /** the site's casters (circle on the ground, its height span) for the locality */
 function ruinsCasters(): Caster[] {
@@ -74,7 +77,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     meanL: 0.296,
     tile: 1.6,
     tint: MASONRY_TINT,
-    keep: 0.35,
+    keep: 0.25,
     contrast: 0.9,
     normalScale: 0.9,
     roughness: 0.9,
@@ -100,8 +103,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // (before the boulders are built: the posts' foot stones go into their builder)
   const lanterns = await buildLanterns(rng.fork('lanterns'), (x, z) => terrain.height(x, z), ctx.textures, ctx.config.palette.lanternGlow, rock.boulder);
   const [cliffMat, boulderMat] = await Promise.all([
-    createStone(ctx.textures, ctx.config, { name: 'cliff', set: 'rock_face_03', meanL: 0.163, tile: 3.2, tint: [0.365, 0.363, 0.352], keep: 0.3, contrast: 1.0, normalScale: 1.0, roughness: 0.92, tone: 0.14 }),
-    createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.44, 0.425, 0.39], keep: 0.3, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
+    createStone(ctx.textures, ctx.config, { name: 'cliff', set: 'rock_face_03', meanL: 0.163, tile: 3.2, tint: [0.37, 0.37, 0.365], keep: 0.2, contrast: 1.0, normalScale: 1.0, roughness: 0.92, tone: 0.14 }),
+    createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.435, 0.428, 0.405], keep: 0.22, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
   ]);
   materials.push(cliffMat, boulderMat);
   // (also before the boulders are built: the offering's cairn goes into their builder)
