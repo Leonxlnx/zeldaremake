@@ -21,7 +21,10 @@
  *   7. the legacy streams' filters: `expansionCull` on the discs, the treads and the built feet, not
  *      at Link's spawn or any fixed camera; `northGroveClear` on every walk, not in the woods;
  *   8. the footsteps: wood on the veranda, the gangway, the rope walk and the hut's platform,
- *      stone on the discs and the flight.
+ *      stone on the discs and the flight;
+ *   9. the lawn: `groveGroundDistance` / `groveDeckDistance`, `groveLawn` full round the walkable
+ *      ground and gone in the woods and on the terrace, the terrain's forest floor bare under it and
+ *      kept off it, its mask covering the grove on the round-46 texel lattice.
  */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -276,4 +279,64 @@ const measured = {};
   assert.notEqual(surfaceAt(N.shelf.cx - 5, N.shelf.cz + 2).surface, 'wood', 'the yard is not wood');
 }
 
-console.log(`expansionNorth.test.mjs: ok (${measured.ring}; trail ${measured.trail}; shelf ${measured.shelf})`);
+// 9. the lawn round the walkable ground, and the terrain's forest floor giving way to it
+{
+  const { forestFloorAt, FOREST_FLOOR } = loadTs(path.join(here, 'material.ts'));
+  const g = northGangway();
+  const rw = northRopeWalkEnds();
+  for (const [id, x, z] of [['trail', N.trail[2][0], N.trail[2][2]], ['shelf', N.shelf.cx, N.shelf.cz], ['pad', N.shelf.pads[0].x, N.shelf.pads[0].z]]) {
+    assert.equal(north.groveGroundDistance(x, z), 0, `groveGroundDistance 0 on the ${id}`);
+    // (the pad is where the gangway leaves the ground, beside its raised run)
+    if (id !== 'pad') assert.ok(north.groveDeckDistance(x, z) > 5, `the ${id} is clear of the decks (${north.groveDeckDistance(x, z).toFixed(2)} m)`);
+  }
+  const decks = [
+    ['veranda', N.stilt.host[0] + 2.1, N.stilt.host[1]],
+    ['gangway head', g.head[0], g.head[2]],
+    ['rope walk', (rw.stilt[0] + rw.hut[0]) / 2, (rw.stilt[2] + rw.hut[2]) / 2],
+    ['hut', N.hut.host[0], N.hut.host[1]],
+  ];
+  for (const [id, x, z] of decks) {
+    assert.ok(north.groveDeckDistance(x, z) < 0, `under the ${id}'s deck (${north.groveDeckDistance(x, z).toFixed(2)} m)`);
+    assert.ok(north.groveGroundDistance(x, z) > 0, `the ${id} is no walkable ground`);
+  }
+  assert.equal(north.groveGroundDistance(0, 0), Infinity, 'the plaza is out of the grove\'s ground reach');
+  // full within GROVE_LAWN_M[0] less its jitter of the walkable ground, gone past GROVE_LAWN_M[1]
+  // plus it and on the ledge terrace (the village's own lawn); the forest floor bare under a full
+  // lawn and kept where there is none
+  const [full, none] = north.GROVE_LAWN_M;
+  const JITTER = 2.5;
+  let lawnCells = 0;
+  let woodCells = 0;
+  let woodLitter = 0;
+  for (let z = B.z0 - 4; z <= B.z1 + 2; z += 0.5) {
+    for (let x = B.x0 - 8; x <= B.x1 + 8; x += 0.5) {
+      const lawn = north.groveLawn(x, z);
+      if (z >= -79.4) {
+        assert.equal(lawn, 0, `no grove lawn on the terrace at ${fmt(x, z)}`);
+        continue;
+      }
+      const gd = north.groveGroundDistance(x, z);
+      if (z < -81.6 && gd <= full - JITTER) assert.equal(lawn, 1, `full lawn by the walks at ${fmt(x, z)}`);
+      if (gd >= none + JITTER) assert.equal(lawn, 0, `no lawn in the woods at ${fmt(x, z)}`);
+      const [litter, humus] = forestFloorAt(x, z);
+      if (lawn >= 1) {
+        lawnCells++;
+        assert.ok(litter === 0 && humus === 0, `no forest floor under the full lawn at ${fmt(x, z)}`);
+      } else if (lawn <= 0 && inExpansionNorth(x, z)) {
+        woodCells++;
+        woodLitter += litter;
+      }
+    }
+  }
+  assert.ok(lawnCells > 1500 && woodCells > 600, `lawn cells ${lawnCells}, wood cells ${woodCells}`);
+  assert.ok(woodLitter / woodCells > 0.5, `the woods keep their forest floor (mean litter ${(woodLitter / woodCells).toFixed(3)})`);
+  // the mask covers the grove's box, on the round-46 lattice (its rows south of z −90 sample the points they did)
+  const [, fz0, , fdz] = FOREST_FLOOR.box;
+  const texel = fdz / FOREST_FLOOR.res[1];
+  const rows = (-90 - fz0) / texel;
+  assert.ok(fz0 <= B.z0, `the forest-floor mask reaches z ${fz0.toFixed(2)} (the grove's box ends at ${B.z0})`);
+  assert.ok(Math.abs(rows - Math.round(rows)) < 1e-9 && Math.abs(texel - 100 / 192) < 1e-12, `whole texels north of z −90 (${rows.toFixed(6)} rows of ${texel.toFixed(6)} m)`);
+  measured.lawn = `${lawnCells} lawn cells bare of litter, woods ${(woodLitter / woodCells).toFixed(2)}`;
+}
+
+console.log(`expansionNorth.test.mjs: ok (${measured.ring}; trail ${measured.trail}; shelf ${measured.shelf}; lawn ${measured.lawn})`);

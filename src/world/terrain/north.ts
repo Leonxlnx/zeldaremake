@@ -8,7 +8,7 @@
  * trees clear the ground the grove needs (`northGroveClear`).
  */
 import { EXPANSION_NORTH, EXPANSION_NORTH_BOX, NORTH_STAIRS, northGangway, northRopeWalkEnds, northSteppingStones } from '../layout';
-import { clamp, smoothstep } from '../util/noise';
+import { Noise2D, clamp, smoothstep } from '../util/noise';
 
 const N = EXPANSION_NORTH;
 const DEG = Math.PI / 180;
@@ -387,6 +387,63 @@ export function groveWalkDistance(x: number, z: number, reach = 16): number {
   d = Math.min(d, segDist(x, z, ROPE.stilt[0], ROPE.stilt[2], ROPE.hut[0], ROPE.hut[2]) - N.ropeWalk.halfWidth);
   d = Math.min(d, Math.hypot(x - N.hut.host[0], z - N.hut.host[1]) - (N.hut.radius + N.hut.capOverhang));
   return Math.max(0, d);
+}
+
+/**
+ * Horizontal distance (m) from (x, z) to the grove's walkable GROUND — the flight, the trail's
+ * width, the shelf and its pad — 0 on it; Infinity farther than `reach` m outside the grove's box.
+ */
+export function groveGroundDistance(x: number, z: number, reach = 16): number {
+  const b = EXPANSION_NORTH_BOX;
+  if (x < b.x0 - reach || x > b.x1 + reach || z < b.z0 - reach || z > b.z1 + reach) return Infinity;
+  const F = FLIGHT_FRAME;
+  const rx = x - FLIGHT.base[0];
+  const rz = z - FLIGHT.base[2];
+  const u = rx * F.dx + rz * F.dz;
+  const v = -rx * F.dz + rz * F.dx;
+  let d = Math.hypot(Math.max(0, -u, u - F.run), Math.max(0, Math.abs(v) - F.hw));
+  const th = trailHit(x, z, TRAIL_REACH + reach);
+  if (th) d = Math.min(d, th.d - N.trailHalfWidth);
+  d = Math.min(d, shelfDistance(x, z));
+  return Math.max(0, d);
+}
+
+/** where the gangway leaves the ground (0 foot … 1 head): its run from here up is a raised deck (the foot's third lies on the pad) */
+export const GANGWAY_RAISED = 0.3;
+
+/**
+ * Signed horizontal distance (m) from the raised decks' footprints — the veranda, the gangway's
+ * raised run, the rope walk, the tree hut's cap — negative under them.
+ */
+export function groveDeckDistance(x: number, z: number): number {
+  let d = Math.hypot(x - N.stilt.host[0], z - N.stilt.host[1]) - VERANDA_R;
+  const gx = GANGWAY.foot[0] + (GANGWAY.head[0] - GANGWAY.foot[0]) * GANGWAY_RAISED;
+  const gz = GANGWAY.foot[2] + (GANGWAY.head[2] - GANGWAY.foot[2]) * GANGWAY_RAISED;
+  d = Math.min(d, segDist(x, z, gx, gz, GANGWAY.head[0], GANGWAY.head[2]) - N.gangway.halfWidth);
+  d = Math.min(d, segDist(x, z, ROPE.stilt[0], ROPE.stilt[2], ROPE.hut[0], ROPE.hut[2]) - N.ropeWalk.halfWidth);
+  d = Math.min(d, Math.hypot(x - N.hut.host[0], z - N.hut.host[1]) - (N.hut.radius + N.hut.capOverhang));
+  return d;
+}
+
+/** the grove's lawn: full within GROVE_LAWN_M[0] of the walkable ground, none past GROVE_LAWN_M[1] (the line moved ± GROVE_LAWN_JITTER_M by noise) */
+export const GROVE_LAWN_M: readonly [number, number] = [4.5, 10.5];
+const GROVE_LAWN_JITTER_M = 2.5;
+/** the lawn fades out south of the flight's foot (z): the ledge terrace is the village's own lawn */
+const GROVE_LAWN_TERRACE_Z: readonly [number, number] = [-79.4, -81.6];
+const lawnEdge = new Noise2D('expansion-north/lawn-edge');
+
+/**
+ * The grove's lawn, 0..1: the turf round the flight, the trail and the shelf, going into the
+ * forest floor along a noisy line. The terrain's forest-floor patch gives way to it
+ * (material.ts `forestFloorAt`: the splat's grass comes back) and the vegetation grows its turf
+ * on it, so the green ground and the blades over it are one outline.
+ */
+export function groveLawn(x: number, z: number): number {
+  if (z > GROVE_LAWN_TERRACE_Z[0]) return 0;
+  const gd = groveGroundDistance(x, z, GROVE_LAWN_M[1] + GROVE_LAWN_JITTER_M + 1);
+  if (gd === Infinity) return 0;
+  const w = 1 - smoothstep(GROVE_LAWN_M[0], GROVE_LAWN_M[1], gd + GROVE_LAWN_JITTER_M * lawnEdge.fbm(x * 0.11, z * 0.11, 2));
+  return w * smoothstep(GROVE_LAWN_TERRACE_Z[0], GROVE_LAWN_TERRACE_Z[1], z);
 }
 
 /**
