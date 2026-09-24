@@ -98,7 +98,7 @@ export interface GrassResult {
  * a per-vertex flag the shader reads as "this is a near-tile geometry": the broad sedge blades
  * are halved on the near LODs (materials.ts GRASS_SHAPE_VERTEX) and keep their width on the far one.
  */
-function bladeGeometry(segments: number, widthMul: number, near: 0 | 1): { position: Float32BufferAttribute; uv: Float32BufferAttribute; normal: Float32BufferAttribute; near: Float32BufferAttribute; index: Uint16BufferAttribute } {
+export function bladeGeometry(segments: number, widthMul: number, near: 0 | 1): { position: Float32BufferAttribute; uv: Float32BufferAttribute; normal: Float32BufferAttribute; near: Float32BufferAttribute; index: Uint16BufferAttribute } {
   const pos: number[] = [];
   const uv: number[] = [];
   const nrm: number[] = [];

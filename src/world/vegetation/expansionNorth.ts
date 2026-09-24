@@ -5,11 +5,13 @@
  * −96), and its landform is in the LIVE view only, so this pass dresses all of it against the
  * live view:
  *
- *  - the lawn: turf mats, clump cards and tufts round the flight, the trail and the shelf — full
- *    to LAWN_FULL_M off the walkable ground, gone by LAWN_EDGE_M along a noisy line — trodden off
- *    the trail's middle, the yard's paths and the door's apron, thin in the decks' shade, shorter
- *    and drier on the shelf's yard; it yields to the legacy carpet where that is drawn (the
- *    terrace, the flight's foot), so the two never double;
+ *  - the lawn round the flight, the trail and the shelf (terrain/north.ts `groveLawn`, the outline
+ *    the terrain's forest floor gives way to its grass on): blades in rooted tufts on tiles of
+ *    their own (the village turf's grass material and LODs, grass.ts), a turf mat in every cell
+ *    at full weight and clump cards among them, all three on one tone field — trodden off the
+ *    trail's middle, the yard's paths and the door's apron, thin in the decks' shade, shorter and
+ *    drier on the shelf's yard, deeper toward the forest; it yields to the legacy carpet where
+ *    that is drawn (the terrace, the flight's foot), so the two never double;
  *  - the trail's verges and the flight's cheeks: tufts leaning over the edge, leaves in the
  *    angles, ferns a little further out;
  *  - the shelf's rim: ferns, tufts and moss on the cut bank, tufts rolling over the lip;
@@ -25,15 +27,17 @@
  * `vegetation/index.ts` shows only where the camera can see the grove (util/groveLocality.ts
  * `groveVisible`), so the six fixed frames pay nothing for it.
  */
-import { Group, Sphere, Vector3 } from 'three';
-import { EXPANSION_NORTH, NORTH_STAIRS, northGangway, northRopeWalkEnds } from '../layout';
+import { BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, Sphere, Vector3, type Material } from 'three';
+import { EXPANSION_NORTH, NORTH_STAIRS, northGangway } from '../layout';
 import type { WorldContext } from '../system';
 import { getTerrain, type Terrain } from '../terrain/heightfield';
-import { GROVE_DOOR, STILT_STUMP, VERANDA_R, gangwayTrestleFeet, shelfDistance, stiltFeet, trailHit } from '../terrain/north';
+import { GROVE_DOOR, STILT_STUMP, gangwayTrestleFeet, groveDeckDistance, groveGroundDistance, groveLawn, shelfDistance, stiltFeet } from '../terrain/north';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
+import { matPalettePosition } from './carpet';
 import type { ExpansionTemplates, ExpansionVegetation, SetTemplate } from './expansion';
 import { composeMatrix } from './field';
+import { bladeGeometry } from './grass';
 import { LodInstancedSet } from './lodset';
 
 export interface GroveTemplates extends ExpansionTemplates {
@@ -47,6 +51,30 @@ export interface LegacyLawn {
   cards: LodInstancedSet[];
 }
 
+/** one BLADE_TILE tile of the lawn's blades: its mesh, the LOD geometries it swaps between (all sharing its aData), the one it holds */
+export interface GroveBladeTile {
+  mesh: InstancedMesh;
+  lods: BufferGeometry[];
+  lod: number;
+  count: number;
+  mx: number;
+  mz: number;
+}
+
+/** the lawn's blade tiles: LOD by camera distance (`update`), what the last update drew */
+export interface GroveBlades {
+  tiles: GroveBladeTile[];
+  count: number;
+  typeCounts: number[];
+  update(camPos: Vector3): void;
+  visible: { drawCalls: number; triangles: number; lodCounts: number[] };
+  dispose(): void;
+}
+
+export interface GroveVegetation extends ExpansionVegetation {
+  blades: GroveBlades;
+}
+
 const N = EXPANSION_NORTH;
 /** the dressed ground [x0, z0, x1, z1]: the walks and decks with DRESS_M round them, the terrace's legacy lawn to the south */
 const DBOX: readonly [number, number, number, number] = [-24, -120, 24, -78];
@@ -57,10 +85,20 @@ const MAT_W: readonly [number, number] = [0.9, 1.2];
 const MAT_LIFT = 0.018;
 const CARD_SINK = 0.03;
 const CELL = 0.42;
-/** the lawn: full within LAWN_FULL_M of the walkable ground, none past LAWN_EDGE_M (the line moved ± LAWN_JITTER_M by noise) */
-const LAWN_FULL_M = 4.5;
-const LAWN_EDGE_M = 10.5;
-const LAWN_JITTER_M = 2.5;
+/**
+ * The lawn's blades (grass.ts's tiles in miniature): candidate blades per m² at full lawn weight
+ * (the village turf's base pass is 245 × its 1 / 1.5 acceptance), in rooted tufts of
+ * BLADE_TUFT blades within BLADE_TUFT_R m, on BLADE_TILE m tiles — four-segment blades inside
+ * BLADE_LOD_M[0] of a tile's near edge, two-segment to BLADE_LOD_M[1], none past it (the mats and
+ * cards carry the turf there, as in the village).
+ */
+const BLADES_PER_M2 = 150;
+const BLADE_TUFT: readonly [number, number] = [5, 9];
+const BLADE_TUFT_R = 0.075;
+const BLADE_TILE = 8;
+const BLADE_LOD_M: readonly [number, number] = [6, 26];
+/** the lawn's tone: its base tint drift (grass.ts `tn`: < −0.28 deep … > 0.48 light) on the slopes and the shelf's yard, the mottle's amplitude, the deepening toward the forest and under the decks */
+const LAWN_TN = { slopes: 0.12, shelf: 0.22, mottle: 0.18, edge: 0.3, deck: 0.18 };
 /** the understory and the litter end this far (m) off the walkable ground */
 const DRESS_M = 15;
 /** the dressing fades out south of the flight's foot (z): the terrace is the legacy streams' */
@@ -88,39 +126,15 @@ const FL = (() => {
   return { dx: FLIGHT.dir[0] / l, dz: FLIGHT.dir[1] / l, run: FLIGHT.steps * FLIGHT.tread, hw: FLIGHT.width / 2 };
 })();
 const GW = northGangway();
-const RW = northRopeWalkEnds();
-/** where the gangway leaves the ground: its run from here up is a raised deck (the foot's third lies on the pad) */
-const GANGWAY_RAISED = 0.3;
 
-/** (u along, v across) in the flight's frame from its foot */
-function flightLocal(x: number, z: number): { u: number; v: number } {
-  const rx = x - FLIGHT.base[0];
-  const rz = z - FLIGHT.base[2];
-  return { u: rx * FL.dx + rz * FL.dz, v: -rx * FL.dz + rz * FL.dx };
-}
+/** distance (m) from the grove's walkable ground (terrain/north.ts), answered over all of DBOX */
+const groveGroundWalk = (x: number, z: number) => groveGroundDistance(x, z, 40);
 
-/** distance (m) from the grove's walkable GROUND — the flight, the trail's width, the shelf and its pad — 0 on it */
-export function groveGroundWalk(x: number, z: number): number {
-  const f = flightLocal(x, z);
-  let d = Math.hypot(Math.max(0, -f.u, f.u - FL.run), Math.max(0, Math.abs(f.v) - FL.hw));
-  const th = trailHit(x, z, 40);
-  if (th) d = Math.min(d, th.d - N.trailHalfWidth);
-  d = Math.min(d, shelfDistance(x, z));
-  return Math.max(0, d);
-}
+/** the blades' tint-slot index from a tint drift (grass.ts: the same bins as the blade tiles) */
+const tintIndexOf = (tn: number) => (tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3);
 
-/** signed distance (m) from the raised decks' footprints — the veranda, the gangway's raised run, the rope walk, the tree hut's cap — negative under them */
-export function groveDeckDistance(x: number, z: number): number {
-  let d = Math.hypot(x - N.stilt.host[0], z - N.stilt.host[1]) - VERANDA_R;
-  const gx = GW.foot[0] + (GW.head[0] - GW.foot[0]) * GANGWAY_RAISED;
-  const gz = GW.foot[2] + (GW.head[2] - GW.foot[2]) * GANGWAY_RAISED;
-  d = Math.min(d, segDistance(x, z, gx, gz, GW.head[0], GW.head[2]) - N.gangway.halfWidth);
-  d = Math.min(d, segDistance(x, z, RW.stilt[0], RW.stilt[2], RW.hut[0], RW.hut[2]) - N.ropeWalk.halfWidth);
-  d = Math.min(d, Math.hypot(x - N.hut.host[0], z - N.hut.host[1]) - (N.hut.radius + N.hut.capOverhang));
-  return d;
-}
-
-export function buildExpansionNorthVegetation(ctx: WorldContext, templates: GroveTemplates, legacy: LegacyLawn, parent: Group): ExpansionVegetation {
+/** `bladeMaterial` is the village turf's grass material (grass.ts) the lawn's blade tiles draw with */
+export function buildExpansionNorthVegetation(ctx: WorldContext, templates: GroveTemplates, legacy: LegacyLawn, bladeMaterial: Material, parent: Group): GroveVegetation {
   const T: Terrain = getTerrain();
   const q = ctx.quality;
   const group = new Group();
@@ -252,7 +266,7 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
     const light = 1 + (hash01(x, z, 5) * 2 - 1) * 0.09;
     clumps.add(M, 0, [light * (1 + 0.07 * hue), light * (1 + 0.07 * 0.25 * Math.abs(hue)), light * (1 - 0.07 * 1.2 * hue)], data);
   };
-  /** a turf mat (its first float the continuous palette position 0..3 — carpet.ts matPalettePosition) */
+  /** a turf mat (its first float the continuous palette position 0..3 — carpet.ts matPalettePosition — of half the tint drift, as the village's mats take it) */
   const mat = (x: number, z: number, rng: Rng, palette: number, dry: number, width = 1) => {
     const w = (MAT_W[0] + (MAT_W[1] - MAT_W[0]) * rng()) * width;
     const tile = rng.int(0, templates.mats.tiles);
@@ -271,14 +285,13 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
     return false;
   };
 
-  // ---- the lawn's reach: full round the walkable ground, gone into the forest floor along a noisy line
-  const edgeNoise = new Noise2D('expansion-north/lawn-edge');
+  // ---- the lawn's reach: terrain/north.ts groveLawn, the outline the terrain's grass comes back on
   const clumpNoise = new Noise2D('expansion-north/understory-clumps');
+  const mottle = new Noise2D('expansion-north/lawn-tone');
   const pad = N.shelf.pads[0];
   /** the lawn's weight at (x, z) before the ground check: reach, the legacy carpet, the tread, the door, the decks' shade */
   const lawnWeight = (x: number, z: number) => {
-    const gw = groveGroundWalk(x, z);
-    let w = 1 - smoothstep(LAWN_FULL_M, LAWN_EDGE_M, gw + LAWN_JITTER_M * edgeNoise.fbm(x * 0.11, z * 0.11, 2));
+    let w = groveLawn(x, z);
     if (w <= 0) return 0;
     w *= 1 - legacyCover(x, z);
     if (w <= 0) return 0;
@@ -291,13 +304,25 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
   };
   /** 1 on the shelf's yard, 0 off it (half a metre either side of its edge) */
   const onShelf = (x: number, z: number) => 1 - smoothstep(-0.5, 0.5, shelfDistance(x, z));
+  /**
+   * The lawn's tint drift at (x, z) (grass.ts `tn`), the one tone the blades, the mats and the
+   * cards read: the yard's lighter base blended to the slopes', a slow mottle, deeper where the
+   * lawn gives way to the forest floor and in the decks' shade.
+   */
+  const lawnTone = (x: number, z: number) => {
+    const sh = onShelf(x, z);
+    let tn = LAWN_TN.slopes + (LAWN_TN.shelf - LAWN_TN.slopes) * sh + LAWN_TN.mottle * mottle.fbm(x * 0.12, z * 0.12, 2);
+    tn -= LAWN_TN.edge * (1 - groveLawn(x, z));
+    if (groveDeckDistance(x, z) < 0.3) tn -= LAWN_TN.deck;
+    return tn;
+  };
 
   /**
-   * A lawn over DBOX: cards and mats on the jittered CELL grid wherever `weight` > 0 (the card
-   * density; a mat every other cell at full weight, not on slopes past 0.6), tufts at
-   * `tuftsPerM2` × weight. Returns the cards placed.
+   * A lawn over DBOX on the jittered CELL grid wherever `weight` > 0: a turf mat in every cell at
+   * full weight (the village carpet's closed turf; none on slopes past 0.65 or on the trodden
+   * ground) and clump cards at the weight. Returns the cards placed.
    */
-  const lawn = (label: string, weight: (x: number, z: number) => number, opts: { tuftsPerM2: number; tint: number; dry: number; height: number; tuftHeight?: readonly [number, number] }) => {
+  const lawn = (label: string, weight: (x: number, z: number) => number, opts: { dry: number; height: number }) => {
     const rng = ctx.rng.fork(`expansion-north/lawn/${label}`);
     const [x0, z0, x1, z1] = DBOX;
     const nx = Math.ceil((x1 - x0) / CELL);
@@ -312,44 +337,194 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
         const mw = rng();
         const hk = 0.9 + 0.2 * rng();
         const dr = rng();
+        const tg = rng.gauss();
         const wgt = weight(x, z);
         if (wgt <= 0) continue;
         const slope = groundOk(x, z, 0.1);
         if (slope < 0) continue;
         const slopeK = 1 - smoothstep(0.45, 0.7, slope);
-        if (mw < Math.min(1, wgt * 1.6) * 0.5 * (1 - smoothstep(0.45, 0.65, slope)) * q.density && T.mask(x, z).path < 0.25) {
-          mat(x, z, rng, opts.tint, opts.dry);
+        const tn = lawnTone(x, z);
+        if (mw < Math.min(1, wgt * 1.6) * (1 - smoothstep(0.45, 0.65, slope)) * q.density && T.mask(x, z).path < 0.25) {
+          mat(x, z, rng, matPalettePosition(0.5 * tn), opts.dry);
           matsPlaced++;
         }
         if (cw < wgt * slopeK * q.density) {
-          card(x, z, rng, opts.height * hk, opts.tint < 1.5 ? 1 : 2, opts.dry * (0.3 + 0.7 * dr));
+          card(x, z, rng, opts.height * hk, tintIndexOf(tn + 0.18 * tg), opts.dry * (0.3 + 0.7 * dr));
           placed++;
         }
       }
     }
-    const area = (x1 - x0) * (z1 - z0);
-    const nt = Math.round(area * opts.tuftsPerM2 * q.density);
-    const th = opts.tuftHeight ?? [0.55, 1.05];
-    let tuftsPlaced = 0;
-    for (let i = 0; i < nt; i++) {
-      const x = mm(x0 + rng() * (x1 - x0));
-      const z = mm(z0 + rng() * (z1 - z0));
-      const draw = rng();
-      const scale = th[0] + (th[1] - th[0]) * rng();
-      const c = greenVar(rng, 0.16);
-      if (draw > weight(x, z)) continue;
-      const slope = groundOk(x, z, 0.1);
-      if (slope < 0 || slope > 0.62) continue;
-      plant(tufts, x, z, rng, scale, 0.6, 0.015, c);
-      tuftsPlaced++;
-    }
     counts[`lawn-${label}-cards`] = placed;
     counts[`lawn-${label}-mats`] = matsPlaced;
-    counts[`lawn-${label}-tufts`] = tuftsPlaced;
     return placed;
   };
-  lawn('slopes', (x, z) => lawnWeight(x, z) * (1 - onShelf(x, z)), { tuftsPerM2: 1.5, tint: 1.1, dry: 0.28, height: 1.0 });
-  lawn('shelf', (x, z) => lawnWeight(x, z) * onShelf(x, z), { tuftsPerM2: 0.8, tint: 1.3, dry: 0.42, height: 0.8, tuftHeight: [0.45, 0.85] });
+  lawn('slopes', (x, z) => lawnWeight(x, z) * (1 - onShelf(x, z)), { dry: 0.2, height: 1.0 });
+  lawn('shelf', (x, z) => lawnWeight(x, z) * onShelf(x, z), { dry: 0.3, height: 0.8 });
+
+  // ---- the lawn's blades: rooted tufts on BLADE_TILE tiles, the village turf's grass material
+  // and encoding (grass.ts: phase, stiffness, tint slot, type + dryness step + tip tone)
+  const blades = ((): GroveBlades => {
+    const bases = [bladeGeometry(4, 1, 1), bladeGeometry(2, 1.3, 1), bladeGeometry(1, 1.9, 0)];
+    const trisPerLod = bases.map((b) => b.index.count / 3);
+    const bladeGroup = new Group();
+    bladeGroup.name = 'grove-blades';
+    group.add(bladeGroup);
+    const tiles: GroveBladeTile[] = [];
+    const typeCounts = [0, 0, 0, 0];
+    const [x0, z0, x1, z1] = DBOX;
+    const tuftMean = (BLADE_TUFT[0] + BLADE_TUFT[1]) / 2;
+    const maxPerTile = Math.ceil(BLADE_TILE * BLADE_TILE * BLADES_PER_M2 * Math.max(q.density, 0.1) * 1.05) + BLADE_TUFT[1];
+    const matrices = new Float32Array(maxPerTile * 16);
+    const data = new Float32Array(maxPerTile * 4);
+    let total = 0;
+    for (let tz = z0; tz < z1; tz += BLADE_TILE) {
+      for (let tx = x0; tx < x1; tx += BLADE_TILE) {
+        const rng = ctx.rng.fork(`expansion-north/blades/${tx}/${tz}`);
+        const roots = Math.round((BLADE_TILE * BLADE_TILE * BLADES_PER_M2 * q.density) / tuftMean);
+        let count = 0;
+        let ySum = 0;
+        let yMin = Infinity;
+        let yMax = -Infinity;
+        let maxH = 0;
+        for (let r = 0; r < roots && count + BLADE_TUFT[1] <= maxPerTile; r++) {
+          const rx = tx + rng() * BLADE_TILE;
+          const rz = tz + rng() * BLADE_TILE;
+          const size = rng.int(BLADE_TUFT[0], BLADE_TUFT[1] + 1);
+          const tuftH = 0.6 + 0.8 * rng();
+          const tuftTint = rng.gauss() * 0.2;
+          const tuftTip = rng();
+          const draw = rng();
+          const tr = rng();
+          if (rx >= x1 || rz >= z1) continue;
+          const wgt = lawnWeight(rx, rz);
+          if (wgt <= 0 || draw > wgt) continue;
+          const slope = groundOk(rx, rz, 0.06);
+          if (slope < 0 || slope > 0.8) continue;
+          const [nx0, ny0, nz0] = [n.x, n.y, n.z];
+          const sh = onShelf(rx, rz);
+          // taller, unmown grass toward the forest and along the trail's and the flight's edges
+          const wild = Math.max(1 - wgt, 1 - smoothstep(0.3, 2.2, groveGroundWalk(rx, rz))) * (1 - sh);
+          const meadowP = 0.05 + 0.3 * wild;
+          const sedgeP = 0.06;
+          const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : tr > 0.97 && wild < 0.3 ? 3 : 0;
+          const tnRoot = lawnTone(rx, rz);
+          const dryRoot = (0.22 + 0.2 * sh) * (type === 2 ? 0.4 : 1);
+          const hk = (1 - 0.22 * sh) * (groveDeckDistance(rx, rz) < 0.3 ? 0.85 : 1);
+          const tuftK = 1 + (tuftH - 1) * (1 - 0.6 * sh);
+          for (let b = 0; b < size; b++) {
+            const a = rng() * Math.PI * 2;
+            const rad = BLADE_TUFT_R * Math.sqrt(rng());
+            const hr = rng();
+            const wr = rng();
+            const bladeTint = rng.gauss() * 0.09;
+            const dr = rng();
+            const phase = rng();
+            const sr = rng();
+            const yaw = rng() * Math.PI * 2;
+            const jx = rng.gauss() * 0.07;
+            const jz = rng.gauss() * 0.07;
+            const x = mm(rx + Math.cos(a) * rad);
+            const z = mm(rz + Math.sin(a) * rad);
+            let h: number;
+            let w: number;
+            if (type === 1) {
+              h = 0.28 + 0.32 * hr;
+              w = 0.008 + 0.008 * wr;
+            } else if (type === 2) {
+              h = 0.2 + 0.3 * hr;
+              w = 0.024 + 0.016 * wr;
+            } else if (type === 3) {
+              h = 0.3 + 0.14 * Math.pow(hr, 1.4);
+              w = 0.011 + 0.006 * wr;
+            } else {
+              h = 0.11 + 0.2 * Math.pow(hr, 1.4);
+              w = 0.012 + 0.012 * wr;
+            }
+            h *= tuftK * hk;
+            // the village lawn's spike cap (grass.ts LAWN_SPIKE_CAP) on the mown ground
+            if (type !== 1) h = Math.min(h, 0.32 * tuftK + (h - 0.32 * tuftK) * wild);
+            const y = T.height(x, z) - 0.012;
+            composeMatrix(matrices, count * 16, x, y, z, nx0 + jx, ny0, nz0 + jz, 0.5, yaw, w, h, h);
+            const o = count * 4;
+            data[o] = phase;
+            data[o + 1] = clamp(1 - h * (0.75 + 0.35 * sr), 0.05, 0.95);
+            data[o + 2] = (tintIndexOf(tnRoot + tuftTint + bladeTint) + 0.25) / 4;
+            const dry = clamp(dryRoot * (0.3 + 0.7 * dr), 0, 0.95);
+            data[o + 3] = type + (Math.floor(dry * 16) + 0.02 + 0.96 * tuftTip) / 16;
+            count++;
+            typeCounts[type]++;
+            ySum += y;
+            yMin = Math.min(yMin, y);
+            yMax = Math.max(yMax, y);
+            maxH = Math.max(maxH, h);
+          }
+        }
+        if (count === 0) continue;
+        total += count;
+        const aData = new InstancedBufferAttribute(data.slice(0, count * 4), 4);
+        const lods = bases.map((b) => {
+          const g = new BufferGeometry();
+          g.setAttribute('position', b.position);
+          g.setAttribute('uv', b.uv);
+          g.setAttribute('normal', b.normal);
+          g.setAttribute('aNear', b.near);
+          g.setAttribute('aData', aData);
+          g.setIndex(b.index);
+          g.boundingSphere = new Sphere(new Vector3(0, 0.5, 0), 1.5);
+          return g;
+        });
+        const mesh = new InstancedMesh(lods[1], bladeMaterial, count);
+        mesh.instanceMatrix.array.set(matrices.subarray(0, count * 16));
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.castShadow = false;
+        mesh.receiveShadow = true;
+        mesh.matrixAutoUpdate = false;
+        mesh.name = `grove-blades-${tx}-${tz}`;
+        const mx = tx + BLADE_TILE / 2;
+        const mz = tz + BLADE_TILE / 2;
+        mesh.boundingSphere = new Sphere(new Vector3(mx, ySum / count + maxH * 0.5, mz), Math.hypot(BLADE_TILE * 0.71, (yMax - yMin) * 0.5 + maxH) + 0.35);
+        mesh.visible = false;
+        bladeGroup.add(mesh);
+        tiles.push({ mesh, lods, lod: 1, mx, mz, count });
+      }
+    }
+    const halfDiag = BLADE_TILE * 0.71;
+    const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };
+    return {
+      tiles,
+      count: total,
+      typeCounts,
+      visible,
+      update(camPos: Vector3) {
+        visible.drawCalls = 0;
+        visible.triangles = 0;
+        visible.lodCounts = [0, 0, 0];
+        const d0 = BLADE_LOD_M[0] * q.distance;
+        const d1 = BLADE_LOD_M[1] * q.distance;
+        for (const t of tiles) {
+          const d = Math.hypot(camPos.x - t.mx, camPos.z - t.mz) - halfDiag;
+          const lod = d < d0 ? 0 : 1;
+          if (lod !== t.lod) {
+            t.lod = lod;
+            t.mesh.geometry = t.lods[lod];
+          }
+          t.mesh.visible = d < d1;
+          if (t.mesh.visible) {
+            visible.drawCalls++;
+            visible.triangles += t.count * trisPerLod[lod];
+            visible.lodCounts[lod]++;
+          }
+        }
+      },
+      dispose() {
+        for (const t of tiles) {
+          t.mesh.dispose();
+          for (const g of t.lods) g.dispose();
+        }
+      },
+    };
+  })();
+  Object.assign(counts, { blades: blades.count, bladeTiles: blades.tiles.length });
 
   // ---- the trail's verges: tufts leaning in over the trodden edge, leaves in the angles, ferns
   // further out; the flight's cheeks the same with moss at the treads' ends
@@ -681,5 +856,5 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
   }
   const spheres: Sphere[] = [...bins.values()].map((b) => new Sphere(new Vector3(b.x, (b.y0 + b.y1) / 2, b.z), Math.hypot(2 * Math.SQRT2, (b.y1 - b.y0) / 2) + 0.8));
   counts.spheres = spheres.length;
-  return { group, sets, spheres, counts };
+  return { group, sets, spheres, counts, blades };
 }

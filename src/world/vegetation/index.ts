@@ -21,7 +21,7 @@ import { expansionVisible, southVisible } from '../util/expansionLocality';
 import { groveVisible } from '../util/groveLocality';
 import { buildCarpet, CLUMP_CELL, MAT_CELL, type CarpetResult } from './carpet';
 import { buildExpansionVegetation, templateOf, type ExpansionTemplates, type ExpansionVegetation } from './expansion';
-import { buildExpansionNorthVegetation } from './expansionNorth';
+import { buildExpansionNorthVegetation, type GroveVegetation } from './expansionNorth';
 import { buildExpansionSouthVegetation } from './expansionSouth';
 import { VegField } from './field';
 import { buildGrass, GRASS_TYPE_NAMES, type GrassResult } from './grass';
@@ -83,8 +83,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // round 56 (expansionSouth.ts): the south exit's live ground — the ravine, the path's verges,
   // the far bank — shown only where the camera can see that locality
   const south: ExpansionVegetation = buildExpansionSouthVegetation(ctx, { ...templates, heroFerns: templateOf(plants.heroFerns) }, group);
-  // 2026-09-24 (expansionNorth.ts): the north grove's live ground, shown only near the grove, in view
-  const grove: ExpansionVegetation = buildExpansionNorthVegetation(ctx, { ...templates, heroFerns: templateOf(plants.heroFerns) }, { mats: [carpet.mats, carpet.northMats], cards: [carpet.clumps, carpet.northClumps] }, group);
+  // 2026-09-24 (expansionNorth.ts): the north grove's live ground, shown only near the grove, in
+  // view; its lawn's blade tiles draw with the village turf's grass material
+  const grove: GroveVegetation = buildExpansionNorthVegetation(ctx, { ...templates, heroFerns: templateOf(plants.heroFerns) }, { mats: [carpet.mats, carpet.northMats], cards: [carpet.clumps, carpet.northClumps] }, grassMaterial, group);
   ctx.progress('vegetation', 1);
 
   const buildMs = performance.now() - t0;
@@ -148,6 +149,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     expansion.group.visible = expansionVisible(camera, expansion.spheres);
     south.group.visible = southVisible(camera, south.spheres);
     grove.group.visible = groveVisible(camera, grove.spheres);
+    grove.blades.update(camPos);
     const sun = currentSun();
     let budget = REBUCKET_BUDGET;
     let listed = 0;
@@ -202,6 +204,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const drawable = () => {
     let drawCalls = grass.visible.drawCalls;
     let triangles = grass.visible.triangles;
+    if (grove.group.visible) {
+      drawCalls += grove.blades.visible.drawCalls;
+      triangles += grove.blades.visible.triangles;
+    }
     for (const s of sets) {
       if (!shown(s)) continue;
       const st = s.stats();
@@ -262,6 +268,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       r.triangles += tris * mesh.count * (colour + depth);
     };
     for (const t of grass.tiles) add(`grass-lod${t.lod}`, t.mesh, t.mesh.visible ? t.count : 0, t.mesh.geometry.index!.count / 3);
+    for (const t of grove.blades.tiles) add(`grove-blades-lod${t.lod}`, t.mesh, t.mesh.visible ? t.count : 0, t.mesh.geometry.index!.count / 3, grove.group.visible);
     for (const s of sets) for (const m of s.submission()) add(`${s.opts.name}-lod${m.lod}`, m.mesh, m.bucket, m.triangles, shown(s));
     let drawCalls = 0;
     let triangles = 0;
@@ -387,6 +394,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       sets: Object.fromEntries(grove.sets.map((s) => [s.opts.name, s.count])),
       instances: grove.sets.reduce((n, s) => n + s.count, 0),
       passes: grove.counts,
+      /** the lawn's blade tiles (the grass material, grass.ts's LODs): built blades per type, what the audit's pose draws */
+      blades: { tiles: grove.blades.tiles.length, count: grove.blades.count, typeCounts: grove.blades.typeCounts, visible: { ...grove.blades.visible } },
     },
     /**
      * round 50 (edges.ts): W06's rim band at the paved rims E / D / B frame (the turf pulled back
@@ -448,6 +457,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         for (const variant of set.opts.variants) for (const geometry of variant) geometries.add(geometry);
       }
       for (const geometry of geometries) geometry.dispose();
+      grove.blades.dispose();
       grassMaterial.dispose();
       litterMaterial.dispose();
       for (const m of plants.materials) m.dispose();
