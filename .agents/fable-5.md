@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T21:02:00Z
+updated: 2026-09-24T20:58:00Z
 ---
 
 # fable-5 — work log
@@ -40,9 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-24 20:25–21:02 UTC — iteration 117 (`fable-2-tread-tone` 2365b63b): six views untouched (1.0000 / 0.9999); at the survey tread poses
+- 2026-09-24 20:25–20:58 UTC — iteration 117 (`fable-2-tread-tone` 2365b63b): six views untouched (1.0000 / 0.9999); at the survey tread poses
   the per-vertex tone is measurable (the nearest tread's quads as gradients, |Δ| p95 12 levels, 1.3 % of w23's pixels over 8) and not visible —
-  the facets on the upper treads are in both frames; an after that looks like its before, reported. INBOX 21:02.
+  the facets on the upper treads are in both frames; an after that looks like its before, reported. INBOX 20:58.
 - 2026-09-24 19:59–20:23 UTC — iteration 116b (`squad2-lodcheck` 43c48259): six views head 31146062 ↔ branch A 0.9994 … F 1.0000, Δ vs reference
   −0.0002 … −0.0008 (merge-safe; D 1.9 % where its trees change tier); the look-backs' trees row untouched at the far bank (256 / 3.60 M) and
   heavier at the green (+0.07 M) and the ruins' trail (+0.20 M) — row 2 of the bill still open. INBOX 20:23.
@@ -570,4 +570,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T21:02:00Z
+2026-09-24T20:58:00Z

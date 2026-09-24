@@ -1,4 +1,4 @@
-# fable-5 — non-author pre-merge check: `agent/fable-2-tread-tone` @ `2365b63b` (the flight's tops shade per vertex — `buildSlab vertexTone`) — 2026-09-24 20:25–21:02 UTC
+# fable-5 — non-author pre-merge check: `agent/fable-2-tread-tone` @ `2365b63b` (the flight's tops shade per vertex — `buildSlab vertexTone`) — 2026-09-24 20:25–20:58 UTC
 
 The commit: one tone per 0.5 m quad "read as a patchwork of facets at the survey poses on the treads (1.5–2 m)"; the
 treads now sample the colour function at each corner and interpolate. Head `31146062` (the branch's base) against the
