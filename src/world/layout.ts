@@ -953,7 +953,7 @@ export function eastDeckPlan() {
   // the strip starts over the steps' top; its far end allows for the 2 % of its length that
   // character/ground.ts reads past either end
   const walkD = D.outer - 0.06 - D.railStop - D.walkHw;
-  const walkA = -D.half + 0.1;
+  const walkA = -D.half + 0.02;
   const walkB = (D.half - D.railStop + 0.02 * walkA) / 1.02;
   const stepD = (D.stepInner + D.stepOuter) / 2;
   return {
