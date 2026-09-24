@@ -506,3 +506,14 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   1.0000, A 576 → 572 draws. Sheet `art/environment/rocks-lane/rocks106-pebble-far.jpg`.
 - Tooling: `/tmp/f2/pose.mjs` gained `"viewpoint"` (setViewpoint) and `"isolate": true` (per-system
   draws / triangles via `__ZR__.isolate`) — the six views in ~26 min a run at quality high.
+
+### Iteration 107 (20:25) — the flight's tops shade per vertex (#61) and the lane re-verified on 31146062
+- Re-verify: seven poses on the new head vs the 10:00 head — SSIM 0.965–0.982, all from the merges
+  around them (20 treads, crown tone, south props); `rocks107-head-reverify.jpg`.
+- Found at `x-stairs-3rd-tread`: the tread tops as a patchwork of per-quad tones (CPU probe: 8,224 /
+  14,717 coincident top vertices differ in colour, none in normal). `geometry.ts buildSlab
+  vertexTone` (+ `MeshBuilder.tri` with three colours), on for the flights in `stairs.ts`. Six views
+  vs head A/B/C/E/F 1.0000, D 0.9999; draws unchanged; tests 13 green. PR #61, sheet
+  `hs107-tread-tone.jpg`.
+- Method note: A must be the first pose of a run to compare across dists — a later pose sits at a
+  later sim time (wind, lanterns, Navi) and reads 0.979 against itself.
