@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Camera, type Mesh, type Object3D, type PointLight } from 'three';
+import { Box3, Group, type Camera, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -17,6 +17,7 @@ import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
 import { buildSouthDwellings } from './expansionSouthDwellings';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
+import { FAR_BANK_ZONE, farBankDistance, inFarBankZone } from '../util/farBankLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
@@ -251,6 +252,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     draws.after += d.after;
     draws.merged += d.merged;
   }
+  // exp-south2: from the far bank, the log and the cleft (util/farBankLocality.ts) the village stands
+  // 40 m and more off through the haze: there its structures cast no shadow and its roof and trunk
+  // tufts are not drawn — a shadow and detail distance for that zone alone (lights untouched)
+  const farCasters: Mesh[] = [];
+  const farDetail: Mesh[] = [];
+  let villageNearestM = Infinity;
+  const villageBox = new Box3();
+  const collectVillage = (o: Object3D) => {
+    if (o === south.group) return;
+    const m = o as Mesh;
+    if (m.isMesh) {
+      if (m.castShadow) farCasters.push(m);
+      if (/^merged:(roof-tufts|trunk-moss-tufts)$/.test(m.name)) farDetail.push(m);
+      villageNearestM = Math.min(villageNearestM, farBankDistance(villageBox.setFromObject(m)));
+    }
+    for (const c of o.children) collectVillage(c);
+  };
+  group.updateMatrixWorld(true);
+  for (const c of group.children) collectVillage(c);
+  let farBank = false;
+  const setFarBank = (camera: Camera) => {
+    const inside = inFarBankZone(camera.position.x, camera.position.y, camera.position.z);
+    if (inside === farBank) return;
+    farBank = inside;
+    for (const m of farCasters) m.castShadow = !inside;
+    for (const m of farDetail) m.visible = !inside;
+  };
+  setFarBank(ctx.camera);
   /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
@@ -384,6 +413,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
     /** exp-south2: the bridge keeper's hut and the waystation (expansionSouthDwellings.ts), drawn with the south group */
     southDwellings: { ...dwellings.audit, triangles: dwellings.triangles },
+    /** exp-south2: the far-bank shadow and detail distance (util/farBankLocality.ts): village casters and tuft buckets, the nearest village mesh to the zone */
+    farBank: { zone: FAR_BANK_ZONE, casters: farCasters.length, detail: farDetail.map((m) => m.name), nearestVillageM: +villageNearestM.toFixed(1), active: farBank },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -462,12 +493,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
       south.group.visible = southShown(c.camera);
+      setFarBank(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
       south.group.visible = southShown(camera);
+      setFarBank(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however
