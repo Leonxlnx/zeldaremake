@@ -113,6 +113,8 @@ export interface SouthDwellingsBuild {
       galleryBoards: number;
       /** gallery boards trodden pale between the entrance's step and the door */
       troddenBoards: number;
+      /** peg heads where the boards are pinned to the ring beams */
+      pegs: number;
       railingPosts: number;
       braces: number;
       props: number;
@@ -128,6 +130,8 @@ export interface SouthDwellingsBuild {
       floorBoards: number;
       /** floor boards trodden pale over the step */
       troddenBoards: number;
+      /** peg heads where the floor boards are pinned to the bearers */
+      pegs: number;
       posts: number;
       rafters: number;
       pods: [number, number, number][];
@@ -166,6 +170,9 @@ interface BoardSpec {
   /** worn by feet at the −along and the +along end (0 … 1): the top greyer and paler, its moss worn off */
   trodden?: [number, number];
 }
+
+/** a board's top on its centre line `x` m along it from its centre (board()'s cup and bow) */
+const boardTopAt = (centreY: number, L: number, x: number) => centreY - 0.003 * 0.33 - 0.004 * (1 - ((2 * x) / L) ** 2);
 
 /** one board: a displaced box (cup, bow, soft top edges, a worn tread), uv on one board of the planks map */
 function board(p: BoardSpec, noise: Noise2D): BufferGeometry {
@@ -430,6 +437,11 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const curve = pts.length === 2 ? new LineCurve3(pts[0], pts[1]) : new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
     endCaps.push({ name, geo: checkedCap(endFrame(curve, ts, atStart), rr, noise, { radius: r, segments: r > 0.07 ? 12 : 8, color: tint, checks: 2 + Math.floor(rr() * 2), depth: [0.004, 0.012], dome: 0.004, uvMetres: 0.7 }) });
   };
+  /** a peg's domed head on a board's top where it is pinned to the timber under it (end grain, with the caps) */
+  const pegHead = (name: string, top: Vector3, rr: Rng) => {
+    const shank = new LineCurve3(top.clone().add(new Vector3(0, -0.02, 0)), top);
+    endCaps.push({ name, geo: checkedCap(endFrame(shank, 1), rr, noise, { radius: 0.011, segments: 8, color: [0.36, 0.28, 0.2], checks: 0, depth: [0.001, 0.002], dome: 0.0035, uvMetres: 0.7 }) });
+  };
 
   // =====================================================================================
   // the bridge keeper's hut
@@ -648,8 +660,11 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   const step = galArc / boardCount;
   // the boards between the entrance's step and the door are trodden pale
   const doorTh = Math.atan2(hutAudit.door[2] - cz, hutAudit.door[0] - cx);
+  const ringBeams = [platR + 0.15, GAL_OUT - 0.13];
+  const pegRng = kRng.fork('pegs');
   let boards = 0;
   let troddenBoards = 0;
+  let pegs = 0;
   for (let i = 0; i < boardCount; i++) {
     const th = GAL_FROM + (i + 0.5) * step + galRng.range(-0.08, 0.08) * step;
     const offDoor = Math.abs(((((th - doorTh + Math.PI) % TAU) + TAU) % TAU) - Math.PI);
@@ -686,10 +701,16 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         noise,
       ),
     );
+    // pinned to both ring beams (the broken board's outer peg went with its end)
+    for (const rb of ringBeams) {
+      if (broken && rb > r1 - broken) continue;
+      pegHead('keeper-gallery', new Vector3(cx + out.x * rb, boardTopAt(centre.y, L, rb - (r0 + L / 2)) + 0.001, cz + out.z * rb), pegRng.fork(`${i}/${rb.toFixed(2)}`));
+      pegs++;
+    }
     boards++;
   }
   // ring beams (under the boards, on the outriggers) and the outriggers out of the platform's rim
-  for (const rb of [platR + 0.15, GAL_OUT - 0.13]) {
+  for (const rb of ringBeams) {
     const pts: Vector3[] = [];
     const n = Math.ceil(galArc / (6 * DEG));
     for (let k = 0; k <= n; k++) {
@@ -1081,16 +1102,24 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   const floorBoards = 12;
   const bw = (2 * HW) / floorBoards;
   let troddenFloor = 0;
+  let wPegs = 0;
   for (let i = 0; i < floorBoards; i++) {
     const s = -HW + (i + 0.5) * bw;
     const L = 2 * HD + wRng.range(-0.03, 0.04);
     // trodden pale over the step (its middle at s −0.1), most at the front where feet land
     const wear = 0.85 * clamp(1 - Math.abs(s + 0.1) / 0.6, 0, 1);
     if (wear > 0) troddenFloor++;
+    const ja = wRng.range(-0.015, 0.015);
+    const jy = FT + wRng.range(-0.003, 0.003);
+    // pinned to both bearers (a ±0.48)
+    for (const a of [-0.48, 0.48]) {
+      pegHead('waystation-floor', at(a, s, boardTopAt(jy, L, a - ja) + 0.001), wRng.fork(`peg/${i}/${a}`));
+      wPegs++;
+    }
     put(
       'waystation-floor',
       mats.fenceWood,
-      board({ centre: at(wRng.range(-0.015, 0.015), s, FT + wRng.range(-0.003, 0.003)), along: F, across: S, L, w0: bw - 0.012, w1: bw - 0.012, t: 0.045, tone: 0.62 + wRng() * 0.3, age: i === 7 ? 0.8 : wRng() * 0.3, moss: i < 2 || i > 9 ? 0.4 : wRng() * 0.15, board: Math.floor(wRng() * 8), seed: wRng() * 100, broken: i === 0 ? 0.13 : 0, trodden: wear > 0 ? [0.2 * wear, wear] : undefined }, noise),
+      board({ centre: at(ja, s, jy), along: F, across: S, L, w0: bw - 0.012, w1: bw - 0.012, t: 0.045, tone: 0.62 + wRng() * 0.3, age: i === 7 ? 0.8 : wRng() * 0.3, moss: i < 2 || i > 9 ? 0.4 : wRng() * 0.15, board: Math.floor(wRng() * 8), seed: wRng() * 100, broken: i === 0 ? 0.13 : 0, trodden: wear > 0 ? [0.2 * wear, wear] : undefined }, noise),
     );
   }
   const BEARER_R = 0.075;
@@ -1583,6 +1612,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         door: hutAudit.door,
         galleryBoards: boards,
         troddenBoards,
+        pegs,
         railingPosts: posts,
         braces,
         props: keeperProps,
@@ -1597,6 +1627,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         floorY: FT,
         floorBoards,
         troddenBoards: troddenFloor,
+        pegs: wPegs,
         posts: wPosts,
         rafters,
         pods: wPods.map((p) => p3(p)),
