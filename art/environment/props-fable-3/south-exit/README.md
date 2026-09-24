@@ -59,7 +59,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 1 ★ | reads as what it is from 20 m | 3 | the post + boards and the crate read at 6 m (`before-after-bridge-approach.jpg`); no 20 m frame rendered yet |
 | 2 | Kokiri scale | 3 | post 1.7 m, crate 0.62 m, pots 0.46–0.6 m — the village's sizes (`props/layout.ts`) |
 | 3 | irregular, hand-built outline | 3 | lathed pots with wheel marks and ragged rims, chamfered boards, seeded sizes ±3 % |
-| 4 | varies from siblings with purpose | 2 | same builders as the west / circle markers and pots; only the seed varies |
+| 4 | varies from siblings with purpose | 3 (was 2) | `c6a2e74d`: the crates now differ in state — the bridge's has lost a lid board, Saria's has one knocked askew, the plateau's is whole (`../crates/`) |
 | 5 | holds up from above and below | 3 | pot mouths are open (round 52), crate tops boarded; the log-mouth pair seen from the bridge |
 | 6 ★ | every part visibly held | 3 | boards lashed to the post with rope wraps, crate boards on battens (`geometry.ts markerGeometry`, `crateGeometry`) |
 | 7 | joints meet, nothing floats | 3 | underside conform: contact gap = EMBED ± 6 mm asserted for every south mesh (`geometry.test.mjs`) |
@@ -71,14 +71,14 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 13 | palette | 3 | warm browns, clay ochre, no whites |
 | 14 | roughness and sheen | 3 | matte wood and clay |
 | 15 | no stretching or tiling | 3 | lathed UVs around; no repeats at 3–10 m in the sheets |
-| 16 ★ | weathering follows exposure | **2** | grime and moss band at the foot only — not by shaded side / sun top (shared weathering pass, every cluster) |
-| 17 | wear follows use | 2 | no worn rims or handles modelled |
+| 16 ★ | weathering follows exposure | 3 (was 2) | `c35559ab`: the moss band climbs the faces looking away from the sun (3× in full shade), tops within 35° of up take a sun-bleach — `before-after-weathering-*.jpg` |
+| 17 | wear follows use | 3 (was 2) | `ca05e910`: the pots' lips rubbed pale where hands take them — `../wear/` |
 | 18 | signs of life, placed not scattered | 3 | the toll pile at the bridge head, the pots at the mouth — five props with reasons |
-| 19 | damage plausible and sparse | 2 | none modelled |
+| 19 | damage plausible and sparse | 3 (was 2) | the toll crate's missing lid board, dark inside — `../crates/before-after-bridge-crate-open.jpg`; one of four crates open here, two of four in the world |
 | 20 | nothing brand-new | 3 | weathered planks, foot grime |
 | 21 ★ | sits in the terrain | 3 | EMBED 4 cm, conformed undersides, grime at the foot; live-ground seating (test) |
 | 22 | no floating corners, nothing buried | 3 | contact assertion; the 6 m sheets |
-| 23 | contact shadow / AO | 2 | the sun's shadow only; no AO decal under the props |
+| 23 | contact shadow / AO | 3 (was 2) | `1549688c`: a soft contact-AO decal under every seated prop — `../contact-ao/` |
 | 24 | vegetation grows around naturally | 3 | the scatter keeps out of `propFootprints`; grass to the foot, none through |
 | 25 | paths lead to it | 3 | on the route's verges, 0.5 m off the paving |
 | 26–30 | openings | n/a | a prop cluster |
@@ -98,8 +98,34 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
 | 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
 
-**Total: 106 / 144 applicable (scaled 147 / 200).** Below the doc's 170 gate, and one ★ below 3: **#16 weathering by
-exposure** — the props' weathering is a foot band regardless of sun or shade; the fix is in the shared weathering pass
-(`props/index.ts` vertex colour: moss toward the shaded quadrant, bleach on tops), which touches every cluster's pixels and
-so the six views — a measured landing of its own, next. #4 / #17 / #19 / #23 are the other 2s (sibling variation, wear,
-damage, AO). The n/a treatment is mine — the doc has no rule for checks a prop cluster cannot meet; asked fable-cursor.
+**Total: 111 / 144 applicable (scaled 154 / 200)** after `ca05e910` (106 / 147 at `62bf7fcd`: ★16 at 2 — the props'
+weathering was a foot band regardless of sun or shade — #23 at 2, no contact AO, #4 and #19 at 2, every crate a whole
+closed copy, #17 at 2, no wear). No check below 3 now; every ★ ≥ 3; still below the doc's 170 gate — the rest of the
+way is 3 → 4 ("matches the reference demo"), which for a pot beside a path is the reference's own pots: plainer
+clay, no slip band, and that is a look call for the owner, not a score to chase. The n/a treatment is mine — the doc has no
+rule for checks a prop cluster cannot meet; asked fable-cursor.
+
+### ★16 — weathering follows exposure (`25459fda` + `c35559ab`, the shared pass in `props/index.ts weather()`)
+
+The sun's direction is taken into each prop's frame (its yaw undone; the few degrees of tilt ignored). Faces looking away
+from it grow the moss band to 3× its height (the round-52 band stays on the sun side) with a faint moss tint above the
+band; faces within ≈ 35° of up take a sun-bleach — dry wood a little grey-silver (0.18), clay a dusty lighter tone (0.12),
+both fading into the foot's damp. Vertex colours only: no new material, draw or triangle. It touches every cluster.
+
+- `before-after-weathering-stair-pots.jpg` — the stair-foot pots at 3 m: the back (shade) side greener, the shoulders and
+  rims dustier.
+- `before-after-weathering-bridge-head.jpg` — the waymarker and the toll crate at 5 m: the crate's top boards and the
+  post's cross-boards bleached, the crate's shaded flank grey-green at the foot.
+
+The first pass (`25459fda`, 2.5× / 0.06 / 0.14) rendered real but faint at 3 m (3.2–7.1 k px per pose); `c35559ab` is one
+step stronger (3.3–8.1 k px). The three fixed views that hold props, before `62bf7fcd` → after `c35559ab`, both sides
+rendered this tick at high quality:
+
+| view | SSIM vs the reference, before → after | SSIM before↔after | changed px (of 921 600) | draws / tris after |
+| --- | --- | --- | --- | --- |
+| A | 0.2011 → 0.2011 | 1.0000 | 165 | 638 / 8.86 M |
+| B (= E's frame) | 0.1861 → 0.1861 | 1.0000 | 52 | 627 / 8.25 M |
+| F | 0.2100 → 0.2100 | 1.0000 | 220 | 598 / 7.99 M |
+
+C and D hold no village prop in frame (C's only props are the south ones, at 12–30 m); C stayed 568 / 7.70 M at
+`62bf7fcd` and the pass adds no geometry.

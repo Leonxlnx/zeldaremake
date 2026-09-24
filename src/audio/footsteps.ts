@@ -83,6 +83,8 @@ export interface Footsteps {
   step(surface: Surface, t: number, strength: number, pan: number): void;
   /** integrate the player's motion; `t` is the context time the step would sound at */
   drive(t: number, dt: number, d: StepDrive): void;
+  /** both boots shoving off as he leaves the ground at `speed` m/s */
+  pushOff(t: number, surface: Surface, speed: number): void;
   /** both boots arriving at once after a fall of `fallM` metres */
   land(t: number, surface: Surface, fallM: number): void;
   /** what has been heard so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
@@ -100,6 +102,8 @@ export interface FootstepStats {
   lastSurface: Surface | null;
   /** landings after a jump or a drop */
   landings: number;
+  /** shoves off the ground at the start of a jump or a step off a ledge */
+  pushOffs: number;
 }
 
 /** above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind */
@@ -107,15 +111,39 @@ export const RUN_SPEED = 2.4;
 /** the shortest gap between two steps — a guard against a noisy stance flag double-triggering */
 export const MIN_STEP_GAP = 0.16;
 
-/** steps per second at a ground speed: a walker's cadence, then a runner's */
+/**
+ * The two speeds this game travels at, and the gait's own step rate at each.
+ *
+ * Measured in play (`art/audio/2026-09-24-cadence/`), counting the character system's stance edges
+ * over four seven-second legs on two surfaces: a held W walks at **1.60 m/s and plants 3.63 boots a
+ * second** (0.44 m a step), and W with shift runs at **4.60 m/s and plants 4.92** (0.93 m). The
+ * audio fires exactly one step per edge — 25/25, 26/26, 35/35 — so it is faithful; the rate is the
+ * animation's.
+ *
+ * Both are far off what this file used to model (2.02 and 2.95 a second, 0.79 m and 1.56 m). Those
+ * numbers are an adult's, and Link is a 1.25 m child who really does patter at 1.6 m/s. The model
+ * is only consulted when the character system is not reporting boot plants — which is never in
+ * play, but is **always in an offline render**, so every evidence WAV this lane has produced had
+ * its footsteps at roughly half the rate the owner hears. The step design is unaffected (each step
+ * is the same sound either way); anything about step *density* was measured at the wrong cadence.
+ *
+ * A keyboard reaches exactly these two speeds, so two calibration points are the whole domain; the
+ * line between them is an interpolation and the ends are clamped rather than extrapolated.
+ */
+export const WALK_SPEED = 1.6;
+export const WALK_CADENCE = 3.63;
+export const RUN_CADENCE = 4.92;
+const CADENCE_SLOPE = (RUN_CADENCE - WALK_CADENCE) / (4.6 - WALK_SPEED);
+
+/** steps per second at a ground speed, as the gait plants them */
 export function cadence(speed: number): number {
-  return speed > RUN_SPEED ? 2.4 + 0.12 * speed : 1.35 + 0.42 * speed;
+  return Math.max(1.2, Math.min(5.6, WALK_CADENCE + (speed - WALK_SPEED) * CADENCE_SLOPE));
 }
 
 /** how far the boot travels between two steps (m) */
 export function strideFor(speed: number, onStairs: boolean): number {
   if (onStairs) return 0.54;
-  return Math.max(0.35, speed / cadence(speed));
+  return Math.max(0.3, speed / cadence(speed));
 }
 
 /**
@@ -326,6 +354,54 @@ export function landingStrength(fallM: number): number {
   return Math.max(0.45, Math.min(1, 0.45 + fallM * 0.32));
 }
 
+/** how hard the shove is, from the ground speed he leaves at: a running jump scuffs more */
+export function pushOffStrength(speed: number): number {
+  return Math.max(0.5, Math.min(1, 0.5 + speed * 0.14));
+}
+
+/**
+ * Leaving the ground: the shove, not the arrival.
+ *
+ * Measured on the live master (`art/audio/2026-09-24-jump/`), four jumps from a standstill on the
+ * flagstones came off the ground at −34 dB against a bed sitting at −30 and landed at −26: **the
+ * take-off made no sound at all**, so a jump was silence up and a thump down. That asymmetry is
+ * what makes a jump feel weightless — every other contact in this game answers, and the one where
+ * he pushes hardest did not.
+ *
+ * A shove is not a quiet knock, and the first attempt at it here got that backwards: holding its
+ * bodies *under a walking step's* put the take-off at −31 dB against a bed at −32, where an
+ * ordinary walking step in the same recording peaks at −25. It fired and it could not be heard.
+ * A standing jump drives something like twice body weight into the ground; a walking step is
+ * nearer 1.2. The shove is the **harder** of the two.
+ *
+ * What separates them is not level, it is shape. A boot arriving is a transient: the weight hits
+ * and the surface rings. A boot leaving **presses**, then peels — so the body's onset is slow
+ * enough to hear as an arrival of weight rather than a crack, the surface's own noise lasts and
+ * rises while the sole rolls off it, and a few grains flick as it lets go: grass springing back,
+ * grit off a flagstone, a plank unloading. It stays under a landing, which has the drop's energy
+ * in it as well as his own.
+ */
+export function designPushOff(surface: Surface, strength: number, rnd: () => number): StepDesign {
+  const base = designStep(surface, strength, false, rnd);
+  const parts: StepPart[] = [];
+  // his weight going into the surface as he extends: the step's own body, deeper and harder than a
+  // walking step's, but arriving over 12 ms instead of 2 — a press, not a knock
+  const heel = base.parts.find((p): p is BodyPart => p.kind === 'body' && p.at <= 0.004 && p.f0 < 400);
+  // (the attack is relative: a grass step's heel already arrives over 5 ms where a flagstone's
+  // takes 2.5, and the shove has to read as a press against whichever surface it is on)
+  if (heel) parts.push({ ...heel, at: 0, f0: heel.f0 * 0.82, f1: Math.max(24, heel.f1 * 0.7), glide: Math.max(heel.glide, 0.05), peak: heel.peak * 1.2, attack: Math.max(0.012, heel.attack * 3.5), decay: heel.decay * 1.7 });
+  // the peel: the surface's most sustained bands, stretched and swept upward as the sole rolls off
+  const bands = base.parts.filter((p): p is NoisePart => p.kind === 'noise' && p.decay > 0.008).sort((a, b) => b.decay - a.decay);
+  for (const p of bands.slice(0, 2)) {
+    parts.push({ ...p, at: 0.008 + p.at, freq: p.freq * 0.7, freqTo: p.freqTo * 1.9, q: Math.max(0.6, p.q * 0.8), peak: p.peak * 1.6, attack: 0.022, decay: Math.max(0.13, p.decay * 3) });
+  }
+  // the release: what the surface does in the moment the sole stops touching it
+  const grains = base.parts.filter((p): p is NoisePart => p.kind === 'noise' && p.decay <= 0.008);
+  for (let i = 0; i < Math.min(4, grains.length); i++) parts.push({ ...grains[i], at: 0.1 + rnd() * 0.07, peak: grains[i].peak * 0.95 });
+  // the hall answers a shove less than an impact — there is no crack to bounce off the trunks
+  return { parts, reverb: base.reverb * 0.75, end: Math.max(base.end, 0.4) };
+}
+
 export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence
@@ -397,7 +473,18 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   /** while the gait's stance flags are driving the steps the distance integrator stays out of the way */
   let gaitUntil = -1e9;
   let wasStance: boolean[] = [];
-  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 };
+  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 };
+
+  const pushOff = (t: number, surface: Surface, speed: number) => {
+    // the shove takes the place of the step he would have taken, so the stride integrator restarts
+    // from here and no boot plant lands on top of it
+    if (t - lastStepAt < MIN_STEP_GAP) return;
+    counts.pushOffs++;
+    counts.lastSurface = surface;
+    lastStepAt = t;
+    travelled = 0;
+    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0);
+  };
 
   const land = (t: number, surface: Surface, fallM: number) => {
     counts.landings++;
@@ -456,6 +543,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   return {
     step,
     drive,
+    pushOff,
     land,
     stats: () => ({ ...counts, surfaces: { ...counts.surfaces } }),
     dispose() {
