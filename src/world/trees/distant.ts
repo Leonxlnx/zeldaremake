@@ -232,8 +232,10 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * → 11.3 %): a canopy overhead is 15-35 m away, so a ramp that reaches half strength at 40 m has
  * barely started where the leaves are. Depth for a look-up is the tree's height, not the forest's.
  */
+/** how much of the veil a crown's floor cards give up, so a pale one never prints its quad's edge */
+export const CROWN_VEIL_FLAT_DAMP = 0.8;
 export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number] } = {
-  share: 0.5,
+  share: 0.42,
   m: [8, 30],
   ray: [0.05, 0.45],
   // the mist's colour alone veiled the far layers to a dead grey-green (first render at m 10-32; the
@@ -242,16 +244,21 @@ export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [numb
   tint: [1.08, 1.0, 0.88],
 };
 /** the veil as a fragment-shader line, for the crown cards and the giants' leaf cards alike */
-export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number]; tint?: [number, number, number] } = CANOPY_DEPTH_VEIL): string {
+export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number]; tint?: [number, number, number] } = CANOPY_DEPTH_VEIL, flatDamp = 0): string {
   const ray = veil.ray ?? CANOPY_DEPTH_VEIL.ray;
   const tint = veil.tint ?? CANOPY_DEPTH_VEIL.tint;
   const t = tint.map((c) => c.toFixed(3)).join(', ');
+  // A crown's floor cards are near-horizontal quads, and paling one toward the sky prints the quad's
+  // straight edge — the artefact CROWN_FLOOR_OWN_NORMAL and CROWN_FLOOR_ROUND exist to keep out of
+  // the frame, seen in the open north's look-up the moment the veil lifted them (the dark version hid
+  // the edge). They keep `1 - flatDamp` of the veil until their outline is round at every distance.
+  const flat = flatDamp > 0 ? ` * (1.0 - ${flatDamp.toFixed(3)} * smoothstep(0.7, 0.9, abs(normalize(vNormal * mat3(viewMatrix)).y)))` : '';
   return /* glsl */ `
     #ifdef USE_FOG
     {
       float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth${flat});
     }
     #endif
   `;
@@ -571,7 +578,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, crownPreFog, roofNearF * climbF * ${f(fogCut)});
     }
-    ${canopyVeilGlsl(look?.veil)}
+    ${canopyVeilGlsl(look?.veil, CROWN_VEIL_FLAT_DAMP)}
     `,
         )
         .replace(
@@ -1118,7 +1125,7 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   underM: [10, 30],
   // and the colour half of it tighter still (owner 23:00, the look-up): past 20 m a mid crown is a
   // mass across the middle distance, not a roof over the walker
-  shadeM: [8, 20],
+  shadeM: [8, 34],
   nearDark: 0.92,
   underDark: 0.6,
   // the far layer fades a vertical card once the view ray climbs 25–46° to it, at any distance — at

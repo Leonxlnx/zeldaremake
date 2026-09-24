@@ -26,10 +26,11 @@ the far ones pale and warm, bright gaps between them).
 | crop of the outward band | mean level | middle third | top third (the near canopy overhead) |
 | --- | --- | --- | --- |
 | before | 84.3 | 77.4 | 79.6 |
-| after | 95.7 | **94.1 (+22 %)** | **80.5 (+1 %)** |
+| after | 94.4 | **92.2 (+19 %)** | **80.4 (+1 %)** |
 
-The selectivity is the point: the outward band lifts 22 %, the near canopy he says "looks great"
-moves 1 %.
+The selectivity is the point: the outward band lifts 19 %, the near canopy he says "looks great"
+moves 1 %. The shallower `u-out25` (eye height, 25° up, the lantern bough over the plaza) lifts 4 %
+in its canopy and nothing in its level middle distance — `lookup-out25.jpg`.
 
 ## What was wrong
 
@@ -57,7 +58,12 @@ Two causes, both a **distance carrying the wrong claim**.
   picks at his framing land on `giant-near-canopy-*` at 22.9 m and 30.5 m, so the giants' canopy is
   what a look-up is mostly made of.
 - **`CROWN_SHADE_M`** — the colour treatments move to a genuinely near window (12–26 m; the mid layer
-  8–20 m) and the geometry ones keep the 36–48 m gate.
+  8–34 m) and the geometry ones keep the 36–48 m gate.
+- **`CROWN_VEIL_FLAT_DAMP`** — a crown's floor cards give up 0.8 of the veil. Paling a near-horizontal
+  quad toward the sky prints its straight edge: the open north's look-up (`u-open-up`) came back with
+  beige slabs at 30–50 m where the dark version had hidden them, the same artefact
+  `CROWN_FLOOR_OWN_NORMAL` and `CROWN_FLOOR_ROUND` were written to keep out of frame. With the damp
+  that pose takes a gentle 4 % lift and no slabs (`lookup-open-up.jpg`).
 
 The climb gate is why this is a repair and not a second fog: on a level ray nothing is added, so a
 walker's forward view — and the six fixed frames, which look level — keep their air.
@@ -89,7 +95,7 @@ mean step across the split — how hard the outlines are. It calibrates well:
 | his screenshot | 0.335 | 0.117 | 0.614 | 0.280 | 7.6 |
 | reference `d_108` | 0.306 | 0.158 | 0.523 | 0.218 | **5.5** |
 | reference `r_024` | 0.242 | 0.150 | 0.509 | 0.267 | **3.6** |
-| ours, after | 0.232 | 0.170 | 0.559 | 0.327 | **14.1** |
+| ours, after | 0.221 | 0.174 | 0.538 | 0.317 | **13.0** |
 
 Our outlines were 2–3 × the reference's, which is "hard silhouette edges" as a number — and after the
 change that figure gets *worse*, while the pair above plainly improves. Both are true. The veil lifts
@@ -116,5 +122,5 @@ The six fixed frames look level, and the veil is zero on a level ray, so A–F s
 where a crown sits inside `CROWN_SHADE_M`'s new window (12–26 m instead of 36–48 m) — the nearest
 distant crown to a fixed camera is 51 m off, so that term was already zero there. `u-open-up`, the
 pinned look-up in fable-cursor's re-read protocol, **does** move by construction: it is the same
-defect seen at another spot, and its after frame is in this directory once the render lands
-(`after-u-open-up.png`). Please re-read it with `reread.py` before pinning a checkpoint on it.
+defect at another spot, and the pair is `lookup-open-up.jpg` (mean 130.4 → 135.6, top third
+149.2 → 151.9). Please re-read it with `reread.py` before pinning a checkpoint on it.
