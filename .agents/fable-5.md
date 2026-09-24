@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T16:10:00Z
+updated: 2026-09-24T16:27:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 16:11–16:27 UTC — iteration 112 (re-read of `exp-south2` 066144ad, `.agents/reviews/fable-5-rubric50-exp-south.md`): the
+  gallery pop closed (3.863 m → no jump over 0.32 m; max accel 3,436 → 240; his 16-spot check 7 not ok → 16 / 16; probes 32 / 32);
+  the village's `saria-front-arc` / `west-house-to-plaza` trace-identical head ↔ branch (the swing reaches only exact walls; the
+  grove's huts become exact on the merge — flagged); the standing back-to-hut pose still pulls to 0.6 m; caps unchanged (far bank
+  863 / 10.48 M, waystation path 718). #44 1 → 3, #46 ★ 2. INBOX 16:27.
 - 2026-09-24 16:04–16:10 UTC — iteration 111c (re-read of `exp-ruins` 6bd9b870 at the six 15:04 poses): the cliff fix lands at the
   fall's corner (l 0.324 → 0.399, under-0.25 45 → 19 %, 67 % of pixels) and the arch passage (+0.010); the reference pose +0.005 —
   the flight + terrace front 0.238 vs r_038's 0.581, fail 2 is the light (the pillar's shadow), not the stone's colour (sat 0.24 → 0.21). INBOX 16:10.
@@ -521,4 +526,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T16:10:00Z
+2026-09-24T16:27:00Z

@@ -152,3 +152,37 @@ and the deck probes 41 / 41; the boots on the gallery and the waystation's floor
 On the 08:45 read this branch was merge-ready for the exit; with the dwellings it is not yet — the gallery's camera and the
 look-back's cost first. Scores I would give now on the dwellings' own checks: #1 4, #6 3, #13 3, #18 3, #25 4, #36 3, #41 4,
 #42 4, #43 3, **#44 1**, **#46 2**, #50 3.
+
+## Re-read of `exp-south2` @ `066144ad` (15:45 — `5b8dde39` the keeper hut's wall as an exact camera cylinder, `066144ad` the follow camera orbits off an exact wall instead of snapping in) — 16:11–16:27 UTC
+
+Same harness (`south-dwellings`, the 32 dwelling probes, the 16-spot camera check; `walk-south2-066144ad.json`) and my six
+poses re-shot (`it112-gallery-ba-066144ad.jpg`).
+
+**The gallery pop is closed.** The route's camera trace on `8299271c` had a 3.863 m one-frame jump at Link (5.60, −0.07, 32.31)
+against a solid hit (3,436 m/s², vertical 99.6, camera speed max 115.9 m/s); on `066144ad` the same route (23 / 23, 0 stuck,
+20.9 m) has **no jump over 0.32 m** — acceleration max 3,436 → 240 m/s², vertical 99.6 → 17.2, camera speed max 115.9 → 12.9.
+What remains is the 0.32 m step at row 27, Link at (3.88, −0.49, 26.65) on the waystation approach, which was there before
+(and the 0.09 m at row 32). **The branch's own 16-spot camera check: 7 of 16 not ok → 16 / 16 ok** (the six gallery spots
+that had Link off-screen and the waystation squeeze). Probes 32 / 32. Costs of the swing: the camera's turn rate p95 66 →
+90 °/s and turn acceleration p95 675 → 731 °/s² on the route — it now orbits round the hut as Link slides round its walk
+block instead of cutting the wall.
+
+**What stands:**
+- **The standing back-to-wall pose** — Link on the gallery at (5.5, 31.32) with his back to the hut (yaw 250°): the camera
+  stops 0.6 m behind him at the wall, inside the cap's vines (leaf cards at arm's length across the top right, the pods at
+  the lens), Link out of frame. `wallSwing` acts while Link *walks* without look input; standing and turning still puts the
+  lens at the wall. The same ≈ 1.2 m pull-in floor the grove wants.
+- **#46 ★ the caps, unchanged:** the far-bank look-back **863 draws / 10.48 M** (was 860 / 10.46 M; the head 818 / 9.30 M),
+  the path to the waystation **718 / 8.80 M** (was 714), the gallery 464 / 4.79 M, the path to the keeper 438 / 5.07 M, the
+  bridge's north end 360 / 3.56 M, the log's dead end 189 / 2.48 M.
+- **A merge interaction to watch:** `wallSwing` turns the placed yaw off *exact* walls (`shared.cameraCylinders`). On this
+  branch the keeper's hut is the only one; the grove's huts (`d7432cc9`) become exact walls on the merge, and their route's
+  turn acceleration is already 909 °/s² p95. Worth the north route once both are on one head.
+
+**The village's own camera is untouched:** `saria-front-arc` and `west-house-to-plaza` run on the head `3c6cc553` and on
+`066144ad` with the branch's harness are **trace-identical** — every statistic equal, the same spikes (the head's own 1.28 m
+and 0.66 m steps at the west house, rows 34 / 74, lane-10 §8's case). The swing reaches only exact walls, and the village
+publishes none.
+
+**#44: 1 → 3** (no pop on the route, 16 / 16 on his check; the standing pull-in keeps it from 4). **#46 ★ stays 2** until
+the far bank's look-back is under. The dwellings' other checks as at 12:41.
