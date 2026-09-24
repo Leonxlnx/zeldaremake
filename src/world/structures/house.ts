@@ -752,10 +752,18 @@ const INDOOR_FOG_GLSL = /* glsl */ `
 #endif
 `;
 
-function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, doorPoint: Vector3, outward: Vector3): M {
+/**
+ * Every material a house clones for itself alone, by kind — the `indoorFog` clones with their
+ * doorway plane, and the window socket's vertex-coloured glow. Nothing here reads it; the east
+ * lane (east.ts) does, to give its three houses one material per kind (`indoorFogByVertex`).
+ */
+export const HOUSE_CLONES = new WeakMap<Material, { kind: string; base: Material; door?: { point: Vector3; normal: Vector3 } }>();
+
+function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, doorPoint: Vector3, outward: Vector3, kind: string): M {
   const m = base.clone() as M;
   const uDoorPoint = { value: doorPoint.clone() };
   const uDoorNormal = { value: outward.clone().normalize() };
+  HOUSE_CLONES.set(m, { kind, base, door: { point: uDoorPoint.value.clone(), normal: uDoorNormal.value.clone() } });
   // chains onto the material's own hook (the room's emissive-gradient attribute) — a clone does
   // not carry hooks, so the base's hook is taken from `base` itself
   const prev = base.onBeforeCompile;
@@ -769,6 +777,25 @@ function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, 
       .replace('#include <fog_vertex>', `#include <fog_vertex>\n${INDOOR_FOG_GLSL}`);
   };
   m.customProgramCacheKey = () => `${prevKey ? prevKey.call(m) : ''}|structures:indoor-fog`;
+  return m;
+}
+
+/**
+ * `indoorFog` with the doorway plane read per vertex (`aDoorPoint`, `aDoorNormal`) instead of from
+ * uniforms, so the rooms of several houses can share one material and merge into one draw. The
+ * caller writes both attributes on every geometry drawn with it.
+ */
+export function indoorFogByVertex<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M): M {
+  const m = base.clone() as M;
+  const prev = base.onBeforeCompile;
+  const prevKey = base.customProgramCacheKey;
+  m.onBeforeCompile = (shader, renderer) => {
+    prev?.call(m, shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <fog_pars_vertex>', '#include <fog_pars_vertex>\nattribute vec3 aDoorPoint;\nattribute vec3 aDoorNormal;\n#define uDoorPoint aDoorPoint\n#define uDoorNormal aDoorNormal')
+      .replace('#include <fog_vertex>', `#include <fog_vertex>\n${INDOOR_FOG_GLSL}`);
+  };
+  m.customProgramCacheKey = () => `${prevKey ? prevKey.call(m) : ''}|structures:indoor-fog-vertex`;
   return m;
 }
 
@@ -1603,7 +1630,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // dark, hazed read: ours measured p50 0.173 against the reference's 0.291 before this pass,
   // so the lift moves it toward the frame, not past it (measured after, see the round log).
   // (the hero house only; the upper house's doorway is a few hazed pixels in A / F and keeps round 46's levels)
-  const roomMat = indoorFog(roomMaterial(mats, hero ? 0x847e78 : 0x3c3b3e, true), doorPlanePoint, F);
+  const roomMat = indoorFog(roomMaterial(mats, hero ? 0x847e78 : 0x3c3b3e, true), doorPlanePoint, F, 'room');
   const materials: { dispose(): void }[] = [roomMat];
   // the room's light sources: two pod lamps under the ceiling (reference B: a lamp glint at
   // frame (0.78, 0.44) ≈ 1.3 m up left of centre; sheet 04: pod lanterns inside), a bed of
@@ -1973,7 +2000,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // a real albedo (0x8c7e6e ≈ 0.26 linear under the pieces' 0.3–0.95 tints — clay, glaze and
   // wood in lamplight) now that the lamps are lights; the pieces themselves are LATHED with
   // throwing rings and painted bands (`kokiriPot`), the boards chamfered (`softBox`) and grained.
-  const propsMat = indoorFog(roomMaterial(mats, hero ? 0x8c7e6e : 0x5e544a), doorPlanePoint, F);
+  const propsMat = indoorFog(roomMaterial(mats, hero ? 0x8c7e6e : 0x5e544a), doorPlanePoint, F, 'props');
   materials.push(propsMat);
   /** grain noise for the room's woodwork (round 48) */
   const grainNoise = new Noise2D(`${ctx.config.seed}/structures/house/${def.id}/grain48`);
@@ -2362,7 +2389,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // as lamps in the room, not as pods in the haze. ----
   const lanterns: LanternRig[] = [];
   const roomLanternRng = rng.fork('room-lanterns');
-  const roomLanternMat = indoorFog(mats.lantern, doorPlanePoint, F);
+  const roomLanternMat = indoorFog(mats.lantern, doorPlanePoint, F, 'lantern');
   materials.push(roomLanternMat);
   // (`turned` — the lathe — is defined with the shelves above; round 48 moved it up and gave it grain)
   {
@@ -2712,7 +2739,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         setFloatAttribute(rug, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
       }
       const rugTex = braidedRugTexture(Math.floor(hash2(def.position[0], def.position[2]) * 1000));
-      const rugMat = indoorFog(roomMaterial(mats, 0xb8b0a4, false, rugTex), doorPlanePoint, F);
+      const rugMat = indoorFog(roomMaterial(mats, 0xb8b0a4, false, rugTex), doorPlanePoint, F, 'rug');
       rugMat.normalScale.set(0.15, 0.15);
       materials.push(rugMat, rugTex);
       const rugMesh = new Mesh(rug, rugMat);
@@ -2921,8 +2948,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     group.add(furnishMesh);
     // the plants: fog-clamped clones of the leaf / vine materials so the strands read as in the
     // room, not in the plaza's haze; no shadow casting (they are indoors)
-    const roomLeaf = indoorFog(mats.leaf, doorPlanePoint, F);
-    const roomVine = indoorFog(mats.vine, doorPlanePoint, F);
+    const roomLeaf = indoorFog(mats.leaf, doorPlanePoint, F, 'leaf');
+    const roomVine = indoorFog(mats.vine, doorPlanePoint, F, 'vine');
     materials.push(roomLeaf, roomVine);
     for (const m of roomFoliage.build({ ...mats, leaf: roomLeaf, vine: roomVine }, 'room47')) {
       m.castShadow = false;
@@ -3052,6 +3079,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     const winGlowMat = mats.windowGlow.clone();
     winGlowMat.vertexColors = true;
+    HOUSE_CLONES.set(winGlowMat, { kind: 'window-glow', base: mats.windowGlow });
     materials.push(winGlowMat);
     const winMesh = new Mesh(winGeo, winGlowMat);
     winMesh.name = 'window-socket';

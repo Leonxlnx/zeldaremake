@@ -32,7 +32,7 @@
  * modulates round POD_MAP_MEAN and the tints below are divided by it, the emissive's body rows
  * keep the round-11 gradient's mean (see podEmissiveTexture).
  */
-import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LineCurve3, Mesh, Object3D, TorusGeometry, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LineCurve3, Matrix4, Mesh, type MeshStandardMaterial, Object3D, TorusGeometry, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, faceTowards, gridSurface, merge, setColorAttribute, setFloatAttribute, sweepTube } from './geometry';
@@ -527,4 +527,104 @@ export function swingLanterns(rigs: LanternRig[], t: number, windDirX: number, w
     const across = r.amp * 0.45 * s2;
     r.pivot.rotation.set(along * windDirZ + across * windDirX, 0, -along * windDirX + across * windDirZ);
   }
+}
+
+/**
+ * `swingLanterns` on the GPU, for pods baked into one mesh (`bakeSwingingPods`): each vertex carries
+ * its rig's hook (`aHook`) and phase / amplitude / speed (`aSwing`) and turns about the hook by the
+ * pivot's Euler XYZ (x = along·dir.z + across·dir.x, y = 0, z = −along·dir.x + across·dir.z) on the
+ * same clock — the wind's uTime is the world's `t` (world/index.ts), uWindDir its direction. Keep
+ * the two in step.
+ */
+const POD_SWING_GLSL = /* glsl */ `
+attribute vec3 aHook;
+attribute vec3 aSwing;
+mat3 podSwing() {
+  float s = sin(uTime * aSwing.z + aSwing.x);
+  float s2 = sin(uTime * aSwing.z * 0.63 + aSwing.x * 1.7);
+  float along = aSwing.y * s;
+  float across = aSwing.y * 0.45 * s2;
+  float rx = along * uWindDir.y + across * uWindDir.x;
+  float rz = -along * uWindDir.x + across * uWindDir.y;
+  float a = cos(rx);
+  float b = sin(rx);
+  float e = cos(rz);
+  float f = sin(rz);
+  return mat3(e, a * f, b * f, -f, a * e, b * e, 0.0, -b, a);
+}
+`;
+
+/** `base` — a pod material bound to the shared wind — with POD_SWING_GLSL chained onto its hook */
+export function podSwingMaterial(base: MeshStandardMaterial): MeshStandardMaterial {
+  const m = base.clone();
+  m.name = `${base.name || 'structures:lantern'}:swing`;
+  const prev = base.onBeforeCompile;
+  const prevKey = base.customProgramCacheKey;
+  m.onBeforeCompile = (shader, renderer) => {
+    prev.call(m, shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('void main() {', `${POD_SWING_GLSL}\nvoid main() {\n  mat3 podTurn = podSwing();`)
+      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n  objectNormal = podTurn * objectNormal;')
+      .replace('#include <project_vertex>', 'transformed = aHook + podTurn * (transformed - aHook);\n#include <project_vertex>');
+  };
+  m.customProgramCacheKey = () => `${prevKey.call(m)}|pod-swing`;
+  return m;
+}
+
+/**
+ * Bake unswung `rigs` that share one material into ONE mesh on `podSwingMaterial` — one draw (and
+ * one shadow draw) where a pivot per pod costs one each. The vertices land in `into`'s frame; the
+ * mesh is returned unparented. Each rig's pod leaves its pivot and the emptied pivot keeps its place
+ * as `pod-lantern`, so whatever finds pods by name (the audio's pod voices) still finds every hook.
+ * The shadow pass draws the rest pose (no custom depth material): a 2–4° swing moves it by a few cm.
+ */
+export function bakeSwingingPods(rigs: LanternRig[], into: Object3D): Mesh {
+  const podOf = (r: LanternRig) => {
+    const pod = r.pivot.children.find((c) => (c as Mesh).isMesh) as Mesh | undefined;
+    if (!pod) throw new Error('bakeSwingingPods: a rig without its pod');
+    return pod;
+  };
+  const first = podOf(rigs[0]);
+  const material = first.material as MeshStandardMaterial;
+  into.updateWorldMatrix(true, false);
+  const toInto = new Matrix4().copy(into.matrixWorld).invert();
+  const bake = new Matrix4();
+  const hook = new Vector3();
+  const geos = rigs.map((r) => {
+    const pod = podOf(r);
+    if (pod.material !== material) throw new Error('bakeSwingingPods: rigs on different materials');
+    r.pivot.rotation.set(0, 0, 0);
+    r.pivot.updateWorldMatrix(true, true);
+    const g = pod.geometry.clone().applyMatrix4(bake.multiplyMatrices(toInto, pod.matrixWorld));
+    hook.setFromMatrixPosition(r.pivot.matrixWorld).applyMatrix4(toInto);
+    const n = g.attributes.position.count;
+    const hooks = new Float32Array(n * 3);
+    const swing = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      hooks[i * 3] = hook.x;
+      hooks[i * 3 + 1] = hook.y;
+      hooks[i * 3 + 2] = hook.z;
+      swing[i * 3] = r.phase;
+      swing[i * 3 + 1] = r.amp;
+      swing[i * 3 + 2] = r.speed;
+    }
+    g.setAttribute('aHook', new Float32BufferAttribute(hooks, 3));
+    g.setAttribute('aSwing', new Float32BufferAttribute(swing, 3));
+    return g;
+  });
+  const geo = merge(geos);
+  geo.computeBoundingSphere();
+  // the swing's reach: amplitude ≤ 0.065 rad on cords ≤ 1.5 m
+  if (geo.boundingSphere) geo.boundingSphere.radius += 0.15;
+  const mesh = new Mesh(geo, podSwingMaterial(material));
+  mesh.name = 'pod-lanterns';
+  mesh.castShadow = first.castShadow;
+  mesh.receiveShadow = first.receiveShadow;
+  for (const r of rigs) {
+    const pod = podOf(r);
+    pod.removeFromParent();
+    pod.geometry.dispose();
+    r.pivot.name = 'pod-lantern';
+  }
+  return mesh;
 }
