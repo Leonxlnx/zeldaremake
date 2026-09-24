@@ -244,8 +244,8 @@ function particleGeometry(rng: Rng, landX: number, ground: Ground): BufferGeomet
   const half = F.width * 0.55;
   // droplets thrown up and out of the plunge
   const dr = rng.fork('droplets');
-  for (let k = 0; k < 190; k++) {
-    const o: [number, number, number] = [landX + dr.range(-0.35, 0.55), W + 0.08, F.z + dr.range(-half, half)];
+  for (let k = 0; k < 220; k++) {
+    const o: [number, number, number] = [landX + dr.range(-0.45, 0.8), W + 0.08, F.z + dr.range(-half, half)];
     const s: [number, number, number, number] = [dr(), 0, dr(), dr()];
     const v: [number, number, number] = [dr.range(0.3, 2.3), dr.range(1.1, 3.3), dr.range(-1.1, 1.1)];
     quad(o, s, v);
@@ -412,7 +412,7 @@ function particleMaterial(time: { value: number }): MeshBasicMaterial {
         if (pKind < 0.5) {
           // droplets: a dragged ballistic arc, spreading into mist as they go
           pC.y -= 0.5 * 9.81 * 0.62 * pT * pT;
-          pSize = 0.05 + 0.08 * aSeed.w + 0.2 * pAge;
+          pSize = 0.03 + 0.05 * aSeed.w + 0.14 * pAge * pAge;
         } else {
           pSize = (0.8 + 1.1 * aSeed.z) * (0.65 + 0.7 * pAge);
         }
@@ -432,8 +432,10 @@ function particleMaterial(time: { value: number }): MeshBasicMaterial {
           float a;
           vec3 c;
           if (vPKind < 0.5) {
-            a = (1.0 - smoothstep(0.15, 1.0, r)) * 0.38;
-            c = vec3(0.62, 0.66, 0.66);
+            // a ragged speck that thins as it spreads (round soft discs stack into white balls where they overlap)
+            float n = wNoise(vPCorner * 2.3 + vec2(vPShade * 23.0, vPLife * 2.0));
+            a = (1.0 - smoothstep(0.0, 0.85, r + 0.45 * (n - 0.5))) * mix(0.28, 0.06, vPLife);
+            c = vec3(0.55, 0.6, 0.6);
           } else {
             float n = wNoise(vPCorner * 1.3 + vec2(vPShade * 17.0, vPLife * 1.5)) * 0.6 + wNoise(vPCorner * 3.1 - vec2(vPLife, vPShade * 9.0)) * 0.4;
             a = (1.0 - smoothstep(0.1, 1.0, r)) * smoothstep(0.2, 0.75, n + 0.25 * (1.0 - r)) * 0.15;
@@ -445,7 +447,7 @@ function particleMaterial(time: { value: number }): MeshBasicMaterial {
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'ruins-spray-v1';
+  mat.customProgramCacheKey = () => 'ruins-spray-v2';
   return mat;
 }
 

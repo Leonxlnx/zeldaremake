@@ -263,7 +263,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       [cutEnd, T.notchX, T.z0, T.notchZ],
     ];
     for (const [a0, a1, b0, b1] of rects) {
-      mb.poly([new Vector3(a0, bedY, b0), new Vector3(a1, bedY, b0), new Vector3(a1, bedY, b1), new Vector3(a0, bedY, b1)], up, [0.4, 0.36, 0.29], () => 0.9);
+      mb.poly([new Vector3(a0, bedY, b0), new Vector3(a1, bedY, b0), new Vector3(a1, bedY, b1), new Vector3(a0, bedY, b1)], up, [0.24, 0.19, 0.135], () => 0.5, () => 0.25);
     }
   }
   const trodden = (x: number, z: number) => (1 - smoothstep(0.7, 2.2, Math.abs(z - S.base[2]))) * smoothstep(T.x0 + 0.5, T.x0 + 3.5, x);
@@ -492,7 +492,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   const shaft1 = spring - 0.46;
   for (const zc of [A.z - off, A.z + off]) {
     const place = (x: number, y: number, z: number) => new Vector3(A.x + x, y, zc + z);
-    block(mb, A.x, top + 0.22, zc, 0.34, 0.26, 0.34, 0, { bevel: 0.045, color: stoneCol(rng, 0.95), skip: ['-y'], mossFn: (p, n) => moss(p, n, 0.45) });
+    block(mb, A.x, top + 0.2, zc, 0.34, 0.28, 0.34, 0, { bevel: 0.045, color: stoneCol(rng, 0.95), skip: ['-y'], mossFn: (p, n) => moss(p, n, 0.45) });
     lathe(
       mb,
       [
@@ -510,7 +510,14 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     const prof: [number, number][] = [];
     for (let k = 0; k <= 72; k++) prof.push([A.columnR, shaft0 + ((shaft1 - shaft0) * k) / 72]);
     // a three-strand barley twist: rounded ridges, sharp grooves, a turn every 0.85 m (the ridges' crest is the column's radius)
-    lathe(mb, prof, 36, place, stoneCol(rng, 1.0), (y) => 0.16 * (1 - smoothstep(shaft0, shaft0 + 0.8, y)) + 0.1 * smoothstep(shaft1 - 0.5, shaft1, y), (th, y, r) => r * (0.8 + 0.2 * Math.sqrt(0.5 + 0.5 * Math.cos(3 * th - (2 * Math.PI * (y - shaft0)) / 0.85))));
+    const ridge = (th: number, y: number) => Math.sqrt(0.5 + 0.5 * Math.cos(3 * th - (2 * Math.PI * (y - shaft0)) / 0.85));
+    const sv0 = mb.vertexCount;
+    lathe(mb, prof, 36, place, stoneCol(rng, 1.0), (y) => 0.16 * (1 - smoothstep(shaft0, shaft0 + 0.8, y)) + 0.1 * smoothstep(shaft1 - 0.5, shaft1, y), (th, y, r) => r * (0.8 + 0.2 * ridge(th, y)));
+    // the grooves hold grime: darker toward their floor, so the twist reads through the stone's texture
+    for (let k = sv0; k < mb.vertexCount; k++) {
+      const g = 0.7 + 0.3 * ridge(Math.atan2(mb.pos[k * 3 + 2] - zc, mb.pos[k * 3] - A.x), mb.pos[k * 3 + 1]);
+      for (let j = 0; j < 3; j++) mb.col[k * 3 + j] *= g;
+    }
     lathe(
       mb,
       [
@@ -534,8 +541,9 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     const { r0, r1, half: d } = ARCH_RING;
     for (let k = 0; k < N; k++) {
       const key = k === (N - 1) / 2;
-      const a0 = (k / N) * Math.PI + 0.006;
-      const a1 = ((k + 1) / N) * Math.PI - 0.006;
+      // tight joints (≈ 4 mm): wider ones let the sky through along the approach's line of sight
+      const a0 = (k / N) * Math.PI + 0.001;
+      const a1 = ((k + 1) / N) * Math.PI - 0.001;
       const ri = key ? r0 - 0.05 : r0 + rng.range(-0.01, 0.01);
       const ro = key ? r1 + 0.17 : r1 + rng.range(-0.02, 0.02);
       const dd = key ? d + 0.03 : d + rng.range(-0.015, 0.01);
@@ -593,7 +601,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   const C = R.colonnade;
   const fluted = (x: number, z: number, h: number, broken: boolean) => {
     const place = (lx: number, y: number, lz: number) => new Vector3(x + lx, y, z + lz);
-    block(mb, x, top + 0.16, z, 0.42, 0.19, 0.42, rng.range(-0.03, 0.03), { bevel: 0.04, color: stoneCol(rng, 0.94), skip: ['-y'], mossFn: (p, n) => moss(p, n, 0.5) });
+    block(mb, x, top + 0.135, z, 0.42, 0.215, 0.42, rng.range(-0.03, 0.03), { bevel: 0.04, color: stoneCol(rng, 0.94), skip: ['-y'], mossFn: (p, n) => moss(p, n, 0.5) });
     const s0 = top + 0.35;
     const s1 = top + (broken ? h : h - 0.42);
     const prof: [number, number][] = [
@@ -704,7 +712,9 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
         const parts = two ? [-0.225, 0.225] : [0];
         for (const pz of parts) {
           if (last && n < 5 && rng.chance(0.5) && parts.length > 1) continue;
-          block(mb, Bk.x + rng.range(-0.02, 0.02), y + h / 2, z + pz, two ? 0.45 : 0.46, h / 2 - 0.006, two ? 0.22 : 0.45, rng.range(-0.02, 0.02) + (last && n < 5 ? rng.range(-0.08, 0.08) : 0), {
+          // the first course bedded to the paving's bed, so no lost slab beside it shows its foot
+          const bed = c === 0 ? 0.09 : 0;
+          block(mb, Bk.x + rng.range(-0.02, 0.02), y + h / 2 - bed / 2, z + pz, two ? 0.45 : 0.46, h / 2 - 0.006 + bed / 2, two ? 0.22 : 0.45, rng.range(-0.02, 0.02) + (last && n < 5 ? rng.range(-0.08, 0.08) : 0), {
             bevel: rng.range(0.03, 0.05),
             color: stoneCol(rng, 1.0 - 0.18 * (1 - smoothstep(0, 1, y - top))),
             skip: c === 0 ? ['-y'] : [],

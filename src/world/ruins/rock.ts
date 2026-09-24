@@ -179,7 +179,10 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
         stain *= smoothstep(-0.2, 0.6, n3.noise(a * 7.5, h * 0.25));
         const k = (0.8 + 0.12 * n2.noise(ca * 2 + y * 0.2, sa * 2) + 0.1 * smoothstep(y0 + 2, P.top - 1, y)) * COURSE_TONE[course] * (1 - 0.14 * stain);
         const shade = 1 - smoothstep(-0.3, 0.5, ca * sun.x + sa * sun.z);
-        const moss = clamp(0.2 + 0.35 * shade * (1 - smoothstep(y0, y0 + 5, y)) + 0.8 * crown + 0.65 * ledge + 0.25 * n3.noise(ca * 3 + y * 0.3, sa * 3), 0, 1);
+        // ledge moss only where the bevel steps in (faces up), in tufts (a full ring reads as a dark band on the shaded face)
+        const stepIn = ledge > 0.05 ? smoothstep(0.04, 0.35, (pillarSideR(a, y - 0.06, span) - pillarSideR(a, y + 0.06, span)) / 0.12) : 0;
+        const tuft = smoothstep(-0.3, 0.45, n2.noise(a * 6.1 + 7.3, h * 1.3));
+        const moss = clamp(0.2 + 0.35 * shade * (1 - smoothstep(y0, y0 + 5, y)) + 0.8 * crown + ledge * tuft * (0.1 + 0.6 * stepIn) + 0.25 * n3.noise(ca * 3 + y * 0.3, sa * 3), 0, 1);
         return { p: new Vector3(P.x + ca * r, y, P.z + sa * r), c: [k * 0.97, k, k * 0.95], moss, wet: Math.max(0.2 * (1 - smoothstep(y0, y0 + 2, y)), 0.35 * stain) };
       },
       [0.25, 0.4],
