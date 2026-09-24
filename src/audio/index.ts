@@ -101,6 +101,21 @@ export interface OfflineOptions {
   canopy?: number;
   /** force the ravine over the whole render (0 well back from it, 1 out over it) */
   gorge?: number;
+  /**
+   * Stand still at (x, z) for the whole render instead of walking the scripted route.
+   *
+   * Every measurement on this lane so far has come from one fixed walk through the village, which
+   * answers "what does the game sound like" and cannot answer "what does **this place** sound
+   * like". That second question is the one that matters for the owner's standing complaint, because
+   * the metric for it — the level present in nine frames out of ten — is a property of a place and
+   * a listener who is not doing anything. It also needs no footsteps and no browser recording: with
+   * `stem: 'bed'` this is the world's own sound at a spot, rendered deterministically in a second.
+   *
+   * The space terms come from `surfaceAt(x, z)` unless `canopy` / `gorge` override them, so a spot
+   * under the crowns or out over the ravine carries its own. The wind still moves — a place with no
+   * weather in it is not a place.
+   */
+  at?: { x: number; z: number; y?: number; facing?: number };
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -631,7 +646,24 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   let z = 2;
   const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
   const standsBesideFairy = OFFLINE_WALK[OFFLINE_WALK.length - 2].until;
+  // standing somewhere: the place's own space terms, and nothing underfoot
+  const spot = options.at ? surfaceAt(options.at.x, options.at.z) : null;
+  const facing = options.at?.facing ?? 0;
   for (let t = 0; t < seconds; t += step) {
+    if (options.at && spot) {
+      ambience?.update(t, {
+        gust: gust(t),
+        listener: { x: options.at.x, y: options.at.y ?? 1.2, z: options.at.z },
+        forward: { x: Math.sin(facing), z: Math.cos(facing) },
+        pods,
+        fairies,
+        enclosure: spot.enclosure,
+        canopy: options.canopy ?? spot.canopy,
+        gorge: options.gorge ?? spot.gorge,
+        windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
+      });
+      continue;
+    }
     const leg = OFFLINE_WALK.find((l) => t < l.until) ?? lastLeg;
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;
