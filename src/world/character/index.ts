@@ -67,6 +67,15 @@ interface Actor extends GaitChain {
 const KID_COUNT = 5;
 /** how far a kid's sun shadow can lie from them (1.12 m tall under the 38° sun → 1.43 m on level ground; margin for a slope and a frame of camera lag) */
 const KID_SHADOW_REACH_M = 2.6;
+/**
+ * Beyond this distance a kid casts no sun shadow (fable-5, 18:04: at the look-backs five kids at
+ * 30–45 m and 20–30 px tall drew 123 submissions, half of them the shadow pass) — a shadow a metre
+ * long at 25 m is a few pixels of the ground's own shade.
+ */
+const KID_SHADOW_FAR_M = 25;
+/** beyond this distance a kid's small parts (belt, buckle, lashes, eyes, boot soles and cuffs, the pouch, the stick) are not drawn */
+const KID_DETAIL_FAR_M = 25;
+const KID_DETAIL_PARTS = new Set(['kid-belt', 'kid-buckle', 'lashes', 'eyeballs', 'boot-sole', 'boot-cuff', 'kid-rope-belt', 'kid-pouch', 'brow', 'mouth', 'eye-white', 'iris', 'pupil', 'deku-stick']);
 /** the ledge girl stands 4 m over the north clearing: her shadow can fall down the ledge face onto its floor */
 const LEDGE_SHADOW_REACH_M = 7;
 
@@ -173,6 +182,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return meshes;
   });
   const kidCasting: boolean[] = kids.map(() => true);
+  // the small parts a kid loses beyond KID_DETAIL_FAR_M (the skinned meshes are named after their first part)
+  const kidDetail: Mesh[][] = kids.map((k) => {
+    const meshes: Mesh[] = [];
+    k.puppet.group.traverse((o) => {
+      if ((o as Mesh).isMesh && KID_DETAIL_PARTS.has(o.name.replace(/^skinned:/, ''))) meshes.push(o as Mesh);
+    });
+    return meshes;
+  });
+  const kidDetailed: boolean[] = kids.map(() => true);
   const shadowFrustum = new Frustum();
   const shadowPV = new Matrix4();
   const shadowSphere = new Sphere();
@@ -184,11 +202,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const k = kids[i];
       k.puppet.group.getWorldPosition(shadowSphere.center);
       shadowSphere.center.y += 0.7;
+      const dist = shadowSphere.center.distanceTo(camera.position);
       shadowSphere.radius = i === LEDGE_SLOT ? LEDGE_SHADOW_REACH_M : KID_SHADOW_REACH_M;
-      const on = shadowFrustum.intersectsSphere(shadowSphere);
-      if (on === kidCasting[i]) continue;
-      kidCasting[i] = on;
-      for (const m of kidCasters[i]) m.castShadow = on;
+      const on = dist < KID_SHADOW_FAR_M && shadowFrustum.intersectsSphere(shadowSphere);
+      if (on !== kidCasting[i]) {
+        kidCasting[i] = on;
+        for (const m of kidCasters[i]) m.castShadow = on;
+      }
+      // `visible` is no program key either: the far kid keeps its skull, hair, band, tunic, skin and boots
+      const detailed = dist < KID_DETAIL_FAR_M;
+      if (detailed !== kidDetailed[i]) {
+        kidDetailed[i] = detailed;
+        for (const m of kidDetail[i]) m.visible = detailed;
+      }
     }
   };
 
@@ -539,6 +565,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** lane 7: which kids cast a sun shadow this frame (their shadow reach meets the view) and the shadow-pass meshes each holds */
       kidShadowCasting: kidCasting.slice(),
       kidShadowMeshes: kidCasters.map((m) => m.length),
+      kidDetailed: kidDetailed.slice(),
+      kidDetailMeshes: kidDetail.map((m) => m.length),
+      kidFarM: { shadow: KID_SHADOW_FAR_M, detail: KID_DETAIL_FAR_M },
       /** lane 7 (skin.ts): each kid's part meshes before → skinned meshes after, and the bones they ride */
       kidSkinned: kidChars.map((c) => c.rig.root.userData.skinned ?? null),
       mode,
