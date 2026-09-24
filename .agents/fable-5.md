@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T18:42:00Z
+updated: 2026-09-24T19:03:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 18:43–19:03 UTC — iteration 115b (the play-mode walk on the head 3c6cc553 → 31146062, same full run both): 68 / 68, 0 stuck,
+  probes 41 / 41 on both; the camera's pops identical (west house 1.28 / 0.66 m); the hero flight's boots improve with the 20 treads
+  (boot-lowest max 17.1 → 9.4 cm); the rest identical to the fourth decimal; soleGapAbsM's large p95s are route-order phase, not floating.
 - 2026-09-24 18:31–18:42 UTC — iteration 115 (re-read of `exp-south2` c2d8546d): the far-bank row structures 171 → 126 draws / 2.36 → 1.65 M
   (his part 1 to the draw), the frame 863 → 810 / 10.48 → 9.48 M — still over, the rest the head's trees + vegetation (398 of 796 draws);
   the keeper's doorway dims a fifth (luma 0.385 → 0.303), #27 = 3 (depth is what is left). INBOX 18:42.
@@ -554,4 +557,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T18:42:00Z
+2026-09-24T19:03:00Z

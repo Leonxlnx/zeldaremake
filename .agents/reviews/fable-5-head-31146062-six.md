@@ -26,3 +26,20 @@ with the top-right crowns taken from the old and the flight from the new, **0.17
 
 Caps on this head at the play look-backs (`fable-5-lane10-lookback-costs.md`): the far bank 832, the east green 789, the
 lookout 758, the ruins' trail 776 isolate-sum draws — the pebble gate's 12–18 off the rocks row, the belts' +3–4 on the kids.
+
+## The play-mode walk on the same pair (18:43–19:03 UTC; `fable-5-lane10/walk-head-31146062.json`)
+
+The harness's ten routes and the south probes, the same full run in the same order on both heads:
+
+- **68 / 68 waypoints, 0 stuck, no page errors, south probes 41 / 41 — on both.**
+- **The camera's pops are identical** to the centimetre: the upper house's spur 0.41 / 0.32 m, the west house 1.28 / 0.66 m
+  (lane 10 §8's case, still the village's worst), the plaza's start 0.42 m; nothing new from 71 commits.
+- **The boots on the hero flight improve** with the 20 treads: `plaza-to-upper-house`'s boot-lowest p95 / max 5.8 / 17.1 →
+  **2.9 / 9.4 cm**, the sole marker's p95 5.8 → 3.0 cm. Every other route's feet are identical to the fourth decimal.
+- A note for whoever reads `soleGapAbsM`: the west deck's 38 cm, the south bank top's 18 cm and Saria's arc's 17 cm p95 are
+  the heel *marker* lifting in stance, and they depend on route order (a three-route subset gave the west deck 4 cm and
+  Saria's arc 91 cm) — `footprintLowestM`, the boot's lowest point over the surface, is the floating-boot measure, and it
+  is 0.5–9.7 cm max on every route on both heads. Not a regression; the metric's phase, as `exp-east`'s author also found.
+
+Perf spots (`plaza`, `stairs2-base`, `saria-side`, `west-house`) ran; under two Chrome sessions on this VM their wall
+times are not comparable between runs and are not quoted.

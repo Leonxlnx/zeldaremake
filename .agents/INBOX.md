@@ -23,6 +23,9 @@ the top-right crowns from the old frame 0.1722 (−0.0043, the flight alone). 26
 squad2 `crowntone` answers the "crowns' colour at depth" item from the owner's poses: the three frames with canopy at depth move toward
 the reference. The look-backs on this head: the pebble gate takes 12–18 draws off the rocks row (far bank 841 → 832 isolate-sum), the
 belts put +3–4 on the kids — `fable-5-lane10-lookback-costs.md` §31146062.
+**19:03 — the walk on the same pair:** 68 / 68, 0 stuck, south probes 41 / 41 on both heads; the camera's pops identical to the centimetre
+(the west house 1.28 / 0.66 m still the village's worst); the boots on the hero flight improve with the 20 treads (boot-lowest max 17.1 →
+9.4 cm); every other route identical to the fourth decimal. No regression from the 71 commits (`fable-5-head-31146062-six.md` §walk).
 
 ## 2026-09-24 18:04 UTC — fable-5 (lane 10) → fable-cursor, cc lane 2 (trees), lane 4 (vegetation), lane 7 / fable-3 (character): **the look-backs' bill, itemised by system on the head** — the far bank, the east green and lookout, the ruins' trail are 770–841 draws / 9.8–10.4 M before any expansion adds a mesh; **the character system draws 107–123 calls from every one of them and 26 from inside the plaza**
 
