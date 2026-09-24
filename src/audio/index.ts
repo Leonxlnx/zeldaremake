@@ -19,9 +19,9 @@ import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
-import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
+import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
-import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
+import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -130,20 +130,27 @@ export interface WalkLeg {
  * The scripted walk the offline render uses, so a before / after pair is the same journey and the
  * analysis can label each surface's steps: stand, walk every surface in turn, run, stand.
  */
+/**
+ * The walk speeds are the **player controller's own** (`footsteps.ts` `WALK_SPEED` /
+ * `RUN_GROUND_SPEED`, which are `animation.ts` `PLAYER_SPEED`), not numbers chosen here. They were
+ * 1.5 and 4.2 against a game that walks at 1.6 and runs at 4.6 — close enough to look right and
+ * enough to put the render's step rate 5 % under the game's, which is the same class of mistake as
+ * the cadence model being an adult's. The twin should travel at the speed the player travels at.
+ */
 export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 3, speed: 0, surface: 'grass' },
-  { until: 8, speed: 1.5, surface: 'grass' },
-  { until: 13, speed: 1.5, surface: 'dirt' },
-  { until: 18, speed: 1.5, surface: 'stone' },
+  { until: 8, speed: WALK_SPEED, surface: 'grass' },
+  { until: 13, speed: WALK_SPEED, surface: 'dirt' },
+  { until: 18, speed: WALK_SPEED, surface: 'stone' },
   { until: 23, speed: 1.1, surface: 'stone', stairs: true },
-  { until: 27, speed: 1.5, surface: 'wood' },
-  { until: 31, speed: 1.5, surface: 'hollow' },
-  { until: 36, speed: 1.5, surface: 'leaf' },
-  { until: 41, speed: 4.2, surface: 'stone' },
+  { until: 27, speed: WALK_SPEED, surface: 'wood' },
+  { until: 31, speed: WALK_SPEED, surface: 'hollow' },
+  { until: 36, speed: WALK_SPEED, surface: 'leaf' },
+  { until: 41, speed: RUN_GROUND_SPEED, surface: 'stone' },
   { until: 45, speed: 0, surface: 'grass' },
   // appended 2026-09-24 with the south exit, AFTER the closing stand so every earlier leg keeps its
   // times and older before/after renders stay comparable
-  { until: 50, speed: 1.5, surface: 'bridge' },
+  { until: 50, speed: WALK_SPEED, surface: 'bridge' },
 ];
 
 export interface AudioOptions {
@@ -608,7 +615,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const ctx = new Ctor({ latencyHint: 'interactive' });
       const rng = createRng(seed);
       const buses = createBuses(ctx, rng.fork('buses'));
-      buses.master.gain.value = muted ? 0 : 1;
+      buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
       const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
       const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
@@ -652,7 +659,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const setMuted = (m: boolean) => {
     muted = m;
-    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : 1, live.ctx.currentTime, 0.03);
+    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : MASTER_LEVEL, live.ctx.currentTime, 0.03);
     emit();
   };
 
@@ -681,7 +688,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [] }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
