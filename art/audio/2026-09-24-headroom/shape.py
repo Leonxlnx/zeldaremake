@@ -120,6 +120,8 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--seconds', type=int, default=120)
     ap.add_argument('--width', type=int, default=1240)
+    ap.add_argument('--title', help='replaces the sheet\'s first line')
+    ap.add_argument('--sub', help='replaces the second')
     args = ap.parse_args()
     if args.single:
         return single(args)
@@ -127,12 +129,24 @@ def main():
     W, H = args.width, 552
     im = Image.new('RGB', (W, H), BG)
     d = ImageDraw.Draw(im)
-    d.text((14, 10), 'The placeholder score before and after the phrase pass: the same walk, the same seed, the same forest bed (grey fill).', font=FONT, fill=INK)
-    d.text((14, 24), 'Short-term level, 500 ms window. Top: the whole mix. Bottom: 60-125 Hz alone, where the pad sits. 0-%d s; a pass is 50.5 s.' % args.seconds, font=FONT, fill=(130, 136, 144))
+    d.text((14, 10), args.title or 'The placeholder score before and after the phrase pass: the same walk, the same seed, the same forest bed (grey fill).', font=FONT, fill=INK)
+    d.text((14, 24), args.sub or ('Short-term level, 500 ms window. Top: the whole mix. Bottom: 60-125 Hz alone, where the pad sits. 0-%d s.' % args.seconds), font=FONT, fill=(130, 136, 144))
 
+    # one scale for both columns, set by the louder of them so neither clips against the ceiling
+    def span(lo, hi, headroom=3.0, depth=40.0):
+        top = -120.0
+        for root in (args.before, args.after):
+            a, sr = load(os.path.join(root, 'mix.wav'))
+            v, _ = band_level(mono(a), sr, lo, hi)
+            top = max(top, float(np.percentile(v, 99.5)))
+        top = round(top + headroom)
+        return top, top - depth
+
+    mtop, mbot = span(0, 0)
+    btop, bbot = span(60, 125)
     rows = [
-        ('the whole mix', 'mix', 0, 0, -24.0, -60.0, TUNE),
-        ('60-125 Hz only - the pad', 'mix', 60, 125, -34.0, -74.0, BAND),
+        ('the whole mix', 'mix', 0, 0, mtop, mbot, TUNE),
+        ('60-125 Hz only - the pad', 'mix', 60, 125, btop, bbot, BAND),
     ]
     y = 60
     for title, stem, lo, hi, top, bot, colour in rows:
