@@ -56,9 +56,10 @@ export const GAIT_SPEED: Record<Gait, number> = { idle: 0, walk: 1.6, run: 3.9, 
  * Target ground speed (m/s) of the player controller per gait. Ordinary walking uses 1.2 m/s:
  * with the 0.88 m stride this gives a 0.733 s cycle instead of the hurried 0.55 s cycle. The root
  * accelerates toward it at PLAYER_ACCEL and brakes at PLAYER_DECEL (m/s²), and the clips follow
- * the actual speed (no foot slide), so the run clip plays at ≈ 1.18× its cycle at full speed.
+ * the actual speed. Running covers 1.82 m in about 0.55 s (218 steps/min), avoiding
+ * the previous 303 steps/min that made the short character's arms look frantic.
  */
-export const PLAYER_SPEED: Record<Gait, number> = { idle: 0, walk: 1.2, run: 4.6, stairs: 1.1 };
+export const PLAYER_SPEED: Record<Gait, number> = { idle: 0, walk: 1.2, run: 3.3, stairs: 1.1 };
 export const PLAYER_ACCEL = 9;
 export const PLAYER_DECEL = 16;
 

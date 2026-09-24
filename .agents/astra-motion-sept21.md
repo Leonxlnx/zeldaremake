@@ -2,12 +2,16 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: idle
+status: active
 branch: codex/walk-arms-sept24
-updated: 2026-09-24T17:00:00Z
+updated: 2026-09-24T18:47:00Z
 ---
 
 # Astra motion continuation
+
+Running/shiver follow-up: adopted `aa0520e0` (54,422,264 bytes). The run shoulders now peak 2.26 degrees forward relative to the torso instead of 8.26, retain the rear swing, and open elbows slightly on return. Four long fingers on each hand curve toward the palm in Blender; geometry export preserves other rows, skinning, topology, textures and morphs. Run speed 3.3 m/s replaces 4.6 (218 versus 303 steps/min); authored arm gain/filter are removed. Native arm/body contacts 1269 -> 1266, peak24/below-armpit21 unchanged. Vertical correction removes narrow clip pelvis notches before existing foot IK; flat walk/run roughness reduced87%/92%, with idle/stairs and jump boundaries preserved by regression. Build/typecheck, gait-chain test and source anti-cheat pass. Final RUN-only 1080p replay is in progress; PR59 remains draft until reviewed. Intermediate04e6 walk/run/stop replay completed without page errors or reach clamps; it is not the final arm delivery. Root owns Blender and capture; environment squads continue independently. Immutable cinematic tag remains unchanged.
+
+Owner correction: the rejected hands/arms are RUNNING, not just walking; also reports rapid small vertical shivering during walking. Root now owns Blender running arm/hand correction; independent vertical_jitter agent diagnoses root/grounding/camera and may edit only the relevant runtime logic. run_reference agent checks current running carriage and primary references. Hold PR59 integration until this follow-up is validated. Current baseline is 46dcbcc3 at 11a74993; no environment changes. No more walk-only substitute for the run task.
 
 Walk delivery `01b9f1a7`, PR59: actual native 1080p walk/stop replay is complete (2026-09-24T16-46-06-324Z-play-motion), 300 ticks / 150 video frames, 4.763 m, no page errors or reach clamps. Reviewed native side/front, game cycle frames and final stop. Before/after two-second comparison and full five-second new clip are linked in the study README. Capture began before commit; game-receipt.json verifies the runtime source and bundle against the delivered code. One aborted GLB request is recorded alongside the successful HTTP200/final GLB audit. No whole-character or full-sole collision-free claim. Source/build checks pass; GitHub gauntlet is still running. Fable notified in PR2 comment5818396640; the environment lanes continue independently.
 

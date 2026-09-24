@@ -1,0 +1,51 @@
+{
+  "sourceSha256": "46dcbcc36490ee5c86f6d9eb28d58d1743f60cfab02bb0c899b8388b6eda3de0",
+  "scene": "Link | September24 relaxed hands35",
+  "confirmedSeeds": {
+    "L": [
+      75512,
+      75592,
+      78323,
+      76365
+    ],
+    "R": [
+      78136,
+      78015,
+      77299,
+      76829
+    ]
+  },
+  "angleDeg": 35,
+  "changedRows": 1548,
+  "sourceRestErrorM": 9.8843121241194e-08,
+  "nativeDeltaErrorM": 1.4901161193847656e-08,
+  "shapeKeyDeltaErrorM": 1.4901161193847656e-08,
+  "unselectedNativeNormalMaxError": 0.0006903742762191258,
+  "selectedNativeNormalEncodingMaxError": 0.00039632478334711963,
+  "protectedPositionsWeightsUvTopologyMaterialsActionsExact": true,
+  "sourceUnchanged": true,
+  "boundaryVerticesExact": true,
+  "portableChecks": {
+    "sourceVertices": 88153,
+    "sourceFaces": 68042,
+    "selectedRows": 2221,
+    "selectedUniquePoints": 1167,
+    "boundaryRows": 318,
+    "changedRows": 1548,
+    "protectedRows": 85932,
+    "minimumJacobianDeterminant": 0.5294958378118823,
+    "maximumFiniteDifferenceJacobianError": 1.5909018546977904e-10,
+    "maximumAliasErrorM": 0.0,
+    "positionRoundedUnchangedRows": 9,
+    "maximumSkippedJacobianDeviationFromIdentity": 0.0005881673217590366,
+    "affectedFaces": 1764,
+    "minimumFaceNormalCosine": 0.8218310833570183,
+    "maxDisplacementM": 0.00765918585436321,
+    "boundaryAndOutsideRowsExact": true,
+    "aliasesCompleteAndExactRigid": true,
+    "componentCountAndSeedIdentityStableAtHalfMillimeterOffsets": true,
+    "sourceUnchanged": true
+  },
+  "accepted": false,
+  "status": "HOLD: copied native35-degree distal-finger study; root must review shape, normals and contacts. No export or production change."
+}
