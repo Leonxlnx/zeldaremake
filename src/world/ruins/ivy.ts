@@ -12,6 +12,7 @@
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
+import { PILLAR_BEDS } from '../terrain/ruins';
 import { Noise2D, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, type RGB } from './geom';
@@ -43,10 +44,10 @@ const LEAF: [number, number][] = [
   [-0.17, -0.05],
 ];
 const LEAF_C: [number, number] = [0, 0.42];
-const DARK: RGB = [0.036, 0.085, 0.022];
-const MID: RGB = [0.075, 0.16, 0.03];
-const BRIGHT: RGB = [0.125, 0.235, 0.038];
-const YOUNG: RGB = [0.15, 0.26, 0.045];
+const DARK: RGB = [0.04, 0.094, 0.024];
+const MID: RGB = [0.085, 0.18, 0.034];
+const BRIGHT: RGB = [0.14, 0.26, 0.042];
+const YOUNG: RGB = [0.17, 0.29, 0.05];
 const WOOD: RGB = [0.085, 0.066, 0.048];
 
 const clumps = new Noise2D('ruins-ivy');
@@ -161,7 +162,7 @@ export function buildIvy(rng: Rng, span: { y0: number; yTop: number }, floor: (x
       const tip = new Vector3(0, -1, 0).addScaledVector(across, 0.55).add(new Vector3(rng() - 0.5, rng() - 0.5, rng() - 0.5).multiplyScalar(0.5));
       const face = n.clone().add(new Vector3(0, 0.3, 0)).add(new Vector3(rng() - 0.5, rng() - 0.5, rng() - 0.5).multiplyScalar(0.3));
       const young = dir < 0 ? k : 1 - k;
-      const size = lerp(0.14, 0.23, rng()) * (1 - 0.3 * smoothstep(0.75, 1, young));
+      const size = lerp(0.16, 0.26, rng()) * (1 - 0.3 * smoothstep(0.75, 1, young));
       // a leaf over a fissure would dip its tip or a lobe into the rock: lift it clear
       {
         const f = face.clone().normalize();
@@ -186,7 +187,7 @@ export function buildIvy(rng: Rng, span: { y0: number; yTop: number }, floor: (x
 
   // hanging from under the crown, longest; from the ledges part way down; climbing from the foot
   for (let i = 0; i < 34; i++) grow(faceAngle(), span.yTop - 0.15 - rng() * 1.1, 4 + rng() * 6, -1, (rng() - 0.5) * 0.4, true);
-  for (let i = 0; i < 18; i++) grow(faceAngle(), lerp(4.2, span.yTop - 2.5, rng()), 1.6 + rng() * 3.2, -1, (rng() - 0.5) * 0.4, true);
+  for (let i = 0; i < 18; i++) grow(faceAngle(), span.y0 + 0.6 + PILLAR_BEDS[1 + (i % (PILLAR_BEDS.length - 1))] + 0.12 + rng() * 0.25, 1.6 + rng() * 3.2, -1, (rng() - 0.5) * 0.4, true);
   for (let i = 0; i < 10; i++) {
     const a = faceAngle();
     const foot = side(a, span.y0 + 3);

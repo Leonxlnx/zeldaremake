@@ -11,7 +11,7 @@
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
-import { CLIFF_ROWS, CLIFF_Z, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3 } from '../terrain/ruins';
+import { CLIFF_ROWS, CLIFF_Z, PILLAR_BEDS, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3 } from '../terrain/ruins';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, type RGB } from './geom';
@@ -45,15 +45,45 @@ export function pillarSpan(ground: Ground): { y0: number; yTop: number } {
   return { y0: gMin - 0.6, yTop: P.top - 0.6 };
 }
 
-/** the ivy rock's radius as built at angle `a`, height `y` (its crown's closing aside): the bulging column, fissured and lumpy */
+/** the ivy rock's height over its lowest ground at world height `y` (terrain/ruins.ts `pillarRadius`'s `y`), and the course it is in */
+function pillarCourse(y: number, span: { y0: number; yTop: number }): { h: number; k: number; up: number } {
+  const h = Math.max(0, Math.min(y, span.yTop) - span.y0 - 0.6);
+  let k = 0;
+  while (k + 1 < PILLAR_BEDS.length && h >= PILLAR_BEDS[k + 1]) k++;
+  return { h, k, up: h - PILLAR_BEDS[k] };
+}
+
+/** the joints that split the ivy rock's blocks ([course, bearing (rad)]): narrow V-cracks down a face, ending short of the beds */
+const PILLAR_JOINTS: readonly (readonly [number, number])[] = [
+  [0, 0.22],
+  [0, 1.3],
+  [0, 3.3],
+  [0, 5.5],
+  [1, 0.45],
+  [1, 2.4],
+  [1, 4.4],
+  [2, 1.1],
+  [2, 3.2],
+  [2, 5.8],
+];
+
+/** the ivy rock's radius as built at angle `a`, height `y` (its crown's closing aside): the stacked blocks, jointed, bedded and weathered */
 export function pillarSideR(a: number, y: number, span: { y0: number; yTop: number }): number {
   const ca = Math.cos(a);
   const sa = Math.sin(a);
-  const base = pillarRadius(a, Math.max(0, Math.min(y, span.yTop) - span.y0 - 0.6));
-  const fiss = 0.09 * Math.pow(Math.abs(n1.noise(ca * 1.8 + sa * 0.4, y * 0.12)), 0.6) - 0.06;
-  const lump = 0.05 * noise3(ca * 1.6, y * 0.35, sa * 1.6) + 0.02 * noise3(ca * 4.1, y * 0.9, sa * 4.1);
+  const { h, k, up } = pillarCourse(y, span);
+  const base = pillarRadius(a, h);
+  const inBlock = smoothstep(0, 0.3, up) * (k + 1 < PILLAR_BEDS.length ? 1 - smoothstep(PILLAR_BEDS[k + 1] - PILLAR_BEDS[k] - 0.3, PILLAR_BEDS[k + 1] - PILLAR_BEDS[k], up) : 1);
+  let joint = 0;
+  for (const [c, th] of PILLAR_JOINTS) {
+    if (c !== k) continue;
+    const d = Math.abs(((a - th - 0.05 * n1.noise(th * 3.1, h * 0.35) + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    joint = Math.min(joint, -0.045 * Math.max(0, 1 - d / 0.07) * inBlock);
+  }
+  const bedding = -0.015 * Math.pow(0.5 + 0.5 * Math.cos((up / 0.9 + 0.25 * n1.noise(ca * 1.3, sa * 1.3 + k)) * Math.PI * 2), 4);
+  const lump = 0.03 * noise3(ca * 1.6, y * 0.35, sa * 1.6) + 0.015 * noise3(ca * 4.1, y * 0.9, sa * 4.1);
   // (the walker's rule is the plain radius + 0.15 m: the detail stays within 10 % of it)
-  return Math.min(base * (1 + fiss + lump), base * 1.1);
+  return Math.min(base * (1 + joint + bedding + lump), base * 1.1);
 }
 
 /**
@@ -111,16 +141,18 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
   patch(cliff, Math.ceil((CLIFF_Z[1] - CLIFF_Z[0]) / 0.32), CLIFF_ROWS, (u, v) => cliffPoint(lerp(CLIFF_Z[0], CLIFF_Z[1], u), v, ground), [0.5, 0.35], new Vector3(1, 0, 0));
 
   // ------------------------------------------------------------------------------------------
-  // the ivy rock: a bulging, fissured column (terrain/ruins.ts pillarRadius), a mossy domed crown
+  // the ivy rock: stacked, jointed blocks (terrain/ruins.ts pillarRadius), moss on the ledges and
+  // the crown, damp streaks under each ledge
   // ------------------------------------------------------------------------------------------
   {
     const P = R.pillar;
     const span = pillarSpan(ground);
     const { y0, yTop } = span;
+    const COURSE_TONE = [0.96, 1.0, 1.05];
     patch(
       cliff,
-      56,
-      46,
+      112,
+      84,
       (u, v) => {
         const a = u * Math.PI * 2;
         const ca = Math.cos(a);
@@ -135,10 +167,20 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
         }
         const r = Math.max(0.01, pillarSideR(a, y, span) * close);
         const crown = smoothstep(0.84, 1, v);
-        const k = 0.8 + 0.12 * n2.noise(ca * 2 + y * 0.2, sa * 2) + 0.1 * smoothstep(y0 + 2, P.top - 1, y);
+        const { h, k: course } = pillarCourse(y, span);
+        // each ledge: moss on its bevel, and under it the seep's streaks where the rain runs off
+        let ledge = 0;
+        let stain = 0;
+        for (let j = 1; j < PILLAR_BEDS.length; j++) {
+          const b = PILLAR_BEDS[j];
+          ledge = Math.max(ledge, Math.exp(-(((h - b - 0.18) / 0.28) ** 2)));
+          stain = Math.max(stain, smoothstep(b - 1.6, b - 0.15, h) * (1 - smoothstep(b - 0.15, b + 0.05, h)));
+        }
+        stain *= smoothstep(-0.2, 0.6, n3.noise(a * 7.5, h * 0.25));
+        const k = (0.8 + 0.12 * n2.noise(ca * 2 + y * 0.2, sa * 2) + 0.1 * smoothstep(y0 + 2, P.top - 1, y)) * COURSE_TONE[course] * (1 - 0.14 * stain);
         const shade = 1 - smoothstep(-0.3, 0.5, ca * sun.x + sa * sun.z);
-        const moss = clamp(0.2 + 0.35 * shade * (1 - smoothstep(y0, y0 + 5, y)) + 0.8 * crown + 0.25 * n3.noise(ca * 3 + y * 0.3, sa * 3), 0, 1);
-        return { p: new Vector3(P.x + ca * r, y, P.z + sa * r), c: [k * 0.97, k, k * 0.95], moss, wet: 0.2 * (1 - smoothstep(y0, y0 + 2, y)) };
+        const moss = clamp(0.2 + 0.35 * shade * (1 - smoothstep(y0, y0 + 5, y)) + 0.8 * crown + 0.65 * ledge + 0.25 * n3.noise(ca * 3 + y * 0.3, sa * 3), 0, 1);
+        return { p: new Vector3(P.x + ca * r, y, P.z + sa * r), c: [k * 0.97, k, k * 0.95], moss, wet: Math.max(0.2 * (1 - smoothstep(y0, y0 + 2, y)), 0.35 * stain) };
       },
       [0.25, 0.4],
       new Vector3(0, 0, 1),

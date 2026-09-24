@@ -46,7 +46,7 @@ function ruinsCasters(): Caster[] {
   // the rock: the cliff along its run, the ivy rock, the gate, the slab bridge and its pile
   const C = R.cliff;
   for (let z = C.z0 - 1.5; z <= C.z1 + 1.5; z += 3) out.push({ x: C.x - 2.5, z, r: 4.2, y0: 0, y1: C.top + 0.6, shadow: true });
-  out.push({ x: R.pillar.x, z: R.pillar.z, r: R.pillar.r * 1.45, y0: 1.5, y1: R.pillar.top + 0.2, shadow: true });
+  out.push({ x: R.pillar.x, z: R.pillar.z, r: R.pillar.r * 1.55, y0: 1.5, y1: R.pillar.top + 0.2, shadow: true });
   for (const [x, z, r] of R.gate) out.push({ x, z, r: r * 1.3, y0: 1.5, y1: 4.8, shadow: true });
   for (const [x, z] of [
     [-68.9, 0.5],

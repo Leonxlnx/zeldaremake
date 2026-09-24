@@ -320,14 +320,51 @@ export function cliffRun(z: number): number {
   return smoothstep(C.z0, C.z0 + 1.5, z) * (1 - smoothstep(C.z1 - 1.5, C.z1, z));
 }
 
-/** the ivy rock's radius at height `y` over its base and bearing `a` (rad): a bulging, fissured column */
+/**
+ * The ivy rock's courses: where each block's bed lies over the rock's lowest ground (m) — the foot
+ * block, the block set back on the first ledge, the crown block on the second — and each block's
+ * faces ([outward bearing (rad, x toward z), distance at the bed, distance a course up; × `pillar.r`]):
+ * an irregular hexagon of leaning planes, turned and drawn in on each course, so the rock stands as
+ * jointed stone in stacked blocks with rounded arrises and a ledge at each bed rather than as a
+ * bole. The foot block's faces toward the flight and the outcrop keep 2.4 m (the flight's edge is
+ * 3.6 m off; the outcrop's walk passes 3.3 m out).
+ */
+export const PILLAR_BEDS: readonly number[] = [0, 3.7, 7.6];
+const PILLAR_FACES: readonly (readonly (readonly [number, number, number])[])[] = [
+  [[-0.35, 1.28, 1.2], [0.7, 1.0, 0.98], [1.75, 1.0, 0.97], [2.8, 1.02, 0.98], [3.84, 1.12, 1.04], [4.89, 1.2, 1.12]],
+  [[-0.12, 1.12, 1.02], [0.95, 0.96, 0.9], [1.9, 0.92, 0.9], [2.98, 0.96, 0.88], [4.0, 1.04, 0.96], [5.07, 1.08, 1.0]],
+  [[-0.55, 0.96, 0.86], [0.5, 0.86, 0.8], [1.62, 0.84, 0.78], [2.6, 0.88, 0.8], [3.72, 0.93, 0.85], [4.7, 0.98, 0.9]],
+];
+/** the nominal course height the faces lean over, the bevel over which a course takes over from the one under it, the arrises' rounding (m) */
+const PILLAR_COURSE_M = 3.8;
+const PILLAR_BEVEL_M = 0.45;
+const PILLAR_ARRIS_M = 0.09;
+
+/** one course's radius at bearing `a`, `h` m over its bed: the nearest face plane, the arrises rounded by a soft minimum */
+function courseRadius(k: number, a: number, h: number): number {
+  const lean = clamp(h / PILLAR_COURSE_M, 0, 1);
+  const r = R.pillar.r;
+  let m = Infinity;
+  for (const [th, d0, d1] of PILLAR_FACES[k]) {
+    const c = Math.cos(a - th);
+    if (c > 0.12) m = Math.min(m, (lerp(d0, d1, lean) * r) / c);
+  }
+  let s = 0;
+  for (const [th, d0, d1] of PILLAR_FACES[k]) {
+    const c = Math.cos(a - th);
+    if (c > 0.12) s += Math.exp(-((lerp(d0, d1, lean) * r) / c - m) / PILLAR_ARRIS_M);
+  }
+  return m - PILLAR_ARRIS_M * Math.log(s);
+}
+
+/** the ivy rock's radius at height `y` over its lowest ground and bearing `a` (rad): stacked blocks of leaning planes */
 export function pillarRadius(a: number, y: number): number {
-  const P = R.pillar;
-  const h = P.top - 2.0;
-  const t = clamp(y / h, 0, 1.2);
-  const taper = 1 - 0.18 * t + 0.1 * Math.sin(t * 3.1);
-  const lobes = 0.14 * Math.sin(a * 3 + 0.7 + t * 1.3) + 0.08 * Math.sin(a * 5 - 1.1 + t * 2.1) + 0.05 * cliffNoise.noise(Math.cos(a) * 2.2 + t * 1.7, Math.sin(a) * 2.2 - t);
-  return P.r * taper * (1 + lobes);
+  const B = PILLAR_BEDS;
+  let k = 0;
+  while (k + 1 < B.length && y >= B[k + 1]) k++;
+  let r = courseRadius(k, a, y - B[k]);
+  if (k > 0 && y < B[k] + PILLAR_BEVEL_M) r = lerp(courseRadius(k - 1, a, B[k] - B[k - 1]), r, smoothstep(B[k], B[k] + PILLAR_BEVEL_M, y));
+  return r * (1 + 0.035 * cliffNoise.noise(Math.cos(a) * 1.6 + y * 0.11, Math.sin(a) * 1.6 - y * 0.07));
 }
 
 /**
@@ -396,7 +433,8 @@ export function ruinsStructure(x: number, z: number): number {
   const C = R.cliff;
   if (z > C.z0 - 1 && z < C.z1 + 1 && x < cliffFaceX(z) + 0.3 && x > C.x - CLIFF_DEPTH_M) return 1;
   const Pl = R.pillar;
-  if (Math.hypot(x - Pl.x, z - Pl.z) < Pl.r * 1.12) return 1;
+  const pd = Math.hypot(x - Pl.x, z - Pl.z);
+  if (pd < Pl.r * 1.6 && pd < pillarRadius(Math.atan2(z - Pl.z, x - Pl.x), 0.3) * 1.04 + 0.1) return 1;
   for (const g of R.gate) if (Math.hypot(x - g[0], z - g[1]) < g[2]) return 1;
   return 0;
 }
@@ -493,7 +531,7 @@ export function createRuinsBlocked(ground: Ground): (x: number, z: number) => bo
     const dx = x - Pl.x;
     const dz = z - Pl.z;
     const d = Math.hypot(dx, dz);
-    if (d < Pl.r * 1.6 + BODY_M) {
+    if (d < Pl.r * 1.8 + BODY_M) {
       const f = ((Math.atan2(dz, dx) / (Math.PI * 2) + 1) % 1) * BINS;
       const k = Math.floor(f) % BINS;
       if (d < lerp(radiusAt(k), radiusAt((k + 1) % BINS), f - Math.floor(f))) return true;
