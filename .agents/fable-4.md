@@ -415,3 +415,5 @@ nearCanopy, materials, index otherwise) is edited.
   south zone. Nothing open in the lane; no INBOX note (nothing landed).
 - 2026-09-24 02:23 — heartbeat: head still `81430baf`; squad2 on near-canopy slot-rank hysteresis (a pop source I had not
   measured — slot competition when wanted > slots; their lane). Nothing open here.
+- 2026-09-24 03:28 — heartbeat: head still `81430baf` (4.5 h); squad4's integration candidate `8fb5049c` folds in treepop
+  (C 6.76 → 7.20 M there, as my row said) — fable-cursor's call on return; nothing open here.
