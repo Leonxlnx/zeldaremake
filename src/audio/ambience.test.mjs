@@ -305,4 +305,59 @@ test('the forest is events: birds and leaves are scheduled, and gusts bring more
   assert.ok(w.flutters > c.flutters * 1.5, `a gust should bring more leaves (${c.flutters} calm, ${w.flutters} windy)`);
   // and even in dead calm the wood is never left silent for long
   assert.ok(c.flutters >= 120 / A.QUIET_GAP_MAX - 1, `${c.flutters} flutters in 120 s of still air leaves gaps over ${A.QUIET_GAP_MAX} s`);
+  // birds go the other way to the leaves: they shelter in a blow and sing when it drops
+  assert.ok(c.birds > w.birds, `still air should bring MORE birds, not fewer (${c.birds} calm, ${w.birds} windy)`);
+});
+
+test('a bird answers when the wind drops', () => {
+  // The bed is gated below GUST_KNEE on purpose — that silence is this lane's answer to "LOWER THE
+  // WHITE NOISE". Measured on the world's own wind it happens about twice a minute for three
+  // seconds (art/audio/2026-09-24-wind/), and at the old flat 3.5–11.5 s gap roughly half of those
+  // lulls had nothing in them: the one moment the forest is deliberately quiet was the one moment
+  // it had nothing to say.
+  const at = (gusts) => {
+    const b = bed({ seed: 'lull' });
+    let t = 0;
+    for (const g of gusts) {
+      b.amb.update(t, { gust: g, listener: LISTENER, forward: NORTH, pods: [] });
+      t += 0.5;
+    }
+    b.amb.scheduleUntil(t + 2);
+    return b.amb.stats().birds;
+  };
+  const blowing = Array.from({ length: 24 }, () => 0.8);
+  const drops = [...Array.from({ length: 12 }, () => 0.8), ...Array.from({ length: 12 }, () => 0.1)];
+  assert.ok(at(drops) > at(blowing), `the wind dropping must bring a bird forward (${at(blowing)} while it blew, ${at(drops)} when it fell)`);
+  // the trigger is the EDGE, not the level: a take that was already still gets no extra call for it
+  const stillThroughout = Array.from({ length: 24 }, () => 0.1);
+  assert.ok(at(drops) <= at(stillThroughout) + 1, 'the edge must not stack on top of the still-air rate');
+  assert.ok(A.BIRD_ANSWERS_LULL[0] > 0.2, 'answering inside a fifth of a second is a reflex, not a bird');
+  assert.ok(A.BIRD_ANSWERS_LULL[1] < 3, 'a lull is about three seconds — an answer after it is not an answer');
+  assert.ok(A.BIRD_LULL_GAP > 0.3 && A.BIRD_LULL_GAP < 1, 'the still-air gap is a share of the usual one, not a gate');
+});
+
+test('moving the birds about does not add any', () => {
+  // The claim is "the same number of birds, in different places", and the first attempt at it did
+  // not hold: measured over 1800 s the total went 10.5 → 13.3 a minute. Two things push it up once
+  // the gap follows the wind — a rate is one over a gap, so a gap that swings either side of its
+  // old value yields MORE calls per minute rather than the same; and the lull trigger pulls the
+  // next call forward, which brings every call after it forward too. BIRD_GAP_TRIM puts it back,
+  // and this is the guard, because the failure mode is an aviary and it creeps.
+  const run = (gustOf) => {
+    const { amb } = bed({ seed: 'rate/trim' });
+    const T = 1200;
+    for (let t = 0; t < T; t += 0.25) {
+      amb.update(t, { gust: gustOf(t), listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+    }
+    return amb.stats().birds / (T / 60);
+  };
+  // Under a wind that swings right through the knee — the world's own behaviour — the total is the
+  // number to hold, and against the same wind the flat gap gave 10.3 a minute
+  // (art/audio/2026-09-24-wind/schedule.mjs, 7200 s, 240 lulls). A ratio against a steady wind is
+  // the wrong test: the trim deliberately lengthens a steady mid-wind's gaps, so that comparison
+  // reads 143 % and means nothing.
+  const swinging = run((t) => 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3));
+  assert.ok(swinging > 7 && swinging < 13, `${swinging.toFixed(1)} birds a minute — the flat gap this replaced gave 10.3, and one every four seconds is an aviary`);
+  assert.ok(A.BIRD_GAP_TRIM > 1, 'the trim only ever lengthens the gap; without it the rate climbs');
 });

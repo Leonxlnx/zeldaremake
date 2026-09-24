@@ -208,6 +208,35 @@ const BIRDS: { kind: BirdKind; weight: number; near: number; far: number }[] = [
   { kind: 'knock', weight: 1, near: 0.7, far: 1 },
 ];
 const BIRD_WEIGHT = BIRDS.reduce((s, b) => s + b.weight, 0);
+/**
+ * How much of its usual gap a bird waits when the air is still, against `2 − 2×` that in a full
+ * gust — so the average rate over a windy minute and a still one is the same and only the *timing*
+ * moves. Birds shelter and stop calling in a blow, and sing the moment it drops.
+ */
+export const BIRD_LULL_GAP = 0.55;
+/**
+ * The correction that keeps the *total* rate where it was.
+ *
+ * Two things push it up once the gap varies with the wind. A rate is one over a gap, so a gap that
+ * swings either side of its old value gives more calls per minute than the old fixed one did, not
+ * the same (Jensen); and `BIRD_ANSWERS_LULL` pulls the next call forward, which brings every call
+ * after it forward too. Measured over 1800 s of the gust curve
+ * (`art/audio/2026-09-24-wind/schedule.mjs`), those two together took the birds from 10.5 a minute
+ * to 13.3 — one every four and a half seconds, which is an aviary, not a wood. This puts the total
+ * back so the change is what it claims to be: the same number of birds, in different places.
+ */
+export const BIRD_GAP_TRIM = 1.42;
+/**
+ * When the wind falls under the knee, how soon after a bird answers into the quiet (s).
+ *
+ * The bed is gated below `GUST_KNEE` on purpose — that silence is this lane's answer to "LOWER THE
+ * WHITE NOISE". Measured on the world's own wind, it happens about twice a minute and lasts three
+ * seconds (`art/audio/2026-09-24-wind/`), and at the old flat gap roughly half of those lulls had
+ * nothing in them: the one moment the forest is deliberately quiet was also the one moment it had
+ * nothing to say. A call into the gap is the opposite of a floor — it is the thing you notice
+ * *because* the wind stopped.
+ */
+export const BIRD_ANSWERS_LULL: [number, number] = [0.5, 1.8];
 
 export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
   // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
@@ -539,6 +568,9 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     return BIRDS[0];
   };
 
+  // its own stream: the lull trigger is drawn from `update`, whose call rate differs between the
+  // live tick and an offline render, and it must not shift what the schedulers draw
+  const lullRng = rng.fork('lull');
   let nextBird = startAt + 2 + eventRng() * 3;
   const scheduleBirds = (until: number) => {
     while (nextBird < until) {
@@ -552,7 +584,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
         const a = pickBird();
         birdCall(a.kind, nextBird + 1.1 + eventRng() * 1.4, -pan * 0.8, level * 0.6, Math.min(1, distance + 0.2));
       }
-      nextBird += 3.5 + eventRng() * 8;
+      // Birds shelter and stop calling in a blow, and sing when it drops. Measured, the world's
+      // wind falls under the gust knee about twice a minute for three seconds at a time
+      // (`art/audio/2026-09-24-wind/`), and at a flat 3.5–11.5 s gap roughly half of those lulls
+      // had no bird in them at all — so the one moment the bed is deliberately silent was also the
+      // moment the wood had nothing to say. This is a rate, not a floor: the gaps get longer in a
+      // gust by as much as they get shorter in the quiet.
+      nextBird += (3.5 + eventRng() * 8) * BIRD_GAP_TRIM * (BIRD_LULL_GAP + gustNow * (2 - 2 * BIRD_LULL_GAP));
     }
   };
 
@@ -563,6 +601,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   const update = (t: number, s: AmbienceState) => {
     const gust = Math.max(0, Math.min(1, s.gust));
+    // the wind dropping away is an event of its own: a bird answers into the quiet rather than
+    // waiting out the scheduler's gap (BIRD_ANSWERS_LULL). Only on the edge — inside a long lull
+    // the rate above already carries it.
+    if (gustNow > GUST_KNEE && gust <= GUST_KNEE) {
+      nextBird = Math.min(nextBird, t + BIRD_ANSWERS_LULL[0] + lullRng() * (BIRD_ANSWERS_LULL[1] - BIRD_ANSWERS_LULL[0]));
+    }
     gustNow = gust;
     // read before anything uses it: the roll's own level is the first thing that does, and it used
     // to sit above this line and take the previous tick's roof
