@@ -57,7 +57,19 @@ export interface DistantPlacement {
  */
 export const FAR_CROWN_CARDS: [number, number] = [3, 3];
 /** near LOD only: crossed pairs of smaller cards off the axis (a second silhouette layer) */
-export const FAR_CROWN_LOBES: [number, number] = [2, 1];
+export const FAR_CROWN_LOBES: [number, number] = [6, 2];
+/**
+ * A lobe's radius and offset as multiples of the round-48 pair's, now that there are more of them
+ * (FAR_CROWN_LOBES). 2026-09-24: measured against the reference the deficit in the crown band is
+ * GRANULARITY, not tone — in a box around the biggest mass at the pinned `u-open-up` pose the
+ * reference frames carry 4.6 × our boundary density at a quarter of our step across a boundary
+ * (r_025 3.06 % / 2.3 %, r_026 3.22 % / 2.7 %, ours 0.66 % / 10.5 %; `cutout.mjs`). Their canopy is
+ * many small leaf clumps with air between them, ours a few big masses: a 2.8 m card at 25 m is a
+ * four-times minified atlas cell, so the mip averages the atlas's own lace away and the alpha test
+ * leaves one smooth edge. The answer is more and smaller clumps, which a card layer can afford —
+ * each lobe is two quads, and this trades four triangles a crown for the outline.
+ */
+export const FAR_CROWN_LOBE_SCALE: [number, number] = [0.6, 1.16];
 /**
  * a main card's half-width as a share of the crown radius: the silhouette fills FAR_CROWN_FILL
  * of the card (0.76 wide), so 1.4 gives a drawn crown ≈ 2.1 R across — what the round-46 lobes
@@ -437,9 +449,9 @@ function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, 
   }
   for (let l = 0; l < lobes; l++) {
     const a = yaw0 + (l / Math.max(1, lobes)) * TAU + r.range(0.4, 1.2);
-    const off = R * r.range(0.4, 0.55);
+    const off = R * r.range(0.4, 0.55) * FAR_CROWN_LOBE_SCALE[1];
     const c = centre.clone().add(new Vector3(Math.cos(a) * off, R * r.range(-0.2, 0.15), Math.sin(a) * off));
-    const lr = R * r.range(0.5, 0.62);
+    const lr = R * r.range(0.5, 0.62) * FAR_CROWN_LOBE_SCALE[0];
     const cell = cells[r.int(0, cells.length)];
     const shade = r.range(0.88, 1.04);
     const yaw = r.range(0, TAU);
@@ -1159,11 +1171,11 @@ export const MID_SIDES = 12;
 export const MID_CORDS: [number, number] = [7, 0.1];
 /** crossed cards through the crown's axis, crossed lobe pairs around it, dark floor cards under it */
 export const MID_CROWN_CARDS = 3;
-export const MID_CROWN_LOBES = 6;
+export const MID_CROWN_LOBES = 14;
 export const MID_CROWN_FLOORS = 2;
 /** lobe radius and offset as shares of the crown radius: [upper tier, lower tier] */
-export const MID_LOBE_R: [number, number] = [0.46, 0.58];
-export const MID_LOBE_OFF: [number, number] = [0.4, 0.6];
+export const MID_LOBE_R: [number, number] = [0.28, 0.35];
+export const MID_LOBE_OFF: [number, number] = [0.46, 0.7];
 /** root toes at the foot of the bole (writer.ts rootButtress), both LODs */
 export const MID_TOES = 3;
 /** the far LOD (the same skeleton, 5-sided, and the same crown) takes over at this view distance (m) */
