@@ -33,6 +33,30 @@ the hero flight as well, and the hero flight is the one he circled, in stone.
   the front (−3.7 … +1.3 cm), so the lit lip moves ~4 cm peak to peak along a tread rather than
   reading as a ruled line, and can never be eaten by its own riser.
 
+## Walkability and cost
+
+`node gauntlet/scripts/playtest.mjs --dist dist --out /tmp/splay --only walk,climb` — **nine of
+nine** walk routes reach every waypoint, **no stuck points, no stalls**.
+
+On the main flight the climb ends at (13.739, 4.154, −5.123) after its 255 frames; the recorded
+baseline (`owner-2026-09-23/play/playtest-after.json`) ends at (13.739, **4.32**, −5.123) — the
+same point along the run to the millimetre, one third of a metre lower because the risers are
+shallower. `reachedTop` is `false` on both: the harness does not allot enough frames to top out,
+before or after. What did move is the per-frame vertical step on the flight,
+`maxRisePerFrameM` **0.27 → 0.208** — the quantity behind the owner's *"it glitches the frames …
+every each step"*, now 23 % smaller before the camera easing even sees it.
+
+Triangles, measured off the builds themselves (the stone flight against the earth flight plus its
+timbers, same seed, same terrain):
+
+| | triangles |
+| --- | --- |
+| as shipped — 20 earth treads + 20 timbers | 31 877 |
+| now — 26 stone treads | **16 956** |
+
+**−14 921 triangles** and one draw fewer (the flight's timber mesh is gone), so Camera A's 8.95 M /
+695 has more headroom than before, not less.
+
 ## Tests
 
 `node --test src/world/hardscape/{stairs,logNosings,paving}.test.mjs` — **13/13**.
