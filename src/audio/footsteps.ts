@@ -27,7 +27,7 @@
  */
 import { adEnvelope, cleanupAt, filter, gain, noiseBuffer, noiseSource, type Rng } from './graph';
 
-export type Surface = 'stone' | 'stair' | 'grass' | 'dirt' | 'wood' | 'hollow' | 'leaf';
+export type Surface = 'stone' | 'stair' | 'grass' | 'dirt' | 'wood' | 'hollow' | 'leaf' | 'bridge';
 
 /** a pitched part of a step: the body of the impact */
 export interface BodyPart {
@@ -240,6 +240,23 @@ export function designStep(surface: Surface, strength: number, running: boolean,
       for (let i = 0; i < 3; i++) parts.push(grain(0.18 + rnd() * 0.16, 2200 + rnd() * 4200, 0.005 * k * j(0.6), 0.005));
       reverb = 0.22;
       end = 0.45;
+      break;
+    }
+    case 'bridge': {
+      // a plank with eight metres of ravine under it: the board is thinner and answers lower and
+      // longer than a deck on the ground, there is no floor beneath to stop it, and the rope
+      // lashings creak as the span takes the weight
+      const f = 142 * j(0.07);
+      parts.push(body(0, f * 1.18, f, 0.03, 0.175 * k, 0.002, 0.17));
+      parts.push(body(0.002, f * 2.14, f * 2.02, 0.04, 0.055 * k, 0.002, 0.09, 'triangle'));
+      parts.push(body(0.004, f * 0.52, f * 0.5, 0.05, 0.07 * k, 0.004, 0.26));
+      parts.push(band(0, 1900 * j(0.12), 1500, 1.5, 5200, 0.05 * k, 0.0015, 0.016));
+      parts.push(band(0.012 * j(0.4), 820 * j(0.12), 640, 1.0, 2800, 0.034 * k, 0.008, 0.045));
+      // the rope: a narrow band drifting down as the lashing takes up, on most steps
+      if (rnd() < 0.6) parts.push(band(0.02 + rnd() * 0.05, 430 * j(0.2), 330, 7, 1600, 0.016 * k, 0.03, 0.22));
+      parts.push(body(toe, f * 0.96, f * 0.92, 0.03, 0.075 * k, 0.002, 0.12));
+      reverb = 0.3;
+      end = 0.5;
       break;
     }
     case 'wood': {
