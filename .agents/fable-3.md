@@ -307,3 +307,47 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 
 ## Last updated
 2026-09-21T14:30:00Z
+
+## 2026-09-24 06:21 tick — the owner's 50-point rubric (06:07), the south cluster scored, ★16 taken
+
+- Head at `92a4fd66` carries `docs/RUBRIC_50_STRUCTURES.md`: every shipped structure / area / prop cluster scored 0–4 on
+  50 checks with evidence, ships ≥ 170 / 200, no check < 2, the ★ checks ≥ 3. The head merged my south-props branch at
+  `b98a2021` — before the marker's yaw fix `62bf7fcd` and the evidence; asked fable-cursor for the tip.
+- **Scored the south cluster** (`south-exit/README.md`, 36 applicable checks — no openings, roof, own lantern, steps or
+  footstep surface on a pot): **106 / 144, scaled 147 / 200**, below the gate; **★16 "weathering follows exposure" = 2**
+  (every prop's grime / moss is a foot band whatever the sun). Other 2s: sibling variation, wear, damage, AO.
+- **★16 landing** (`props/index.ts weather()`, the shared pass — every cluster's pixels): the sun's direction is
+  taken into each prop's frame (yaw undone), the moss band climbs the faces looking away from it (3× the height in full
+  shade, a faint moss tint on the shaded side above the band), and faces within ≈ 35° of up take a sun-bleach
+  (grey-silver wood 0.18, dusty clay 0.12). First pass (`25459fda`, 2.5× / 0.06 / 0.14) rendered real but faint at 3 m
+  (3–7 k px per pose) — strengthened a step in `c35559ab`. Six views A / B / F before / after capturing.
+- Lesson: `capture.mjs --no-checks` still runs the determinism pass (`A_stairs.det`) and a warm-up repeat — 3 views take
+  ≈ 20 min, not 7. Budget the tick around it.
+- **#23 landing** (`abc8a490`, `1549688c`): contact-AO decals under every seated prop, one unlit transparent mesh per
+  locality (+1 draw each: A 639, B 628, F 599). The first alpha profile spent itself under the prop (454 px at the bridge
+  head); the shipped one fades over the outer 40 % (704 px; 2.5 k at the stair pots). Evidence `props-fable-3/contact-ao/`.
+  A / B / F vs the reference +0.0003 / +0.0000 / +0.0005. Lesson: between two *builds* the capture's animation clock lands
+  a frame apart (the girl's idle phase, the grass) — 27 k px in A that are not mine; within a build A = A.det to 0 px.
+  The gated number is the SSIM vs the reference; say so in the evidence rather than quoting the px.
+- South scorecard now 108 / 144 (150 / 200 scaled); the 2s left are #4 sibling variation, #17 wear, #19 damage.
+- **#4 / #19 landing** (`7adeee2f` … `c6a2e74d`, `props/geometry.ts crateGeometry`): seeded per crate, a third lose an
+  inner lid board (a gloom board under the lid makes the slot read as an opening — the lit floor alone read as a darker
+  board, first render), half of the rest have a lid board knocked askew. With the world seed: Saria's knocked, the
+  bridge's and the west landing's open, the plateau's whole. A / B / F to before 1.0000 (28–40 px). Evidence
+  `props-fable-3/crates/`. Lesson: a fresh `createRng(seed)` in a probe is not the runtime's state — the placement
+  draws first (size jitter); mirror them, or better record the decision in `userData` as the builder now does.
+- South scorecard 110 / 144 (153 / 200); #17 wear is the last 2.
+- **#17 landing** (`ca05e910`, `potGeometry`): the pots' lips rubbed pale where hands take them (seeded angle, top 4 %,
+  never inside). Stair pots at 2 m and the bridge's squat pot at 3.5 m before/after in `props-fable-3/wear/`; A / B / F
+  to before 1.0000 (16–179 px), vs the reference −0.0001 / 0 / 0. South scorecard 111 / 144 (154 / 200), no check
+  below 3 — the rest is 3 → 4, a look call (the reference's pots are plainer).
+
+## 2026-09-24 10:23 tick (three queued) — JOB 7's belt
+
+- Head unchanged since 07:05; no replies. Lane 9's list is landed; took lane 7's open item, the belt (owner 23:00).
+- `0a36c3e3` (`buildGirlTunic`): a flat stitched strap (four-point lathe + strap canvas), a buckle frame with its
+  tongue, the tail hanging — for the torus and plate. Before/after at 2.6 m in `people-fable-3/kokiri-girl/
+  before-after-belt-2.6m.jpg`; A / B / F 0.9999–1.0000 to before, vs the reference −0.0001 / 0 / 0; +1 draw per girl in
+  frame (the strap's own mapped material). Hem left as round 48 made it — it reads.
+- Lesson (an hour lost): `broll.mjs` hides the character group unless `--character` is passed. Every kid render needs it.
+- Posted exp-east's #18 plan against its README table (six props on an `east` locality after the merge).
