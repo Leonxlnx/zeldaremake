@@ -135,6 +135,11 @@ export function expansionVisible(camera: Camera, spheres: Sphere[]): boolean {
 export function southVisible(camera: Camera, spheres: Sphere[]): boolean {
   camera.updateMatrixWorld();
   camera.getWorldPosition(_p);
+  // round 57: from the waterfall ruins' site the ravine box's west end is 45–50 m off but the
+  // content 55–80 m (the path ≥ 48 m from the site box, the bridge ≥ 55 m, through the village's
+  // forest), so there the distance is measured to the content's own spheres
+  const site = EXPANSION_RUINS_BOXES[1];
+  if (_p.x >= site.x0 && _p.x <= site.x1 && _p.z >= site.z0 && _p.z <= site.z1) return frustumMeetsWithin(camera, spheres, SOUTH_VISIBLE_M);
   let near = false;
   for (const b of EXPANSION_SOUTH_BOXES) {
     const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
@@ -193,5 +198,15 @@ export function frustumMeets(camera: Camera, spheres: Sphere[]): boolean {
   _m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   _f.setFromProjectionMatrix(_m);
   for (const s of spheres) if (_f.intersectsSphere(s)) return true;
+  return false;
+}
+
+/** `frustumMeets` counting only the spheres within `m` of the camera */
+function frustumMeetsWithin(camera: Camera, spheres: Sphere[], m: number): boolean {
+  camera.updateMatrixWorld();
+  camera.getWorldPosition(_p);
+  _m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  _f.setFromProjectionMatrix(_m);
+  for (const s of spheres) if (s.center.distanceTo(_p) - s.radius < m && _f.intersectsSphere(s)) return true;
   return false;
 }

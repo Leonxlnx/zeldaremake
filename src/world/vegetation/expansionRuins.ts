@@ -30,7 +30,7 @@ import { clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import type { ExpansionTemplates, ExpansionVegetation, SetTemplate } from './expansion';
 import { composeMatrix } from './field';
-import { LodInstancedSet } from './lodset';
+import { LodInstancedSet, type PackLayout } from './lodset';
 
 export interface RuinsTemplates extends ExpansionTemplates {
   /** the big lit fern crowns (plants.ts heroFerns) — the cliff's foot */
@@ -54,6 +54,11 @@ const hash01 = (x: number, z: number, salt = 0) => {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 };
 const mm = (v: number) => Math.round(v * 1000) / 1000;
+const allOf = (n: number) => Array.from({ length: n }, (_, i) => i);
+const singlesOf = (n: number) => allOf(n).map((i) => [i]);
+const pairsOf = (n: number) => allOf(Math.ceil(n / 2)).map((i) => allOf(n).slice(2 * i, 2 * i + 2));
+/** a pack layout for every LOD of `t` from `rule(lod, variantCount)` */
+const packsPerLod = (t: SetTemplate, rule: (lod: number, n: number) => number[][]): number[][][] => allOf(t.variants[0].length).map((l) => rule(l, t.variants.length));
 
 export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: RuinsTemplates, parent: Group): ExpansionVegetation {
   const T: Terrain = getTerrain();
@@ -64,7 +69,7 @@ export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: Ruin
   parent.add(group);
   const counts: Record<string, number> = {};
 
-  const mk = (name: string, t: SetTemplate) =>
+  const mk = (name: string, t: SetTemplate, packs: PackLayout | undefined = t.packs) =>
     new LodInstancedSet({
       name,
       variants: t.variants,
@@ -75,18 +80,23 @@ export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: Ruin
       castShadowLods: t.castShadowLods,
       nearLods: t.nearLods,
       receiveShadow: true,
-      packs: t.packs,
+      packs,
       instanceData: t.instanceData,
       cullPad: t.cullPad,
     });
-  const tufts = mk('tufts-ruins', templates.tufts);
-  const ferns = mk('ferns-ruins', templates.ferns);
+  // The village keeps one variant a draw where its fixed frames hold hundreds of near plants; the
+  // site's sets are small and the look back east from the terrace frames them with the whole
+  // village behind, so their small LODs share draws (tufts in pairs near, the far tufts, far
+  // ferns, moss past the nearest ring and the leaves all in one): 16 draws fewer there for ≈ 40 K
+  // collapsed triangles.
+  const tufts = mk('tufts-ruins', templates.tufts, packsPerLod(templates.tufts, (l, n) => (l === 0 ? pairsOf(n) : [allOf(n)])));
+  const ferns = mk('ferns-ruins', templates.ferns, packsPerLod(templates.ferns, (l, n) => (l < 2 ? singlesOf(n) : [allOf(n)])));
   const heroFerns = mk('hero-ferns-ruins', templates.heroFerns);
-  const moss = mk('moss-ruins', templates.moss);
+  const moss = mk('moss-ruins', templates.moss, packsPerLod(templates.moss, (_, n) => [allOf(n)]));
   const flowers = mk('flowers-ruins', templates.flowers);
   const clumps = mk('grass-clumps-ruins', templates.clumps);
   const mats = mk('turf-mats-ruins', templates.mats);
-  const leaves = mk('litter-leaves-ruins', templates.leaves);
+  const leaves = mk('litter-leaves-ruins', templates.leaves, packsPerLod(templates.leaves, (_, n) => [allOf(n)]));
   const sets = [mats, clumps, tufts, moss, ferns, heroFerns, flowers, leaves];
 
   const M = new Float32Array(16);
