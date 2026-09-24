@@ -17,6 +17,7 @@
  */
 import { Frustum, Group, InstancedMesh, Matrix4, Sphere, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
+import { createButterflies } from './butterflies';
 import { expansionVisible, southVisible } from '../util/expansionLocality';
 import { buildCarpet, CLUMP_CELL, MAT_CELL, type CarpetResult } from './carpet';
 import { buildExpansionVegetation, templateOf, type ExpansionTemplates, type ExpansionVegetation } from './expansion';
@@ -61,6 +62,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.add(litterGroup);
   const litter: LitterResult = buildLitter(ctx, field, litterMaterial, litterGroup);
   ctx.progress('vegetation', 0.96);
+
+  // backlog item 5 (the owner: "falling leaves, fireflies, butterflies — gentle life in the air,
+  // not spectacle"): the leaves and the motes are the atmosphere's; the butterflies are ours
+  // because they are anchored to the violet clumps the verge passes seat — where the flowers
+  // gather, so do they (butterflies.ts)
+  const butterflies = createButterflies(ctx, plants.flowers.items);
+  group.add(butterflies.mesh);
 
   // round 50 (expansion.ts): the round-49 expansion's own ground, dressed against the LIVE view
   // with the disc sets' geometry and materials; its group shows only when the camera can see the
@@ -400,13 +408,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       clumps: carpet.samples.clumps,
       turfMats: carpet.samples.mats,
     },
+    /** backlog item 5: butterflies over the flower verges, and the clumps that got one */
+    butterflies: { count: butterflies.count, anchors: butterflies.anchors },
   }));
 
   return {
     name: 'vegetation',
     group,
-    update() {
+    update(_dt, t) {
       refresh();
+      butterflies.update(t);
     },
     onCameraMove(camera) {
       refresh(true, camera);
@@ -423,6 +434,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     dispose() {
       if (disposed) return;
       disposed = true;
+      butterflies.dispose();
       // Grass swaps geometries on one mesh, so traversal alone misses dormant LODs.
       const geometries = new Set<BufferGeometry>();
       for (const tile of grass.tiles) for (const geometry of tile.lods) geometries.add(geometry);

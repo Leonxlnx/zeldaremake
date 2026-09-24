@@ -60,6 +60,10 @@ The other four sources of "buzz", all gone:
 
 ## 3. The steps
 
+> **Corrected 2026-09-24.** The hollow row's step count and level spread below were the offline
+> onset detector over-counting a multi-mode ring, not the sound (`art/audio/2026-09-24-detector/`).
+> The log walks at 8 steps per 5 s with a spread near 0.4 dB, like every other surface.
+
 `designStep` (`footsteps.ts`) builds a step as plain data — heel, roll, the surface's own grains,
 toe — and `footsteps.test.mjs` asserts the shape, the balance and the cadence without WebAudio.
 Measured on the offline steps stem (means over each leg of the scripted walk):
@@ -71,7 +75,7 @@ Measured on the offline steps stem (means over each leg of the scripted walk):
 | stone | 11 → 9 | −26.2 → −25.0 | 2927 → 1004 | 0.24 → 6.05 |
 | stairs | 12 → 10 | −27.6 → −26.6 | 4251 → 928 | 0.09 → 6.90 |
 | wood | 8 → 7 | −30.7 → −29.4 | 4453 → 446 | 0.05 → 47.5 |
-| hollow (log) | 9 → 12 | −28.2 → −31.9 | 4177 → 839 | 0.12 → 48.3 |
+| hollow (log) | 9 → 8 | −28.2 → −31.9 | 4177 → 839 | 0.12 → 48.3 |
 | leaves | 11 → 9 | −41.6 → −34.8 | 3979 → 4609 | 0.07 → 0.72 |
 | run on stone | **22 → 13** | −22.2 → −27.4 | 2972 → 2466 | 0.81 → 2.64 |
 

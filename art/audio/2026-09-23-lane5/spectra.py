@@ -311,6 +311,13 @@ def find_steps(x, sr, refractory=0.14):
     Step onsets from the envelope's RISE, not an absolute threshold: the hall's tail keeps a level
     gate open across a whole leg, but only a real attack makes the 2 ms envelope jump. An onset is
     a frame where the envelope is 6 dB over its value 10 ms earlier and over 6 % of the stem's peak.
+
+    Then the re-triggers are dropped. A surface whose step rings on several modes at once — the log
+    tunnel's bore, the rope bridge's unsupported plank — beats as those modes drift apart, and the
+    envelope climbs again part way through the decay. The rise test cannot tell that from a new
+    boot. Left in, it over-counted the log by 40 % and the bridge by 90 %, and inflated their
+    step-to-step level spread from about 1.5 dB to 11 and 16 — which is what those numbers were
+    reporting in every earlier step table on this lane, wrongly.
     """
     env, win = frame_env(x, sr)
     e = db(env)
@@ -325,7 +332,42 @@ def find_steps(x, sr, refractory=0.14):
         if e[i] > floor and e[i] - e[i - back] > 6.0 and e[i] >= e[i - 1]:
             onsets.append(t)
             last = t
-    return onsets
+    return _drop_retriggers(onsets, x, sr)
+
+
+def _peak_db(x, sr, t, window=0.25, win_ms=10):
+    """the loudest 10 ms of a step — long enough that a 90 Hz body is not read by its phase"""
+    n = max(1, int(win_ms / 1000 * sr))
+    seg = x[int(t * sr):int((t + window) * sr)]
+    m = len(seg) // n
+    if m < 1:
+        return -140.0
+    return float(db(np.sqrt((seg[: m * n].reshape(m, n) ** 2).mean(axis=1)).max()))
+
+
+def _drop_retriggers(onsets, x, sr, cluster=0.25):
+    """
+    Keep one detection per boot: the loudest of any cluster inside `cluster` seconds. A re-trigger
+    mid-ring sits close behind its parent and under it, so taking the loudest of the cluster keeps
+    the boot and drops the beat.
+
+    A level test was tried alongside this — drop anything far under the median peak — and removed:
+    it took the whole run leg with it, because at a run the detector's onsets land differently and
+    their measured peaks fall well below a walk's even though the leg itself is the LOUDEST in the
+    stem (rms −40.4 dBFS against the stone walk's −44.0). The run is the one leg where these onset
+    times should not be read as step levels; the counts and the per-surface colour are sound.
+    """
+    if not onsets:
+        return onsets
+    peaks = {t: _peak_db(x, sr, t) for t in onsets}
+    kept = []
+    for t in onsets:
+        if kept and t - kept[-1] < cluster:
+            if peaks[t] > peaks[kept[-1]]:
+                kept[-1] = t
+        else:
+            kept.append(t)
+    return kept
 
 
 PRE_ROLL = 0.045
