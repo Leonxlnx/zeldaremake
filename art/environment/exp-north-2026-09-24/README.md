@@ -27,8 +27,8 @@ On 59e970d6, the grove's last code commit:
 - **Merged with phase1** (6c4c918d, phase1 at eb8b727e): no conflicts, and tsc, the build and the same tests (178 / 178,
   the camera's 16 among them) are green. The merge changes none of the grove's code, its ground, its camera or the
   walk script: phase1 brings the hero flight back to 20 treads, the girls' belt, props wear and contact shadows, far
-  pebbles, the crown veil and audio. The grove's 54 structure meshes hash as on 59e970d6 and the 132 outside it as on
-  phase1's own. In a node count of the six heaviest grove views, each is 2–16 draws and 0.02–0.05 M triangles lighter
+  pebbles, the crown veil and audio. The 54 structures meshes in or touching the grove's box (its own 47 and 7 of the
+  village's beside it) hash as on 59e970d6, and the 132 outside it as on phase1's own. In a node count of the six heaviest grove views, each is 2–16 draws and 0.02–0.05 M triangles lighter
   on the merge (phase1's far pebble tiles stop drawing there), which puts `g-back` near 675 draws / 8.84 M. The
   Chrome walk, probes and counts in this README are on 59e970d6.
 
