@@ -17,7 +17,7 @@ import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
 import { buildSouthDwellings } from './expansionSouthDwellings';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
-import { FAR_BANK_ZONE, farBankDistance, inFarBankZone } from '../util/farBankLocality';
+import { FAR_BANK_ZONE, farBankDistance, farBankLodAt } from '../util/farBankLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { restPodMeshes, swingLanterns, type LanternRig } from './lantern';
@@ -285,7 +285,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const farPodSet = new Set<Object3D>(farPods);
   let farBank = false;
   const setFarBank = (camera: Camera) => {
-    const inside = inFarBankZone(camera.position.x, camera.position.y, camera.position.z);
+    const inside = farBankLodAt(camera.position);
     if (inside === farBank) return;
     farBank = inside;
     for (const m of farCasters) m.castShadow = !inside;

@@ -17,7 +17,8 @@
  *
  * An optional `ShadowDistanceRule` also switches off small casters far from the camera — a shadow
  * distance by caster size, which does change the image; the composer passes one only where a
- * locality asks for it (util/farBankLocality.ts).
+ * locality asks for it (util/farBankLocality.ts). `hideSmallFar` is the same idea for drawing: a
+ * draw distance by size, for the frame, again only where a locality asks for it.
  */
 import { Frustum, Matrix4, Object3D, Plane, Sphere, Vector3, type Camera, type InstancedMesh, type Mesh } from 'three';
 
@@ -32,6 +33,15 @@ const _eye = new Vector3();
  * lies farther than `minDistanceM` from the camera (centre distance minus radius) cast nothing.
  */
 export interface ShadowDistanceRule {
+  maxRadiusM: number;
+  minDistanceM: number;
+}
+
+/**
+ * Drawables whose world bounding sphere has a radius of at most `maxRadiusM` and lies farther than
+ * `minDistanceM` from the camera are not drawn. An instanced mesh counts by its whole batch.
+ */
+export interface DrawDistanceRule {
   maxRadiusM: number;
   minDistanceM: number;
 }
@@ -117,5 +127,40 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
   }
   return () => {
     for (const o of off) o.castShadow = true;
+  };
+}
+
+export interface DrawDistanceStats {
+  /** drawables examined (visible leaf meshes, points, lines and sprites, frustum-culled, with a sphere) */
+  tested: number;
+  /** drawables hidden for the frame */
+  hidden: number;
+}
+
+/**
+ * Hide every visible leaf drawable (mesh, points, line or sprite without children, frustum-culled)
+ * that `rule` finds small and far; call the returned function after the render to show them again.
+ * Run it before `cullShadowCasters`: a hidden object neither draws nor casts.
+ */
+export function hideSmallFar(root: Object3D, camera: Camera, rule: DrawDistanceRule, stats?: DrawDistanceStats): () => void {
+  camera.updateMatrixWorld();
+  _eye.setFromMatrixPosition(camera.matrixWorld);
+  const off: Object3D[] = [];
+  let tested = 0;
+  root.traverseVisible((obj) => {
+    const o = obj as Mesh & { isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
+    if (!(o.isMesh || o.isPoints || o.isLine || o.isSprite) || !o.frustumCulled || o.children.length > 0) return;
+    const s = worldSphere(o, _sphere);
+    if (!s) return;
+    tested++;
+    if (s.radius <= rule.maxRadiusM && s.center.distanceTo(_eye) - s.radius > rule.minDistanceM) off.push(o);
+  });
+  for (const o of off) o.visible = false;
+  if (stats) {
+    stats.tested = tested;
+    stats.hidden = off.length;
+  }
+  return () => {
+    for (const o of off) o.visible = true;
   };
 }

@@ -33,7 +33,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { FAR_BANK_ZONE, FAR_BANK_SMALL_SHADOWS, inFarBankZone, farBankDistance, farBankShadowRule } = loadTs(path.join(here, 'farBankLocality.ts'));
+const { FAR_BANK_ZONE, FAR_BANK_SMALL_SHADOWS, FAR_BANK_SMALL_DRAWS, inFarBankZone, farBankDistance, farBankShadowRule, farBankDrawRule, farBankLodAt } = loadTs(path.join(here, 'farBankLocality.ts'));
 const { LAYOUT, EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS } = loadTs(path.join(here, '../layout.ts'));
 
 // the box was measured with the bridge's far sill at z 43.7 and the log's mouth at (4.25, 46.9):
@@ -78,6 +78,33 @@ test('the small-caster shadow distance applies inside the zone only, never at a 
   assert.equal(farBankShadowRule({ x: 4.8, y: FAR_BANK_ZONE.yMax + 0.1, z: 43.6 }), undefined, 'above the cap');
   for (const v of LAYOUT.viewpoints) assert.equal(farBankShadowRule({ x: v.position[0], y: v.position[1], z: v.position[2] }), undefined, v.id);
   assert.ok(FAR_BANK_SMALL_SHADOWS.minDistanceM >= 20 && FAR_BANK_SMALL_SHADOWS.maxRadiusM <= 2, 'a distance past the far bank, a radius for figures and small props');
+});
+
+test('the small-thing draw distance applies inside the zone only, never at a fixed viewpoint, and stays under 12.5 px', () => {
+  assert.equal(farBankDrawRule({ x: 4.8, y: 2.6, z: 43.6 }), FAR_BANK_SMALL_DRAWS, 'the far-bank look-back');
+  assert.equal(farBankDrawRule({ x: 4.33, y: 1.3, z: 59.5 }), FAR_BANK_SMALL_DRAWS, 'the cleft');
+  assert.equal(farBankDrawRule({ x: 4.0, y: 1.9, z: 37.0 }), undefined, 'on the bridge');
+  assert.equal(farBankDrawRule({ x: 4.8, y: FAR_BANK_ZONE.yMax + 0.1, z: 43.6 }), undefined, 'above the cap');
+  for (const v of LAYOUT.viewpoints) assert.equal(farBankDrawRule({ x: v.position[0], y: v.position[1], z: v.position[2] }), undefined, v.id);
+  const { maxRadiusM, minDistanceM } = FAR_BANK_SMALL_DRAWS;
+  const rowsAcross = ((2 * Math.atan(maxRadiusM / minDistanceM)) / ((46 * Math.PI) / 180)) * 540;
+  assert.ok(rowsAcross <= 12.5, `a hidden sphere spans ${rowsAcross.toFixed(2)} of 540 rows at fov 46`);
+  assert.ok(maxRadiusM >= 0.95, 'a kid hides whole: her largest skinned sphere is 0.95 m');
+});
+
+test('__KF_FARBANK_OFF__ switches the whole zone LOD off and back', () => {
+  const lookBack = { x: 4.8, y: 2.6, z: 43.6 };
+  assert.equal(farBankLodAt(lookBack), true);
+  try {
+    globalThis.__KF_FARBANK_OFF__ = true;
+    assert.equal(farBankLodAt(lookBack), false);
+    assert.equal(farBankShadowRule(lookBack), undefined);
+    assert.equal(farBankDrawRule(lookBack), undefined);
+    assert.equal(inFarBankZone(lookBack.x, lookBack.y, lookBack.z), true, 'the zone itself does not move');
+  } finally {
+    delete globalThis.__KF_FARBANK_OFF__;
+  }
+  assert.equal(farBankLodAt(lookBack), true);
 });
 
 test('farBankDistance: 0 for a box over the zone, the horizontal gap otherwise', () => {

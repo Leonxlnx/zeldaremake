@@ -22,7 +22,7 @@ new Function(
   module,
   module.exports,
 );
-const { sweptSphereMissesFrustum, cullShadowCasters } = module.exports;
+const { sweptSphereMissesFrustum, cullShadowCasters, hideSmallFar } = module.exports;
 
 // a camera at the origin looking down −z, 60° fov, 1:1; the sun 45° up in +x (light travels toward −x, −y)
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
@@ -142,6 +142,58 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
   cullShadowCasters(scene, camera, sunDirection, 1.0, stats)();
   assert.equal(stats.culled, 0, 'no rule: every caster here is in view and keeps casting');
   assert.equal(stats.small, 0);
+}
+
+{
+  // an instanced batch is judged by its whole batch's sphere: small pieces spread over metres keep
+  // casting at any distance (strata and prop batches are not the rule's to thin out)
+  const scene = new THREE.Scene();
+  const m = new THREE.InstancedMesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshBasicMaterial(), 5);
+  for (let i = 0; i < 5; i++) m.setMatrixAt(i, new THREE.Matrix4().makeTranslation((i - 2) * 3, 0, -40 - i * 2));
+  m.castShadow = true;
+  scene.add(m);
+  scene.updateMatrixWorld(true);
+  const stats = { tested: 0, culled: 0 };
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, { maxRadiusM: 1.5, minDistanceM: 25 });
+  assert.ok(m.boundingSphere.radius > 1.5, 'the batch sphere spans the pieces');
+  assert.equal(m.castShadow, true, 'a spread batch of small far pieces keeps casting');
+  assert.equal(stats.small, 0);
+  restore();
+}
+
+{
+  // the draw distance by size: small far leaves hide for the frame and come back; big, near, parent
+  // and frustumCulled-off objects stay; the stats count what was examined and hidden
+  const scene = new THREE.Scene();
+  const mk = (z, size, parent = scene) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshBasicMaterial());
+    m.position.set(0, 0, z);
+    parent.add(m);
+    return m;
+  };
+  const farSmall = mk(-130, 0.5);
+  const farBig = mk(-130, 3);
+  const nearSmall = mk(-60, 0.5);
+  const farParent = mk(-130, 0.5);
+  const child = mk(0, 0.5, farParent);
+  const farUnculled = mk(-130, 0.5);
+  farUnculled.frustumCulled = false;
+  const hiddenAlready = mk(-130, 0.5);
+  hiddenAlready.visible = false;
+  scene.updateMatrixWorld(true);
+  const stats = { tested: 0, hidden: 0 };
+  const restore = hideSmallFar(scene, camera, { maxRadiusM: 0.6, minDistanceM: 100 }, stats);
+  assert.equal(farSmall.visible, false, 'a small thing 130 m off is not drawn');
+  assert.equal(farBig.visible, true, 'a big one is, at any distance');
+  assert.equal(nearSmall.visible, true, 'a small one 60 m off is');
+  assert.equal(farParent.visible, true, 'an object with children is left alone');
+  assert.equal(child.visible, false, 'its small far child is a leaf and hides');
+  assert.equal(farUnculled.visible, true, 'frustumCulled off: never hidden');
+  assert.equal(stats.tested, 4, 'the visible culled leaves: farSmall, farBig, nearSmall, child');
+  assert.equal(stats.hidden, 2);
+  restore();
+  for (const m of [farSmall, farBig, nearSmall, farParent, child, farUnculled]) assert.equal(m.visible, true, 'shown again');
+  assert.equal(hiddenAlready.visible, false, 'what was hidden before stays hidden');
 }
 
 console.log('shadowcull: ok');
