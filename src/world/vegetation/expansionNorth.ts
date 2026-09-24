@@ -133,6 +133,20 @@ const groveGroundWalk = (x: number, z: number) => groveGroundDistance(x, z, 40);
 /** the blades' tint-slot index from a tint drift (grass.ts: the same bins as the blade tiles) */
 const tintIndexOf = (tn: number) => (tn < -0.28 ? 0 : tn < 0.12 ? 1 : tn < 0.48 ? 2 : 3);
 
+/**
+ * `t`'s pack layout (lodset.ts) with the LODs in `lods` drawn as one pack of every variant. The
+ * village splits these buckets per variant because it holds thousands of each plant; the grove's
+ * hold tens to a few hundred of 2–153-triangle geometry, so a draw per variant bought a few hundred
+ * triangles each in views that sit at the 700-draw budget (the hamlet looking back toward the village).
+ */
+export function packedAt(t: SetTemplate, lods: readonly number[]): number[][][] {
+  const all = t.variants.map((_, v) => v);
+  const lodCount = t.variants[0].length;
+  const p = t.packs;
+  const base: number[][][] = !p ? Array.from({ length: lodCount }, () => [all]) : Array.isArray((p as number[][][])[0]?.[0]) ? (p as number[][][]) : Array.from({ length: lodCount }, () => p as number[][]);
+  return base.map((layout, l) => (lods.includes(l) ? [all] : layout));
+}
+
 /** `bladeMaterial` is the village turf's grass material (grass.ts) the lawn's blade tiles draw with */
 export function buildExpansionNorthVegetation(ctx: WorldContext, templates: GroveTemplates, legacy: LegacyLawn, bladeMaterial: Material, parent: Group): GroveVegetation {
   const T: Terrain = getTerrain();
@@ -142,7 +156,7 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
   parent.add(group);
   const counts: Record<string, number> = {};
 
-  const mk = (name: string, t: SetTemplate) =>
+  const mk = (name: string, t: SetTemplate, packs: SetTemplate['packs'] = t.packs) =>
     new LodInstancedSet({
       name,
       variants: t.variants,
@@ -153,21 +167,21 @@ export function buildExpansionNorthVegetation(ctx: WorldContext, templates: Grov
       castShadowLods: t.castShadowLods,
       nearLods: t.nearLods,
       receiveShadow: true,
-      packs: t.packs,
+      packs,
       instanceData: t.instanceData,
       cullPad: t.cullPad,
     });
-  const tufts = mk('tufts-grove', templates.tufts);
+  const tufts = mk('tufts-grove', templates.tufts, packedAt(templates.tufts, [0, 1]));
   const ferns = mk('ferns-grove', templates.ferns);
   const heroFerns = mk('hero-ferns-grove', templates.heroFerns);
-  const moss = mk('moss-grove', templates.moss);
-  const flowers = mk('flowers-grove', templates.flowers);
+  const moss = mk('moss-grove', templates.moss, packedAt(templates.moss, [1, 2]));
+  const flowers = mk('flowers-grove', templates.flowers, packedAt(templates.flowers, [3]));
   const whiteFlowers = mk('flowers-white-grove', templates.whiteFlowers);
-  const bushes = mk('bushes-grove', templates.bushes);
-  const weeds = mk('weeds-grove', templates.weeds);
+  const bushes = mk('bushes-grove', templates.bushes, packedAt(templates.bushes, [3]));
+  const weeds = mk('weeds-grove', templates.weeds, packedAt(templates.weeds, [1, 2]));
   const clumps = mk('grass-clumps-grove', templates.clumps);
   const mats = mk('turf-mats-grove', templates.mats);
-  const leaves = mk('litter-leaves-grove', templates.leaves);
+  const leaves = mk('litter-leaves-grove', templates.leaves, packedAt(templates.leaves, [1, 2]));
   const sets = [mats, clumps, tufts, weeds, moss, ferns, heroFerns, flowers, whiteFlowers, bushes, leaves];
 
   const M = new Float32Array(16);
