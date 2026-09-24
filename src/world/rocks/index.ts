@@ -106,6 +106,16 @@ export const SHRUNK_STAIR_FOOT_R = 0.35;
 export const LEDGE_PREVIEW: RockLedgeDef[] = [
   { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
 ];
+/**
+ * `?rockLedgePreview=cliff` (look-dev only, never in a capture): the ledge builder at CLIFF scale for the
+ * trailer's waterfall ruins (`docs/SQUAD_2026-09-23.md` §Places, `review46/r_036–r_043`: 6–12 m grey rock
+ * walls in thick beds with ivy, terraces and pools) — a free-standing 9 m face on the north clearing's
+ * west slope, facing the clearing, `scale` 3. Where such cliffs stand is the ruins builder's layout;
+ * this is the rocks lane's sample of what `RockLedgeDef.scale` gives it.
+ */
+export const CLIFF_PREVIEW: RockLedgeDef[] = [
+  { id: 'cliff-preview', foot: [[-12.5, -61], [-12.2, -66], [-12.6, -71], [-12.1, -76], [-12.4, -81]], side: 'left', inset: 3.5, height: 9, lean: 0.6, taper: 2.5, roots: 0.3, scale: 3 },
+];
 /** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
 export const LEDGE_FADE_M: [number, number] = [7, 14];
 /** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
@@ -1241,10 +1251,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // --- rock ledge faces (ledge.ts) — positions from the layout hook, or the dev preview -------
   const ledgeDefs: RockLedgeDef[] = (() => {
-    const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges;
-    if (fromLayout?.length) return fromLayout;
-    const preview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('rockLedgePreview') === '1';
-    return preview ? LEDGE_PREVIEW : [];
+    const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges ?? [];
+    const flag = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('rockLedgePreview') : null;
+    if (flag === 'cliff') return [...fromLayout, ...CLIFF_PREVIEW];
+    if (fromLayout.length) return fromLayout;
+    return flag === '1' ? LEDGE_PREVIEW : [];
   })();
   const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
   const ledgeContacts: [number, number, number][] = [];

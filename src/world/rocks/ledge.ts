@@ -48,6 +48,13 @@ export interface RockLedgeDef {
    * and run down the face to the foot, wandering a little — ref-04's rock-AND-root wall. 0 = none.
    */
   roots?: number;
+  /**
+   * the stone's scale (default 1): beds, blocks, panels, the mass swell and the parting depths all
+   * grow with it, so a 6–12 m CLIFF (the trailer's waterfall ruins, `review46/r_036–r_043`) reads as a
+   * few thick beds and buttresses, not the 3 m terrace's fine strata stretched tall. Opt-in — the
+   * north terrace's face is byte-identical at 1.
+   */
+  scale?: number;
 }
 
 export interface LedgeBuild {
@@ -87,6 +94,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const N = new Noise3(`${seed}/ledge-${def.id}`);
   const insetDef = def.inset ?? 2.2;
   const lean = def.lean ?? 0.35;
+  const S = Math.max(1, def.scale ?? 1);
   // the authored line is the face at full height: it is extended along its end tangents by the
   // taper run on both sides, and those extensions are what sink into the bank. Columns on a
   // stair or a structure pad are dropped (the north terrace's line runs into the `ledge`
@@ -252,12 +260,12 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   // bedding: bed thickness and the tilt of the beds along the run
   // (fable-5's review at 3 m: "one smooth boulder, faint layering" — beds 0.3–0.45 m, so a 1.7 m
   // face carries four or five, stepped and parted hard enough to read from the clearing)
-  const bedThick = rng.range(0.3, 0.45);
+  const bedThick = rng.range(0.3, 0.45) * S;
   const bedTilt = rng.range(-0.08, 0.08);
   const bedPhase = rng.range(0, 1);
   const bedOff = Array.from({ length: 12 }, () => rng.range(-1, 1));
   // vertical joints: block length along the wall
-  const blockLen = rng.range(0.7, 1.1);
+  const blockLen = rng.range(0.7, 1.1) * S;
   const blockPhase = rng.range(0, 1);
   const seedOff = rng.range(-40, 40);
 
@@ -348,7 +356,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const jn = joints(uu, y0, bed.k);
         // relief: beds step ± 0.16 m, blocks ± 0.09 m, a ridged skin ± 0.06 m, micro ± 0.02 m —
         // all of it tapered to nothing at the foot row, which must sit exactly on the terrain
-        const rd = N.ridged(uu * 1.7 + seedOff, y0 * 1.7, 2.2, 3);
+        const rd = N.ridged((uu * 1.7) / S + seedOff, (y0 * 1.7) / S, 2.2, 3);
         const mic = N.fbm(uu * 6.5 - seedOff, y0 * 6.5, 5.5, 2);
         const blockOff = N.fbm(jn.block * 3.7 + 0.5, bed.k * 2.9 + seedOff, 1.0, 1);
         const footTaper = smoothstep(0, 0.22, vf);
@@ -360,10 +368,10 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         // line: vertical and horizontal arrises, the frame's rock/root mass) — under a slow swell of
         // ± 0.1 m and a shelf where the upper bed stands proud over a recess. Tapered to nothing at
         // the foot row like the rest of the relief.
-        const massN = N.fbm(uu * 0.42 + seedOff * 0.7, y0 * 0.55 + 2.2, 4.4, 2);
-        const pw = 1.6 + 0.4 * N.fbm(uu * 0.3 + 1.0, 0.5, 6.6, 1);
+        const massN = N.fbm((uu * 0.42) / S + seedOff * 0.7, (y0 * 0.55) / S + 2.2, 4.4, 2);
+        const pw = (1.6 + 0.4 * N.fbm(uu * 0.3 + 1.0, 0.5, 6.6, 1)) * S;
         const pu = uu / pw + 0.11 * seedOff + 0.08 * N.fbm(uu * 1.1, y0 * 1.6, 7.7, 2);
-        const pv = y0 / 0.8 + 0.07 * seedOff + 0.06 * N.fbm(uu * 1.4 + 3.0, y0 * 1.2, 8.2, 2);
+        const pv = y0 / (0.8 * S) + 0.07 * seedOff + 0.06 * N.fbm(uu * 1.4 + 3.0, y0 * 1.2, 8.2, 2);
         const pi = Math.floor(pu + 0.5 * Math.floor(pv)); // staggered like the blocks
         const pj = Math.floor(pv);
         const panelOff = N.fbm(pi * 2.3 + 0.7, pj * 3.1 + seedOff, 2.0, 1) * 2.4; // ≈ ± 1
@@ -371,10 +379,10 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const recessBand = smoothstep(0.24, 0.4, vf) * (1 - smoothstep(0.46, 0.58, vf));
         const shelfN = N.fbm(uu * 0.6 + seedOff, 1.7, 8.8, 2) * 0.5 + 0.5;
         const shelf = smoothstep(0.35, 0.6, shelfN);
-        const mass = 0.12 * Math.max(-1, Math.min(1, panelOff)) + 0.22 * massN + 0.14 * shelf * shelfBand - 0.1 * shelf * recessBand;
-        out = hs * footTaper * (mass + 0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
+        const mass = S * (0.12 * Math.max(-1, Math.min(1, panelOff)) + 0.22 * massN + 0.14 * shelf * shelfBand - 0.1 * shelf * recessBand);
+        out = hs * footTaper * (mass + S * (0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin) + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
         // the parting grooves and joints sink
-        out -= hs * footTaper * (0.12 * bed.groove + 0.06 * jn.joint);
+        out -= hs * footTaper * S * (0.12 * bed.groove + 0.06 * jn.joint);
         // colour: bed tone ± 14 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
         // (the mass in the tone too, a shade: a recess a little darker, a buttress a little paler)
         let tone = 1 + 0.14 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5) + 0.2 * massN + 0.07 * Math.max(-1, Math.min(1, panelOff));
