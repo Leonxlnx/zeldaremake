@@ -133,15 +133,42 @@ beginning looks great"), so the remaining work there is its own edge treatment (
 fringe at that range) and the flatness of the sky in the gaps, which has no gradient at all — the
 second is atmosphere's, and worth pairing with job 4's milky veil.
 
+## The canopy roof: tried, measured, backed out
+
+The roof is the other half of what fills a look-up (its cards sit 18–25 m over the hollow), it has no
+veil of its own, and it is in this lane — so it was the obvious next step. It is not one
+(`roof-veil-three-ways.jpg`, the top half of his pose):
+
+| `u-plaza-up`, top half | mean | top third | middle third |
+| --- | --- | --- | --- |
+| the crowns' veil only | 77.9 | 69.8 | 78.9 |
+| **+ the roof on the shared ramp** | **104.0** | 95.3 | 103.0 |
+| + the roof on a ramp of its own (34–80 m) | 77.9 | 69.8 | 78.9 |
+
+On the shared ramp it washes the canopy overhead to a pale beige and the dark depths between the lit
+leaves go — the reference has those depths, so this is worse, not better. The roof is not a thing at a
+range of distances the way a crown is: the part of it a walker looks up at is *always* 18–25 m up.
+Given a ramp that starts where the roof has become the far canopy band instead (34–80 m) it is
+byte-level neutral at his pose, and isolated at the look-outward pose (`u-out25`, one build with the
+ramp disabled against one with it) it moves the frame by **0.2 levels** — leaf lightness 0.224 → 0.225,
+outline hardness 10.1 % → 10.0 %. The far roof is either absent or behind the near canopy wherever it
+would have helped. Backed out; the finding is here instead of in the shader.
+
 ## Cost and the fixed frames
 
 The veil is three fragment operations on two existing materials: no geometry, no new draw, no new
 texture, nothing added to the 8.95 M / 695 of camera A. `CROWN_SHADE_M` removes work rather than
 adding it.
 
-The six fixed frames look level, and the veil is zero on a level ray, so A–F should be unmoved except
-where a crown sits inside `CROWN_SHADE_M`'s new window (12–26 m instead of 36–48 m) — the nearest
-distant crown to a fixed camera is 51 m off, so that term was already zero there. `u-open-up`, the
-pinned look-up in fable-cursor's re-read protocol, **does** move by construction: it is the same
-defect at another spot, and the pair is `lookup-open-up.jpg` (mean 130.4 → 135.6, top third
-149.2 → 151.9). Please re-read it with `reread.py` before pinning a checkpoint on it.
+Measured on the merged head, each pose rendered twice with these two files reverted for the base
+(`diffmap.mjs`, pixels changed by more than 8 levels):
+
+| pose | changed | where |
+| --- | --- | --- |
+| **A (`A_stairs`)** | **3.93 %** | the top row of cells only (y 0–0.13), mean Δ 15–28 levels — `hero-A-diff.jpg`: the canopy along the frame's top edge, and nothing on the stairs, the paving, the treehouse or the lanterns |
+| **F (`F_canopy`)** | **3.66 %** | the same top row — `hero-F-diff.jpg` |
+| `u-open-up` (pinned in the re-read protocol) | **34.4 %** | everywhere; it is a look-up, so it moves by construction |
+
+A and F move only where a level frame catches the canopy at its top edge, which is the one place the
+climb gate opens. `u-open-up` is the same defect at another spot: please re-read it with `reread.py`
+before pinning a checkpoint on it.
