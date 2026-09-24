@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T04:40:00Z
+updated: 2026-09-24T05:58:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 05:30–05:58 UTC — iteration 102 (lane-10 §28, `perf102/`): the head `5cbe6ac8` — caps A 638 / 8.86 M; the flight as
+  fable-2's branch; the 06:50 pose unchanged; **the roofed poses went dark** (`u-open-up` 0.512 → 0.415, `b-upper-2` 0.270 → 0.166,
+  `h-west-front` 0.324 → 0.292) — the near-veil wave, flagged to fable-cursor / squad4 / lane 1. INBOX 05:58.
 - 2026-09-24 04:28–04:40 UTC — iteration 101 (lane-10 §27, `perf101/`, `spot.mjs`): the head `fb7d313a` with the south expansion —
   caps A 643 / 8.89 M, C 559 / 7.25 M; the south route 21 / 21, deck probes 41 / 41, the camera ≥ 1.38 m, boots on the deck;
   the `plaza-south` flare pose confirmed (the frame is bark). INBOX 04:40.
@@ -468,4 +471,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T04:40:00Z
+2026-09-24T05:58:00Z

@@ -810,3 +810,31 @@ nothing pops. **fable-cursor's open item confirmed:** Link at (3.5, 27.6) facing
 `plaza-south`'s root flare — the frame is the flare's bark, 90 % of it under 0.15 (`south-flare` on the sheet). A placed
 pose, off the walked line, but the first thing a player who turns south at the path's east edge will see; the camera
 lane's solid-shell pull-in should treat the flare as a shell.
+
+## 28. The head `5cbe6ac8` (05:35 — the 23:00 jobs' second wave: near veil, treepop, the stone flight, music, kids) at the caps and the owner's poses (05:31–05:56 UTC) — the roofed poses went dark
+
+**Caps** (`submission.mjs`, vs `fb7d313a`): A **638 / 8.86 M**, B / E 627 / 8.25 M, C 560 / **7.68 M** (treepop +436 K), D 561 /
+8.57 M, F 598 / 7.99 M — under both caps; A 62 draws / 140 K of room. `perf102/submission-5cbe6ac8.json`.
+
+**The flight (`s2-owner`), merged:** dark 27.1 %, pale 21.8 %, luma 0.347, p10 0.204, sat 0.36 — fable-2's stone value as read
+on his branch (§26), against the owner's reference 7.0 / 15.9 / 0.363 / 0.264 / 0.27. **The 06:50 pose:** the candidate's
+numbers (far-centre 0.435, band 0.305; 0.8 % of pixels moved) — the near veil's 4–16 m ramp does not reach the far band.
+
+**The roofed poses — a regression.** Same poses and flags as §10, before = the last head each pose was read on:
+
+| pose | before | `5cbe6ac8` | pixels > 6 / > 40 |
+| --- | --- | --- | --- |
+| `u-open-up` (before = the candidate `4c30d4db`, 01:21) | luma 0.512, dark 3.9 %, bright 40.6 % | **0.415, dark 36.3 %**, bright 35.2 % | 65 / 33 % |
+| `b-upper-2` (before = `81430baf`, 23:05) | 0.270, dark 54.2 % | **0.166, dark 79.1 %** | 99 / 23 % |
+| `h-west-front` (before = the candidate) | 0.324, dark 36.5 % | 0.292, dark 47.6 % | 42 / 1.5 % |
+
+At `u-open-up` the canopy masses (rows 0.45–1.0) go 0.444 → **0.310** (dark 7 → 53 %) and the shafts' third 0.522 → **0.369**
+(bright 25 → 10 %) — the veil under the roof and the rays' in-scatter are gone from the look-up; the sky rows 0.589 → 0.537.
+At `b-upper-2` the mist in front of the upper house is gone and the hut sits in deep shade (0.166; the 04:30 frame yesterday
+read 0.454, the squad head 0.27). fable-cursor's own lookup note reads `u-open-up` at 0.417 on `08b206cd` and rejects
+squad2's `lookup` (0.417 → 0.500 as pale flat cards) — right on the cards, but the 0.417 itself is the second wave's
+regression from 0.51, and it needs its own fix: the candidates are the **near veil** (`02eca9aa` + `258ed42f`: the
+ambient base air on a 4–16 m distance ramp, "the veil mixes toward the air's own colour"), measured by squad4 at the owner's
+23:00 bough pose (job 5, a 12 m bough) and not at these three. The trade is job 5's bough against the owner's look-up and
+his upper-house pose; the way through is the veil's ramp *and* the roof's air (§10.2's `hazeShadeVeil` / closed-roof grade)
+read together at the four poses. Sheets `fable-5-lane10/it102-ba-u-open-up.jpg`, `it102-ba-b-upper-2.jpg`.
