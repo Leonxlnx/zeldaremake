@@ -1,0 +1,5 @@
+# regenerable audio intermediates (render-audio.mjs rewrites them)
+audio/stems/
+audio/generated/
+audio/analysis/
+

@@ -1,0 +1,154 @@
+{
+  "project": "Kokiri Forest cinematic — opus-cinematic-sept24 soundtrack",
+  "renderedAt": "2026-09-24T22:13:56.260Z",
+  "sourceRoot": "E:/zeldaremake-opus-cinematic",
+  "sources": {
+    "src/world/util/prng.ts": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9",
+    "src/audio/graph.ts": "ec46653eb86ef4b9dfcad093b67751953f5ef095d4faeb872364593ea03669f1",
+    "src/audio/ambience.ts": "89cbea277446ea1e5bb5235a53dffa4205f39218ecb2c25d8ff958a87d7b1d11",
+    "src/audio/footsteps.ts": "2b824888252ef989188021bc1afc55c3791753e6b63da29ab01feee684fed2f3",
+    "src/audio/music.ts": "e73dcb907c24877a995197f910303bbbb639f4deecd387ce75206c505fa7d74c"
+  },
+  "scripts": {
+    "render-audio.mjs": "0574a2f2d417dbb380333e5a91547e92d6e6ebe8b47524d49dd22459f153e455",
+    "synth/cine.js": "a6e05350a0965faacea83ac0f96b106457581cca8dba5c2d7001338533d0b1dd"
+  },
+  "cues": {
+    "file": "art/environment/opus-cinematic-sept24/audio/cues.json",
+    "sha256": "84aa463cf1c7150361ccfc938919c9f1591ae0665544623b31fd5bc8ed83e13c"
+  },
+  "stepLog": {
+    "file": null,
+    "note": "placeholder cadence from cues.json placeholderSteps"
+  },
+  "stepsResolved": {
+    "file": "steps-resolved.json",
+    "sha256": "4960ea5b36612d990e0a8c9dcdeca46eab7fe0e002934faa04700d1f2d0878df",
+    "count": 41
+  },
+  "seed": "kokiri-opus-cinematic-s24",
+  "seedForks": "createRng(seed).fork(<stem>) per stem; bed: buses/ambience/wind0/wind1/room/rustle; birds: placed-<i>-<species>, chorus; detail: lantern, ticks; steps: buses/footsteps/foley<i>; music: buses/score/ornaments; forest IR: createRng(seed).fork(\"forest-ir\"); step jitter: <seed>/steps",
+  "engine": "OfflineAudioContext (48 kHz, 2 ch) in a blank headless Chrome page loaded from file:// (--disable-gpu --disable-webgl --mute-audio). No world page, no GPU capture slot.",
+  "licensing": "All sound is original synthesis in code (repo: MIT; AGENTS.md original/CC0 only). No recordings, samples or downloads. \"Under the Boughs\" is the repo's original placeholder score (src/audio/music.ts), not a Nintendo melody. Bird songs are original synthesis modelled on the general song structure of European woodland species.",
+  "timing": {
+    "sampleRate": 48000,
+    "durationSeconds": 30,
+    "preRollSeconds": 4,
+    "musicHitEdit": 24,
+    "musicRenderOffsetSeconds": 2.063157894736843,
+    "musicPhraseBRenderSeconds": 26.063157894736843
+  },
+  "renders": {
+    "bed": {
+      "file": "stems/bed.wav",
+      "bytes": 8640044,
+      "sha256": "6e026222dc86b579ea936ed56134154a1e4348a08c51977d21415415b00a2965",
+      "clipped": 0,
+      "stem": "bed",
+      "ctxSeconds": 34,
+      "preSeconds": 4,
+      "clusters": 70,
+      "layerRms": {
+        "air": 0.006011886766821583,
+        "body": 0.007049851084886111,
+        "leaves": 0.002329756390935314,
+        "far": 0.0014404664321022,
+        "room": 0.0064364765437261995
+      },
+      "peak": 0.11946887522935867,
+      "rms": [
+        0.015963714669205698,
+        0.015107744344508244
+      ],
+      "frames": 1440000,
+      "offsetFrames": 192000,
+      "peakDb": -18.45,
+      "seconds": 12.8
+    },
+    "birds": {
+      "file": "stems/birds.wav",
+      "bytes": 8640044,
+      "sha256": "1b0e49c3ced7c44eda3de40ea524a571a1abb4d2d1a104d6b95286829cd558b7",
+      "clipped": 0,
+      "stem": "birds",
+      "ctxSeconds": 34,
+      "preSeconds": 4,
+      "peak": 0.1937015801668167,
+      "rms": [
+        0.01545577252054515,
+        0.01952801212898978
+      ],
+      "frames": 1440000,
+      "offsetFrames": 192000,
+      "peakDb": -14.26,
+      "seconds": 5.2
+    },
+    "detail": {
+      "file": "stems/detail.wav",
+      "bytes": 8640044,
+      "sha256": "b2da4a25ec6a51a28ff9a3d9b8650d71029d4aeb6e01848f164fd30529c85aad",
+      "clipped": 0,
+      "stem": "detail",
+      "ctxSeconds": 34,
+      "preSeconds": 4,
+      "crackles": 10,
+      "ticks": 14,
+      "peak": 0.13605044782161713,
+      "rms": [
+        0.007145158651088469,
+        0.007951554345643605
+      ],
+      "frames": 1440000,
+      "offsetFrames": 192000,
+      "peakDb": -17.33,
+      "seconds": 4.5
+    },
+    "steps": {
+      "file": "stems/steps.wav",
+      "bytes": 8640044,
+      "sha256": "9206243bd6aac8657500954dcbfd47b3b86ff449d812027f6dd30dd0c06044ab",
+      "clipped": 0,
+      "stem": "steps",
+      "ctxSeconds": 34,
+      "preSeconds": 4,
+      "steps": 41,
+      "foley": 28,
+      "peak": 0.19234248995780945,
+      "rms": [
+        0.008256072906357695,
+        0.008400159416739732
+      ],
+      "frames": 1440000,
+      "offsetFrames": 192000,
+      "peakDb": -14.32,
+      "seconds": 69.3
+    },
+    "music": {
+      "file": "stems/music.wav",
+      "bytes": 8640044,
+      "sha256": "12102bd8e2605bf93ae7bcc90b49f3495f22a41ede50f67b1ccc804a47a6f4c1",
+      "clipped": 0,
+      "stem": "music",
+      "ctxSeconds": 32.06315789473685,
+      "preSeconds": 2.063157894736843,
+      "musicSource": "procedural",
+      "phraseB": {
+        "beat32RenderSeconds": 26.063157894736843,
+        "offsetSeconds": 2.063157894736843,
+        "editSeconds": 24
+      },
+      "peak": 0.3827637732028961,
+      "rms": [
+        0.0220140686365741,
+        0.02434361668015917
+      ],
+      "frames": 1440000,
+      "offsetFrames": 99032,
+      "peakDb": -8.34,
+      "seconds": 28.9
+    }
+  },
+  "console": [
+    "info: [audio] music: original placeholder \"Under the Boughs\" (50.5 s loop)"
+  ]
+}

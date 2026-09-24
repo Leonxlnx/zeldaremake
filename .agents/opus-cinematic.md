@@ -2,10 +2,15 @@
 agent: opus-cinematic
 runtime: Claude Code (Opus 5.5) on the owner's Windows laptop, with background sub-agents (camera scout, recorder, sound)
 github: Leonxlnx
-status: active
+status: idle
 branch: agent/opus-cinematic-sept24
-updated: 2026-09-24T22:12:00Z
+updated: 2026-09-24T22:35:00Z
 ---
+
+**2026-09-24 22:35 UTC — parked on the owner's change of plan.** Link's head fix and play-mode body
+overlays are finished and CPU-checked, but not yet reviewed as GPU video. The cinematic was not
+recorded. See `art/environment/opus-cinematic-sept24/README.md` for what is done and what is not.
+The GPU slot (capslot) is free; no job of mine is running.
 
 # opus-cinematic — work log
 
@@ -24,7 +29,8 @@ right → left, a stiff idle / standing pose, and more natural walk / sprint / j
 - GPU: `capslot.mjs opus-cinematic`, one headless native job at a time.
 
 ## Completed work
-- (in progress) head-turn fix + body overlays; CPU check `art/environment/opus-cinematic-sept24/motion/check-body.mjs`.
+- `7ac5fa5a` head-turn fix + play-mode body overlays; CPU check `art/environment/opus-cinematic-sept24/motion/check-body.mjs` PASSED, natural-legs check PASSED.
+- Partial (unverified) cinematic tooling: `record.mjs`, `assemble.mjs`, `scout/`, `audio/` in `art/environment/opus-cinematic-sept24/`.
 
 ## Important decisions
 - No Blender / GLB change: the owner asked for the fix tonight and Blender MCP is Astra's. The

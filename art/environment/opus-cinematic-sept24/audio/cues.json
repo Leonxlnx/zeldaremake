@@ -1,0 +1,41 @@
+{
+  "schema": "opus-cinematic-audio-cues/1",
+  "note": "Edit-second section boundaries of the 30.000 s cut. Every sound cue (gust swells, bird placements, lantern, ticks, music rise and hit) is placed relative to these; shift them after picture lock and re-render.",
+  "durationSeconds": 30,
+  "sampleRate": 48000,
+  "seed": "kokiri-opus-cinematic-s24",
+  "preRollSeconds": 4,
+  "sections": [
+    { "id": "hero", "start": 0.0, "end": 4.0 },
+    { "id": "lantern", "start": 4.0, "end": 5.4 },
+    { "id": "macro", "start": 5.4, "end": 6.8 },
+    { "id": "canopy", "start": 6.8, "end": 10.0 },
+    { "id": "walk", "start": 10.0, "end": 14.6 },
+    { "id": "run", "start": 14.6, "end": 18.8 },
+    { "id": "stairs", "start": 18.8, "end": 24.0 },
+    { "id": "reveal", "start": 24.0, "end": 30.0 }
+  ],
+  "musicHit": 24.0,
+  "fadeIn": 0.05,
+  "fadeOut": { "start": 27.5, "duration": 2.5 },
+  "placeholderSteps": { "walk": 0.366, "run": 0.273, "stairs": 0.4 },
+  "steps": {
+    "surface": { "walk": "stone", "run": "stone", "stairs": "stair" },
+    "strength": { "walk": 0.47, "run": 0.85, "stairs": 0.45, "idle": 0.3 },
+    "pan": { "L": -0.15, "R": 0.15 },
+    "gainDb": { "walk": 0, "run": 0, "stairs": 0 },
+    "minGap": 0.16
+  },
+  "levels": {
+    "gameBed": 1.0,
+    "roomTone": 0.03,
+    "lantern": 1.0,
+    "ticks": 1.0,
+    "birdWet": 0.8,
+    "ornaments": 1.0,
+    "swell": 1.0,
+    "bloom": 1.0
+  },
+  "mixDb": { "bed": 0, "birds": 0, "detail": 0, "steps": 0, "music": 0 },
+  "master": { "targetLufs": -14, "truePeakDb": -1.5, "limiterCeilingDb": -2.3, "loudnormLra": 11 }
+}

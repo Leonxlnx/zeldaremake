@@ -1,0 +1,71 @@
+{
+  "total": 8,
+  "shots": [
+    {
+      "name": "t-cam",
+      "kind": "camera",
+      "s": 1,
+      "time": 12.5,
+      "ease": "smoothstep",
+      "keys": [
+        { "u": 0, "p": [0.4, 1.8, 8.6], "t": [6.7, 0.89, -5.8], "fov": 46 },
+        { "u": 0.5, "p": [0.52, 1.86, 8.2], "t": [6.8, 1.05, -5.8], "fov": 45 },
+        { "u": 1, "p": [0.7, 1.8, 7.8], "t": [6.9, 1.2, -5.8], "fov": 44 }
+      ]
+    },
+    {
+      "name": "t-walk",
+      "kind": "player",
+      "s": 2,
+      "time": 14,
+      "player": {
+        "start": [0.3, 0.48],
+        "preroll": 1.0,
+        "input": [{ "at": 0, "dir": [0.9966, -0.0819], "mag": 1, "run": false }]
+      },
+      "camera": { "mode": "follow", "back": 3.2, "side": 0.4, "height": 1.45, "aim": 0.9, "lead": 0.6, "fov": 40, "tau": 0.4 }
+    },
+    {
+      "name": "t-run",
+      "kind": "player",
+      "s": 2,
+      "time": 20,
+      "player": {
+        "start": [0, 0.5],
+        "preroll": 1.0,
+        "input": [{ "at": 0, "dir": [0, -1], "mag": 1, "run": true }]
+      },
+      "camera": { "mode": "track", "side": 2.8, "back": 0.3, "height": 1.1, "aim": 0.8, "lead": 0.4, "fov": 42, "tau": 0.35 }
+    },
+    {
+      "name": "t-stairs",
+      "kind": "player",
+      "s": 2,
+      "time": 30,
+      "player": {
+        "start": [6.985, 0.146],
+        "anchor": "record",
+        "preroll": 0.8,
+        "input": [{ "at": 0, "dir": [0.7885, -0.615], "mag": 1, "run": false }]
+      },
+      "camera": {
+        "mode": "follow", "back": 2.6, "side": 0.9, "height": 1.5, "aim": 0.9, "lead": 0.8, "fov": 42, "tau": 0.4, "tauY": 0.7,
+        "dolly": { "to": { "back": 2.2, "side": 0.7 }, "ease": "smoothstep" }
+      }
+    },
+    {
+      "name": "t-stairs-b",
+      "kind": "player",
+      "s": 1,
+      "time": 30,
+      "skip": 1,
+      "player": {
+        "start": [6.985, 0.146],
+        "anchor": "record",
+        "preroll": 0.8,
+        "input": [{ "at": 0, "dir": [0.7885, -0.615], "mag": 1, "run": false }]
+      },
+      "camera": { "mode": "lead", "ahead": 2.8, "side": 0.6, "height": 2.0, "aim": 0.9, "fov": 44, "tau": 0.4, "tauY": 0.7 }
+    }
+  ]
+}
