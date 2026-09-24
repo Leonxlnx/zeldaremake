@@ -17,9 +17,10 @@
  */
 import { Frustum, Group, InstancedMesh, Matrix4, Sphere, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { expansionVisible } from '../util/expansionLocality';
+import { expansionVisible, southVisible } from '../util/expansionLocality';
 import { buildCarpet, CLUMP_CELL, MAT_CELL, type CarpetResult } from './carpet';
-import { buildExpansionVegetation, templateOf, type ExpansionVegetation } from './expansion';
+import { buildExpansionVegetation, templateOf, type ExpansionTemplates, type ExpansionVegetation } from './expansion';
+import { buildExpansionSouthVegetation } from './expansionSouth';
 import { VegField } from './field';
 import { buildGrass, GRASS_TYPE_NAMES, type GrassResult } from './grass';
 import { buildLitter, LEAF_TINTS, type LitterResult } from './litter';
@@ -64,27 +65,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // round 50 (expansion.ts): the round-49 expansion's own ground, dressed against the LIVE view
   // with the disc sets' geometry and materials; its group shows only when the camera can see the
   // locality (util/expansionLocality.ts), so the six fixed frames pay nothing for it
-  const expansion: ExpansionVegetation = buildExpansionVegetation(
-    ctx,
-    {
-      tufts: templateOf(plants.tufts),
-      ferns: templateOf(plants.ferns),
-      moss: templateOf(plants.moss),
-      flowers: templateOf(plants.flowers),
-      whiteFlowers: templateOf(plants.whiteFlowers),
-      bushes: templateOf(plants.bushes),
-      weeds: templateOf(plants.weeds),
-      clumps: { ...templateOf(carpet.clumps), tiles: carpet.atlas.clumpTiles },
-      mats: { ...templateOf(carpet.mats), tiles: carpet.atlas.matTiles },
-      leaves: { ...templateOf(litter.leaves), tints: LEAF_TINTS.map((c) => [c.r, c.g, c.b] as [number, number, number]) },
-    },
-    group,
-  );
+  const templates: ExpansionTemplates = {
+    tufts: templateOf(plants.tufts),
+    ferns: templateOf(plants.ferns),
+    moss: templateOf(plants.moss),
+    flowers: templateOf(plants.flowers),
+    whiteFlowers: templateOf(plants.whiteFlowers),
+    bushes: templateOf(plants.bushes),
+    weeds: templateOf(plants.weeds),
+    clumps: { ...templateOf(carpet.clumps), tiles: carpet.atlas.clumpTiles },
+    mats: { ...templateOf(carpet.mats), tiles: carpet.atlas.matTiles },
+    leaves: { ...templateOf(litter.leaves), tints: LEAF_TINTS.map((c) => [c.r, c.g, c.b] as [number, number, number]) },
+  };
+  const expansion: ExpansionVegetation = buildExpansionVegetation(ctx, templates, group);
+  // round 56 (expansionSouth.ts): the south exit's live ground — the ravine, the path's verges,
+  // the far bank — shown only where the camera can see that locality
+  const south: ExpansionVegetation = buildExpansionSouthVegetation(ctx, { ...templates, heroFerns: templateOf(plants.heroFerns) }, group);
   ctx.progress('vegetation', 1);
 
   const buildMs = performance.now() - t0;
   const camPos = new Vector3();
-  const sets = [...plants.all, ...carpet.all, ...litter.all, ...expansion.sets];
+  const sets = [...plants.all, ...carpet.all, ...litter.all, ...expansion.sets, ...south.sets];
   let disposed = false;
 
   // unit vector toward the sun for the shadow sweep: the live light when there is one (same
@@ -141,6 +142,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     grass.cull(camera, force);
     // round 50: the expansion's plants show only where the camera can see the locality
     expansion.group.visible = expansionVisible(camera, expansion.spheres);
+    south.group.visible = southVisible(camera, south.spheres);
     const sun = currentSun();
     let budget = REBUCKET_BUDGET;
     let listed = 0;
@@ -189,7 +191,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   refresh(true);
 
   /** false for an expansion set while its group is hidden (the locality is out of view) */
-  const shown = (s: (typeof sets)[number]) => expansion.group.visible || !expansion.sets.includes(s);
+  const shown = (s: (typeof sets)[number]) => (expansion.group.visible || !expansion.sets.includes(s)) && (south.group.visible || !south.sets.includes(s));
 
   const drawable = () => {
     let drawCalls = grass.visible.drawCalls;
@@ -365,6 +367,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       instances: expansion.sets.reduce((n, s) => n + s.count, 0),
       passes: expansion.counts,
       liveView: true,
+    },
+    /** round 56 (expansionSouth.ts): the south exit's own live-view sets, per set and per pass, and whether their group is shown at the audit's pose */
+    south: {
+      visible: south.group.visible,
+      sets: Object.fromEntries(south.sets.map((s) => [s.opts.name, s.count])),
+      instances: south.sets.reduce((n, s) => n + s.count, 0),
+      passes: south.counts,
     },
     /**
      * round 50 (edges.ts): W06's rim band at the paved rims E / D / B frame (the turf pulled back
