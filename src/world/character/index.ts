@@ -32,6 +32,7 @@ import { consolidateRigParts } from './consolidate';
 import { createLocomotion, proceduralPuppet, type Locomotion, type Puppet } from './puppet';
 import { hardChain, switchGait, type GaitChain, type SwitchHooks } from './gaitChain';
 import { JUMP_CROUCH_S, JUMP_LAND_S, LINK_GLB_FILE, loadGlbLink, type LinkAssetInfo } from './glbLink';
+import { seesAny } from '../util/sight';
 
 /**
  * The jump (round 47, the owner's "run faster and even jump, like Zelda"): a take-off crouch of
@@ -132,12 +133,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z]];
   const kids: Actor[] = [];
   const kidChars: ReturnType<typeof createKokiri>[] = [];
+  /** each kid with its decal, hidden whole where the ground hides them (`scopeKidSight`) */
+  const kidWraps: Group[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
     const char = createKokiri(i);
     kidChars.push(char);
     const puppet = proceduralPuppet(char, GAITS);
     const shadow = createContactShadow(0.3, 0.6);
-    backgroundCast.add(puppet.group, shadow);
+    const wrap = new Group();
+    wrap.name = `kid-${i}`;
+    wrap.add(puppet.group, shadow);
+    backgroundCast.add(wrap);
+    kidWraps.push(wrap);
     kids.push({ ...hardChain('idle'), puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
   // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop, kokiri-b sits on the stairs, kokiri-ledge
@@ -189,6 +196,44 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (on === kidCasting[i]) continue;
       kidCasting[i] = on;
       for (const m of kidCasters[i]) m.castShadow = on;
+    }
+  };
+
+  // Terrain scoping (exp-east): the east plateau's lip hides the plaza and its kids from the lane's
+  // lookout and green. A kid the ground hides from the camera — at the soles, the skull top and
+  // along the shadow it throws — draws nothing in either pass (its wrapper hides; npc.ts keeps its
+  // own flags on the rig and the decal inside). The fairies stay: one hovers over its kid's head.
+  // Re-tested when the camera or the kid has moved 0.3 m.
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : new Vector3(0, 1, 0);
+  const terrainAt = (x: number, z: number) => ctx.terrain.height(x, z);
+  const kidSeen: boolean[] = kids.map(() => true);
+  const kidTested = kids.map(() => ({ camera: new Vector3(NaN, NaN, NaN), kid: new Vector3(NaN, NaN, NaN) }));
+  const sightFrom = new Vector3();
+  const sightPoints = [new Vector3(), new Vector3(), new Vector3(), new Vector3()];
+  let kidSightTests = 0;
+  const scopeKidSight = (camera: Camera) => {
+    camera.getWorldPosition(sightFrom);
+    for (let i = 0; i < kids.length; i++) {
+      const k = kids[i];
+      const at = kidTested[i];
+      if (at.camera.distanceToSquared(sightFrom) < 0.09 && at.kid.distanceToSquared(k.contact) < 0.09) continue;
+      at.camera.copy(sightFrom);
+      at.kid.copy(k.contact);
+      const [sole, head, mid, tip] = sightPoints;
+      sole.copy(k.contact);
+      sole.y += 0.1;
+      k.puppet.headTop(head);
+      // the skull top's shadow: away from the sun until the line meets the ground (the ledge girl's falls down the ledge face)
+      tip.copy(head);
+      for (let s = 0; s < 48 && tip.y > terrainAt(tip.x, tip.z); s++) tip.addScaledVector(sunToward, -0.25);
+      tip.y = terrainAt(tip.x, tip.z) + 0.05;
+      mid.lerpVectors(sole, tip, 0.5);
+      mid.y = terrainAt(mid.x, mid.z) + 0.05;
+      kidSightTests++;
+      const seen = seesAny(sightFrom, sightPoints, terrainAt);
+      if (seen === kidSeen[i]) continue;
+      kidSeen[i] = seen;
+      kidWraps[i].visible = seen;
     }
   };
 
@@ -539,6 +584,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** lane 7: which kids cast a sun shadow this frame (their shadow reach meets the view) and the shadow-pass meshes each holds */
       kidShadowCasting: kidCasting.slice(),
       kidShadowMeshes: kidCasters.map((m) => m.length),
+      /** exp-east: which kids the ground leaves in sight of the camera (soles, skull top or shadow) — the rest draw nothing — and the tests run */
+      kidTerrainSeen: kidSeen.slice(),
+      kidSightTests,
       /** lane 7 (skin.ts): each kid's part meshes before → skinned meshes after, and the bones they ride */
       kidSkinned: kidChars.map((c) => c.rig.root.userData.skinned ?? null),
       mode,
@@ -653,6 +701,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
       npcs.updateFairies(t);
       scopeKidShadows(c.camera);
+      scopeKidSight(c.camera);
       navi.update(t, c.renderer.getPixelRatio());
     },
   };
