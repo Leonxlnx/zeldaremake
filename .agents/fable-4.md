@@ -473,3 +473,8 @@ nearCanopy, materials, index otherwise) is edited.
   at the west pose. Told squad2 to hold the rung; two understory-medium builds (1 in 2 at 1.3 ×; every leaf) and two
   white-bark-medium builds (1 in 4 / 1 in 2) rendering against every-tree-high; numbers next tick. (`treelod` must go through
   `ZR_URL_EXTRA` — openWorld builds its own URL; my first "every-high" run was the shipped build.)
+- 2026-09-24 21:30 — the residual pop fixed at its family: `agent/fable-4-usmed` `28f95b56` (PR #65), understory medium keeps
+  every lamina (`mediumEvery 1, mediumScale 1`). Owner poses +34 K / +20 K; six views (896 × 776 harness) A +24 K / 0.54 % px,
+  B/E +17 K / 0.72 %, C 0, D +36 K / 2.29 % px (the corridor's crowns finer), F +11 K / 3 px, draws unchanged. The 1280 × 720
+  SSIM table is fable-cursor's full check or next tick. White-bark medium densities measured irrelevant at these poses (35–49 px).
+  README round54-understory-medium; INBOX 21:05 to squad2 + fable-cursor.
