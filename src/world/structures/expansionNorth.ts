@@ -1558,9 +1558,15 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const g = lightPool(pod, clamp(0.55 + 0.45 * h, 0.8, 1.5), POOL_PEAK * clamp((1.3 / h) ** 2, 0.35, 1), tint, surfaceY);
       if (g) poolParts.push(g);
     };
-    // the trunk house's door pods and the posts' pods on the ground under them
+    // the trunk house's two pods outside its wall and the posts' pods on the ground under them;
+    // the house's lanterns also carry its two room lamps, hung ~0.5 m off the trunk's axis over the
+    // room floor, whose ground is inside the trunk
     const onGround = (x: number, z: number) => T.height(x, z) + 0.03;
-    for (const l of house.lanterns) pool(l.pod, T.height(l.pod.x, l.pod.z), onGround);
+    const [hx, , hz] = N.house.position;
+    for (const l of house.lanterns) {
+      if (Math.hypot(l.pod.x - hx, l.pod.z - hz) < N.house.trunkRadius * 0.7) continue;
+      pool(l.pod, T.height(l.pod.x, l.pod.z), onGround);
+    }
     for (const p of postPods) pool(p, T.height(p.x, p.z), onGround);
     // the huts' pods on their platforms, the veranda and the walkway stubs — never inside the wall
     for (const a of huts.audit) {
