@@ -228,16 +228,26 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * → 11.3 %): a canopy overhead is 15-35 m away, so a ramp that reaches half strength at 40 m has
  * barely started where the leaves are. Depth for a look-up is the tree's height, not the forest's.
  */
-export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number] } = { share: 0.5, m: [10, 32], ray: [0.05, 0.45] };
+export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number] } = {
+  share: 0.5,
+  m: [8, 30],
+  ray: [0.05, 0.45],
+  // the mist's colour alone veiled the far layers to a dead grey-green (first render at m 10-32; the
+  // layers separated but read as dirty haze). His recording's far crowns are pale and WARM — the
+  // light in the air over a canopy is sun through leaves, so the veil's colour is the mist warmed.
+  tint: [1.08, 1.0, 0.88],
+};
 /** the veil as a fragment-shader line, for the crown cards and the giants' leaf cards alike */
-export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number] } = CANOPY_DEPTH_VEIL): string {
+export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number]; tint?: [number, number, number] } = CANOPY_DEPTH_VEIL): string {
   const ray = veil.ray ?? CANOPY_DEPTH_VEIL.ray;
+  const tint = veil.tint ?? CANOPY_DEPTH_VEIL.tint;
+  const t = tint.map((c) => c.toFixed(3)).join(', ');
   return /* glsl */ `
     #ifdef USE_FOG
     {
       float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, ${veil.share.toFixed(3)} * veilClimb * veilDepth);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth);
     }
     #endif
   `;
@@ -1123,7 +1133,7 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   roundFloors: true,
   // the mid layer stands in 13.7–58 m (placeMidTrees), so its veil is that band: a crown at the far
   // edge of it is nearly mist, which is what puts light and depth between the layers he looked through
-  veil: { share: 0.55, m: [14, 44], ray: [0.05, 0.4] },
+  veil: { share: 0.55, m: [12, 40], ray: [0.05, 0.4] },
 };
 
 /**
