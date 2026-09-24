@@ -114,6 +114,11 @@ export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
   // the mouth itself, both hanging at the height the south trees' crowns carry.
   { xMin: -16, xMax: 26, zMin: 41, zMax: 54, crownAbove: 22, feather: 16 },
   { xMin: -6, xMax: 16, zMin: 54, zMax: 62, crownAbove: 21, feather: 12 },
+  // and the ravine's own airspace: the first two bands closed the far bank and the mouth but left a
+  // pale field over the gorge (z 28-41), which the plaza grid reaches (zMax 40) but no giant supports
+  // — the nearest is 14 m north of the sill. The trees on both lips already carry the lower canopy
+  // there, so this band only closes the top of it.
+  { xMin: -16, xMax: 26, zMin: 28, zMax: 41, crownAbove: 23, feather: 14 },
 ];
 /**
  * the stand pass's own grid bounds (world x / z): from the back stand to 3 m south of the rows
@@ -130,7 +135,7 @@ export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -52 } a
  * south bands above support; the plaza grid ends at z 40 and the giants do not reach, so without this
  * the canopy simply stopped in a line over the new exit.
  */
-export const ROOF_SOUTH_BOUNDS = { xMin: -20, xMax: 30, zMin: 40, zMax: 64 } as const;
+export const ROOF_SOUTH_BOUNDS = { xMin: -20, xMax: 30, zMin: 27, zMax: 64 } as const;
 /** the stand pass's grids, in the order it samples them */
 export const ROOF_STAND_GRIDS = [ROOF_STAND_BOUNDS, ROOF_SOUTH_BOUNDS] as const;
 /** a stand cell whose giant support exceeds this is the plaza pass's (skipped here) */
