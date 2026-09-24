@@ -878,7 +878,10 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
     const flap = skirtPanel([profile[0], profile[1], profile[2], [0.107, 0.012]], a0, a1, 10, { ...opts, radiusScale: side > 0 ? 1 : 0.985 });
     // hips space → thigh space (the thigh joint sits at ± hipHalfWidth on the hips)
     flap.applyMatrix4(_m4.makeTranslation(-side * p.hipHalfWidth, 0, 0));
-    part(thigh, flap, tunic, 'kid-tunic-flap');
+    const flapMesh = part(thigh, flap, tunic, 'kid-tunic-flap');
+    // shared with the hips (skin.ts SkinBlend): from the waist the flap hangs and drapes down over the
+    // thigh when she sits, instead of pivoting with it into a shelf at hip height over bare thighs
+    flapMesh.userData.skinBlend = { top: 0.85, hem: 0.5 };
   }
   // leather belt (lane 7, owner 23:00 JOB 7 "the belt"): a flat strap, 3 cm tall and 6 mm thick, on
   // the waist's oval — stitched along both edges and burnished at them on the strap canvas — passing

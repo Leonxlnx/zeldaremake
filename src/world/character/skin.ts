@@ -28,7 +28,20 @@ interface Bucket {
 }
 
 /** every geometry merged carries exactly these attributes, indexed, bound wholly to `bone` */
-function normalise(g: BufferGeometry, bone: number): BufferGeometry {
+/**
+ * A part may ask to be shared between its joint and the joint's parent: `userData.skinBlend =
+ * { top, hem }` is the weight given to the PARENT bone at the part's highest vertex and at its lowest
+ * (rest pose, root space), interpolated by height between. The skirt's front flaps use it (top 0.85,
+ * hem 0.5): rigid on the thigh they pivot into a horizontal shelf when the girl sits, because their
+ * rest flare in front of the thigh axis becomes height above the lap; shared with the hips they hang
+ * from the waist and drape down over the thigh, and swing half the stride when she walks.
+ */
+export interface SkinBlend {
+  top: number;
+  hem: number;
+}
+
+function normalise(g: BufferGeometry, bone: number, parentBone = -1, blend?: SkinBlend): BufferGeometry {
   const n = g.attributes.position.count;
   if (!g.index) {
     const idx = new Uint32Array(n);
@@ -40,9 +53,28 @@ function normalise(g: BufferGeometry, bone: number): BufferGeometry {
   for (const name of Object.keys(g.attributes)) if (name !== 'position' && name !== 'normal' && name !== 'uv') g.deleteAttribute(name);
   const si = new Uint16Array(n * 4);
   const sw = new Float32Array(n * 4);
+  const pos = g.attributes.position;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  if (blend && parentBone >= 0) {
+    for (let i = 0; i < n; i++) {
+      const y = pos.getY(i);
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+  }
   for (let i = 0; i < n; i++) {
-    si[i * 4] = bone;
-    sw[i * 4] = 1;
+    if (blend && parentBone >= 0) {
+      const t = maxY > minY ? (pos.getY(i) - minY) / (maxY - minY) : 1;
+      const wp = Math.min(1, Math.max(0, blend.hem + (blend.top - blend.hem) * t));
+      si[i * 4] = bone;
+      si[i * 4 + 1] = parentBone;
+      sw[i * 4] = 1 - wp;
+      sw[i * 4 + 1] = wp;
+    } else {
+      si[i * 4] = bone;
+      sw[i * 4] = 1;
+    }
   }
   g.setAttribute('skinIndex', new Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new Float32BufferAttribute(sw, 4));
@@ -71,7 +103,16 @@ export function skinRig(root: Object3D): { before: number; after: number; bones:
       // the part's vertices are in the joint's space; the skinned mesh wants them in the root's rest space
       // (its bind space) — the bone inverses take them back to the joint, the bones' world matrices move them
       g.applyMatrix4(o.matrixWorld);
-      normalise(g, boneIndex);
+      const blend = m.userData.skinBlend as SkinBlend | undefined;
+      let parentBone = -1;
+      if (blend && o.parent) {
+        parentBone = bones.indexOf(o.parent);
+        if (parentBone < 0) {
+          parentBone = bones.length;
+          bones.push(o.parent);
+        }
+      }
+      normalise(g, boneIndex, parentBone, blend);
       const key = `${m.material.uuid}|${m.castShadow ? 1 : 0}|${m.receiveShadow ? 1 : 0}|${m.renderOrder}|${m.visible ? 1 : 0}|${m.layers.mask}`;
       const b = buckets.get(key);
       if (b) b.parts.push(g);
