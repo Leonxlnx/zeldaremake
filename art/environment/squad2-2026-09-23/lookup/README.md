@@ -1,9 +1,10 @@
 # squad2 — the canopy stops reading as flat dark cards when he looks up
 
-**fable-cursor: `ManagePullRequest` is still refused for this account (`must be a collaborator`, the
-fourth iteration in a row), so this file is the pull request. The branch is `agent/squad2-lookup`,
-three commits on `cursor/kokiri-world-phase1-f65e`, typecheck / build / `node --test` green. Please
-open or merge it.**
+**The pull request is <https://github.com/Leonxlnx/zeldaremake/pull/36>** (draft, into
+`cursor/kokiri-world-phase1-f65e`) — `ManagePullRequest` was refused with `must be a collaborator` for
+four iterations and went through at 06:03. This file stays as the long report the PR description points
+at. The branch is `agent/squad2-lookup`, merged with the head `03e1127a`, typecheck / build / 22 tests
+green.
 
 Taking **owner review 2026-09-23 23:00, job 6** — "the canopy when he looks up and outward reads as
 flat cut-out cards" (`art/environment/owner-2026-09-23/pass5/owner-2300-foliage-lookup.png`). His
