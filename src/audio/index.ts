@@ -20,7 +20,7 @@ import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, LAYOUT } from '../world/layout';
 import { createBuses, createRng, type Buses } from './graph';
-import { createAmbience, type Ambience, type Vec3 } from './ambience';
+import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
@@ -41,7 +41,7 @@ export interface AudioHandle {
   dispose(): void;
 }
 
-export interface AudioStats extends FootstepStats {
+export interface AudioStats extends FootstepStats, AmbienceStats {
   state: AudioState;
   music: MusicSource;
   /** pod lanterns found in the scene (the flame's distance sources) */
@@ -50,6 +50,8 @@ export interface AudioStats extends FootstepStats {
   gaitDriven: boolean;
   /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
   enclosure: number;
+  /** where the audio thinks the fairies are (world), so a harness can stand beside one */
+  fairySpots: [number, number, number][];
 }
 
 export interface OfflineRender {
@@ -106,6 +108,54 @@ interface Live {
   ambience: Ambience;
   footsteps: Footsteps;
   music: Music;
+}
+
+/**
+ * Every fairy in the scene (`navi.ts` names its root from `FairyOptions.name`: the Kokiri kids'
+ * are `kokiri-fairy-<slot>`). Unlike the pod lanterns these MOVE — they hover, and the girl walks —
+ * so the objects are kept and their world position read each frame rather than sampled once.
+ */
+function gatherFairies(scene: Scene): FairyRef[] {
+  const roots = new Map<string, Object3D>();
+  const lights = new Map<string, Object3D>();
+  scene.updateMatrixWorld(true);
+  // the ROOT only: createFairy names every child from the same prefix (`-body`, `-core`, `-halo`,
+  // `-sparkle`…), so a prefix match collects fifteen objects per fairy
+  scene.traverse((o: Object3D) => {
+    if (FAIRY_ROOT.test(o.name)) roots.set(o.name, o);
+    else if (FAIRY_LIGHT.test(o.name)) lights.set(o.name.slice(0, -6), o);
+  });
+  // The root itself never moves. `npc.ts` reparents the fairy's point light onto the NPC group (a
+  // light joining or leaving the scene changes the light count every lit program is keyed on, and
+  // recompiles them all) and writes `anchor + offset(t)` to THAT every frame — so the light is
+  // where she is, and the root only says whether she is shown.
+  return [...roots].map(([name, root]) => ({ root, at: lights.get(name) ?? root }));
+}
+
+interface FairyRef {
+  /** the fairy's group: carries her visibility */
+  root: Object3D;
+  /** the object that is actually at her hover point */
+  at: Object3D;
+}
+
+const FAIRY_ROOT = /^(navi|kokiri-fairy-\d+)$/;
+const FAIRY_LIGHT = /^(navi|kokiri-fairy-\d+)-light$/;
+
+/**
+ * A fairy's world position, or null while it or anything above it is hidden. The matrix is brought
+ * up to date here rather than trusted: the audio runs on its own animation frame, and the world's
+ * matrices are only refreshed when it draws — with the bag open, or under a harness that steps the
+ * simulation without rendering, a trusted `matrixWorld` is whatever it was when the context started.
+ */
+function fairyAt(f: FairyRef, out: Vec3): Vec3 | null {
+  for (let n: Object3D | null = f.root; n; n = n.parent) if (!n.visible) return null;
+  f.at.updateWorldMatrix(true, false);
+  const e = f.at.matrixWorld.elements;
+  out.x = e[12];
+  out.y = e[13];
+  out.z = e[14];
+  return out;
 }
 
 /** world-space centres of every `pod-lantern` mesh (structures/lantern.ts) */
@@ -193,6 +243,10 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let starting: Promise<void> | null = null;
   let raf = 0;
   let pods: Vec3[] = [];
+  let fairyObjects: FairyRef[] = [];
+  /** reused per-fairy vectors so the per-frame read allocates nothing */
+  const fairySlots: Vec3[] = [];
+  const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
   let enclosure = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
@@ -219,7 +273,14 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     // one ground lookup a frame, shared by the bed's enclosure and the boots' surface
     const s = surfaceAt(listener.x, listener.z);
     enclosure = s.enclosure;
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, enclosure: s.enclosure });
+    // the fairies hover and their owners walk, so their positions are read fresh (and skipped
+    // while the background cast is hidden)
+    fairyBuf.length = 0;
+    for (let i = 0; i < fairyObjects.length; i++) {
+      const at = fairyAt(fairyObjects[i], fairySlots[i]);
+      if (at) fairyBuf.push(at);
+    }
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -264,8 +325,11 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
       pods = gatherPods(o.scene);
+      fairyObjects = gatherFairies(o.scene);
+      fairySlots.length = 0;
+      for (let i = 0; i < fairyObjects.length; i++) fairySlots.push({ x: 0, y: 0, z: 0 });
       await ctx.resume().catch(() => undefined);
-      console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns)`);
+      console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
       emit();
       lastT = 0;
       raf = requestAnimationFrame(tick);
@@ -309,7 +373,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       pods: pods.length,
       gaitDriven,
       enclosure,
+      fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {
@@ -354,6 +420,12 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
+  // the fairies do not move in an offline render (nothing steps the character system), so one
+  // sample of each is enough; the walk's last leg stands beside the nearest one so the glints are
+  // in the evidence WAV — in play they are wherever their Kokiri is
+  const fairies = gatherFairies(o.scene)
+    .map((f) => fairyAt(f, { x: 0, y: 0, z: 0 }))
+    .filter((v): v is Vec3 => !!v);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
     const g = 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3);
@@ -363,11 +435,16 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const step = 1 / 20;
   let x = 0;
   let z = 2;
+  const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
+  const standsBesideFairy = OFFLINE_WALK[OFFLINE_WALK.length - 2].until;
   for (let t = 0; t < seconds; t += step) {
-    const leg = OFFLINE_WALK.find((l) => t < l.until) ?? OFFLINE_WALK[OFFLINE_WALK.length - 1];
+    const leg = OFFLINE_WALK.find((l) => t < l.until) ?? lastLeg;
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;
-    ambience?.update(t, { gust: gust(t), listener: { x, y: 1.2, z }, forward: { x: 0.6, z: -0.8 }, pods });
+    // the closing stand is beside a fairy, so its glints are in the evidence WAV
+    const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
+    const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);

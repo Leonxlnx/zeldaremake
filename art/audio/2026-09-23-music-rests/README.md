@@ -55,6 +55,34 @@ the music stem alone. `clips/` has 40 s across the rest to listen to.
 The bed's own lulls over 120 s: below −65 dBFS, 30 of them, longest 2.4 s, 11 s in total — the
 forest goes still between gusts and then a leaf moves.
 
+## The fairies make a sound
+
+Lane 7 brought the Kokiri and their fairies back and they were silent. A fairy is now a **glint**:
+two or three tiny bell partials climbing over about 120 ms, every 1.4–4 s, only while she is within
+about four metres, panned toward her and attenuated by distance. Events, and small ones — the
+owner's standing complaint is that there is too much sound, so this is a few grains of light beside
+you, never a shimmer laid over the forest.
+
+Play-mode probe (`walk-audio.json`): standing a step and a half from the girl by the signpost,
+**4 glints in 10 s**; walking the plaza past her, 2; inside the log tunnel, 0. Offline, in the
+2.2–5.2 kHz band, the closing stand beside her holds **6 events in 8 s against 1 in 3 s** of the
+opening stand away from any fairy, and the band's 99th percentile rises −47.5 → −44.2 dBFS.
+
+Getting there turned up two real bugs, both now fixed and worth knowing about for anyone else
+reading positions out of the scene graph:
+
+- `createFairy` names every child from the same prefix (`-body`, `-core`, `-halo`, `-sparkle`…), so
+  a `startsWith('kokiri-fairy')` match collects **fifteen objects per fairy**. The matcher is an
+  exact-root regex now.
+- The fairy's root **never moves**. `npc.ts` reparents her point light onto the NPC group (a light
+  joining or leaving the scene changes the light count every lit program is keyed on) and writes
+  `anchor + offset(t)` to *that* every frame. Reading the root gave (0, 0, 0) for all five fairies —
+  which is why the first pass glinted in the middle of the plaza. Position comes from the light now,
+  visibility still from the root.
+- `matrixWorld` is only refreshed when the world draws, so the audio's own animation frame could
+  read a matrix from whenever the context started (with the bag open, or under a harness that steps
+  the simulation without rendering). The fairy read brings its own matrix up to date.
+
 ## Tests
 
 `src/audio/music.test.mjs` is new: the rests fall inside `REST_SECONDS`, the duty cycle lands
