@@ -38,6 +38,10 @@ const ROUTES = [
   // the north path crosses the log arch's bore at log-frame u ≈ −4 … −6 (layout.logArch, yaw −16°):
   // walking north from z −51 passes right through it
   { name: 'through the log tunnel', at: [4.84, -51, 180], key: 'KeyW', seconds: 7 },
+  // the south exit: onto the rope bridge over the ravine, then on to the far hollow log
+  // south is +z, so yaw 0: `place` takes forward = (sin yaw, cos yaw)
+  { name: 'across the rope bridge', at: [3.72, 28.0, 0], key: 'KeyW', seconds: 12 },
+  { name: 'into the far hollow log', at: [4.2, 45.2, 0], key: 'KeyW', seconds: 7 },
   // `at: 'fairy'` is resolved from the world audit's Kokiri fairy anchors (character/npc.ts)
   { name: 'standing beside a Kokiri fairy', at: 'fairy', key: null, seconds: 10 },
 ];

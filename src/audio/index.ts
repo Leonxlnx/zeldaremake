@@ -18,7 +18,7 @@ import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { EXPANSION, EXPANSION_NORTH, LAYOUT, northGangway } from '../world/layout';
+import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
@@ -111,6 +111,9 @@ export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 36, speed: 1.5, surface: 'leaf' },
   { until: 41, speed: 4.2, surface: 'stone' },
   { until: 45, speed: 0, surface: 'grass' },
+  // appended 2026-09-24 with the south exit, AFTER the closing stand so every earlier leg keeps its
+  // times and older before/after renders stay comparable
+  { until: 50, speed: 1.5, surface: 'bridge' },
 ];
 
 export interface AudioOptions {
@@ -267,6 +270,12 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))), canopy };
     }
   }
+  // the south expansion (EXPANSION_SOUTH): the rope-and-plank bridge over the ravine, and the
+  // hollow log burrowing into the far bank. Both are walked and both used to sound like lawn.
+  {
+    const s = southSurfaceAt(x, z, canopy);
+    if (s) return s;
+  }
   // the west house's platform and deck
   {
     const wh = EXPANSION.westHouse;
@@ -290,6 +299,44 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy };
   if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy };
   return { surface: 'grass', stairs: false, enclosure: 0, canopy };
+}
+
+/**
+ * The south exit's two walked structures (`EXPANSION_SOUTH`), neither of which the surface map knew
+ * about — the owner has been asking for the world to grow and both were sounding like the lawn.
+ *
+ *  - the rope-and-plank bridge: planks over 8 m of empty air, so they knock hollow and the ropes
+ *    and lashings answer. Its own surface, not `wood`: a deck on the ground and a deck over a
+ *    ravine are not the same sound.
+ *  - the hollow log at the far bank: the same bore sound as the arch by the plaza, with the same
+ *    smooth enclosure as the wood closes over the listener.
+ */
+function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } | null {
+  const b = EXPANSION_SOUTH.bridge;
+  {
+    const ax = b.south[0] - b.north[0];
+    const az = b.south[1] - b.north[1];
+    const len2 = ax * ax + az * az;
+    const t = ((x - b.north[0]) * ax + (z - b.north[1]) * az) / len2;
+    if (t > -0.02 && t < 1.02) {
+      const px = b.north[0] + ax * t;
+      const pz = b.north[1] + az * t;
+      if (Math.hypot(x - px, z - pz) < b.walkHalfWidth + 0.12) return { surface: 'bridge', stairs: false, enclosure: 0, canopy: 0 };
+    }
+  }
+  const tn = EXPANSION_SOUTH.tunnel;
+  {
+    const dl = Math.hypot(tn.dir[0], tn.dir[1]) || 1;
+    const dx = tn.dir[0] / dl;
+    const dz = tn.dir[1] / dl;
+    // along the bore from the mouth, and across it
+    const u = (x - tn.mouth[0]) * dx + (z - tn.mouth[1]) * dz;
+    const v = Math.abs(-(x - tn.mouth[0]) * dz + (z - tn.mouth[1]) * dx);
+    if (u > -0.3 && u < tn.deadEnd && v < tn.innerRadius * 0.8) {
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(u / 1.6, (tn.innerRadius * 0.8 - v) / 0.5))), canopy };
+    }
+  }
+  return null;
 }
 
 export const AUDIO_SEED = 'kokiri-audio-r47';

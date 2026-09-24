@@ -356,6 +356,15 @@ const BANK_FLAT = 0.7;
  */
 const NORTH_FLOOR_KEEP = 0.72;
 /**
+ * 2026-09-24 — the low zone's density cut (field.ts LOW_ZONES: the slope east of the north path
+ * between camera C and the main stairs). The zone's job is HEIGHT — frame 46 shows the stair foot
+ * over it and frame 56 nothing above ≈ 0.5 m — and the height cut below does that on its own. The
+ * density cut on top of it left the owner's most-walked verge at 290 blades / m² at 4 cm, a bare
+ * olive margin beside the paving, while the west side it faces is a closed turf at 487. Thinned
+ * from 0.35 to this: the ground closes, nothing gets taller.
+ */
+const LOW_ZONE_THIN = 0.1;
+/**
  * 2026-09-23 — the walked verge (field.ts `pathVerge`): a sixth candidate pass at this share of
  * the tile density over the ground within VERGE_BAND m of the walked paving, from its own stream
  * (`grass/verge/<tile>`) after every pass above, so no blade of the five moves. The owner's LEFT
@@ -555,7 +564,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
       const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : housePass ? HOUSE_FLANK_CLUSTER_FLOOR + (1 - HOUSE_FLANK_CLUSTER_FLOOR) * cluster : cluster;
       // frame 1's circled right foreground (round 40): the south bank's face fills in
-      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (facePass ? face : 1 + A_FACE_DENSITY * face) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1) * (1 + D_HOLLOW_THICKEN * hollow) * (vergePass ? pathVerge : 1 + VERGE_THICKEN * pathVerge);
+      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - LOW_ZONE_THIN * low) * (facePass ? face : 1 + A_FACE_DENSITY * face) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1) * (1 + D_HOLLOW_THICKEN * hollow) * (vergePass ? pathVerge : 1 + VERGE_THICKEN * pathVerge);
       // round 47: an infill blade skips the density draw (it stands where the passes left a gap)
       // but never on the frames' bare-by-design grounds
       if (infill) {
