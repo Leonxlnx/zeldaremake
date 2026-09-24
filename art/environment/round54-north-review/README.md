@@ -66,6 +66,10 @@ cleared north band (the head at those spots, inside the band, drew 635 / 8.15 M 
 draws** (the village's houses whole plus the grove's three) and the **characters' 100 draws** for 0.14 M. Nothing on the tree side
 to change for these poses; if the grove's south look is to come under the caps, that is where the triangles and draws are.
 
+Postscript (the head's split at g3, 635 / 8.15 M with the camera inside the north band): trees **163 / 2.37 M** against the
+branch's 168 / 2.36 M — the grove's fifteen understory stems cost what the culled poles' near LODs gave back; vegetation 83 / 1.89 M
+→ 148 / 2.52 M and structures 137 / 2.22 M → 190 / 2.93 M are the growth.
+
 ## Nit for the branch
 
 `groveUnderstory` (the stems the 60–215 m boles must not crowd) is filtered by `inExpansionNorth`, but the grove zone's box
