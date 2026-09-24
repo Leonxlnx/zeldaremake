@@ -111,6 +111,25 @@ in grey under both. In the before column the 60–125 Hz panel is a plateau for 
 after it falls into the bed twice inside one pass. In the top panel the mix now dips to −36 through
 the answering phrase where it used to sit flat at −29.
 
+### And on the live graph, not the twin
+
+Everything above is `renderOffline`. `capture.mjs` records the **real** master through a
+`MediaStreamDestination` while Link is walked with held keys — the browser's own clock, the world's
+gust, the gait's real boot plants. Two 55 s takes, the only difference being which `music.ts` the
+build was made from:
+
+| recorded from the live master | before | after |
+| --- | ---: | ---: |
+| 60–125 Hz, longest unbroken | **50.2 s** | **14.1 s** |
+| 60–125 Hz, longest hole | 4.8 s | **11.9 s** |
+| 60–125 Hz, on | 91 % | 73 % |
+| span, p99 − p10 | 11.0 dB | **16.8 dB** |
+| integrated | −30.3 LUFS | −32.2 |
+
+Fifty seconds of unbroken low end is exactly what the offline twin said, on a take with real
+footsteps putting their own energy into the same band. `playtest.mjs --only walk`: 10/10 routes
+reached, 0 stuck, 0 page errors.
+
 ## Still open: the master level, unchanged and deliberately so
 
 The mix measures −33.0 LUFS with a true peak of −16.8 dBFS. Games normally run −18 to −23, so the
