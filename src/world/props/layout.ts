@@ -209,7 +209,7 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // squat pot on the verge at the bridge head, 1.3 m from the east post and 2.5 m short of the lip's
   // rounding — the toll pile every bridge has; a pot pair east of the log's mouth on the far bank, 0.7 m
   // clear of the rim's flank.
-  { id: 'south-way-marker', kind: 'marker', x: 5.6, z: 27.7, size: 1.7, yaw: 2.4, cluster: 'south', live: true },
+  { id: 'south-way-marker', kind: 'marker', x: 5.6, z: 27.7, size: 1.7, yaw: -0.6, cluster: 'south', live: true },
   { id: 'bridge-crate', kind: 'crate', x: 5.4, z: 29.3, size: 0.62, yaw: 0.35, cluster: 'south', live: true },
   { id: 'bridge-pot-squat', kind: 'pot', x: 5.95, z: 29.85, size: 0.46, yaw: -1.6, cluster: 'south', variant: 2, live: true },
   { id: 'log-mouth-pot', kind: 'pot', x: 7.0, z: 46.05, size: 0.6, yaw: 0.9, cluster: 'south', variant: 1, live: true },
