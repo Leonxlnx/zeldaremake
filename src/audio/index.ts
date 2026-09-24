@@ -254,6 +254,21 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const s = southSurfaceAt(x, z, canopy, gorge);
     if (s) return s;
   }
+  // the plateau lookout's dais (LAYOUT.lookout): a 2.2 × 1.6 m slab on the east plateau's
+  // south-west lip, standing 0.35–0.9 m proud of the turf, that the player steps up onto to look
+  // west over the plaza. Hardscape merges it into the `flagstones` mesh and the character ground
+  // stands on its top, so it is paving — the rope railing the props lane sets into it is the only
+  // timber, deliberately not a deck ("wood over the stone would swallow the player's feet").
+  {
+    const lk = LAYOUT.lookout;
+    const yaw = (lk.yawDeg * Math.PI) / 180;
+    const dx = x - lk.x;
+    const dz = z - lk.z;
+    const u = dx * Math.cos(yaw) + dz * Math.sin(yaw);
+    const v = -dx * Math.sin(yaw) + dz * Math.cos(yaw);
+    // the step block on the fence side is walked onto as well, so the footprint carries a margin
+    if (Math.abs(u) < lk.halfLength + 0.2 && Math.abs(v) < lk.halfDepth + 0.2) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
+  }
   // the west house's platform and deck
   {
     const wh = EXPANSION.westHouse;
