@@ -148,32 +148,55 @@ function releaseAfterUpload(g: BufferGeometry): void {
   if (g.index) g.index.onUpload(dropArray as unknown as () => void);
 }
 
-/** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
-function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
+/**
+ * Grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless.
+ * Round 56 (the owner's rubric, ★16 "weathering follows exposure"): `sunLocal` is the direction
+ * toward the sun in the prop's own frame — the moss band climbs on the side facing away from it
+ * (3× the height in full shade, the round-52 band on the sun side) and the tops (normals within
+ * ≈ 35° of up) take a sun-bleach: dry wood goes a little grey-silver, clay a dusty lighter tone.
+ */
+function weather(geometry: BufferGeometry, material: MaterialKey, size: number, sunLocal: { x: number; z: number }): void {
   if (material === 'iron' || material === 'glow') return;
   const p = geometry.attributes.position;
+  const n = geometry.attributes.normal;
   const colors = geometry.attributes.color;
   const [dr, dg, db] = COLOUR_DOMAIN[material];
   const soil = new Color(0x4f4436);
   const moss = new Color(0x55573a);
+  const bleach = new Color(material === 'clay' ? 0xd9c9a8 : 0xb8b0a0);
   soil.setRGB(soil.r / dr, soil.g / dg, soil.b / db);
   moss.setRGB(moss.r / dr, moss.g / dg, moss.b / db);
+  bleach.setRGB(bleach.r / dr, bleach.g / dg, bleach.b / db);
   const c = new Color();
   const falloff = (h: number, extent: number) => {
     const t = Math.min(1, Math.max(0, h / extent));
     return 1 - t * t * (3 - 2 * t);
   };
+  const smooth = (e0: number, e1: number, x: number) => {
+    const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+    return t * t * (3 - 2 * t);
+  };
   for (let i = 0; i < p.count; i++) {
     const px = p.getX(i);
     const py = p.getY(i);
     const pz = p.getZ(i);
+    const nx = n ? n.getX(i) : 0;
+    const ny = n ? n.getY(i) : 0;
+    const nz = n ? n.getZ(i) : 0;
+    // how much this face looks away from the sun (its horizontal normal against the sun's direction; the
+    // radial direction from the prop's axis stands in where a normal is missing)
+    const rad = Math.hypot(px, pz) || 1;
+    const facing = n ? nx * sunLocal.x + nz * sunLocal.z : (px * sunLocal.x + pz * sunLocal.z) / rad;
+    const shade = smooth(0.2, -0.6, facing);
+    const up = n ? smooth(0.55, 0.85, ny) : 0;
     const patch = 0.5 + 0.5 * Math.sin(px * 9 + pz * 13) * Math.cos(pz * 7 - px * 5);
     const damp = falloff(py, size * 0.3);
-    const contact = falloff(py, size * (0.07 + patch * 0.06));
+    const contact = falloff(py, size * (0.07 + patch * 0.06) * (1 + 2 * shade));
     c.fromBufferAttribute(colors, i);
     if (material === 'clay') c.lerp(soil, damp * 0.38);
     else c.multiplyScalar(1 - damp * 0.3);
-    c.lerp(moss, contact * (0.1 + patch * 0.18));
+    c.lerp(moss, contact * (0.1 + patch * 0.18) + shade * 0.09 * (1 - damp));
+    c.lerp(bleach, up * (material === 'clay' ? 0.12 : 0.18) * (1 - damp));
     colors.setXYZ(i, c.r, c.g, c.b);
   }
 }
@@ -241,6 +264,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    */
   const blockers: { x: number; z: number; r: number; top: number }[] = [];
   const tmp = new Vector3();
+  /** toward the sun (world), for the exposure weathering and the backside's shadow footprints */
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
 
   for (const def of PROP_LAYOUT) {
     const rng = createRng(`${ctx.config.seed}/props/${def.id}`);
@@ -485,9 +510,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       bounds = {};
       clusterBounds.set(def.cluster, bounds);
     }
+    // the sun's horizontal direction in the prop's frame (its yaw undone; the tilt is a few degrees and ignored)
+    const sunLocal = { x: sunToward.x * Math.cos(yaw) - sunToward.z * Math.sin(yaw), z: sunToward.x * Math.sin(yaw) + sunToward.z * Math.cos(yaw) };
     for (const part of parts) {
       const g = part.geometry;
-      weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size);
+      weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size, sunLocal);
       const p = g.attributes.position;
       const contact: number[] = [];
       const feet = new Set<number>((g.userData.contactIndices as number[] | undefined) ?? []);
@@ -592,7 +619,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // the backside locality follows util/expansionLocality.ts: hidden beyond 60 m of the expansion
   // box, or when neither the props nor their sun-shadow footprints meet the camera's frustum —
   // so the six fixed frames, which look away from it, draw none of it in either pass
-  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
   const backsideSpheres = backsideCasters.flatMap((c) => casterSpheres(c, sunToward));
   /** cull per locality: pose jumps come through onCameraMove, the walk through update */
   const cull = (camera: Camera) => {
