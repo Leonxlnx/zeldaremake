@@ -379,13 +379,22 @@ export function crateGeometry(rng: Rng, size: number): Part[] {
       }
     }
   }
-  // lid: boards across, grain along x, one gap left a little wide
+  // lid: boards across, grain along x, one gap left a little wide. Round 56 (the owner's rubric,
+  // #4 siblings with purpose / #19 sparse damage): about a third of the crates have lost one lid
+  // board — never the two outermost, so the box still reads closed from 20 m — and the box shows
+  // its floor through the gap; on another third one lid board has been knocked askew and lies
+  // tilted on its neighbours.
   const lidBoards = 4;
   const lw = (d - (lidBoards - 1) * gap) / lidBoards;
   const wideGap = rng.int(0, lidBoards);
+  const lost = rng.chance(0.35) ? rng.int(1, lidBoards - 1) : -1;
+  const knocked = lost < 0 && rng.chance(0.5) ? rng.int(0, lidBoards) : -1;
   for (let i = 0; i < lidBoards; i++) {
+    if (i === lost) continue;
     const b = board(w - 0.002, t, lw * (i === wideGap ? 0.9 : 0.985), { grain: 'x', rng, shade: shade * 1.04 });
-    place(b, new Vector3(0, h + t / 2, -d / 2 + lw / 2 + i * (lw + gap)));
+    const tilt = i === knocked ? rng.pick([-1, 1]) * rng.range(0.1, 0.16) : 0;
+    const q = tilt ? new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), tilt) : undefined;
+    place(b, new Vector3(0, h + t / 2 + (tilt ? Math.abs(Math.sin(tilt)) * lw * 0.5 : 0), -d / 2 + lw / 2 + i * (lw + gap) + (tilt ? Math.sign(tilt) * lw * 0.12 : 0)), q);
     wood.push(b);
   }
   // floor boards (seen through no gap, but they close the box from any low angle)
