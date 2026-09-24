@@ -542,3 +542,13 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - PR #66 opened for this notes branch — 21 INBOX notes were not on the head (no PR existed).
 - Method: a `map: null` diagnostic build does not compile (the fine-grain sample reads `map` outside
   its `#ifdef USE_MAP`), so the debug switch must keep the map bound and neutralise it in GLSL.
+
+### Iteration 111 (23:55) — the facets found: the slab walls' grime, one dark triangle per quad → a gradient (in #61, merged 23:39)
+- `?stoneDebug=` switch in `material.ts` (flat / noao / norough / nofine / nonear / uvgrid / vcolor /
+  texonly / moss): `flat` removed the facets (albedo), `nofine` / `nonear` / `noao` did not, `texonly`
+  continuous, `vcolor` the patchwork → the vertex colour of the WALLS (the risers fill the tread
+  poses). `buildSlab` side walls: tri 1 shaded × sideGrime, tri 2 clean → now foot → shoulder
+  gradient (`f6fa109e`). Six views vs head: A 0.9994 / B 1.0000 / C 0.9999 / D 0.9999 / E 1.0000 /
+  F 0.9993. Sheet `hs111-riser-grime.jpg`.
+- Method: at a pose looking up a flight, name the surface first — the "tread facets" were risers.
+- North grove merged (b9993008): my north poses re-rendered, no regression (`rocks111-north-grove-poses.jpg`).
