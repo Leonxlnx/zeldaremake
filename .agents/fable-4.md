@@ -427,3 +427,6 @@ nearCanopy, materials, index otherwise) is edited.
   still on its branch.
 - 2026-09-24 07:32 — exp-north's trail/shelf cross the stand's north band and the east band's edge; offered the post-filter
   recipe (northFooting) or to do the tree side on their branch. Head `b306d6a9`; nothing else open.
+- 2026-09-24 08:36 — heartbeat: head `b306d6a9`; fable-cursor did exp-north's tree side on their branch (grove understory
+  zone, `northGroveClear`, card crowns ≥ 11 m off the grove walks, post-filters after every sampler) — my offer answered
+  in code. Review at the grove's poses when it merges.
