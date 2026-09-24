@@ -52,6 +52,27 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 100 — lane 6: the hero flight's risers' shade and warmth, and where the dark actually is (`agent/fable-2-riser-shade` @ `7649f308`)
+
+fable-5 §26 on the landed stone value: "what is left is the risers' shade (p10 0.198 vs the reference's 0.264) and a touch of warmth
+(sat 0.36 vs 0.27)". The cut (stone hero only): risers × 2.3 and bluer (0.9 / 1 / 1.24), the fronts' shading normal nearer the sky
+(0.6 → 0.72), the stone cooler (tops 0.83 / 1 / 1.3, fronts 0.9 / 0.93 / 1.02), grime 0.65, foot stain × 0.4. Same draws and geometry.
+
+| | head `b306d6a9` | + cut | reference d_014 |
+|---|---|---|---|
+| s2-owner box dark / pale / mean l / p10 | 29.9 % / 14.7 % / 0.326 / 0.207 | **27.8 % / 15.2 % / 0.331 / 0.211** | 5.3 % / 23.1 % / 0.384 / 0.267 |
+| s2-owner stone sat | 0.333 | **0.310** | 0.27 |
+| A flight box dark / mean l | 24.6 % / 0.339 | 24.0 % / 0.341 | — |
+| six views | — | A −0.0003, F +0.0002 (0.3–0.4 % of pixels) | — |
+
+Small and clean — and the mask says why it is small: the pixels under 0.25 in the box are **the upper flight and the right flank's
+ferns**, not the risers (right panel). The lower flight sits in the sun corridor and is already in the reference's band; the upper
+flight climbs into the plateau's and the canopy's shade, where no stone albedo brings p10 to 0.264 — that is light (the trees' shadow
+over the top of the flight; lanes 1 / 2), as the D boulder's darkness was in §63. Offered as a finishing cut; the p10 residual is
+named for its owners.
+
+![riser shade](steps100-riser-shade.jpg)
+
 ## Iteration 98 — lane 2 for the new south area: the ravine's walls take stone (`agent/fable-2-ravine-rock` @ `02586843`)
 
 The owner's 06:07 rubric scores every new area on 50 checks ("the outline is irregular and hand-built", "stone as stone",

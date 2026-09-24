@@ -313,6 +313,11 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `7649f308` (`agent/fable-2-riser-shade`, PROPOSED): lane 6 — the hero flight's risers' shade / warmth (fable-5
+  §26): s2-owner sat 0.333 → 0.310, dark 29.9 → 27.8 %; A −0.0003, F +0.0002; the remaining dark is the upper
+  flight's shade, not stone. README §100.
+- `7bd4df13` review: the head `b306d6a9` at the six views and A by system (shadow a third; vegetation +0.5 M;
+  characters 63 draws). `.agents/reviews/fable-2-triangle-budget-b306d6a9.md`.
 - `02586843` (`agent/fable-2-ravine-rock`, PROPOSED): lane 2 for the south area — `rocks/ravine.ts`, bedded
   shelves half-sunk into the gorge's walls + floor boulders, one mesh gated to 26 m of the gorge; C pixel-identical.
   README §98; ravine.test (5).
@@ -468,6 +473,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T10:20:00Z
 2026-09-24T07:35:00Z
 2026-09-24T05:45:00Z
 2026-09-23T22:30:00Z
