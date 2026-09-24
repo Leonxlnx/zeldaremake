@@ -615,21 +615,33 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     ];
     const skirted = createGround(live, LAYOUT, { walkSurfaces: surfaces(true) });
     const bare = createGround(live, LAYOUT, { walkSurfaces: surfaces(false) });
-    const walkD = D.outer - 0.12 - D.walkHw;
-    for (const along of [-D.half + 0.1, 0, D.half - 0.1]) {
+    const walkD = plan.walk.d;
+    const [walkA, walkB] = plan.walk.along;
+    for (const along of [walkA, 0, walkB]) {
       const [x, z] = plan.at(walkD, along);
       near(skirted.height(x, z), deckY, 1e-6, `deck top on the strip at ${fmt(x, z)}`);
       assert.equal(skirted.blocked(x, z), false, `deck strip walkable at ${fmt(x, z)}`);
       // a stride toward the railing, past it, or toward the bark still reads the planks' height
-      for (const out of [D.outer + 0.3, D.outer + 0.7, walkD - D.walkHw - 0.7]) {
+      for (const out of [walkD + D.walkHw + 0.3, walkD + D.walkHw + 0.8, walkD - D.walkHw - 0.7]) {
         const [px, pz] = plan.at(out, along);
         near(skirted.height(px, pz), deckY, 1e-6, `skirt reads the deck's top at ${fmt(px, pz)}`);
       }
     }
     for (const out of [walkD - 0.3, walkD, walkD + 0.3]) {
-      const [x, z] = plan.at(out, D.half + 0.6);
+      const [x, z] = plan.at(out, D.half + 0.3);
       near(skirted.height(x, z), deckY, 1e-6, `skirt past the far end at ${fmt(x, z)}`);
     }
+    // the strip keeps railStop inside the outer and far railings (past the steps' top, which comes
+    // up beside the door-side end): no open cell at the planks' height comes nearer their lines
+    const railDist = (x, z) => Math.min(...plan.rails.map(([ra, rb]) => segDist(x, z, [ra[0], 0, ra[1]], [rb[0], 0, rb[1]])));
+    let nearestRail = Infinity;
+    for (let out = walkD - D.walkHw - 0.3; out <= D.outer + 0.3; out += 0.02) {
+      for (let along = -D.half + 0.3; along <= D.half + 0.3; along += 0.02) {
+        const [x, z] = plan.at(out, along);
+        if (!skirted.blocked(x, z) && Math.abs(skirted.height(x, z) - deckY) < 1e-6) nearestRail = Math.min(nearestRail, railDist(x, z));
+      }
+    }
+    assert.ok(nearestRail >= 0.23, `the deck strip keeps a quarter metre off the railings (nearest open cell ${nearestRail.toFixed(3)} m)`);
     // the steps keep their own slope (the skirt stops at the strip's door-side end)
     const [mx, mz] = [(plan.steps.bottom[0] + plan.steps.top[0]) / 2, (plan.steps.bottom[1] + plan.steps.top[1]) / 2];
     near(skirted.height(mx, mz), bare.height(mx, mz), 1e-9, `the steps' slope is unchanged at ${fmt(mx, mz)}`);

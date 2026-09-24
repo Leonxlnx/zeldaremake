@@ -906,9 +906,11 @@ export const EXPANSION_EAST = {
    * viewer's right facing the door), `rise` m over the door's floor, from `inner` (inside the bark)
    * to `outer` m off the trunk's axis, `half` m either side along the tangent; plank steps run
    * `stepRun` m down from its door-side end between `stepInner` and `stepOuter`; a short ladder
-   * leans on its far end.
+   * leans on its far end. The walk strip (`walkHw` either side of its line) stops `railStop` m
+   * inside the outer and far railings, so a walker pressing on them keeps his boots and chest on
+   * this side of the boards.
    */
-  tallDeck: { a: 1.5, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.5, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
+  tallDeck: { a: 1.5, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.4, railStop: 0.25, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
   /** the shop's hanging sign: its post north of the lane, the arm reaching `armDeg` (bearing) over the verge */
   shopSign: { x: 35.7, z: -6.95, armDeg: 4, height: 2.35 },
   /**
@@ -948,14 +950,18 @@ export function eastDeckPlan() {
   const d: [number, number] = [F[0] * Math.cos(D.a) + R[0] * Math.sin(D.a), F[1] * Math.cos(D.a) + R[1] * Math.sin(D.a)];
   const t: [number, number] = [d[1], -d[0]];
   const at = (out: number, along: number): [number, number] => [h.x + d[0] * out + t[0] * along, h.z + d[1] * out + t[1] * along];
-  const walkD = D.outer - 0.12 - D.walkHw;
+  // the strip starts over the steps' top; its far end allows for the 2 % of its length that
+  // character/ground.ts reads past either end
+  const walkD = D.outer - 0.06 - D.railStop - D.walkHw;
+  const walkA = -D.half + 0.1;
+  const walkB = (D.half - D.railStop + 0.02 * walkA) / 1.02;
   const stepD = (D.stepInner + D.stepOuter) / 2;
   return {
     house: h,
     d,
     t,
     at,
-    walk: { a: at(walkD, -D.half + 0.02), b: at(walkD, D.half - 0.02), hw: D.walkHw },
+    walk: { a: at(walkD, walkA), b: at(walkD, walkB), hw: D.walkHw, d: walkD, along: [walkA, walkB] as [number, number] },
     steps: { bottom: at(stepD, -D.half - D.stepRun), top: at(stepD, -D.half + 0.1), hw: (D.stepOuter - D.stepInner) / 2 - 0.04 },
     rails: [
       [at(D.outer - 0.06, -D.half), at(D.outer - 0.06, D.half)],
