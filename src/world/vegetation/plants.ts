@@ -137,6 +137,8 @@ const NORTH_VERGE_BUSH_EDGE: readonly [number, number, number, number] = [1.15, 
 const D_HOLLOW_VERGE_KEEP = 0.8;
 /** 2026-09-23 — metres off the walked paving where the verge's shrub crowns stand: behind its fronds, in front of the middle ground */
 const VERGE_SHRUB: readonly [number, number] = [1.7, 3.6];
+/** 2026-09-24 — the low zone's broad leaves lie flat: this scale range tops out well under the frames' 0.5 m */
+const LOW_GROUND_LEAF: readonly [number, number] = [0.5, 0.95];
 /** the verge's tint: ref-04's ferns and shrubs are dark (× the sets' palette) */
 const NORTH_VERGE_FERN_TINT = 0.82;
 const NORTH_VERGE_BUSH_TINT = 0.6;
@@ -3971,6 +3973,80 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         },
       },
       (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.52 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + 0.08 + rng() * 0.12, NORTH_VERGE_BUSH_TINT + 0.14 + rng() * 0.12, NORTH_VERGE_BUSH_TINT + rng() * 0.12)),
+    );
+  }
+
+  // ---- 2026-09-24 — the low zone's ground cover (field.ts LOW_ZONES: the slope east of the north
+  // path between camera C and the main stairs). That zone is a HEIGHT rule — frame 46 shows the
+  // stair foot over it, frame 56 nothing above ≈ 0.5 m — but nothing ever laid a cover under it, so
+  // the owner's most-walked verge read as a bare olive margin beside the paving while the west side
+  // it faces is a closed turf. This is the flat layer: clover, low broad leaves and moss, none of it
+  // over LOW_GROUND_MAX_TOP m, so every height contract on that ground still holds — the 0.55 m cap
+  // over [1.5, −16, 7, −4], camera C's stair-foot box (which only tests plants over 0.35 m) and the
+  // C-bank count. Frame 46's own trodden earth (`cFoot`) and the trodden strip take none.
+  {
+    const lowBox: [number, number, number, number] = [1.2, -16.5, 8.5, -3.5];
+    const lowArea = (lowBox[2] - lowBox[0]) * (lowBox[3] - lowBox[1]);
+    /** the zone's weight where a flat cover belongs: off the frames' bare grounds and off the paving */
+    const lowGround = (x: number, z: number, s: FieldSample): number => {
+      const low = field.lowZone(x, z);
+      if (low <= 0.25 || s.cliff > 0.4 || s.structure > 0.3 || s.stairs > 0.05) return 0;
+      if (field.cFoot(x, z) > 0.1 || field.troddenZone(x, z, true) > 0.3) return 0;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0.15 || field.insidePropFootprint(x, z)) return 0;
+      if (field.giantDistance(x, z) < 0.5 || field.lawnEdgeDistance(x, z, true) < 0.12) return 0;
+      return low * Math.max(field.falloffReach(x, z), 0.8);
+    };
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'clover-low-zone',
+        candidates: Math.round(lowArea * 26 * q.density),
+        box: lowBox,
+        minSpacing: 0.15,
+        low: true,
+        r32: true,
+        accept: (x, z, s) => 0.55 * lowGround(x, z, s) * (0.45 + field.cluster(x, z)),
+      },
+      (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 0.7 + rng() * 0.45, 0.9, 0.008, greenVar(rng, 0.2)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'weeds-low-zone',
+        candidates: Math.round(lowArea * 16 * q.density),
+        box: lowBox,
+        minSpacing: 0.24,
+        r32: true,
+        // the broad leaves lie flat here: LOW_GROUND_LEAF caps the scale well under the frames' 0.5 m
+        accept: (x, z, s) => 0.5 * lowGround(x, z, s) * (0.3 + field.flowerPatch(x, z)) * (0.4 + field.cluster(x, z)),
+      },
+      (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, LOW_GROUND_LEAF[0] + rng() * (LOW_GROUND_LEAF[1] - LOW_GROUND_LEAF[0]), 0.9, 0.012, greenVar(rng, 0.2)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'moss-low-zone',
+        candidates: Math.round(lowArea * 10 * q.density),
+        box: lowBox,
+        minSpacing: 0.3,
+        low: true,
+        r32: true,
+        accept(x, z, s) {
+          const w = lowGround(x, z, s);
+          if (w <= 0) return 0;
+          // camera C stands in this zone, and a moss cushion inside its ultra ring is ≈ 1 100
+          // triangles (plants.test budgets that ring): the cover keeps out of every viewpoint's
+          // ring, where the clover and the leaves above close the ground on their own
+          if (ctx.layout.viewpoints.some((v) => Math.hypot(x - v.position[0], z - v.position[2]) < MOSS_ULTRA_M + 0.6)) return 0;
+          const c = field.cluster(x, z);
+          return 0.45 * w * c * c * (1 - 0.6 * field.dry(x, z));
+        },
+      },
+      (x, z, _s, rng) => placeMossWith(rng, x, z, 0.07 + rng() * 0.16, true),
     );
   }
 
