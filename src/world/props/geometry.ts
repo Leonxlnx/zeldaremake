@@ -389,6 +389,13 @@ export function crateGeometry(rng: Rng, size: number): Part[] {
   const wideGap = rng.int(0, lidBoards);
   const lost = rng.chance(0.35) ? rng.int(1, lidBoards - 1) : -1;
   const knocked = lost < 0 && rng.chance(0.5) ? rng.int(0, lidBoards) : -1;
+  if (lost >= 0) {
+    // the gloom inside: a dark board just under the lid, so the slot reads as an opening at 2–5 m
+    // and not as one darker lid board (the lit floor boards alone read flat)
+    const gloom = board(w - 2 * t - 0.004, t * 0.5, d - 2 * t - 0.004, { grain: 'x', rng, shade: shade * 0.22 });
+    place(gloom, new Vector3(0, h - 2.5 * t, 0));
+    wood.push(gloom);
+  }
   for (let i = 0; i < lidBoards; i++) {
     if (i === lost) continue;
     const b = board(w - 0.002, t, lw * (i === wideGap ? 0.9 : 0.985), { grain: 'x', rng, shade: shade * 1.04 });
