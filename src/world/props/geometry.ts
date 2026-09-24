@@ -410,6 +410,8 @@ export function crateGeometry(rng: Rng, size: number): Part[] {
     place(b, new Vector3(0, t / 2, -(d - 2 * t) / 2 + (d - 2 * t) / 6 + i * ((d - 2 * t) / 3)));
     wood.push(b);
   }
+  // what the seed decided, for the audit and the tests (the merge drops it)
+  wood[0].userData.crate = { lost, knocked };
   return [...wood.map((g) => ({ geometry: g, material: 'wood' as MaterialKey })), ...iron.map((g) => ({ geometry: g, material: 'iron' as MaterialKey }))];
 }
 
