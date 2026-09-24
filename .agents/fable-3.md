@@ -323,3 +323,10 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   (3–7 k px per pose) — strengthened a step in `c35559ab`. Six views A / B / F before / after capturing.
 - Lesson: `capture.mjs --no-checks` still runs the determinism pass (`A_stairs.det`) and a warm-up repeat — 3 views take
   ≈ 20 min, not 7. Budget the tick around it.
+- **#23 landing** (`abc8a490`, `1549688c`): contact-AO decals under every seated prop, one unlit transparent mesh per
+  locality (+1 draw each: A 639, B 628, F 599). The first alpha profile spent itself under the prop (454 px at the bridge
+  head); the shipped one fades over the outer 40 % (704 px; 2.5 k at the stair pots). Evidence `props-fable-3/contact-ao/`.
+  A / B / F vs the reference +0.0003 / +0.0000 / +0.0005. Lesson: between two *builds* the capture's animation clock lands
+  a frame apart (the girl's idle phase, the grass) — 27 k px in A that are not mine; within a build A = A.det to 0 px.
+  The gated number is the SSIM vs the reference; say so in the evidence rather than quoting the px.
+- South scorecard now 108 / 144 (150 / 200 scaled); the 2s left are #4 sibling variation, #17 wear, #19 damage.

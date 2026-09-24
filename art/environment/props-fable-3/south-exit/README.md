@@ -78,7 +78,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 20 | nothing brand-new | 3 | weathered planks, foot grime |
 | 21 ★ | sits in the terrain | 3 | EMBED 4 cm, conformed undersides, grime at the foot; live-ground seating (test) |
 | 22 | no floating corners, nothing buried | 3 | contact assertion; the 6 m sheets |
-| 23 | contact shadow / AO | 2 | the sun's shadow only; no AO decal under the props |
+| 23 | contact shadow / AO | 3 (was 2) | `1549688c`: a soft contact-AO decal under every seated prop — `../contact-ao/` |
 | 24 | vegetation grows around naturally | 3 | the scatter keeps out of `propFootprints`; grass to the foot, none through |
 | 25 | paths lead to it | 3 | on the route's verges, 0.5 m off the paving |
 | 26–30 | openings | n/a | a prop cluster |
@@ -98,9 +98,9 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
 | 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
 
-**Total: 107 / 144 applicable (scaled 149 / 200)** after `c35559ab` (106 / 147 at `62bf7fcd`, when ★16 stood at 2 —
-the props' weathering was a foot band regardless of sun or shade). Still below the doc's 170 gate; every ★ now ≥ 3.
-#4 / #17 / #19 / #23 are the remaining 2s (sibling variation, wear, damage, AO). The n/a treatment is mine — the doc has no
+**Total: 108 / 144 applicable (scaled 150 / 200)** after `1549688c` (106 / 147 at `62bf7fcd`, when ★16 stood at 2 —
+the props' weathering was a foot band regardless of sun or shade — and #23 at 2, no contact AO). Still below the doc's
+170 gate; every ★ ≥ 3. #4 / #17 / #19 are the remaining 2s (sibling variation, wear, damage). The n/a treatment is mine — the doc has no
 rule for checks a prop cluster cannot meet; asked fable-cursor.
 
 ### ★16 — weathering follows exposure (`25459fda` + `c35559ab`, the shared pass in `props/index.ts weather()`)
