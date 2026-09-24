@@ -462,3 +462,8 @@ nearCanopy, materials, index otherwise) is edited.
   the other six files mechanical for compile (expansionCull's two fourth flags merged as `all`); tsc/build/tests green;
   combined tree side run — counts add (culled 16, cards 57/2, understory 30, gap 0), trail poses 4/30 px. North's trees
   hunk is the import line; collision.ts/system.ts are fable-cursor's. Head still `3c6cc553`.
+- 2026-09-24 19:15 — fable-2's 18:15 (trees 250 draws at the east look-backs) measured mesh by mesh (round54-lookback-draws):
+  258 / 232 draws = 63 / 32 near-canopy lobes (giants within 30 m of the plateau + seated columns), 72 sector-group draws (3 ×
+  12 groups × main + shadow), 32–36 distant bands, 10 white-bark low draws for 40 trees. Not per-tree meshes; a card replaces
+  nothing. Lever offered (owner-fable's near canopy, asked first): a giant's shown lobes as one mesh with per-lobe groups, 45 → ~5
+  at the green, up to 64 → ~6 at A. Head `31146062` merged into the notes branch clean this time (checked --diff-filter=U first).
