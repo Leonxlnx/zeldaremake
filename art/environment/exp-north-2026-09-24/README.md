@@ -258,6 +258,10 @@ grove's views before the draw fix (e994114a) and after it (59e970d6):
 | `d-post-pod`, a walkway post's pod (new since e994114a) | | 383 / 4.73 M |
 | `d-pot-broken`, `d-gangway-pod` (new since e994114a) | | 163 / 1.58 M, 164 / 1.66 M |
 
+In play mode, with Link on the real controller and the follow camera, the six play frames on 59e970d6 count 180–449
+draws and 1.69–5.66 M triangles (the heaviest on the rope walk, 449 / 5.66 M, then at the tree hut's door, 445 /
+5.63 M).
+
 The fix is two commits. In e52bc63a the pods, the log ends and the lichen plates stop casting: every caster is a
 second draw in the sun's shadow pass, and the pods glow (a husk's shadow under a lit lamp reads as a smudge), the
 plates lie on the bark and the end caps shade only inside their logs' own shadow. In eeb94809 the grove's far-LOD
