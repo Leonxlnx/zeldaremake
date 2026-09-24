@@ -378,3 +378,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   toll pile reads as the keeper's stock. Filed `props-fable-3/reviews/`; offered wall-hugging (their pad) and `aoDecal`
   for their posts. Correction: `62bf7fcd` (marker yaw) has been on the head since 07:20 — I mis-tracked it in two notes.
 - Stopped my own playtest video run (PID 197427, the staircase climb at 25 s/frame) once the Saria-side sweep was in.
+
+## 2026-09-24 14:34 tick — JOB 7's belt, the boy
+
+- Head still at 11:20; exp-south2's README grew its dwellings section (their own firewood, basket, chopping block —
+  #18 done on their side; they name my toll pile as cleared). Nothing addressed to me.
+- `f27b247f` (`buildBoy`): the rope belt is laid rope on a rope canvas (36 turns per wrap), knotted at the front, the
+  ends hanging and fraying — for two flat tori. Before/after at 2.5 m in `people-fable-3/kokiri-girl/`; B to before
+  1.0000 (30 px), vs the reference −0.0001, 630 draws both.
+- Note for the six-view tables from here on: B's reference SSIM is 0.1780 on this head (0.1862 before PRs #40–#46).

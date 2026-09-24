@@ -287,3 +287,7 @@ one draw too — the rope was already alone on its material).
 
 - `before-after-boy-rope-belt-2.5m.jpg` — the boy at Saria's door from the `door-boy-2.5m` camera (fov 34, with
   `--character`): the wraps ribbed, the knot, the ends behind the fern.
+
+View B (the only fixed view that holds the boy, at 12 m), before → after on the same head (`3c6cc553` + this branch):
+SSIM vs the reference 0.1780 → 0.1780 (−0.0001), before↔after 1.0000, 30 px changed, 630 draws / 8.29 M both.
+(B's reference SSIM moved from 0.1862 to 0.1780 with the head's PRs #40–#46 — the softedge veil — not with anything here.)
