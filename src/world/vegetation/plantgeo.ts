@@ -959,6 +959,10 @@ export function fiddleheadStalkTones(pal: PlantPalette): { foot: RGB; tip: RGB }
   };
 }
 
+/** 2026-09-24 — the coil's out-of-plane travel as a share of its ring radius: a progressive helix and a mid swell */
+const COIL_HELIX = 0.34;
+const COIL_SWELL = 0.16;
+
 export function fiddleheadGeometry(seed: string, pal: PlantPalette, detail: Detail): BufferGeometry {
   const rng = createRng(seed);
   const m = new MeshBuilder();
@@ -992,14 +996,27 @@ export function fiddleheadGeometry(seed: string, pal: PlantPalette, detail: Deta
     const turns = 1.25 + rng() * 0.3;
     const n = high ? 12 : 6;
     const coil: Vector3[] = [];
+    // 2026-09-24: the coil was wound in one plane, its only out-of-plane travel a fixed 4 mm swell
+    // — against a 26–40 mm ring radius that is a disc, and the shot-D stalks (twice the height,
+    // so twice the ring, at 1.25 × the width) turned it into a washer at the 4 m the owner walks
+    // past them. A crozier is a flattened HELIX: it uncoils out of its own plane as it tightens.
+    // The offset is now proportional to the ring, so it reads as a coil at any scale and from any
+    // angle, and the small buds — 0.26 m tall, a few pixels — are unchanged in projection.
+    const out = V(-radial.z, 0, radial.x);
     for (let k = 0; k <= n; k++) {
       const u = k / n;
       const ang = u * turns * TAU;
       const r = R * (1 - 0.55 * u);
-      coil.push(centre.clone().addScaledVector(radial, Math.cos(ang) * r).add(V(0, Math.sin(ang) * r, 0)).addScaledVector(V(-radial.z, 0, radial.x), Math.sin(u * Math.PI) * 0.004));
+      coil.push(
+        centre
+          .clone()
+          .addScaledVector(radial, Math.cos(ang) * r)
+          .add(V(0, Math.sin(ang) * r, 0))
+          .addScaledVector(out, R * (COIL_HELIX * u + COIL_SWELL * Math.sin(u * Math.PI))),
+      );
     }
     // a rope-thick spiral (sheet 01: fat fuzzy coils), tapering toward the tip
-    tube(m, coil, 0.0085, 0.0032, coilColor, high ? 6 : 3, true);
+    tube(m, coil, 0.0085, 0.0032, coilColor, ultra ? 8 : high ? 6 : 3, true);
     if (high) {
       // papery brown scales clinging to the stalk and the outer coil
       for (let s = 0; s < 3; s++) {
