@@ -313,6 +313,8 @@ export function potGeometry(rng: Rng, size: number, variant: number, style?: Par
   const g = flat(lathe);
   const flash = rng.range(0.94, 1.08);
   const flashAngle = rng.range(0, TAU);
+  const wearAngle = rng.range(0, TAU);
+  const worn = new Color(body.r * 1.3, body.g * 1.28, body.b * 1.22);
   const radial = new Vector3();
   paint(g, (p, n) => {
     const h = p.y / size;
@@ -329,6 +331,10 @@ export function potGeometry(rng: Rng, size: number, variant: number, style?: Par
     c.lerp(band, Math.max(bandK, inside * 0.7));
     // foot ring: unglazed, a shade lighter and rougher
     c.lerp(new Color(0.55, 0.42, 0.3), smooth(0.06, 0.0, h) * 0.35);
+    // round 56 (the owner's rubric, #17 wear follows use): the lip's outer top is handled every day —
+    // the slip rubbed through to pale, polished clay, most at the two spots where hands take it
+    const grip = 0.55 + 0.45 * Math.cos(2 * (a - wearAngle));
+    c.lerp(worn, smooth(0.955, 0.995, h) * (1 - inside) * grip * 0.55);
     return c;
   });
   return [{ geometry: g, material: 'clay' }];
