@@ -118,9 +118,15 @@ export function strideFor(speed: number, onStairs: boolean): number {
   return Math.max(0.35, speed / cadence(speed));
 }
 
-/** how hard the step lands: a stroll is soft, a full run is not */
+/**
+ * How hard the step lands: a stroll is soft, a full run is not — but the curve is flatter than it
+ * was (0.14 per m/s → 0.10). Running already multiplies the steps by cadence as well as by weight,
+ * and at 0.14 a run's steps were the loudest thing in the game by a clear margin, pulsing over the
+ * music at the step rate (owner, 23:00: "the music … shakes whenever I run"). A run is still
+ * plainly heavier than a walk; it just no longer out-punches everything else.
+ */
 export function strengthFor(speed: number): number {
-  return Math.max(0.3, Math.min(1, 0.3 + speed * 0.14));
+  return Math.max(0.3, Math.min(1, 0.3 + speed * 0.1));
 }
 
 const body = (at: number, f0: number, f1: number, glide: number, peak: number, attack: number, decay: number, wave: OscillatorType = 'sine'): BodyPart => ({

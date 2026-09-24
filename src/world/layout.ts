@@ -216,7 +216,14 @@ export const LAYOUT = {
     // converges like the reference's (depth ratio 1.8 vs 1.5). Bearing 52 deg; the W04 probe at
     // (18, -4) sits 0.1 m past the top tread (run 10.8 m); the reference run is ~12.4 m, which the probe
     // forbids (RUBRIC_PROPOSALS 2026-09-12).
-    { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 20, rise: 0.27, tread: 0.54, width: 3.0 },
+    // 2026-09-23 23:00 (the owner sent the real game's main stairway, `pass5/owner-2300-reference-stairs.png`,
+    // and it is the same climb as `demo61/d_010`–`d_016`): his flight is MANY shallow treads — 22–24
+    // thin lit nosings stacked up into the mist — where ours read as fourteen broad slabs. 26 steps
+    // of 0.2077 m over 0.4154 m keep the run (10.8 m), the total rise (5.4 m), the bearing, the
+    // width and therefore the top tread and the W04 probe at (18, −4) EXACTLY where they were; only
+    // the tread count inside that envelope changes. The riser drops further under the player
+    // controller's 0.28 m step guard.
+    { id: 'main', base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 26, rise: 0.2076923, tread: 0.4153846, width: 3.0 },
     // Round 32: the `north` steps are gone — a 7 × 0.26 × 0.5 m flight at base (−0.9, 0, −16),
     // bearing 217°, climbing WEST off the north path onto the boulder bank. Its frame-14 s
     // justification ("steps at (0.20–0.25, 0.33–0.40)") does not survive a 3× crop (a far warm

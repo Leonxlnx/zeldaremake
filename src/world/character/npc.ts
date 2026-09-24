@@ -296,23 +296,32 @@ function poseWander(rig: Rig, s: WanderState, t: number, phase: number): void {
   const tl = tri(s.phi);
   const sn = Math.sin(s.phi);
   const cs = Math.cos(s.phi);
-  // idle: weight shift, breathing, a small sway
+  // idle: weight shift, breathing, a small sway. Owner 23:00 ("look a bit better" at 2–6 m — a
+  // held pose reads as a mannequin): the shift is 2.5 cm with a 0.05 rad lean and a slow yaw sway
+  // through the torso (round 47's 1 cm / 0.025 rad moved a pixel at 4 m), the breath 8 mm.
   const s1 = Math.sin(t * 0.45 + phase);
   const s2 = Math.sin(t * 0.31 + phase * 1.7);
+  const s3 = Math.sin(t * 0.19 + phase * 0.6);
   const breath = Math.sin(t * Math.PI * 2 * 0.3 + phase);
-  r.hips.position.x += 0.01 * s1 * idle + 0.012 * sn * w;
-  r.hips.rotation.z = -0.025 * s1 * idle + 0.035 * sn * w;
-  r.hips.rotation.y = 0.04 * s2 * idle + 0.09 * tl * w;
-  r.chest.position.y += 0.004 * breath * idle + 0.005 * Math.cos(2 * s.phi) * w;
-  r.chest.rotation.x = 0.02 + 0.012 * breath * idle + 0.045 * w;
-  r.chest.rotation.y = -0.02 * s2 * idle - 0.06 * tl * w;
+  // the weight shift moves the hips over planted feet: the thighs tilt back by the shift over the leg
+  // (below), so the soles stay where they are and the body leans, instead of the whole kid sliding
+  const shift = 0.025 * s1 * idle;
+  const legLen = r.props.hipY - r.props.ankleY;
+  r.hips.position.x += shift + 0.012 * sn * w;
+  r.hips.rotation.z = -0.05 * s1 * idle + 0.035 * sn * w;
+  r.hips.rotation.y = (0.04 * s2 + 0.05 * s3) * idle + 0.09 * tl * w;
+  r.chest.position.y += 0.008 * breath * idle + 0.005 * Math.cos(2 * s.phi) * w;
+  r.chest.rotation.x = 0.02 + 0.02 * breath * idle + 0.045 * w;
+  r.chest.rotation.y = (-0.02 * s2 - 0.03 * s3) * idle - 0.06 * tl * w;
+  r.chest.rotation.z = 0.02 * s1 * idle;
   // legs: the stance leg sweeps back at a near-constant rate (tri); the swing leg lifts its knee early
   const thetaL = AMP * w * tl;
   const thetaR = -thetaL;
   const kneeL = 0.05 + 1.15 * w * Math.max(0, cs) * (0.55 - 0.45 * sn);
   const kneeR = 0.05 + 1.15 * w * Math.max(0, -cs) * (0.55 + 0.45 * sn);
-  r.thighL.rotation.set(-thetaL + 0.02 * idle, 0, 0.05 + 0.01 * s1 * idle);
-  r.thighR.rotation.set(-thetaR + 0.02 * idle, 0, -0.05 + 0.01 * s1 * idle);
+  // the legs stay vertical under the pelvis' lean (+0.05 s1 cancels the hips' −0.05 s1) and tilt back by the shift
+  r.thighL.rotation.set(-thetaL + 0.02 * idle, 0, 0.05 + 0.06 * s1 * idle - shift / legLen);
+  r.thighR.rotation.set(-thetaR + 0.02 * idle, 0, -0.05 + 0.06 * s1 * idle - shift / legLen);
   r.kneeL.rotation.x = kneeL;
   r.kneeR.rotation.x = kneeR;
   // turn shuffle: alternate small steps in place
@@ -328,12 +337,14 @@ function poseWander(rig: Rig, s: WanderState, t: number, phase: number): void {
   // feet level with the ground (the sole marker plants), toe-off at the end of stance
   r.ankleL.rotation.set(-(r.thighL.rotation.x + r.kneeL.rotation.x) * 0.72 - 0.05 * idle + 0.14 * w * Math.max(0, -Math.sin(s.phi + 0.5)), 0, -r.thighL.rotation.z);
   r.ankleR.rotation.set(-(r.thighR.rotation.x + r.kneeR.rotation.x) * 0.72 - 0.05 * idle + 0.14 * w * Math.max(0, Math.sin(s.phi + 0.5)), 0, -r.thighR.rotation.z);
-  // arms: relaxed at the sides when standing; a slow, small contralateral swing walking
+  // arms: standing, the upper arm hangs a touch back and the elbow bends so the hand rests forward by
+  // the hip (owner 23:00 — a straight arm at the side read as a doll's); a slow, small contralateral
+  // swing walking, the bend easing toward the swing's
   const arm = 0.3 * w;
-  r.shoulderL.rotation.set(-0.05 * idle + 0.03 * Math.sin(t * 0.7 + phase) * idle + arm * tl, 0, 0.13);
-  r.shoulderR.rotation.set(-0.05 * idle - 0.03 * Math.sin(t * 0.7 + phase + 0.5) * idle - arm * tl, 0, -0.13);
-  r.elbowL.rotation.x = -0.2 - 0.25 * w - 0.2 * w * Math.max(0, -tl);
-  r.elbowR.rotation.x = -0.22 - 0.25 * w - 0.2 * w * Math.max(0, tl);
+  r.shoulderL.rotation.set(0.04 * idle + 0.03 * Math.sin(t * 0.7 + phase) * idle + arm * tl, 0, 0.13);
+  r.shoulderR.rotation.set(0.04 * idle - 0.03 * Math.sin(t * 0.7 + phase + 0.5) * idle - arm * tl, 0, -0.13);
+  r.elbowL.rotation.x = -0.2 - 0.26 * idle - 0.02 * Math.sin(t * 0.61 + phase) * idle - 0.25 * w - 0.2 * w * Math.max(0, -tl);
+  r.elbowR.rotation.x = -0.22 - 0.24 * idle - 0.02 * Math.sin(t * 0.61 + phase + 0.9) * idle - 0.25 * w - 0.2 * w * Math.max(0, tl);
   // head: the dwell look-around, a little walk nod, idle drift
   r.neck.rotation.y = s.headYaw + 0.04 * Math.sin(t * 0.37 + phase) * idle;
   r.neck.rotation.x = -s.headPitch + 0.025 * Math.sin(t * 0.53 + phase) * idle - 0.02 * w + 0.02 * Math.cos(2 * s.phi) * w;
