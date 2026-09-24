@@ -15,14 +15,19 @@ export const GROVE_VISIBLE_M = 60;
 
 const _p = new Vector3();
 
+/** true when (x, z) is within GROVE_VISIBLE_M of `EXPANSION_NORTH_BOX` */
+export function groveNearXZ(x: number, z: number): boolean {
+  const b = EXPANSION_NORTH_BOX;
+  const dx = Math.max(b.x0 - x, 0, x - b.x1);
+  const dz = Math.max(b.z0 - z, 0, z - b.z1);
+  return Math.hypot(dx, dz) < GROVE_VISIBLE_M;
+}
+
 /** true when the camera is within GROVE_VISIBLE_M of `EXPANSION_NORTH_BOX` */
 export function groveNear(camera: Camera): boolean {
   camera.updateMatrixWorld();
   camera.getWorldPosition(_p);
-  const b = EXPANSION_NORTH_BOX;
-  const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
-  const dz = Math.max(b.z0 - _p.z, 0, _p.z - b.z1);
-  return Math.hypot(dx, dz) < GROVE_VISIBLE_M;
+  return groveNearXZ(_p.x, _p.z);
 }
 
 /** `groveNear` AND the frustum meets one of `spheres` (`groveSpheres`) */

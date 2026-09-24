@@ -7,7 +7,7 @@
  * view only), the character ground and the vegetation keep off the built footprints, and the
  * trees clear the ground the grove needs (`northGroveClear`).
  */
-import { EXPANSION_NORTH, NORTH_STAIRS, northGangway, northRopeWalkEnds, northSteppingStones } from '../layout';
+import { EXPANSION_NORTH, EXPANSION_NORTH_BOX, NORTH_STAIRS, northGangway, northRopeWalkEnds, northSteppingStones } from '../layout';
 import { clamp, smoothstep } from '../util/noise';
 
 const N = EXPANSION_NORTH;
@@ -363,6 +363,30 @@ export function northGroveClear(x: number, z: number, r = 0.8): boolean {
   for (const p of N.lanternPosts) if (Math.hypot(x - p.position[0], z - p.position[1]) < 1.2 + r) return true;
   if (Math.hypot(x - N.signpost.position[0], z - N.signpost.position[2]) < 1.0 + r) return true;
   return false;
+}
+
+/**
+ * Horizontal distance (m) from (x, z) to where a walker can be in the grove — the flight, the
+ * trail's width, the shelf and its pad, the gangway, the veranda, the rope walk and the tree hut
+ * (its cap's footprint) — 0 on them; Infinity farther than `reach` m outside the grove's box.
+ */
+export function groveWalkDistance(x: number, z: number, reach = 16): number {
+  const b = EXPANSION_NORTH_BOX;
+  if (x < b.x0 - reach || x > b.x1 + reach || z < b.z0 - reach || z > b.z1 + reach) return Infinity;
+  const F = FLIGHT_FRAME;
+  const rx = x - FLIGHT.base[0];
+  const rz = z - FLIGHT.base[2];
+  const u = rx * F.dx + rz * F.dz;
+  const v = -rx * F.dz + rz * F.dx;
+  let d = Math.hypot(Math.max(0, -u, u - F.run), Math.max(0, Math.abs(v) - F.hw));
+  const th = trailHit(x, z, TRAIL_REACH + reach);
+  if (th) d = Math.min(d, th.d - N.trailHalfWidth);
+  d = Math.min(d, shelfDistance(x, z));
+  d = Math.min(d, segDist(x, z, GANGWAY.foot[0], GANGWAY.foot[2], GANGWAY.head[0], GANGWAY.head[2]) - N.gangway.halfWidth);
+  d = Math.min(d, Math.hypot(x - N.stilt.host[0], z - N.stilt.host[1]) - VERANDA_R);
+  d = Math.min(d, segDist(x, z, ROPE.stilt[0], ROPE.stilt[2], ROPE.hut[0], ROPE.hut[2]) - N.ropeWalk.halfWidth);
+  d = Math.min(d, Math.hypot(x - N.hut.host[0], z - N.hut.host[1]) - (N.hut.radius + N.hut.capOverhang));
+  return Math.max(0, d);
 }
 
 /**
