@@ -436,12 +436,13 @@ interface PoolLight {
  * clear of the trunks, the deck and its flight) carries three.js's decay-2 irradiance — I·cosθ/d²
  * under its range window, cut by the trunks between lamp and ground — and lifts what is drawn behind
  * it by (1 + lift × the light's colour): the ground's own colour, warmed and brightened. `lift` is
- * `gain` per unit of irradiance, capped at `max` — against the 0.55 hemisphere fill a true pool
+ * `gain` per unit of irradiance, saturating smoothly toward `max` (the shop's and the small house's
+ * lights hang under a metre over their doorsteps) — against the 0.55 hemisphere fill a true pool
  * would lift the shade 2–3×; this keeps it a soft warm patch. The lift thins with the haze
  * (heightfog.ts HEIGHT_FOG_DEFAULTS' hazeDensity / hazeStart / hazeFarDensity / hazeFarStart) and
  * is gone by `fade[1]` m, inside the detail tier's EAST_DETAIL_M.
  */
-const POOL = { cell: 0.3, above: 0.07, gain: 0.22, max: 0.45, fade: [24, 32] as const };
+const POOL = { cell: 0.3, above: 0.07, gain: 0.3, max: 0.45, fade: [24, 32] as const };
 
 function lightPoolMaterial(): ShaderMaterial {
   return new ShaderMaterial({
@@ -547,7 +548,7 @@ function buildLightPools(lights: PoolLight[], ctx: WorldContext, trunks: { x: nu
           const miss = Math.hypot(L.at.x + sx * u - t.x, L.at.z + sz * u - t.z);
           open *= smoothstep(t.r - 0.2, t.r + 0.3, miss);
         }
-        lift[k] = Math.min(POOL.max, ((L.intensity * cos * w) / (d * d)) * POOL.gain * open);
+        lift[k] = POOL.max * (1 - Math.exp((-((L.intensity * cos * w) / (d * d)) * POOL.gain * open) / POOL.max));
         peak = Math.max(peak, lift[k]);
       }
     }
