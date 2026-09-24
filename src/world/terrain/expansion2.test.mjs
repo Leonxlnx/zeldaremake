@@ -707,6 +707,29 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
     assert.equal(seen[foot[0] * na + foot[1]], 1, `walked from the deck down the flight to the ground at its foot`);
     assert.ok(reached > 300, `walked the deck, its steps and the ground round them (${reached} cells)`);
   }
+  // the boots on the deck and its flight sound like planks (audio/index.ts `surfaceAt`); the ground
+  // a metre off the outer railing and past the flight's foot does not
+  {
+    const { surfaceAt } = loadTs(path.join(here, '../../audio/index.ts'));
+    const plan = layout.eastDeckPlan();
+    const D = EXPANSION_EAST.tallDeck;
+    for (const along of [plan.walk.along[0], 0, plan.walk.along[1]]) {
+      for (const out of [plan.walk.d - plan.walk.hw, plan.walk.d, plan.walk.d + plan.walk.hw]) {
+        const [x, z] = plan.at(out, along);
+        assert.equal(surfaceAt(x, z).surface, 'wood', `the deck's boards sound like wood at ${fmt(x, z)}`);
+      }
+    }
+    for (let u = 0.02; u < 1; u += 0.12) {
+      const [x, z] = plan.at((D.stepInner + D.stepOuter) / 2, -D.half - D.stepRun * u);
+      assert.equal(surfaceAt(x, z).surface, 'wood', `the flight's planks sound like wood at ${fmt(x, z)}`);
+    }
+    for (const along of [-D.half, 0, D.half]) {
+      const [x, z] = plan.at(D.outer + 1.0, along);
+      assert.notEqual(surfaceAt(x, z).surface, 'wood', `the ground off the deck is not wood at ${fmt(x, z)}`);
+    }
+    const [fx, fz] = plan.at((D.stepInner + D.stepOuter) / 2, -D.half - D.stepRun - 0.6);
+    assert.notEqual(surfaceAt(fx, fz).surface, 'wood', `the ground past the flight's foot is not wood at ${fmt(fx, fz)}`);
+  }
   // nothing of the lane in the legacy mask (its trunks, bench and posts are live-only)
   const solids = [...EXPANSION_EAST.houses.map((h) => [h.x, h.z]), [B.x, B.z], [EXPANSION_EAST.shopSign.x, EXPANSION_EAST.shopSign.z], ...EXPANSION_EAST.lanternPosts.map((p) => [p.x, p.z])];
   for (const [x, z] of solids) assert.equal(hf.surfaceMask(x, z, 'legacy').structure, 0, `legacy mask has no east structure at ${fmt(x, z)}`);

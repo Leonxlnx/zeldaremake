@@ -18,7 +18,7 @@ import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { EXPANSION, EXPANSION_SOUTH, LAYOUT } from '../world/layout';
+import { EXPANSION, EXPANSION_EAST, EXPANSION_SOUTH, LAYOUT, eastDeckPlan } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
@@ -197,12 +197,15 @@ function gatherPods(scene: Scene): Vec3[] {
   return pods;
 }
 
+const EAST_DECK = eastDeckPlan();
+
 /**
  * What Link's boot lands on (owner, 2026-09-22: "his footsteps should correlate where he's
  * walking — gentle stone, grass, etc."). Analytic, from the layout and the live terrain masks the
  * paving is built from — no raycasts:
  *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis where the path passes through, within 0.8 of its radius)
- *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse)
+ *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse); the east
+ *            tall house's side deck and its plank flight (layout `eastDeckPlan`)
  *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
  *            expansion's stepping discs count)
  *  - dirt:   the trodden shoulders beside the paving (path influence 0.12–0.5) and the stair aprons
@@ -258,6 +261,18 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       const pz = hz + az * t;
       if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
     }
+  }
+  // the east tall house's deck and plank flight, in its trunk frame: their railings are walls in the
+  // live mask, so a boot inside either rectangle is on the boards
+  {
+    const D = EXPANSION_EAST.tallDeck;
+    const dx = x - EAST_DECK.house.x;
+    const dz = z - EAST_DECK.house.z;
+    const out = dx * EAST_DECK.d[0] + dz * EAST_DECK.d[1];
+    const along = dx * EAST_DECK.t[0] + dz * EAST_DECK.t[1];
+    const onDeck = out > D.inner && out < D.outer && Math.abs(along) < D.half;
+    const onFlight = out > D.stepInner && out < D.stepOuter && along > -D.half - D.stepRun && along <= -D.half;
+    if (onDeck || onFlight) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
   }
   if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy };
