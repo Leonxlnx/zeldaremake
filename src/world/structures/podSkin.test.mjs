@@ -38,7 +38,7 @@ function loadTs(file) {
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skin = loadTs(path.join(here, 'podSkin.ts'));
 const { rasterisePodSkin, podU, podBulge, POD_BODY_V, POD_CAP_BAND, POD_CORD_BAND, POD_MAP_MEAN, POD_GLOW_CEIL, POD_TEX_SEGMENTS } = skin;
-const { buildLantern, POD_RIBS } = loadTs(path.join(here, 'lantern.ts'));
+const { buildLantern, restPodMeshes, swingLanterns, POD_RIBS } = loadTs(path.join(here, 'lantern.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { rasteriseEndGrain, END_GRAIN_MEAN } = loadTs(path.join(here, 'endGrain.ts'));
 
@@ -178,6 +178,75 @@ test('lantern: deterministic — the same hook and stream build identical vertic
     return Array.from(g.attributes.position.array);
   };
   assert.deepEqual(build(), build());
+});
+
+test('rest pod folds: one hidden shadowless mesh per group and material, every vertex at its pod’s rest pose, rigs untouched', () => {
+  const mats = fakeMats();
+  const rng = createRng('rest-pods');
+  const village = new THREE.Group();
+  const hut = new THREE.Group();
+  hut.position.set(3, 0.5, -2);
+  hut.rotation.y = 0.7;
+  const far = new THREE.Group();
+  far.position.set(-10, 1, 5);
+  far.rotation.y = -1.1;
+  village.add(hut, far);
+  const rigs = [
+    buildLantern(new THREE.Vector3(0, 3, 0), 0.5, mats, rng.fork('a')),
+    buildLantern(new THREE.Vector3(1, 3.2, 0.5), 0.4, mats, rng.fork('b'), 1, 'lime'),
+    buildLantern(new THREE.Vector3(-1, 2.8, 0.2), 0.6, mats, rng.fork('c'), 0.62),
+    buildLantern(new THREE.Vector3(0.5, 4, 1), 0.5, mats, rng.fork('d')),
+  ];
+  hut.add(rigs[0].pivot, rigs[1].pivot);
+  village.add(rigs[2].pivot);
+  far.add(rigs[3].pivot);
+  swingLanterns(rigs, 3.7, 0.8, 0.6);
+  const swung = rigs.map((r) => r.pivot.rotation.toArray());
+  const podOf = (r) => r.pivot.children[0];
+  const before = rigs.map((r) => Array.from(podOf(r).geometry.attributes.position.array));
+  // each pod's world vertices with its pivot unrotated
+  const restWorld = (r) => {
+    const rot = r.pivot.rotation.clone();
+    r.pivot.rotation.set(0, 0, 0);
+    village.updateMatrixWorld(true);
+    const pos = podOf(r).geometry.attributes.position;
+    const out = [];
+    for (let i = 0; i < pos.count; i++) out.push(new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(podOf(r).matrixWorld));
+    r.pivot.rotation.copy(rot);
+    return out;
+  };
+  const expected = rigs.map(restWorld);
+  village.updateMatrixWorld(true);
+
+  const folds = restPodMeshes(rigs, [far], village, 'far-bank-pods');
+  assert.equal(folds.length, 3, 'orange + lime in the village, orange in the far group');
+  const want = [
+    { root: village, material: mats.lantern, rigs: [0, 2] },
+    { root: village, material: mats.lanternLime, rigs: [1] },
+    { root: far, material: mats.lantern, rigs: [3] },
+  ];
+  village.updateMatrixWorld(true);
+  for (const w of want) {
+    const fold = folds.find((f) => f.parent === w.root && f.material === w.material);
+    assert.ok(fold, `a fold under ${w.root === far ? 'the far group' : 'the village'}`);
+    assert.equal(fold.name, 'far-bank-pods');
+    assert.equal(fold.visible, false);
+    assert.equal(fold.castShadow, false);
+    assert.equal(fold.receiveShadow, false);
+    const pos = fold.geometry.attributes.position;
+    const verts = w.rigs.flatMap((i) => expected[i]);
+    assert.equal(pos.count, verts.length);
+    let worst = 0;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) worst = Math.max(worst, v.fromBufferAttribute(pos, i).applyMatrix4(fold.matrixWorld).distanceTo(verts[i]));
+    assert.ok(worst < 1e-5, `fold vertices off the rest pose by ${worst} m`);
+  }
+  rigs.forEach((r, i) => {
+    assert.deepEqual(r.pivot.rotation.toArray(), swung[i], 'the swing is left alone');
+    assert.equal(r.pivot.visible, true);
+    assert.equal(podOf(r).name, 'pod-lantern');
+    assert.deepEqual(Array.from(podOf(r).geometry.attributes.position.array), before[i], 'the pod geometry is not moved');
+  });
 });
 
 test('end grain: rings across v, mean END_GRAIN_MEAN, finite, deterministic', () => {

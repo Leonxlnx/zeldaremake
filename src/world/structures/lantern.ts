@@ -32,7 +32,7 @@
  * modulates round POD_MAP_MEAN and the tints below are divided by it, the emissive's body rows
  * keep the round-11 gradient's mean (see podEmissiveTexture).
  */
-import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LineCurve3, Mesh, Object3D, TorusGeometry, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LineCurve3, Matrix4, Mesh, Object3D, Quaternion, TorusGeometry, Vector3, type Material } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, faceTowards, gridSurface, merge, setColorAttribute, setFloatAttribute, sweepTube } from './geometry';
@@ -515,6 +515,51 @@ export function buildLantern(hook: Vector3, cordLength: number, mats: StructureM
     amp: 0.035 + rng() * 0.03,
     speed: 1.1 + rng() * 0.5,
   };
+}
+
+/**
+ * exp-south2: the rigs' pods at rest (pivot unrotated) folded into one mesh per (root, material,
+ * vertex layout), in the root's frame, hidden and casting no shadow. A pod joins the first of
+ * `roots` above its pivot, else `fallback`, so the fold keeps the visibility of the group the pod
+ * hangs in. The rigs are not touched; the caller swaps `pivot.visible` against the folds'.
+ */
+export function restPodMeshes(rigs: LanternRig[], roots: Object3D[], fallback: Object3D, name: string): Mesh[] {
+  fallback.updateMatrixWorld(true);
+  const buckets = new Map<string, { root: Object3D; material: Material; geos: BufferGeometry[] }>();
+  const rest = new Matrix4();
+  const toRoot = new Matrix4();
+  const unrotated = new Quaternion();
+  for (const rig of rigs) {
+    const pod = rig.pivot.children.find((c) => (c as Mesh).isMesh) as Mesh | undefined;
+    const parent = rig.pivot.parent;
+    if (!pod || !parent || Array.isArray(pod.material)) continue;
+    let root = fallback;
+    for (let p: Object3D | null = parent; p && p !== fallback; p = p.parent) {
+      if (roots.includes(p)) {
+        root = p;
+        break;
+      }
+    }
+    pod.updateMatrix();
+    rest.compose(rig.pivot.position, unrotated, rig.pivot.scale).premultiply(parent.matrixWorld).multiply(pod.matrix);
+    rest.premultiply(toRoot.copy(root.matrixWorld).invert());
+    const geo = (pod.geometry as BufferGeometry).clone().applyMatrix4(rest);
+    const key = `${root.uuid}|${pod.material.uuid}|${Object.keys(geo.attributes).sort().join(',')}`;
+    const bucket = buckets.get(key) ?? { root, material: pod.material, geos: [] };
+    bucket.geos.push(geo);
+    buckets.set(key, bucket);
+  }
+  const out: Mesh[] = [];
+  for (const b of buckets.values()) {
+    const mesh = new Mesh(merge(b.geos), b.material);
+    mesh.name = name;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    mesh.visible = false;
+    b.root.add(mesh);
+    out.push(mesh);
+  }
+  return out;
 }
 
 /** Deterministic gentle swing from simulation time. */

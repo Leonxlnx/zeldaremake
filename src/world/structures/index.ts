@@ -20,7 +20,7 @@ import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
 import { FAR_BANK_ZONE, farBankDistance, inFarBankZone } from '../util/farBankLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
-import { swingLanterns, type LanternRig } from './lantern';
+import { restPodMeshes, swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
 import { buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
@@ -271,6 +271,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   group.updateMatrixWorld(true);
   for (const c of group.children) collectVillage(c);
+  // and the village's pods, one swinging draw each, draw folded at rest: one draw per material and
+  // group (lantern.ts restPodMeshes; the swing moves a pod ≤ 4 cm, under a pixel from 40 m). The
+  // south's pods stay live; the north's are hidden with their group there.
+  const livePods = new Set([...south.lanterns, ...northLanterns]);
+  const farPodRigs = lanterns.filter((r) => !livePods.has(r));
+  const farPods = restPodMeshes(farPodRigs, [expansion.near, expansion.far, distant.group], group, 'far-bank-pods');
+  const farPodSet = new Set<Object3D>(farPods);
   let farBank = false;
   const setFarBank = (camera: Camera) => {
     const inside = inFarBankZone(camera.position.x, camera.position.y, camera.position.z);
@@ -278,6 +285,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     farBank = inside;
     for (const m of farCasters) m.castShadow = !inside;
     for (const m of farDetail) m.visible = !inside;
+    for (const r of farPodRigs) r.pivot.visible = !inside;
+    for (const m of farPods) m.visible = inside;
   };
   setFarBank(ctx.camera);
   /**
@@ -291,7 +300,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion' | 'south') => {
       root.traverse((o) => {
         const m = o as Mesh;
-        if (!m.isMesh) return;
+        if (!m.isMesh || farPodSet.has(m)) return;
         if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || south.group.getObjectById(m.id))) return;
         const g = m.geometry;
         if (!g.boundingSphere) g.computeBoundingSphere();
@@ -327,13 +336,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const b of bases) gap = Math.max(gap, Math.abs(b[1] - ctx.terrain.height(b[0], b[2])));
     return gap;
   };
-  /** meshes (= draw calls when all are in view) and triangles owned by this system */
+  /** meshes (= draw calls when all are in view) and triangles owned by this system (the far-bank pod folds stand in for pods counted here) */
   const budget = () => {
     let meshes = 0;
     let triangles = 0;
     group.traverse((o) => {
       const m = o as Mesh;
-      if (!m.isMesh) return;
+      if (!m.isMesh || farPodSet.has(m)) return;
       meshes++;
       const g = m.geometry;
       triangles += Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
@@ -413,8 +422,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
     /** exp-south2: the bridge keeper's hut and the waystation (expansionSouthDwellings.ts), drawn with the south group */
     southDwellings: { ...dwellings.audit, triangles: dwellings.triangles },
-    /** exp-south2: the far-bank shadow and detail distance (util/farBankLocality.ts): village casters and tuft buckets, the nearest village mesh to the zone */
-    farBank: { zone: FAR_BANK_ZONE, casters: farCasters.length, detail: farDetail.map((m) => m.name), nearestVillageM: +villageNearestM.toFixed(1), active: farBank },
+    /** exp-south2: the far-bank shadow and detail distance (util/farBankLocality.ts): village casters and tuft buckets, the village pods folded at rest (rigs → draws), the nearest village mesh to the zone */
+    farBank: {
+      zone: FAR_BANK_ZONE,
+      casters: farCasters.length,
+      detail: farDetail.map((m) => m.name),
+      pods: { rigs: farPodRigs.length, folds: farPods.length, triangles: farPods.reduce((n, m) => n + Math.floor((m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3), 0) },
+      nearestVillageM: +villageNearestM.toFixed(1),
+      active: farBank,
+    },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
