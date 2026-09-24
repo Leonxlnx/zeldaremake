@@ -542,6 +542,23 @@ export function markerGeometry(rng: Rng, size: number): Part[] {
     const tip = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -b.dir * 0.04);
     place(g, centre, q.clone().multiply(tip));
     push(g, 'wood');
+    // round 56 (the owner's rubric, #1 / #10): a chevron carved into both side faces near the tip,
+    // pointing the way the board does — dark stained strips a hair proud of the face, two arms
+    // meeting at the apex; a waymarker's boards were blank wood before
+    const bw = w * 0.85;
+    const armLen = 0.075 * (size / 1.7);
+    const spread = 0.62;
+    const apexZ = b.dir * (b.len / 2 - w * 0.5);
+    const boardQ = q.clone().multiply(tip);
+    for (const fx of [1, -1] as const) {
+      for (const s of [1, -1] as const) {
+        const arm = board(0.0035, 0.009 * (size / 1.7), armLen, { grain: 'z', rng, chamfer: 0.0006, shade: 0.26 });
+        const local = new Vector3(fx * (bw / 2 + 0.0014), s * (armLen / 2) * Math.sin(spread) - 0.003, apexZ - b.dir * (armLen / 2) * Math.cos(spread));
+        const rot = boardQ.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), s * b.dir * spread));
+        place(arm, local.applyQuaternion(boardQ).add(centre), rot);
+        push(arm, 'wood');
+      }
+    }
     // lashing around the post at the board's height, and a nail through the board's root
     for (const t of lashing(new Vector3(0, b.y, 0), up, w * 0.78, 3, 0.011)) push(t, 'rope');
     const nAt = new Vector3(w * 0.43, b.y + w * 0.1, b.dir * (w / 2 + w * 0.25)).applyQuaternion(q);
