@@ -32,7 +32,10 @@
  *      layer stays in front of the back one;
  *   9. determinism: the same seed builds the same stone, bit for bit;
  *  10. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
- *      fixed camera's frustum, and the zone's own views do meet them.
+ *      fixed camera's frustum, and the zone's own views do meet them;
+ *  11. the butterflies: the flower clumps the ruins' rule prunes move none of them (butterflies.ts
+ *      picks its clumps by index, so a clump fewer would re-roll all of them in the fixed frames),
+ *      and none flies over the ground that rule claims.
  * (The gauntlet's playtest walks the same route and probes in the browser, over every system's
  * blockers; this is the ruins' share of it, without one.)
  */
@@ -582,4 +585,35 @@ test('no fixed frame sees the ruins or their shadows, and the zone views do', as
     ['ruins-aerial', [-46, 21, 9], [-64, 3, -3]],
     ['ruins-trail', [-38, 4.2, -0.8], [-52, 3.8, -4]],
   ]) assert.equal(L.ruinsVisible(cam(55, p, t, 16 / 9), spheres), true, `${name} hides the ruins`);
+});
+
+test('the ruins move no butterfly', () => {
+  const hf = loadTs(path.join(here, '../terrain/heightfield.ts'));
+  const { VegField } = loadTs(path.join(here, '../vegetation/field.ts'));
+  const { buildPlants } = loadTs(path.join(here, '../vegetation/plants.ts'));
+  const { createButterflies } = loadTs(path.join(here, '../vegetation/butterflies.ts'));
+  const { createWind } = loadTs(path.join(here, '../wind/wind.ts'));
+  const fliers = () => {
+    const ctx = { config: WORLD, layout: LAYOUT, terrain: hf.getLegacyTerrain(), rng: createRng(WORLD.seed), wind: createWind(), quality: { tier: 'high', density: 1, distance: 1, shadows: true, pixelRatio: 1.5 }, shared: {} };
+    const plants = buildPlants(ctx, new VegField(ctx, WORLD.detailRadius + 6, 0.5), new THREE.Group());
+    const b = createButterflies(ctx, plants.butterflyClumps);
+    return { b, flowers: plants.flowers.items.length, at: [0, 3.7, 12.5].flatMap((t) => (b.update(t), [...b.mesh.instanceMatrix.array])) };
+  };
+  const now = fliers();
+  // and none circles a clump the ruins took: none is ever over the ground their rule claims
+  for (let t = 0; t < 30; t += 0.5) {
+    now.b.update(t);
+    const m = now.b.mesh.instanceMatrix.array;
+    for (let i = 0; i < now.b.count; i++) assert.equal(hf.ruinsCull(m[i * 16 + 12], m[i * 16 + 14]), false, `butterfly ${i} is over the ruins' ground at t ${t}`);
+  }
+  // the legacy streams' rule as it stood before round 57 (the vegetation modules call the export)
+  const rule = hf.expansionCull;
+  hf.expansionCull = (x, z, lift = 0.3) => rule(x, z, lift, false);
+  let before;
+  try {
+    before = fliers();
+  } finally {
+    hf.expansionCull = rule;
+  }
+  assert.deepEqual(now.at, before.at, `the butterflies moved (${before.flowers} flower clumps before the ruins, ${now.flowers} with them)`);
 });

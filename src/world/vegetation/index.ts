@@ -68,7 +68,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // not spectacle"): the leaves and the motes are the atmosphere's; the butterflies are ours
   // because they are anchored to the violet clumps the verge passes seat — where the flowers
   // gather, so do they (butterflies.ts)
-  const butterflies = createButterflies(ctx, plants.flowers.items);
+  const butterflies = createButterflies(ctx, plants.butterflyClumps);
   group.add(butterflies.mesh);
 
   // round 50 (expansion.ts): the round-49 expansion's own ground, dressed against the LIVE view

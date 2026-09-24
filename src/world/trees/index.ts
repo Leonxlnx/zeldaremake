@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -1373,8 +1373,9 @@ const DISTANT_RUINS_REACH_M = 2.2;
  * flat card piles and smeared bark that close (fable-5's finding on the village paths). Both layers
  * keep `trailM` off the trail's line and RUINS_CARD_CLEAR_M off the site's box, so the white-barks
  * and the site's own rock frame the walk and the cards stand back in the haze. Post-filters, like
- * the rules above: nothing else re-rolls, and the six fixed frames see none of it (all west of
- * x −14; neither layer casts a shadow).
+ * the rules above: nothing else re-rolls. The trail's margin reaches x −1, into the right edge of
+ * C_lookback's frame, so a card a hero camera frames stays (`heroFramesCard`; neither layer casts a
+ * shadow).
  */
 const RUINS_CARD_CLEAR_M = 10;
 const RUINS_TRAIL_XZ: [number, number][] = ruinsTrailLine().map((p) => [p[0], p[2]]);
@@ -3382,13 +3383,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
   // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
   const midSpec0 = distantVariants.length - MID_SPECS.length;
-  /** round 57: the card trees kept off the ruins' walk (`ruinsCardCull`) */
-  const ruinsCards = { mid: 0, distant: 0, trailM: MID_WALK_MIN_M, siteM: RUINS_CARD_CLEAR_M };
+  /** round 57: the card trees kept off the ruins' walk (`ruinsCardCull`), and those left standing in a hero frame */
+  const ruinsCards = { mid: 0, distant: 0, heroKept: 0, trailM: MID_WALK_MIN_M, siteM: RUINS_CARD_CLEAR_M };
+  // the hero cameras' frusta a little wider than the captures (the rocks' near-LOD test) against a
+  // sphere round the whole tree, bole to crown top
+  const heroFrusta = ctx.layout.viewpoints.map((v) => {
+    const cam = new PerspectiveCamera(v.fov + 4, 1.85, 0.1, 400);
+    cam.position.set(v.position[0], v.position[1], v.position[2]);
+    cam.lookAt(v.target[0], v.target[1], v.target[2]);
+    cam.updateMatrixWorld();
+    return new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+  });
+  const cardSphere = new Sphere();
+  const heroFramesCard = (p: DistantPlacement) => {
+    const h = distantVariants[p.variant].height * p.scale;
+    cardSphere.center.set(p.x, p.y + h * 0.5, p.z);
+    cardSphere.radius = h * 0.75 + 1;
+    return heroFrusta.some((f) => f.intersectsSphere(cardSphere));
+  };
+  const ruinsCardDrop = (p: DistantPlacement) => {
+    if (!ruinsCardCull(p.x, p.z, MID_WALK_MIN_M)) return false;
+    if (!heroFramesCard(p)) return true;
+    ruinsCards.heroKept++;
+    return false;
+  };
   /** the mid boles standing on the south exit's live ground, for the base-gap audit */
   const midLive = new Set<(typeof midSampled)[number]>();
   const midPlacements = midSampled.filter((p) => {
     if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M) return false;
-    if (ruinsCardCull(p.x, p.z, MID_WALK_MIN_M)) {
+    if (ruinsCardDrop(p)) {
       ruinsCards.mid++;
       return false;
     }
@@ -3407,7 +3430,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (let i = distantPlacements.length - 1; i >= 0; i--) {
     const p = distantPlacements[i];
     if (ruinsTrunkCull(p.x, p.z, DISTANT_RUINS_REACH_M)) distantPlacements.splice(i, 1);
-    else if (ruinsCardCull(p.x, p.z, MID_WALK_MIN_M)) {
+    else if (ruinsCardDrop(p)) {
       distantPlacements.splice(i, 1);
       ruinsCards.distant++;
     }
