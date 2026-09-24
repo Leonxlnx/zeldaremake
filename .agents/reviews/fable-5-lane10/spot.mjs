@@ -1,4 +1,4 @@
-// play-mode screenshots at given spots: node it101-spot.mjs <dist> <outdir> "label:x,z,yawDeg" ...
+// play-mode screenshots at given spots: node spot.mjs <dist> <outdir> "label:x,z,yawDeg[,pitchDeg]" ... (pitch via the follow camera's setView; +60 up / −35 down are its limits)
 import fs from 'node:fs'; import path from 'node:path';
 import { serveStatic, launchBrowser } from '/workspace/gauntlet/scripts/lib/browser.mjs';
 const [dist, out, ...spots] = process.argv.slice(2); const DT = 1 / 30; fs.mkdirSync(out, { recursive: true });
@@ -7,7 +7,7 @@ try {
   const page = await browser.newPage(); await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
   await page.evaluateOnNewDocument(() => { Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false, configurable: true }); });
   page.on('pageerror', (e) => console.error(`[pageerror] ${e.message}`));
-  await page.goto(`${server.url}/?test=1&dev=0&hud=0&warmup=0&quality=high`, { waitUntil: 'load', timeout: 900_000 });
+  await page.goto(`${server.url}/?test=1&dev=0&hud=0&warmup=${process.env.WARMUP ?? '0'}&quality=high`, { waitUntil: 'load', timeout: 900_000 });
   await page.waitForFunction(() => !!window.__ZR__, { timeout: 900_000, polling: 250 });
   await page.evaluate(() => { window.__zrReadyState = 'pending'; Promise.resolve(window.__ZR__.ready()).then(() => (window.__zrReadyState = 'ready'), (e) => (window.__zrReadyState = `error: ${e?.message ?? e}`)); });
   await page.waitForFunction(() => window.__zrReadyState !== 'pending', { timeout: 900_000, polling: 1000 });
@@ -16,9 +16,10 @@ try {
   await page.evaluate((dt) => window.__ZR_PLAY__.step(30, dt, false), DT);
   const meta = [];
   for (const spec of spots) {
-    const [label, rest] = spec.split(':'); const [x, z, yawDeg] = rest.split(',').map(Number);
+    const [label, rest] = spec.split(':'); const [x, z, yawDeg, pitchDeg] = rest.split(',').map(Number);
     await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [x, z, (yawDeg * Math.PI) / 180]);
     await page.evaluate((dt) => window.__ZR_PLAY__.step(60, dt, false), DT);
+    if (Number.isFinite(pitchDeg)) { await page.evaluate(([yaw, pitch, dt]) => { window.__ZR_PLAY__.setView(yaw, pitch); window.__ZR_PLAY__.step(30, dt, false); }, [(yawDeg * Math.PI) / 180, (pitchDeg * Math.PI) / 180, DT]); }
     for (let k = 0; k < 2; k++) await page.evaluate((dt) => window.__ZR_PLAY__.step(1, dt, true), DT);
     const st = await page.evaluate(() => window.__ZR_PLAY__.state());
     const p = await page.evaluate(() => { const st = window.__ZR__.stats ? window.__ZR__.stats() : {}; const pf = window.__ZR__.perf ? window.__ZR__.perf() : {}; return { drawCalls: st.drawCalls, triangles: st.triangles, programs: st.programs, ...pf }; });
