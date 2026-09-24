@@ -46,19 +46,47 @@ distance, so the beams themselves never thin. `start >= end` disables the ramp, 
 The shafts at A, D and F are where lane 1 left them. `npm run typecheck`, `npm run build` green;
 **40 of 40 test files pass.**
 
-## Why the bough barely moved — the next lead
+## Why the bough barely moved — decomposed, term by term
 
-A bough pixel at 8 m marches only 8 m of air, so a ramp over 4–16 m should have taken most of its
-in-scatter. It took 7 %. That points past the march to the **smear**: the ray buffer is blurred
-along the screen-space direction to the sun and composited, with taps weighted by how close their
-marched length is to the pixel's. If that weighting is loose, a near surface inherits the glow of
-the long sky columns beside it — which would explain a near bough wearing 16 levels of light that
-the air in front of it cannot account for.
+I guessed the smear. **I was wrong**, and then I measured every term instead. Same pose, same
+bough band, one knob off at a time (`raySmearA`/`raySmearB` are exposed by this branch so a probe
+can do this at all):
 
-So the next measurement is the smear's depth weighting (`postfx/shaders.ts`, the smoothing pass
-below the march), not another density. Whoever takes it: render the bough pose with the smear
-disabled and see whether the bough drops to the rays-off value. If it does, that is the whole
-remaining defect, and it also explains the trunk's band and the canopy.
+| what is switched off | bough band | it was worth |
+| --- | --- | --- |
+| nothing (base) | 106.5 | — |
+| the screen fan | 106.8 | 0 |
+| the shaft columns | 106.1 | 0.4 |
+| **the smear** (both passes) | 104.7 | **1.8** — not the answer |
+| the ray-march's mist term | 104.7 | 1.8 |
+| **the ambient base air** | **94.2** | **12.3** |
+| the rays entirely | 89.8 | 16.7 |
+
+So the ambient base air *is* the cause — my original lever was right — and my distance ramp still
+only took 1.2 of its 12.3. The reason is one line:
+
+```glsl
+float upperAir = max( smoothstep( uAirFade.x, uAirFade.y, pw.y ) * airNear,
+                      clamp( column - 1.0, 0.0, 1.0 ) );
+```
+
+Inside a **gained shaft column** the second branch wins, and it bypasses the height gate *and* my
+new distance ramp — by design: "inside a gained canopy-hole column the air stays lit down to the
+ground — the reference's F shafts land on the stairs." The bough sits in such a column, so its air
+is lit at full strength right up to the eye, and no amount of ramping the *other* branch can reach
+it.
+
+## The knob, and why I did not turn it
+
+`rayColumnNearStart` / `rayColumnNearEnd` = **2 → 6 m** already fades a column's extra gain in with
+marched distance. Extending the far end (6 → ~16 m) would hold the column's ground-lighting
+exemption off the near field and should take most of the bough's remaining 12 levels.
+
+It would also dim the shafts that land on the stairs at F, which is the exact thing the exemption
+exists to protect and the reason the 09:15 `rayIntensity` attempt was backed out. **That is a look
+trade between the bough and the shafts, and it belongs to the atmosphere lane and the owner, not to
+me at 05:00 in someone else's file.** The decomposition above is what that decision needs; the probe
+to run is one `probe-look` variant with `rayColumnNearEnd` at 12, 16 and 20 against F and the bough.
 
 ## Scope note
 

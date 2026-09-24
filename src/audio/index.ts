@@ -18,8 +18,8 @@ import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { EXPANSION, LAYOUT } from '../world/layout';
-import { createBuses, createRng, type Buses } from './graph';
+import { EXPANSION, EXPANSION_SOUTH, LAYOUT } from '../world/layout';
+import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
@@ -54,6 +54,21 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   canopy: number;
   /** where the audio thinks the fairies are (world), so a harness can stand beside one */
   fairySpots: [number, number, number][];
+  /**
+   * How hard the audio thread is working, from Chrome's render-capacity monitor: the share of each
+   * render quantum used on average and at its worst, and the share of quanta that MISSED. An
+   * underrun is a gap in the output — which is what "the music shakes" sounds like. null where the
+   * browser does not report it.
+   */
+  load: RenderLoad | null;
+  /** scheduled voices alive in the graph (every event — step, leaf, bird, note — builds its own) */
+  voices: number;
+}
+
+export interface RenderLoad {
+  average: number;
+  peak: number;
+  underrun: number;
 }
 
 export interface OfflineRender {
@@ -96,6 +111,9 @@ export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 36, speed: 1.5, surface: 'leaf' },
   { until: 41, speed: 4.2, surface: 'stone' },
   { until: 45, speed: 0, surface: 'grass' },
+  // appended 2026-09-24 with the south exit, AFTER the closing stand so every earlier leg keeps its
+  // times and older before/after renders stay comparable
+  { until: 50, speed: 1.5, surface: 'bridge' },
 ];
 
 export interface AudioOptions {
@@ -217,6 +235,12 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))), canopy };
     }
   }
+  // the south expansion (EXPANSION_SOUTH): the rope-and-plank bridge over the ravine, and the
+  // hollow log burrowing into the far bank. Both are walked and both used to sound like lawn.
+  {
+    const s = southSurfaceAt(x, z, canopy);
+    if (s) return s;
+  }
   // the west house's platform and deck
   {
     const wh = EXPANSION.westHouse;
@@ -241,6 +265,44 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
   return { surface: 'grass', stairs: false, enclosure: 0, canopy };
 }
 
+/**
+ * The south exit's two walked structures (`EXPANSION_SOUTH`), neither of which the surface map knew
+ * about — the owner has been asking for the world to grow and both were sounding like the lawn.
+ *
+ *  - the rope-and-plank bridge: planks over 8 m of empty air, so they knock hollow and the ropes
+ *    and lashings answer. Its own surface, not `wood`: a deck on the ground and a deck over a
+ *    ravine are not the same sound.
+ *  - the hollow log at the far bank: the same bore sound as the arch by the plaza, with the same
+ *    smooth enclosure as the wood closes over the listener.
+ */
+function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } | null {
+  const b = EXPANSION_SOUTH.bridge;
+  {
+    const ax = b.south[0] - b.north[0];
+    const az = b.south[1] - b.north[1];
+    const len2 = ax * ax + az * az;
+    const t = ((x - b.north[0]) * ax + (z - b.north[1]) * az) / len2;
+    if (t > -0.02 && t < 1.02) {
+      const px = b.north[0] + ax * t;
+      const pz = b.north[1] + az * t;
+      if (Math.hypot(x - px, z - pz) < b.walkHalfWidth + 0.12) return { surface: 'bridge', stairs: false, enclosure: 0, canopy: 0 };
+    }
+  }
+  const tn = EXPANSION_SOUTH.tunnel;
+  {
+    const dl = Math.hypot(tn.dir[0], tn.dir[1]) || 1;
+    const dx = tn.dir[0] / dl;
+    const dz = tn.dir[1] / dl;
+    // along the bore from the mouth, and across it
+    const u = (x - tn.mouth[0]) * dx + (z - tn.mouth[1]) * dz;
+    const v = Math.abs(-(x - tn.mouth[0]) * dz + (z - tn.mouth[1]) * dx);
+    if (u > -0.3 && u < tn.deadEnd && v < tn.innerRadius * 0.8) {
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(u / 1.6, (tn.innerRadius * 0.8 - v) / 0.5))), canopy };
+    }
+  }
+  return null;
+}
+
 export const AUDIO_SEED = 'kokiri-audio-r47';
 
 export function mountAudio(o: AudioOptions): AudioHandle {
@@ -256,6 +318,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   const fairySlots: Vec3[] = [];
   const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
+  let load: RenderLoad | null = null;
   let enclosure = 0;
   let canopy = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
@@ -343,6 +406,16 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       fairyObjects = gatherFairies(o.scene);
       fairySlots.length = 0;
       for (let i = 0; i < fairyObjects.length; i++) fairySlots.push({ x: 0, y: 0, z: 0 });
+      // Chrome's render-capacity monitor (AudioContext.renderCapacity): the only direct read on
+      // whether the audio thread is missing its deadline, which is what a listener hears as the
+      // music shaking. Absent elsewhere; the diagnostic just reports null then.
+      const cap = (ctx as unknown as { renderCapacity?: { start(o: { updateInterval: number }): void; addEventListener(t: string, f: (e: RenderCapacityEvent) => void): void } }).renderCapacity;
+      if (cap) {
+        cap.addEventListener('update', (e: RenderCapacityEvent) => {
+          load = { average: e.averageLoad, peak: e.peakLoad, underrun: e.underrunRatio };
+        });
+        cap.start({ updateInterval: 0.25 });
+      }
       await ctx.resume().catch(() => undefined);
       console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
       emit();
@@ -390,6 +463,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       enclosure,
       canopy,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
+      load,
+      voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
     }),
@@ -503,4 +578,10 @@ export function encodeWav(buffer: AudioBuffer): Uint8Array {
     }
   }
   return new Uint8Array(out);
+}
+
+interface RenderCapacityEvent {
+  averageLoad: number;
+  peakLoad: number;
+  underrunRatio: number;
 }
