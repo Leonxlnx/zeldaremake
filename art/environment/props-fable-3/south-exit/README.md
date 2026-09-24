@@ -59,7 +59,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 1 ★ | reads as what it is from 20 m | 3 | the post + boards and the crate read at 6 m (`before-after-bridge-approach.jpg`); no 20 m frame rendered yet |
 | 2 | Kokiri scale | 3 | post 1.7 m, crate 0.62 m, pots 0.46–0.6 m — the village's sizes (`props/layout.ts`) |
 | 3 | irregular, hand-built outline | 3 | lathed pots with wheel marks and ragged rims, chamfered boards, seeded sizes ±3 % |
-| 4 | varies from siblings with purpose | 2 | same builders as the west / circle markers and pots; only the seed varies |
+| 4 | varies from siblings with purpose | 3 (was 2) | `c6a2e74d`: the crates now differ in state — the bridge's has lost a lid board, Saria's has one knocked askew, the plateau's is whole (`../crates/`) |
 | 5 | holds up from above and below | 3 | pot mouths are open (round 52), crate tops boarded; the log-mouth pair seen from the bridge |
 | 6 ★ | every part visibly held | 3 | boards lashed to the post with rope wraps, crate boards on battens (`geometry.ts markerGeometry`, `crateGeometry`) |
 | 7 | joints meet, nothing floats | 3 | underside conform: contact gap = EMBED ± 6 mm asserted for every south mesh (`geometry.test.mjs`) |
@@ -74,7 +74,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 16 ★ | weathering follows exposure | 3 (was 2) | `c35559ab`: the moss band climbs the faces looking away from the sun (3× in full shade), tops within 35° of up take a sun-bleach — `before-after-weathering-*.jpg` |
 | 17 | wear follows use | 2 | no worn rims or handles modelled |
 | 18 | signs of life, placed not scattered | 3 | the toll pile at the bridge head, the pots at the mouth — five props with reasons |
-| 19 | damage plausible and sparse | 2 | none modelled |
+| 19 | damage plausible and sparse | 3 (was 2) | the toll crate's missing lid board, dark inside — `../crates/before-after-bridge-crate-open.jpg`; one of four crates open here, two of four in the world |
 | 20 | nothing brand-new | 3 | weathered planks, foot grime |
 | 21 ★ | sits in the terrain | 3 | EMBED 4 cm, conformed undersides, grime at the foot; live-ground seating (test) |
 | 22 | no floating corners, nothing buried | 3 | contact assertion; the 6 m sheets |
@@ -98,9 +98,9 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
 | 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
 
-**Total: 108 / 144 applicable (scaled 150 / 200)** after `1549688c` (106 / 147 at `62bf7fcd`, when ★16 stood at 2 —
-the props' weathering was a foot band regardless of sun or shade — and #23 at 2, no contact AO). Still below the doc's
-170 gate; every ★ ≥ 3. #4 / #17 / #19 are the remaining 2s (sibling variation, wear, damage). The n/a treatment is mine — the doc has no
+**Total: 110 / 144 applicable (scaled 153 / 200)** after `c6a2e74d` (106 / 147 at `62bf7fcd`: ★16 at 2 — the props'
+weathering was a foot band regardless of sun or shade — #23 at 2, no contact AO, #4 and #19 at 2, every crate a whole
+closed copy). Still below the doc's 170 gate; every ★ ≥ 3. #17 wear (worn rims, handles) is the remaining 2. The n/a treatment is mine — the doc has no
 rule for checks a prop cluster cannot meet; asked fable-cursor.
 
 ### ★16 — weathering follows exposure (`25459fda` + `c35559ab`, the shared pass in `props/index.ts weather()`)

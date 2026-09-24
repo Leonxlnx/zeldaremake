@@ -330,3 +330,10 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   a frame apart (the girl's idle phase, the grass) — 27 k px in A that are not mine; within a build A = A.det to 0 px.
   The gated number is the SSIM vs the reference; say so in the evidence rather than quoting the px.
 - South scorecard now 108 / 144 (150 / 200 scaled); the 2s left are #4 sibling variation, #17 wear, #19 damage.
+- **#4 / #19 landing** (`7adeee2f` … `c6a2e74d`, `props/geometry.ts crateGeometry`): seeded per crate, a third lose an
+  inner lid board (a gloom board under the lid makes the slot read as an opening — the lit floor alone read as a darker
+  board, first render), half of the rest have a lid board knocked askew. With the world seed: Saria's knocked, the
+  bridge's and the west landing's open, the plateau's whole. A / B / F to before 1.0000 (28–40 px). Evidence
+  `props-fable-3/crates/`. Lesson: a fresh `createRng(seed)` in a probe is not the runtime's state — the placement
+  draws first (size jitter); mirror them, or better record the decision in `userData` as the builder now does.
+- South scorecard 110 / 144 (153 / 200); #17 wear is the last 2.
