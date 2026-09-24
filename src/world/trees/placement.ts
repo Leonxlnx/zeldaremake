@@ -98,25 +98,6 @@ function segmentDistance(px: number, pz: number, ax: number, az: number, bx: num
   return Math.hypot(px - (ax + dx * t), pz - (az + dz * t));
 }
 
-/** the nearest walked line — the four paved polylines — to (x, z): distance to its centreline (m) and its half-width */
-export function nearestWalkLine(ctx: WorldContext, x: number, z: number): { distance: number; halfWidth: number } {
-  const L = ctx.layout;
-  let best: { distance: number; halfWidth: number } = { distance: Infinity, halfWidth: L.pathHalfWidth };
-  const lines: [readonly (readonly number[])[], number][] = [
-    [L.pathSpine, L.pathHalfWidth],
-    [L.pathToStairs, L.pathHalfWidth],
-    [L.pathToHouse, L.pathHalfWidth],
-    [L.northPath, L.northPathHalfWidth],
-  ];
-  for (const [pl, halfWidth] of lines) {
-    for (let i = 0; i < pl.length - 1; i++) {
-      const d = segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]);
-      if (d < best.distance) best = { distance: d, halfWidth };
-    }
-  }
-  return best;
-}
-
 /**
  * Ground a TREE may not stand on: the paved surfaces and their verge (sampled on a ring so a root
  * flare never touches them), ground where vegetation is not allowed, slopes over 0.55, and every

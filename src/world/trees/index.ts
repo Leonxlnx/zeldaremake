@@ -27,7 +27,7 @@ import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
-import { nearestWalkLine, placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
+import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
@@ -1500,9 +1500,6 @@ const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
  * measured 710–714 calls / 9.08–9.13 M before.
  */
 const CULL_PAD_M = 4;
-/** the mid-canopy grove's crowns keep this much air beyond a walked line's paving (m), and a bole never stands nearer than MID_WALK_MIN_M to its centreline */
-const MID_WALK_GAP_M = 3;
-const MID_WALK_MIN_M = 9;
 /** lowest world height a shadow receiver can have (the capsule is swept down to it) */
 const SHADOW_FLOOR_Y = -20;
 /**
@@ -1556,7 +1553,7 @@ const NEAR_LOD_TIERS: Record<NearLodTier['name'], NearLodTier> = {
    * bases (≈ 1.4 MB each), so neither pool can churn on a walk. What is DRAWN in a fixed frame does not
    * depend on a pool cap; the canopy swap itself stays 26 / 30.
    */
-  large: { name: 'large', canopyPoolBytes: 256 << 20, basePoolBytes: 48 << 20, canopyPrefetchM: 42, basePrefetchM: 38, baseBand: [25, 28], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
+  large: { name: 'large', canopyPoolBytes: 256 << 20, basePoolBytes: 48 << 20, canopyPrefetchM: 42, basePrefetchM: 54, baseBand: [25, 28], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
   /**
    * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51
    * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to
@@ -1570,9 +1567,14 @@ const deviceMemoryGB = (): number => {
   const n = typeof navigator === 'undefined' ? undefined : (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 4;
 };
+/**
+ * The large tier unless the browser reports under 4 GB: Safari and Firefox report nothing (→ 4), and
+ * on the small tier the owner walked past boles still drawn as their smooth far bases ("why don't the
+ * trees immediately spawn instead of needing me to get close", 2026-09-23 20:08).
+ */
 const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier => {
   if (poolParam === 'large' || poolParam === 'small') return NEAR_LOD_TIERS[poolParam];
-  return deviceGB >= 8 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
+  return deviceGB >= 4 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
 };
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
@@ -1589,6 +1591,13 @@ const NEAR_BASE_POOL_BYTES = NEAR_LOD_TIER.basePoolBytes;
  * chunk), so this is what a frame pays, give or take one mis-predicted chunk.
  */
 const NEAR_LOD_BUILD_BUDGET_MS = 6;
+/**
+ * The first frame's build budget (ms): the parts pending inside the pre-fetch radii at the spawn
+ * are built before the walk starts (fable-5 lane 10 §18 on 39e63437: 192 of the plaza's 374 crown
+ * parts were still pending after the settle and built one per frame as the owner walked, each late
+ * one a synchronous build). Capped so a slow machine pays a bounded first frame.
+ */
+const NEAR_LOD_PREBUILD_MS = 1500;
 /**
  * The near-base bands the fixed cameras constrain (round 48; [in, out] m, key = NearBole id).
  * giant.ts NEAR_BASE_RADIUS_OVERRIDE holds the round-44 bands derived from the cameras'
@@ -1608,6 +1617,13 @@ const NEAR_LOD_BUILD_BUDGET_MS = 6;
  *   swap-18           C 19.4 (behind) · D 24.6 — the mature white-bark at (11.1, −25) built as a column
  * The 3 m of hysteresis never reach a camera: a capture re-poses with `reset`.
  */
+/**
+ * The large tier's floor under every near-base band: every bole within 40 m of the camera draws its
+ * bark relief, so none turns from the smooth far base into bark in front of the player. 48 MB holds
+ * all 23 bases (≈ 1.4 MB each) resident, and the pre-fetch (NEAR_LOD_TIERS.large.basePrefetchM)
+ * runs 10 m beyond the out-radius.
+ */
+const NEAR_BASE_WALK_BAND: [number, number] = [40, 44];
 const NEAR_BASE_HERO_BAND: Record<string, [number, number]> = {
   'stair-bank-giant': [12, 13.5],
   'lantern-tree': [12, 13.5],
@@ -1743,6 +1759,8 @@ const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
 const UNDERSTORY_ARCH_STRETCH_Z = -28;
 const UNDERSTORY_PATH_MAX_M = 11;
 const UNDERSTORY_SPACING_M = 3.2;
+/** the walk line's clearance from every understory stem (post-filter; the sampler's own minimum stays 3.4 m so the seeded draws are unchanged) */
+const UNDERSTORY_WALK_CLEAR_M = 6.5;
 /**
  * Clearings the understory keeps out of: the west fork's inner corner — the owner's "the path splits off
  * into the forest" has to read from the plaza side (fable-3, 2026-09-23 11:20: the fork's waymarker at
@@ -1844,7 +1862,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * on the large tier from round 51, 10 / 13 as shipped). Every band keeps the nearest fixed camera
    * ≥ 2 m outside its out-radius, so the six fixed frames are the same in either tier.
    */
-  const nearBand = (id: string): [number, number] => NEAR_BASE_HERO_BAND[id] ?? (NEAR_LOD_TIER.name === 'large' ? NEAR_BASE_RADIUS_OVERRIDE_LARGE[id] : undefined) ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
+  const nearBand = (id: string): [number, number] => {
+    const band = NEAR_BASE_HERO_BAND[id] ?? (NEAR_LOD_TIER.name === 'large' ? NEAR_BASE_RADIUS_OVERRIDE_LARGE[id] : undefined) ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
+    return NEAR_LOD_TIER.name === 'large' ? [Math.max(band[0], NEAR_BASE_WALK_BAND[0]), Math.max(band[1], NEAR_BASE_WALK_BAND[1])] : band;
+  };
   const nearBasePool = new LodPool<GeometryBuilt>(NEAR_BASE_POOL_BYTES);
   const nearCanopyPool = new LodPool<GeometryBuilt>(NEAR_CANOPY_POOL_BYTES);
   /**
@@ -2246,6 +2267,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     understory.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
   }
   const understoryPlacements: UnderstoryPlacement[] = [];
+  const understoryPathDistance = (x: number, z: number) => Math.min(...walkXZ.map((poly) => (poly.length > 1 ? spineDistance(poly, x, z) : Infinity)));
   {
     const placeRng = understoryRng.fork('place');
     const viewpoints = ctx.layout.viewpoints.map((v) => ({ x: v.position[0], z: v.position[2] }));
@@ -2311,6 +2333,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
   }
+  /**
+   * fable-5 (lane 10, 17:56) + fable-cursor (18:40): at `h-west-front` and the owner's 06:50 pose a
+   * walker at eye height stood inside the verge crowns seated 3.4 m from the centreline (the arch
+   * stretch's 6.5 m read right). The walk line keeps UNDERSTORY_WALK_CLEAR_M everywhere — applied as a
+   * post-filter over the sampled list, so no other stem moves (a rule inside the loop shifts every
+   * later draw).
+   */
+  const understoryKept = understoryPlacements.filter((p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M);
+  understoryPlacements.length = 0;
+  understoryPlacements.push(...understoryKept);
   for (const p of understoryPlacements) seatFamily(understory, p, p.variant);
   const understoryGroup = new Group();
   understoryGroup.name = 'understory';
@@ -3179,6 +3211,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * everywhere, because the brief is "every direction you can walk shows layered trees".
    */
   const midWeight = (x: number, z: number) => smoothstep(13, 19, Math.hypot(x, z)) * (0.58 + 0.42 * smoothstep(-6, -26, z));
+  /**
+   * fable-5 (lane 10, 2026-09-23 12:52): mid crowns 3–7 m from the walk line read as flat card piles
+   * at `u-open-up` and `h-west-front`. The band 3.4–11 m off the walk polylines is the understory's
+   * (real laminae, `UNDERSTORY_PATH_MIN_M`…`UNDERSTORY_PATH_MAX_M`); the card grove starts where the
+   * cards hold — MID_WALK_MIN_M from the path centrelines (a post-filter, so no other tree moves).
+   */
+  const MID_WALK_MIN_M = 11;
+  const midWalkXZ: [number, number][][] = [
+    ctx.layout.pathSpine.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.pathToHouse.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.northPath.map((p) => [p[0], p[2]] as [number, number]),
+  ];
+  const nearWalk = (x: number, z: number) => midWalkXZ.some((poly) => poly.length > 1 && spineDistance(poly, x, z) < MID_WALK_MIN_M);
   const midSampled = placeMidTrees(rng, terrain, distantVariants, {
     target: midTarget,
     inner: 13,
@@ -3188,17 +3233,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     corridors: plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
     weight: midWeight,
     spacing: 3.2,
-    // the owner walks the paths, not the ring's centre: a crown of the far atlas's cards reads as
-    // flat quads within a few metres, and one at (−3.3, −19.6) stood 3 m from his north-path camera
-    // (hiding the west hut, roofing the path) and another 6 m from his look-up in the north hollow
-    // (fable-5 lane 10, 12:51). The crown's edge keeps MID_WALK_GAP_M beyond the paving's edge, never
-    // nearer than MID_WALK_MIN_M to a centreline; the understory's real trees own the verges.
-    clear: (x, z, crownR) => {
-      const w = nearestWalkLine(ctx, x, z);
-      return w.distance < Math.max(MID_WALK_MIN_M, w.halfWidth + crownR + MID_WALK_GAP_M);
-    },
   });
-  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z));
+  // applied AFTER sampling, like expansionCull: a rule inside the sampler's `blocked` shifts every
+  // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
+  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z));
   distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
@@ -4065,6 +4103,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
+        /** parts inside their swap-in radius whose near buffers are not resident yet — the crown a walker sees pop in when its build lands (owner 2026-09-23 20:08) */
+        late: nearCanopies.filter((nc) => nc.dist < nc.inM && !nearCanopyPool.isResident(nc.item)).length,
         foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
       },
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
@@ -4112,11 +4152,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   ctx.progress('trees', 1);
 
+  let prebuilt = false;
   return {
     name: 'trees',
     group,
     update(_dt, _t, c) {
       rebucket(c.camera);
+      if (!prebuilt) {
+        prebuilt = true;
+        const t0 = performance.now();
+        nearBasePool.work(NEAR_LOD_PREBUILD_MS);
+        nearCanopyPool.work(Math.max(0.5, NEAR_LOD_PREBUILD_MS - (performance.now() - t0)));
+        return;
+      }
       // the near parts' pending builds, within the frame budget (the canopy first: its parts are
       // the many; the bases take what is left, at least a chunk's worth so they never starve)
       const t0 = performance.now();
