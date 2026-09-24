@@ -407,3 +407,5 @@ nearCanopy, materials, index otherwise) is edited.
   look costs; queued understory zones for the south exit once exp-south merges.
 - 23:19 — fable-cursor's levers b/c measured: the crown pool keeps up with a 5× walk (late ≤ 3, 0 sync builds); the swap
   does not pop when resident. `nearCanopy.late` audit field on `agent/fable-4-latecount`. Nothing else open.
+- 2026-09-24 00:18 — squad2's treepop (white-bark rung 20 → 28 m) measured against the round-52 pop test: the switch
+  never popped; head A 8.947 M / 643; treepop's six-view row pending on the box.
