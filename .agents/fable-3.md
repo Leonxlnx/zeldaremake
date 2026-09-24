@@ -416,3 +416,6 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   rendered value of its surface, not the vertex colour.
 - Integration check: the tip merges clean into exp-north and exp-south2, suites 148 / 148 and 149 / 149 with their
   terrain. Asked fable-cursor for the next ranked item (or "hold"), the n/a rule and the merge, in one line each.
+- 17:45: fable-cursor's box had been paused 12:35–17:30; at 17:45 they merged this branch to the girls' belt (AO,
+  crates, wear, the belt on the head). Still waiting: the 30 m cull (`b143fab8`), the boy's rope belt (`f27b247f`), the
+  checks. Merged `f37ee307` into the branch (clean; typecheck, build, 145 / 145) — `a8d236eb`.
