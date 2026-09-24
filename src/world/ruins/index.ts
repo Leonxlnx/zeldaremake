@@ -4,8 +4,9 @@
  * `EXPANSION_RUINS`; the reference is the trailer's ruins shot, reference/frames-dense/review46
  * r_036–r_043). The ground (the trail's grade, the outcrop, the pool's basin) is the heightfield's
  * live view (terrain/ruins.ts); this system builds everything standing on it: the masonry
- * (masonry.ts), and publishes the terrace's walk spans and the fallen pieces' blockers for the
- * character ground.
+ * (masonry.ts), the natural rock — cliff, ivy rock, boulders, the slab bridge (rock.ts) — and the
+ * water — the pool, the fall, its spray and mist (water.ts) — and publishes the terrace's walk spans
+ * and the fallen pieces' and boulders' blockers for the character ground.
  *
  * Locality: the whole site is in the west sector no fixed frame looks at, but its casters are tall
  * (the arch to 9.6 m), so like the south exit it is drawn only while the camera is within
@@ -18,6 +19,8 @@ import type { WorldContext, WorldSystem } from '../system';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
 import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
+import { buildRock } from './rock';
+import { buildWater } from './water';
 
 const R = EXPANSION_RUINS;
 /** the masonry's target albedo (linear): the reference's pale grey-cream limestone */
@@ -33,6 +36,19 @@ function ruinsCasters(): Caster[] {
   out.push({ x: R.brokenArch.x, z: (R.brokenArch.z[0] + R.brokenArch.z[1]) / 2, r: 2.3, y0: T.y, y1: T.y + 3.3, shadow: true });
   out.push({ x: (R.parapet.x0 + R.parapet.x1) / 2, z: R.wall.z, r: 3.2, y0: -0.5, y1: R.platform.y + 1.4, shadow: true });
   out.push({ x: R.stairs.base[0] - 1.6, z: R.stairs.base[2], r: 2.2, y0: R.platform.y - 0.3, y1: T.y + 0.2, shadow: true });
+  // the rock: the cliff along its run, the ivy rock, the gate, the slab bridge and its pile
+  const C = R.cliff;
+  for (let z = C.z0 - 1.5; z <= C.z1 + 1.5; z += 3) out.push({ x: C.x - 2.5, z, r: 4.2, y0: 0, y1: C.top + 0.6, shadow: true });
+  out.push({ x: R.pillar.x, z: R.pillar.z, r: R.pillar.r * 1.45, y0: 1.5, y1: R.pillar.top + 0.2, shadow: true });
+  for (const [x, z, r] of R.gate) out.push({ x, z, r: r * 1.3, y0: 1.5, y1: 4.8, shadow: true });
+  for (const [x, z] of [
+    [-68.9, 0.5],
+    [-69.5, 4.5],
+    [-70.1, 8.6],
+  ]) out.push({ x, z, r: 2.3, y0: 0.4, y1: 4.9, shadow: true });
+  // the pool and the fall (the water throws no shadow)
+  for (let x = R.pool.x - R.pool.hx + 2; x <= R.pool.x + R.pool.hx; x += 4) out.push({ x, z: R.pool.z, r: 4.6, y0: R.pool.water - 1, y1: R.pool.water + 0.5, shadow: false });
+  out.push({ x: R.fall.x + 0.8, z: R.fall.z, r: 2.2, y0: R.pool.water, y1: R.fall.top + 0.3, shadow: false });
   return out;
 }
 
@@ -72,9 +88,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   add('ruins-tiles', new Mesh(masonry.tiles.build(), tilesMat), false);
   add('ruins-carving', new Mesh(masonry.carving.build(), carvingMat), false);
 
+  const rock = buildRock(rng.fork('rock'), (x, z) => terrain.height(x, z), sun);
+  const [cliffMat, boulderMat] = await Promise.all([
+    createStone(ctx.textures, ctx.config, { name: 'cliff', set: 'rock_face_03', meanL: 0.163, tile: 3.2, tint: [0.34, 0.335, 0.315], keep: 0.3, contrast: 1.0, normalScale: 1.0, roughness: 0.92, tone: 0.14 }),
+    createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.44, 0.425, 0.39], keep: 0.3, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
+  ]);
+  materials.push(cliffMat, boulderMat);
+  add('ruins-cliff', new Mesh(rock.cliff.build(), cliffMat), true);
+  add('ruins-boulders', new Mesh(rock.boulder.build(), boulderMat), true);
+
+  const water = buildWater(rng.fork('water'), (x, z) => terrain.height(x, z));
+  for (const m of water.meshes) group.add(m);
+  materials.push(...water.materials);
+
   // the character ground reads these at its creation (the character system comes after this one)
   (ctx.shared.walkSpans ??= []).push(...masonry.spans);
-  (ctx.shared.propBlockers ??= []).push(...masonry.blockers);
+  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers);
 
   const spheres = ruinsCasters().flatMap((c) => casterSpheres(c, sun));
   const refresh = (camera: Camera) => {
@@ -97,16 +126,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     meshes,
     triangles: tris,
     walkSpans: masonry.spans.length,
-    blockers: masonry.blockers.length,
-    counts: masonry.counts,
+    blockers: masonry.blockers.length + rock.blockers.length,
+    counts: { ...masonry.counts, ...rock.counts },
+    plunge: water.plunge.map((v) => +v.toFixed(2)),
     pointLights: 0,
   }));
 
   return {
     name: 'ruins',
     group,
-    update() {
+    update(_dt, t) {
       refresh(ctx.camera);
+      if (group.visible) water.update(t);
     },
     onCameraMove(camera) {
       refresh(camera);
