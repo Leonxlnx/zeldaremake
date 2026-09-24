@@ -726,6 +726,9 @@ async function walkScenario(page, results) {
     // lantern posts to the outcrop through the gate boulders, up the worn stair, through the arch,
     // onto the terrace toward the broken arch
     ['plaza-to-ruins-terrace', [[0, 4], [-6, 8], [-12.5, 8.5], ...RUINS.trail, [-59.6, -4.2], [-60.7, -4.2], [-62.6, -4.2], [-64.3, -4.2], RUINS.arch, [-67.5, -4.6], [-70.5, -5.6]], 3000, { cams: true }],
+    // the pool's shore: off the trail east of the south gate boulder, down the east shore, round the
+    // south bank to the middle of the south shore and a step into the shallows (0.16 m deep)
+    ['ruins-trail-to-shore', [RUINS.trail[14], [-50.6, -1.2], [-51.6, 1.8], [-52.8, 3.35], [-53.5, 7.5], [-57.5, 10.0], [-62.0, 10.3], [-64.9, 9.3], [-64.9, 8.35]], 2400, { cams: true }],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
@@ -739,7 +742,7 @@ async function walkScenario(page, results) {
     results.southProbes = await southProbes(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
-  if (!pickRoutes || pickRoutes.has('plaza-to-ruins-terrace')) {
+  if (!pickRoutes || pickRoutes.has('plaza-to-ruins-terrace') || pickRoutes.has('ruins-trail-to-shore')) {
     results.ruinsProbes = await ruinsProbes(page);
     results.ruinsCamera = await ruinsCamera(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
@@ -799,12 +802,15 @@ async function ruinsProbes(page) {
     const ok = p.expect === 'blocked' ? g.blocked === true : g.blocked === false && (p.y === null || Math.abs(g.walk - p.y) < 0.15);
     return { where: p.where, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ...(p.y !== null ? { y: p.y } : {}), ok };
   });
-  // the wading: from the south shore toward the pool's middle (layout pool centre / half extents),
-  // where the ground goes under the water (0.55) and how far Link paddles before it holds him
+  // the wading: from the shore toward the pool's middle (layout pool centre / half extents), where
+  // the ground goes under the water (0.55) and how far Link paddles before it holds him — the east
+  // shore, the south bank (held on its slope before the water), the south shore's middle and the
+  // east end; west of the south shore's middle the rock pile, the cliff and the terrace hold him
+  // before he reaches it
   const wade = await page.evaluate(() => {
     const P = window.__ZR_PLAY__;
     const out = [];
-    for (const deg of [68, 90, 135]) {
+    for (const deg of [15, 68, 90, 345]) {
       const a = (deg * Math.PI) / 180;
       const x0 = -64.9 + Math.cos(a) * 12.5;
       const z0 = 3.35 + Math.sin(a) * 7.85;
@@ -829,9 +835,10 @@ async function ruinsProbes(page) {
 
 /**
  * Round 57: the follow camera round the ruins' tight spots — Link placed by the cliff, the broken
- * arch, the colonnade, in the arch, on the flight, by the ivy rock, the parapet and the gate, the
- * view swung round him (8 headings × 3 pitches, the collision resolving at once): every camera
- * position with its collision state, for an offline test against the ruins' solids.
+ * arch, the colonnade, in the arch, on the flight, by the ivy rock, the parapet and the gate, on the
+ * pool's shore and in its shallows, the view swung round him (8 headings × 3 pitches, the collision
+ * resolving at once): every camera position with its collision state, for an offline test against
+ * the ruins' solids and the water's surface.
  */
 async function ruinsCamera(page) {
   const spots = [
@@ -844,6 +851,8 @@ async function ruinsCamera(page) {
     ['parapet', [-57.5, -2.6]],
     ['gate', [-53.0, -4.2]],
     ['terrace-south-by-wall', [-68.5, -2.6]],
+    ['south-shore-in-the-shallows', [-64.9, 8.35]],
+    ['east-shore-by-the-water', [-54.9, 4.5]],
   ];
   const rows = [];
   for (const [id, [x, z]] of spots) {
