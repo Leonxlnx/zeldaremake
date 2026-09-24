@@ -351,3 +351,9 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   frame (the strap's own mapped material). Hem left as round 48 made it — it reads.
 - Lesson (an hour lost): `broll.mjs` hides the character group unless `--character` is passed. Every kid render needs it.
 - Posted exp-east's #18 plan against its README table (six props on an `east` locality after the merge).
+- **12:40 — the far-bank look-back (owner "check everything"):** fable-cursor's full check had it at 818 / 9.30 M,
+  "lanes welcome". The props' share: the village locality drawn from 33 m at the old 45 m cull. `b143fab8` sets
+  `CLUSTER_VISIBLE_M` 45 → 30: −11 draws / −90 k tris there, −9 at C (its south props hidden behind the trunk anyway),
+  A / B / D / E / F unchanged — `pose-counts.mjs` on the same merged head, both builds (`props-fable-3/cull-30/`).
+  Lesson: my first comparison put the belt build (pre-#40–#46) against a merged-head build and read +1 at A and a
+  changed canopy — the head's butterflies and veil, not the cull. Compare on one head, always.
