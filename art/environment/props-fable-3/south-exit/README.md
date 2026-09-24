@@ -98,7 +98,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
 | 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
 
-**Total: 109 / 144 applicable (scaled 151 / 200).** Below the doc's 170 gate, and one ★ below 3: **#16 weathering by
+**Total: 106 / 144 applicable (scaled 147 / 200).** Below the doc's 170 gate, and one ★ below 3: **#16 weathering by
 exposure** — the props' weathering is a foot band regardless of sun or shade; the fix is in the shared weathering pass
 (`props/index.ts` vertex colour: moss toward the shaded quadrant, bleach on tops), which touches every cluster's pixels and
 so the six views — a measured landing of its own, next. #4 / #17 / #19 / #23 are the other 2s (sibling variation, wear,
