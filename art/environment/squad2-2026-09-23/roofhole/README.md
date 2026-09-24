@@ -164,6 +164,38 @@ most to lose.
 | D | 9.58 % | as A |
 | F | 0.00 % | — |
 
+## For the visual review (held at 18:05): the same two places in play mode
+
+The squad log holds this branch for visual review, so here it is as the owner meets it — **play mode, the
+follow camera, Link in frame, HUD and all** (`play-shot.mjs`), each spot rendered twice with
+`canopy/roof.ts` reverted to the head for the before.
+
+**The open north, walking the approach and looking up** (`play-north-pair.jpg`):
+
+| | mean | top third | middle third (ground and mid-ground) |
+| --- | --- | --- | --- |
+| before | 94.5 | 115.0 | 87.4 |
+| after | **81.3** | **75.7** | **87.2** |
+
+![the open north in play mode, before and after](play-north-pair.jpg)
+
+**The south exit, standing on the far bank facing the log** (`play-south-bank-pair.jpg`):
+
+| | mean | top third | middle third |
+| --- | --- | --- | --- |
+| before | 100.4 | 127.9 | 82.6 |
+| after | **84.7** | **81.3** | **82.2** |
+
+![the far bank in play mode, before and after](play-south-bank-pair.jpg)
+
+In both, a broad pale band across the upper frame becomes closing canopy with sky gaps and rays through it,
+while the **middle third — everything the walker is actually standing in — moves by two tenths of a level
+or less**. That is the whole claim of this branch in the form a reviewer can judge.
+
+One observation from making them: at the log's mouth itself the follow camera sits **inside** the hollow log
+(`play-south-after.jpg` in the first attempt), so the two builds are pixel-identical there. The south bands
+matter on the bridge and the far bank, which is where the pair above stands, not in the log.
+
 ## The test
 
 `roof.test.mjs` pinned the old rule exactly (it failed with 111 offenders the moment this changed), so it
