@@ -208,6 +208,53 @@ function cutTriangles(mesh: Mesh, inside: (c: Vector3) => boolean): number {
   return cut;
 }
 
+/**
+ * drop every connected piece (vertices joined by position, so an unindexed build links too) that has
+ * a triangle whose centroid passes `hit`; returns the pieces and triangles dropped
+ */
+function dropPieces(mesh: Mesh, hit: (c: Vector3) => boolean): { pieces: number; triangles: number } {
+  const g = mesh.geometry;
+  const idx = g.index;
+  const pos = g.attributes.position;
+  const count = idx ? idx.count : pos.count;
+  const at = (i: number) => (idx ? idx.getX(i) : i);
+  const weld = new Map<string, number>();
+  const id = new Int32Array(pos.count);
+  for (let v = 0; v < pos.count; v++) {
+    const key = `${Math.round(pos.getX(v) * 1000)},${Math.round(pos.getY(v) * 1000)},${Math.round(pos.getZ(v) * 1000)}`;
+    let n = weld.get(key);
+    if (n === undefined) weld.set(key, (n = weld.size));
+    id[v] = n;
+  }
+  const parent = Int32Array.from({ length: weld.size }, (_, i) => i);
+  const find = (x: number) => {
+    while (parent[x] !== x) x = parent[x] = parent[parent[x]];
+    return x;
+  };
+  for (let i = 0; i + 2 < count; i += 3) {
+    const a = find(id[at(i)]);
+    parent[find(id[at(i + 1)])] = a;
+    parent[find(id[at(i + 2)])] = a;
+  }
+  const hitPieces = new Set<number>();
+  const c = new Vector3();
+  const p = new Vector3();
+  for (let i = 0; i + 2 < count; i += 3) {
+    c.set(0, 0, 0);
+    for (let j = 0; j < 3; j++) c.add(p.fromBufferAttribute(pos, at(i + j)));
+    if (hit(c.multiplyScalar(1 / 3))) hitPieces.add(find(id[at(i)]));
+  }
+  if (!hitPieces.size) return { pieces: 0, triangles: 0 };
+  const keep: number[] = [];
+  let dropped = 0;
+  for (let i = 0; i + 2 < count; i += 3) {
+    if (hitPieces.has(find(id[at(i)]))) dropped++;
+    else keep.push(at(i), at(i + 1), at(i + 2));
+  }
+  g.setIndex(keep);
+  return { pieces: hitPieces.size, triangles: dropped };
+}
+
 function meshOf(name: string, mat: Material, parts: BufferGeometry[], cast = true): Mesh | null {
   const list = parts.filter((g) => g && g.attributes.position && g.attributes.position.count > 0);
   if (!list.length) return null;
@@ -510,8 +557,22 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const H = y1 - y0;
     const zF = outMax + 0.02;
     const zB = outMin - 0.56;
-    // the niche is the only thing inside its own box: the house's parts that reach into the trunk
-    // wall at the counter (seen through the opening as a dark ragged blob) are cut out of it
+    // the house's burl at the counter's angle (and any root reaching up past the counter top) would
+    // stand in the opening: such a piece of the roots is dropped whole — cut at the niche, its front
+    // half hung in the window as a dark ragged blob
+    const rootsDropped = { pieces: 0, triangles: 0 };
+    hb.group.traverse((o) => {
+      const m = o as Mesh;
+      if (m.name !== 'roots' || !worldPart(m)) return;
+      const n = dropPieces(m, (c) => {
+        const l = local(c);
+        return l.z > zB - 0.02 && l.z < zF + 0.6 && Math.abs(l.x) < W / 2 + 0.1 && l.y > y0 + 0.01 && l.y < y1 + 0.1;
+      });
+      rootsDropped.pieces += n.pieces;
+      rootsDropped.triangles += n.triangles;
+    });
+    // the niche is the only thing inside its own box: the house's other parts that reach into the
+    // trunk wall at the counter are cut out of it
     let cutNiche = 0;
     const cutNicheBy: Record<string, number> = {};
     hb.group.traverse((o) => {
@@ -619,7 +680,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     tiny.push(place(pot(0.24, 0.075, rC, [0.55, 0.34, 0.2]), 0.47, onTop, zg + 0.04));
     const goodsMesh = meshOf('east-counter-goods', goods, [...tiny, ...shelfGoods]);
     if (goodsMesh) shopNear.add(goodsMesh);
-    return { angle: a, width: W, sill: y0, head: y1, barkOut: [+outMin.toFixed(3), +outMax.toFixed(3)], trunkTrianglesCut: cut, detailTrianglesCut: cutDetail, nicheTrianglesCut: cutNiche, nicheTrianglesCutBy: cutNicheBy, shutterBoards: nb };
+    return { angle: a, width: W, sill: y0, head: y1, barkOut: [+outMin.toFixed(3), +outMax.toFixed(3)], trunkTrianglesCut: cut, detailTrianglesCut: cutDetail, rootPiecesDropped: rootsDropped, nicheTrianglesCut: cutNiche, nicheTrianglesCutBy: cutNicheBy, shutterBoards: nb };
   })();
 
   // crates, baskets and a stick bundle by the shop door (layout `shopGoods`: outside the trunk's
