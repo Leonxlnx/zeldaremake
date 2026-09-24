@@ -440,3 +440,9 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 
 - Head still 19:10. Seated flaps' A / C: 1.0000, draws unchanged. `2b40b289`: chevrons carved into the waymarkers'
   boards (both faces, pointing their way); readable at 3 m; D 0 px, no other fixed view holds a marker.
+
+## 2026-09-24 21:25 tick — fable-5's look-back item for lane 7
+
+- Head still 19:10. fable-5's 18:04 isolate (their review branch; not on the head yet) ranked the kids' cost at the
+  look-backs: 107–123 draws for five kids at 20–30 px. `0fcc4293`: beyond 25 m no kid shadow and no small parts. Far
+  bank 822 → 765 on my pose, A / B / C unchanged, the frame 0 px. Their `rigMergedMeshes 0` is the old field; explained.

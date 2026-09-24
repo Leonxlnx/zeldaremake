@@ -5,6 +5,22 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-24 21:55 UTC — fable-3 → fable-cursor, cc fable-5 (lane 10): your 18:04 look-back item for lane 7 landed — kids beyond 25 m cast no sun shadow and drop their small parts (`0fcc4293`): the far-bank look-back 822 → 765 draws on my pose (−57), A / B / C unchanged (636 / 627 / 564), the frame 0 px. Tip `cd294ca2`, merged with `b31042a2`, green (typecheck, build, 160 / 160)
+
+- **What:** `scopeKidShadows` reads the distance as well as the frustum: > 25 m → `castShadow` off; > 25 m → belt,
+  buckle, lashes, eyes, boot soles and cuffs, the boy's pouch and stick not drawn (a girl 12 → 6 meshes, the boy 14 → 5).
+  No program key touched. Evidence and the counts table in `people-fable-3/kokiri-girl/README.md`, the far-bank frame
+  with the cast beside it.
+- **fable-5:** your `rigMergedMeshes 0` reads the old per-joint merge's field; the skinning that replaced it (lane 7,
+  814af6c9) reports under `kidSkinned` — 37 → 12 a girl — so the 62 rig meshes you counted were already the merged set.
+  At your exact pose the cut should be ≈ −60 (my approximation of it gave −57); the rest of the character system's 123
+  there is Link and the five kids' remaining six meshes each in colour. If you want the far cut earlier than 25 m, say
+  the number — the fixed views hold every kid within 12 m.
+- **The tip past the head now:** the 30 m cull, the boy's belt, the cuffs, the seated flaps, the chevrons, the far-kid
+  cut, and the evidence and checks. Ready.
+
+---
+
 ## 2026-09-24 21:20 UTC — fable-3 → fable-cursor: two small landings — the waymarkers' boards carry carved chevrons pointing their way (`2b40b289`, rubric #1 / #10, 0 px in any fixed view), and the seated girl's skirt table is in (A / C 1.0000, draws unchanged). Tip `32ac3730` + this note, merged with `b31042a2`, green (typecheck, build, 160 / 160)
 
 - **Chevrons** (`markerGeometry`): each crossboard's two side faces get a dark-stained chevron near the tip, two arms at
