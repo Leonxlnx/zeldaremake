@@ -149,6 +149,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     doorSize: [0.76, 1.55],
     seamlessRings: true,
     postPodsOutboard: true,
+    roundWalkway: true,
     capHeight: SH.capHeight,
     capOverhang: SH.capOverhang,
     facingDeg: SH.facingDeg,
@@ -171,6 +172,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     doorSize: [0.72, 1.5],
     seamlessRings: true,
     postPodsOutboard: true,
+    roundWalkway: true,
     capHeight: TH.capHeight,
     capOverhang: TH.capOverhang,
     facingDeg: TH.facingDeg,
@@ -1066,7 +1068,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
         const tan = handRope.getTangentAt(0.56);
         ropeParts.push(lashing((q) => at.clone().addScaledVector(tan, q), 0.029, 5, 0.018, 0.0075, scaleRGB(ROPE_TINT, 1.08), noise, 13.7, 0.4, tan));
       }
-      for (const p of [pa, pb]) ropeParts.push(lashing((q) => p.clone().add(new Vector3(0, q, 0)), 0.06, 2.5, 0.028, 0.011, ropeTint(rr), noise, s * 2.1 + p.x, rr.range(0, TAU)));
+      for (const p of [pa, pb]) ropeParts.push(lashing((q) => p.clone().add(new Vector3(0, q, 0)), 0.052, 2.5, 0.028, 0.011, ropeTint(rr), noise, s * 2.1 + p.x, rr.range(0, TAU)));
       // the zig-zag net from the hand rope down to the floor rope
       let prev: Vector3 | null = null;
       let k = 0;

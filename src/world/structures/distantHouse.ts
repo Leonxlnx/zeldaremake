@@ -119,6 +119,13 @@ export interface DistantHouseDef {
    * the far huts and the expansion's houses keep theirs.
    */
   postPodsOutboard?: boolean;
+  /**
+   * 2026-09-24 (the north grove): the walkway's posts, its rail and the post pods' brackets are
+   * capped round poles and a sagging rope, like the dressing's railing — a walker crossing to the
+   * next hut passes them under a metre off, where a square bar in the cap's shade reads as a black
+   * box. Opt-in: the far huts and the expansion's houses keep their bars.
+   */
+  roundWalkway?: boolean;
   /** cap rise above the eave (m) */
   capHeight: number;
   /**
@@ -433,6 +440,7 @@ const MOSS_DEEP: RGB = [0.266, 0.238, 0.052];
 const MOSS_SUN: RGB = [0.8, 0.79, 0.17];
 const PLANK: RGB = [0.42, 0.35, 0.27];
 const PLANK_DARK: RGB = [0.26, 0.21, 0.16];
+const ROPE: RGB = [0.4, 0.33, 0.23];
 const WALL: RGB = [0.66, 0.62, 0.55];
 const SOFFIT: RGB = [0.3, 0.27, 0.22];
 /**
@@ -1499,7 +1507,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       for (const side of [-1, 1]) {
         const base = foot.clone().addScaledVector(wSide, side * 0.42);
         const top = base.clone().setY(base.y + 1.05);
-        plankParts.push(bar(base, top, 0.09, PLANK_DARK));
+        plankParts.push(def.roundWalkway ? rod(base, top, 0.045, scaleRGB(PLANK_DARK, 1.1), 7, 0.042, false) : bar(base, top, 0.09, PLANK_DARK));
         postTops[side < 0 ? 0 : 1].push(top);
       }
     }
@@ -1515,8 +1523,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         const b = pts[i + 1];
         const mid = a.clone().lerp(b, 0.5);
         mid.y -= 0.09;
-        plankParts.push(bar(a, mid, 0.035, PLANK_DARK));
-        plankParts.push(bar(mid, b, 0.035, PLANK_DARK));
+        if (def.roundWalkway) plankParts.push(rod(a, mid, 0.014, ROPE, 5, 0.014, false), rod(mid, b, 0.014, ROPE, 5, 0.014, false));
+        else plankParts.push(bar(a, mid, 0.035, PLANK_DARK), bar(mid, b, 0.035, PLANK_DARK));
       }
     }
 
@@ -1535,7 +1543,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const podR = R * 0.15;
     const pods: Vector3[] = [];
     const hang = (from: Vector3, drop: number, color: RGB, bracketFrom?: Vector3) => {
-      if (bracketFrom) plankParts.push(bar(bracketFrom, from, 0.045, PLANK_DARK));
+      if (bracketFrom) plankParts.push(def.roundWalkway ? rod(bracketFrom, from, 0.022, scaleRGB(PLANK_DARK, 1.1), 6, 0.019, false) : bar(bracketFrom, from, 0.045, PLANK_DARK));
       if (def.dressing) {
         // round 55: a hut the player walks up to hangs the crafted near lantern (own fork per pod)
         const rig = buildLantern(from, drop, mats, r.fork(`lantern55/${pods.length}`), 1.1, color === GLOW_LIME ? 'lime' : 'orange');
@@ -1781,7 +1789,6 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         return Math.hypot(p.x - _axis.x, p.z - _axis.z) - br;
       };
       const tone = (base: RGB, lo: number, hi: number): RGB => scaleRGB(base, ch.range(lo, hi));
-      const ROPE: RGB = [0.4, 0.33, 0.23];
 
       if (C.ladder) {
         // ---- the ROPE LADDER: two side ropes tied round the rim beam, a round rung every 0.3 m,
