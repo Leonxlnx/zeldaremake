@@ -3033,6 +3033,34 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   #28 / #26-crown-clarity are already in; #29 conflicts with the memory-tier admission (lane 2 pointer), #26's Link
   chain is lane 8's. No squad PR yet at 09:30.
 
+### 2026-09-23 20:15 – 09-24 00:40 UTC — round 56: expansion south, the village exit (`agent/fable-cursor-exp-south`, sub-agent)
+- The owner 20:08: "why for the love of God has there been no expansion to the environment past the stuff". Built on the
+  pinned checkpoint `746f1d39` in a scratch worktree; evidence, coordinates and numbers in
+  `art/environment/exp-south-2026-09-23/README.md` (four before/after sheets).
+- What (metres, +z south): the paved path from the spine's end (1, 16) south-west round `plaza-south`'s flared foot,
+  through the gap to `south-centre`, south-east onto the bridge axis at (3.7, 29.9) (16.6 m, 4.0 → 2.4 m wide, grade
+  ≤ 0.07, ≥ 0.48 m off both giants' feet); a west–east ravine (−27.2, 52.2) → (30.3, 49.7), 11.4 m lip to lip and 9.2 m
+  deep at the crossing (3.9, 37.1), with pooled mist, moss draped from the lips (terrain splat), ferns, roots and vines;
+  the rope-and-plank bridge (3.72, 30.45) → (4.08, 43.7) (13.3 m deck, 0.7 m sag, hand ropes on four raked posts, a pod
+  lantern at every post's head); far paving to the hollow log's mouth (4.25, 46.9), walkable 5.6 m in to an emissive
+  glow (no light added).
+- Where it lives: `layout.ts` `EXPANSION_SOUTH` (+ `southPathLine`, `southBridgeFrame`, `inExpansionSouth`); the landform
+  in the heightfield's LIVE view only (`terrain/south.ts`, `heightfield.ts`, `chunks.ts` wall moss); `hardscape` south
+  paving; `structures/expansionSouth.ts`; `vegetation/expansionSouth.ts`; the ravine mist; `character/ground.ts` walk spans
+  (deck, log floor) and edge sliding; `trees/index.ts` + `giant.ts`: trees in the south boxes and the two south giants
+  seat on the live ground, their far plain/side roots dive under the new paving (`rootPressAt`, off for every other
+  giant), their contacts count as live-seated for W12; legacy instances culled off the new ground; `playtest.mjs`
+  route `south-bridge-to-log` + `southProbes`; tests (`terrain/expansionSouth.test.mjs`, expansion2 exemptions, the
+  plants litter floor re-based 655 → 628, floor 610).
+- Commits: `653c1711` `e5d4b0f9` `d57c421c` `465197ff` `2b819a55` `3b5adb5e` `6010ab08` `1bffea1e` `300b8d9f`.
+- Verified: tests 93/93 world + 30/30 other; the walk reaches the log (21/21 waypoints, 51.7 m, max camera 8.9 m/s)
+  and 41/41 probes pass, including all 18 off either side of the deck blocked. Camera C: 2.75 % of pixels change by
+  > 16/255, all in the backdrop between the trunks (reference SSIM 0.1791 → 0.1771; W37 already fails at 0.42).
+  Merging this branch into `81430baf` is conflict-free, typechecks and passes 97/97.
+- For the integrator: on the head, `39e63437`'s 40/44 m near-base band draws the south giants' bark bases from the
+  bridge (on this branch their far roots still show the lime moss sheets past 13 m, pre-existing, lane 3's shading);
+  the south structures keep their pods separate (six swinging pivots, 12 draws with shadows) like every village pod.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3071,4 +3099,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-23T09:30:00Z
+2026-09-24T00:40:00Z
