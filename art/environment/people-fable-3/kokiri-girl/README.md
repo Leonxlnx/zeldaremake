@@ -264,4 +264,14 @@ The hem (the skirt's scalloped, ragged edge, round 48) read as intended in the s
 Renders of the kids with `broll.mjs` need `--character` — the script hides the character group by default for B-roll.
 An hour of empty frames this morning before I re-read its usage line.
 
-Six views A / B / F, before `ca05e910` → after: table below when the capture lands.
+Six views A / B / F, before `ca05e910` → after `0a36c3e3`, both at high:
+
+| view | SSIM vs the reference, before → after | Δ | SSIM before↔after | changed px | draws / tris after |
+| --- | --- | --- | --- | --- | --- |
+| A | 0.2013 → 0.2012 | −0.0001 | 0.9999 | 199 | 640 / 8.87 M |
+| B (= E's frame) | 0.1862 → 0.1862 | +0.0000 | 1.0000 | 222 | 629 / 8.29 M |
+| F | 0.2105 → 0.2105 | −0.0000 | 1.0000 | 66 | 600 / 8.01 M |
+
+One draw more per girl in frame (A 639 → 640, B 628 → 629, F 599 → 600): the strap's mapped material is its own,
+where round 48's belt shared the wristbands' plain one. Within budget; the wristbands could take the strap canvas too
+and give the draw back, but a torus maps the stitches round the tube — left for a look decision.

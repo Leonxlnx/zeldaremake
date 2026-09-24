@@ -341,3 +341,13 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   never inside). Stair pots at 2 m and the bridge's squat pot at 3.5 m before/after in `props-fable-3/wear/`; A / B / F
   to before 1.0000 (16–179 px), vs the reference −0.0001 / 0 / 0. South scorecard 111 / 144 (154 / 200), no check
   below 3 — the rest is 3 → 4, a look call (the reference's pots are plainer).
+
+## 2026-09-24 10:23 tick (three queued) — JOB 7's belt
+
+- Head unchanged since 07:05; no replies. Lane 9's list is landed; took lane 7's open item, the belt (owner 23:00).
+- `0a36c3e3` (`buildGirlTunic`): a flat stitched strap (four-point lathe + strap canvas), a buckle frame with its
+  tongue, the tail hanging — for the torus and plate. Before/after at 2.6 m in `people-fable-3/kokiri-girl/
+  before-after-belt-2.6m.jpg`; A / B / F 0.9999–1.0000 to before, vs the reference −0.0001 / 0 / 0; +1 draw per girl in
+  frame (the strap's own mapped material). Hem left as round 48 made it — it reads.
+- Lesson (an hour lost): `broll.mjs` hides the character group unless `--character` is passed. Every kid render needs it.
+- Posted exp-east's #18 plan against its README table (six props on an `east` locality after the merge).
