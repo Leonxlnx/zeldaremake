@@ -23,6 +23,7 @@ flat in float vShade;
 flat in vec2 vFade;
 flat in float vScale;
 flat in float vLevel;
+flat in vec3 vIds;
 
 out vec4 fragColor;
 
@@ -74,11 +75,19 @@ void main() {
     if (uDebug == 1 && uAlpha < 0.0) {
         color = vec3(1.0, 0.0, 1.0);
     } else if (uDebug == 1) {
-        vec3 lc = 0.5 + 0.5 * cos(6.28318 * (vec3(0.0, 0.33, 0.67) + vLevel * 0.19));
+        const vec3 LEVEL[8] = vec3[](vec3(1, 0.15, 0.1), vec3(1, 0.85, 0.1), vec3(0.2, 0.9, 0.2), vec3(0.1, 0.9, 0.9),
+                                     vec3(0.15, 0.3, 1), vec3(0.95, 0.95, 0.95), vec3(0.5, 0.5, 0.5), vec3(0.1, 0.1, 0.1));
+        vec3 lc = LEVEL[min(int(vLevel + 0.5), 7)];
         color = mix(base * vShade, lc, 0.65);
-    } else if (uDebug == 3 && uAlpha < 0.0) {
+    } else if ((uDebug == 3 || uDebug == 7 || uDebug == 8) && uAlpha < 0.0) {
         fragColor = vec4(1.0, 0.0, 1.0, 1.0);
         return;
+    } else if (uDebug == 4) {
+        float third = gl_FragCoord.x / (uAtlasSize.x > 0.0 ? 1.0 : 1.0);
+        vec3 lm = texture(uLightmap, lmUV).rgb;
+        color = third < 426.0 ? vTint : third < 853.0 ? lm : base;
+    } else if (uDebug == 5) {
+        color = vIds;
     } else if (uDebug == 2) {
         color = vec3(vLight.y, vLight.x, 0.0) / 15.0 * vShade;
     }

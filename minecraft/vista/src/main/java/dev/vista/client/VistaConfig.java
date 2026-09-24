@@ -60,6 +60,9 @@ public final class VistaConfig {
         if (c == null) c = new VistaConfig();
         c.save();
         c.debugView = Integer.getInteger("vista.debug", c.debugView);
+        c.msaa = Integer.getInteger("vista.msaa", c.msaa);
+        c.renderDistanceChunks = Integer.getInteger("vista.distance", c.renderDistanceChunks);
+        c.threads = Integer.getInteger("vista.threads", c.threads);
         return c;
     }
 

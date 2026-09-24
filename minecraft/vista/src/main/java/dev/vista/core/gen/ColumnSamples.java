@@ -10,6 +10,8 @@ public final class ColumnSamples {
     /** Compact biome id. */
     public final int[] biome = new int[1024];
     public int seaLevel = 63;
+    /** World build limits; voxels centred outside them are void. */
+    public int minY = -64, maxY = 320;
     public boolean allLand;
 
     public int minHeight() {

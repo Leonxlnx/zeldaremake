@@ -83,7 +83,7 @@ public final class LodRenderer implements AutoCloseable {
     private boolean initialised, failed;
     private boolean clipControl;
     private GlProgram lodProgram, compositeProgram;
-    private int quadBuffer, metaBuffer, indirectBuffer, vao, emptyVao;
+    private int quadBuffer, metaBuffer, indirectBuffer, transIndirectBuffer, vao, emptyVao;
     private RangeAllocator allocator;
     private long maxQuads;
     private int fbo, colorRb, depthRb, resolveFbo, resolveTex, fbW, fbH, fbSamples;
@@ -101,11 +101,12 @@ public final class LodRenderer implements AutoCloseable {
     private double[] transDist = new double[1024];
     private int[] transMeta = new int[1024];
     private long frame;
+    private boolean loggedState;
 
     // Stats for the debug overlay / benchmarks.
     public volatile int statVisible, statCommands, statSelected, statTransCommands;
     public volatile long statQuadsDrawn, statUploadBytes, statGpuBytes;
-    public volatile double statCpuMs;
+    public volatile double statCpuMs, statPrepMs;
 
     public LodRenderer(LodEngine engine, StateRegistry states, BiomeRegistry biomes, VistaConfig config) {
         this.engine = engine;
@@ -149,6 +150,7 @@ public final class LodRenderer implements AutoCloseable {
             allocator = new RangeAllocator(initial);
             metaBuffer = GL15C.glGenBuffers();
             indirectBuffer = GL15C.glGenBuffers();
+            transIndirectBuffer = GL15C.glGenBuffers();
             vao = GL30C.glGenVertexArrays();
             GL30C.glBindVertexArray(vao);
             GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, metaBuffer);
@@ -196,15 +198,17 @@ public final class LodRenderer implements AutoCloseable {
         ensureFramebuffer(main.width, main.height);
 
         Matrix4f vp = new Matrix4f(projection).mul(modelView);
-        // Replace the depth row with z' = near * w: reversed, infinite-far depth that keeps any view bobbing
-        // or zoom already baked into vanilla's projection.
-        vp.m02(NEAR * vp.m03()).m12(NEAR * vp.m13()).m22(NEAR * vp.m23()).m32(NEAR * vp.m33());
+        // Replace the depth row with the constant z' = near, so depth = near / w: reversed, infinite-far depth
+        // that keeps any view bobbing or zoom already baked into vanilla's projection.
+        vp.m02(0).m12(0).m22(0).m32(NEAR);
         FrustumIntersection frustum = new FrustumIntersection(vp, false);
 
         int opaqueCmds = buildCommands(cam, frustum, now);
         int transCmds = cmdCount - opaqueCmds;
 
+        long t1 = System.nanoTime();
         drawPass(vp, cam, camCX, camCZ, opaqueCmds, transCmds, main);
+        statPrepMs = (t1 - t0) / 1e6;
         statCpuMs = (System.nanoTime() - t0) / 1e6;
     }
 
@@ -478,7 +482,9 @@ public final class LodRenderer implements AutoCloseable {
                 quadsDrawn += count;
             }
             int tc = gs[MeshData.GROUPS] - gs[MeshData.TRANSLUCENT_GROUP];
-            if (tc > 0) {
+            if (tc > 0 && config.debugView == 6) {
+                addCommand(tc, g.offset + gs[MeshData.TRANSLUCENT_GROUP], metaIndex);
+            } else if (tc > 0) {
                 if (transCount == transKeys.length) {
                     transKeys = Arrays.copyOf(transKeys, transCount * 2);
                     transDist = Arrays.copyOf(transDist, transCount * 2);
@@ -616,7 +622,22 @@ public final class LodRenderer implements AutoCloseable {
                 RenderSystem.enableBlend();
                 GlStateManager._blendFuncSeparate(GL11C.GL_ONE, GL11C.GL_ONE_MINUS_SRC_ALPHA, GL11C.GL_ONE, GL11C.GL_ONE_MINUS_SRC_ALPHA);
                 GlStateManager._depthMask(false);
-                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, (long) opaqueCmds * CMD_STRIDE, transCmds, CMD_STRIDE);
+                if (config.debugView == 7) RenderSystem.disableDepthTest();
+                if (config.debugView == 8) GlStateManager._depthFunc(GL11C.GL_GEQUAL);
+                if (!loggedState && Boolean.getBoolean("vista.debugAppearance")) {
+                    loggedState = true;
+                    VistaClient.LOG.info("translucent pass GL state: depthFunc {} depthTest {} depthMask {} clipDepth {} cull {}",
+                            GL11C.glGetInteger(GL11C.GL_DEPTH_FUNC), GL11C.glIsEnabled(GL11C.GL_DEPTH_TEST),
+                            GL11C.glGetBoolean(GL11C.GL_DEPTH_WRITEMASK), GL11C.glGetInteger(GL45C.GL_CLIP_DEPTH_MODE), GL11C.glIsEnabled(GL11C.GL_CULL_FACE));
+                }
+                // Separate buffer drawn from offset 0: a non-zero indirect offset is ignored by some drivers
+                // (observed on Mesa llvmpipe), which silently dropped all water.
+                GL15C.glBindBuffer(GL40C.GL_DRAW_INDIRECT_BUFFER, transIndirectBuffer);
+                GL15C.glBufferData(GL40C.GL_DRAW_INDIRECT_BUFFER, (long) transCmds * CMD_STRIDE, GL15C.GL_STREAM_DRAW);
+                GL15C.glBufferSubData(GL40C.GL_DRAW_INDIRECT_BUFFER, 0, cmds.slice(opaqueCmds * CMD_STRIDE, transCmds * CMD_STRIDE));
+                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, 0L, transCmds, CMD_STRIDE);
+                if (config.debugView == 7) RenderSystem.enableDepthTest();
+                if (config.debugView == 8) GlStateManager._depthFunc(GL11C.GL_GREATER);
                 GlStateManager._depthMask(true);
             }
 
@@ -664,6 +685,7 @@ public final class LodRenderer implements AutoCloseable {
             GL15C.glDeleteBuffers(quadBuffer);
             GL15C.glDeleteBuffers(metaBuffer);
             GL15C.glDeleteBuffers(indirectBuffer);
+            GL15C.glDeleteBuffers(transIndirectBuffer);
             GL30C.glDeleteVertexArrays(vao);
             GL30C.glDeleteVertexArrays(emptyVao);
             lodProgram.close();

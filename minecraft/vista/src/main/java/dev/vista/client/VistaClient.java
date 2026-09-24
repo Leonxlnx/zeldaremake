@@ -143,8 +143,8 @@ public final class VistaClient implements ClientModInitializer {
         var e = s.engine;
         Runtime rt = Runtime.getRuntime();
         return List.of(
-                String.format("[Vista] %d selected, %d visible, %d draws (%d translucent), %.1fM quads, cpu %.2f ms",
-                        r.statSelected, r.statVisible, r.statCommands, r.statTransCommands, r.statQuadsDrawn / 1e6, r.statCpuMs),
+                String.format("[Vista] %d selected, %d visible, %d draws (%d translucent), %.2fM quads, frame %.2f ms (prep %.2f ms)",
+                        r.statSelected, r.statVisible, r.statCommands, r.statTransCommands, r.statQuadsDrawn / 1e6, r.statCpuMs, r.statPrepMs),
                 String.format("[Vista] GPU %.0f/%.0f MiB, upload queue %d (%.1f MiB), jobs %d, nodes %d, ingest %d",
                         r.gpuBytes() / 1048576.0, r.gpuCapacityBytes() / 1048576.0, r.queuedMeshes(), r.queuedUploadBytes() / 1048576.0,
                         e.pendingJobs(), e.nodeCount(), s.ingestor.pending()),

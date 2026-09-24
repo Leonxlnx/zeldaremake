@@ -82,6 +82,8 @@ public final class NoiseTerrainSource implements LodEngine.TerrainSource {
         int[] h = new int[n * n];
         int[] b = new int[n * n];
         out.seaLevel = seaLevel;
+        out.minY = minY;
+        out.maxY = maxY;
         int prev = seaLevel;
         for (int j = 0; j < n; j++) {
             for (int k = 0; k < n; k++) {

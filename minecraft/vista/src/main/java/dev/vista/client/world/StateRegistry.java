@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -116,7 +115,7 @@ public final class StateRegistry {
         } else {
             byte cls = classify(s);
             if (cls == StateClasses.AIR) {
-                id = s.getFluidState().is(FluidTags.WATER) && !s.is(Blocks.WATER) ? id(Blocks.WATER.defaultBlockState()) : AIR;
+                id = s.getFluidState().getType().isSame(net.minecraft.world.level.material.Fluids.WATER) && !s.is(Blocks.WATER) ? id(Blocks.WATER.defaultBlockState()) : AIR;
             } else if (states.size() >= 0xFFFF) {
                 id = AIR;
             } else {
@@ -127,6 +126,8 @@ public final class StateRegistry {
                     try {
                         writer.write(BlockStateParser.serialize(s));
                         writer.write('\n');
+                        // Cached voxels reference these ids; the mapping must reach disk before they do.
+                        writer.flush();
                     } catch (IOException e) {
                         VistaClient.LOG.warn("Cannot append to state registry", e);
                     }
@@ -140,7 +141,7 @@ public final class StateRegistry {
     static byte classify(BlockState s) {
         if (s.isAir()) return StateClasses.AIR;
         if (s.getBlock() instanceof LiquidBlock) {
-            return s.getFluidState().is(FluidTags.WATER) ? StateClasses.TRANSLUCENT : StateClasses.OPAQUE;
+            return s.getFluidState().getType().isSame(net.minecraft.world.level.material.Fluids.WATER) ? StateClasses.TRANSLUCENT : StateClasses.OPAQUE;
         }
         if (s.getBlock() instanceof LeavesBlock) return StateClasses.OPAQUE;
         try {

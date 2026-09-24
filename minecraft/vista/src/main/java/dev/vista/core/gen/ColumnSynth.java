@@ -40,7 +40,12 @@ public final class ColumnSynth {
                     int wy = baseY + y * s;
                     int twiceCenter = 2 * wy + s;
                     int v;
-                    if (twiceCenter < 2 * (h + 1)) {
+                    if (twiceCenter < 2 * cs.minY || twiceCenter >= 2 * cs.maxY) {
+                        out[Voxel.index(x, y, z)] = twiceCenter < 2 * cs.minY ? Voxel.AIR : Voxel.SKY;
+                        continue;
+                    }
+                    boolean seaSurface = h < cs.seaLevel - 1 && wy <= cs.seaLevel - 1 && cs.seaLevel - 1 < wy + s;
+                    if (twiceCenter < 2 * (h + 1) && !seaSurface) {
                         boolean top = 2 * (wy + s) + s >= 2 * (h + 1);
                         int state;
                         if (top) {
@@ -52,10 +57,10 @@ public final class ColumnSynth {
                             state = wy < 0 ? surf.deepStone() : surf.stone();
                         }
                         v = Voxel.pack(state, bio, 0);
-                    } else if (twiceCenter < 2 * cs.seaLevel) {
-                        int depth = cs.seaLevel - (wy + s / 2);
+                    } else if (seaSurface || (twiceCenter < 2 * cs.seaLevel && h < cs.seaLevel - 1)) {
+                        int depth = Math.max(0, cs.seaLevel - (wy + s / 2));
                         int sky = Math.max(0, 15 - depth);
-                        boolean surface = 2 * (wy + s) + s >= 2 * cs.seaLevel;
+                        boolean surface = seaSurface || 2 * (wy + s) + s >= 2 * cs.seaLevel;
                         int state = surface && surf.snowy() ? surf.ice() : water;
                         v = Voxel.pack(state, bio, sky << 4);
                     } else {

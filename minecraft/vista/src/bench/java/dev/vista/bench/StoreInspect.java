@@ -19,6 +19,7 @@ import java.util.stream.Stream;
  * mesh group sizes. Usage: {@code StoreInspect <world-cache-dir>} (the directory containing states.txt).
  */
 public final class StoreInspect {
+    private static final java.util.Map<String, Long> transStates = new java.util.TreeMap<>();
     private static final long[] skyAboveWater = new long[16];
     private static final long[] skyAboveGround = new long[16];
 
@@ -59,6 +60,7 @@ public final class StoreInspect {
                             boolean w = false;
                             for (int x : v) {
                                 counts[cls.ofVoxel(x)]++;
+                                if (cls.ofVoxel(x) == StateClasses.TRANSLUCENT) transStates.merge(states.get(Voxel.state(x)), 1L, Long::sum);
                                 if (Voxel.state(x) == water) w = true;
                             }
                             if (w) waterSections++;
@@ -77,6 +79,8 @@ public final class StoreInspect {
                         level, sections, waterSections, counts[0], counts[1], counts[2],
                         groups[0] + groups[2] + groups[4] + groups[6] + groups[8] + groups[10],
                         groups[1] + groups[3] + groups[5] + groups[7] + groups[9] + groups[11], groups[12]);
+                System.out.println("   translucent states: " + transStates);
+                transStates.clear();
                 System.out.println("   sky light above water surfaces: " + Arrays.toString(skyAboveWater));
                 System.out.println("   sky light above ground surfaces: " + Arrays.toString(skyAboveGround));
                 Arrays.fill(skyAboveWater, 0);

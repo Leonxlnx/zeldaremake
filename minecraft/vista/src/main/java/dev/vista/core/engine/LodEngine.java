@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -73,7 +72,7 @@ public final class LodEngine implements AutoCloseable {
 
     public static final class Node {
         final AtomicInteger dataVersion = new AtomicInteger();
-        final AtomicBoolean queued = new AtomicBoolean();
+        final Request request = new Request();
         volatile int meshVersion = -1;
         volatile boolean uploaded;
         volatile boolean empty = true;
@@ -93,7 +92,7 @@ public final class LodEngine implements AutoCloseable {
     private final ConcurrentHashMap<Long, Column> columns = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, Node> nodes = new ConcurrentHashMap<>();
     private final Set<Long> dirtyRegionMeta = ConcurrentHashMap.newKeySet();
-    private final Set<Long> pendingGenerate = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<Long, Request> pendingGenerate = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, AtomicInteger> pendingPropagate = new ConcurrentHashMap<>();
     private final Object[] sectionLocks = new Object[1024];
     private final Object[] columnLocks = new Object[1024];
@@ -289,18 +288,53 @@ public final class LodEngine implements AutoCloseable {
     }
 
     private void onSectionChanged(long key) {
+        long now = System.currentTimeMillis();
         Node n = nodes.computeIfAbsent(key, k -> new Node());
         n.dataVersion.incrementAndGet();
-        if (n.uploaded || n.queued.get()) requestMesh(key, distanceTo(key));
+        if (active(n, now)) scheduleRemesh(key, n, now);
         for (int d = 0; d < Dir.COUNT; d++) {
             long nk = SectionKey.neighbor(key, d);
             Node nn = nodes.get(nk);
-            if (nn != null && (nn.uploaded || nn.queued.get())) {
+            if (nn != null) {
                 nn.dataVersion.incrementAndGet();
-                requestMesh(nk, distanceTo(nk));
+                if (active(nn, now)) scheduleRemesh(nk, nn, now);
             }
         }
         selectionDirty = true;
+    }
+
+    /**
+     * Only nodes the selector touched recently are remeshed eagerly when their data changes; everything else
+     * (e.g. sections under vanilla chunks, which receive a stream of ingests) is remeshed lazily when it is
+     * next needed, because the selector compares mesh and data versions.
+     */
+    private static final long REMESH_DELAY_MS = 700;
+    private final ConcurrentHashMap<Long, Long> remeshDue = new ConcurrentHashMap<>();
+
+    /**
+     * A node that is on screen keeps its current mesh until the burst of changes around it settles (chunks
+     * arrive in bursts, and each also dirties six neighbours); nodes without a mesh are meshed immediately.
+     */
+    private void scheduleRemesh(long key, Node n, long now) {
+        if (!n.uploaded) {
+            requestMesh(key, distanceTo(key));
+            return;
+        }
+        remeshDue.putIfAbsent(key, now + REMESH_DELAY_MS);
+    }
+
+    private void submitDueRemeshes() {
+        long now = System.currentTimeMillis();
+        for (Iterator<Map.Entry<Long, Long>> it = remeshDue.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, Long> e = it.next();
+            if (e.getValue() > now) continue;
+            it.remove();
+            requestMesh(e.getKey(), distanceTo(e.getKey()));
+        }
+    }
+
+    private static boolean active(Node n, long now) {
+        return n.request.isQueued() || (n.uploaded && now - n.lastWanted < 3000);
     }
 
     // ------------------------------------------------------------------------------------------ generation
@@ -308,14 +342,52 @@ public final class LodEngine implements AutoCloseable {
     private void requestGenerate(int level, int x, int z, double dist) {
         if (terrain == null) return;
         long colKey = SectionKey.columnOf(level, x, z);
-        if (!pendingGenerate.add(colKey)) return;
+        Request r = pendingGenerate.computeIfAbsent(colKey, k -> new Request());
+        int ticket = r.claim(dist * 0.75);
+        if (ticket < 0) return;
         workers.submit(dist * 0.75, () -> {
+            if (!r.isCurrent(ticket)) return;
             try {
-                generateIfUnknown(colKey);
+                if (!r.isStale()) generateIfUnknown(colKey);
             } finally {
-                pendingGenerate.remove(colKey);
+                pendingGenerate.remove(colKey, r);
             }
         });
+    }
+
+    /**
+     * De-duplicates queued work for one key while still letting it be re-prioritised: a request with a much
+     * better priority than the queued one submits a new job and invalidates the old one (the camera moved
+     * towards it); a job nobody has asked for in a while is dropped when it reaches the front of the queue
+     * (the camera moved away).
+     */
+    static final class Request {
+        private static final long STALE_MS = 8000;
+        private int ticket;
+        private boolean queued;
+        private double priority;
+        private volatile long lastRequested;
+
+        /** Returns a ticket to submit a job with, or -1 if the already queued job is good enough. */
+        synchronized int claim(double prio) {
+            lastRequested = System.currentTimeMillis();
+            if (queued && prio >= priority * 0.6 - 32) return -1;
+            queued = true;
+            priority = prio;
+            return ++ticket;
+        }
+
+        synchronized boolean isCurrent(int t) {
+            if (t != ticket) return false;
+            queued = false;
+            return true;
+        }
+
+        synchronized boolean isQueued() { return queued; }
+
+        boolean isStale() { return System.currentTimeMillis() - lastRequested > STALE_MS; }
+
+        void touch() { lastRequested = System.currentTimeMillis(); }
     }
 
     private void generateIfUnknown(long colKey) {
@@ -326,6 +398,8 @@ public final class LodEngine implements AutoCloseable {
             if (c != null && c.source != SectionStore.COLUMN_UNKNOWN) return;
             long t0 = System.nanoTime();
             ColumnSamples cs = samples.get();
+            cs.minY = config.minY;
+            cs.maxY = config.maxY;
             terrain.sample(level, x, z, cs);
             int[] buf = new int[Voxel.VOLUME];
             for (int sy = minSy(level); sy <= maxSy(level); sy++) {
@@ -461,12 +535,16 @@ public final class LodEngine implements AutoCloseable {
 
     public void requestMesh(long key, double dist) {
         Node n = nodes.computeIfAbsent(key, k -> new Node());
-        if (!n.queued.compareAndSet(false, true)) return;
-        workers.submit(dist, () -> buildMesh(key, n));
+        int ticket = n.request.claim(dist);
+        if (ticket < 0) return;
+        workers.submit(dist, () -> {
+            if (!n.request.isCurrent(ticket)) return;
+            if (n.request.isStale() && !n.uploaded) return;
+            buildMesh(key, n);
+        });
     }
 
     private void buildMesh(long key, Node n) {
-        n.queued.set(false);
         int version = n.dataVersion.get();
         long t0 = System.nanoTime();
         int[] self = load(key);
@@ -532,6 +610,7 @@ public final class LodEngine implements AutoCloseable {
                     Thread.sleep(8);
                 }
                 submitDuePropagations();
+                submitDueRemeshes();
                 if (now - lastMetaFlush > 5_000_000_000L) {
                     lastMetaFlush = now;
                     workers.submit(1e9, this::flushRegionMeta);
@@ -644,7 +723,7 @@ public final class LodEngine implements AutoCloseable {
         n.lastWanted = now;
         if (n.uploaded) {
             if (!n.empty) add(key);
-            if (n.meshVersion < n.dataVersion.get()) requestMesh(key, d);
+            if (n.meshVersion < n.dataVersion.get()) remeshDue.putIfAbsent(key, now + REMESH_DELAY_MS);
         } else {
             requestMesh(key, d);
         }
@@ -689,7 +768,7 @@ public final class LodEngine implements AutoCloseable {
         long cutoff = System.currentTimeMillis() - 30_000;
         for (Iterator<Map.Entry<Long, Node>> it = nodes.entrySet().iterator(); it.hasNext(); ) {
             Node n = it.next().getValue();
-            if (!n.uploaded && !n.queued.get() && n.lastWanted < cutoff) it.remove();
+            if (!n.uploaded && !n.request.isQueued() && n.lastWanted < cutoff) it.remove();
         }
     }
 
@@ -698,7 +777,7 @@ public final class LodEngine implements AutoCloseable {
         long end = System.currentTimeMillis() + timeoutMs;
         int idle = 0;
         while (System.currentTimeMillis() < end) {
-            if (workers.pending() == 0 && pendingPropagate.isEmpty() && pendingGenerate.isEmpty() && propagateDue.isEmpty()) {
+            if (workers.pending() == 0 && pendingPropagate.isEmpty() && pendingGenerate.isEmpty() && propagateDue.isEmpty() && remeshDue.isEmpty()) {
                 if (++idle > 5) return;
             } else {
                 idle = 0;

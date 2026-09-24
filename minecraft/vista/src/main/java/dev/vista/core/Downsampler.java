@@ -40,10 +40,16 @@ public final class Downsampler {
                     int translucentVoxel = 0;
                     int airVoxel = 0;
                     int nOpaque = 0;
+                    int topOpaque = 0, topTranslucent = 0;
                     for (int c = 0; c < 8; c++) {
                         int cx = px * 2 + (c & 1), cy = py * 2 + ((c >> 1) & 1), cz = pz * 2 + ((c >> 2) & 1);
                         int v = child[(cy << 10) | (cz << 5) | cx];
                         byte k = cls[v & 0xFFFF];
+                        boolean upper = ((c >> 1) & 1) == 1;
+                        if (upper) {
+                            if (k == StateClasses.OPAQUE) topOpaque++;
+                            else if (k == StateClasses.TRANSLUCENT) topTranslucent++;
+                        }
                         if (k == StateClasses.OPAQUE) {
                             opaque++;
                             cand[nOpaque++] = v;
@@ -65,7 +71,11 @@ public final class Downsampler {
                     }
                     int light = sky << 4 | blk;
                     int out;
-                    if (opaque >= SOLID_THRESHOLD) {
+                    if (topTranslucent >= 2 && topOpaque < 2) {
+                        // Water covering the top of the cell is what is seen from above; keeping it prevents
+                        // shallow seas and rivers from turning into land at coarse levels.
+                        out = Voxel.withLight(translucentVoxel, light);
+                    } else if (opaque >= SOLID_THRESHOLD) {
                         out = mostFrequentTop(cand, nOpaque, bestOpaque, bestOpaqueY, child, px, py, pz, cls);
                         out = Voxel.withLight(out, light);
                     } else if (translucent > 0) {
