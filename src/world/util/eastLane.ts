@@ -136,6 +136,7 @@ export function eastLookoutCasters(groundAt: (x: number, z: number) => number): 
   const L = EXPANSION_EAST.lookout;
   const out: Caster[] = L.fence.map((p) => ({ x: p[0], z: p[2], r: 0.5, y0: groundAt(p[0], p[2]) - 0.15, y1: groundAt(p[0], p[2]) + 1.25, shadow: true }));
   out.push({ x: L.bench.x, z: L.bench.z, r: L.bench.length * 0.5 + 0.3, y0: groundAt(L.bench.x, L.bench.z) - 0.2, y1: groundAt(L.bench.x, L.bench.z) + 0.7, shadow: true });
+  for (const a of L.anchors) out.push({ x: a.x, z: a.z, r: a.r + 0.3, y0: groundAt(a.x, a.z) - 0.45, y1: groundAt(a.x, a.z) + a.height + 0.1, shadow: true });
   return out;
 }
 

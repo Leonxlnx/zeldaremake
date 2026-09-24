@@ -1135,6 +1135,17 @@ export const EXPANSION_EAST = {
       [50.3, 0, 8.55],
     ] as [number, number, number][],
     bench: { x: 48.3, z: 7.55, yawDeg: -132, length: 1.9 },
+    /**
+     * The rope's anchors: two felled trees' stumps just past its end posts, on the lip's edge
+     * (centre, foot radius `r`, sawn off `height` m up); the rope's ends wrap round them. The
+     * character stops a step off the foot as he does at the rope (character/ground.ts), and each end
+     * post stands inside that step, so the rope and its stumps are one barrier with no end to slide
+     * round. Their feet are walls in the live structure mask (no grass through them).
+     */
+    anchors: [
+      { x: 44.72, z: 8.98, r: 0.5, height: 0.98 },
+      { x: 50.88, z: 8.36, r: 0.5, height: 0.92 },
+    ] as { x: number; z: number; r: number; height: number }[],
   },
   /**
    * The tall house's side deck, in its trunk frame: centred `a` rad round from the door (+ = the

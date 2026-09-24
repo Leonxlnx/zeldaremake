@@ -30,6 +30,8 @@ export interface FenceBuild {
   meshes: Mesh[];
   posts: number;
   bases: [number, number, number][];
+  /** each post's top (it leans), with `bases` the axis a rail or a tie-off meets */
+  tops: [number, number, number][];
   /** round 41 audit */
   detail41: { postTriangles: number; ropeTriangles: number; footTufts: number; lashings: number; mortises: number };
 }
@@ -409,5 +411,5 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
     tuftMesh.receiveShadow = true;
     meshes.push(tuftMesh);
   }
-  return { meshes, posts: tops.length, bases, detail41: { postTriangles, ropeTriangles, footTufts: tufts.count, lashings, mortises } };
+  return { meshes, posts: tops.length, bases, tops: tops.map((t) => [t.x, t.y, t.z]), detail41: { postTriangles, ropeTriangles, footTufts: tufts.count, lashings, mortises } };
 }

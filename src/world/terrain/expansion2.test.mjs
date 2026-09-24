@@ -579,6 +579,8 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
       const dz = z - B.z;
       return Math.abs(dx * Math.cos(by) - dz * Math.sin(by)) < B.length * 0.5 + 0.25 && Math.abs(dx * Math.sin(by) + dz * Math.cos(by)) < 0.55;
     };
+    const anchors = EXPANSION_EAST.lookout.anchors;
+    const inAnchor = (x, z) => anchors.some((a) => Math.hypot(x - a.x, z - a.z) < a.r + 0.3);
     let open = 0;
     for (let i = 0; i + 1 < LF.length; i++) {
       const [ax, , az] = LF[i];
@@ -594,12 +596,78 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
         assert.equal(ground.blocked(x + nx * 0.2, z + nz * 0.2), true, `the lookout fence stops a step 0.2 m short at ${fmt(x, z)}`);
         assert.equal(hf.surfaceMask(x, z, 'live').structure, 0, `the lookout fence is no structure pad at ${fmt(x, z)}`);
         const [ox, oz] = [x + nx * 0.5, z + nz * 0.5];
-        if (inBench(ox, oz)) continue;
+        if (inBench(ox, oz) || inAnchor(ox, oz)) continue;
         assert.equal(ground.blocked(ox, oz), false, `half a metre in from the lookout fence is open at ${fmt(ox, oz)}`);
         open++;
       }
     }
     assert.ok(open >= 30, `the lookout fence's inner side is open ground along most of it (${open} samples)`);
+    // the rope's ends wrap round two stumps: each is solid a step round its foot (and a wall in the
+    // live mask, so no grass grows through it), and each end post stands inside its stump's ring, so
+    // the rope and the stumps are one barrier with no gap at either end
+    assert.equal(anchors.length, 2, 'two stumps anchor the rope');
+    for (const [k, a] of anchors.entries()) {
+      const post = LF[k === 0 ? 0 : LF.length - 1];
+      for (let j = 0; j < 16; j++) {
+        const t = (j / 16) * Math.PI * 2;
+        assert.equal(ground.blocked(a.x + Math.cos(t) * (a.r + 0.2), a.z + Math.sin(t) * (a.r + 0.2)), true, `the stump at ${fmt(a.x, a.z)} is solid ${(a.r + 0.2).toFixed(2)} m round`);
+        assert.equal(hf.surfaceMask(a.x + Math.cos(t) * (a.r - 0.05), a.z + Math.sin(t) * (a.r - 0.05), 'live').structure, 1, `the stump at ${fmt(a.x, a.z)} is a wall in the live mask`);
+      }
+      const d = Math.hypot(post[0] - a.x, post[2] - a.z);
+      assert.ok(d < a.r + 0.25 - 0.1, `end post ${fmt(post[0], post[2])} stands ${d.toFixed(2)} m from its stump, inside the ${(a.r + 0.25).toFixed(2)} m ring`);
+      for (let u = 0; u <= 1.0001; u += 0.05) {
+        const x = post[0] + (a.x - post[0]) * u;
+        const z = post[2] + (a.z - post[2]) * u;
+        assert.equal(ground.blocked(x, z), true, `no gap between end post and stump at ${fmt(x, z)}`);
+      }
+      assert.equal(hf.surfaceMask(a.x, a.z, 'legacy').structure, 0, `the legacy mask has no stump at ${fmt(a.x, a.z)}`);
+    }
+    // between the stumps' centres, what the lookout's ground reaches by the character's steps (8-way,
+    // 0.1 m, walkable = no riser ≥ 0.55 m and not blocked) never gets to the bank side of the rope
+    {
+      const [wA, eA] = anchors[0].x < anchors[1].x ? anchors : [anchors[1], anchors[0]];
+      const ropeZ = (x) => {
+        for (let i = 0; i + 1 < LF.length; i++) {
+          const [ax, , az] = LF[i];
+          const [bx, , bz] = LF[i + 1];
+          if (x >= Math.min(ax, bx) && x <= Math.max(ax, bx)) return az + ((bz - az) * (x - ax)) / (bx - ax);
+        }
+        return x < LF[0][0] ? LF[0][2] : LF[LF.length - 1][2];
+      };
+      const step = 0.1;
+      const x0 = wA.x;
+      const x1 = eA.x;
+      const z0 = B.z - 2.5;
+      const z1 = Math.max(wA.z, eA.z) + 2.5;
+      const nx = Math.round((x1 - x0) / step);
+      const nzc = Math.round((z1 - z0) / step);
+      const seen = new Uint8Array((nx + 1) * (nzc + 1));
+      const at = (i, j) => [x0 + i * step, z0 + j * step];
+      const start = [Math.round((B.x + 0.9 * Math.sin((B.yawDeg * Math.PI) / 180) - x0) / step), Math.round((B.z + 0.9 * Math.cos((B.yawDeg * Math.PI) / 180) - z0) / step)];
+      assert.equal(ground.blocked(...at(...start)), false, `the flood starts on open ground in front of the bench at ${fmt(...at(...start))}`);
+      const queue = [start];
+      seen[start[1] * (nx + 1) + start[0]] = 1;
+      let reached = 0;
+      let leak = null;
+      while (queue.length) {
+        const [i, j] = queue.pop();
+        const [x, z] = at(i, j);
+        reached++;
+        if (z > ropeZ(x) + 0.05 && !leak) leak = [x, z];
+        const h0 = ground.height(x, z);
+        for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+          const ni = i + di;
+          const nj = j + dj;
+          if (ni < 0 || nj < 0 || ni > nx || nj > nzc || seen[nj * (nx + 1) + ni]) continue;
+          const [px, pz] = at(ni, nj);
+          if (ground.height(px, pz) - h0 >= 0.55 || ground.blocked(px, pz)) continue;
+          seen[nj * (nx + 1) + ni] = 1;
+          queue.push([ni, nj]);
+        }
+      }
+      assert.ok(reached > 300, `the flood covers the lookout (${reached} cells)`);
+      assert.equal(leak, null, `the lookout's ground reaches the bank side of the rope between the stumps${leak ? ` at ${fmt(...leak)}` : ''}`);
+    }
   }
   // the tall house's deck railings stop a step (off the deck strip — the built deck itself is a walk surface)
   for (const [a, b] of layout.eastDeckPlan().rails) {

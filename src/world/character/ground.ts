@@ -21,17 +21,19 @@ const BRIDGE_LEN = southBridgeFrame().len;
 /**
  * The east lookout's rope fence (layout `EXPANSION_EAST.lookout`), where the plateau's south lip
  * falls 5 m in 6 m: the character stops FENCE_STOP_M short of the rope. It is no structure pad, so
- * the grass under the rope stays.
+ * the grass under the rope stays. The stumps its ends wrap round stop him FENCE_STOP_M off their
+ * feet, and each end post stands inside that ring: a push along the rope ends in the corner.
  */
 const LOOKOUT_FENCE = EXPANSION_EAST.lookout.fence.slice(1).map((b, i) => {
   const a = EXPANSION_EAST.lookout.fence[i];
   return { ax: a[0], az: a[2], ex: b[0] - a[0], ez: b[2] - a[2] };
 });
 const FENCE_STOP_M = 0.25;
+const LOOKOUT_ANCHORS = EXPANSION_EAST.lookout.anchors.map((a) => ({ x: a.x, z: a.z, r: a.r + FENCE_STOP_M }));
 const LOOKOUT_FENCE_BOX = (() => {
-  const xs = EXPANSION_EAST.lookout.fence.map((p) => p[0]);
-  const zs = EXPANSION_EAST.lookout.fence.map((p) => p[2]);
-  return { x0: Math.min(...xs) - FENCE_STOP_M, x1: Math.max(...xs) + FENCE_STOP_M, z0: Math.min(...zs) - FENCE_STOP_M, z1: Math.max(...zs) + FENCE_STOP_M };
+  const xs = [...EXPANSION_EAST.lookout.fence.map((p) => p[0] - FENCE_STOP_M), ...EXPANSION_EAST.lookout.fence.map((p) => p[0] + FENCE_STOP_M), ...LOOKOUT_ANCHORS.flatMap((a) => [a.x - a.r, a.x + a.r])];
+  const zs = [...EXPANSION_EAST.lookout.fence.map((p) => p[2] - FENCE_STOP_M), ...EXPANSION_EAST.lookout.fence.map((p) => p[2] + FENCE_STOP_M), ...LOOKOUT_ANCHORS.flatMap((a) => [a.z - a.r, a.z + a.r])];
+  return { x0: Math.min(...xs), x1: Math.max(...xs), z0: Math.min(...zs), z1: Math.max(...zs) };
 })();
 const lookoutFenceBlocked = (x: number, z: number): boolean => {
   const B = LOOKOUT_FENCE_BOX;
@@ -40,6 +42,7 @@ const lookoutFenceBlocked = (x: number, z: number): boolean => {
     const t = Math.min(1, Math.max(0, ((x - s.ax) * s.ex + (z - s.az) * s.ez) / (s.ex * s.ex + s.ez * s.ez)));
     if (Math.hypot(x - (s.ax + s.ex * t), z - (s.az + s.ez * t)) < FENCE_STOP_M) return true;
   }
+  for (const a of LOOKOUT_ANCHORS) if ((x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r) return true;
   return false;
 };
 

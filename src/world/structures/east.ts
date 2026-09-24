@@ -5,7 +5,7 @@
  * the door), the bossy kid's TALL house (the tallest dome, a plank deck on log posts with a
  * railing, plank steps down toward its door and a short ladder at the far end) and a SMALL cosy
  * house (low dome, round window, two flower boxes) — two pod-lantern posts, and the lookout's rope
- * fence and split-log bench on the south lip.
+ * fence (its ends wrapped round two sawn stumps) and split-log bench on the south lip.
  *
  * The houses are `buildHouse` builds: the trunk, cap, roots, pods and room of Saria's and the upper
  * house. Their point lights are dropped: a light joining or leaving the scene recompiles every lit
@@ -20,8 +20,8 @@
  *    counter's niche (everything that closes an opening in a trunk), with `core` while the camera is
  *    within EAST_MID_M of the green or the terrain lets it see a house's foot (`eastFootSeen`:
  *    camera F on the plaza sees over the plateau's lip, its lee on the plain does not);
- *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence and
- *    bench, with `base` when the frustum meets them;
+ *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence, stumps
+ *    and bench, with `base` when the frustum meets them;
  *  - `near`: the houses' close detail (cap tufts and plants, trunk moss and lichen, the rooms'
  *    furniture, the pods, the goods, the crates, the flowers) — one group across the three houses,
  *    so one bucket per material — within EAST_DETAIL_M of any trunk when the frustum meets a house;
@@ -58,9 +58,9 @@ import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_VISIBLE_M, eastBoxDistance,
 import { frustumMeets, sunVector, type Caster } from '../util/expansionLocality';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { buildFence, type FenceBuild } from './fence';
+import { buildFence, ropeTube, type FenceBuild } from './fence';
 import { FoliageBuilder } from './foliage';
-import { consolidateStaticMeshes, merge, setColorAttribute, sweepTube, TAU } from './geometry';
+import { consolidateStaticMeshes, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
 import { glyphDistance, type GlyphStroke } from './glyphs';
 import { buildHouse, type HouseBuild, type HouseSharedMaterials } from './house';
 import type { LanternRig } from './lantern';
@@ -68,7 +68,7 @@ import { buildLanternPost } from './lanternPost';
 import { Noise3D, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 import { grainPlank } from './signpost';
-import { checkedCap, endFrame, footMoss } from './woodGrain';
+import { checkedCap, endFrame, footMoss, woodGrain } from './woodGrain';
 
 type P3 = [number, number, number];
 type RGB = [number, number, number];
@@ -1192,6 +1192,240 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const fence: FenceBuild = buildFence({ id: 'east-lookout', style: 'rope', points: lookout.fence }, ctx, mats, rng.fork('lookout-fence'), rope);
   for (const m of fence.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
   bases.push(...fence.bases);
+  // the rope's anchors (layout `lookout.anchors`): two felled trees' stumps just past the end posts,
+  // sawn off at waist height — a flared, buttressed foot with three surface roots, a checked top with
+  // the torn hinge's splinters standing on the fall side — and each rail run on from its end post and
+  // wrapped round the bole, its end tucked under the last turn
+  const anchorAudit = (() => {
+    const sn = new Noise2D(`${ctx.config.seed}/structures/east/stumps`);
+    const bark: BufferGeometry[] = [];
+    const cuts: BufferGeometry[] = [];
+    const splinters: BufferGeometry[] = [];
+    const cords: BufferGeometry[] = [];
+    const tufts: MossTuftSpec[] = [];
+    const COLS = 40;
+    const ROWS = 18;
+    const ROPE_R = 0.022;
+    const FAVOUR: [number, number] = [0.62, 0.78];
+    const ends = [0, fence.bases.length - 1];
+    const built = lookout.anchors.map((A, k) => {
+      const rA = rng.fork(`stump/${k}`);
+      const seed = 7 + k * 13;
+      const gC = terrain.height(A.x, A.z);
+      const yTop = gC + A.height;
+      const rTop = A.r * 0.72;
+      const lean: [number, number] = [(rA() - 0.5) * 0.05, (rA() - 0.5) * 0.05];
+      const axis = (y: number): [number, number] => {
+        const f = clamp((y - gC) / A.height, 0, 1);
+        return [A.x + lean[0] * f, A.z + lean[1] * f];
+      };
+      const lobes = Array.from({ length: 5 }, (_, j) => ({ a: ((j + (rA() - 0.5) * 0.5) / 5) * TAU, amp: 0.1 + rA() * 0.1, w: 0.26 + rA() * 0.1 }));
+      const lobe = (a: number) =>
+        lobes.reduce((s, L) => {
+          const d = Math.atan2(Math.sin(a - L.a), Math.cos(a - L.a));
+          return s + L.amp * Math.exp(-(d * d) / (2 * L.w * L.w));
+        }, 0);
+      /** the ground the bole meets at angle a (the lip falls away on the bank side) */
+      const ground = (a: number) => terrain.height(A.x + Math.cos(a) * A.r, A.z + Math.sin(a) * A.r);
+      /** the bole's radius under its bark relief: flared and buttressed where it meets the ground */
+      const radiusAt = (a: number, y: number) => {
+        const up = Math.max(0, y - ground(a));
+        return rTop * (1 + 0.3 * Math.exp(-up / 0.18)) * (1 + lobe(a) * Math.exp(-up / 0.24));
+      };
+      const shadedAt = (a: number) => smoothstep(-0.1, 0.8, Math.cos(a) * FAVOUR[0] + Math.sin(a) * FAVOUR[1]);
+      /** bark tint: plates light, furrows dark, the foot damp; moss up the shaded side and in the furrows low down, lichen on the lit side */
+      const barkTint = (a: number, y: number, up: number, fine: number, plates: number, rim: number): RGB => {
+        const d = 0.5 * lerp(0.6, 1.1, 0.6 * fine + 0.4 * plates) * (1 - 0.28 * smoothstep(0.3, 0, up));
+        const shaded = shadedAt(a);
+        const moss = clamp(shaded * (0.3 + 0.7 * smoothstep(0.8, 0.05, up)) * (0.5 + 0.5 * (1 - fine)) + 0.6 * smoothstep(0.15, 0, up) + 0.55 * shaded * rim, 0, 1);
+        const lichen = (1 - moss) * (1 - shaded) * smoothstep(0.1, 0.4, up) * smoothstep(0.64, 0.8, sn.noise(Math.cos(a) * 2.2 + seed * 3, Math.sin(a) * 2.2 + y * 3.5));
+        const c: RGB = [lerp(d, 0.24, moss), lerp(d * 0.9, 0.31, moss), lerp(d * 0.8, 0.09, moss)];
+        return [lerp(c[0], 0.62, lichen), lerp(c[1], 0.66, lichen), lerp(c[2], 0.52, lichen)];
+      };
+      // the bole: rows gather at the foot, where the flare turns; the bark's relief is periodic round
+      // it (woodGrain) and fades to nothing on the top ring, which is exactly the cap's rim
+      const reps = Math.max(1, Math.round((TAU * rTop * 1.1) / 0.75));
+      bark.push(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            const g = ground(a);
+            const y = lerp(Math.min(g, gC) - 0.3, yTop, Math.pow(v, 1.4));
+            const seal = 1 - smoothstep(0.9, 1, v);
+            const fine = woodGrain(sn, y, a, 12, 0.9, seed);
+            const plates = woodGrain(sn, y * 0.5, a, 6, 0.6, seed + 3);
+            const r = lerp(rTop, radiusAt(a, y), seal) + ((fine - 0.5) * 0.02 + (plates - 0.5) * 0.024) * seal;
+            const [cx, cz] = axis(y);
+            out.position.set(cx + Math.cos(a) * r, y, cz + Math.sin(a) * r);
+            out.uv = [u * reps, y / 0.75];
+            out.color = barkTint(a, y, y - g, fine, plates, smoothstep(0.86, 1, v));
+          },
+          { cols: COLS, rows: ROWS, closedU: true },
+        ),
+      );
+      // the sawn top: weathered grey end grain, checked from the pith; a plug over the cap's pith ring
+      const [tx, tz] = axis(yTop);
+      const cap = checkedCap({ point: new Vector3(tx, yTop, tz), T: new Vector3(0, 1, 0), N: new Vector3(1, 0, 0), B: new Vector3(0, 0, 1) }, rA.fork('cap'), sn, {
+        radius: rTop,
+        segments: COLS,
+        color: [0.95, 0.9, 0.8],
+        checks: 3 + Math.floor(rA() * 3),
+        depth: [0.012, 0.03],
+        dome: 0.006,
+        uvMetres: 0.9,
+        uvOffset: [0.3 + k * 0.4, 0.2],
+      });
+      cuts.push(cap);
+      {
+        const p = cap.attributes.position;
+        const c = new Vector3();
+        for (let i = 0; i < COLS; i++) c.add(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
+        c.divideScalar(COLS);
+        const plug = new CylinderGeometry(rTop * 0.05, rTop * 0.05, 0.004, 10);
+        plug.translate(c.x, c.y, c.z);
+        cuts.push(setColorAttribute(plug, [0.42, 0.36, 0.28]));
+      }
+      // the torn hinge: splinters along a chord on the side the tree fell (downhill), leaning after it
+      let fallA = 0;
+      for (let j = 1; j < 16; j++) if (ground((j / 16) * TAU) < ground(fallA)) fallA = (j / 16) * TAU;
+      const fallV = new Vector3(Math.cos(fallA), 0, Math.sin(fallA));
+      const chordV = new Vector3(fallV.z, 0, -fallV.x);
+      const nS = 6 + Math.floor(rA() * 3);
+      let splinterCount = 0;
+      for (let j = 0; j < nS; j++) {
+        const off = 0.14 * rTop + (rA() - 0.5) * 0.05;
+        const hl = Math.sqrt(rTop * rTop - off * off) * 0.8;
+        const along = (j / (nS - 1) - 0.5) * 2 * hl + (rA() - 0.5) * 0.03;
+        if (Math.abs(along) > hl) continue;
+        const w = 0.014 + rA() * 0.02;
+        const th = 0.006 + rA() * 0.008;
+        const h = (0.035 + rA() * 0.06) * (1 - (0.5 * Math.abs(along)) / hl);
+        const g = new BoxGeometry(w, h, th, 1, 3, 1);
+        const pos = g.attributes.position;
+        const bend = (rA() - 0.5) * 0.012;
+        for (let q = 0; q < pos.count; q++) {
+          const f = pos.getY(q) / h + 0.5;
+          pos.setXYZ(q, pos.getX(q) * (1 - 0.85 * f) + bend * f * f, pos.getY(q), pos.getZ(q) * (1 - 0.5 * f));
+        }
+        g.computeVertexNormals();
+        g.translate(0, h / 2 - 0.012, 0);
+        g.rotateX(0.15 + rA() * 0.3);
+        const s = 0.85 + rA() * 0.25;
+        setColorAttribute(g, [1.0 * s, 0.94 * s, 0.82 * s]);
+        g.applyMatrix4(new Matrix4().makeBasis(chordV, UP, fallV).setPosition(tx + chordV.x * along + fallV.x * off, yTop + 0.006, tz + chordV.z * along + fallV.z * off));
+        splinters.push(g);
+        splinterCount++;
+      }
+      // three surface roots off the biggest lobes, running out over the ground and diving into it
+      const roots = [...lobes].sort((p, q) => q.amp - p.amp).slice(0, 3);
+      for (const [j, L] of roots.entries()) {
+        const reach = 0.6 + rA() * 0.06;
+        const side = new Vector3(-Math.sin(L.a), 0, Math.cos(L.a));
+        const wig = (rA() - 0.5) * 0.08;
+        const at = (d: number, dy: number, sway: number) => {
+          const x = A.x + Math.cos(L.a) * d + side.x * sway;
+          const z = A.z + Math.sin(L.a) * d + side.z * sway;
+          return new Vector3(x, terrain.height(x, z) + dy, z);
+        };
+        const g0 = ground(L.a);
+        const foot = radiusAt(L.a, g0 + 0.05);
+        const inside = new Vector3(A.x + Math.cos(L.a) * rTop * 0.6, g0 + 0.14, A.z + Math.sin(L.a) * rTop * 0.6);
+        const pts = [inside, at(foot * 0.97, 0.045, wig * 0.3), at(lerp(foot, reach, 0.6), 0.012, wig), at(reach, -0.07, wig * 1.3)];
+        const curve = new CatmullRomCurve3(pts);
+        const len = curve.getLength();
+        bark.push(
+          sweepTube(curve, {
+            radius: (t) => lerp(0.075, 0.026, t) * (1 + 0.08 * Math.sin(t * 7 + j)),
+            tubularSegments: 10,
+            radialSegments: 9,
+            uvMetres: 0.75,
+            displace: (t, ang) => (woodGrain(sn, t * len, ang, 9, 1.2, seed + 20 + j) - 0.5) * 0.012 * (1 - smoothstep(0.85, 1, t)),
+            color: (t, ang, up) => {
+              const fine = woodGrain(sn, t * len, ang, 9, 1.2, seed + 20 + j);
+              const d = 0.46 * lerp(0.62, 1.08, fine) * (1 - 0.25 * t);
+              const moss = clamp(smoothstep(0.1, 0.8, up) * (0.35 + 0.5 * t) + 0.3 * (1 - fine), 0, 1);
+              return [lerp(d, 0.24, moss), lerp(d * 0.9, 0.31, moss), lerp(d * 0.8, 0.09, moss)];
+            },
+          }),
+        );
+      }
+      // the rails' tie-offs: from the end post's axis at the rail's height to the bole's tangent point
+      // on the lookout's side, then 1½ turns down round the bole on its bark's peaks, the end tucked in
+      const end = ends.reduce((b, i) => (Math.hypot(fence.bases[i][0] - A.x, fence.bases[i][2] - A.z) < Math.hypot(fence.bases[b][0] - A.x, fence.bases[b][2] - A.z) ? i : b), ends[0]);
+      const b0 = new Vector3(...fence.bases[end]);
+      const t0 = new Vector3(...fence.tops[end]);
+      const lift = 0.015 + ROPE_R - 0.004;
+      const wraps = [0.42, 0.82].map((rh) => {
+        const P = b0.clone().lerp(t0, rh / 1.1);
+        const y0 = Math.min(P.y, yTop - 0.08);
+        const [cx, cz] = axis(y0);
+        const phi = Math.atan2(P.z - cz, P.x - cx);
+        const d = Math.hypot(P.x - cx, P.z - cz);
+        const alpha = Math.acos(clamp((radiusAt(phi, y0) + lift) / d, -0.99, 0.99));
+        const theta = Math.sin(phi + alpha) < Math.sin(phi - alpha) ? phi + alpha : phi - alpha;
+        const rT = radiusAt(theta, y0) + lift;
+        const T = new Vector3(cx + Math.cos(theta) * rT, y0, cz + Math.sin(theta) * rT);
+        const dir = Math.sign((T.x - P.x) * -Math.sin(theta) + (T.z - P.z) * Math.cos(theta)) || 1;
+        const turns = 1.5;
+        const n = Math.ceil(turns * 24);
+        const pts = [P, P.clone().lerp(T, 0.5), T];
+        for (let i = 1; i <= n; i++) {
+          const s = i / n;
+          const a = theta + dir * s * turns * TAU;
+          const y = y0 - 0.05 * s * turns;
+          const r = radiusAt(a, y) + lift - 0.045 * smoothstep(0.88, 1, s);
+          const [ax, az] = axis(y);
+          pts.push(new Vector3(ax + Math.cos(a) * r, y, az + Math.sin(a) * r));
+        }
+        const tint = 0.78 + rA() * 0.22;
+        cords.push(ropeTube(new CatmullRomCurve3(pts), ROPE_R, rA() * 10, [tint, tint * 0.95, tint * 0.88], sn, seed + rh * 10));
+        return { rh, y: +y0.toFixed(3), turns, span: +P.distanceTo(T).toFixed(3) };
+      });
+      // moss: cushions round the foot (the shaded quarter first) and along the top's shaded rim
+      tufts.push(...footMoss(ctx, new Vector3(A.x, gC, A.z), rA.fork('foot-moss'), { postRadius: rTop * 1.3, count: 46, size: [0.022, 0.055], color: [0.32, 0.44, 0.09], favour: FAVOUR }));
+      for (let j = 0; j < 14; j++) {
+        const a = Math.atan2(FAVOUR[1], FAVOUR[0]) + (rA() - 0.5) * 2.4;
+        const f = 0.72 + rA() * 0.2;
+        const rad = 0.02 + rA() * 0.025;
+        const x = tx + Math.cos(a) * f * rTop;
+        const z = tz + Math.sin(a) * f * rTop;
+        const gain = 0.85 + rA() * 0.3;
+        tufts.push({ position: new Vector3(x, yTop + 0.006 * (1 - f * f), z), normal: UP.clone(), rx: rad * (0.8 + rA() * 0.4), rz: rad * (0.8 + rA() * 0.4), h: rad * (0.5 + rA() * 0.35), yaw: rA() * TAU, color: [0.3 * gain, 0.42 * gain, 0.09 * gain], uv: [x / 1.6, z / 1.6], sink: rad * 0.45, seed: 1 + Math.floor(rA() * 1e6) });
+      }
+      bases.push([A.x, gC, A.z]);
+      let footR = 0;
+      for (let j = 0; j < 32; j++) footR = Math.max(footR, radiusAt((j / 32) * TAU, ground((j / 32) * TAU)));
+      return {
+        centre: [A.x, +gC.toFixed(3), A.z] as P3,
+        top: +yTop.toFixed(3),
+        rTop: +rTop.toFixed(3),
+        footRadius: +footR.toFixed(3),
+        roots: roots.length,
+        splinters: splinterCount,
+        endPost: end,
+        endPostToCentre: +Math.hypot(b0.x - A.x, b0.z - A.z).toFixed(3),
+        stopRing: A.r + 0.25,
+        wraps,
+      };
+    });
+    const bm = meshOf('fence-east-lookout-stumps', mats.logBark, bark);
+    if (bm) mid.add(bm);
+    const cm = meshOf('fence-east-lookout-stump-tops', mats.endGrain, cuts, false);
+    if (cm) mid.add(cm);
+    const sm = meshOf('fence-east-lookout-stump-splinters', mats.fenceWood, splinters);
+    if (sm) mid.add(sm);
+    const rm = meshOf('fence-east-lookout-tie-rope', rope, cords);
+    if (rm) mid.add(rm);
+    const tb = buildMossTufts(tufts, new Noise3D(rng.fork('stump-tuft-noise')), { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
+    if (tb.count > 0) {
+      const tm = new Mesh(tb.geometry, mats.capMoss);
+      tm.name = 'fence-east-lookout-stump-foot-moss';
+      tm.castShadow = false;
+      tm.receiveShadow = true;
+      lane.add(tm);
+    }
+    return built;
+  })();
   const benchAudit = (() => {
     const B = lookout.bench;
     const rB = rng.fork('bench');
@@ -1415,7 +1649,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     deck: deckAudit,
     flowerBoxes: flowerAudit,
     lanternPosts: posts.map((p) => ({ base: p.base, pods: p.lanterns.length })),
-    lookout: { fencePosts: fence.posts, bench: benchAudit },
+    lookout: { fencePosts: fence.posts, bench: benchAudit, anchors: anchorAudit },
     walkSurfaces: walk,
     pods: lanterns.length,
     coreTriangles: countTris(core),
