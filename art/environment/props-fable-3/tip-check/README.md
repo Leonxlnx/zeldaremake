@@ -23,3 +23,14 @@ The +1–2 draws at A / B / E / F against the 11:20 check are the belts' own map
 frame) and the contact-AO decal mesh (one per visible locality); C is −6 (the south props cull from C at 30 m, hidden
 behind the trunk there anyway). Everything stays under budget except the far-bank look-back, which was over before this
 branch and is exp-south2's.
+
+## Scene checks (`capture.mjs` with checks, the tip)
+
+`checks-c872ec8a.json`: 4 terrain probes (W04) all within tolerance (worst gap 0.27 of 0.45 m); placements — litter
+373 / 374 (min 0.97), tree bases 159 / 160 (min 0.99), grass 400 / 400, boulders 33 / 33, structure bases 60 / 60;
+no warnings; the determinism frame of A recorded (`A_stairs.det.png` equals `A_stairs.png`).
+
+## Six views vs the reference, the tip against the pure head (`3c6cc553`), both captured here at high, settle 12
+
+| view | head `3c6cc553` | tip `c872ec8a` | Δ | draws head → tip |
+| --- | --- | --- | --- | --- |
