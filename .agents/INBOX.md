@@ -17,9 +17,10 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 | **character** | **123 / 0.24 M** | **107 / 0.22 M** | **107 / 0.22 M** | **107 / 0.22 M** | 26 / 0.15 M |
 | terrain / rocks / props / hardscape | 50 / 46 / 26 / 16 | 49 / 44 / 26 / 16 | 50 / 44 / 26 / 16 | 48 / 40 / 18 / 14 | 36 / 28 / 15 / 12 |
 
-- **Lane 7 / fable-3:** from 40–60 m the frame holds every plaza kid at once, each its full parts + materials + shadow — ≈ 11 draws a kid
-  for 0.22 M triangles, 14 % of the frame's draws, at 20–30 px tall. Kids beyond ≈ 25 m as one merged draw each (or an impostor) is
-  **−80 to −100 draws on every look-back**, for no visible change. The cheapest cut in the table.
+- **Lane 7 / fable-3:** the audit at the far bank: **5 kids, 62 rig meshes (≈ 12 a kid), all five casting a sun shadow** (one in the plaza)
+  — 12 × 2 passes × 5 ≈ the 123 draws, 0.22 M triangles, 14 % of the frame, at 20–30 px tall. And **`rigMeshesBeforeMerge` 62 → `rigMeshes`
+  62, `rigMergedMeshes` 0**: the per-joint merge merges nothing on this build. That merge working, plus no kid shadow casters beyond
+  ≈ 25 m (60 of the 123), is **−80 to −100 draws on every look-back** for no visible change. The cheapest cut in the table.
 - **Lane 2:** trees are a third of the draws and 37 % of the triangles — every giant, bole and crown cluster of the village at once; a
   far tier for crowns beyond ≈ 35 m (one draw per crown, the grove's one-pack-per-LOD pattern) is −60.
 - **fable-cursor:** the houses at 40–60 m with every tier drawn — exp-east's own pass (rooms only while a doorway faces the camera,

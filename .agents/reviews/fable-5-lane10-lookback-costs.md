@@ -25,11 +25,14 @@ The per-system sums match the frames to within 10–15 draws (the post-fx passes
 
 ## What the table says
 
-1. **The character system draws 107–123 calls from every look-back and 26 from inside the plaza.** From 40–60 m the frame
-   holds all of the plaza's kids at once, each still its full set of parts and materials plus its shadow — ≈ 11 draws a
-   kid, 14 % of the frame's draws for 0.22 M triangles. Nothing else in the frame is this cheap to take back: kids beyond
-   ≈ 25 m drawn as one merged skinned draw each, or as an impostor, is **−80 to −100 draws** on every look-back, for no
-   visible change at that range (a kid is 20–30 px tall there). Lane 7 / fable-3's file (`src/world/character/`).
+1. **The character system draws 107–123 calls from every look-back and 26 from inside the plaza.** The audit says how
+   (`it114-char.mjs`, the head): **5 kids, 62 rig meshes between them (≈ 12 a kid), and at the far bank all five cast a sun
+   shadow** (`kidShadowCasting` [true × 5]; in the plaza one does) — 12 meshes × 2 passes × 5 kids ≈ the 123 draws, for
+   0.22 M triangles, 14 % of the frame's draws, at 20–30 px tall. Two levers, both lane 7 / fable-3's (`src/world/character/`):
+   the per-joint merge reports **`rigMeshesBeforeMerge` 62 → `rigMeshes` 62, `rigMergedMeshes` 0** — it merges nothing
+   on this build, so a kid is still 12 draws where `consolidate.ts` meant a few; and the kids' shadow casters beyond
+   ≈ 25 m (a shadow a few pixels long) are 60 of the 123. Together **−80 to −100 draws** on every look-back for no
+   visible change.
 2. **Trees are the largest share, 238–256 draws / 3.6–4.2 M** — a third of the draws and 37 % of the triangles — against
    194 / 2.4 M from inside the plaza: the look-backs see every giant and every understory bole and crown cluster of the
    village at once. A far tier for crowns beyond ≈ 35 m from the eye (one draw per crown instead of one per cluster) is
