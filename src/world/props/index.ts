@@ -152,7 +152,7 @@ function releaseAfterUpload(g: BufferGeometry): void {
  * Grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless.
  * Round 56 (the owner's rubric, ★16 "weathering follows exposure"): `sunLocal` is the direction
  * toward the sun in the prop's own frame — the moss band climbs on the side facing away from it
- * (2.5× the height in full shade, the round-52 band on the sun side) and the tops (normals within
+ * (3× the height in full shade, the round-52 band on the sun side) and the tops (normals within
  * ≈ 35° of up) take a sun-bleach: dry wood goes a little grey-silver, clay a dusty lighter tone.
  */
 function weather(geometry: BufferGeometry, material: MaterialKey, size: number, sunLocal: { x: number; z: number }): void {
@@ -191,12 +191,12 @@ function weather(geometry: BufferGeometry, material: MaterialKey, size: number, 
     const up = n ? smooth(0.55, 0.85, ny) : 0;
     const patch = 0.5 + 0.5 * Math.sin(px * 9 + pz * 13) * Math.cos(pz * 7 - px * 5);
     const damp = falloff(py, size * 0.3);
-    const contact = falloff(py, size * (0.07 + patch * 0.06) * (1 + 1.5 * shade));
+    const contact = falloff(py, size * (0.07 + patch * 0.06) * (1 + 2 * shade));
     c.fromBufferAttribute(colors, i);
     if (material === 'clay') c.lerp(soil, damp * 0.38);
     else c.multiplyScalar(1 - damp * 0.3);
-    c.lerp(moss, contact * (0.1 + patch * 0.18) + shade * 0.06 * (1 - damp));
-    c.lerp(bleach, up * (material === 'clay' ? 0.1 : 0.14) * (1 - damp));
+    c.lerp(moss, contact * (0.1 + patch * 0.18) + shade * 0.09 * (1 - damp));
+    c.lerp(bleach, up * (material === 'clay' ? 0.12 : 0.18) * (1 - damp));
     colors.setXYZ(i, c.r, c.g, c.b);
   }
 }
