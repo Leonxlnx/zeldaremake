@@ -1,0 +1,32 @@
+[
+ {
+  "pose": "A_stairs",
+  "drawCalls": 620,
+  "triangles": 8911398
+ },
+ {
+  "pose": "B_house",
+  "drawCalls": 613,
+  "triangles": 8243388
+ },
+ {
+  "pose": "C_lookback",
+  "drawCalls": 554,
+  "triangles": 7908814
+ },
+ {
+  "pose": "D_log",
+  "drawCalls": 543,
+  "triangles": 8686638
+ },
+ {
+  "pose": "E_ground",
+  "drawCalls": 613,
+  "triangles": 8243388
+ },
+ {
+  "pose": "F_canopy",
+  "drawCalls": 579,
+  "triangles": 8025810
+ }
+]

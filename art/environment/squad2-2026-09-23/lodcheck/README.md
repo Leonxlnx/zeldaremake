@@ -46,11 +46,41 @@ through +54 k (D), leaving 123 k of headroom at the tightest and rising by at mo
 second decimal**, so it is out; nothing that costs 50 k triangles and moves no pixels should ship. The
 constant's comment carries the measurement so the next reader does not repeat it.
 
-## What is next, with its number
+## Landed: the rung at 32 m, paid for by the distant gate at 45 m
 
-Moving the high→medium rung from 28 m to ≈ 40 m removes 95 % of the remaining pop (2.06 % → 0.10 %). It
-also buys the most expensive LOD for every tree in a 28–40 m ring, so it needs the same pricing the 59 m
-rung got — `pose-counts.mjs` on the six hero views first, because A sits 123 k triangles under the 9 M cap
-and lane 4's vegetation already owns most of that headroom. That pricing is the first thing for the next
-hour; the treepop round's own trade (the near rung 20 → 28 m paid for by pulling the distant gate 120 → 72 m)
-is the pattern to follow if the ring proves too expensive on its own.
+40.6 m — the value that takes the residual to 0.10 % — is **not affordable**: `pose-counts.mjs` puts camera
+A at 9,171,271 triangles, **171 k over the 9 M cap**, with D left 41 k (`counts-hero-rung40.json`). So the
+same trade the treepop round made when it moved this rung from 20 to 28: push the rung and pull the
+distant / mid near gate in to pay for it. Priced at 34 m / 55 m A was still 38 k over; at **32 m / 45 m** it
+fits with room and takes draws **down** (`counts-hero-rung32-gate45.json`):
+
+| view | draws | triangles | vs shipped | headroom |
+| --- | --- | --- | --- | --- |
+| A | 620 (−19) | 8,911,398 | +36 k | +89 k |
+| B / E | 613 (−15) | 8,243,388 | **−49 k** | +757 k |
+| C | 554 (−18) | 7,908,814 | **−20 k** | +1,091 k |
+| D | 543 (−19) | 8,686,638 | +52 k | +313 k |
+| F | 579 (−20) | 8,025,810 | +14 k | +974 k |
+
+And what it buys, on the same measure as the health check:
+
+| pose | rung 28 m / gate 72 m | **rung 32 m / gate 45 m** |
+| --- | --- | --- |
+| `owner-0650-north` | 2.06 % | **1.85 %** |
+| `owner-0650-west` | 2.24 % | **1.92 %** |
+
+A tenth of the residual at the north pose and a seventh at the west one, for 15–20 fewer draws at every
+hero view. The frames themselves do not move (`north-rung32-pair.jpg`: mean 80.3 → 80.2, the eye-level band
+71.7 either way), so nothing is traded away for it — the swap simply happens four metres further out, and
+the near-LOD wood between 45 and 72 m that pays for it was measured at 0.04 % of the frame in the treepop
+round.
+
+![the owner's north pose, rung 28 / gate 72 against rung 32 / gate 45](north-rung32-pair.jpg)
+
+## What is still open, with its number
+
+The rest of the pop — 1.85 % at the north pose — is still this rung's, and reaching it means 40 m, which A
+cannot pay for while lane 4's vegetation owns its headroom (A is at 8.91 M with 89 k left after this round,
+and the 40.6 m ring alone costs 296 k there). Two ways out, both outside this lane: vegetation density in
+A's frame, or a cheaper medium LOD for the white-barks so the ring costs less to buy. The measurement to
+aim at is in the table above.
