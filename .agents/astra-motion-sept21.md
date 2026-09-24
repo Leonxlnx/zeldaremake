@@ -2,12 +2,14 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: active
+status: idle
 branch: codex/walk-arms-sept24
-updated: 2026-09-24T18:47:00Z
+updated: 2026-09-24T19:00:00Z
 ---
 
 # Astra motion continuation
+
+Final game review completed for implementation `d3e933a0` / GLB `aa0520e0`: native1080p RUN-only replay `2026-09-24T18-46-15-558Z-play-motion`, 300 ticks /150 frames, 12.933m, gaits run→idle, zero page errors/reach clamps. Reviewed cycle sheet and settled stop; original-speed before/after comparison and full5s clip in the running study README. `game-receipt.json` binds captured source/bundle/asset to implementation commit; capture began before commit. Local preview61024 serves index-D_KsP5a1.js. CPU terrain/transition/jump regression remains green on final asset. Follow-up source/evidence is ready for PR59; merge remains gated by GitHub CI. Steep-slope support roughness and residual outfit seams are documented limitations; no universal collision-free claim.
 
 Running/shiver follow-up: adopted `aa0520e0` (54,422,264 bytes). The run shoulders now peak 2.26 degrees forward relative to the torso instead of 8.26, retain the rear swing, and open elbows slightly on return. Four long fingers on each hand curve toward the palm in Blender; geometry export preserves other rows, skinning, topology, textures and morphs. Run speed 3.3 m/s replaces 4.6 (218 versus 303 steps/min); authored arm gain/filter are removed. Native arm/body contacts 1269 -> 1266, peak24/below-armpit21 unchanged. Vertical correction removes narrow clip pelvis notches before existing foot IK; flat walk/run roughness reduced87%/92%, with idle/stairs and jump boundaries preserved by regression. Build/typecheck, gait-chain test and source anti-cheat pass. Final RUN-only 1080p replay is in progress; PR59 remains draft until reviewed. Intermediate04e6 walk/run/stop replay completed without page errors or reach clamps; it is not the final arm delivery. Root owns Blender and capture; environment squads continue independently. Immutable cinematic tag remains unchanged.
 

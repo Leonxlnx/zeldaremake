@@ -1,5 +1,28 @@
 # Walking/running body shiver
 
+## Delivered game evidence
+
+Implementation `d3e933a0`, asset `aa0520e0`, reviewed in the actual player at native
+1920×1080: [four seconds RUNNING, then stop](../2026-09-24T18-46-15-558Z-play-motion/run-idle.mp4).
+[Before/after RUNNING comparison](running-before-after.mp4) retains original
+30 fps playback with no retiming. The before segment is the September 23 run
+(its arm/hand source is unchanged in the later walk-only delivery); the cameras
+follow their actual traveled distances, so backgrounds are not pixel aligned.
+
+The final recording contains 300 simulation ticks / 150 video frames, 12.933 m
+of travel, no page errors and no reach clamps. The source/bundle/asset hashes
+are bound by [game-receipt.json](game-receipt.json). This validates the filmed
+route and motion, not realtime frame rate or every possible slope. Reviewed
+cycle frames and the settled stop:
+
+![Actual running cycle, 0.1-second intervals](run-cycle-game.png)
+![Settled stop after running](run-stop-game.png)
+
+Reproduce using `capture_play_motion.mjs --run-video --size 1920x1080` through
+the existing native-GPU capture slot. The earlier walk/run/stop intermediate
+`04e6a86e` separately validated the same body-height correction; it is not the
+final shoulder edit shown above.
+
 The published walk proof revealed an authored pelvis-height defect. At the same
 walking speed on a perfectly flat CPU scene, the pelvis jumped **7.844 mm in one
 60 Hz frame**, while the root placement in the actual world video usually moved
@@ -93,7 +116,7 @@ GLB skeleton at 241 phases; these are joint centers, not skin-surface distances:
 | Rearward upper-arm extrema, L / R | −26.47° / −27.16° | −26.47° / −27.16° |
 | Maximum wrist ahead of shoulder, L / R | 97.15 / 95.19 mm | 81.55 / 80.16 mm |
 
-The final game replay remains pending. Earlier broader carriage studies remain
+The final game replay is linked above. Earlier broader carriage studies remain
 rejected local experiments.
 
 The separate `hand_native.py` study curves the four long fingers toward the palm
@@ -107,7 +130,7 @@ is rest geometry, its relaxed shape appears in idle, walking and running.
 The root reviewed the final native run and hand composition, retained locally
 in `final-torso-hands-review.blend`. The paired images below show matching native
 run phases and cameras. They are Blender evidence; acceptance of the actual
-game replay is separate and still pending.
+game replay is separate and linked above.
 
 | Before | Combined native candidate |
 | --- | --- |
