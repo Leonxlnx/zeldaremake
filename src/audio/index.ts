@@ -244,10 +244,11 @@ function gatherPods(scene: Scene): Vec3[] {
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
   const gorge = gorgeAt(x, z);
-  // how much wood is overhead: the terrain's own forest-floor zone. The litter is there BECAUSE the
-  // crowns are, so the same field that decides what is underfoot also says how closed the sky is —
-  // the plaza and the village are open, the north corridor past the arch is roofed.
-  const canopy = forestFloorZone(x, z);
+  // how much wood is overhead: the terrain's own forest-floor zone, less the openings cut in it.
+  // The litter is there BECAUSE the crowns are, so the same field that decides what is underfoot
+  // also says how closed the sky is — the plaza and the village are open, the north corridor past
+  // the arch is roofed — but the field does not know where the forest STOPS (see `skyOpening`).
+  const canopy = forestFloorZone(x, z) * (1 - skyOpening(x, z));
   if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
@@ -332,6 +333,31 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     }
   }
   return null;
+}
+
+/**
+ * How open the sky is where the forest stops — 1 in the middle of a clearing, 0 back under the
+ * crowns.
+ *
+ * `forestFloorZone` is the terrain's litter field, and litter lies in a clearing exactly as it lies
+ * under the trees, so the field reads **1.00 at the centre of the north clearing**. The bed took
+ * that as a closed roof: the paved disc the layout describes as "banks rising on every side", with
+ * a stone circle on it and the sky over it, sounded like the inside of the corridor that leads to
+ * it — lowpassed by `CANOPY_CLOSE`, 1.8× the hall, 1.7× the leaf flutters.
+ *
+ * The cost is not one wrong number. It is that walking the north corridor and stepping out into
+ * the clearing — the one arrival in the north half of the world, the thing the owner asked for
+ * when he said he wanted "more to do afterwards" up the steps — made no change at all. A roof
+ * lifting is something you hear.
+ *
+ * Faded across the rim rather than switched, so the walk in is the sound of it opening, and never
+ * quite to nothing: a clearing nine metres across is ringed by trees that lean over it.
+ */
+export const CLEARING_OPEN_MAX = 0.85;
+export function skyOpening(x: number, z: number): number {
+  const c = LAYOUT.northClearing;
+  const d = Math.hypot(x - c.x, z - c.z);
+  return CLEARING_OPEN_MAX * (1 - smoothstep01(c.radius * 0.55, c.radius * 1.5, d));
 }
 
 /** how often the audio system updates its parameters and tops up its schedulers (ms) */
