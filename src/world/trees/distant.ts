@@ -55,7 +55,23 @@ export interface DistantPlacement {
  * (the disc crown with them). The cards are drawn by createDistantCrownMaterial below.
  * [near LOD cards, far LOD cards]
  */
-export const FAR_CROWN_CARDS: [number, number] = [3, 3];
+export const FAR_CROWN_CARDS: [number, number] = [7, 5];
+/**
+ * How a crown's main cards make a cluster instead of one shape: [each card's half-width as a share of
+ * FAR_CROWN_CARD_HALF, how far off the crown's centre it sits as a share of R, how far it rides up or
+ * down as a share of R].
+ *
+ * The three round-47 cards were each 2.8 R across and centred on the axis, so a crown's whole outline
+ * was one card's edge — and the previous hour proved that adding or enlarging LOBES cannot change that,
+ * because everything inboard of that edge is invisible (three builds, 1.29 % of the pinned frame, one
+ * dark corner). Against the reference the deficit is granularity: in a box around the biggest mass at
+ * `u-open-up` the reference frames carry 4.6 × our boundary density at a quarter of our step (r_025
+ * 3.06 % / 2.3 %, ours 0.66 % / 10.5 %; `cutout.mjs`). So the main cards themselves become the clumps:
+ * more of them, each smaller, pushed off the centre so each one owns a piece of the rim. The product of
+ * the first two keeps the span the skyline is built on (0.62 × 1.4 = 0.87 R half plus a 0.42 R push
+ * reaches 1.08 R against the old 1.06 R), which is why `FAR_CROWN_CARD_HALF` below can stay as it is.
+ */
+export const CROWN_CLUSTER: [number, number, number] = [0.62, 0.42, 0.12];
 /** near LOD only: crossed pairs of smaller cards off the axis (a second silhouette layer) */
 export const FAR_CROWN_LOBES: [number, number] = [2, 1];
 /**
@@ -448,8 +464,14 @@ function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, 
   for (let k = 0; k < count; k++) {
     const a = yaw0 + (k / count) * Math.PI + r.range(-0.12, 0.12);
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
-    const s = r.range(0.92, 1.08);
-    const c = centre.clone().add(new Vector3(r.range(-0.06, 0.06) * R, r.range(-0.05, 0.05) * R, r.range(-0.06, 0.06) * R));
+    const s = r.range(0.92, 1.08) * CROWN_CLUSTER[0];
+    // CROWN_CLUSTER: the cards are smaller and pushed off the centre, so the rim is theirs in turn
+    const out = yaw0 + (k / count) * TAU + r.range(-0.35, 0.35);
+    const push = R * CROWN_CLUSTER[1] * r.range(0.8, 1.15);
+    const c = centre
+      .clone()
+      .add(new Vector3(r.range(-0.06, 0.06) * R, r.range(-0.05, 0.05) * R, r.range(-0.06, 0.06) * R))
+      .add(new Vector3(Math.cos(out) * push, R * CROWN_CLUSTER[2] * r.range(-1, 1), Math.sin(out) * push));
     const shade = r.range(0.9, 1.06);
     crownCard(writer, c, dir, half * s, cells[k % cells.length], r.chance(0.5), tint.clone().multiplyScalar(shade * 0.82), topTint.clone().multiplyScalar(shade), centre, R * 1.05, 0.9, r());
   }
@@ -1176,7 +1198,7 @@ export const MID_TRUNK_R = 0.031;
 export const MID_SIDES = 12;
 export const MID_CORDS: [number, number] = [7, 0.1];
 /** crossed cards through the crown's axis, crossed lobe pairs around it, dark floor cards under it */
-export const MID_CROWN_CARDS = 3;
+export const MID_CROWN_CARDS = 7;
 export const MID_CROWN_LOBES = 6;
 export const MID_CROWN_FLOORS = 2;
 /** lobe radius and offset as shares of the crown radius: [upper tier, lower tier] */
@@ -1230,8 +1252,14 @@ function midCrownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: numbe
   const yaw0 = r.range(0, TAU);
   for (let k = 0; k < MID_CROWN_CARDS; k++) {
     const a = yaw0 + (k / MID_CROWN_CARDS) * Math.PI + r.range(-0.14, 0.14);
-    const c = centre.clone().add(new Vector3(r.range(-0.07, 0.07) * R, r.range(-0.06, 0.06) * R, r.range(-0.07, 0.07) * R));
-    card(c, new Vector3(Math.cos(a), 0, Math.sin(a)), R * FAR_CROWN_CARD_HALF * r.range(0.94, 1.06), cells[k % cells.length], r.range(0.92, 1.05), 0.86);
+    // the cluster (CROWN_CLUSTER), as for the far layer: each card owns a piece of the rim
+    const out = yaw0 + (k / MID_CROWN_CARDS) * TAU + r.range(-0.35, 0.35);
+    const push = R * CROWN_CLUSTER[1] * r.range(0.8, 1.15);
+    const c = centre
+      .clone()
+      .add(new Vector3(r.range(-0.07, 0.07) * R, r.range(-0.06, 0.06) * R, r.range(-0.07, 0.07) * R))
+      .add(new Vector3(Math.cos(out) * push, R * CROWN_CLUSTER[2] * r.range(-1, 1), Math.sin(out) * push));
+    card(c, new Vector3(Math.cos(a), 0, Math.sin(a)), R * FAR_CROWN_CARD_HALF * CROWN_CLUSTER[0] * r.range(0.94, 1.06), cells[k % cells.length], r.range(0.92, 1.05), 0.86);
   }
   for (let l = 0; l < MID_CROWN_LOBES; l++) {
     const upper = l % 2 === 0;
