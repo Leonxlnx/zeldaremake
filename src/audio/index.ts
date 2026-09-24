@@ -288,8 +288,8 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
  *  - the hollow log at the far bank: the same bore sound as the arch by the plaza, with the same
  *    smooth enclosure as the wood closes over the listener.
  *  - exp-south2 (`EXPANSION_SOUTH_DWELLINGS`): the keeper's gallery knocks like the bridge where
- *    its boards hang over the gorge and like a deck where the lip is still under them; the
- *    waystation's floor and its step are a deck on the ground.
+ *    its boards hang over the gorge and like a deck where the lip is still under them (its two
+ *    log steps with it); the waystation's floor and its step are a deck on the ground.
  */
 function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } | null {
   const b = EXPANSION_SOUTH.bridge;
@@ -321,7 +321,9 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     const r = Math.hypot(x - K.centre[0], z - K.centre[1]);
     // wall angle (deg, 0 east, 90 south) measured from the gallery's east end
     const th = ((((Math.atan2(z - K.centre[1], x - K.centre[0]) * 180) / Math.PI - K.gallery.from + 8) % 360) + 360) % 360 - 8;
-    if (r > K.radius && r < K.gallery.outer + 0.05 && th < K.gallery.to - K.gallery.from) {
+    // the split-log step lies across the entrance just off the boards (to 2.63 m out)
+    const reach = th > K.entrance[0] - K.gallery.from ? K.gallery.outer + 0.42 : K.gallery.outer + 0.05;
+    if (r > K.radius && r < reach && th < K.gallery.to - K.gallery.from) {
       const overGorge = th > 34 - K.gallery.from && th < 165 - K.gallery.from;
       return { surface: overGorge ? 'bridge' : 'wood', stairs: false, enclosure: 0, canopy: overGorge ? 0 : canopy, gorge };
     }
