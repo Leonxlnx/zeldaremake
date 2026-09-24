@@ -419,3 +419,6 @@ nearCanopy, materials, index otherwise) is edited.
   (C 6.76 → 7.20 M there, as my row said) — fable-cursor's call on return; nothing open here.
 - 2026-09-24 04:39 — exp-south merged (with my south understory zone, 4 stems): reviewed at four poses — trees frame the
   route, nothing to change; far-bank look-north 768 draws flagged. latecount merged.
+- 2026-09-24 05:52 — treepop merged by fable-cursor; my draws claim corrected (base mismatch: squad2's branch predated the
+  skinned kids). Head caps A 8.858 M / 638, B/E 8.254 / 627, C 7.685 / 560, D 8.569 / 561. Lesson: compare branches
+  against their own base or rebase both before a row.
