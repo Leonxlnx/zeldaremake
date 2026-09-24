@@ -23,7 +23,7 @@ import { Group, Sphere, Vector3 } from 'three';
 import { EXPANSION_RUINS, EXPANSION_RUINS_BOXES, ruinsTrailLine } from '../layout';
 import type { WorldContext } from '../system';
 import { getTerrain, type Terrain } from '../terrain/heightfield';
-import { RUINS_COLUMN_FEET, cliffFaceX, inStairCut, inTerrace, outcropCover, pillarRadius, platformSigned, poolSigned, trailHalfWidth } from '../terrain/ruins';
+import { RUINS_COLUMN_FEET, cliffFaceAt, cliffFaceX, inStairCut, inTerrace, outcropCover, pillarRadius, platformSigned, poolSigned, trailHalfWidth } from '../terrain/ruins';
 import { casterSpheres, sunVector, type Caster } from '../util/expansionLocality';
 import { clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -56,6 +56,7 @@ const mm = (v: number) => Math.round(v * 1000) / 1000;
 
 export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: RuinsTemplates, parent: Group): ExpansionVegetation {
   const T: Terrain = getTerrain();
+  const height = (x: number, z: number) => T.height(x, z);
   const q = ctx.quality;
   const group = new Group();
   group.name = 'expansion-ruins';
@@ -380,12 +381,15 @@ export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: Ruin
     let footMoss = 0;
     for (let i = 0; i < 260; i++) {
       const z = mm(C.z0 - 1 + rng() * (C.z1 - C.z0 + 2));
-      const out = 0.55 + Math.pow(rng(), 1.3) * 2.6;
+      const out = 0.12 + Math.pow(rng(), 1.3) * 2.6;
       const kind = rng();
       const scale = rng();
       const c = greenVar(rng, 0.2);
       if (Math.abs(z - F.z) < F.width * 0.9) continue;
-      const x = mm(cliffFaceX(z, 1) + out);
+      // off the rock face as built at the plant's height (its foot flares, its strata stand proud)
+      const g = T.height(cliffFaceX(z, 2) + 0.9, z);
+      const face = Math.max(cliffFaceAt(z, g, height), cliffFaceAt(z, g + 0.35, height), cliffFaceAt(z, g + 0.7, height));
+      const x = mm(face + out);
       const slope = groundOk(x, z, 0.15);
       if (slope < 0 || slope > 0.7) continue;
       if (kind < 0.1 && out > 1.0) {
@@ -416,7 +420,8 @@ export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: Ruin
       const r = Pl.r * 1.12 + out;
       const x = mm(Pl.x + Math.cos(a) * r);
       const z = mm(Pl.z + Math.sin(a) * r);
-      if (Math.hypot(x - Pl.x, z - Pl.z) < pillarRadius(a, 0.3) + 0.2) continue;
+      // the rock's mesh stays within 10 % of `pillarRadius`
+      if (Math.hypot(x - Pl.x, z - Pl.z) < pillarRadius(a, 0.3) * 1.1 + 0.12) continue;
       const slope = groundOk(x, z, 0.12);
       if (slope < 0 || slope > 0.7) continue;
       if (kind < 0.35) {

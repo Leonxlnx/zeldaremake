@@ -35,10 +35,10 @@ import {
   type WebGLProgramParametersWithUniforms,
 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
-import { POOL_BOX, POOL_WATER_Y, cliffFaceX, poolSigned } from '../terrain/ruins';
+import { CLIFF_FACE_V, POOL_BOX, POOL_WATER_Y, cliffFaceAt, cliffFaceX, poolSigned } from '../terrain/ruins';
 import { clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { CLIFF_FACE_V, cliffFaceAt, cliffPoint } from './rock';
+import { cliffPoint } from './rock';
 
 const R = EXPANSION_RUINS;
 const F = R.fall;

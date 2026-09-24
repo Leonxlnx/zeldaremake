@@ -14,7 +14,7 @@ import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'thre
 import { EXPANSION_RUINS, EXPANSION_STAIRS, southBridgeFrame, type Layout } from '../layout';
 import type { SharedGeometry, WalkSpan, WalkSurface } from '../system';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
-import { ruinsBlocked } from '../terrain/ruins';
+import { createRuinsBlocked } from '../terrain/ruins';
 import { bridgeLocal, inFarCorridor, ravineCut, southOfRavine } from '../terrain/south';
 
 const BRIDGE_LEN = southBridgeFrame().len;
@@ -175,6 +175,8 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
   });
   const walkSurfaces: WalkSurface[] = shared?.walkSurfaces ?? [];
   const propBlockers = shared?.propBlockers ?? [];
+  // round 57: the ruins' rules, the cliff and the ivy rock held off by their surfaces on this ground
+  const ruinsBlocked = createRuinsBlocked((x, z) => terrain.height(x, z));
   // round 56: the rope bridge's deck and the log tunnel's floor (polylines of built tops), each with its XZ box
   const walkSpans = (shared?.walkSpans ?? []).map((s: WalkSpan) => {
     const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };

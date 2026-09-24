@@ -3,14 +3,15 @@
  * ivy rock right of the stair, the gate and shore boulders, the pale skin of the outcrop the trail
  * climbs onto, and the natural slab bridging the pool's west end (the reference's upper-left slab).
  *
- * All of it is smooth-shaded grids on the live ground (terrain/ruins.ts gives the cliff's face line
- * and the ivy rock's radius, so the walker's rules and the rock agree), written into two builders:
+ * All of it is smooth-shaded grids on the live ground (terrain/ruins.ts gives the cliff's whole
+ * surface, `cliffSurface`, and the ivy rock's radius, so the walker's reach, the vegetation at the
+ * foot and the rock agree), written into two builders:
  * `cliff` (the cliff, the ivy rock, the slab and its pile — a darker weathered limestone) and
  * `boulder` (the boulders and the outcrop — the pale cracked stone of the reference's foreground).
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
-import { CLIFF_DEPTH_M, cliffFaceX, outcropCover, pillarRadius, platformSigned, poolSigned } from '../terrain/ruins';
+import { CLIFF_ROWS, CLIFF_Z, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3 } from '../terrain/ruins';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, type RGB } from './geom';
@@ -28,8 +29,6 @@ export interface Rock {
 const n1 = new Noise2D('ruins-rock-a');
 const n2 = new Noise2D('ruins-rock-b');
 const n3 = new Noise2D('ruins-rock-c');
-/** a cheap 3D value from 2D simplex slices, in about [-1, 1] */
-const noise3 = (x: number, y: number, z: number) => (n1.noise(x + 0.31 * y, z - 0.17 * y) + n2.noise(y + 0.29 * z, x - 0.23 * z) + n3.noise(z + 0.37 * x, y - 0.19 * x)) / 2.2;
 
 /**
  * A grid patch (MeshBuilder.grid) with smooth normals, turned to face `dir` at the probe cell
@@ -57,74 +56,12 @@ function patch(mb: MeshBuilder, nu: number, nv: number, at: (u: number, v: numbe
   for (let k = v0 * 3; k < mb.vertexCount * 3; k++) mb.nrm[k] = -mb.nrm[k];
 }
 
-// ---------------------------------------------------------------------------------------------
-// the west cliff's surface: one column per z, v 0 → CLIFF_FACE_V up the face from its foot to the
-// lip, CLIFF_FACE_V → 1 over the rounded brow and down the back slope. The fall's water (water.ts)
-// runs over the same function, so its sheet sits on the rock the mesh shows.
-// ---------------------------------------------------------------------------------------------
-
-const CLIFF_FACE_ROWS = 30;
-const CLIFF_TOP_ROWS = 12;
-const CLIFF_ROWS = CLIFF_FACE_ROWS + CLIFF_TOP_ROWS;
-/** the v of the face's top row (the lip) */
-export const CLIFF_FACE_V = CLIFF_FACE_ROWS / CLIFF_ROWS;
-/** the cliff mesh's z range (the run and the slumped ends past it) */
-export const CLIFF_Z: readonly [number, number] = [R.cliff.z0 - 2.5, R.cliff.z1 + 2.5];
-
-/** 1 in the fall's channel (its water-worn notch), 0 more than ≈ 2.3 m to either side */
-export function fallChannel(z: number): number {
-  return 1 - smoothstep(R.fall.width * 0.35, R.fall.width * 0.75, Math.abs(z - R.fall.z));
-}
-
-/** the brow's height along z: the cliff's top, dipping to the fall's lip (the face's top row sits 0.35 m under it) */
-function cliffTopAt(z: number): number {
-  const C = R.cliff;
-  const F = R.fall;
-  const lip = 1 - smoothstep(F.width * 0.45, F.width * 1.5, Math.abs(z - F.z));
-  return lerp(C.top + 0.5 * n1.noise(z * 0.21, 3.3) + 0.25 * n2.noise(z * 0.7, 1.1), F.top + 0.35, lip);
-}
-
-/** 1 along the cliff's run, easing to 0 past its ends (the mass slumps to a slope there) */
-function cliffRunAt(z: number): number {
-  return smoothstep(CLIFF_Z[0], R.cliff.z0 + 1.0, z) * (1 - smoothstep(R.cliff.z1 - 1.0, CLIFF_Z[1], z));
-}
-
-const strataAt = (z: number, y: number) => Math.sin(y * 2.3 + 1.7 * n1.noise(z * 0.3, y * 0.2));
-
-/** the cliff's surface point at (z, v) with its tone, moss and damp (see CLIFF_FACE_V) */
+/** the cliff's surface point at (z, v) (terrain/ruins.ts `cliffSurface`) with its tone, moss and damp */
 export function cliffPoint(z: number, v: number, ground: Ground): { p: Vector3; c: RGB; moss: number; wet: number } {
-  const C = R.cliff;
   const F = R.fall;
   const Q = R.pool;
-  const back = C.x - CLIFF_DEPTH_M;
-  const r = cliffRunAt(z);
+  const { x, y, g, top, ledge } = cliffSurface(z, v, ground);
   const face = cliffFaceX(z, 2);
-  const g = ground(face + 0.6, z);
-  const top = lerp(g + 0.4, cliffTopAt(z), Math.pow(r, 0.7));
-  // behind the fall the rock is water-worn: a quarter of the relief, no knobs on the brow
-  const worn = 1 - 0.75 * fallChannel(z);
-  let x: number;
-  let y: number;
-  let ledge = 1;
-  if (v <= CLIFF_FACE_V) {
-    // up the face: strata ledges and fissures on the wandering face line, a flared foot
-    const s = v / CLIFF_FACE_V;
-    y = lerp(g - 0.6, top - 0.35, s);
-    const strata = 0.22 * strataAt(z, y) + 0.12 * Math.sin(y * 5.1 + z * 0.4);
-    const fiss = 0.3 * Math.pow(Math.abs(n2.noise(z * 0.55, y * 0.08)), 0.5) - 0.18;
-    x = cliffFaceX(z, y) + (strata + fiss + 0.25 * noise3(z * 0.9, y * 0.6, 1.3)) * r * worn - (1 - r) * 1.5 * s;
-    if (s < 0.06) x += 0.35 * (1 - s / 0.06);
-    ledge = smoothstep(0.08, 0.2, strataAt(z, y) * 0.2 + 0.1);
-  } else {
-    // over the brow and down the back
-    const s = (v - CLIFF_FACE_V) / (1 - CLIFF_FACE_V);
-    const fx = cliffFaceX(z, top);
-    const brow = Math.sin(Math.min(1, s * 3) * Math.PI * 0.5);
-    const gy = ground(back - 0.5, z);
-    const knobs = 1 - fallChannel(z);
-    y = s < 0.35 ? top - 0.35 + 0.35 * brow + 0.3 * knobs * noise3(z * 0.6, s * 3, 7.1) : lerp(top + 0.25 * noise3(z * 0.4, 2.2, s), gy - 0.4, smoothstep(0.35, 1, s));
-    x = lerp(fx - 0.3, back, s) + 0.3 * knobs * noise3(z * 0.5, y * 0.4, 4.4);
-  }
   // tone: bleached toward the brow, greyer and damp toward the foot and by the fall
   const hRel = clamp((y - g) / Math.max(top - g, 0.5), 0, 1);
   const k = 0.86 + 0.16 * hRel + 0.08 * n3.noise(z * 0.8, y * 0.5);
@@ -133,14 +70,6 @@ export function cliffPoint(z: number, v: number, ground: Ground): { p: Vector3; 
   const wet = clamp(nearFall * (0.55 + 0.45 * (1 - hRel)) + byPool, 0, 1);
   const moss = clamp(0.25 * ledge + 0.35 * (1 - hRel) + 0.15 * nearFall * (1 - fallChannel(z)) + 0.2 * n2.noise(z * 0.4, y * 0.3), 0, 1);
   return { p: new Vector3(x, y, z), c: [k, k * 0.99, k * 0.96], moss, wet };
-}
-
-/** the x of the cliff's face at height y — the point `cliffPoint` gives the face's row at that height */
-export function cliffFaceAt(z: number, y: number, ground: Ground): number {
-  const g = ground(cliffFaceX(z, 2) + 0.6, z);
-  const top = lerp(g + 0.4, cliffTopAt(z), Math.pow(cliffRunAt(z), 0.7));
-  const s = clamp((y - (g - 0.6)) / Math.max(top - 0.35 - (g - 0.6), 0.1), 0, 1);
-  return cliffPoint(z, s * CLIFF_FACE_V, ground).p.x;
 }
 
 export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {

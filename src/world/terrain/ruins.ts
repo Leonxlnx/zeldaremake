@@ -205,6 +205,96 @@ export function cliffFaceX(z: number, y = 2): number {
   return C.x + wobble - notch;
 }
 
+// ---------------------------------------------------------------------------------------------
+// the west cliff's surface as built (the ruins system's rock mesh, the fall's water over its lip,
+// the walker's reach and the vegetation at its foot): one column per z, v 0 → CLIFF_FACE_V up the
+// face from its foot to the lip, CLIFF_FACE_V → 1 over the rounded brow and down the back slope
+// ---------------------------------------------------------------------------------------------
+
+type Ground = (x: number, z: number) => number;
+const rockA = new Noise2D('ruins-rock-a');
+const rockB = new Noise2D('ruins-rock-b');
+const rockC = new Noise2D('ruins-rock-c');
+/** a cheap 3D value from 2D simplex slices, in about [-1, 1] (the rock's own) */
+export const rockNoise3 = (x: number, y: number, z: number) => (rockA.noise(x + 0.31 * y, z - 0.17 * y) + rockB.noise(y + 0.29 * z, x - 0.23 * z) + rockC.noise(z + 0.37 * x, y - 0.19 * x)) / 2.2;
+
+export const CLIFF_FACE_ROWS = 30;
+export const CLIFF_TOP_ROWS = 12;
+export const CLIFF_ROWS = CLIFF_FACE_ROWS + CLIFF_TOP_ROWS;
+/** the v of the face's top row (the lip) */
+export const CLIFF_FACE_V = CLIFF_FACE_ROWS / CLIFF_ROWS;
+/** the cliff mesh's z range (the run and the slumped ends past it) */
+export const CLIFF_Z: readonly [number, number] = [R.cliff.z0 - 2.5, R.cliff.z1 + 2.5];
+
+/** 1 in the fall's channel (its water-worn notch), 0 more than ≈ 2.3 m to either side */
+export function fallChannel(z: number): number {
+  return 1 - smoothstep(R.fall.width * 0.35, R.fall.width * 0.75, Math.abs(z - R.fall.z));
+}
+
+/** the brow's height along z: the cliff's top, dipping to the fall's lip (the face's top row sits 0.35 m under it) */
+function cliffTopAt(z: number): number {
+  const C = R.cliff;
+  const F = R.fall;
+  const lip = 1 - smoothstep(F.width * 0.45, F.width * 1.5, Math.abs(z - F.z));
+  return lerp(C.top + 0.5 * rockA.noise(z * 0.21, 3.3) + 0.25 * rockB.noise(z * 0.7, 1.1), F.top + 0.35, lip);
+}
+
+/** 1 along the cliff's run, easing to 0 past its ends (the mass slumps to a slope there) */
+function cliffRunAt(z: number): number {
+  return smoothstep(CLIFF_Z[0], R.cliff.z0 + 1.0, z) * (1 - smoothstep(R.cliff.z1 - 1.0, CLIFF_Z[1], z));
+}
+
+export const cliffStrata = (z: number, y: number) => Math.sin(y * 2.3 + 1.7 * rockA.noise(z * 0.3, y * 0.2));
+
+/** the cliff's surface point at (z, v): x, y, the foot's ground `g`, the lip's `top`, and how much of a ledge it is */
+export function cliffSurface(z: number, v: number, ground: Ground): { x: number; y: number; g: number; top: number; ledge: number } {
+  const C = R.cliff;
+  const back = C.x - CLIFF_DEPTH_M;
+  const r = cliffRunAt(z);
+  const g = ground(cliffFaceX(z, 2) + 0.6, z);
+  const top = lerp(g + 0.4, cliffTopAt(z), Math.pow(r, 0.7));
+  // behind the fall the rock is water-worn: a quarter of the relief, no knobs on the brow
+  const worn = 1 - 0.75 * fallChannel(z);
+  let x: number;
+  let y: number;
+  let ledge = 1;
+  if (v <= CLIFF_FACE_V) {
+    // up the face: strata ledges and fissures on the wandering face line, a flared foot
+    const s = v / CLIFF_FACE_V;
+    y = lerp(g - 0.6, top - 0.35, s);
+    const strata = 0.22 * cliffStrata(z, y) + 0.12 * Math.sin(y * 5.1 + z * 0.4);
+    const fiss = 0.3 * Math.pow(Math.abs(rockB.noise(z * 0.55, y * 0.08)), 0.5) - 0.18;
+    x = cliffFaceX(z, y) + (strata + fiss + 0.25 * rockNoise3(z * 0.9, y * 0.6, 1.3)) * r * worn - (1 - r) * 1.5 * s;
+    if (s < 0.06) x += 0.35 * (1 - s / 0.06);
+    ledge = smoothstep(0.08, 0.2, cliffStrata(z, y) * 0.2 + 0.1);
+  } else {
+    // over the brow and down the back
+    const s = (v - CLIFF_FACE_V) / (1 - CLIFF_FACE_V);
+    const fx = cliffFaceX(z, top);
+    const brow = Math.sin(Math.min(1, s * 3) * Math.PI * 0.5);
+    const gy = ground(back - 0.5, z);
+    const knobs = 1 - fallChannel(z);
+    y = s < 0.35 ? top - 0.35 + 0.35 * brow + 0.3 * knobs * rockNoise3(z * 0.6, s * 3, 7.1) : lerp(top + 0.25 * rockNoise3(z * 0.4, 2.2, s), gy - 0.4, smoothstep(0.35, 1, s));
+    x = lerp(fx - 0.3, back, s) + 0.3 * knobs * rockNoise3(z * 0.5, y * 0.4, 4.4);
+  }
+  return { x, y, g, top, ledge };
+}
+
+/** the x of the cliff's face at height y — the point `cliffSurface` gives the face's row at that height */
+export function cliffFaceAt(z: number, y: number, ground: Ground): number {
+  const g = ground(cliffFaceX(z, 2) + 0.6, z);
+  const top = lerp(g + 0.4, cliffTopAt(z), Math.pow(cliffRunAt(z), 0.7));
+  const s = clamp((y - (g - 0.6)) / Math.max(top - 0.35 - (g - 0.6), 0.1), 0, 1);
+  return cliffSurface(z, s * CLIFF_FACE_V, ground).x;
+}
+
+/** the cliff face's furthest x (toward the site) at z over the heights y0…y1, every 0.1 m */
+export function cliffReach(z: number, y0: number, y1: number, ground: Ground): number {
+  let x = -Infinity;
+  for (let y = y0; y <= y1 + 1e-6; y += 0.1) x = Math.max(x, cliffFaceAt(z, y, ground));
+  return x;
+}
+
 /** 1 within the cliff's run (z), fading over its last 1.5 m at each end */
 export function cliffRun(z: number): number {
   const C = R.cliff;
@@ -296,16 +386,96 @@ export function ruinsStructure(x: number, z: number): number {
  */
 export function ruinsBlocked(x: number, z: number): boolean {
   if (!inBox(RUINS_SITE_BOX, x, z)) return false;
-  if (poolSigned(x, z) < -0.45) return true;
-  const W = R.wall;
-  if (x > W.x0 - 0.2 && x < W.x1 + 0.12 && Math.abs(z - W.z) < W.half + 0.12) return true;
+  if (builtBlocked(x, z)) return true;
   const C = R.cliff;
   if (z > C.z0 - 0.5 && z < C.z1 + 0.5 && x < cliffFaceX(z, 1.5) + 0.45 && x > C.x - CLIFF_DEPTH_M - 0.3) return true;
   const Pl = R.pillar;
   if (Math.hypot(x - Pl.x, z - Pl.z) < pillarRadius(Math.atan2(z - Pl.z, x - Pl.x), 0.6) + 0.15) return true;
+  return false;
+}
+
+/** the pool past a paddle, the wall and its parapet, the gate boulders, the columns and piers */
+function builtBlocked(x: number, z: number): boolean {
+  if (poolSigned(x, z) < -0.45) return true;
+  const W = R.wall;
+  if (x > W.x0 - 0.2 && x < W.x1 + 0.12 && Math.abs(z - W.z) < W.half + 0.12) return true;
   for (const g of R.gate) if (Math.hypot(x - g[0], z - g[1]) < g[2] * 0.85) return true;
   for (const [cx, cz, r] of RUINS_COLUMN_FEET) if (Math.hypot(x - cx, z - cz) < r + 0.12) return true;
   return false;
+}
+
+/** how far the walker's centre keeps off the rock's surface (m): the body's radius */
+const BODY_M = 0.3;
+
+/**
+ * `ruinsBlocked` over the live ground (character/ground.ts): the cliff and the ivy rock held off by
+ * their surfaces as built rather than their design lines — the face's furthest reach from the
+ * walker's feet to 2 m over them (on the terrace's paving along its west end, else the foot's
+ * ground), over the whole mesh including its slumped ends, and the ivy rock's widest radius over
+ * the same heights (the mesh stays within 10 % of `pillarRadius`), each plus the body's radius.
+ * Tabled per 0.1 m of z and per 5° round the rock, filled at first use.
+ */
+export function createRuinsBlocked(ground: Ground): (x: number, z: number) => boolean {
+  const C = R.cliff;
+  const T = R.terrace;
+  const W = R.wall;
+  const Pl = R.pillar;
+  const STEP = 0.1;
+  const z0 = CLIFF_Z[0] - 0.5;
+  const n = Math.ceil((CLIFF_Z[1] + 0.5 - z0) / STEP) + 1;
+  const z1 = z0 + (n - 1) * STEP;
+  const back = C.x - CLIFF_DEPTH_M - 0.3;
+  const reach = new Float64Array(n).fill(NaN);
+  const reachAt = (i: number) => {
+    if (Number.isNaN(reach[i])) {
+      const z = z0 + i * STEP;
+      const feet = z > T.z0 && z < W.z - W.half ? T.y : ground(cliffFaceX(z, 2) + 0.9, z);
+      reach[i] = cliffReach(z, feet - 0.2, feet + 2.0, ground) + BODY_M;
+    }
+    return reach[i];
+  };
+  const BINS = 72;
+  const radius = new Float64Array(BINS).fill(NaN);
+  let foot = NaN;
+  let head = NaN;
+  const radiusAt = (k: number) => {
+    if (Number.isNaN(foot)) {
+      foot = Infinity;
+      head = -Infinity;
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+        const g = ground(Pl.x + Math.cos(a) * Pl.r, Pl.z + Math.sin(a) * Pl.r);
+        foot = Math.min(foot, g);
+        head = Math.max(head, g);
+      }
+      head = Math.max(head, T.y) + 2.0;
+    }
+    if (Number.isNaN(radius[k])) {
+      const a = (k / BINS) * Math.PI * 2;
+      let r = 0;
+      // the rock's mesh measures `pillarRadius` from its lowest ground (ruins/rock.ts)
+      for (let y = foot; y <= head + 1e-6; y += 0.2) r = Math.max(r, pillarRadius(a, y - foot));
+      radius[k] = r * 1.1 + BODY_M;
+    }
+    return radius[k];
+  };
+  return (x, z) => {
+    if (z > z0 && z < z1 && x > back) {
+      const f = (z - z0) / STEP;
+      const i = Math.floor(f);
+      if (x < lerp(reachAt(i), reachAt(i + 1), f - i)) return true;
+    }
+    if (!inBox(RUINS_SITE_BOX, x, z)) return false;
+    if (builtBlocked(x, z)) return true;
+    const dx = x - Pl.x;
+    const dz = z - Pl.z;
+    const d = Math.hypot(dx, dz);
+    if (d < Pl.r * 1.6 + BODY_M) {
+      const f = ((Math.atan2(dz, dx) / (Math.PI * 2) + 1) % 1) * BINS;
+      const k = Math.floor(f) % BINS;
+      if (d < lerp(radiusAt(k), radiusAt((k + 1) % BINS), f - Math.floor(f))) return true;
+    }
+    return false;
+  };
 }
 
 /** the columns' and piers' feet (x, z, radius): the arch's two, the colonnade's, the broken arch's piers */

@@ -17,6 +17,7 @@ import { Group, Mesh, type Camera, type Material } from 'three';
 import { EXPANSION_RUINS } from '../layout';
 import type { WorldContext, WorldSystem } from '../system';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
+import { buildRuinsCameraSolid, ruinsColumnBlockers } from './cameraSolid';
 import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
 import { buildRock } from './rock';
@@ -94,7 +95,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.44, 0.425, 0.39], keep: 0.3, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
   ]);
   materials.push(cliffMat, boulderMat);
-  add('ruins-cliff', new Mesh(rock.cliff.build(), cliffMat), true);
+  const cliff = add('ruins-cliff', new Mesh(rock.cliff.build(), cliffMat), true);
   add('ruins-boulders', new Mesh(rock.boulder.build(), boulderMat), true);
 
   const water = buildWater(rng.fork('water'), (x, z) => terrain.height(x, z));
@@ -102,8 +103,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   materials.push(...water.materials);
 
   // the character ground reads these at its creation (the character system comes after this one)
+  const columns = ruinsColumnBlockers();
   (ctx.shared.walkSpans ??= []).push(...masonry.spans);
-  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers);
+  (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers, ...columns);
+  // the play camera's shells over the rock and the masonry nobody walks on (cameraSolid.ts)
+  const cameraSolid = ctx.headless ? null : buildRuinsCameraSolid(cliff.geometry, (x, z) => terrain.height(x, z));
+  if (cameraSolid) (ctx.shared.cameraSolidGrids ??= []).push(cameraSolid.grid);
 
   const spheres = ruinsCasters().flatMap((c) => casterSpheres(c, sun));
   const refresh = (camera: Camera) => {
@@ -126,7 +131,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     meshes,
     triangles: tris,
     walkSpans: masonry.spans.length,
-    blockers: masonry.blockers.length + rock.blockers.length,
+    blockers: masonry.blockers.length + rock.blockers.length + columns.length,
+    cameraSolid: cameraSolid?.report ?? null,
     counts: { ...masonry.counts, ...rock.counts },
     plunge: water.plunge.map((v) => +v.toFixed(2)),
     pointLights: 0,
