@@ -367,6 +367,59 @@ export function pillarRadius(a: number, y: number): number {
   return r * (1 + 0.035 * cliffNoise.noise(Math.cos(a) * 1.6 + y * 0.11, Math.sin(a) * 1.6 - y * 0.07));
 }
 
+// ---------------------------------------------------------------------------------------------
+// the water stair (layout `waterStair`, `quay`): a strip along the wall's pool face from the
+// cliff to the landing's east face, the platform at the fall's foot, the flight running along x
+// ---------------------------------------------------------------------------------------------
+
+const WS = R.waterStair;
+const QUAY = R.quay;
+/** where the landing begins (its last tread's riser), x */
+export const WATER_STAIR_LANDING_X = WS.base[0] + (WS.steps - 1) * WS.tread;
+/** the strip's built west end, buried in the cliff's foot */
+export const WATER_STAIR_WEST = R.cliff.x - 0.9;
+/** how far in from the wall's face, from the open edges over the water and from the landing's east face the walker's centre keeps (m) */
+const WS_WALL_M = 0.12;
+const WS_EDGE_M = 0.25;
+const WS_END_M = 0.3;
+/** the band past the open edges the walker is held out of (the pool along the wall's foot is shallow by `poolSigned`) */
+const WS_HOLD_M = 0.45;
+/** how far under the walked top the ground keeps (m) */
+const WS_UNDER_M = 0.25;
+
+/** the walked top at x along the strip, as character/ground.ts `stairAt` reads the flight: the quay's west of its foot, the treads, the landing */
+export function waterStairTop(x: number): number {
+  const u = x - WS.base[0];
+  if (u < 0) return QUAY.y;
+  return WS.base[1] + (Math.min(Math.floor(u / WS.tread), WS.steps - 1) + 1) * WS.rise;
+}
+
+/** true on the water stair's built footprint, `m` m larger past its open edges and its east face (never over the wall) */
+export function waterStairFootprint(x: number, z: number, m = 0): boolean {
+  if (z < QUAY.z0 || x < WATER_STAIR_WEST || x > QUAY.east + m) return false;
+  if (z <= QUAY.z1 + m) return true;
+  return x <= QUAY.fallX + m && z <= QUAY.fallZ + m;
+}
+
+/** true on the strip where the walker may stand: the quay, the flight, the landing and the platform, held in by the margins */
+function onWaterStairStrip(x: number, z: number): boolean {
+  if (z < QUAY.z0 + WS_WALL_M || x > QUAY.east - WS_END_M || x < WATER_STAIR_WEST) return false;
+  if (z < QUAY.z1 - WS_EDGE_M) return true;
+  return x < QUAY.fallX - WS_EDGE_M && z < QUAY.fallZ - WS_EDGE_M;
+}
+
+/** true where the walker may stand on the water stair: its strip, and the crossing over the wall's top from the terrace's paving to the landing */
+export function onWaterStair(x: number, z: number): boolean {
+  if (onWaterStairStrip(x, z)) return true;
+  const W = R.wall;
+  return x > QUAY.head[0] + WS_WALL_M && x < QUAY.head[1] - WS_WALL_M && z > W.z - W.half - 0.25 && z < QUAY.z0 + WS_WALL_M + 0.01;
+}
+
+/** true on the flight itself (its risers and treads, the landing not included): footsteps count them as stairs */
+export function onWaterStairFlight(x: number, z: number): boolean {
+  return onWaterStairStrip(x, z) && x >= WS.base[0] && x < WATER_STAIR_LANDING_X;
+}
+
 /**
  * The live landform at (x, z) over the height `h` the heightfield has so far: the outcrop raised
  * to its level (eased out over `platform.edge`), the pool's basin cut (a shelving bed, the shore
@@ -404,6 +457,14 @@ export function ruinsLandform(x: number, z: number, h: number): { h: number; fla
       h = lerp(h, Math.max(h, rim), gate * (1 - smoothstep(Q.bank, Q.bank + POOL_RIM_OUT_M, sd)));
     }
   }
+  // under the water stair and a lattice cell round it (a point on it interpolates lattice nodes up to
+  // a metre off): the ground held WS_UNDER_M under the lowest walked top within a metre along it,
+  // with the breakup and detail passes off wherever they could lift it back over that
+  if (z > QUAY.z0 - 1 && x > WATER_STAIR_WEST - 1 && x < QUAY.east + 1 && (z < QUAY.z1 + 1 || (x < QUAY.fallX + 1 && z < QUAY.fallZ + 1))) {
+    const cap = waterStairTop(x - 1) - WS_UNDER_M;
+    flat = Math.max(flat, smoothstep(cap - 0.5, cap - 0.25, h));
+    h = Math.min(h, cap);
+  }
   return { h, flat };
 }
 
@@ -419,10 +480,12 @@ export const CLIFF_DEPTH_M = 7.6;
 /**
  * 1 on the ruins' built footprints (the terrace block and a 0.1 m skirt, the wall, the cliff's
  * mass, the ivy rock, the gate boulders): no turf, and off a walk span the walker keeps off. The
- * stair's cut is not in it (the flight is walkable; `ruinsCull` clears it of turf on its own).
+ * stair's cut is not in it (the flight is walkable; `ruinsCull` clears it of turf on its own), nor
+ * the water stair's walked strip (over the pool, which clears it of turf).
  */
 export function ruinsStructure(x: number, z: number): number {
   if (!inBox(RUINS_SITE_BOX, x, z)) return 0;
+  if (onWaterStairStrip(x, z)) return 0;
   if (inTerrace(x, z, 0.1)) {
     // the skirt runs along the cut's sides, not across the flight or the approach to its first riser
     const { u, v } = stairLocal(x, z);
@@ -441,7 +504,8 @@ export function ruinsStructure(x: number, z: number): number {
 
 /**
  * The walker's rule (character/ground.ts `blocked`): the pool deeper than a paddle (the shelf's
- * first ≈ 0.45 m is wading), the wall and its parapet, the terrace's open edges (`terraceEdge`),
+ * first ≈ 0.45 m is wading; the water stair walked over it), the wall and its parapet (but its
+ * break to the water stair's landing), the terrace's open edges (`terraceEdge`),
  * the cliff (and everything behind it), the ivy rock, the gate boulders, the columns and piers.
  * The outcrop eases down to the forest floor, so off its edges the walker simply walks down.
  */
@@ -455,8 +519,13 @@ export function ruinsBlocked(x: number, z: number): boolean {
   return false;
 }
 
-/** the pool past a paddle, the wall and its parapet, the terrace's open edges, the gate boulders, the columns and piers */
+/**
+ * the pool past a paddle, the wall and its parapet, the terrace's open edges, the gate boulders, the
+ * columns and piers — but not the water stair (a band off its open edges and its east face held)
+ */
 function builtBlocked(x: number, z: number): boolean {
+  if (onWaterStair(x, z)) return false;
+  if (waterStairFootprint(x, z, WS_HOLD_M)) return true;
   if (poolSigned(x, z) < -0.45) return true;
   const W = R.wall;
   if (x > W.x0 - 0.2 && x < W.x1 + 0.12 && Math.abs(z - W.z) < W.half + 0.12) return true;
@@ -480,9 +549,10 @@ const CAMERA_BAND: readonly [number, number] = [1.1, 1.9];
 /**
  * `ruinsBlocked` over the live ground (character/ground.ts): the cliff and the ivy rock held off by
  * their surfaces as built rather than their design lines — the face's furthest reach from the
- * walker's feet to 2 m over them (on the terrace's paving along its west end, else the foot's
- * ground), over the whole mesh including its slumped ends, and the ivy rock's widest radius over
- * the same heights (the mesh stays within 10 % of `pillarRadius`), each plus the body's radius —
+ * walker's feet to 2 m over them (on the terrace's paving along its west end, on the quay's along
+ * the water stair, else the foot's ground), over the whole mesh including its slumped ends, and
+ * the ivy rock's widest radius over the same heights (the mesh stays within 10 % of
+ * `pillarRadius`), each plus the body's radius —
  * and at the follow camera's height plus `CAMERA_ROOM_M`, whichever holds him further off.
  * Tabled per 0.1 m of z and per 5° round the rock, filled at first use.
  */
@@ -500,7 +570,7 @@ export function createRuinsBlocked(ground: Ground): (x: number, z: number) => bo
   const reachAt = (i: number) => {
     if (Number.isNaN(reach[i])) {
       const z = z0 + i * STEP;
-      const feet = z > T.z0 && z < W.z - W.half ? T.y : ground(cliffFaceX(z, 2) + 0.9, z);
+      const feet = z > T.z0 && z < W.z - W.half ? T.y : z >= QUAY.z0 && z <= QUAY.fallZ ? QUAY.y : ground(cliffFaceX(z, 2) + 0.9, z);
       let cam = -Infinity;
       for (let j = -5; j <= 5; j++) cam = Math.max(cam, cliffReach(z + j * STEP, feet + CAMERA_BAND[0], feet + CAMERA_BAND[1], ground));
       reach[i] = Math.max(cliffReach(z, feet - 0.2, feet + 2.0, ground) + BODY_M, cam + CAMERA_ROOM_M);

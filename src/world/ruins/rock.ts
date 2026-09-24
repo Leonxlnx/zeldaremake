@@ -11,7 +11,7 @@
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
-import { CLIFF_FACE_V, CLIFF_ROWS, CLIFF_Z, PILLAR_BEDS, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3 } from '../terrain/ruins';
+import { CLIFF_FACE_V, CLIFF_ROWS, CLIFF_Z, PILLAR_BEDS, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3, waterStairFootprint } from '../terrain/ruins';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, type RGB } from './geom';
@@ -253,6 +253,8 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
     const seed = br.range(0, 50);
     if (z < R.wall.z + 1.2) continue;
     if (x < C.x + 1.2 && Math.abs(z - F.z) < F.width) continue;
+    // nothing on the water stair's quay or platform (its draws are made first)
+    if (waterStairFootprint(x, z, s * Math.max(sx, sz))) continue;
     rock(boulder, x, z, s * sx, s * sy, s * sz, yaw, 0.7, seed);
   }
   for (let k = 0; k < 7; k++) {
@@ -263,6 +265,7 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
     const seed = br.range(0, 50);
     if (Math.abs(z - F.z) < F.width * 0.8) continue;
     if (z > R.wall.z - 0.6 && z < R.wall.z + 0.8) continue;
+    if (waterStairFootprint(cliffFaceX(z, 1) + dx, z, s * 1.2)) continue;
     rock(boulder, cliffFaceX(z, 1) + dx, z, s * 1.2, s * 0.7, s, yaw, 0.6, seed);
   }
   // at the plunge: two wet rocks the fall breaks on

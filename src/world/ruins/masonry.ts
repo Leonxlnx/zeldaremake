@@ -11,14 +11,16 @@
  * tile band and a carved interlace panel on both faces). On the terrace: the hero arch on twisted
  * columns (thirteen voussoirs and a keystone with a hanging pendant), the colonnade's lintel on two
  * fluted columns beside a broken stump, the half-fallen arch against the cliff, and the rubble.
+ * Down the wall's pool face, from a break in the ruined parapet, the water stair: a landing, a
+ * flight of tread stones and a quay under the slab to a platform at the fall's foot.
  *
- * Returns the builders (stone, tile band, carving), the terrace's walk spans (the character ground
- * reads them through `ctx.shared.walkSpans`) and the fallen pieces' blockers.
+ * Returns the builders (stone, tile band, carving), the terrace's and the water stair's walk spans
+ * (the character ground reads them through `ctx.shared.walkSpans`) and the fallen pieces' blockers.
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
 import type { WalkSpan } from '../system';
-import { STAIR_RUN, inTerrace, stairLocal } from '../terrain/ruins';
+import { STAIR_RUN, WATER_STAIR_LANDING_X, WATER_STAIR_WEST, inTerrace, stairLocal, waterStairFootprint } from '../terrain/ruins';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, block, lathe, type RGB } from './geom';
@@ -30,6 +32,8 @@ const S = R.stairs;
 const W = R.wall;
 const A = R.arch;
 const P = R.parapet;
+const WS = R.waterStair;
+const Qy = R.quay;
 
 type Ground = (x: number, z: number) => number;
 export interface Blocker {
@@ -163,16 +167,20 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
         if (t1 - t0 < 0.12) continue;
         const tm = (t0 + t1) / 2;
         const gm = Math.min(gAt(t0), gAt(t1), gAt(tm));
-        if (c1 < gm - 0.06) continue;
+        // a buried block's draws are made too, so a change in the ground re-rolls nothing after it
         const proud = rng.range(-0.012, 0.02);
         const above = (c0 + c1) / 2 - gm;
         const col = stoneCol(rng, 1 - 0.26 * (1 - smoothstep(0, 1.0, above)));
+        const yawJ = rng.range(-0.01, 0.01);
+        const bevel = rng.range(0.022, 0.05);
+        const sag: [number, number, number, number] = [rng.range(-0.012, 0), rng.range(-0.012, 0), rng.range(-0.012, 0), rng.range(-0.012, 0)];
+        if (c1 < gm - 0.06) continue;
         const base = (f.moss ?? 0.22) * (0.55 + 0.9 * (1 - smoothstep(0.1, 1.3, above)));
-        block(mb, ax + dx * tm + f.out[0] * (proud - depth / 2), (c0 + c1) / 2, az + dz * tm + f.out[1] * (proud - depth / 2), (t1 - t0) / 2 - 0.008, (c1 - c0) / 2 - 0.007, depth / 2, yaw + rng.range(-0.01, 0.01), {
-          bevel: rng.range(0.022, 0.05),
+        block(mb, ax + dx * tm + f.out[0] * (proud - depth / 2), (c0 + c1) / 2, az + dz * tm + f.out[1] * (proud - depth / 2), (t1 - t0) / 2 - 0.008, (c1 - c0) / 2 - 0.007, depth / 2, yaw + yawJ, {
+          bevel,
           color: col,
           skip: [plusB ? '-b' : '+b'],
-          sag: [rng.range(-0.012, 0), rng.range(-0.012, 0), rng.range(-0.012, 0), rng.range(-0.012, 0)],
+          sag,
           mossFn: (p, n) => moss(p, n, base),
           wetFn: wet,
         });
@@ -314,6 +322,31 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     );
     mb.smoothNormals(v0, mb.vertexCount, t0);
   };
+  // the colonnade's fallen pieces (the drums' x, z, yaw, radius and length; the lintel's middle, half
+  // length, half width and yaw) and the offering: no slab under one of them is lost, so each lies on stone
+  const DRUMS: [number, number, number, number, number][] = [
+    [-68.1, -7.7, 0.35, 0.28, 0.85],
+    [-70.2, -8.3, 1.9, 0.28, 0.7],
+    [-67.2, -6.9, -0.6, 0.27, 0.5],
+  ];
+  const LINTEL = { x: -70.9, z: -7.35, ha: 1.05, hb: 0.27, yaw: 0.42 };
+  const underPiece = (x0: number, x1: number, z0: number, z1: number): boolean => {
+    const ex = (x1 - x0) / 2;
+    const ez = (z1 - z0) / 2;
+    /** does the rectangle about (cx, cz), ha along yaw and hb across it, overlap the slab? (separating axes) */
+    const meets = (cx: number, cz: number, ha: number, hb: number, yaw: number) => {
+      const c = Math.abs(Math.cos(yaw));
+      const s = Math.abs(Math.sin(yaw));
+      const dx = cx - (x0 + x1) / 2;
+      const dz = cz - (z0 + z1) / 2;
+      if (Math.abs(dx) > ex + ha * c + hb * s || Math.abs(dz) > ez + ha * s + hb * c) return false;
+      return Math.abs(dx * Math.cos(yaw) + dz * Math.sin(yaw)) <= ha + ex * c + ez * s && Math.abs(-dx * Math.sin(yaw) + dz * Math.cos(yaw)) <= hb + ex * s + ez * c;
+    };
+    if (DRUMS.some(([x, z, yaw, r, len]) => meets(x, z, len / 2 + 0.05, r + 0.05, yaw))) return true;
+    if (meets(LINTEL.x, LINTEL.z, LINTEL.ha + 0.05, LINTEL.hb + 0.05, LINTEL.yaw)) return true;
+    const O = R.offering;
+    return Math.hypot(Math.max(0, Math.abs(O.x - (x0 + x1) / 2) - ex), Math.max(0, Math.abs(O.z - (z0 + z1) / 2) - ez)) < 0.6;
+  };
   const seats: [number, number, number][] = [];
   const seatRng = rng.fork('paving-seats');
   for (let z = wallIn - 0.04; z > T.z0 + 0.3; ) {
@@ -353,7 +386,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
         const p = Math.min(pad, (b - a) / 2);
         return a + p + seatRng() * (b - a - 2 * p);
       };
-      if (r < 0.06) {
+      if (r < 0.06 && !underPiece(sx0, sx1, sz0, sz1)) {
         // lost: a couple of broken pieces left in the bed
         hole(sx0, sx1, sz0, sz1);
         lost.push([sx0, sx1, sz0, sz1]);
@@ -420,7 +453,8 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   }
 
   // ------------------------------------------------------------------------------------------
-  // the terrace section's ruined parapet on the wall top
+  // the terrace section's ruined parapet on the wall top, broken where the water stair's landing
+  // is reached (a block reaching more than 0.1 m into `quay.head` is gone; its draws are still made)
   // ------------------------------------------------------------------------------------------
   for (let x = x0 + 0.6; x < T.x1 - 0.4; ) {
     const L = rng.range(0.6, 1.15);
@@ -428,13 +462,13 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     x += L + 0.015;
     if (rng.chance(0.3)) continue;
     const h = rng.range(0.32, 0.62);
-    block(mb, xm, top + h / 2 - 0.01, wallOut - 0.23 + rng.range(-0.03, 0.03), L / 2 - 0.01, h / 2, 0.21, rng.range(-0.04, 0.04), {
-      bevel: rng.range(0.035, 0.06),
-      color: stoneCol(rng, 1.0),
-      skip: ['-y'],
-      sag: [rng.range(-0.05, 0), rng.range(-0.05, 0), rng.range(-0.05, 0), rng.range(-0.05, 0)],
-      mossFn: (p, n) => moss(p, n, 0.4),
-    });
+    const bz = wallOut - 0.23 + rng.range(-0.03, 0.03);
+    const yaw = rng.range(-0.04, 0.04);
+    const bevel = rng.range(0.035, 0.06);
+    const color = stoneCol(rng, 1.0);
+    const sag: [number, number, number, number] = [rng.range(-0.05, 0), rng.range(-0.05, 0), rng.range(-0.05, 0), rng.range(-0.05, 0)];
+    if (Math.min(xm + L / 2, Qy.head[1]) - Math.max(xm - L / 2, Qy.head[0]) > 0.1) continue;
+    block(mb, xm, top + h / 2 - 0.01, bz, L / 2 - 0.01, h / 2, 0.21, yaw, { bevel, color, skip: ['-y'], sag, mossFn: (p, n) => moss(p, n, 0.4) });
   }
 
   // ------------------------------------------------------------------------------------------
@@ -723,14 +757,11 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     loose.push({ kind: 'drum', v0, v1: mb.vertexCount, onTop: y0 > top - 0.1 });
     blockers.push({ x, z, r: Math.max(r, len / 2) * 0.9, top: y0 + 2 * r });
   };
-  lyingDrum(-68.1, -7.7, 0.35, 0.28, 0.85, top - 0.03);
-  lyingDrum(-70.2, -8.3, 1.9, 0.28, 0.7, top - 0.03);
-  lyingDrum(-67.2, -6.9, -0.6, 0.27, 0.5, top - 0.03);
+  for (const [x, z, yaw, r, len] of DRUMS) lyingDrum(x, z, yaw, r, len, top - 0.03);
   {
-    const x = -70.9;
-    const z = -7.35;
+    const { x, z } = LINTEL;
     const v0 = mb.vertexCount;
-    block(mb, x, top + 0.19, z, 1.05, 0.21, 0.27, 0.42, { bevel: 0.05, color: stoneCol(rng, 0.97), skip: ['-y'], sag: [0.02, -0.03, 0.0, -0.05], mossFn: (p, n) => moss(p, n, 0.55) });
+    block(mb, x, top + 0.19, z, LINTEL.ha, 0.21, LINTEL.hb, LINTEL.yaw, { bevel: 0.05, color: stoneCol(rng, 0.97), skip: ['-y'], sag: [0.02, -0.03, 0.0, -0.05], mossFn: (p, n) => moss(p, n, 0.55) });
     loose.push({ kind: 'lintel', v0, v1: mb.vertexCount, onTop: true });
     blockers.push({ x: x - 0.45, z: z - 0.2, r: 0.55, top: top + 0.4 });
     blockers.push({ x: x + 0.45, z: z + 0.2, r: 0.55, top: top + 0.4 });
@@ -811,6 +842,11 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     const hy = s * rng.range(0.45, 0.75);
     const hb = s * rng.range(0.6, 1.0);
     const yaw = rng.range(0, Math.PI);
+    const bevel = rng.range(0.03, 0.07);
+    const color = stoneCol(rng, 0.94);
+    const sag: [number, number, number, number] = [rng.range(-0.12, 0.02), rng.range(-0.12, 0.02), rng.range(-0.12, 0.02), rng.range(-0.12, 0.02)];
+    // none under the water stair (its draws are still made)
+    if (waterStairFootprint(x, z, Math.hypot(ha, hb))) return;
     // the top where the stone's size and the ground (as seen) under its middle put it; the bottom reaches under
     // the lowest ground round its footprint (on the shelf's slope and the banks a block seated by its
     // middle alone left its downhill corners, and its open underside, over the ground), and on the
@@ -824,10 +860,10 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     }
     const loose0 = mb.vertexCount;
     block(mb, x, (yTop + yBot) / 2, z, ha, (yTop - yBot) / 2, hb, yaw, {
-      bevel: rng.range(0.03, 0.07),
-      color: stoneCol(rng, 0.94),
+      bevel,
+      color,
       skip: ['-y'],
-      sag: [rng.range(-0.12, 0.02), rng.range(-0.12, 0.02), rng.range(-0.12, 0.02), rng.range(-0.12, 0.02)],
+      sag,
       mossFn: (p, n) => moss(p, n, 0.55),
       wetFn: g < R.pool.water + 0.3 ? wetUnder(R.pool.water + 0.35) : undefined,
     });
@@ -852,6 +888,180 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   for (let k = 0; k < 6; k++) rubble(rr.range(-73.0, -57.0), wallOut + rr.range(0.12, 0.4), rr.range(0.22, 0.36), false);
 
   // ------------------------------------------------------------------------------------------
+  // the water stair down the wall's pool face (its own stream): coursed faces over the water —
+  // the strip's south face stepping up under the flight, the platform's at the fall's foot, the
+  // landing's east face — a tread stone the flight's full width per step (its end the step's end
+  // in the face, standing on the course under it), slabs on the quay, the platform and the landing
+  // ------------------------------------------------------------------------------------------
+  const wsSpans: WalkSpan[] = [];
+  {
+    const ws = rng.fork('water-stair');
+    const front = Qy.z1;
+    const quayBed = Qy.y - 0.12;
+    const landBed = top - 0.12;
+    const xFoot = WS.base[0];
+    const xLand = WATER_STAIR_LANDING_X;
+    /** how far the treads and slabs stand proud of the faces under them */
+    const oh = 0.04;
+    const treadX = (i: number) => xFoot + i * WS.tread;
+    const treadTop = (i: number) => WS.base[1] + (i + 1) * WS.rise;
+    const n0 = counts.ashlar + counts.treads + counts.slabs;
+    let gMin = Infinity;
+    for (let x = WATER_STAIR_WEST; x <= Qy.east + 1e-6; x += 0.25) gMin = Math.min(gMin, ground(x, front + 0.12));
+    for (let x = WATER_STAIR_WEST; x <= Qy.fallX + 1e-6; x += 0.25) gMin = Math.min(gMin, ground(x, Qy.fallZ + 0.12));
+    const y0 = gMin - 0.35;
+    // the courses: down from the quay's bed to the foundation, and up from it to the landing's bed in
+    // courses of 0.4–0.56 m stretched to meet it exactly
+    const courses: [number, number][] = [];
+    for (let y = quayBed; y > y0 + 0.04; ) {
+      const h = ws.range(0.4, 0.56);
+      courses.push([Math.max(y - h, y0), y]);
+      y -= h;
+    }
+    const upper = Array.from({ length: Math.round((landBed - quayBed) / 0.47) }, () => ws.range(0.4, 0.56));
+    const upperSum = upper.reduce((a, b) => a + b, 0);
+    let yc0 = quayBed;
+    upper.forEach((h, k) => {
+      const y1 = k === upper.length - 1 ? landBed : yc0 + (h * (landBed - quayBed)) / upperSum;
+      courses.push([yc0, y1]);
+      yc0 = y1;
+    });
+    const courseTops = courses.map((c) => c[1]).sort((a, b) => a - b);
+    const bedUnder = (y: number) => courseTops.reduce((b, c) => (c <= y + 1e-9 ? c : b), -Infinity);
+    // each tread stone stands on the highest course a quarter metre under its top, so the stone above
+    // always reaches under the tread below it and the riser is one stone's face; the landing's edge
+    // is the last such stone
+    const treadBed = Array.from({ length: WS.steps }, (_, i) => bedUnder(treadTop(i) - 0.25));
+    /** the landing's edge stone reaches this far east of its riser; the landing's slabs lie beyond it */
+    const edgeRun = 0.5;
+    /** where a course topping out at y begins along the strip (the flight climbs east) */
+    const courseStart = (y: number) => {
+      if (y <= quayBed + 1e-9) return -Infinity;
+      for (let i = 0; i < WS.steps; i++) if (treadBed[i] >= y - 1e-9) return treadX(i);
+      return xLand + edgeRun;
+    };
+    const plunge = [R.fall.x + 1.1, R.fall.z];
+    const spray = (p: Vector3) => 0.85 * (1 - smoothstep(1.5, 5.5, Math.hypot(p.x - plunge[0], p.z - plunge[1])));
+    const band = wetUnder(R.pool.water + 0.6);
+    const wet = (p: Vector3) => Math.max(band(p), spray(p));
+    const damp = (p: Vector3, n: Vector3, amount: number) => clamp(moss(p, n, amount) + 0.35 * spray(p), 0, 1);
+
+    /** a coursed face along a → b (outward `out`), each course from where `from` (distance along) puts it for its top */
+    const coursed = (a: [number, number], b: [number, number], out: [number, number], from: (y: number) => number) => {
+      const [ax, az] = a;
+      const [bx, bz] = b;
+      const len = Math.hypot(bx - ax, bz - az);
+      const dx = (bx - ax) / len;
+      const dz = (bz - az) / len;
+      const yaw = Math.atan2(dz, dx);
+      const plusB = -dz * out[0] + dx * out[1] > 0;
+      const depth = 0.42;
+      const gAt = (t: number) => ground(ax + dx * t + out[0] * 0.12, az + dz * t + out[1] * 0.12);
+      const o = new Vector3(out[0], 0, out[1]);
+      const pb = (t: number, y: number) => new Vector3(ax + dx * t - out[0] * 0.03, y, az + dz * t - out[1] * 0.03);
+      for (const [c0, c1] of courses) {
+        const s = Math.max(0, from(c1));
+        if (s > len - 0.12) continue;
+        mb.poly([pb(s, c0), pb(len, c0), pb(len, c1), pb(s, c1)], o, [0.36, 0.34, 0.3], () => 0.55, wet);
+        let t = s - ws.range(0, 0.8);
+        while (t < len) {
+          const L = ws.range(0.55, 1.3);
+          const t0 = Math.max(t, s);
+          const t1 = Math.min(t + L, len);
+          t += L;
+          if (t1 - t0 < 0.12) continue;
+          const tm = (t0 + t1) / 2;
+          const gm = Math.min(gAt(t0), gAt(t1), gAt(tm));
+          const proud = ws.range(-0.012, 0.02);
+          const above = (c0 + c1) / 2 - Math.max(gm, R.pool.water);
+          const col = stoneCol(ws, 1 - 0.26 * (1 - smoothstep(0, 1.0, above)));
+          const yawJ = ws.range(-0.01, 0.01);
+          const bevel = ws.range(0.022, 0.05);
+          const sag: [number, number, number, number] = [ws.range(-0.012, 0), ws.range(-0.012, 0), ws.range(-0.012, 0), ws.range(-0.012, 0)];
+          if (c1 < gm - 0.06) continue;
+          const base = 0.3 * (0.55 + 0.9 * (1 - smoothstep(0.1, 1.3, above)));
+          block(mb, ax + dx * tm + out[0] * (proud - depth / 2), (c0 + c1) / 2, az + dz * tm + out[1] * (proud - depth / 2), (t1 - t0) / 2 - 0.008, (c1 - c0) / 2 - 0.007, depth / 2, yaw + yawJ, {
+            bevel,
+            color: col,
+            skip: [plusB ? '-b' : '+b'],
+            sag,
+            mossFn: (p, n) => damp(p, n, base),
+            wetFn: wet,
+          });
+          counts.ashlar++;
+        }
+      }
+    };
+    // the platform's south face (its end block's end is the platform's east return), the strip's
+    // south face stepping up under the flight, the landing's east face
+    coursed([WATER_STAIR_WEST, Qy.fallZ], [Qy.fallX, Qy.fallZ], [0, 1], (y) => (y <= quayBed + 1e-9 ? 0 : Infinity));
+    coursed([Qy.fallX, front], [Qy.east, front], [0, 1], (y) => courseStart(y) - Qy.fallX);
+    coursed([Qy.east, front - 0.42], [Qy.east, Qy.z0], [1, 0], () => 0);
+
+    // the tread stones: the flight's full width from the wall's face to past the south face, the
+    // nosing dipped where feet wear it, moss along the edges, the lowest damp in the spray; the
+    // landing's edge stone keeps off the wall's coping (level with it, proud of the face)
+    for (let i = 0; i < WS.steps; i++) {
+      const edge = i === WS.steps - 1;
+      const ta = treadX(i) + 0.003;
+      const tb = edge ? xLand + edgeRun - 0.003 : treadX(i + 1) - 0.003;
+      const za = edge ? Qy.z0 + 0.07 : Qy.z0 + 0.003;
+      const zb = front + oh;
+      const t1 = treadTop(i) + ws.range(-0.006, 0.002);
+      const b0 = treadBed[i];
+      const dip = ws.range(0.012, 0.028);
+      block(mb, (ta + tb) / 2, (t1 + b0) / 2, (za + zb) / 2, (tb - ta) / 2, (t1 - b0) / 2, (zb - za) / 2, ws.range(-0.006, 0.006), {
+        bevel: ws.range(0.035, 0.055),
+        color: stoneCol(ws, 1.0),
+        skip: edge ? ['-y'] : ['-y', '-b'],
+        sag: [-dip * ws.range(0.5, 0.9), -dip, ws.range(-0.006, 0), ws.range(-0.006, 0)],
+        mossFn: (p, n) => (n.y > 0.7 ? clamp(0.04 + 0.6 * smoothstep(0.34, 0.6, Math.abs(p.z - WS.base[2])) + 0.3 * spray(p), 0, 1) : damp(p, n, 0.36)),
+        wetFn: wet,
+      });
+      counts.treads++;
+    }
+
+    /** slabs over x0…x1 × z0…z1, their tops at y: rows along x, two across, a few sunk or tilted */
+    const slabs = (x0s: number, x1s: number, z0s: number, z1s: number, y: number) => {
+      const split = z0s + (z1s - z0s) * ws.range(0.4, 0.6);
+      for (const [za, zb] of [
+        [z0s, split - 0.004],
+        [split + 0.004, z1s],
+      ]) {
+        for (let x = x0s; x < x1s - 0.1; ) {
+          const L = Math.min(ws.range(0.6, 1.1), x1s - x);
+          const xa = x + 0.004;
+          const xb = x + L - 0.004;
+          x += L;
+          const t = y + ws.range(-0.01, 0.003);
+          block(mb, (xa + xb) / 2, t - 0.06, (za + zb) / 2, (xb - xa) / 2, 0.06, (zb - za) / 2, ws.range(-0.01, 0.01), {
+            bevel: ws.range(0.018, 0.034),
+            color: stoneCol(ws, 0.98),
+            skip: ['-y'],
+            sag: [ws.range(-0.012, 0.002), ws.range(-0.012, 0.002), ws.range(-0.012, 0.002), ws.range(-0.012, 0.002)],
+            mossFn: (p, n) => (n.y > 0.7 ? clamp(0.1 + 0.5 * smoothstep(0.3, 0.6, Math.abs(p.z - WS.base[2])) * (0.5 + 0.5 * mossNoise.fbm(p.x * 0.9, p.z * 0.9, 2)) + 0.45 * spray(p), 0, 1) : damp(p, n, 0.4)),
+            wetFn: wet,
+          });
+          counts.slabs++;
+        }
+      }
+    };
+    // the platform (to the cliff's foot, under its rock), the quay to the flight's foot, the landing
+    slabs(WATER_STAIR_WEST, Qy.fallX + oh, Qy.z0 + 0.003, Qy.fallZ + oh, Qy.y);
+    slabs(Qy.fallX + oh + 0.008, xFoot - 0.003, Qy.z0 + 0.003, front + oh, Qy.y);
+    slabs(xLand + edgeRun + 0.003, Qy.east + oh, Qy.z0 + 0.07, front + oh, top);
+    counts.waterStair = counts.ashlar + counts.treads + counts.slabs - n0;
+
+    // its walk spans: the platform and the quay (the flight and the landing are `stairAt`'s), and the
+    // crossing from the terrace's paving over the wall's top through the parapet's break
+    const zc = WS.base[2];
+    wsSpans.push({ id: 'ruins-water-stair-platform', pts: [[WATER_STAIR_WEST, Qy.y, (Qy.z0 + Qy.fallZ) / 2], [Qy.fallX, Qy.y, (Qy.z0 + Qy.fallZ) / 2]], hw: (Qy.fallZ - Qy.z0) / 2 });
+    wsSpans.push({ id: 'ruins-water-stair-quay', pts: [[WATER_STAIR_WEST, Qy.y, zc], [xFoot, Qy.y, zc]], hw: WS.width / 2 });
+    const xc = (Qy.head[0] + Qy.head[1]) / 2;
+    wsSpans.push({ id: 'ruins-water-stair-crossing', pts: [[xc, top, wallIn - 0.25], [xc, top, Qy.z0 + 0.5]], hw: (Qy.head[1] - Qy.head[0]) / 2 - 0.05 });
+  }
+
+  // ------------------------------------------------------------------------------------------
   // the terrace's walk spans (rows of polylines, their tops the paving's): the stair's cut is
   // left to the flight (`stairAt`), the strips beside it and the notch to their own rows
   // ------------------------------------------------------------------------------------------
@@ -872,6 +1082,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   band('cut', cutN, cutS, cutEnd + 0.2);
   band('north', T.notchZ, cutN, T.x1 - 0.05);
   band('back', T.z0 + 0.05, T.notchZ, T.notchX - 0.05);
+  spans.push(...wsSpans);
 
   return { stone: mb, tiles, carving, spans, blockers, seats, counts, loose, lost };
 }

@@ -4,10 +4,10 @@
  * front of —
  *  - the rock as built: the cliff, the ivy rock, the slab bridge and its pile (the cliff builder's
  *    geometry), and the gate boulders (as balls);
- *  - the masonry the walker never stands on: the terrace block's outer faces and the retaining wall
- *    up to UNDER_TOP under the walked tops, the ruined parapet on the terrace section's wall top, the
- *    parapet with its posts and finials, the arch's ring and pendant, the colonnade's lintel, the
- *    broken arch's piers and surviving ring.
+ *  - the masonry the walker never stands on: the terrace block's outer faces, the retaining wall and
+ *    the water stair's faces up to UNDER_TOP under the walked tops, the ruined parapet on the terrace
+ *    section's wall top (not its break to the water stair), the parapet with its posts and finials,
+ *    the arch's ring and pendant, the colonnade's lintel, the broken arch's piers and surviving ring.
  * The walked surfaces (paving, treads, the outcrop) stay out: the camera's lift keeps it over the
  * character's ground already, and a shell there would pull it in whenever it stood low behind Link.
  * The columns are slim (`ruinsColumnBlockers`, published with the fallen pieces: the camera refuses
@@ -15,6 +15,7 @@
  */
 import { Box3, type BufferGeometry, Matrix4, Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
+import { WATER_STAIR_WEST, waterStairTop } from '../terrain/ruins';
 import { VoxelGrid, worldBounds } from '../util/voxelGrid';
 import { PARAPET_POSTS, PARAPET_Z, type Blocker } from './masonry';
 
@@ -23,6 +24,7 @@ const T = R.terrace;
 const W = R.wall;
 const A = R.arch;
 const P = R.parapet;
+const Q = R.quay;
 /** the grid's cell (m), the structures' camera grid's */
 const CELL = 0.25;
 /**
@@ -100,12 +102,25 @@ export function buildRuinsCameraSolid(rock: BufferGeometry, ground: Ground): Rui
   // the retaining wall under the terrace's and the outcrop's walked tops, the parapet over it
   fillBox(W.x0, T.x1, bottom, top, W.z - W.half, W.z + W.half);
   // the terrace section's ruined parapet on the wall's outer half (masonry.ts: blocks up to 0.62 m
-  // over the paving, some lost; the gaps are filled too)
-  fillBox(W.x0, T.x1 - 0.4, top, T.y + 0.62, W.z + W.half - 0.44, W.z + W.half - 0.02);
+  // over the paving, some lost; the gaps are filled too) — not its break to the water stair
+  fillBox(W.x0, Math.min(T.x1 - 0.4, Q.head[0] - 0.05), top, T.y + 0.62, W.z + W.half - 0.44, W.z + W.half - 0.02);
   fillBox(T.x1, W.x1, bottom, R.platform.y - UNDER_TOP, W.z - W.half, W.z + W.half);
   const base = R.platform.y - 0.02;
   fillBox(Math.min(P.x0, P.x1), Math.max(P.x0, P.x1), base, base + P.height, PARAPET_Z - P.half, PARAPET_Z + P.half);
   for (const px of PARAPET_POSTS) fillBox(px - 0.27, px + 0.27, base, base + P.height + 0.32, PARAPET_Z - 0.27, PARAPET_Z + 0.27);
+
+  // the water stair's faces over the water (a 0.4 m skin behind each, under its walked tops as the
+  // terrace's): the strip's south face stepping with the treads, the landing's east face, the platform's
+  const front = Q.z1;
+  const xFoot = R.waterStair.base[0];
+  fillBox(Q.fallX, xFoot, bottom, Q.y - UNDER_TOP, front - 0.4, front);
+  for (let x = xFoot; x < Q.east - 1e-6; x += R.waterStair.tread) {
+    const x1 = Math.min(x + R.waterStair.tread, Q.east);
+    fillBox(x, x1, bottom, waterStairTop(x) - UNDER_TOP, front - 0.4, front);
+  }
+  fillBox(Q.east - 0.4, Q.east, bottom, T.y - UNDER_TOP, Q.z0, front);
+  fillBox(WATER_STAIR_WEST, Q.fallX, bottom, Q.y - UNDER_TOP, Q.fallZ - 0.4, Q.fallZ);
+  fillBox(Q.fallX - 0.4, Q.fallX, bottom, Q.y - UNDER_TOP, front, Q.fallZ);
 
   // the hero arch's ring (the keystone standing proud) and the pendant under it
   const spring = T.y + A.columnH;

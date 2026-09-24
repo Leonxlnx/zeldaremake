@@ -1190,6 +1190,17 @@ export const EXPANSION_RUINS = {
   terrace: { x0: -74.9, x1: -61.0, z0: -9.8, z1: -1.85, y: 4.5, notchZ: -7.0, notchX: -63.0 },
   /** the retaining wall along the pool's north shore: centre line z, half thickness, from the cliff to past the parapet */
   wall: { z: -1.85, half: 0.35, x0: -74.9, x1: -55.3 },
+  /**
+   * The water stair down the retaining wall's pool face to the fall's foot: 18 risers climbing east
+   * from `base` on the quay (`StairDef` conventions: the last tread is the top landing's level) to
+   * a landing reached from the terrace through a break in its ruined parapet (`quay.head`, x);
+   * the quay runs west from the flight's foot along the wall's foot at `quay.y`, under the slab,
+   * to the fall's foot, where it widens south to `quay.fallZ` east as far as `quay.fallX`. The
+   * landing's east face (`quay.east`) is where the character ground stops reading the flight
+   * (1.6 m past its last riser), so the flight runs along x and nothing past the face walks at 4.5.
+   */
+  waterStair: { id: 'ruins-water-stair', base: [-69.2, 0.85, -0.9], dir: [1, 0], steps: 18, rise: 0.2028, tread: 0.35, width: 1.2 } as StairDef,
+  quay: { y: 0.85, z0: -1.5, z1: -0.3, fallX: -71.5, fallZ: 0.0, head: [-62.45, -61.35] as [number, number], east: -61.3 },
   /** the parapet on the outcrop's section of the wall: posts with basin finials at `posts` (x) */
   parapet: { x0: -55.6, x1: -61.0, height: 0.95, half: 0.2, posts: [-55.6, -58.3, -61.0] },
   /** the hero arch at the stair head: clear span, column radius and height (over the terrace) */

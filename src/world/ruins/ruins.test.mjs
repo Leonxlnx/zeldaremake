@@ -8,20 +8,26 @@
  *   1. the walk: plaza → trail → outcrop → flight → the arch's passage → the paving's west end,
  *      every 0.1 m free and no rise a stride can't take; the flight, the passage and the paving
  *      at their heights;
- *   2. the holds: the wall, the parapet, the cliff, the ivy rock (its foot over the notch too), the
+ *   2. the water stair: the paving → over the wall through the parapet's break → the landing → the
+ *      flight down the wall's pool face → the quay → the platform at the fall's foot, and back,
+ *      every 0.1 m free and no rise a stride can't take; each tread, the quay and the platform at
+ *      their heights; off its open edges, past the landing's east face and on the wall either side
+ *      of the crossing held;
+ *   3. the holds: the wall, the parapet, the cliff, the ivy rock (its foot over the notch too), the
  *      gate boulders, the columns, the piers, the plunge, the lantern posts, the offering, a step
- *      off each of the terrace's open edges, and the pool past a paddle of at most a metre;
- *   3. the follow camera: with Link at the last walkable point by the cliff or the ivy rock, the
+ *      off each of the terrace's open edges, and the pool past a paddle of at most a metre (the
+ *      water stair's stone over the water is not a paddle);
+ *   4. the follow camera: with Link at the last walkable point by the cliff or the ivy rock, the
  *      camera as near him as it comes is outside their stone and clear of it by its near plane;
- *   4. the arch's ivy: no vertex inside the ring, the keystone, an abacus or the pendant, none more
+ *   5. the arch's ivy: no vertex inside the ring, the keystone, an abacus or the pendant, none more
  *      than 0.1 m under the springing, most of it on the approach's (east) face;
- *   5. the offering: finite, on the paving and clear of the arch's plinth and the flight, its
+ *   6. the offering: finite, on the paving and clear of the arch's plinth and the flight, its
  *      blocker round every stone of it over the paving;
- *   6. the loose stone: every rubble block, drum and the lintel reaches down to what it lies on (the
+ *   7. the loose stone: every rubble block, drum and the lintel reaches down to what it lies on (the
  *      ground, the outcrop's skin, the slabs or a lost slab's bed) and stands out of it; every
  *      boulder's underside meets the ground all round it;
- *   7. determinism: the same seed builds the same stone, bit for bit;
- *   8. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
+ *   8. determinism: the same seed builds the same stone, bit for bit;
+ *   9. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
  *      fixed camera's frustum, and the zone's own views do meet them.
  * (The gauntlet's playtest walks the same route and probes in the browser, over every system's
  * blockers; this is the ruins' share of it, without one.)
@@ -69,6 +75,7 @@ const { ruinsColumnBlockers } = loadTs(path.join(here, 'cameraSolid.ts'));
 const { buildLanterns } = loadTs(path.join(here, 'lanterns.ts'));
 const { buildOfferings } = loadTs(path.join(here, 'offerings.ts'));
 const { hangArchIvy } = loadTs(path.join(here, 'ivy.ts'));
+const { waterStairFootprint, waterStairTop, WATER_STAIR_LANDING_X } = loadTs(path.join(here, '../terrain/ruins.ts'));
 
 const terrain = getTerrain();
 const ground = (x, z) => terrain.height(x, z);
@@ -119,6 +126,53 @@ test('the walk from the plaza reaches the paving through the arch', async () => 
   for (const p of [[-67.5, -4.6], [-72.0, -3.2], [-68.0, -8.4], [-62.2, -5.7], [-62.0, -2.65]]) at('paving', p, T.y);
 });
 
+test("the water stair walks from the paving over the wall and down its pool face to the fall's foot", async () => {
+  const walker = await built;
+  const WS = R.waterStair;
+  const Qy = R.quay;
+  const zc = WS.base[2];
+  const xc = (Qy.head[0] + Qy.head[1]) / 2;
+  // off the outcrop stair's top tread (level with the paving) onto the paving's strip south of its
+  // cut (the arch's south column closes the strip's west end), east along it to the break
+  const route = [[-64.0, -4.2], [-64.0, -2.65], [xc, -2.65], [xc, -1.9], [xc, zc], [WS.base[0] - 1.3, zc], [-72.3, -0.8], [-73.4, -0.55]];
+  // there and back: every 0.1 m free, no rise a stride can't take either way
+  for (const legs of [route, [...route].reverse()]) {
+    for (let i = 1; i < legs.length; i++) {
+      const [ax, az] = legs[i - 1];
+      const [bx, bz] = legs[i];
+      const n = Math.ceil(Math.hypot(bx - ax, bz - az) / 0.1);
+      let prev = walker.height(ax, az);
+      for (let k = 1; k <= n; k++) {
+        const p = [ax + ((bx - ax) * k) / n, az + ((bz - az) * k) / n];
+        assert.equal(walker.blocked(...p), false, `${fmt(legs[i - 1])} → ${fmt(legs[i])} held at ${fmt(p)}`);
+        const h = walker.height(...p);
+        assert.ok(h - prev < 0.55, `${fmt(legs[i - 1])} → ${fmt(legs[i])} rises ${(h - prev).toFixed(2)} m in 0.1 m at ${fmt(p)}`);
+        prev = h;
+      }
+    }
+  }
+  const at = (where, p, y, tol) => {
+    assert.equal(walker.blocked(...p), false, `${where} ${fmt(p)} held`);
+    assert.ok(Math.abs(walker.height(...p) - y) < tol, `${where} ${fmt(p)} walks at ${walker.height(...p).toFixed(3)}, not ${y.toFixed(3)}`);
+  };
+  at('crossing (over the wall)', [xc, R.wall.z], T.y, 0.02);
+  at('landing', [WATER_STAIR_LANDING_X + 0.9, zc], T.y, 0.02);
+  for (let i = 0; i < WS.steps - 1; i++) at(`tread ${i}`, [WS.base[0] + (i + 0.5) * WS.tread, zc], WS.base[1] + (i + 1) * WS.rise, 0.005);
+  at('quay', [WS.base[0] - 1.3, zc], Qy.y, 0.005);
+  at('platform', [-73.0, -0.6], Qy.y, 0.005);
+  assert.ok(Math.abs(waterStairTop(WATER_STAIR_LANDING_X + 0.1) - T.y) < 0.002, 'the landing is not level with the paving');
+  // its edges: the open south edges of the quay, the flight and the platform, the platform's east end
+  // past the quay, the landing's east face and the wall either side of the crossing hold him
+  const held = (where, p) => assert.equal(walker.blocked(...p), true, `${where} ${fmt(p)} walks`);
+  for (const x of [-70.5, -66.2, -63.0]) for (const dz of [0.1, 0.3, 0.8]) held('off the strip', [x, Qy.z1 + dz]);
+  for (const x of [-74.0, -72.5]) for (const dz of [0.1, 0.3, 0.8]) held('off the platform', [x, Qy.fallZ + dz]);
+  held("off the platform's east end", [Qy.fallX + 0.15, -0.1]);
+  for (const dx of [0.1, 0.3, 0.8]) held('off the landing', [Qy.east + dx, zc]);
+  for (const x of [Qy.head[0] - 0.6, Qy.head[1] + 0.55]) held('the wall beside the crossing', [x, R.wall.z]);
+  // and the strip itself stays walkable to its margins (the platform to the cliff's reach, 0.8 m off its rock)
+  for (const p of [[-66.2, Qy.z0 + 0.15], [-66.2, Qy.z1 - 0.3], [Qy.east - 0.35, zc], [-73.3, Qy.fallZ - 0.3]]) assert.equal(walker.blocked(...p), false, `the strip's margin ${fmt(p)} held`);
+});
+
 test('the ruins hold Link off their stone, their edges and the deep water', async () => {
   const walker = await built;
   const held = (where, p) => assert.equal(walker.blocked(...p), true, `${where} ${fmt(p)} walks`);
@@ -156,7 +210,8 @@ test('the ruins hold Link off their stone, their edges and the deep water', asyn
     for (let i = 0; i < 160 && hold === null; i++) {
       const s = i * 0.05;
       const p = [Q.x + Math.cos(a) * (Q.hx + 3 - s), Q.z + Math.sin(a) * (Q.hz + 3 - s)];
-      if (terrain.height(...p) >= Q.water) continue;
+      // the water stair's quay and platform are stone over the water, not a paddle
+      if (terrain.height(...p) >= Q.water || waterStairFootprint(...p)) continue;
       wet ??= s;
       if (walker.blocked(...p)) hold = s;
     }

@@ -18,7 +18,7 @@
 import { DoubleSide, Group, Mesh, MeshStandardMaterial, Object3D, type Camera, type Material } from 'three';
 import { EXPANSION_RUINS } from '../layout';
 import type { WorldContext, WorldSystem } from '../system';
-import { inTerrace } from '../terrain/ruins';
+import { inTerrace, waterStairTop } from '../terrain/ruins';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
 import { buildRuinsCameraSolid, ruinsColumnBlockers } from './cameraSolid';
 import { buildIvy, hangArchIvy } from './ivy';
@@ -47,6 +47,9 @@ export function ruinsCasters(): Caster[] {
   out.push({ x: R.brokenArch.x, z: (R.brokenArch.z[0] + R.brokenArch.z[1]) / 2, r: 2.3, y0: T.y, y1: T.y + 3.3, shadow: true });
   out.push({ x: (R.parapet.x0 + R.parapet.x1) / 2, z: R.wall.z, r: 3.2, y0: -0.5, y1: R.platform.y + 1.4, shadow: true });
   out.push({ x: R.stairs.base[0] - 1.6, z: R.stairs.base[2], r: 2.2, y0: R.platform.y - 0.3, y1: T.y + 0.2, shadow: true });
+  // the water stair down the wall's pool face, from the platform to the landing
+  const Qy = R.quay;
+  for (let x = Qy.fallX - 2.5; x < Qy.east; x += 3) out.push({ x, z: (Qy.z0 + Qy.z1) / 2, r: 2.0, y0: R.pool.water - 1, y1: waterStairTop(x + 1.5) + 0.3, shadow: true });
   // the rock: the cliff along its run, the ivy rock, the gate, the slab bridge and its pile
   const C = R.cliff;
   for (let z = C.z0 - 1.5; z <= C.z1 + 1.5; z += 3) out.push({ x: C.x - 2.5, z, r: 4.2, y0: 0, y1: C.top + 0.6, shadow: true });

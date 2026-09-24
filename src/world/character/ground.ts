@@ -167,8 +167,9 @@ function buildSurfaceGrid(geometry: BufferGeometry, CELL: number, timberTriangle
  */
 export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGeometry): Ground {
   // round 49: the expansion's flights (layout EXPANSION_STAIRS) climb like the layout's; round 57:
-  // the ruins' stair from the outcrop to the terrace (built by the ruins system, not hardscape)
-  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS, EXPANSION_RUINS.stairs];
+  // the ruins' stair from the outcrop to the terrace and the water stair from the terrace down the
+  // retaining wall to the quay (built by the ruins system, not hardscape)
+  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS, EXPANSION_RUINS.stairs, EXPANSION_RUINS.waterStair];
   const frames: StairFrame[] = allStairs.map((s) => {
     const l = Math.hypot(s.dir[0], s.dir[1]);
     return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, tread: s.tread, rise: s.rise, steps: s.steps, halfWidth: s.width / 2, baseY: s.base[1] };

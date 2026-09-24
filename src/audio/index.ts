@@ -18,7 +18,7 @@ import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { expansionDiscMask, getTerrain, steppingStoneMask, surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { buildTrailProfile, inStairCut, inTerrace, outcropCover, trailInfluence } from '../world/terrain/ruins';
+import { buildTrailProfile, inStairCut, inTerrace, onWaterStair, onWaterStairFlight, outcropCover, trailInfluence } from '../world/terrain/ruins';
 import { EXPANSION, EXPANSION_RUINS, EXPANSION_SOUTH, LAYOUT, inExpansionRuins } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
@@ -339,8 +339,9 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
 const RUINS_TRAIL = buildTrailProfile(() => 0);
 
 /**
- * The waterfall ruins (`EXPANSION_RUINS`, terrain/ruins.ts): the worn flight and the terrace's
- * paving are masonry and the outcrop is bare rock, which the masks call lawn; the trail is packed
+ * The waterfall ruins (`EXPANSION_RUINS`, terrain/ruins.ts): the worn flight, the terrace's paving
+ * and the water stair (its flight as stairs, its quay over the pool) are masonry and the outcrop is
+ * bare rock, which the masks call lawn; the trail is packed
  * earth, which the path mask calls flagstones. The stepping discs it leaves from stay stone. Past
  * the pool's waterline (the ground under its surface) he wades.
  */
@@ -348,6 +349,7 @@ function ruinsSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
   if (x > -12 || !inExpansionRuins(x, z)) return null;
   if (x < -40) {
     if (inStairCut(x, z, 0.05)) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
+    if (onWaterStair(x, z)) return { surface: 'stone', stairs: onWaterStairFlight(x, z), enclosure: 0, canopy, gorge };
     if (inTerrace(x, z) || outcropCover(x, z) > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
     if (getTerrain().height(x, z) < EXPANSION_RUINS.pool.water - 0.02) return { surface: 'water', stairs: false, enclosure: 0, canopy, gorge };
   }
