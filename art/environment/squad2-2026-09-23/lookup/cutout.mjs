@@ -36,7 +36,12 @@ const sat = (r, g, b) => {
   return mx === mn ? 0 : (mx - mn) / (l > 0.5 ? 2 - mx - mn : mx + mn);
 };
 
-console.log("file                                  leafL  leafS   gapL  cutout  edges%  split");
+// `edges` is the mean STEP across a boundary, `lace` the DENSITY of boundaries (the share of pixels
+// with a neighbour on the other side of the split). They separate the two ways a canopy can be wrong,
+// which one number cannot: a slab has few boundaries, each a hard step; lace has many, and its mean
+// step stays whatever the leaf-to-sky contrast is. Breaking a card into leaves RAISES lace and leaves
+// edges where it was, so a fix that reads plainly in the frames looks like a non-result without this.
+console.log("file                                  leafL  leafS   gapL  cutout  edges%  lace%   split");
 for (const file of files) {
   const { data, info } = await sharp(path.resolve(file)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
@@ -84,5 +89,6 @@ for (const file of files) {
   }
   const name = path.basename(file).padEnd(36).slice(0, 36);
   const f = (v, d = 3) => v.toFixed(d).padStart(6);
-  console.log(`${name}${f(leafL / leafN)} ${f(leafS / leafN)} ${f(gapL / gapN)}  ${f(gapL / gapN - leafL / leafN)}  ${f((100 * edge) / Math.max(1, edgeN), 1)}  ${f(median)}`);
+  const area = (cx1 - cx0) * (ry1 - ry0);
+  console.log(`${name}${f(leafL / leafN)} ${f(leafS / leafN)} ${f(gapL / gapN)}  ${f(gapL / gapN - leafL / leafN)}  ${f((100 * edge) / Math.max(1, edgeN), 1)}  ${f((100 * edgeN) / area, 2)}  ${f(median)}`);
 }

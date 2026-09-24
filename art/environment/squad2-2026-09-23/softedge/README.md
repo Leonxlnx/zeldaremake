@@ -8,8 +8,8 @@ with the tone moving toward the air only as much as the reference's r_025 band*.
 
 Branched from the current head with `git revert 7872ec0e` first, as the note asks.
 
-**Half of that bar is met and half is not, and the half that is not is a measured failure with its
-cause found.** Read the two sections in that order.
+**The tone half of that bar is met; the silhouette half is partly met, and the rest is measured and
+handed on rather than claimed.** Read the two sections in that order.
 
 ## 1. The tone: met, and the rejected artefact is gone
 
@@ -53,10 +53,10 @@ band's middle third 64.0 → 79.9 levels, the near canopy overhead 74.3 → 74.8
 
 ![the plaza look-up, base and now](plaza-up-pair.jpg)
 
-## 2. The silhouettes: not met — four non-results, and why none of them could work
+## 2. The silhouettes: what they are made of, and how far this got
 
 The review is right that the outline is the defect: **15.5 % against the reference's 3.4 %**. Four
-alpha-side treatments were built and rendered against that number, and every one is a non-result:
+alpha-side treatments were built and rendered against that number, and every one was a non-result:
 
 | attempt | result at `u-open-up` |
 | --- | --- |
@@ -65,23 +65,57 @@ alpha-side treatments were built and rendered against that number, and every one
 | fade the lobe cores with distance (0.85 over 16–42 m) | **byte-identical frames** |
 | the same dissolve on a 26–64 m window (the first guess) | 15.5 % → 15.4 % |
 
-The byte-identical frames are the useful clue: they prove that *none of those shapes is a lobe core*.
-Following that, the cause is geometry, not shading — inside the crown layer those parts sample the
-atlas's **opaque patch** (`solidUv`: every vertex tagged `w ≤ 0`, the lobe cores at 0 and the near
-LOD's bark at −0.45). Solid alpha has no fringe to soften, no coverage to erode and no mip detail to
-blur. **The outline is the polygon itself.**
+The byte-identical frames were the useful clue — they prove none of those shapes is a lobe core. Two
+tag probes in the crown shader then settled what they are. The first tints the crown layer by its
+vertex tag (`probe-tags-cards-green.png`: cores red, the near LOD's bark blue, cards green): every
+flat shape is a **card**. The second tints near-horizontal cards against upright ones
+(`probe-floor-cards-magenta.png`):
 
-So the next attempt should not be another shader term. What the bar needs is for the silhouette at
-21–40 m to be drawn by leafy cards rather than solid volumes — the cores pulled inside the cards'
-envelope, or given leafy UVs, in `createDistantVariants` / `solidUv`. That is a geometry change with a
-triangle cost to weigh, which is why it is a hand-off with a measurement rather than something rushed
-in this hour. The four dead terms are backed out rather than shipped, and the reason is recorded in
-`CROWN_FAR_DISSOLVE`'s place in `distant.ts` so the next person starts here instead of repeating it.
+![the floor cards marked against the upright ones](probe-floor-cards-magenta.png)
+
+**The broad smooth masses are the crowns' FLOOR cards, and the leafy speckle beside them is the
+upright cards.** That is why four alpha treatments failed: they were softening a fringe on shapes
+whose outline is their quad — rounded to a smooth disc inside the near gate (`CROWN_FLOOR_ROUND`) and
+straight-edged beyond it.
+
+So `CROWN_FLOOR_FAR` takes 0.8 of a floor card's coverage over 20–44 m. A floor card exists so a walker
+stood under a crown does not see through it, which is a claim about being *under* it; at 25–40 m it is a
+flat lid held up to the sky. With it gone the lace of the upright cards draws the silhouette
+(`floor-fade-pair.jpg`, the biggest mass in that pose):
+
+![the biggest mass before and after the floor fade](floor-fade-pair.jpg)
+
+**What it does:** 2.46 % of the pinned frame changes, concentrated where those masses are (the top-left
+cell 30.3 % changed, mean Δ 23.6 levels); the mass's rim becomes scalloped and shows air through it.
+No thinning — the band's mean moves 137.2 → 137.7 levels, so the canopy did not open into holes — and
+the owner's job-6 gain is untouched, `u-plaza-up` being byte-identical before and after (those crowns
+are inside 20 m, below the window).
+
+**What it does not do: any aggregate statistic moves.** Outline hardness stays 15.5 %, and so does the
+boundary density. That is the honest state, and measuring *why* is the useful part of this hour. The
+metric now reports both halves of "cut-out" separately — `edges` is the mean step across a boundary,
+`lace` is the share of pixels that lie on one — because a slab and lace differ in the second, not the
+first. In the box around that mass:
+
+| `u-open-up`, x 0–0.35, y 0–0.35 | foliage L | outline hardness | boundary density |
+| --- | --- | --- | --- |
+| ours, before the floor fade | 0.282 | 10.5 % | 0.66 % |
+| ours, after | 0.294 | 10.3 % | 0.66 % |
+| reference `r_025` | 0.381 | **2.3 %** | **3.06 %** |
+| reference `r_026` | 0.394 | **2.7 %** | **3.22 %** |
+
+The reference's canopy has **4.6 × our boundary density at a quarter of our step**: it is made of many
+small leaf clumps, ours of a few big masses. No alpha treatment on the existing cards can close that —
+it is granularity, the "depth-graded density" half of the review's phrase, and closing it means more and
+smaller cards at 20–45 m, which is a triangle cost to weigh against W38 rather than a shader change.
+That is the next item, and it now has its number to aim at.
 
 ## What is in the branch
 
 - `src/world/trees/distant.ts` — the veil off the crown cards, `CANOPY_DEPTH_VEIL.lift` (the relative
-  floor), `CROWN_SHADE_M` as before, and the recorded finding where the dissolve was.
+  floor), `CROWN_SHADE_M` as before, `CROWN_FLOOR_FAR`, and the recorded finding where the dissolve was.
+- `art/environment/squad2-2026-09-23/lookup/cutout.mjs` — the `lace` column (boundary density) beside
+  `edges` (the step across one), because a slab and lace differ in the first and not the second.
 - `src/world/trees/materials.ts` (lane 3, declared) — two lines: the veil on the `giant-canopy` leaf
   cards, and a `name` for that material so `probe-look.mjs` can mark it. It was anonymous, which is why
   the first probe of this had to guess.
