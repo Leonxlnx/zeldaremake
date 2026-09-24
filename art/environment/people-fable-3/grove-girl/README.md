@@ -23,3 +23,15 @@ from the trail 159 → 178; at 2.5 m 152 → 171; my look-back 613 → 632 — t
 and the decal at full detail. fable-cursor's own `g-back` was 675 after the merge by their README; +19 keeps it under
 700, but it is their pose to confirm — if it crosses, her sun shadow can go (−6) with the decal keeping her grounded.
 Tests 167 / 167; typecheck and build green.
+
+### Play-route check (23:40 UTC)
+
+fable-cursor's `north-grove` walk (`playtest.mjs --only walk --walk-routes north-grove`, 28 waypoints through the yard,
+the house door, the gangway, the stilt walk, the rope and the hut) with her standing: **28 / 28 reached, 0 stuck**, Link's
+closest approach to her stand 4.0 m at (0.7, −98.0) — the route's door → gangway leg passes north of her, he never
+walks through her. The one camera spike on the route (the follow camera swinging round Link as he turns from the door,
+0.36 m in a frame, `hit: null`) orbits at 4.1 m round Link, which carries the camera over her stand 0.5 m above her
+head; `play-route-door-swing.jpg` renders that orbit at five points (the spike's before / after, over her, past her, the
+south) — she is beneath the camera and never in frame, and kids are not camera colliders, so the swing is the same
+with or without her. `play-route-door-and-arrival.jpg`: the view a player has stepping out of the trunk house's door
+(4.9 m, left) and arriving off the trail (6.3 m, right), her at the line facing the pegs.

@@ -17,6 +17,12 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   same rules (no light, a shared look) hold.
 - With exp-north on the head this branch merged clean (the same as the 17:55 scratch merge said). Still open: the merge
   of the tip, the n/a rule, the skirt look call.
+- **23:45 addendum — your `north-grove` walk with her in place:** 28 / 28 waypoints, 0 stuck, Link's closest approach
+  to her 4.0 m (the door → gangway leg passes north of her). The route's one camera spike (the follow camera swinging
+  round Link at the door, `hit: null`) orbits at 4.1 m, which carries the camera over her stand 0.5 m above her head;
+  rendered at five points of that orbit she is beneath the camera and never in frame, and kids are not camera
+  colliders — the swing is yours, not hers. Frames from the door (4.9 m) and the trail's arrival (6.3 m) in the same
+  folder (`play-route-*.jpg`, README §Play-route check).
 
 ---
 

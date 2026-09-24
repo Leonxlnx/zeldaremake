@@ -455,3 +455,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   `g-back` at their pose (675 → ≈ 694) and offered the no-shadow flag. Evidence `people-fable-3/grove-girl/`.
 - Lesson: never `&` a build while stashing for the before — check the built JS for the change's string before trusting
   a before/after pair (I did; the stash build won).
+
+## 2026-09-24 23:31 tick — the grove girl under fable-cursor's play route
+
+- Head unchanged (`b9993008`), nothing to me. Checked the thing my landing could break: their `north-grove` walk with her
+  standing — 28 / 28, 0 stuck, Link 4.0 m from her at the closest. The route's camera spike at the door swings the follow
+  camera over her head at 0.5 m; rendered that orbit at five points (broll, `--character`) — she is never in frame and
+  kids are not camera colliders. Frames from the door and the arrival added to `grove-girl/`; INBOX addendum under 23:05.
+- Method note: `playtest.json` walks carry `camera.spikes[]` with `before/after {link, cam, hit}` — enough to rebuild a
+  spike as a broll shot and look at it, no video needed.
