@@ -128,14 +128,24 @@ test('the surfaces balance: no step is more than 6 dB louder than another at the
   assert.ok(hi.db - lo.db <= 6, `${hi.s} is ${(hi.db - lo.db).toFixed(1)} dB(A) over ${lo.s} — surfaces should differ in colour, not in level: ${levels.map((l) => `${l.s} ${l.db.toFixed(1)}`).join(', ')}`);
 });
 
-test('a cadence a person could walk, and a run that is not a drum roll', () => {
-  // a walk at 1.5 m/s is about two steps a second; the old stride fired 4.4 a second at a run
-  assert.ok(Math.abs(cadence(1.5) - 2.0) < 0.15, `walk cadence ${cadence(1.5).toFixed(2)} steps/s`);
-  assert.ok(cadence(4.2) > 2.6 && cadence(4.2) < 3.2, `run cadence ${cadence(4.2).toFixed(2)} steps/s`);
-  // cadence rises with speed and the stride with it, and the walk / run change is not a cliff
-  for (let v = 0.5; v < 6; v += 0.25) assert.ok(cadence(v) >= cadence(v - 0.25), 'cadence must not fall as the speed rises');
-  // the walk / run change is a real gait change (a runner takes slightly quicker, shorter steps at
-  // the transition speed and lengthens from there), but it must be a step, not a cliff
+test('the cadence model is the gait, measured — not an adult walking', () => {
+  // The model is only consulted where the character system is NOT reporting boot plants: never in
+  // play, always in an offline render. So it is not "a rate that sounds plausible", it is a
+  // calibration, and its job is to make the evidence WAVs step like the game does. Counted in play
+  // over four seven-second legs (art/audio/2026-09-24-cadence/): 1.60 m/s → 3.63 boots a second,
+  // 4.60 → 4.92, and the audio fires exactly one step per stance edge.
+  for (const [speed, planted, stride] of [
+    [1.6, 3.63, 0.44],
+    [4.6, 4.92, 0.93],
+  ]) {
+    assert.ok(Math.abs(cadence(speed) - planted) < 0.1, `at ${speed} m/s the gait plants ${planted}/s, the model says ${cadence(speed).toFixed(2)}`);
+    assert.ok(Math.abs(strideFor(speed, false) - stride) < 0.04, `at ${speed} m/s the gait's step is ${stride} m, the model says ${strideFor(speed, false).toFixed(2)}`);
+  }
+  // cadence rises with speed and never falls, and the ends are clamped rather than extrapolated
+  for (let v = 0.5; v < 8; v += 0.25) assert.ok(cadence(v) >= cadence(v - 0.25), 'cadence must not fall as the speed rises');
+  assert.ok(cadence(0) > 1 && cadence(0) < 3, `a standstill extrapolates to ${cadence(0).toFixed(2)} steps/s`);
+  assert.ok(cadence(20) < 6, `an impossible speed extrapolates to ${cadence(20).toFixed(2)} steps/s`);
+  // the walk / run design change is a real gait change, but it must be a step and not a cliff
   assert.ok(Math.abs(strideFor(RUN_SPEED + 0.01, false) - strideFor(RUN_SPEED - 0.01, false)) < 0.15, 'the walk / run stride change must not jump');
   assert.equal(strideFor(1.5, true), 0.54, 'on stairs one step is one tread');
   // the refractory guard is shorter than the shortest real gap, so it never eats a real step
