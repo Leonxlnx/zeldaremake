@@ -2,12 +2,14 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: active
+status: idle
 branch: codex/walk-arms-sept24
-updated: 2026-09-24T16:46:00Z
+updated: 2026-09-24T17:00:00Z
 ---
 
 # Astra motion continuation
+
+Walk delivery `01b9f1a7`, PR59: actual native 1080p walk/stop replay is complete (2026-09-24T16-46-06-324Z-play-motion), 300 ticks / 150 video frames, 4.763 m, no page errors or reach clamps. Reviewed native side/front, game cycle frames and final stop. Before/after two-second comparison and full five-second new clip are linked in the study README. Capture began before commit; game-receipt.json verifies the runtime source and bundle against the delivered code. One aborted GLB request is recorded alongside the successful HTTP200/final GLB audit. No whole-character or full-sole collision-free claim. Source/build checks pass; GitHub gauntlet is still running. Fable notified in PR2 comment5818396640; the environment lanes continue independently.
 
 September 24 ordinary walk: adopted local 46dcbcc3 after native and CPU checks. Quaternius CC0 Walk_Loop supplies four shoulder/elbow rotation curves, fitted to the existing bend plane; original wrist/body/other clips are exact. Right sleeve requires 2.5-degree clearance; abducting the left pinched its strap, so left remains 0. Contact census improves 34 to 11 total, peak 4 to 2, below-armpit 1 to 0. Controller walk speed 1.6 to 1.2 m/s reduces cadence 218 to 164 steps/min; ARM_SCALE.walk=1 and TAU.walk=0 preserve reference timing. Typecheck/build (index-CUQeRUga.js), source anti-cheat and gait-chain test pass. Actual 1080p walk/stop recording is in progress; visual delivery is not yet accepted. Root owns Blender, default GLB and walk runtime. Other agents' environment branches and the cinematic tag remain independent.
 

@@ -2,7 +2,7 @@
 
 Candidate: `walk-natural-candidate.glb`, SHA-256
 `46dcbcc36490ee5c86f6d9eb28d58d1743f60cfab02bb0c899b8388b6eda3de0`.
-Export and structural checks pass. **In-game visual acceptance is pending.**
+Delivered by `01b9f1a7`. Export, structural checks and the actual player walk/stop replay pass.
 
 ## Change
 
@@ -68,9 +68,38 @@ script refuses to overwrite them. Full candidate GLBs and Blender studies stay l
 
 The CC0 credit applies to the donor animation, not to every asset in the game.
 
-## In-game review — pending
+## In-game review
 
-Record the final candidate in ordinary play, including starting and stopping.
-Add the tested source commit, build/asset hashes, clip path and before/after stills
-here after reviewing the actual arm swing, direction changes and foot contact.
-No game-footage acceptance or final visual verdict is recorded yet.
+[New walk and stop, 1080p](../2026-09-24T16-46-06-324Z-play-motion/walk-idle.mp4) ·
+[Before/after, left/right](walk-before-after.mp4) ·
+[Full replay manifest](../2026-09-24T16-46-06-324Z-play-motion/manifest.json) ·
+[Build receipt](game-receipt.json)
+
+The new clip is four seconds of walking and one second of stopping, driven through
+the actual player handle: 300 simulation ticks, 150 encoded frames at 30 fps.
+The comparison uses the first two seconds of each replay at normal playback speed;
+the left is the previous cinematic's walk, the right is this revision. Travel differs
+because the walk speed changed. This is deterministic capture, not a real-time FPS benchmark.
+
+Reviewed the side/front native poses, the in-game cycle frame sequence and the stop
+pose. The hands stay beside the hips with restrained forward travel, and the arms
+alternate with the legs. The player covers 4.763 m; there are no page errors or IK
+reach clamps. This route does not perform the separate full-sole triangle scan.
+One aborted GLB request is recorded alongside the successful HTTP 200 load and
+the verified final GLB audit; no fallback character was used.
+
+Build `index-CUQeRUga.js`, SHA-256 `c240459bc93c08266995f3023418cb83d7be23c56c657c2309db50fda6ec113c`.
+Capture started with these changes uncommitted at `67b801db`; the receipt verifies
+the runtime source against `01b9f1a7` and the unchanged built bundle. Typecheck,
+build, source anti-cheat and the gait-chain test pass. The CPU report predates the
+final runtime hash-label update; its motion logic is the same.
+
+| Pose | Before | After |
+| --- | --- | --- |
+| Side, phase 0 | ![](before-walk-0.00-side.png) | ![](after-walk-0.00-side.png) |
+| Front, phase 0.25 | ![](before-walk-0.25-front.png) | ![](after-walk-0.25-front.png) |
+
+![Eight successive game frames, left to right then top to bottom](game-walk-cycle.png)
+
+This addresses ordinary walking arms and cadence. It does not establish final
+character quality or repair the existing extreme stair knee poses.
