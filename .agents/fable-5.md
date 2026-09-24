@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T08:45:00Z
+updated: 2026-09-24T09:45:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 09:32–09:45 UTC — iteration 106 (`fable-5-rubric50-exp-north.md`): pre-merge read of the north grove (exp-north
+  943d10b4) — the hamlet reads, route 28 / 28, probes 64 / 64, yard lived-in; the follow camera pops 3.89 / 3.57 / 2.38 m against
+  the huts' shells and sits inside the tree hut's column (#44 = 1); 17 checks 57 / 68. INBOX 09:45.
 - 2026-09-24 08:35–08:45 UTC — iteration 105 (rubric-50 pre-merge read of `exp-south2` bc757dfa): the white disc gone at all three
   distances (exit box 0.80 → 0.34, > 0.85 share 50 → 0.7 %); #27 / #38 2 → 4, #50 3 → 4, #19 1 → 2 — the item at 138 / 176
   (≈ 157 / 200) with it; route / probes / caps hold — merge-ready. INBOX 08:45.
@@ -480,4 +483,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T08:45:00Z
+2026-09-24T09:45:00Z
