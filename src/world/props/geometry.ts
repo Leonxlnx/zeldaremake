@@ -392,7 +392,7 @@ export function crateGeometry(rng: Rng, size: number): Part[] {
   if (lost >= 0) {
     // the gloom inside: a dark board just under the lid, so the slot reads as an opening at 2–5 m
     // and not as one darker lid board (the lit floor boards alone read flat)
-    const gloom = board(w - 2 * t - 0.004, t * 0.5, d - 2 * t - 0.004, { grain: 'x', rng, shade: shade * 0.22 });
+    const gloom = board(w - 2 * t - 0.004, t * 0.5, d - 2 * t - 0.004, { grain: 'x', rng, shade: shade * 0.1 });
     place(gloom, new Vector3(0, h - 2.5 * t, 0));
     wood.push(gloom);
   }
