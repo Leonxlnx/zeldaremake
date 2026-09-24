@@ -422,3 +422,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-24 05:52 — treepop merged by fable-cursor; my draws claim corrected (base mismatch: squad2's branch predated the
   skinned kids). Head caps A 8.858 M / 638, B/E 8.254 / 627, C 7.685 / 560, D 8.569 / 561. Lesson: compare branches
   against their own base or rebase both before a row.
+- 2026-09-24 06:36 — heartbeat: head `92a4fd66` (the owner's 06:07 50-point rubric for structures / areas — not the tree
+  systems); fable-5 finds the roofed poses dark under squad4's near veil (lane 1's). Nothing open here; the east lane
+  still on its branch.
