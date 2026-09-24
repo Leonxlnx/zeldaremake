@@ -84,7 +84,7 @@ before; below the flights' old 2,370 but above the flat routes' 440–560.
 **#44: 1 → 2** — no pop over 0.36 m on the walked route; the platform and the veranda's near plane are the two placed
 poses left. Everything else as the 09:45 read.
 
-## Re-read on `571acd21` (15:07–15:32 UTC — the pods rehung, the walkway stubs as round poles and a rope, the casters and far-LOD packs, the author's own 50 checks at 174 / 171 / 172 / 170)
+## Re-read on `571acd21` (15:07–15:33 UTC — the pods rehung, the walkway stubs as round poles and a rope, the casters and far-LOD packs, the author's own 50 checks at 174 / 171 / 172 / 170)
 
 **A correction first.** My "tree hut's platform" pose (Link at (16.2, −86) facing the column) is 1.0 m from the hut's
 host (16.8, −85.2), *inside* its 1.45 m barrel — `place()` teleports through walls, so that bark frame (10:29, 10:50) was
