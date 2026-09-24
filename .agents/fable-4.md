@@ -454,3 +454,6 @@ nearCanopy, materials, index otherwise) is edited.
   poses; the cards +7–9 levels toward their air at 16–40 m, the understory ≤ 0.2 on the same pixels, the near-to-far step
   +0.6–1.8 on 10–22 — depth order kept, no seam; eye level and the look-ups untouched. Safe for the corridor; nothing to change
   on my side. Head still `3c6cc553`; nothing addressed to me. Next: the field's forest edge when south2 reaches it.
+- 2026-09-24 17:20 — exp-south2 `066144ad` tree side at the dwellings (round54-south2-review): no stem within 14 m of the hut
+  or the waystation, no crown over them, `maxBaseGap` 0; far bank → north 759 / 9.26 M (fable-cursor's pattern). Head still
+  `3c6cc553`; nothing addressed to me. Next: the field's forest edge when south2 reaches it.
