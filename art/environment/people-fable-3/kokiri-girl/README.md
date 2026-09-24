@@ -176,6 +176,19 @@ through the puppet idle, so A–F are untouched by construction).
 Pose: (2.3, 2.2, −0.66) → (4.4, 1.35, 0.9), vfov 40, broll t 12.0 (her dwell at (4.4, 0.9)); the before is the merged head
 `81430baf`. Modest, and meant to be: a safe landing an hour before the recording; the deeper JOB 7 items follow it.
 
+## The standing idle moves (owner 23:00, `437b7166`)
+
+JOB 7's "they should breathe and shift weight, not hold a pose": round 47's idle shifted the hips 1 cm and leaned 0.025 rad —
+a pixel at 4 m. Now the weight shift is 2.5 cm with a 0.05 rad lean, a slow yaw sway runs through hips and chest, the
+breath is 8 mm; and the thighs tilt back by the shift over the leg and cancel the pelvis' lean, so the soles stay planted
+while the body moves (before, the whole kid slid with the hips). `poseWander`'s idle: the walker's dwells and the ledge /
+bank idles; the sitter keeps her own sway; the plaza kids under capture pose through the puppet idle, so A–F are untouched.
+
+![the walker at her dwell, the same instant, before / after](before-after-idle-sway.jpg)
+
+Pose (1.2, 2.4, −1.6) → (4.4, 1.2, 0.9), vfov 42, broll t 14.8 inside her dwell at (4.4, 0.9): the after has her weight over
+one leg, hips and shoulders turned a touch; the boots are in the same pixels in both frames.
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,

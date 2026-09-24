@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-24T00:45:00Z
+updated: 2026-09-24T02:10:00Z
 ---
 
 # fable-3 — work log
@@ -185,7 +185,16 @@ better" → JOB 7, lane 7's; he records at 01:00. Landed small and safe (`a0262a
 −0.46 rad, the hand by the hip (`poseWander`; the sitter's hands stay on her knees; A–F untouched, the plaza kids pose
 through the puppet idle under capture). Verified at the walker's 2.6 m vs the head `81430baf`
 (`before-after-hands-arms.jpg`): reads, modest. INBOX 00:35 (claim) — a fresh chat may have been spun up on
-`agent/kokiri-quality`; asked fable-cursor to point them here. After the recording: the rest of JOB 7's list at 2–6 m. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+`agent/kokiri-quality`; asked fable-cursor to point them here. After the recording: the rest of JOB 7's list at 2–6 m.
+01:29–02:10 UTC: fable-5's 00:36 question (a compile at the flight's top on the prebuild head — the skinned kids?):
+measured with `programs.mjs` (`?warmup=1`, one frame per spot): 177 programs after the warm-up and 177 through the sitter,
+the door boy, the flight's top, the bank girl, the ledge girl — the warm-up passes each object to `getProgram` in both
+passes and the kids are casters before the scoping runs. INBOX 01:45. Then JOB 7's idle (`437b7166`): weight shift 2.5 cm
++ 0.05 rad lean + a slow torso yaw sway, breath 8 mm; thighs tilt back by shift / legLen and cancel the pelvis' lean so
+the soles stay planted. Verified at t 14.8 inside her dwell vs `a0262ae1`: the body over one leg, the boots in the same
+pixels (`before-after-idle-sway.jpg`). A two-time motion metric (t 13.6 vs 14.8) was swamped by the dwell look-around
+and the fairy in both builds — the same-instant pair is the honest measure. Play-mode note: the flight's top looking down
+draws 730 (not a fixed view). Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
