@@ -203,3 +203,24 @@ Scores that move: **#16 3 → 4** (the ivy where the reference has it, moss on t
 (the shore case gone; the fall's corner remains), **#42 4 → 3** until the notch probe walks again. **150 / 172 →
 174 / 200 scaled — over the gate on this read**, with fail 2 (the value and the light on the flight) the one
 reference distance left that a number describes, and fails 3, 5, 6, 7 open.
+
+## Re-read on `6bd9b870` (16:04–16:10 UTC — a paler, cooler west cliff, moss kept to the ledges and foot, the fall's damp band narrowed, neutral stone)
+
+Same six poses as the 15:04 read, `7c4fb16f` → `6bd9b870` (`it111-cliff-ba-6bd9b870.jpg`, `it111-ref-pose-6bd9b870.jpg`):
+
+| Link at | frame luma | under l 0.25 | pixels changed |
+| --- | --- | --- | --- |
+| **the fall's viewing corner (−73.8, −2.9), facing the cliff and the fall** | **0.324 → 0.399** | **45 → 19 %** | 67 % |
+| the arch passage (−64.75, −4.2), west | 0.345 → 0.355 | 36 → 30 % | 31 % |
+| the outcrop, the reference pose (−57, −4.3), west | 0.327 → 0.332 | 40.4 → 40.6 % | 13 % |
+| the gate (−51.4, −4.1) | 0.342 → 0.343 | 39.5 → 39.4 % | 8 % |
+| the terrace looking back east | 0.479 → 0.479 | 8.7 → 8.5 % | 10 % |
+| the outcrop toward the pool | 0.392 → 0.396 | 25.0 → 25.8 % | 14 % |
+
+**The cliff is fixed where the cliff is the picture** — from the fall's corner the face reads as pale, cool rock with
+moss on its ledges instead of a black wall (the frame's under-0.25 share 45 → 19 %). Saturation eases at every pose
+(0.24 → 0.21 at the reference pose — the neutral stone). **At the reference pose nothing moves:** the flight + terrace
+front l 0.232 → 0.238 (the reference's 0.581), the outcrop underfoot 0.364 → 0.382, the frame 0.327 → 0.332 against
+r_038's 0.469 and 40 % of it under 0.25 against the reference's 13 % — the pillar's shadow still lies across the outcrop
+and the flight. **Fail 2 stands as the light, not the stone's colour:** the stone is neutral now; it is in shadow where
+the reference has the sun through the arch onto the stair. Costs unchanged (the reference pose 151 / 1.01 M).

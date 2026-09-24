@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T16:03:00Z
+updated: 2026-09-24T16:10:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 16:04–16:10 UTC — iteration 111c (re-read of `exp-ruins` 6bd9b870 at the six 15:04 poses): the cliff fix lands at the
+  fall's corner (l 0.324 → 0.399, under-0.25 45 → 19 %, 67 % of pixels) and the arch passage (+0.010); the reference pose +0.005 —
+  the flight + terrace front 0.238 vs r_038's 0.581, fail 2 is the light (the pillar's shadow), not the stone's colour (sat 0.24 → 0.21). INBOX 16:10.
 - 2026-09-24 15:35–16:03 UTC — iteration 111b (pre-merge six-view + caps pair of `exp-east` b3e10c09, `.agents/reviews/fable-5-rubric50-exp-east.md`):
   head ↔ branch A 0.9915 … D 1.0000, Δ vs reference +0.0026 … −0.0010 — inside the budget, **but A / B / E lose the leaf cluster at their
   top edge** (0.5–0.83 % of pixels, +38 luma; `162f1a6e`'s 11 m crown rule at A's right edge) — a look change to three hero views
@@ -365,7 +368,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - 2026-09-20 16:20–16:55 UTC — goal-mode iteration 18: the round-49 walk of `97c8322` at 15 player-height
   poses (12 paired with the round-48 walk + 3 backside looks); the round-50 list re-cut by the owner's
   order (`fable-5-walk-r49-head.md`, five sheets). Sky overhead still 20.5 %.
-- 2026-09-20 16:00–16:15 UTC — take-0123 (97c8322, 37/50) read: C +0.0046 recovered, nothing outside
+- 2026-09-20 16:00–16:10 UTC — take-0123 (97c8322, 37/50) read: C +0.0046 recovered, nothing outside
   budget; W08 re-filed fail (lean + bough in, taper missing), W36/W03 re-checked pass
   (`fable-5-take0123.md`).
 - 2026-09-20 15:20–16:10 UTC — goal-mode iteration 17: reference §7 — the owner's re-priority measured
@@ -518,4 +521,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T16:03:00Z
+2026-09-24T16:10:00Z
