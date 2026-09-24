@@ -12,11 +12,14 @@
  *  - two pod-lantern posts and the signpost at the flight's foot;
  *  - use and repair: worn sill planks at both huts' doors, the veranda's boards trodden pale before
  *    the door and one replaced in fresh wood, the gangway's rails rubbed pale and one cleat lost, a
- *    rope-walk plank snapped in half and a hand rope spliced, a sapling in the stilt house's cap.
+ *    rope-walk plank snapped in half and a hand rope spliced, a sapling in the stilt house's cap, a
+ *    pot knocked over by the trunk house's door and broken.
  *
- * No light joins the scene: every glow is emissive (the pods, the huts' lamps and lit rooms); the
- * trunk house's and the posts' point lights are taken out of their groups (a light that joins or
- * leaves the scene with the group's visibility would recompile every lit program). The character
+ * No light joins the scene: every glow is emissive (the pods, the huts' lamps and lit rooms, and
+ * the pods' pools on the ground and the decks — additive vertex colour faded by the haze's
+ * extinction, where the village has point lights); the trunk house's and the posts' point lights
+ * are taken out of their groups (a light that joins or leaves the scene with the group's
+ * visibility would recompile every lit program). The character
  * walks the gangway, the veranda, the walkways and the rope walk (walk surfaces and spans) and the
  * railings and deck sides keep him on them (walk edges); the huts' doors are shut (the play camera
  * never goes into a room). structures/index.ts consolidates the group on its own and hides it
@@ -25,8 +28,9 @@
  * Own rng fork, appended after every existing stream: nothing built before moves.
  */
 import {
+  AdditiveBlending,
   BoxGeometry,
-  type BufferGeometry,
+  BufferGeometry,
   CatmullRomCurve3,
   Color,
   CylinderGeometry,
@@ -37,6 +41,7 @@ import {
   LineCurve3,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   SphereGeometry,
   TorusGeometry,
@@ -103,6 +108,10 @@ const TRODDEN_HALF = 0.34;
 const LOST_CLEAT = 6;
 /** the rope walk's broken plank (0 at the stilt house's stub): half of it gone, past the middle */
 const BROKEN_PLANK = 6;
+/** a lantern's pool of light on the surface under it (additive, linear) for a pod 1.3 m up; a higher pod's is wider and dimmer */
+const POOL_PEAK = 0.085;
+/** the pools fade with distance like the haze's extinction (1/m past 2.5 m) and add none of its airlight */
+const POOL_EXTINCTION = 0.032;
 /** wood worn by feet or hands (w 0 … 1): greyer and paler */
 const trodden = (c: RGB, w: number): RGB => {
   const l = (c[0] + c[1] + c[2]) / 3;
@@ -179,6 +188,8 @@ export interface GroveAudit {
   walk: { surfaces: number; spans: number; edges: number };
   triangles: { house: number; huts: number; built: number; foliage: number; tufts: number };
   leaves: number;
+  /** the pods' pools of light (additive patches; no light) */
+  lightPools: number;
   pointLights: 0;
 }
 
@@ -463,6 +474,46 @@ function cloth(p0: Vector3, p1: Vector3, drop: number, tint: RGB, noise: Noise2D
     },
     { cols: 9, rows: 6 },
   );
+}
+
+/**
+ * A lantern's pool of light as additive vertex colour on the surface under it (no light joins the
+ * scene): a polar patch round `centre`, `radius` m, fading to nothing at its rim. `surfaceY(x, z)`
+ * is the top it lies on, or null off it — the patch stops at a deck's edge. Null if none of it lands.
+ */
+function lightPool(centre: Vector3, radius: number, peak: number, tint: RGB, surfaceY: (x: number, z: number) => number | null, rings = 6, sectors = 22): BufferGeometry | null {
+  const pos: number[] = [];
+  const col: number[] = [];
+  const on: boolean[] = [];
+  const push = (x: number, z: number, d: number) => {
+    const y = surfaceY(x, z);
+    on.push(y !== null);
+    pos.push(x, y ?? 0, z);
+    const f = peak * (1 - (d / radius) ** 2) ** 2;
+    col.push(tint[0] * f, tint[1] * f, tint[2] * f);
+  };
+  push(centre.x, centre.z, 0);
+  for (let i = 1; i <= rings; i++) {
+    const d = (radius * i) / rings;
+    for (let j = 0; j < sectors; j++) push(centre.x + Math.cos((j / sectors) * TAU) * d, centre.z + Math.sin((j / sectors) * TAU) * d, d);
+  }
+  const at = (i: number, j: number) => (i === 0 ? 0 : 1 + (i - 1) * sectors + (j % sectors));
+  const index: number[] = [];
+  const face = (a: number, b: number, c: number) => {
+    if (on[a] && on[b] && on[c]) index.push(a, b, c);
+  };
+  for (let j = 0; j < sectors; j++) face(0, at(1, j + 1), at(1, j));
+  for (let i = 1; i < rings; i++)
+    for (let j = 0; j < sectors; j++) {
+      face(at(i, j), at(i + 1, j + 1), at(i, j + 1));
+      face(at(i, j), at(i + 1, j), at(i + 1, j + 1));
+    }
+  if (!index.length) return null;
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setIndex(index);
+  return g;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1184,6 +1235,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
 
   // ================= lantern posts and the sign (their point lights are taken out) =================
   let postLights = 0;
+  const postPods: Vector3[] = [];
   for (const p of N.lanternPosts) {
     const pb = buildLanternPost(p, ctx, mats, rng.fork(`post/${p.id}`), rope);
     for (const l of pb.lights) {
@@ -1193,6 +1245,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     group.add(pb.group);
     lanterns.push(...pb.lanterns);
     for (const l of pb.lanterns) pods.push(l.pod.clone());
+    for (const l of pb.lanterns) postPods.push(l.pod.clone());
     bases.push(pb.base);
     footprints.push({ x: pb.base[0], z: pb.base[2], r: 0.35 });
   }
@@ -1431,6 +1484,73 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     foliage.addLeafCluster(tip, 0.26, 18, { size: 0.1, droop: 0.25, flatten: 0.4 });
   }
 
+  // one of the trunk house's door pots knocked over and broken: on its side in front of the others,
+  // its mouth toward the yard, shards spilled out of the break (own fork; counted after every pot
+  // above, whose tints and mottles follow the count)
+  {
+    const br = rng.fork('broken-pot');
+    const up = new Vector3(0, 1, 0);
+    const g = groundAt(doorP.clone().addScaledVector(doorT, 1.3).addScaledVector(doorN, 0.55));
+    const h = 0.34;
+    const r = 0.17;
+    const mouth = doorN.clone().applyAxisAngle(up, 0.5);
+    const across = up.clone().cross(mouth);
+    const lie = new Matrix4().makeBasis(up, mouth, across).setPosition(g.clone().addScaledVector(mouth, -h / 2).add(new Vector3(0, r - 0.015, 0)));
+    const pot = clayPot(new Vector3(0, 0.01, 0), h, r, scaleRGB(TERRACOTTA[1], 0.94), noise, 481);
+    pot.applyMatrix4(lie);
+    stoneParts.push(pot);
+    const spill = g.clone().addScaledVector(mouth, h / 2 + 0.2);
+    for (let k = 0; k < 3; k++) {
+      const p = g.clone().addScaledVector(mouth, h / 2 + br.range(0.08, 0.32)).addScaledVector(across, br.range(-0.18, 0.18));
+      const w = br.range(0.05, 0.08);
+      const shard = new BoxGeometry(w, 0.011, w * br.range(0.55, 0.8));
+      shard.rotateZ(br.range(-0.25, 0.25));
+      shard.rotateY(br.range(0, TAU));
+      shard.translate(p.x, T.height(p.x, p.z) + 0.004, p.z);
+      stoneParts.push(setColorAttribute(shard, scaleRGB(TERRACOTTA[1], br.range(0.78, 0.95))));
+    }
+    blockers.push({ id: 'grove-house-pot-broken', x: g.x, z: g.z, r: 0.24 });
+    footprints.push({ x: spill.x, z: spill.z, r: 0.3 });
+    bases.push(p3(g));
+    pots++;
+  }
+
+  // ================= the lanterns' pools of light (additive vertex colour; no light) =================
+  const poolParts: BufferGeometry[] = [];
+  {
+    const glow = new Color(ctx.config.palette.lanternGlow);
+    const tint: RGB = [glow.r, glow.g, glow.b];
+    const pool = (pod: Vector3, top: number, surfaceY: (x: number, z: number) => number | null) => {
+      const h = Math.max(0.3, pod.y - top);
+      const g = lightPool(pod, clamp(0.55 + 0.45 * h, 0.8, 1.5), POOL_PEAK * clamp((1.3 / h) ** 2, 0.35, 1), tint, surfaceY);
+      if (g) poolParts.push(g);
+    };
+    // the trunk house's door pods and the posts' pods on the ground under them
+    const onGround = (x: number, z: number) => T.height(x, z) + 0.03;
+    for (const l of house.lanterns) pool(l.pod, T.height(l.pod.x, l.pod.z), onGround);
+    for (const p of postPods) pool(p, T.height(p.x, p.z), onGround);
+    // the huts' pods on their platforms, the veranda and the walkway stubs — never inside the wall
+    for (const a of huts.audit) {
+      const ws = walkSurfaces.find((w) => w.id === a.id);
+      if (!ws) continue;
+      const d = ws.disc;
+      const top = a.id === 'grove-stilt' ? Math.max(d.y, fy + 0.016) : d.y;
+      const [ax, ay, az0] = ws.deck.a;
+      const [bx, by, bz] = ws.deck.b;
+      const ex = bx - ax;
+      const ez = bz - az0;
+      const topAt = (x: number, z: number): number | null => {
+        const r = Math.hypot(x - d.x, z - d.z);
+        if (r < a.radius * 0.98) return null;
+        if (r <= d.r) return top + 0.012;
+        const t = clamp(((x - ax) * ex + (z - az0) * ez) / (ex * ex + ez * ez), 0, 1);
+        if (Math.hypot(x - ax - ex * t, z - az0 - ez * t) > ws.deck.hw) return null;
+        return lerp(ay, by, t) + 0.012;
+      };
+      for (const p of a.pods) pool(new Vector3(p[0], p[1], p[2]), top, topAt);
+    }
+  }
+
   // ================= meshes =================
   const add = (geo: BufferGeometry, mat: Material, name: string, cast = true, receive = true) => {
     const m = new Mesh(geo, mat);
@@ -1460,6 +1580,14 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     const clothMat = applyShadeFloor(new MeshStandardMaterial({ color: new Color(1, 1, 1), roughness: 0.95, vertexColors: true, side: DoubleSide }), CLOTH_FLOOR);
     owned.push(clothMat);
     addParts(clothParts, clothMat, 'grove-cloth');
+  }
+  if (poolParts.length) {
+    const poolMat = new MeshBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+    poolMat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>\n\tvColor *= exp( -${POOL_EXTINCTION} * max( length( mvPosition.xyz ) - 2.5, 0.0 ) );`);
+    };
+    owned.push(poolMat);
+    add(merge(poolParts), poolMat, 'grove-light-pools', false, false);
   }
   const foliageMeshes = foliage.build(mats, 'grove');
   for (const m of foliageMeshes) group.add(m);
@@ -1556,6 +1684,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       walk: { surfaces: walkSurfaces.length, spans: walkSpans.length, edges: walkEdges.length },
       triangles: { house: houseTris, huts: huts.triangles, built: builtGeos.reduce((n, g) => n + tri(g), 0), foliage: foliageTris, tufts: tufts.triangles },
       leaves: foliage.leafCount,
+      lightPools: poolParts.length,
       pointLights: 0,
     },
   };
