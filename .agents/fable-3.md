@@ -426,3 +426,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   travel only with this branch — listed them in reading order in the 18:55 note.
 - `f2873e6d`-1 (`buildWristbands`): stitched cuffs on the strap canvas sharing `beltMaterial()` — the belt's own draw
   given back (A 637 → 636, B 628 → 627 on one head), the cuffs matching the belt at 2.6 m. 160 / 160.
+
+## 2026-09-24 19:24 tick — the seated girl's skirt
+
+- Head 19:10 (squad log); merged. Looked at the sitter at 2 m for the first time since round 48: bare thighs, the
+  flaps a shelf at hip height (red-material diagnostic + Node probes of the skinned mesh via `applyBoneTransform` —
+  remember to load the vertex into the vector first). `83cffdcc`: `SkinBlend` in skin.ts, flaps hips 0.85 / 0.5.
+  Result: the front hangs as an apron; thighs still bare (the flare). Filed honestly; asked fable-cursor for the look call.
+- Lessons: `broll --character` again; a Node probe with a canvas-stub `document` builds a kid in 0.7 s — use it before
+  rendering; the seated pose's thigh pitch is ~45°, not 90° — check the pose's actual numbers before designing for it.
