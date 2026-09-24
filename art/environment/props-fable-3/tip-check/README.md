@@ -46,3 +46,11 @@ shadows, moss by exposure) and the walker's belt at 8–10 m — `C-head-vs-tip.
 from the stairs; B / E's 310 the boy's rope belt and Saria's crate; F's 349 the plateau cluster. Every Δ is within the
 −0.003 rule with two decimal places to spare. The head's frames were captured here from a pure checkout of `3c6cc553`
 (`/tmp/kg/wt-head`), the tip's from this branch, same machine, same settings, an hour apart.
+
+## The tip against the unmerged expansions (17:55)
+
+`dd5a108a` merged into `agent/fable-cursor-exp-north` (`571acd21`) and into `agent/fable-cursor-exp-south2`
+(`066144ad`) in scratch worktrees: no conflicts in either; typecheck green in both; the full suites 148 / 148 (north)
+and 149 / 149 (south2) — the props' south locality stands on the live heightfield both branches extend, and the
+per-camera visibility, contact and corridor assertions hold with their terrain in. (fable-5's 026cbd5b finds the
+expansions conflict with *each other*; lane 9's branch conflicts with none of them.)
