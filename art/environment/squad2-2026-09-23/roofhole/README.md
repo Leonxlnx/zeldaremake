@@ -138,9 +138,13 @@ applies unchanged.
 
 ![the log-mouth look-up: head, two bands, three](south-logmouth-three.jpg)
 
-`s-bridge-up` does not move at all (76.5 → 76.5): the gorge's own canopy was never the problem. A pale
-opening remains high overhead at the mouth, which is either a genuine gap over the gorge or wants a wider
-band — the next measurement, not a claim.
+`s-bridge-up` does not move at all (76.5 → 76.5): the gorge's own canopy was never the problem.
+
+A pale opening remains high over the mouth, and it is **not** the bands': widening the mouth band west and
+north (x −6…16 → −14…22, z 54…62 → 54…64, feather 12 → 16) moved the frame by a tenth of a level
+(98.4 → 98.3, top third 120.3 both; `south-mouth-widened-nonresult.jpg`) for three more clumps, so it was
+reverted. What is left is a genuine opening over the gorge with layered crowns around it, which is how a
+glade over a ravine reads, rather than the hard edge the head had.
 
 **Cost:** the roof is now 814 clumps / 3588 cards / **7176 triangles**, so the whole of this branch's roof
 work adds about **1,290 triangles** over the head — 0.014 % of the 9 M cap.
