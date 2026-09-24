@@ -320,13 +320,16 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * floor cards, which is where paling printed geometry and got the merge reverted at 05:30.
  */
 export const CROWN_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
-  share: 0.85,
-  // 16-38 m, not 14-52: at 25-30 m, where the level view's crowns stand, the long ramp was only a
-  // fifth to a third in, which is why hero A's foliage moved 0.273 → 0.284 against the reference's
-  // 0.436. The near edge stays where it is — a crown 17 m off takes 0.01 of the veil, because the
+  // 1.0, and it cannot overshoot: `lift` below stops every fragment at the reference's own relation
+  // between its foliage and its air, so the share only decides how fast a crown gets there. 0.85 with
+  // the ramp reaching left hero A's crown box at 79.4 levels against the reference band's 124.3, and
+  // the arithmetic said the veil there was 0.27-0.52 of the way on, not saturated.
+  share: 1.0,
+  // 16-30 m: the near edge stays where it is — a crown 17 m off takes 0.02 of the veil, because the
   // reference's own trees at that range are still dark and saturated and this lane's mid canopy is
-  // what made the middle distance read as trees at all.
-  m: [16, 38],
+  // what made the middle distance read as trees at all — while the far edge comes in from 38 m to 30,
+  // where a level view's crowns actually stand (the 14-52 m ramp was a fifth to a third in there).
+  m: [16, 30],
   ray: [0.45, 0.06],
   tint: [1.02, 1.0, 0.96],
   // and the floor stops at the reference's own relation: its foliage sits at 0.809 of its air
