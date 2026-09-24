@@ -300,3 +300,22 @@ millimetres inside each edge, u carrying two repeats — twelve stitches round a
 with the strap; the skinned merge folds cuffs and strap into one mesh per girl. `before-after-wristbands-2.6m.jpg`
 (the walker's right wrist at 2.6 m, 2.9×): a lighter stitched edge on the band, matching the belt. Counts on the
 same head (`732bb3b8`), `pose-counts.mjs`: A 637 → 636, B 628 → 627. 160 / 160 tests.
+
+## The seated girl's skirt (`83cffdcc`, 2026-09-24 20:00) — a "check everything" find
+
+Round 48 said the skirt's front flaps ride on the thigh joints so they drape over the thighs when she sits. At 2 m the
+sitter on the main flight showed bare thighs from hip to knee with a green wedge at the crotch. A probe (the flaps in red,
+`diag-seated-flaps-red.jpg`) found them: rigid on the thigh, their rest flare 10–15 cm in front of the thigh axis becomes
+height above the lap when the thigh pitches forward, so they pivot into a horizontal shelf at hip height — seen edge-on
+from the front as a thin band under the belt, hidden by the forearms from the side. Not a skinning regression: the
+round-48 sheets show the same bare thighs.
+
+Fix (`skin.ts` `SkinBlend`, `kokiri.ts`): a part may be shared between its joint and the joint's parent, by height; the
+flaps take hips 0.85 at the waist and 0.5 at the hem, thigh the rest. Seated at the flight's ~45°, the hem hangs 1–4 cm
+over the thigh top (Node probe of the skinned mesh); standing the skirt is unchanged (the hips and thigh agree at rest);
+in the stride the flaps swing half the thigh's angle and clear the knee at 26°.
+
+- `before-after-seated-flaps-front.jpg`, `-side.jpg` — the sitter at 2 m: the front now hangs from the waist as a skirt
+  should, to mid-thigh between the legs. **Honestly:** the thighs' tops stay bare — with the flare kept, the cloth
+  hangs *between* the thighs rather than lying on them; a drape over the thighs needs front flaps that hug the legs (a
+  narrower skirt front, a look change) or a proper cloth solve. Left for fable-cursor's call.
