@@ -275,3 +275,15 @@ Six views A / B / F, before `ca05e910` → after `0a36c3e3`, both at high:
 One draw more per girl in frame (A 639 → 640, B 628 → 629, F 599 → 600): the strap's mapped material is its own,
 where round 48's belt shared the wristbands' plain one. Within budget; the wristbands could take the strap canvas too
 and give the draw back, but a torus maps the stitches round the tube — left for a look decision.
+
+## JOB 7, the belt — the boy (`f27b247f`, 2026-09-24 14:40)
+
+Round 1's rope belt was two smooth tori in flat colour with two stubs — two pale rings at 2.5 m. Now (`buildBoy`): laid
+rope on a rope canvas (three strands per turn of the lay, the groove dark between them, a fibre fuzz; the canvas's u is
+scaled so a wrap carries 36 turns, about 1.9 cm each on a 1.8 cm rope), a knot the size of two rope widths where the
+wraps cross at the front, and the two ends out of the knot hanging a hand down the skirt, splaying a little and fraying to
+points. Same single mesh (`kid-rope-belt`), its own mapped material (one draw where round 1's `matte('kidRope')` was
+one draw too — the rope was already alone on its material).
+
+- `before-after-boy-rope-belt-2.5m.jpg` — the boy at Saria's door from the `door-boy-2.5m` camera (fov 34, with
+  `--character`): the wraps ribbed, the knot, the ends behind the fern.
