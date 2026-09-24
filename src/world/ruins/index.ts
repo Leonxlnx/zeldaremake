@@ -6,8 +6,9 @@
  * live view (terrain/ruins.ts); this system builds everything standing on it: the masonry
  * (masonry.ts), the natural rock — cliff, ivy rock, boulders, the slab bridge (rock.ts) — the ivy
  * hung over the great rock's stair-side face (ivy.ts), the trail's pod lanterns (lanterns.ts) and the
- * water — the pool, the fall, its spray and mist (water.ts) — and publishes the terrace's walk spans
- * and the fallen pieces' and boulders' blockers for the character ground.
+ * water — the pool, the fall, its spray and mist (water.ts), the green motes over it (wisps.ts) —
+ * and publishes the terrace's walk spans and the fallen pieces' and boulders' blockers for the
+ * character ground.
  *
  * Locality: the whole site is in the west sector no fixed frame looks at, but its casters are tall
  * (the arch to 9.6 m), so like the south exit it is drawn only while the camera is within
@@ -26,6 +27,7 @@ import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
 import { buildRock, outcropSkin, pillarSpan } from './rock';
 import { buildWater } from './water';
+import { buildWisps } from './wisps';
 
 const R = EXPANSION_RUINS;
 /** the masonry's target albedo (linear): the reference's pale grey-cream limestone */
@@ -120,6 +122,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const water = buildWater(rng.fork('water'), (x, z) => terrain.height(x, z));
   for (const m of water.meshes) group.add(m);
   materials.push(...water.materials);
+  const wisps = buildWisps(rng.fork('wisps'));
+  group.add(wisps.mesh);
+  materials.push(wisps.material);
 
   // the audio's sources, found by name (audio/index.ts): the fall's roar a metre over its plunge and
   // a flame in each trail pod (a `pod-lantern`'s origin is its hook, the pod ~0.5 m under it)
@@ -165,7 +170,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     walkSpans: masonry.spans.length,
     blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length,
     cameraSolid: cameraSolid?.report ?? null,
-    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves },
+    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves, wisps: wisps.count },
     lanternTriangles: lanterns.triangles,
     pods: lanterns.pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
     plunge: water.plunge.map((v) => +v.toFixed(2)),
@@ -178,7 +183,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group,
     update(_dt, t) {
       refresh(ctx.camera);
-      if (group.visible) water.update(t);
+      if (group.visible) {
+        water.update(t);
+        wisps.update(t);
+      }
     },
     onCameraMove(camera) {
       refresh(camera);
