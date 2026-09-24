@@ -366,3 +366,7 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   paving's edge (path 0 / 0.01), the door pots on the house pad (structure mask), the plaza pots on the plateau mask.
   A stone lift was written, tested and reverted as dead code; if a future prop stands on stone, lift its decal by
   `AO_STONE_LIFT ≈ 2 cm` (the slabs' proud height) keyed on `T.mask(x, z).path > 0.18`.
+- Play-mode check: `playtest.mjs --only video` at Saria's side on the merged head — the look sweep drawn every frame:
+  the decals under the bucket, pots and crate hold still (no z-fight, no crawl); walks `plaza-to-upper-house` 6 / 6 and
+  `saria-front-arc` 3 / 3, nothing stuck. Filed in `props-fable-3/contact-ao/`. Note: `--only walk` steps without
+  drawing (no frames); `--only video --video` is the drawn sequence.
