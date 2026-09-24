@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T17:14:00Z
+updated: 2026-09-24T17:56:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 17:33–17:56 UTC — iteration 114 (`squad2-roofhole` tip 9af8f36d — the south bands): six views head ↔ tip A 1.0000 … F 0.9846,
+  Δ vs reference 0 … +0.0015 (C, closer); against 70b46592 only C changes (0.54 %, top ninth, −22 luma — lane 2's number to the decimal);
+  the far bank's look-up at player height closes (pale haze 65.9 → 20.3 %, luma 0.573 → 0.340), the look-back and the bridge unmoved.
+  Merge-safe. INBOX 17:56.
 - 2026-09-24 16:42–17:14 UTC — iteration 113b (non-author read of `squad2-roofhole` 70b46592, `.agents/reviews/fable-5-lane10-roofhole.md`): six views
   head ↔ branch A 1.0000 … F 0.9846, Δ vs reference 0 … −0.0006 — B / D / E change only their top ninth (the canopy closing); lane 2's 10.58 % at A
   was wind phase (deterministic: 0.04 %); `u-open-up` 0.424 → 0.286 with pale haze 35 → 7 % — inside the reference look-ups' family (r_020–r_028
@@ -539,4 +543,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T17:14:00Z
+2026-09-24T17:56:00Z

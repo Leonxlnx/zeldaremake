@@ -49,5 +49,29 @@ the open north's look-up brought into the reference's family. One interaction fo
 cluster from the top edge of A, B and E (`fable-5-rubric50-exp-east.md`, 16:03) while this branch closes the canopy over
 that same band — merged together the two will need one look at A's top edge.
 
-Read at `70b46592`. The branch's tip `716b7f29` (16:44 — the roof closes over the south exit, a third south band over the
-ravine's airspace; lane 2 flags camera C as the open check) landed after this build; its six views, C first, next.
+## The tip `9af8f36d` (17:30 — three south bands: the far bank, the log's mouth, the ravine's airspace; lane 2 measured C at 0.55 %) — 17:33–17:56 UTC
+
+Same capture, the head and the tip; and the tip against `70b46592` to isolate the south bands (`it114-C-top-band.jpg`):
+
+| view | head ↔ tip | pixels changed | vs reference head → tip | Δ | `70b46592` ↔ tip |
+| --- | --- | --- | --- | --- | --- |
+| A_stairs | 1.0000 | 0.04 % | 0.1765 → 0.1765 | 0 | 1.0000 / 0.00 % |
+| B_house | 0.9986 | 0.32 % | 0.1705 → 0.1701 | −0.0004 | 1.0000 / 0.00 % |
+| **C_lookback** | **0.9978** | **0.54 %** | 0.1742 → **0.1757** | **+0.0015** | **0.9978 / 0.54 %** |
+| D_log | 0.9980 | 0.42 % | 0.2362 → 0.2362 | +0.0001 | 1.0000 / 0.00 % |
+| E_ground | 0.9986 | 0.31 % | 0.1913 → 0.1910 | −0.0003 | 1.0000 / 0.00 % |
+| F_canopy | 0.9846 | 6.05 % | 0.1955 → 0.1949 | −0.0006 | 1.0000 / 0.00 % |
+
+The south bands touch **C only** — 0.54 % of its pixels, 4.67 % of the top ninth and 0.17 % of the second, nothing below,
+−22 luma: lane 2's "0.55 %, y 0–0.13, Δ 22 levels" to the decimal — and C ends **closer** to the reference (+0.0015). A, B, D,
+E and F are pixel-identical to `70b46592`. Every Δ against the reference across the six is within +0.0015 … −0.0006.
+
+**At player height on the far bank** (`it114-south-lookups-head-vs-tip.jpg`; the follow camera, Link at the south sill
+(4.06, −0.17, 42.8)): looking up 60° the head's frame is a pale void over its top two thirds — **pale-haze share 65.9 %,
+luma 0.573**; the tip closes it to canopy with a god ray and sky gaps — **20.3 %, 0.340**. Still more open than the
+reference's look-ups (3.5–8.5 %), which lane 2 names as the pale opening high over the mouth and the next measurement.
+The look-back over the village from the same sill and the bridge's north end do not move (0.1 % / 0.0 % of pixels;
+the roof adds +1 draw and 1.4–4 k triangles there; the look-back stays at the head's own 855 draws / 10.19 M).
+
+**Verdict for `9af8f36d`: merge-safe by the six-view budget**; the south exit's look-up joins the north's in kind, the
+mouth's opening the next band.
