@@ -193,6 +193,17 @@ export const CROWN_UNDER_FOG_CUT = 0.6;
 export const CROWN_UNDER_FOG_RAY: [number, number] = [0.35, 0.7];
 export const CROWN_FLOOR_ROUND: [number, number] = [0.9, 1.1];
 /**
+ * How much of a floor card's coverage goes as it recedes, and over what distance. fable-cursor's
+ * review (§Review notes, the reverted veil) asked for the crowns' silhouettes to soften or break up
+ * with distance; a tag probe at the pinned `u-open-up` pose settles what the silhouette is made of —
+ * the broad near-horizontal FLOOR cards are the smooth flat shapes, the upright cards are the leafy
+ * speckle. A floor card exists so a walker stood under a crown does not see through it, which is a
+ * claim about being under it; at 25-40 m it is a flat lid held up to the sky, and the four alpha-side
+ * treatments that failed before all failed because they were softening a fringe on a shape whose
+ * outline is its quad.
+ */
+export const CROWN_FLOOR_FAR: { share: number; m: [number, number] } = { share: 0.8, m: [20, 44] };
+/**
  * 2026-09-24, fable-cursor's review of the depth veil (§Review notes: "what would pass: the crowns'
  * silhouettes soften or break up … as they recede"). NOT DONE, and here is the measurement that says
  * why, so the next attempt does not start where this one did. At the pinned `u-open-up` pose the
@@ -602,6 +613,12 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       diffuseColor.a *= mix(steepFade, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), flatCard);
       // CROWN_FLOOR_ROUND: inside the gate a floor card ends in the crown's round edge, not its quad's
       diffuseColor.a *= 1.0 - max(roofNear, ${f(look?.roundFloors ? 1 : 0)}) * flatCard * smoothstep(${f(CROWN_FLOOR_ROUND[0])}, ${f(CROWN_FLOOR_ROUND[1])}, length(vCrownOff.xz));
+      // CROWN_FLOOR_FAR: a floor card is a broad near-horizontal quad, and its job — giving a crown an
+      // underside for a walker stood beneath it — is a near one. A tag probe at the pinned u-open-up
+      // pose (floor cards marked against upright ones) shows THEY are the smooth flat shapes
+      // fable-cursor's review rejected, while the upright cards are the leafy speckle beside them. So
+      // their coverage goes with distance and the lace draws the silhouette instead.
+      diffuseColor.a *= 1.0 - flatCard * ${f(CROWN_FLOOR_FAR.share)} * smoothstep(${f(CROWN_FLOOR_FAR.m[0])}, ${f(CROWN_FLOOR_FAR.m[1])}, length(vViewPosition));
     }
     `,
         )
