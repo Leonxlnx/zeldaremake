@@ -1253,8 +1253,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     for (const z of [zi + 0.03, zo - 0.03]) {
       const len = Math.hypot(D.stepRun + 0.12, total + 0.06);
       const g = plank(len, 0.2, 0.05, rD.fork(`stringer/${z}`), noise, [0.6, 0.53, 0.42]);
-      g.rotateZ(Math.atan2(total, -D.stepRun));
-      g.rotateZ(Math.PI);
+      g.rotateZ(Math.atan2(total, D.stepRun));
       put(g, (sx0 + sx1) / 2 - 0.02, (top + gb) / 2 - 0.12, z, wood);
     }
     for (let k = 1; k < nSteps; k++) {
