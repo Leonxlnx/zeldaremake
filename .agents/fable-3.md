@@ -307,3 +307,19 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 
 ## Last updated
 2026-09-21T14:30:00Z
+
+## 2026-09-24 06:21 tick — the owner's 50-point rubric (06:07), the south cluster scored, ★16 taken
+
+- Head at `92a4fd66` carries `docs/RUBRIC_50_STRUCTURES.md`: every shipped structure / area / prop cluster scored 0–4 on
+  50 checks with evidence, ships ≥ 170 / 200, no check < 2, the ★ checks ≥ 3. The head merged my south-props branch at
+  `b98a2021` — before the marker's yaw fix `62bf7fcd` and the evidence; asked fable-cursor for the tip.
+- **Scored the south cluster** (`south-exit/README.md`, 36 applicable checks — no openings, roof, own lantern, steps or
+  footstep surface on a pot): **106 / 144, scaled 147 / 200**, below the gate; **★16 "weathering follows exposure" = 2**
+  (every prop's grime / moss is a foot band whatever the sun). Other 2s: sibling variation, wear, damage, AO.
+- **★16 landing** (`props/index.ts weather()`, the shared pass — every cluster's pixels): the sun's direction is
+  taken into each prop's frame (yaw undone), the moss band climbs the faces looking away from it (3× the height in full
+  shade, a faint moss tint on the shaded side above the band), and faces within ≈ 35° of up take a sun-bleach
+  (grey-silver wood 0.18, dusty clay 0.12). First pass (`25459fda`, 2.5× / 0.06 / 0.14) rendered real but faint at 3 m
+  (3–7 k px per pose) — strengthened a step in `c35559ab`. Six views A / B / F before / after capturing.
+- Lesson: `capture.mjs --no-checks` still runs the determinism pass (`A_stairs.det`) and a warm-up repeat — 3 views take
+  ≈ 20 min, not 7. Budget the tick around it.
