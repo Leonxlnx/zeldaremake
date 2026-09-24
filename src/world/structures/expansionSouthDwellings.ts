@@ -23,7 +23,7 @@
  * scene. The walk surfaces are appended to ctx.shared.walkSurfaces. Own rng fork, appended after
  * every existing stream.
  */
-import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Group, LineCurve3, Matrix4, Mesh, Vector3, type Camera, type Material, type Sphere } from 'three';
+import { AdditiveBlending, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, LineCurve3, Matrix4, Mesh, MeshBasicMaterial, Vector3, type Camera, type Material, type Sphere } from 'three';
 import { EXPANSION_SOUTH_DWELLINGS } from '../layout';
 import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
@@ -33,8 +33,8 @@ import { buildDistantHouses, type DistantHouseDef } from './distantHouse';
 import { ropeTube } from './fence';
 import { FoliageBuilder } from './foliage';
 import { TAU, faceTowards, gridSurface, merge, sweepTube } from './geometry';
-import { buildLantern, lanternHanger, type LanternRig } from './lantern';
-import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
+import { buildLantern, lanternHanger, type LanternKind, type LanternRig } from './lantern';
+import { LIME_POD_GLOW, MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 import { checkedCap, endFrame, footMoss, woodGrain } from './woodGrain';
 
@@ -81,6 +81,10 @@ const MAST_LEAN_DIR: [number, number] = [Math.cos(100 * DEG), Math.sin(100 * DEG
 const MAST_FOOT_Y = -3.0;
 /** where the cap's dome meets the mast (the builder's crown: eave + capHeight − a little) */
 const CAP_EXIT_Y = K.floorY + K.wall + K.capHeight - 0.02;
+/** a pod's pool of light on the surface under it (additive, linear) for a pod 1.3 m up; a higher pod's is wider and dimmer (the north grove's) */
+const POOL_PEAK = 0.085;
+/** the pools fade with distance like the haze's extinction (1/m past 2.5 m) and add none of its airlight */
+const POOL_EXTINCTION = 0.032;
 
 export interface SouthDwellingsBuild {
   /** every mesh, at the identity transform (structures/index.ts moves them into the south group) */
@@ -89,6 +93,8 @@ export interface SouthDwellingsBuild {
   bases: [number, number, number][];
   /** the dwellings' own casters against the camera (util/expansionLocality.ts `southVisible`) */
   visible(camera: Camera): boolean;
+  /** materials made here (not in `mats`): the system's dispose() releases them */
+  owned: Material[];
   triangles: number;
   audit: {
     keeper: {
@@ -116,6 +122,10 @@ export interface SouthDwellingsBuild {
       step: { top: number[]; floorRiser: number[]; groundRiser: number[]; stumps: number };
       triangles: number;
     };
+    /** the pods that are lime (the rest orange) */
+    limePods: [number, number, number][];
+    /** pools of light on the boards and the ground under the pods (additive patches; no light joins the scene) */
+    lightPools: number;
     pointLights: number;
     walkSurfaces: number;
   };
@@ -300,6 +310,46 @@ function scaleColors(geo: BufferGeometry, k: RGB): void {
   c.needsUpdate = true;
 }
 
+/**
+ * A pod's pool of light as additive vertex colour on the surface under it (no light joins the
+ * scene): a polar patch round `centre`, `radius` m, fading to nothing at its rim. `surfaceY(x, z)`
+ * is the top it lies on, or null off it — the patch stops at a deck's edge. Null if none of it lands.
+ */
+function lightPool(centre: Vector3, radius: number, peak: number, tint: RGB, surfaceY: (x: number, z: number) => number | null, rings = 6, sectors = 22): BufferGeometry | null {
+  const pos: number[] = [];
+  const col: number[] = [];
+  const on: boolean[] = [];
+  const push = (x: number, z: number, d: number) => {
+    const y = surfaceY(x, z);
+    on.push(y !== null);
+    pos.push(x, y ?? 0, z);
+    const f = peak * (1 - (d / radius) ** 2) ** 2;
+    col.push(tint[0] * f, tint[1] * f, tint[2] * f);
+  };
+  push(centre.x, centre.z, 0);
+  for (let i = 1; i <= rings; i++) {
+    const d = (radius * i) / rings;
+    for (let j = 0; j < sectors; j++) push(centre.x + Math.cos((j / sectors) * TAU) * d, centre.z + Math.sin((j / sectors) * TAU) * d, d);
+  }
+  const at = (i: number, j: number) => (i === 0 ? 0 : 1 + (i - 1) * sectors + (j % sectors));
+  const index: number[] = [];
+  const face = (a: number, b: number, c: number) => {
+    if (on[a] && on[b] && on[c]) index.push(a, b, c);
+  };
+  for (let j = 0; j < sectors; j++) face(0, at(1, j + 1), at(1, j));
+  for (let i = 1; i < rings; i++)
+    for (let j = 0; j < sectors; j++) {
+      face(at(i, j), at(i + 1, j + 1), at(i, j + 1));
+      face(at(i, j), at(i + 1, j), at(i + 1, j + 1));
+    }
+  if (!index.length) return null;
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setIndex(index);
+  return g;
+}
+
 export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials, rng: Rng, rope: Material): SouthDwellingsBuild {
   const group = new Group();
   group.name = 'south-dwellings';
@@ -339,20 +389,24 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   };
   const endCaps: { name: string; geo: BufferGeometry }[] = [];
   const podGeos: BufferGeometry[] = [];
+  const podLimeGeos: BufferGeometry[] = [];
+  const limePods = new Set<Vector3>();
   const hangerGeos: BufferGeometry[] = [];
   const tuftSpecs: MossTuftSpec[] = [];
   const foliage = new FoliageBuilder(rng.fork('foliage'), `${seed}/foliage`);
 
-  /** a static pod on a hook (a crafted lantern, baked where it hangs: one draw for all of them) */
-  const staticPod = (hook: Vector3, drop: number, across: Vector3, r: Rng, scale = 1): Vector3 => {
+  /** a static pod on a hook (a crafted lantern, baked where it hangs: one draw per kind for all of them) */
+  const staticPod = (hook: Vector3, drop: number, across: Vector3, r: Rng, scale = 1, kind: LanternKind = 'orange'): Vector3 => {
     hangerGeos.push(lanternHanger(hook, across, scale));
-    const rig: LanternRig = buildLantern(hook, drop, mats, r, scale, 'orange');
+    const rig: LanternRig = buildLantern(hook, drop, mats, r, scale, kind);
     const mesh = rig.pivot.children[0] as Mesh;
     const g = (mesh.geometry as BufferGeometry).clone();
     g.translate(hook.x, hook.y, hook.z);
     mesh.geometry.dispose();
-    podGeos.push(g);
-    return rig.pod.clone();
+    (kind === 'lime' ? podLimeGeos : podGeos).push(g);
+    const pod = rig.pod.clone();
+    if (kind === 'lime') limePods.add(pod);
+    return pod;
   };
   /** an end-grain cap on a pole's end (`pts` as the pole's, the same tubular segments) */
   const capPole = (name: string, pts: Vector3[], ts: number, r: number, atStart: boolean, rr: Rng, tint: RGB = [0.6, 0.5, 0.4]) => {
@@ -715,14 +769,15 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       keeperPods.push(staticPod(hook, 0.2, out, railRng.fork('gate-pod'), 0.95));
       foliage.addLeafCluster(p1.clone().add(new Vector3(0, 0.02, 0)), 0.11, 8, { size: 0.085, droop: 0.4, flatten: 0.5 });
     } else if (lamp) {
-      // the lamp post's pod: on a bracket out over the drop, outside the railing, toward the bridge
+      // the lamp post's pod: on a bracket out over the drop, outside the railing, toward the bridge;
+      // a lime pod among the orange, as the village hangs them
       const tan = new Vector3(-out.z, 0, out.x);
       const bFrom = p1.clone().add(new Vector3(0, -0.12, 0));
       const bTip = bFrom.clone().addScaledVector(out, 0.34).addScaledVector(tan, 0.04).add(new Vector3(0, 0.05, 0));
       const bPts = [bFrom, bFrom.clone().lerp(bTip, 0.5).add(new Vector3(0, 0.02, 0)), bTip];
       put('keeper-rail-posts', mats.bark, barkPole(bPts, 0.03, 0.021, noise, 198, { moss: 0.1, ts: 4, rs: 6 }));
       capPole('keeper-rail-posts', bPts, 4, 0.021, false, railRng.fork('lamp-cap'));
-      keeperPods.push(staticPod(bTip.clone().add(new Vector3(0, -0.033, 0)).addScaledVector(out, -0.035), 0.22, tan, railRng.fork('lamp-pod'), 1.0));
+      keeperPods.push(staticPod(bTip.clone().add(new Vector3(0, -0.033, 0)).addScaledVector(out, -0.035), 0.22, tan, railRng.fork('lamp-pod'), 1.0, 'lime'));
       foliage.addLeafCluster(p1.clone().add(new Vector3(0, 0.02, 0)), 0.1, 7, { size: 0.08, droop: 0.45, flatten: 0.5 });
     } else if (k === 0) {
       bases.push([p0.x, terrain.height(p0.x, p0.z), p0.z]);
@@ -1383,6 +1438,61 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   }
   casters.push({ x: W.centre[0], z: W.centre[1], r: Math.hypot(HD + 0.4, HW + 0.4), y0: -0.6, y1: frontTop + 0.45, shadow: true });
 
+  // ---- the pods' pools of light on the boards and the ground under them (additive vertex colour;
+  // no light). A pod more than 4 m over a surface (the mast's beacon over the cap) lights none ----
+  const poolParts: BufferGeometry[] = [];
+  {
+    const tintOf = (hex: number | string): RGB => {
+      const c = new Color(hex);
+      return [c.r, c.g, c.b];
+    };
+    const glow = tintOf(ctx.config.palette.lanternGlow);
+    const lime = tintOf(LIME_POD_GLOW);
+    const pool = (pod: Vector3, top: number, surfaceY: (x: number, z: number) => number | null) => {
+      const h = Math.max(0.3, pod.y - top);
+      if (h > 4) return;
+      const g = lightPool(pod, clamp(0.55 + 0.45 * h, 0.8, 1.5), POOL_PEAK * clamp((1.3 / h) ** 2, 0.35, 1), limePods.has(pod) ? lime : glow, surfaceY);
+      if (g) poolParts.push(g);
+    };
+    // the keeper's on the gallery and the platform round the wall (never inside it), and on the
+    // ground past their edges
+    const wallR = hutAudit.radius * 1.07 + 0.02;
+    const onGallery = (x: number, z: number) => (((Math.atan2(z - cz, x - cx) - GAL_FROM) % TAU) + TAU) % TAU <= galArc;
+    const keeperDeck = (x: number, z: number) => {
+      const r = Math.hypot(x - cx, z - cz);
+      if (r < wallR) return null;
+      return r <= platR || (r <= GAL_OUT && onGallery(x, z)) ? DECK_TOP + 0.012 : null;
+    };
+    const keeperGround = (x: number, z: number) => {
+      const r = Math.hypot(x - cx, z - cz);
+      return r <= platR + 0.04 || (r <= GAL_OUT + 0.06 && onGallery(x, z)) ? null : terrain.height(x, z) + 0.03;
+    };
+    for (const p of keeperPods) {
+      pool(p, DECK_TOP, keeperDeck);
+      pool(p, terrain.height(p.x, p.z), keeperGround);
+    }
+    // the waystation's on its floor, and out of the open front and the south side on the ground
+    // (not under the floor, not past the back or the north wall)
+    const local = (x: number, z: number): [number, number] => {
+      const dx = x - W.centre[0];
+      const dz = z - W.centre[1];
+      return [dx * F.x + dz * F.z, dx * S.x + dz * S.z];
+    };
+    const wayFloor = (x: number, z: number) => {
+      const [a, s] = local(x, z);
+      return Math.abs(a) <= HD - 0.01 && Math.abs(s) <= HW - 0.01 ? FT + 0.012 : null;
+    };
+    const wayGround = (x: number, z: number) => {
+      const [a, s] = local(x, z);
+      if (a < -HD || s < -HW || (a <= HD + 0.04 && s <= HW + 0.04)) return null;
+      return terrain.height(x, z) + 0.03;
+    };
+    for (const p of wPods) {
+      pool(p, FT, wayFloor);
+      pool(p, terrain.height(p.x, p.z), wayGround);
+    }
+  }
+
   // =====================================================================================
   // meshes
   // =====================================================================================
@@ -1406,7 +1516,17 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   }
   for (const [name, list] of capsByName) add(merge(list), mats.endGrain, name === 'keeper-mast' ? 'log-ends' : `${name}-ends`);
   if (podGeos.length) add(merge(podGeos), mats.lantern, 'pod-lantern-static', false, false);
+  if (podLimeGeos.length) add(merge(podLimeGeos), mats.lanternLime, 'pod-lantern-static', false, false);
   if (hangerGeos.length) add(merge(hangerGeos), mats.woodDark, 'lantern-hanger');
+  const owned: Material[] = [];
+  if (poolParts.length) {
+    const poolMat = new MeshBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+    poolMat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>\n\tvColor *= exp( -${POOL_EXTINCTION} * max( length( mvPosition.xyz ) - 2.5, 0.0 ) );`);
+    };
+    owned.push(poolMat);
+    add(merge(poolParts), poolMat, 'south-dwellings-light-pools', false, false);
+  }
   const tufts = buildMossTufts(tuftSpecs, tuftNoise, { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
   if (tufts.count > 0) add(tufts.geometry, mats.capMoss, 'south-dwellings-foot-moss', false, true);
   for (const m of foliage.build(mats, 'south-dwellings')) {
@@ -1425,6 +1545,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     walkSurfaces,
     bases,
     visible: (camera: Camera) => southVisible(camera, spheres),
+    owned,
     triangles: tris + hutTris,
     audit: {
       keeper: {
@@ -1452,6 +1573,8 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         step: waystationStep,
         triangles: wayTris,
       },
+      limePods: [...limePods].map((p) => p3(p)),
+      lightPools: poolParts.length,
       pointLights: hut.lights.length,
       walkSurfaces: walkSurfaces.length,
     },

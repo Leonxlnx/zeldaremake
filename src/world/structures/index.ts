@@ -193,6 +193,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const dwellings = buildSouthDwellings(ctx, mats, rng.fork('south-dwellings'), rope);
   for (const child of [...dwellings.group.children]) south.group.add(child);
   bases.push(...dwellings.bases);
+  owned.push(...dwellings.owned);
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...dwellings.walkSurfaces];
   const southShown = (camera: Camera) => south.visible(camera) || dwellings.visible(camera);
 
