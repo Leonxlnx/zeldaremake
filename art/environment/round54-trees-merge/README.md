@@ -45,3 +45,12 @@ distant (as on exp-ruins alone), `understoryInstances` 30 (31 less the one east'
 stem at the start. The two culls act on disjoint ground and the counts add.
 
 Renders `/tmp/f4/r189/{E,R}`; dist `/tmp/f4/r189-dist-eastruins`; worktree `/tmp/f4/wt-merge`.
+
+## Refreshed for the head `b9993008` (exp-north in) — 2026-09-24 23:40
+
+`trees-index-east-ruins-over-head-b9993008.patch` (161 lines): what exp-east `b3e10c09` + exp-ruins `f29ad20e` add to the head's
+`trees/index.ts` now that the grove's lines are in it, with the three east × ruins hunks resolved as above and the fourth — the
+`../layout` import line, north's `inExpansionNorth` beside ruins' `EXPANSION_RUINS_BOXES` / `ruinsTrailLine` — as the union (the
+`terrain/north` and `util/groveLocality` imports stay). Neither tip has touched the trees file since the scratch merge, so after
+`git merge` of either order, `git apply` this on the head's version of the file, or take the file and check the conflict count
+is 0. The other eleven files fable-5's re-run lists (the camera core among them) are not in it.

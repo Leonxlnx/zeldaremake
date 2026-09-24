@@ -1,0 +1,161 @@
+--- /tmp/f4/trees-index-head.ts	2026-09-24 23:33:09.117271622 +0000
++++ /tmp/f4/trees-index-head-b9993008-east-ruins.ts	2026-09-24 23:33:09.113271862 +0000
+@@ -21,7 +21,7 @@
+  * instances that can reach the image (see "submission culling" below). Everything is seated via
+  * ctx.terrain.height; randomness only via ctx.rng.
+  */
+-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
++import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+ import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
+ import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+ import type { ShadeFloor } from '../materials/shadeFloor';
+@@ -29,11 +29,11 @@
+ import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
+ import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
+ import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
+-import { expansionCull, getTerrain, southFooting, southRouteSurface, westExpansionCull, type Terrain, type TerrainView } from '../terrain/heightfield';
++import { expansionCull, getTerrain, ruinsTrunkCull, southFooting, southRouteSurface, westExpansionCull, type Terrain, type TerrainView } from '../terrain/heightfield';
++import { eastCardCrowds, eastTreeCrowds, eastUnderstoryCull } from '../util/eastLane';
+ import { smoothstep } from '../util/noise';
+ import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
+-import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
+-import { inExpansionNorth } from '../layout';
++import { EXPANSION, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH, inExpansionNorth, inExpansionSouth, ruinsTrailLine, southPathLine } from '../layout';
+ import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
+ import { groveNearXZ } from '../util/groveLocality';
+ import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+@@ -1362,6 +1362,31 @@
+ const SOUTH_TRUNK_REACH_M = 1.5;
+ /** … and its own rim this far off the gorge's lip (m): rim trees stay, their crowns over the ravine */
+ const SOUTH_LIP_MARGIN_M = 0.3;
++/**
++ * Round 57 (expansion-ruins): how far past its trunk radius a legacy-sampled bole keeps off the
++ * ruins trail and the ruins' masonry, pool and outcrop (heightfield `ruinsTrunkCull`) — the flare
++ * and the root toes (m). A filter after each stream's sampling, so nothing else moves.
++ */
++const RUINS_TRUNK_MARGIN_M = 0.9;
++/** the same ring for the distant layer's boles, whose trunk radii the placement does not carry (m) */
++const DISTANT_RUINS_REACH_M = 2.2;
++/**
++ * Round 57: the ruins trail and the site are walked at eye height 40–75 m out, through the mid
++ * grove's band and into the distant layer's, whose crossed crown cards and low-poly boles read as
++ * flat card piles and smeared bark that close (fable-5's finding on the village paths). Both layers
++ * keep `trailM` off the trail's line and RUINS_CARD_CLEAR_M off the site's box, so the white-barks
++ * and the site's own rock frame the walk and the cards stand back in the haze. Post-filters, like
++ * the rules above: nothing else re-rolls, and the six fixed frames see none of it (all west of
++ * x −14; neither layer casts a shadow).
++ */
++const RUINS_CARD_CLEAR_M = 10;
++const RUINS_TRAIL_XZ: [number, number][] = ruinsTrailLine().map((p) => [p[0], p[2]]);
++function ruinsCardCull(x: number, z: number, trailM: number): boolean {
++  if (x > -12 + trailM) return false;
++  const b = EXPANSION_RUINS_BOXES[1];
++  if (Math.hypot(Math.max(b.x0 - x, 0, x - b.x1), Math.max(b.z0 - z, 0, z - b.z1)) < RUINS_CARD_CLEAR_M) return true;
++  return spineDistance(RUINS_TRAIL_XZ, x, z) < trailM;
++}
+ /** round 56: the mid grove's crown cards keep this far off the south route's line — fable-5's 3–7 m "flat card piles" band (m) */
+ const MID_SOUTH_WALK_MIN_M = 7.5;
+ /** the south route's walk line: the path to the north sill, the bridge's axis, the far path to the log's mouth */
+@@ -2216,9 +2241,9 @@
+   // buried, which left the bank bald). `drawnWhites` is the set as drawn before round 56: the
+   // streams after this one (the understory, the columns and their swap draws, the mid grove, the
+   // root toes) stand off IT, so a dropped south stem re-rolls none of them.
+-  const drawnWhites = whitePlaced.placements.filter((p) => !westExpansionCull(p.x, p.z));
++  const drawnWhites = whitePlaced.placements.filter((p) => !westExpansionCull(p.x, p.z, 0.3, false));
+   const southFootings = new Map(drawnWhites.map((p) => [p, southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, whites[p.variant].params.trunkRadius * p.scale + SOUTH_LIP_MARGIN_M)]));
+-  const sampledWhites = drawnWhites.filter((p) => southFootings.get(p) !== 'cull');
++  const sampledWhites = drawnWhites.filter((p) => southFootings.get(p) !== 'cull' && !ruinsTrunkCull(p.x, p.z, whites[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M));
+   const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
+   const drawnSwaps = drawnWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
+   const swappedWhites = drawnSwaps.filter((p) => southFootings.get(p) !== 'cull');
+@@ -2437,7 +2462,7 @@
+         // the corridor keeps its trees on both sides (the reference's D frames the arch with trees)
+         const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
+         if (d < pathMin || (!zone.live && d > UNDERSTORY_PATH_MAX_M)) continue;
+-        if (!zone.live && expansionCull(x, z)) continue;
++        if (!zone.live && expansionCull(x, z, 0.3, false)) continue;
+         if (zone.south && (southWalkDistance(x, z) < UNDERSTORY_WALK_CLEAR_M || southFooting(x, z, SOUTH_TRUNK_REACH_M, 0.5) === 'cull')) continue;
+         const m = t.mask(x, z);
+         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
+@@ -2468,7 +2493,14 @@
+    * post-filter over the sampled list, so no other stem moves (a rule inside the loop shifts every
+    * later draw).
+    */
+-  const understoryKept = understoryPlacements.filter((p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M);
++  // (the east lane's discs, trunks and lookout clear the same way — util/eastLane.ts; the ruins
++  // trail and site through the heightfield's `ruinsTrunkCull`)
++  const understoryKept = understoryPlacements.filter(
++    (p) =>
++      understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M &&
++      !eastUnderstoryCull(p.x, p.z) &&
++      !ruinsTrunkCull(p.x, p.z, understory[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M),
++  );
+   understoryPlacements.length = 0;
+   understoryPlacements.push(...understoryKept);
+   for (const p of understoryPlacements) seatFamily(understory, p, p.variant);
+@@ -3384,13 +3416,38 @@
+   // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
+   // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
+   const midSpec0 = distantVariants.length - MID_SPECS.length;
++  // the east lane's houses and discs clear the crowns that would crowd them (util/eastLane.ts)
++  const midSpec = (p: DistantPlacement) => MID_SPECS[Math.max(0, Math.min(MID_SPECS.length - 1, p.variant - midSpec0))];
++  // the east lane is a walk line like the three above (eastCardCrowds): its card crowns keep
++  // MID_WALK_MIN_M off it too, except the ones cameras A–E frame. F is not spared: it looks up the
++  // stair bank at the whole plateau grove, so sparing it would keep every crown over the lane.
++  const heroCameras = ctx.layout.viewpoints
++    .filter((v) => /^[A-E]_/.test(v.id))
++    .map((v) => {
++      const c = new PerspectiveCamera(v.fov, 1280 / 716, 0.1, 400);
++      c.position.set(v.position[0], v.position[1], v.position[2]);
++      c.lookAt(v.target[0], v.target[1], v.target[2]);
++      c.updateMatrixWorld(true);
++      return c;
++    });
++  const eastCrowded = (p: DistantPlacement) => {
++    const s = midSpec(p);
++    const h = s.height * p.scale;
++    return eastTreeCrowds(p.x, p.z, h, s.crownR, s.crownY, MID_TRUNK_R) || eastCardCrowds(p.x, p.z, h, s.crownR, s.crownY, p.y, MID_WALK_MIN_M, sunDir, heroCameras);
++  };
++  /** round 57: the card trees kept off the ruins' walk (`ruinsCardCull`) */
++  const ruinsCards = { mid: 0, distant: 0, trailM: MID_WALK_MIN_M, siteM: RUINS_CARD_CLEAR_M };
+   /** the mid boles standing on the south exit's live ground, for the base-gap audit */
+   const midLive = new Set<(typeof midSampled)[number]>();
+   const midPlacements = midSampled.filter((p) => {
+-    if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M) return false;
++    if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M || eastCrowded(p)) return false;
++    if (ruinsCardCull(p.x, p.z, MID_WALK_MIN_M)) {
++      ruinsCards.mid++;
++      return false;
++    }
+     const trunkR = MID_TRUNK_R * (MID_SPECS[p.variant - midSpec0]?.height ?? 12) * p.scale;
+     const south = southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, trunkR + SOUTH_LIP_MARGIN_M);
+-    if (south === null) return !expansionCull(p.x, p.z);
++    if (south === null) return !expansionCull(p.x, p.z) && !ruinsTrunkCull(p.x, p.z, trunkR + RUINS_TRUNK_MARGIN_M);
+     if (south === 'cull' || westExpansionCull(p.x, p.z)) return false;
+     if (south === 'live') {
+       p.y = liveTerrain.height(p.x, p.z);
+@@ -3398,6 +3455,16 @@
+     }
+     return true;
+   });
++  // round 57: the distant layer's inner rows reach the ruins site (60 m out) and stand round it;
++  // dropped after the mid grove has read them as occupied, so the grove keeps its draws
++  for (let i = distantPlacements.length - 1; i >= 0; i--) {
++    const p = distantPlacements[i];
++    if (ruinsTrunkCull(p.x, p.z, DISTANT_RUINS_REACH_M)) distantPlacements.splice(i, 1);
++    else if (ruinsCardCull(p.x, p.z, MID_WALK_MIN_M)) {
++      distantPlacements.splice(i, 1);
++      ruinsCards.distant++;
++    }
++  }
+   distantPlacements.push(...midPlacements);
+   // 2026-09-24 (expansion-north): the grove (terrain/north.ts) keeps every bole off its flight,
+   // trail, shelf and walkways and out from under its huts (`northGroveClear` with the bole's own
+@@ -4208,6 +4275,7 @@
+       leafCount: leafCount + columnLeaves + giantLeaves,
+       whiteBarkLeafCount: leafCount,
+       distantTrees: distantPlacements.length,
++      ruinsCardCull: ruinsCards,
+       /** round 45: instances slid off the path's sight line / dropped from the arch's footprint, and the spine clearance (m) */
+       distantClearance: { ...distantCleared, spine: DISTANT_SPINE_CLEARANCE, minSpineDistance: Math.round(Math.min(...distantPlacements.map((p) => spineDistance(spineXZ, p.x, p.z))) * 100) / 100 },
+       distantLod: [distantNearCount, distantFarCount],
