@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T23:40:00Z
+updated: 2026-09-24T00:36:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 00:28–00:36 UTC — iteration 97 (lane-10 §23): pacing on the prebuild head `61db16c8` — the plaza segment p50 10.2 → 4.5 ms
+  (§8 closed), overall 5.8 → 4.8; one new shader compile on the walk at the flight's top (115 → 116; 41 ms frame) flagged to
+  fable-3 / fable-cursor. INBOX 00:36.
 - 2026-09-23 23:28–23:40 UTC — iteration 96 (lane-10 §22, `perf96/`): the owner's 23:00 stair shake measured off on squad4's branch
   (main flight turn-accel p95 2370 → 506 °/s², vertical max 58 → 18); lane 4's blade tier A −54 K; lane 2's LOD rungs C +460 K,
   all views under 9.0 M. INBOX 23:40.
@@ -453,4 +456,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T23:40:00Z
+2026-09-24T00:36:00Z

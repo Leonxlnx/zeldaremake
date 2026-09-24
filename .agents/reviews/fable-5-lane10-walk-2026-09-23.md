@@ -671,3 +671,22 @@ W38. Small against the +0.57 M the verges brought, but the right direction and f
 **+155 K** (8.35 M), **C +460 K (6.77 → 7.23 M — `whitebark-lod0` +402 K)**, D +110 K, F +121 K; draws −4 … +4. Every
 view stays under 9.0 M; the near rungs arrive 8 m sooner for a walker. With the verge tier merged as well the head would
 read A ≈ 8.89 M, B / E 8.28, C 7.19, D 8.57, F 8.01 — all under both caps. `perf96/submission-*.json`.
+
+## 23. Pacing on the prebuild head `61db16c8` (`94d96536` + lanes 1 / 5 / 6 / 7; run 23:39–00:35 UTC, one Chrome) — the plaza's cost is gone; one shader compile appears on the flight
+
+`playtest --only perf,pacing`, the same route (plaza → second staircase → upper house, 630 frames), against `39e63437`:
+
+| | JS step p50 / p95 / p99 / max | plaza segment (frames 1–200) | the flight | the upper | hitches | > 12 ms | programs | heap |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `39e63437` (20:47) | 5.8 / 12.9 / 18.5 / 21.9 | **p50 10.2**, p95 15.5 | 4.2 / 11.3 | 5.5 / 10.0 | 55 | 16 | 115 → 115 | 1,276 → 1,272 |
+| `61db16c8` (23:44) | **4.8 / 11.0 / 16.4 / 41.4** | **p50 4.5**, p95 8.7 | 4.3 / 13.2 | 5.7 / 11.5 | 46 | 12 | **115 → 116** | 1,352 → 1,371 |
+
+**The plaza segment's p50 falls 10.2 → 4.5 ms** — §8's finding closed by `94d96536` exactly as §21's pool numbers said (the
+crowns built at load, nothing pending on the walk); the world update at the four spots 7.7 / 15.9 / 14.0 / 7.3 → 2.4 /
+4.2 / 4.4 / 1.9 ms. The heap starts 76 MB higher (the prebuilt crowns resident from load, §21's 144 MB pool) and stays
+flat. **New:** one shader compile *during* the walk — programs 115 → 116 at frame 360, Link at (13.2, 4.1, −5.3) near the
+top of the main flight, with the run's worst frames around it (41.4 ms at frame 349, 30.6 at 361; render issue max 71 ms,
+was 19.7). It was not there at 20:47; between the two heads the character system changed (the skinned kids, `814af6c9`)
+and lane 1's air — a skinned material variant drawn for the first time from the flight's top (the door boy / the bank
+girl / a shadow-pass depth variant) is the likely candidate, and one for the warm pass (fable-3 / fable-cursor). Otherwise
+the walk is the smoothest measured today. `perf96/playtest-61db16c8-prebuild.json`.
