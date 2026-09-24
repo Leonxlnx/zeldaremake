@@ -245,3 +245,23 @@ joint today) — roughly half the main-pass cost.
 ![where A changed](diff-A.jpg)
 ![where B changed](diff-B.jpg)
 ![where F changed](diff-F.jpg)
+
+## JOB 7, the belt (`0a36c3e3`, 2026-09-24 11:00)
+
+The owner's 23:00 list named "the tunic's hem and belt" at 2–6 m. Round 48's belt was a torus with a plate for a
+buckle — at 2.6 m a rubber ring with a gold tab. Now (`buildGirlTunic`): a flat leather strap 3 cm tall and 6 mm thick
+on the waist's oval (a four-point `ovalLathe`: outer face, top edge, inner face), a strap canvas on its outer face — fine
+grain, a burnished darker line at each edge, a row of pale stitches a few millimetres inside them, six per repeat and
+six repeats round the waist — through a square buckle frame (four bars and the tongue, off-centre where it lies over
+the strap's end) with the tail hanging a hand below. Same two meshes as before (strap + tail share the strap material;
+the frame is the buckle material), so the skinned girls' draw count does not move; still no shadow pass for either.
+
+- `before-after-belt-2.6m.jpg` — the walker on the plaza paving from `hands-shot`'s camera aimed at the waist
+  (fov 30): the strap's stitching, the frame, the tail.
+
+The hem (the skirt's scalloped, ragged edge, round 48) read as intended in the same frame and is left alone.
+
+Renders of the kids with `broll.mjs` need `--character` — the script hides the character group by default for B-roll.
+An hour of empty frames this morning before I re-read its usage line.
+
+Six views A / B / F, before `ca05e910` → after: table below when the capture lands.
