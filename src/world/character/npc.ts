@@ -328,12 +328,14 @@ function poseWander(rig: Rig, s: WanderState, t: number, phase: number): void {
   // feet level with the ground (the sole marker plants), toe-off at the end of stance
   r.ankleL.rotation.set(-(r.thighL.rotation.x + r.kneeL.rotation.x) * 0.72 - 0.05 * idle + 0.14 * w * Math.max(0, -Math.sin(s.phi + 0.5)), 0, -r.thighL.rotation.z);
   r.ankleR.rotation.set(-(r.thighR.rotation.x + r.kneeR.rotation.x) * 0.72 - 0.05 * idle + 0.14 * w * Math.max(0, Math.sin(s.phi + 0.5)), 0, -r.thighR.rotation.z);
-  // arms: relaxed at the sides when standing; a slow, small contralateral swing walking
+  // arms: standing, the upper arm hangs a touch back and the elbow bends so the hand rests forward by
+  // the hip (owner 23:00 — a straight arm at the side read as a doll's); a slow, small contralateral
+  // swing walking, the bend easing toward the swing's
   const arm = 0.3 * w;
-  r.shoulderL.rotation.set(-0.05 * idle + 0.03 * Math.sin(t * 0.7 + phase) * idle + arm * tl, 0, 0.13);
-  r.shoulderR.rotation.set(-0.05 * idle - 0.03 * Math.sin(t * 0.7 + phase + 0.5) * idle - arm * tl, 0, -0.13);
-  r.elbowL.rotation.x = -0.2 - 0.25 * w - 0.2 * w * Math.max(0, -tl);
-  r.elbowR.rotation.x = -0.22 - 0.25 * w - 0.2 * w * Math.max(0, tl);
+  r.shoulderL.rotation.set(0.04 * idle + 0.03 * Math.sin(t * 0.7 + phase) * idle + arm * tl, 0, 0.13);
+  r.shoulderR.rotation.set(0.04 * idle - 0.03 * Math.sin(t * 0.7 + phase + 0.5) * idle - arm * tl, 0, -0.13);
+  r.elbowL.rotation.x = -0.2 - 0.26 * idle - 0.02 * Math.sin(t * 0.61 + phase) * idle - 0.25 * w - 0.2 * w * Math.max(0, -tl);
+  r.elbowR.rotation.x = -0.22 - 0.24 * idle - 0.02 * Math.sin(t * 0.61 + phase + 0.9) * idle - 0.25 * w - 0.2 * w * Math.max(0, tl);
   // head: the dwell look-around, a little walk nod, idle drift
   r.neck.rotation.y = s.headYaw + 0.04 * Math.sin(t * 0.37 + phase) * idle;
   r.neck.rotation.x = -s.headPitch + 0.025 * Math.sin(t * 0.53 + phase) * idle - 0.02 * w + 0.02 * Math.cos(2 * s.phi) * w;
