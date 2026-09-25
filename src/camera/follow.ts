@@ -20,8 +20,7 @@
  * position (XZ_TAU), so a stair climb reads as a glide rather than a stepped rise, while the aim
  * keeps a fraction (AIM_AIR) of the jump's height so Link stays framed at the apex. Collision
  * (collision.ts): lifted over the ground and flights, kept in front of solid shells and big boles
- * (pulled in at once, eased back out), lowered under low ceilings, never inside a post or a pod, and
- * while Link walks round an exact wall (the keeper's hut) orbited off it before its line reaches it.
+ * (pulled in at once, eased back out), lowered under low ceilings, never inside a post or a pod.
  */
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import type { Terrain } from '../world/terrain/heightfield';
@@ -106,13 +105,69 @@ const RELEASE_TAU = 0.3;
  * crossing of the lantern limb or a house bough asked for 1.5 m in one frame, then 1.5 m back out
  */
 const SLIM_IN_TAU = 0.12;
+/**
+ * The pull-in in front of a solid is instant (Link is never behind a wall), so a wall the line
+ * SWINGS into cut the view by metres in one frame — in the north grove the trunk house's root arch
+ * as Link turns from its door (1.9 m), the stilt house's wall as he turns down the gangway beside
+ * it (2.8 m). So the line is also swept where it is going: at each LOOKAHEAD horizon, from the aim
+ * carried on at Link's velocity (at most LOOKAHEAD_SPEED, and only as far as the collider lets it
+ * go — walking up to a wall must not read as the wall cutting the line) to the camera swung on
+ * toward the yaw it is easing to (behind the way Link walks), and the camera eases in to the
+ * shortest free length ahead of time. Every eased move along the line — that one, the ease back
+ * out, the slim push — is held to MAX_EASE m/s and MAX_EASE_ACCEL m/s² (a pop reads as a jump in
+ * speed, not only in place). A warning outlasts a frame that reads clear (the free length it saw
+ * comes back at SOON_RECOVER m/s): Link steered round the stilt house's veranda turns the look-ahead
+ * on and off as his way changes. What no look-ahead saw coming still pulls in at once.
+ *
+ * While Link walks, the look-ahead is also swept without the swing and with the swing at HURRY ×
+ * its pace, to ask whether swinging on behind him runs the line into a wall or clears it sooner.
+ * Turning down the gangway beside the stilt house's wall, or about at the trunk house's door,
+ * swinging runs the line into the wall or the root arch: the swing waits (down to HOLD_MIN) until
+ * Link has walked clear. Turning hard beside a wall, he drags the line across it before the swing
+ * catches up, and swinging faster clears it: the swing hurries. (Weighed against no swing only, a
+ * hard turn read as a wash — both ran into the wall at the nearest horizon — and never hurried.)
+ * SWING_MARGIN m of difference in free length starts either, SWING_SPAN m more is the whole of it;
+ * the pace goes to a hurry or a hold over SWING_IN_TAU s — a hard turn leaves a few frames — and
+ * comes back over SWING_TAU s.
+ */
+const LOOKAHEAD = [0.12, 0.3, 0.6] as const;
+const LOOKAHEAD_SPEED = 8;
+const ANTICIPATE_TAU = 0.12;
+const MAX_EASE = 8;
+const MAX_EASE_ACCEL = 50;
+const SOON_RECOVER = 3;
+const HURRY = 3;
+const HOLD_MIN = 0.1;
+const SWING_MARGIN = 0.3;
+const SWING_SPAN = 1.5;
+const SWING_TAU = 0.15;
+const SWING_IN_TAU = 0.03;
+/**
+ * On the deck round a hut's round wall (collision.ts, given exactly — the stilt house's veranda) the
+ * swing's goal is not straight behind Link: it trails him along the ring, turned RING_OUT outward,
+ * and eases RING_PACE × faster. Running round the veranda Link circles the wall at 2.5 rad/s, and
+ * the line from him must stay within 25° of his path to clear it: straight behind him, the swing's
+ * lag put the camera on the inside of the curve, its line grazing the wall — pulled in to
+ * MIN_DISTANCE in a frame (a 1.5–3.9 m pop). Full within RING_IN m of the wall's widest radius, gone
+ * RING_FADE m further out, and only as much as Link moves along the ring rather than across it.
+ */
+const RING_IN = 0.9;
+const RING_FADE = 0.6;
+const RING_OUT = 0.5;
+const RING_PACE = 3;
+/**
+ * While it follows Link the orbit's own turn is held like its moves along the line: to SWING_RATE
+ * rad/s, and to SWING_ACCEL m/s² sideways at the camera, tracking the swing's goal at the goal's
+ * own rate. Stepping off the gangway onto the veranda the goal swings round by a right angle in a
+ * fifth of a second, and the turn after it jumped by 3 rad/s in a frame (0.5 m sideways at the lens).
+ */
+const SWING_RATE = 4;
+const SWING_ACCEL = 75;
 /** while Link moves with no look input for RECENTRE_AFTER s, the pitch eases back to rest */
 const RECENTRE_AFTER = 1.5;
 const RECENTRE_TAU = 0.9;
 /** while Link moves, the yaw eases behind his heading with this time constant (s) */
 const HEADING_TAU = 0.625;
-/** and turns off an exact wall its line would near (collision.ts wallSwing) with this one (s) */
-const WALL_SWING_TAU = 0.04;
 /** look rates: drag (rad/px), pointer lock (rad/px), right stick (rad/s at full deflection) */
 const DRAG_YAW = 0.0032;
 const DRAG_PITCH = 0.0028;
@@ -150,14 +205,31 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   /** eased collider lift (see LIFT_TAU) and ceiling duck (see LOWER_IN_TAU) */
   let liftY = 0;
   let lowerY = 0;
-  /** the collision's kept fraction of the line (eased back out) */
+  /** the collision's kept fraction of the line (eased back out), and the ease's speed along the line (m/s) */
   let keep = 1;
+  let keepRate = 0;
+  /** the pace of the swing behind Link against the heading's own, as asked for and as eased (see HURRY) */
+  let swingScale = 1;
+  let swingPace = 1;
+  /** the look-ahead's free length, coming back slowly once clear (m; see SOON_RECOVER) */
+  let soonHeld = Infinity;
+  /** whether the orbit follows Link (he moves, no look input), and how much a hut's ring steers it (see RING_IN) */
+  let following = false;
+  let ringWeight = 0;
+  const walls = options.shared?.cameraSolids?.walls ?? [];
+  /** the yaw the orbit is easing to — behind the way Link walks while he walks without look input, else the look's — and how fast (s) */
+  let yawGoal = 0;
+  let goalTau = LOOK_TAU;
+  /** the orbit's turn rate (rad/s; see SWING_RATE) */
+  let yawRate = 0;
   let lastHit: string | null = null;
   let lastLift = 0;
   let lastLowered = 0;
   let lastPush = 0;
-  /** the eased slim push (m along the line toward the aim) */
+  let lastSoon = 1;
+  /** the eased slim push (m along the line toward the aim), and its speed (m/s) */
   let push = 0;
+  let pushRate = 0;
   const ground = (x: number, z: number) => Math.max(player.groundHeight(x, z), terrain.height(x, z));
   let collider: CameraCollider | null = null;
   const colliderFor = () => (collider ??= createCameraCollider(ground, options.shared ?? {}));
@@ -169,7 +241,71 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   const aimPoint = new Vector3();
   const pos = new Vector3();
   const probe = new Vector3();
-  const swingAt = new Vector3();
+  /** last frame's aim, and the line where it is going (see LOOKAHEAD) */
+  const lastAim = new Vector3();
+  const aimVel = new Vector3();
+  const aimsAhead = LOOKAHEAD.map(() => new Vector3());
+  const ahead = new Vector3();
+  /**
+   * the ring's goal for the swing (see RING_IN): the yaw that looks along the ring the way Link is
+   * sent (mx, mz), turned in toward the wall, and how much it counts (0 off every ring)
+   */
+  const ringGoal = (mx: number, mz: number): { yaw: number; weight: number } => {
+    const p = player.position;
+    const l = Math.hypot(mx, mz);
+    if (l < 1e-6) return { yaw: 0, weight: 0 };
+    for (const w of walls) {
+      if (Math.abs(p.y - w.y0) > 0.5) continue;
+      const dx = p.x - w.x;
+      const dz = p.z - w.z;
+      const d = Math.hypot(dx, dz);
+      const near = 1 - smooth01(w.rMax + RING_IN, w.rMax + RING_IN + RING_FADE, d);
+      if (near <= 0 || d < 1e-6) continue;
+      // the ring's tangent, and the way along it Link is sent
+      const tx = -dz / d;
+      const tz = dx / d;
+      const along = (mx * tx + mz * tz) / l;
+      const weight = near * smooth01(0.2, 0.6, Math.abs(along));
+      if (weight <= 0) continue;
+      const s = Math.sign(along);
+      const cs = Math.cos(RING_OUT);
+      const sn = Math.sin(RING_OUT);
+      return { yaw: Math.atan2(s * tx * cs - (dx / d) * sn, s * tz * cs - (dz / d) * sn), weight };
+    }
+    return { yaw: 0, weight: 0 };
+  };
+  /** the shortest free length (m) of the line over the horizons, the camera's offset from the aim swung toward `turn` at `pace` × the yaw's */
+  const freeAhead = (c: CameraCollider, turn: number, pace: number): number => {
+    const ox = desired.x - aimP.x;
+    const oy = desired.y - aimP.y;
+    const oz = desired.z - aimP.z;
+    let free = Infinity;
+    LOOKAHEAD.forEach((h, i) => {
+      const at = aimsAhead[i];
+      const a = turn * (1 - Math.exp((-h * pace) / goalTau));
+      const cs = Math.cos(a);
+      const sn = Math.sin(a);
+      ahead.set(at.x + ox * cs + oz * sn, at.y + oy, at.z + oz * cs - ox * sn);
+      const r = c.resolve(at, ahead);
+      if (r.t < 0.999) {
+        ahead.y -= r.lowered;
+        free = Math.min(free, r.t * at.distanceTo(ahead));
+      }
+    });
+    return free;
+  };
+  /**
+   * `value` eased to `goal` at no more than MAX_EASE m/s and MAX_EASE_ACCEL m/s² — slowing in time
+   * to stop there, and within `tau` s of it on the exponential; `rate` is its speed (m/s), in and out
+   */
+  const easeTo = (value: number, rate: number, goal: number, tau: number, dt: number): [number, number] => {
+    const e = goal - value;
+    const want = Math.sign(e) * Math.min(MAX_EASE, Math.sqrt(2 * MAX_EASE_ACCEL * Math.abs(e)), Math.abs(e) / tau);
+    rate += MathUtils.clamp(want - rate, -MAX_EASE_ACCEL * dt, MAX_EASE_ACCEL * dt);
+    const next = value + rate * dt;
+    // never past the goal: it is where the ease stops
+    return (next - goal) * e > 0 ? [goal, 0] : [next, rate];
+  };
 
   /** the first connected gamepad's left stick (x, y), right stick and A button, or null */
   const readGamepad = (): { lx: number; ly: number; rx: number; ry: number; a: boolean; run: boolean } | null => {
@@ -226,6 +362,7 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
 
   const snap = () => {
     yaw = yawTarget = player.heading();
+    yawRate = 0;
     pitch = pitchTarget = PITCH_REST;
     const p = player.position;
     baseX = p.x;
@@ -260,10 +397,10 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     pivotCam.set(baseX, baseY + FOLLOW.aimHeight, baseZ);
     aimP.set(p.x, aimY + FOLLOW.aimHeight + player.airHeight() * AIM_AIR, p.z);
     desired.copy(pivotCam).addScaledVector(dirPos, -dist);
+    const c = colliderFor();
     // what the orbit camera looks at along the view direction at the orbit radius: the aim itself
     // while the camera orbits (pitch ≤ ORBIT_UP), a point above it once the camera tilts in place
     aimPoint.copy(aimP).addScaledVector(dirView, dist).addScaledVector(dirPos, -dist);
-    const c = colliderFor();
     const beforeLift = desired.y;
     const wantLift = c.lift(aimP, desired);
     liftY = instant ? wantLift : liftY + (wantLift - liftY) * (1 - Math.exp(-dt / LIFT_TAU));
@@ -273,16 +410,59 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     lowerY = instant ? r.lowered : lowerY + (r.lowered - lowerY) * (1 - Math.exp(-dt / (r.lowered > lowerY ? LOWER_IN_TAU : RELEASE_TAU)));
     desired.y -= lowerY;
     lastLowered = lowerY;
-    lastHit = r.hit;
+    // the stance flips at once where the duck only eases: releasing it (the lower stance no longer
+    // buys its 0.4 m) the camera still stands low, and its own line may run longer than the level one
+    const own = Math.abs(lowerY - r.lowered) > 1e-3 ? c.sweep(aimP, desired) : null;
+    const free = own && own.t > r.t ? own : r;
+    lastHit = free.hit;
     const len = aimP.distanceTo(desired);
     const minT = len > 1e-6 ? Math.min(1, MIN_DISTANCE / len) : 1;
-    const t = Math.max(minT, r.t);
-    keep = instant || t < keep ? t : keep + (t - keep) * (1 - Math.exp(-dt / RELEASE_TAU));
+    const t = Math.max(minT, free.t);
+    // the shortest free length of the line where it is going (see LOOKAHEAD)
+    let soonD = Infinity;
+    swingScale = 1;
+    if (!instant && dt > 0 && len > 1e-6) {
+      aimVel.subVectors(aimP, lastAim).divideScalar(dt);
+      const v = aimVel.length();
+      if (v > LOOKAHEAD_SPEED) aimVel.multiplyScalar(LOOKAHEAD_SPEED / v);
+      LOOKAHEAD.forEach((h, i) => {
+        const at = aimsAhead[i].copy(aimP).addScaledVector(aimVel, h);
+        at.lerpVectors(aimP, at, c.sweep(aimP, at).t);
+      });
+      const turn = Math.atan2(Math.sin(yawGoal - yaw), Math.cos(yawGoal - yaw));
+      const full = freeAhead(c, turn, 1);
+      soonD = full;
+      // does the swing behind Link clear the line or run it into a wall? (see HURRY)
+      if (following && Math.abs(turn) > 0.02) {
+        const on = Math.min(full, len);
+        const still = Math.min(freeAhead(c, turn, 0), len);
+        const fast = Math.min(freeAhead(c, turn, HURRY), len);
+        if (still - on > SWING_MARGIN && still >= fast) swingScale = Math.max(HOLD_MIN, 1 - (still - on - SWING_MARGIN) / SWING_SPAN);
+        else if (fast - on > SWING_MARGIN) swingScale = 1 + (HURRY - 1) * Math.min(1, (fast - on - SWING_MARGIN) / SWING_SPAN);
+        soonD = swingScale === 1 ? Math.min(full, still) : freeAhead(c, turn, swingScale);
+      }
+    }
+    lastAim.copy(aimP);
+    soonHeld = instant ? Infinity : Math.min(soonD, soonHeld + SOON_RECOVER * dt);
+    const soon = len > 1e-6 ? MathUtils.clamp(soonHeld / len, minT, 1) : 1;
+    lastSoon = soon;
+    if (instant || t < keep) {
+      keep = t;
+      keepRate = 0;
+    } else {
+      const goal = Math.min(t, soon);
+      const [d, rate] = easeTo(keep * len, keepRate, goal * len, goal < keep ? ANTICIPATE_TAU : RELEASE_TAU, dt);
+      keep = d / len;
+      keepRate = rate;
+    }
     pos.copy(aimP).lerp(desired, keep);
     // a slim part may pass between; the camera eases in along the line out of one, and back out
     probe.copy(pos);
     const need = c.slimPush(aimP, probe);
-    push = instant ? need : push + (need - push) * (1 - Math.exp(-dt / (need > push ? SLIM_IN_TAU : RELEASE_TAU)));
+    if (instant) {
+      push = need;
+      pushRate = 0;
+    } else [push, pushRate] = easeTo(push, pushRate, need, need > push ? SLIM_IN_TAU : RELEASE_TAU, dt);
     const lineLen = pos.distanceTo(aimP);
     if (push > 1e-4 && lineLen > MIN_DISTANCE) pos.lerp(aimP, Math.min(push, lineLen - MIN_DISTANCE) / lineLen);
     lastPush = push;
@@ -332,25 +512,52 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
       player.setInput({ moveX: mx, moveZ: mz, run, jump });
       // the camera eases behind the player's heading while he moves (drag / the right stick override),
       // and after RECENTRE_AFTER s of walking without look input the pitch settles back to rest
-      const following = l > 0 && !dragging && document.pointerLockElement !== host && !stickLook;
+      following = l > 0 && !dragging && document.pointerLockElement !== host && !stickLook;
+      const targetWas = yawTarget;
       if (following) {
-        let d = player.heading() - yawTarget;
+        // behind his heading — on a hut's ring, trailing him along it (see RING_IN)
+        const ring = ringGoal(mx, mz);
+        ringWeight = ring.weight;
+        const toward = (from: number) => from + Math.atan2(Math.sin(ring.yaw - from), Math.cos(ring.yaw - from)) * ring.weight;
+        goalTau = HEADING_TAU / (1 + (RING_PACE - 1) * ring.weight);
+        let d = toward(player.heading()) - yawTarget;
         d = Math.atan2(Math.sin(d), Math.cos(d));
-        yawTarget += d * (1 - Math.exp(-dt / HEADING_TAU));
+        // hurried where swinging on clears the line, held where it runs the line into a wall (see HURRY)
+        swingPace += (swingScale - swingPace) * (1 - Math.exp(-dt / (Math.abs(swingScale - 1) > Math.abs(swingPace - 1) ? SWING_IN_TAU : SWING_TAU)));
+        yawTarget += d * (1 - Math.exp((-dt * swingPace) / goalTau));
+        // Link turns to the way he is sent at once (9 rad/s), so that is where the swing is going
+        yawGoal = toward(Math.atan2(mx, mz));
         // only the part of this frame past the threshold recentres, so the swing starts at the same instant at any frame rate
         const over = Math.min(dt, sinceLook - RECENTRE_AFTER);
         if (over > 0) pitchTarget += (PITCH_REST - pitchTarget) * (1 - Math.exp(-over / RECENTRE_TAU));
+      } else {
+        yawGoal = yawTarget;
+        goalTau = LOOK_TAU;
+        ringWeight = 0;
       }
       const bLook = 1 - Math.exp(-dt / LOOK_TAU);
-      yaw += (yawTarget - yaw) * bLook;
-      pitch += (pitchTarget - pitch) * bLook;
-      if (following) {
-        // on the placed yaw: through the look smoothing the swing trailed a run round the keeper's hut by 9°
-        swingAt.set(player.position.x, aimY + FOLLOW.aimHeight, player.position.z);
-        const s = colliderFor().wallSwing(swingAt, yaw) * (1 - Math.exp(-dt / WALL_SWING_TAU));
-        yaw += s;
-        yawTarget += s;
+      const yawWas = yaw;
+      if (following && dt > 0) {
+        // the goal's own rate carried, the rest braked in time (see SWING_RATE); in steps of at most
+        // 1/120 s, so it turns alike at any frame rate
+        const accel = SWING_ACCEL / DIST_REST;
+        const n = Math.ceil(dt * 120 - 1e-9);
+        const h = dt / n;
+        const bSub = 1 - Math.exp(-h / LOOK_TAU);
+        const step = (yawTarget - targetWas) / n;
+        let goal = targetWas;
+        for (let i = 0; i < n; i++) {
+          goal += step;
+          const e = goal - yaw;
+          const want = step / h + Math.sign(e) * Math.min(Math.sqrt(2 * accel * Math.abs(e)), (Math.abs(e) * bSub) / h);
+          yawRate += MathUtils.clamp(MathUtils.clamp(want, -SWING_RATE, SWING_RATE) - yawRate, -accel * h, accel * h);
+          yaw += yawRate * h;
+        }
+      } else {
+        yaw += (yawTarget - yaw) * bLook;
+        yawRate = dt > 0 ? (yaw - yawWas) / dt : 0;
       }
+      pitch += (pitchTarget - pitch) * bLook;
       place(dt);
     },
     state: () => ({
@@ -362,10 +569,14 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
       lift: lastLift,
       lowered: lastLowered,
       slimPush: lastPush,
+      lookahead: lastSoon,
+      swing: swingPace,
+      ring: ringWeight,
       hit: lastHit,
     }),
     setView(y, p) {
       yaw = yawTarget = y;
+      yawRate = 0;
       pitch = pitchTarget = MathUtils.clamp(p, PITCH_DOWN, PITCH_UP);
       sinceLook = 0;
       place(0, true);

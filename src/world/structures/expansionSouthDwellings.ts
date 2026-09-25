@@ -25,7 +25,7 @@
  */
 import { AdditiveBlending, Box3, BoxGeometry, type BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, LineCurve3, Matrix4, Mesh, MeshBasicMaterial, Vector3, type Camera, type Material, type Sphere } from 'three';
 import { EXPANSION_SOUTH_DWELLINGS } from '../layout';
-import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
+import type { CameraWall, TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { casterSpheres, southVisible, sunVector, type Caster } from '../util/expansionLocality';
@@ -98,8 +98,8 @@ export interface SouthDwellingsBuild {
   /** every mesh, at the identity transform (structures/index.ts moves them into the south group) */
   group: Group;
   walkSurfaces: WalkSurface[];
-  /** the keeper hut's wall and dome for the play camera, exact (appended to ctx.shared.cameraCylinders) */
-  cameraCylinders: { x: number; z: number; r: number; y0: number; y1: number }[];
+  /** the keeper hut's wall and dome for the play camera, one exact round wall (structures/index.ts adds it to the camera solids' `walls`) */
+  cameraWalls: CameraWall[];
   bases: [number, number, number][];
   /** the dwellings' own casters against the camera (util/expansionLocality.ts `southVisible`) */
   visible(camera: Camera): boolean;
@@ -548,7 +548,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   }
   // to the play camera the hut is solid only inside its wall (the wobble's +6.5 %, the cords and
   // collars): the eave over the gallery's walk is slim (cameraSolids.ts `cameraShell`), and the
-  // wall and the dome over the room are one exact cylinder (shared.cameraCylinders), not cells
+  // wall and the dome over the room are one exact cylinder (a camera wall, cameraWalls), not cells
   const cameraShell = { x: hutAudit.centre[0], z: hutAudit.centre[2], r: hutAudit.radius * 1.07 + 0.06, exact: true };
   let wallTop: number = K.floorY;
   for (const child of [...hut.group.children]) {
@@ -566,7 +566,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     }
     group.add(m);
   }
-  const cameraCylinders = [{ x: cameraShell.x, z: cameraShell.z, r: cameraShell.r, y0: K.floorY - 0.1, y1: wallTop }];
+  const cameraWalls: CameraWall[] = [{ id: keeperDef.id, x: cameraShell.x, z: cameraShell.z, y0: K.floorY - 0.1, y1: wallTop, rMax: cameraShell.r, radiusAt: () => cameraShell.r }];
   if (hut.soffit) group.add(hut.soffit);
   walkSurfaces.push(...hut.walk);
   const hutTris = hut.triangles;
@@ -1809,7 +1809,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   return {
     group,
     walkSurfaces,
-    cameraCylinders,
+    cameraWalls,
     bases,
     visible: (camera: Camera) => southVisible(camera, spheres),
     owned,
@@ -1830,7 +1830,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         mastTop: p3(mastTop),
         pods: keeperPods.map((p) => p3(p)),
         steps: keeperSteps,
-        cameraWall: { r: +cameraCylinders[0].r.toFixed(3), y0: +cameraCylinders[0].y0.toFixed(2), y1: +cameraCylinders[0].y1.toFixed(2) },
+        cameraWall: { r: +cameraWalls[0].rMax.toFixed(3), y0: +cameraWalls[0].y0.toFixed(2), y1: +cameraWalls[0].y1.toFixed(2) },
         triangles: keeperTris,
       },
       waystation: {

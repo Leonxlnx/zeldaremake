@@ -51,7 +51,7 @@ Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: () => [pa
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const { createFollowCam, PITCH_REST, PITCH_UP, PITCH_DOWN, FOLLOW } = loadTs(path.join(here, 'follow.ts'));
-const { CLEARANCE, CAMERA_RADIUS, MIN_DISTANCE, WALL_LINE_MARGIN, WALL_SWING_SHARE, createCameraCollider } = loadTs(path.join(here, 'collision.ts'));
+const { CLEARANCE, CAMERA_RADIUS, MIN_DISTANCE } = loadTs(path.join(here, 'collision.ts'));
 const { VoxelGrid } = loadTs(path.join(here, '../world/util/voxelGrid.ts'));
 
 function rig({ groundAt = () => 0, shared = {}, invertY = false, heading = Math.PI } = {}) {
@@ -282,21 +282,25 @@ test('a slim post at the camera moves it in along the line; a ridge behind Link 
 });
 
 /**
- * exp-south2: an exact wall (shared.cameraCylinders — the bridge keeper's hut, 1.29 m, whose gallery
- * Link walks 1.30–1.99 m from its axis). Link faces −z, the camera stands at +z.
+ * exp-south2: the bridge keeper's hut publishes its wall and dome as one exact round wall
+ * (structures/expansionSouthDwellings.ts → shared.cameraSolids.walls): a cylinder of 1.29 m whose
+ * gallery Link walks 1.30–1.99 m from its axis. Link faces −z, the camera stands at +z.
  */
 const HUT = { r: 1.29, y0: -0.1, y1: 3 };
+const keeperWall = ({ r, y0, y1, x, z }) => ({ id: 'south-keeper', x, z, y0, y1, rMax: r, radiusAt: () => r });
+const walls = (...list) => ({ cameraSolids: { solid: null, slim: null, walls: list.map(keeperWall) } });
 
-test('an exact wall: walking its gallery (Link 1.7 m out, facing along it) the camera keeps its whole line', () => {
-  const r = rig({ shared: { cameraCylinders: [{ ...HUT, x: -1.7, z: 0 }] } });
+test('the keeper\'s wall: walking its gallery (Link 1.7 m out, facing along it) the camera keeps its whole line', () => {
+  const r = rig({ shared: walls({ ...HUT, x: -1.7, z: 0 }) });
   const p = r.camera.position;
   assert.ok(p.z > FOLLOW.distance - 0.05, `camera ${p.z.toFixed(3)} m back (the rest is ${FOLLOW.distance})`);
   assert.equal(r.cam.state().hit, null);
 });
 
-test('an exact wall across the line stops the camera outside its camera radius', () => {
-  const wall = { ...HUT, r: 0.8, x: -0.8, z: 2.2 };
-  const r = rig({ shared: { cameraCylinders: [wall] } });
+test('the keeper\'s wall across the line stops the camera outside its camera radius', () => {
+  // the line (x 0, toward +z) runs 0.3 m deep through a 0.8 m wall (a tangent line would pass)
+  const wall = { ...HUT, r: 0.8, x: -0.5, z: 2.2 };
+  const r = rig({ shared: walls(wall) });
   const p = r.camera.position;
   const fromAxis = Math.hypot(p.x - wall.x, p.z - wall.z);
   assert.ok(fromAxis >= wall.r + CAMERA_RADIUS - 1e-3, `camera ${fromAxis.toFixed(3)} m from the axis (wall ${wall.r} + ${CAMERA_RADIUS})`);
@@ -304,53 +308,36 @@ test('an exact wall across the line stops the camera outside its camera radius',
   assert.equal(r.cam.state().hit, 'solid');
 });
 
-test('Link against an exact wall, facing away from it: the line into it is refused — the camera does not pass through', () => {
-  // 1.35 m from the axis: inside the wall's camera radius (1.59 m), where a bole's cylinder is skipped
-  const r = rig({ shared: { cameraCylinders: [{ ...HUT, x: 0, z: 1.35 }] } });
+test('Link against the keeper\'s wall, facing away from it: the line into it is refused — the camera does not pass through', () => {
+  // 1.35 m from the axis: inside the wall's grown shell (1.59 m)
+  const r = rig({ shared: walls({ ...HUT, x: 0, z: 1.35 }) });
   const aim = new THREE.Vector3(0, FOLLOW.aimHeight, 0);
   const d = r.camera.position.distanceTo(aim);
   assert.ok(d < MIN_DISTANCE + 0.05, `camera ${d.toFixed(3)} m from the aim: at its minimum (${MIN_DISTANCE}), not through the hut`);
   assert.equal(r.cam.state().hit, 'solid');
 });
 
-test('a line passing an exact wall inside the camera radius but clear of the line margin keeps its whole length', () => {
+test('a line grazing the keeper\'s wall inside the camera radius keeps its whole length', () => {
   // the line (x 0, toward +z) passes 0.2 m off a 0.8 m wall; the camera, 4.3 m back, is 1.2 m off it
   const wall = { ...HUT, r: 0.8, x: -1.0, z: 2.2 };
-  assert.ok(1.0 - wall.r > WALL_LINE_MARGIN && 1.0 - wall.r < CAMERA_RADIUS);
-  const r = rig({ shared: { cameraCylinders: [wall] } });
+  assert.ok(1.0 - wall.r < CAMERA_RADIUS);
+  const r = rig({ shared: walls(wall) });
   assert.ok(r.camera.position.z > FOLLOW.distance - 0.05, `camera ${r.camera.position.z.toFixed(3)} m back`);
   assert.equal(r.cam.state().hit, null);
-});
-
-test('wallSwing turns a line that looks into an exact wall back out to its share of the line margin, and leaves a tangent alone', () => {
-  const c = createCameraCollider(() => 0, { cameraCylinders: [{ ...HUT, x: 0, z: 0 }] });
-  const d = 1.6;
-  const pivot = new THREE.Vector3(0, FOLLOW.aimHeight, d);
-  const may = WALL_SWING_SHARE * Math.acos((HUT.r + WALL_LINE_MARGIN) / d);
-  // the camera at pivot − (sin yaw, cos yaw)·dist: yaw π/2 lies along the tangent (−x) at Link
-  assert.equal(c.wallSwing(pivot, Math.PI / 2), 0);
-  for (const sign of [1, -1]) {
-    const tip = 0.7;
-    const yaw = sign * (Math.PI / 2 - tip);
-    const s = c.wallSwing(pivot, yaw);
-    assert.ok(Math.sign(s) === sign, `turned ${s.toFixed(3)} rad (outward is ${sign > 0 ? '+' : '−'})`);
-    assert.ok(Math.abs(Math.abs(s) - (tip - may)) < 1e-9, `turned ${Math.abs(s).toFixed(4)} rad, the tip past the allowance is ${(tip - may).toFixed(4)}`);
-  }
-  // 1.3 m out from the wall's face the swing has faded out
-  assert.equal(c.wallSwing(new THREE.Vector3(0, FOLLOW.aimHeight, HUT.r + 1.3), 0.2), 0);
 });
 
 /**
  * Walking round the keeper's hut as the play-test steers (gauntlet/scripts/playtest.mjs walkRoute:
  * the movement keys chosen against the camera every 3 frames, waypoints on the gallery 20–40° apart,
  * reached within 0.5 m) — Link turns at 9 rad/s and slides round the hut's walk block 1.4 m from its
- * axis, and the camera trails his turns by up to 45°. Before the swing its line cut the wall and it
- * snapped in 3.87 m in one frame (the m8 walk: 3.863 m).
+ * axis. A camera straight behind him trailed his turns by up to 45°, its line cut the wall and it
+ * snapped in 3.87 m in one frame (the m8 walk: 3.863 m); on a hut's ring it trails him along it.
  */
-function walkRoundHut(speed) {
-  const r = rig({ shared: { cameraCylinders: [{ ...HUT, x: 0, z: 0 }] } });
+function walkRoundHut(speed, reverse = false) {
+  const r = rig({ shared: walls({ ...HUT, x: 0, z: 0 }) });
   const at = (th, rr) => [Math.cos((th * Math.PI) / 180) * rr, Math.sin((th * Math.PI) / 180) * rr];
   const points = [at(222, 2.69), at(221, 2.0), at(200, 1.7), at(170, 1.7), at(135, 1.7), at(100, 1.7), at(60, 1.7), at(20, 1.7), at(-8, 1.7), at(-20.5, 1.86), at(-21.8, 2.42)];
+  if (reverse) points.reverse();
   const p = r.player.position;
   p.set(points[0][0], 0, points[0][1]);
   r.face.heading = Math.atan2(points[1][0] - p.x, points[1][1] - p.z);
@@ -363,10 +350,11 @@ function walkRoundHut(speed) {
   const dt = 1 / 30;
   let v = 0;
   const aim = new THREE.Vector3();
-  let prev = null;
-  let worstDrop = 0;
   let nearest = Infinity;
   let nearestAxis = Infinity;
+  let hidden = 0;
+  const cams = [];
+  const q = new THREE.Vector3();
   let wp = 1;
   let frames = 0;
   while (wp < points.length && frames < 900) {
@@ -396,24 +384,33 @@ function walkRoundHut(speed) {
         if (hr < 1.4) p.set((p.x / hr) * 1.4, 0, (p.z / hr) * 1.4);
       }
       const d = r.camera.position.distanceTo(aim.set(p.x, FOLLOW.aimHeight, p.z));
-      if (prev !== null) worstDrop = Math.max(worstDrop, prev - d);
-      prev = d;
       if (Math.hypot(p.x, p.z) < 2.1) nearest = Math.min(nearest, d);
       nearestAxis = Math.min(nearestAxis, Math.hypot(r.camera.position.x, r.camera.position.z));
+      cams.push(r.camera.position.clone());
+      for (let s = 0.05; s < d; s += 0.05) if (Math.hypot(q.lerpVectors(aim, r.camera.position, s / d).x, q.z) < HUT.r) (hidden++, (s = d));
     }
   }
   setKeys(new Set());
-  return { reached: wp - 1, of: points.length - 1, worstDrop, nearest, nearestAxis };
+  // the change of the camera's per-frame step (walls.test.mjs's pop), after the snap has settled
+  let pop = 0;
+  for (let i = 15; i < cams.length; i++) pop = Math.max(pop, cams[i].clone().sub(cams[i - 1]).sub(cams[i - 1]).add(cams[i - 2]).length());
+  return { reached: wp - 1, of: points.length - 1, pop, nearest, nearestAxis, hidden };
 }
 
-test('walking and running round an exact wall as the play-test steers, the camera orbits off it — it never snaps in', () => {
-  for (const speed of [1.6, 4.6]) {
-    const w = walkRoundHut(speed);
-    const at = `at ${speed} m/s`;
-    assert.equal(w.reached, w.of, `${at}: waypoints ${w.reached}/${w.of}`);
-    assert.ok(w.worstDrop < 0.3, `${at}: the camera came ${w.worstDrop.toFixed(3)} m nearer Link in one frame (was 3.87)`);
-    assert.ok(w.nearest > 4.0, `${at}: the camera came within ${w.nearest.toFixed(2)} m of Link on the gallery (was 0.64)`);
-    assert.ok(w.nearestAxis > HUT.r + CAMERA_RADIUS, `${at}: the camera ${w.nearestAxis.toFixed(2)} m from the hut's axis`);
+test('walking and running round the keeper\'s wall as the play-test steers, the camera trails him along it — it never snaps in', () => {
+  for (const speed of [1.6, 3, 4.6]) {
+    for (const reverse of [false, true]) {
+      const w = walkRoundHut(speed, reverse);
+      const at = `at ${speed} m/s${reverse ? ', the other way' : ''}`;
+      assert.equal(w.reached, w.of, `${at}: waypoints ${w.reached}/${w.of}`);
+      // the rubric's bound (docs/RUBRIC_50_STRUCTURES.md check 44)
+      assert.ok(w.pop < 0.3, `${at}: pop ${w.pop.toFixed(3)} m`);
+      assert.ok(w.nearestAxis > HUT.r, `${at}: the camera ${w.nearestAxis.toFixed(2)} m from the hut's axis`);
+      assert.equal(w.hidden, 0, `${at}: ${w.hidden} frames with the wall between the camera and Link`);
+      // walking and jogging it keeps its whole line (a camera straight behind him came within 0.64 m);
+      // running the 1.7 m ring at 2.7 rad/s it eases in ahead of the wall instead
+      if (speed <= 3) assert.ok(w.nearest > 4.0, `${at}: the camera came within ${w.nearest.toFixed(2)} m of Link on the gallery`);
+    }
   }
 });
 

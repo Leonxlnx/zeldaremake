@@ -20,6 +20,7 @@
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { expansionDiscMask, legacyPathMask, southRouteSurface, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
+import { northDiscMask } from '../terrain/north';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
@@ -598,8 +599,9 @@ export interface PavingContext {
  * `south` (round 56): the path on from the spine's end to the rope bridge and from the bridge to
  * the hollow log (heightfield `southRouteSurface`), on the ground the legacy pass leaves unpaved
  * (the north pass's rule), cut by the live structure mask (the sills, the posts, the log).
+ * `grove` (2026-09-24): the grove trail's set stepping discs alone (terrain/north.ts `northDiscMask`, `groveLevel`).
  */
-export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion' | 'south';
+export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion' | 'south' | 'grove';
 
 /** a stepping stone that sits in grass (not inside the plaza paving): gets its own round slab */
 export interface IsolatedDisc {
@@ -664,6 +666,8 @@ function archTongueDepth(x: number, z: number): number {
  * mask), and every seed and every shared-stream draw stays where it was.
  */
 export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false, region: PavingRegion = pc.region ?? 'live'): number {
+  if (region === 'grove') return groveLevel(pc, x, z);
+
   // round 49: the expansion pass reads the LIVE mask (its own flights and discs); every other pass
   // the legacy view, as before (heightfield `surfaceMask`)
   const m = surfaceMask(x, z, region === 'expansion' || region === 'south' ? 'live' : 'legacy');
@@ -689,6 +693,14 @@ export function pavedLevel(pc: PavingContext, x: number, z: number, strict = fal
   }
   for (const f of pc.frames) if (inStairFootprint(f, x, z)) return 0;
   return path;
+}
+
+/** the grove pass's level: its discs on the live mask, 0 under any stair, structure or flight footprint */
+function groveLevel(pc: PavingContext, x: number, z: number): number {
+  const m = surfaceMask(x, z, 'live');
+  if (m.stairs >= 0.5 || m.structure >= 0.5) return 0;
+  for (const f of pc.frames) if (inStairFootprint(f, x, z)) return 0;
+  return northDiscMask(x, z);
 }
 
 export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAVED_ISO, strict = false, region: PavingRegion = pc.region ?? 'live'): boolean {

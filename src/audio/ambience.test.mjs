@@ -61,9 +61,9 @@ function param(value) {
       this.target = v;
       this.events.push(['exp', v, t]);
     },
-    setTargetAtTime(v, t) {
+    setTargetAtTime(v, t, tau) {
       this.target = v;
-      this.events.push(['tgt', v, t]);
+      this.events.push(['tgt', v, t, tau]);
     },
     cancelScheduledValues() {},
   };
@@ -315,25 +315,158 @@ test('a bird answers when the wind drops', () => {
   // seconds (art/audio/2026-09-24-wind/), and at the old flat 3.5–11.5 s gap roughly half of those
   // lulls had nothing in them: the one moment the forest is deliberately quiet was the one moment
   // it had nothing to say.
-  const at = (gusts) => {
+  // Enough cycles that the answer is not two small numbers being compared: one drop gives three or
+  // four calls either way, and which is larger is then a coin toss on the seeded stream.
+  const CYCLES = 30;
+  const at = (gustOf) => {
     const b = bed({ seed: 'lull' });
     let t = 0;
-    for (const g of gusts) {
-      b.amb.update(t, { gust: g, listener: LISTENER, forward: NORTH, pods: [] });
+    for (let i = 0; i < CYCLES * 24; i++) {
+      b.amb.update(t, { gust: gustOf(i), listener: LISTENER, forward: NORTH, pods: [] });
       t += 0.5;
     }
     b.amb.scheduleUntil(t + 2);
     return b.amb.stats().birds;
   };
-  const blowing = Array.from({ length: 24 }, () => 0.8);
-  const drops = [...Array.from({ length: 12 }, () => 0.8), ...Array.from({ length: 12 }, () => 0.1)];
-  assert.ok(at(drops) > at(blowing), `the wind dropping must bring a bird forward (${at(blowing)} while it blew, ${at(drops)} when it fell)`);
-  // the trigger is the EDGE, not the level: a take that was already still gets no extra call for it
-  const stillThroughout = Array.from({ length: 24 }, () => 0.1);
-  assert.ok(at(drops) <= at(stillThroughout) + 1, 'the edge must not stack on top of the still-air rate');
+  const blowing = at(() => 0.8);
+  const drops = at((i) => (i % 24 < 12 ? 0.8 : 0.1));
+  assert.ok(drops > blowing * 1.05, `over ${CYCLES} lulls the drops must bring calls forward (${blowing} while it blew, ${drops} with the drops)`);
+  // the trigger is the EDGE, not the level: still air throughout already calls at the still rate,
+  // and the edge must not stack a second helping on top of it
+  const stillThroughout = at(() => 0.1);
+  assert.ok(drops <= stillThroughout * 1.1, `the edge stacked on the still-air rate (${drops} with drops, ${stillThroughout} in still air throughout)`);
   assert.ok(A.BIRD_ANSWERS_LULL[0] > 0.2, 'answering inside a fifth of a second is a reflex, not a bird');
   assert.ok(A.BIRD_ANSWERS_LULL[1] < 3, 'a lull is about three seconds — an answer after it is not an answer');
   assert.ok(A.BIRD_LULL_GAP > 0.3 && A.BIRD_LULL_GAP < 1, 'the still-air gap is a share of the usual one, not a gate');
+});
+
+test('the wood has birds in it, not a stream of calls', () => {
+  // Before this, the scheduler picked a kind and then drew a fresh bearing and a fresh distance for
+  // it: 216 calls over twenty minutes came from 216 places, and a kind's calls scattered 0.47 across
+  // a ±0.85 field — indistinguishable from uniform (art/audio/2026-09-24-perches/).
+  const { amb } = bed({ seed: 'perch' });
+  for (let t = 0; t < 900; t += 0.5) {
+    amb.update(t, { gust: 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3), listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+    amb.scheduleUntil(t + 4);
+  }
+  const spots = amb.stats().birdSpots;
+  assert.ok(spots.length > 8, `only ${spots.length} calls remembered`);
+  // every call of a kind comes from that bird's own tree
+  const byKind = new Map();
+  for (const [kind, pan, distance] of spots) (byKind.get(kind) ?? byKind.set(kind, []).get(kind)).push([pan, distance]);
+  for (const [kind, cs] of byKind) {
+    const pans = new Set(cs.map((c) => c[0]));
+    const dists = new Set(cs.map((c) => c[1]));
+    assert.equal(pans.size, 1, `${kind} called from ${pans.size} directions — a bird sits somewhere`);
+    assert.equal(dists.size, 1, `${kind} called from ${dists.size} distances`);
+  }
+  // and the wood is not all on one side of him
+  const places = [...byKind.values()].map((cs) => cs[0][0]);
+  assert.ok(Math.max(...places) > 0.25 && Math.min(...places) < -0.25, `every bird is between ${Math.min(...places).toFixed(2)} and ${Math.max(...places).toFixed(2)} — they must be round him, not in a clump`);
+});
+
+test('the world turns under him: a bearing is a place, not a channel', () => {
+  // `panFor` is the one place the convention lives. It was duplicated — once for the wind's lean,
+  // once for the birds' perches — and a sign error in either is invisible to every other
+  // measurement on this lane, because all of them are mono sums. What a player would hear instead
+  // is a wood nailed to the speakers: turn round and the bird on your left stays on your left.
+  const N = { x: 0, z: -1 };
+  const S = { x: 0, z: 1 };
+  const E = { x: 1, z: 0 };
+  const W = { x: -1, z: 0 };
+  const near = (a, b, why) => assert.ok(Math.abs(a - b) < 1e-9, `${why}: ${a.toFixed(3)}, expected ${b}`);
+  // something due north of him
+  near(A.panFor(N, N), 0, 'facing it, a source dead ahead is centre');
+  near(A.panFor(S, N), 0, 'with his back to it, it is centre too — a stereo pan cannot say front from back');
+  near(A.panFor(W, N), 1, 'facing west, north is hard right');
+  near(A.panFor(E, N), -1, 'facing east, north is hard left');
+  // and the sweep is continuous and antisymmetric in between
+  for (let deg = 0; deg < 360; deg += 15) {
+    const th = (deg * Math.PI) / 180;
+    const fwd = { x: Math.sin(th), z: Math.cos(th) };
+    const back = { x: -fwd.x, z: -fwd.z };
+    near(A.panFor(fwd, N), -A.panFor(back, N), `turning right round at ${deg}\u00b0 must mirror the field`);
+  }
+  // the length of the world vector is a distance, not a loudness: only its bearing may show up here
+  near(A.panFor(W, { x: 0, z: -40 }), A.panFor(W, N), 'a bird further off must not pan wider');
+  // the wind leans rather than pans, and it leans from where the air comes FROM
+  assert.ok(A.WIND_LEAN < A.PERCH_PAN, 'the air is not a point source: it must lean less than a bird sits out');
+  near(A.windLeanFor(W, S), A.WIND_LEAN, 'wind travelling south comes from the north, which is his right facing west');
+  near(A.windLeanFor(W, N), -A.WIND_LEAN, 'and travelling north it comes from the south, on his left');
+});
+
+test('a bird keeps its tree while he turns on the spot', () => {
+  // the same perch, heard from four facings: the bearing has to move across him and come back.
+  const pansFacing = (fwd) => {
+    const { amb } = bed({ seed: 'perch/turn' });
+    const seen = new Map();
+    for (let t = 0; t < 600; t += 0.5) {
+      amb.update(t, { gust: 0.5, listener: LISTENER, forward: fwd, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+      for (const [kind, pan] of amb.stats().birdSpots) seen.set(kind, pan);
+    }
+    return seen;
+  };
+  const north = pansFacing({ x: 0, z: -1 });
+  const south = pansFacing({ x: 0, z: 1 });
+  assert.ok(north.size > 2, `only ${north.size} birds heard`);
+  assert.deepEqual([...north.keys()].sort(), [...south.keys()].sort(), 'turning round must not change which birds are in the wood');
+  for (const [kind, pan] of north) {
+    // the perches are seeded from the listener's position, which has not moved, so turning round
+    // must mirror every one of them and nothing else
+    assert.ok(Math.abs(pan + south.get(kind)) < 1e-9, `the ${kind} is at ${pan.toFixed(2)} facing north and ${south.get(kind).toFixed(2)} facing south — it should be its mirror`);
+  }
+  assert.ok(Math.max(...[...north.values()].map(Math.abs)) <= A.PERCH_PAN + 1e-9, 'no bird may sit outside PERCH_PAN');
+});
+
+test('the forest does not play the same nine seconds over and over', () => {
+  // The whole bed is tapped off one pink buffer. It was nine seconds long and both wind layers
+  // played it — one from the start and one a third of the way in, on the reasoning that an offset
+  // made them "not the same noise". An offset is the same noise delayed. Five minutes standing
+  // still correlated +0.51 with itself at 27 s (`art/audio/2026-09-25-loop/`).
+  assert.ok(A.PINK_SECONDS >= 15, `a ${A.PINK_SECONDS} s loop comes round inside the time an ear holds on to it`);
+  assert.notEqual(A.LEAF_RATE, 1, 'the second tap must not play the same buffer at the same rate as the first');
+  // and not at a rate that re-aligns with it every few loops, which is the same fault with a longer
+  // period: 5/6 or 4/5 would put the two back in step after six or five times round
+  for (let k = 1; k <= 8; k++) {
+    const off = Math.abs(k * A.LEAF_RATE - Math.round(k * A.LEAF_RATE));
+    assert.ok(off > 0.03, `${k} turns of the second tap land within ${off.toFixed(3)} of a whole turn of the first — they re-align every ${k}`);
+  }
+  assert.ok(A.PINK_DRIFT > 0 && A.PINK_DRIFT < 0.06, 'the rate wander has to exist and has to be small enough that noise stays noise');
+  assert.ok(A.PINK_DRIFT_HZ < 0.2, 'a fast wander is an effect; this one has to be slower than the gusts');
+});
+
+test('both taps of the pink buffer are driven, and driven differently', () => {
+  const { ctx } = bed({ seed: 'loop' });
+  // by the pink buffer's own length: the flame taps a different looping stereo buffer
+  const sources = ctx.made.source.filter((s) => s.buffer && s.loop && Math.abs(s.buffer.duration - A.PINK_SECONDS) < 0.5);
+  assert.ok(sources.length >= 2, `${sources.length} looping stereo sources — the bed taps the pink buffer twice`);
+  const rates = sources.map((s) => s.playbackRate.value);
+  assert.ok(new Set(rates).size > 1, `both taps play at ${rates.join(', ')} — one loop at one rate is one loop`);
+  // every tap has an envelope on its rate, so neither comes round to the same place twice
+  for (const src of sources) {
+    const driven = ctx.made.gain.some((g) => g.outputs.includes(src.playbackRate));
+    assert.ok(driven, 'a tap with a fixed rate repeats exactly; each one needs its wander');
+  }
+});
+
+test('walking far enough puts him among different birds', () => {
+  const heard = (moveM) => {
+    const { amb } = bed({ seed: 'perch/move' });
+    const seen = new Set();
+    for (let t = 0; t < 600; t += 0.5) {
+      const at = { x: (t / 600) * moveM, y: 1.2, z: 0 };
+      amb.update(t, { gust: 0.5, listener: at, forward: NORTH, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+      for (const [kind, pan] of amb.stats().birdSpots) seen.add(`${kind}|${pan}`);
+    }
+    return seen.size;
+  };
+  const still = heard(0);
+  const walked = heard(A.PERCH_RESEED_M * 6);
+  assert.ok(walked > still, `standing still heard ${still} birds and walking ${(A.PERCH_RESEED_M * 6).toFixed(0)} m heard ${walked} — the wood must change as he crosses it`);
+  assert.ok(still <= 6, `standing in one place heard ${still} birds; there are six kinds and one of each`);
+  assert.ok(A.PERCH_RESEED_M > 10, 'birds must not be re-seeded from under him as he walks');
 });
 
 test('moving the birds about does not add any', () => {
@@ -360,4 +493,39 @@ test('moving the birds about does not add any', () => {
   const swinging = run((t) => 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3));
   assert.ok(swinging > 7 && swinging < 13, `${swinging.toFixed(1)} birds a minute — the flat gap this replaced gave 10.3, and one every four seconds is an aviary`);
   assert.ok(A.BIRD_GAP_TRIM > 1, 'the trim only ever lengthens the gap; without it the rate climbs');
+});
+
+test('a term that moved because HE did arrives at his pace, not the weather\u2019s', () => {
+  // The bed's spatial terms had five different smoothing times between them (0.12 and 0.9 s), all
+  // of them chosen against weather, and a smoothing time is a distance once the listener has a
+  // speed. `art/audio/2026-09-25-lag/` measured the ground that costs on five real journeys.
+  //
+  // This is the contract rather than the constant: run `update` twice with the WEATHER AND THE
+  // FACING HELD and only the listener's place changed, take every parameter that moved, and
+  // require it to have been aimed with PLACE_TAU. A new spatial term added later with a literal
+  // time constant fails here without anyone having to remember this file exists.
+  const { ctx, amb } = bed();
+  const params = [];
+  for (const kind of ['gain', 'filter', 'panner', 'source']) {
+    for (const n of ctx.made[kind]) {
+      for (const [name, p] of Object.entries(n)) if (p && typeof p === 'object' && Array.isArray(p.events)) params.push({ id: `${kind}.${name}`, p });
+    }
+  }
+  const weather = { gust: 0.6, windDir: { x: 0.7, z: -0.7 }, forward: NORTH, pods: [{ x: 1, y: 2, z: 0 }] };
+  // the open village, then well inside the log arch's bore under closed crowns with the ravine open
+  amb.update(1, { ...weather, listener: { x: 0, y: 1.2, z: 0 }, canopy: 0, gorge: 0, enclosure: 0 });
+  const before = params.map(({ p }) => ({ target: p.target, n: p.events.length }));
+  amb.update(2, { ...weather, listener: { x: 7, y: 1.2, z: -3 }, canopy: 1, gorge: 1, enclosure: 1 });
+  const moved = params.filter(({ p }, i) => Math.abs(p.target - before[i].target) > 1e-12);
+  assert.ok(moved.length >= 5, `only ${moved.length} parameters noticed that he had moved seven metres into a log`);
+  for (const { id, p } of moved) {
+    const last = [...p.events].reverse().find((e) => e[0] === 'tgt');
+    assert.ok(last, `${id} moved with him but was not aimed with setTargetAtTime`);
+    assert.equal(last[3], A.PLACE_TAU, `${id} moved because the listener did and was smoothed over ${last[3]} s — at a run that is ${(last[3] * 4.2).toFixed(2)} m of ground behind him`);
+  }
+  // and the weather's own terms are left where they were: the gust is two sines whose fastest
+  // component has a seventeen-second period, so their longer times smooth nothing that moves
+  const held = params.filter(({ p }, i) => p.events.length > before[i].n && Math.abs(p.target - before[i].target) <= 1e-12);
+  const weatherTaus = new Set(held.map(({ p }) => [...p.events].reverse().find((e) => e[0] === 'tgt')?.[3]).filter((v) => v !== A.PLACE_TAU && v !== undefined));
+  assert.ok(weatherTaus.size > 0, 'nothing is left on a weather time — either the split is gone or the fake no longer records it');
 });

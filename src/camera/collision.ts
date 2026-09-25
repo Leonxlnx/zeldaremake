@@ -3,10 +3,12 @@
  *  - the ground Link walks (terrain, stair treads, decks — the character's walk height): the camera
  *    keeps CLEARANCE above it and is lifted where a ridge or a flight would cut the line;
  *  - SOLID shells (the structures' voxelised trunks, roofs, eaves, porches, the log arch, the huts —
- *    structures/cameraSolids.ts), the exact walls published beside them (shared.cameraCylinders)
- *    and the big boles (the giants' and columns' seats as built): the camera stays in front of the
- *    first one on the line, so Link is never behind a wall or a bole; under a low ceiling (the log
- *    arch's passage, a hut's cap) it first tries standing lower;
+ *    structures/cameraSolids.ts) and the big boles (the giants' and columns' seats as built): the
+ *    camera stays in front of the first one on the line, so Link is never behind a wall or a bole,
+ *    and out of the cell grown round each; a line that only grazes that cell, or clips the corner
+ *    of a surface's own cell, is not blocked; round walls given exactly (the grove's huts) are
+ *    solid to their surface, with CAMERA_RADIUS as their grown shell;
+ *    under a low ceiling (the log arch's passage, a hut's cap) it first tries standing lower;
  *  - SLIM parts (posts, pods, boughs, the white-barks' boles, the village props): the camera only
  *    refuses to stand inside one and moves in along the line until clear — a post may pass between.
  */
@@ -19,24 +21,13 @@ export const CAMERA_RADIUS = 0.3;
 export const CLEARANCE = 0.35;
 /** the camera never comes closer than this to the aim point (m) */
 export const MIN_DISTANCE = 0.6;
-/**
- * how near the line of sight may pass an exact wall (m); the camera itself stops CAMERA_RADIUS off
- * it. A camera trailing Link round the keeper's gallery looks into the curve: with the camera radius
- * on the whole line, that line clipped the wall and pulled the camera in.
- */
-export const WALL_LINE_MARGIN = 0.1;
-/**
- * while Link walks near an exact wall, the follow camera orbits off it once its line turns in past
- * the tangent at Link by more than this share of the turn that would reach the line margin
- * (wallSwing): walking round the keeper's hut (1.4–1.7 m from its axis) the trailing camera looked
- * up to 45° into the curve, which put its line through the wall and snapped it in 3.8 m
- */
-export const WALL_SWING_SHARE = 0.3;
-/** the swing is whole while Link is within this of the wall (m) and gone half a metre further out */
-const WALL_SWING_NEAR = 0.8;
 /** a low ceiling may drop the camera by up to LOWER_STEPS × LOWER_STEP m before it is pulled in */
 const LOWER_STEPS = 4;
 const LOWER_STEP = 0.15;
+/** consecutive surface samples (a fifth of a cell each) a line must run through to be blocked */
+const SURFACE_RUN = 4;
+/** the sweep's cell (m) when there are only exact walls (structures/cameraSolids.ts CAMERA_SOLID_CELL) */
+const SWEEP_CELL = 0.25;
 
 export interface Cylinder {
   x: number;
@@ -59,14 +50,10 @@ export interface CameraCollider {
   lift(pivot: Vector3, desired: Vector3): number;
   /** the solid sweep: how much of the line pivot → desired is free (tries lower candidates under a ceiling) */
   resolve(pivot: Vector3, desired: Vector3): Resolved;
+  /** the same sweep along the line as given (no lower candidates) */
+  sweep(pivot: Vector3, desired: Vector3): { t: number; hit: Resolved['hit'] };
   /** move `cam` toward `pivot` until it is outside every slim part; returns the distance moved (m) */
   slimPush(pivot: Vector3, cam: Vector3): number;
-  /**
-   * how far to turn the yaw (rad), away from the wall, so the line from `pivot` to a camera behind
-   * it along −(sin yaw, cos yaw) (follow.ts) turns in past the tangent to each exact wall near Link
-   * by no more than WALL_SWING_SHARE of the turn that would reach the line margin; 0 when it does
-   */
-  wallSwing(pivot: Vector3, yaw: number): number;
   /** the walked ground under (x, z) */
   ground(x: number, z: number): number;
   info(): Record<string, unknown>;
@@ -74,10 +61,6 @@ export interface CameraCollider {
 
 const _d = new Vector3();
 const _c = new Vector3();
-const smooth = (e0: number, e1: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
-  return t * t * (3 - 2 * t);
-};
 
 export function createCameraCollider(ground: (x: number, z: number) => number, shared: SharedGeometry): CameraCollider {
   const solid = shared.cameraSolids?.solid ?? null;
@@ -89,11 +72,25 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     y0: s.y - 1,
     y1: s.y + Math.max(4, s.bareHeight),
   }));
-  const walls: Cylinder[] = (shared.cameraCylinders ?? []).map((c) => ({ ...c }));
   const slimCylinders: Cylinder[] = [
     ...(shared.slimTrunks ?? []).map((t) => ({ ...t, r: t.r + CAMERA_RADIUS })),
     ...(shared.propBlockers ?? []).map((b) => ({ x: b.x, z: b.z, r: b.r + CAMERA_RADIUS, y0: -Infinity, y1: b.top + CAMERA_RADIUS })),
   ];
+
+  const walls = shared.cameraSolids?.walls ?? [];
+  /** inside a round wall, or within `pad` m of it (over its height band, ± pad) */
+  const insideWall = (x: number, y: number, z: number, pad: number): boolean => {
+    for (const w of walls) {
+      if (y < w.y0 - pad || y > w.y1 + pad) continue;
+      const dx = x - w.x;
+      const dz = z - w.z;
+      const d2 = dx * dx + dz * dz;
+      const rm = w.rMax + pad;
+      if (d2 >= rm * rm) continue;
+      if (Math.sqrt(d2) < w.radiusAt(Math.atan2(dz, dx), Math.min(Math.max(y, w.y0), w.y1)) + pad) return true;
+    }
+    return false;
+  };
 
   const insideSlim = (x: number, y: number, z: number): boolean => {
     if (slim?.hasPoint(x, y, z)) return true;
@@ -104,73 +101,81 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     return false;
   };
 
-  /** where the line a + u·_d (u ≥ 0) enters and leaves the vertical cylinder (c.x, c.z, r), entering inside its height span; null if it does not or starts inside */
-  const span = (a: Vector3, ax: number, c: Cylinder, r: number): [number, number] | null => {
-    const ox = a.x - c.x;
-    const oz = a.z - c.z;
-    const c0 = ox * ox + oz * oz - r * r;
-    if (c0 < 0) return null;
-    const bq = 2 * (ox * _d.x + oz * _d.z);
-    const disc = bq * bq - 4 * ax * c0;
-    if (disc < 0) return null;
-    const u = (-bq - Math.sqrt(disc)) / (2 * ax);
-    if (u < 0) return null;
-    const y = a.y + _d.y * u;
-    return y < c.y0 || y > c.y1 ? null : [u, (-bq + Math.sqrt(disc)) / (2 * ax)];
-  };
-
-  /** first blocked fraction of the line a → b against the solid grid, the exact walls and the boles (1 when clear) */
+  /** first blocked fraction of the line a → b against the solid grid and the boles (1 when clear) */
   const sweep = (a: Vector3, b: Vector3): { t: number; hit: Resolved['hit'] } => {
     _d.subVectors(b, a);
     const len = _d.length();
     if (len < 1e-6) return { t: 1, hit: null };
     let t = 1;
     let hit: Resolved['hit'] = null;
-    if (solid) {
-      const step = solid.cell * 0.4;
-      // Link may stand inside the grown shell (against a wall): an occupied run at the start is
-      // skipped if it ends within half a metre, otherwise the camera has nowhere behind him
+    if (solid || walls.length) {
+      const step = (solid?.cell ?? SWEEP_CELL) * 0.2;
+      const grown = (s: number) => {
+        const x = a.x + (_d.x * s) / len;
+        const y = a.y + (_d.y * s) / len;
+        const z = a.z + (_d.z * s) / len;
+        return !!solid?.hasPoint(x, y, z) || insideWall(x, y, z, CAMERA_RADIUS);
+      };
+      const core = (s: number) => {
+        const x = a.x + (_d.x * s) / len;
+        const y = a.y + (_d.y * s) / len;
+        const z = a.z + (_d.z * s) / len;
+        return !!solid?.hasCorePoint(x, y, z) || insideWall(x, y, z, 0);
+      };
+      // The line is blocked where it runs through a surface (the grid's core) for SURFACE_RUN
+      // samples; the grown cell round it only keeps the camera itself off the surface. A line
+      // through a wall crosses a whole cell of it (five samples or more); one that clips a cell's
+      // corner for a sample or three passes beside the surface — a door's edge, a round wall it
+      // runs along. Link may stand in the grown shell (his head under an eave, beside a root arch,
+      // against a wall): an occupied run at the start is skipped, unless it goes through a surface
+      // and runs on past half a metre — then the camera has nowhere behind him.
       let s = 0;
       let run = 0;
-      while (s <= len && solid.hasPoint(a.x + (_d.x * s) / len, a.y + (_d.y * s) / len, a.z + (_d.z * s) / len)) {
+      let through = 0;
+      let met = false;
+      while (s <= len && grown(s)) {
+        through = core(s) ? through + 1 : 0;
+        met ||= through >= SURFACE_RUN;
         run += step;
         s += step;
-        if (run > 0.5) return { t: 0, hit: 'solid' };
+        if (met && run > 0.5) return { t: 0, hit: 'solid' };
       }
-      for (; s <= len; s += step) {
-        if (solid.hasPoint(a.x + (_d.x * s) / len, a.y + (_d.y * s) / len, a.z + (_d.z * s) / len)) {
-          t = Math.max(0, s - step) / len;
+      // (a line that never leaves the grown shell and never goes through a surface keeps its length)
+      const clear = s;
+      if (clear <= len) {
+        let end = len;
+        through = 0;
+        for (; s <= len; s += step) {
+          through = core(s) ? through + 1 : 0;
+          if (through >= SURFACE_RUN) {
+            end = s - through * step;
+            break;
+          }
+        }
+        if (end < len || grown(len)) {
+          // the farthest point before the surface (or the line's end) that is clear of the grown shell
+          while (end > clear && grown(end)) end -= step;
+          t = end / len;
           hit = 'solid';
-          break;
         }
       }
     }
     const ax = _d.x * _d.x + _d.z * _d.z;
     if (ax > 1e-9) {
       for (const c of trunks) {
-        const s = span(a, ax, c, c.r);
-        if (!s || s[0] >= t) continue;
-        t = s[0];
+        const ox = a.x - c.x;
+        const oz = a.z - c.z;
+        const c0 = ox * ox + oz * oz - c.r * c.r;
+        if (c0 < 0) continue;
+        const bq = 2 * (ox * _d.x + oz * _d.z);
+        const disc = bq * bq - 4 * ax * c0;
+        if (disc < 0) continue;
+        const u = (-bq - Math.sqrt(disc)) / (2 * ax);
+        if (u < 0 || u >= t) continue;
+        const y = a.y + _d.y * u;
+        if (y < c.y0 || y > c.y1) continue;
+        t = u;
         hit = 'trunk';
-      }
-      // Link against a wall stands inside its margins: they then begin just behind him, so a line
-      // into the wall is refused (the camera at its minimum distance), one along it or away is free
-      for (const w of walls) {
-        const d = Math.hypot(a.x - w.x, a.z - w.z);
-        if (d <= w.r) continue;
-        const s = span(a, ax, w, Math.min(w.r + WALL_LINE_MARGIN, d - 0.02));
-        if (!s || s[0] >= t) continue;
-        t = s[0];
-        hit = 'solid';
-      }
-      // the line may graze a wall; the camera does not stop within CAMERA_RADIUS of one
-      for (const w of walls) {
-        const d = Math.hypot(a.x - w.x, a.z - w.z);
-        if (d <= w.r) continue;
-        const s = span(a, ax, w, Math.min(w.r + CAMERA_RADIUS, d - 0.02));
-        if (!s || s[0] >= t || t >= s[1]) continue;
-        t = s[0];
-        hit = 'solid';
       }
     }
     return { t, hit };
@@ -178,6 +183,7 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
 
   return {
     ground,
+    sweep,
     lift(pivot, desired) {
       const y0 = desired.y;
       const floor = Math.max(ground(desired.x, desired.z), ground(desired.x + 0.25, desired.z), ground(desired.x - 0.25, desired.z), ground(desired.x, desired.z + 0.25), ground(desired.x, desired.z - 0.25)) + CLEARANCE;
@@ -228,29 +234,6 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
       cam.set(pivot.x + (_d.x * s) / len, pivot.y + (_d.y * s) / len, pivot.z + (_d.z * s) / len);
       return len - s;
     },
-    wallSwing(pivot, yaw) {
-      const ux = -Math.sin(yaw);
-      const uz = -Math.cos(yaw);
-      let swing = 0;
-      for (const w of walls) {
-        if (pivot.y < w.y0 || pivot.y > w.y1) continue;
-        const ax = w.x - pivot.x;
-        const az = w.z - pivot.z;
-        const d = Math.hypot(ax, az);
-        const along = ax * ux + az * uz;
-        const near = 1 - smooth(w.r + WALL_SWING_NEAR, w.r + WALL_SWING_NEAR + 0.5, d);
-        if (d <= w.r || along <= 0 || near <= 0) continue;
-        const side = ax * uz - az * ux;
-        // how far the line turns in past the tangent at Link (rad), and how far it may
-        const tip = Math.PI / 2 - Math.atan2(Math.abs(side), along);
-        const need = (tip - WALL_SWING_SHARE * Math.acos(Math.min(1, (w.r + WALL_LINE_MARGIN) / d))) * near;
-        if (need <= 0) continue;
-        // d(side)/d(yaw) = −along: turn the line further out on the side of the axis it lies on
-        const s = side > 0 ? -need : need;
-        if (Math.abs(s) > Math.abs(swing)) swing = s;
-      }
-      return swing;
-    },
-    info: () => ({ solidGrid: !!solid, slimGrid: !!slim, trunks: trunks.length, walls: walls.length, slimCylinders: slimCylinders.length }),
+    info: () => ({ solidGrid: !!solid, slimGrid: !!slim, trunks: trunks.length, slimCylinders: slimCylinders.length }),
   };
 }

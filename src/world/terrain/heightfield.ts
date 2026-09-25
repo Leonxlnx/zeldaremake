@@ -11,6 +11,8 @@ import { EXPANSION, EXPANSION_BOX, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPAN
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 import { BERM_BELOW_AXIS, bankHeight, bridgeDeckY, bridgeLocal, ravineProfile, tunnelBerm, tunnelCarve, tunnelFootprint, tunnelLocal } from './south';
+import { NORTH_STAIRS, inExpansionNorth } from '../layout';
+import { NORTH_STONES, groveShape, groveSurface, northStructure } from './north';
 
 /**
  * Round 49 (expansion-2): the heightfield has two VIEWS of the same world.
@@ -178,7 +180,9 @@ function stairFrameOf(s: StairDef): StairFrame {
 const stairFrames: StairFrame[] = LAYOUT.stairs.map(stairFrameOf);
 /** round 49: the expansion flights (layout `EXPANSION_STAIRS`) — in the live view's ramps and masks only */
 const expansionStairFrames: StairFrame[] = EXPANSION_STAIRS.map(stairFrameOf);
-const LIVE_FRAMES: StairFrame[] = [...stairFrames, ...expansionStairFrames];
+/** 2026-09-24: the grove's flight (layout `NORTH_STAIRS`) — live only, never clipped to camera C (it is 80 m north of it) */
+const northStairFrames: StairFrame[] = NORTH_STAIRS.map(stairFrameOf);
+const LIVE_FRAMES: StairFrame[] = [...stairFrames, ...expansionStairFrames, ...northStairFrames];
 const framesFor = (live: boolean) => (live ? LIVE_FRAMES : stairFrames);
 
 /**
@@ -904,6 +908,8 @@ function pathInfluence(x: number, z: number, live = false) {
     }
     surface = Math.max(surface, ap.surface);
   }
+  // 2026-09-24 (live view): the grove's trodden trail, yard paths and stepping discs (terrain/north.ts)
+  if (live && z < -78 && inExpansionNorth(x, z)) surface = Math.max(surface, groveSurface(x, z));
   // the south bank's toe (S_BANK): nothing is paved or flattened south-east of it — the plaza's
   // east lobe ends at the reference's grass edge (frame 1 s: x ≈ 0.78) and the bank rises there
   const sb = southBankFrame(x, z);
@@ -989,6 +995,25 @@ function macroHeight(x: number, z: number, live = false) {
     const R = EXPANSION.farHutRise;
     const d = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]);
     if (d < R.radius) h += R.height * (1 - smoothstep(R.top, R.radius, d)) * cClip(x, z);
+  }
+
+  // 2026-09-24 (live view only): the grove above the ledge terrace (layout `EXPANSION_NORTH`,
+  // terrain/north.ts) — the shelf levelled into the hillside and the trail's width flattened to
+  // its profile. Before the stair ramps, like the terraces, so the grove flight's trench, banks
+  // and landing rule where they meet the trail's foot. The cut / fill banks are an embankment for
+  // the detail passes (their fall line from north.ts); the breakup yields on the shelf and trail.
+  let groveBank = 0;
+  let groveFx = 0;
+  let groveFz = 0;
+  let groveFlat = 0;
+  if (live && z < -78 && inExpansionNorth(x, z)) {
+    const g = groveShape(x, z, h, fine.noise(x * 0.27, z * 0.27));
+    h = g.h;
+    padW = Math.max(padW, g.pad);
+    groveFlat = g.flat;
+    groveBank = g.bank;
+    groveFx = g.fx;
+    groveFz = g.fz;
   }
 
   // Stair ramps: keep terrain just under the steps so nothing pokes through.
@@ -1141,6 +1166,9 @@ function macroHeight(x: number, z: number, live = false) {
     }
   }
 
+  // (the grove's shelf and trail: `logW` is also the breakup's yield in rawHeight)
+  if (groveFlat > 0) logW = Math.max(logW, groveFlat);
+
   // how much authored flat surface is here (detail passes fade out on it); the south bank's toe
   // strip counts as one so the paving edge and the foot of the bank stay at plaza level
   const suppress = clamp(Math.max(p.surface, stairW, padW, logW, p.toe), 0, 1);
@@ -1160,6 +1188,10 @@ function macroHeight(x: number, z: number, live = false) {
   if (ravineBank > discBank) {
     const pr = { ...p, bankDx: ravineFx, bankDz: ravineFz };
     return { h, land, p: pr, suppress, logW, embank: Math.max(land.embank, ravineBank) * (1 - suppress), discBank: ravineBank, hwBank };
+  }
+  if (groveBank > discBank) {
+    const pg = { ...p, bankDx: groveFx, bankDz: groveFz };
+    return { h, land, p: pg, suppress, logW, embank: Math.max(land.embank, groveBank) * (1 - suppress), discBank: groveBank, hwBank };
   }
   return { h, land, p, suppress, logW, embank: Math.max(land.embank, discBank) * (1 - suppress), discBank, hwBank };
 }
@@ -1326,6 +1358,8 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
     }
     // round 56: the log's shell, the bridge's sill beams and its four end posts
     if (z > 10 && inExpansionSouth(x, z)) structure = Math.max(structure, southStructure(x, z));
+    // 2026-09-24: the grove's trunk house, the stilt house's stump and stilts, the trestle's legs, the hut's column
+    if (z < -78 && inExpansionNorth(x, z)) structure = Math.max(structure, northStructure(x, z));
   }
   return { path: p.surface, stairs, structure };
 }
@@ -1386,6 +1420,15 @@ export function expansionCull(x: number, z: number, lift = 0.3): boolean {
     if (inSouthDwelling(x, z)) return true;
     const rp = ravineProfile(x, z);
     if (rp && rp.cut > 0.04) return true;
+    const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);
+    if (dh < -0.04 || dh > lift) return true;
+  }
+  // 2026-09-24: the grove (`EXPANSION_NORTH_BOX`) — its stepping discs, its flight and built
+  // footprints, and wherever its live ground left the legacy ground (the shelf's cut and fill,
+  // the trail's cut)
+  if (z < -78 && inExpansionNorth(x, z)) {
+    for (const d of NORTH_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
+    if (northStructure(x, z) > 0.5 || surfaceMask(x, z, 'live').stairs > 0.5) return true;
     const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);
     if (dh < -0.04 || dh > lift) return true;
   }

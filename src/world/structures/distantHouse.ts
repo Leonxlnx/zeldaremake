@@ -73,10 +73,10 @@
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, PointLight, TorusGeometry, Vector2, Vector3 } from 'three';
-import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
+import type { CameraWall, TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { FoliageBuilder } from './foliage';
-import { basisMatrix, ensureColor, faceTowards, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
+import { basisMatrix, ensureColor, faceTowards, gridSurface, merge, repeatsRound, seamUV, setColorAttribute, sweepTube, TAU } from './geometry';
 import { buildLantern, type LanternRig } from './lantern';
 import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
@@ -103,6 +103,29 @@ export interface DistantHouseDef {
   radius: number;
   /** wall height floor → eave (m) */
   wall: number;
+  /** the round-topped door's width and height (m; default 0.7 × 1.35) — a hut Link walks up to takes his scale */
+  doorSize?: [number, number];
+  /**
+   * 2026-09-24 (the north grove): the rings (window tunnel, cap skirt, eave roll, platform rim)
+   * take a whole number of map repeats round and an extrapolated seam column (geometry.ts
+   * `seamUV`), so the bark and plank maps meet themselves instead of running backwards through the
+   * ring's last quad. Opt-in: the village's huts keep their uvs exactly.
+   */
+  seamlessRings?: boolean;
+  /**
+   * 2026-09-24 (the north grove): the walkway's post pods hang from brackets `POST_POD_OUTBOARD`
+   * outboard of their posts (the end post's no longer past the deck's end), clear of a walker
+   * hugging the rail — his centre 0.34 m off the walkway's line, his arms 0.19 m further. Opt-in:
+   * the far huts and the expansion's houses keep theirs.
+   */
+  postPodsOutboard?: boolean;
+  /**
+   * 2026-09-24 (the north grove): the walkway's posts, its rail and the post pods' brackets are
+   * capped round poles and a sagging rope, like the dressing's railing — a walker crossing to the
+   * next hut passes them under a metre off, where a square bar in the cap's shade reads as a black
+   * box. Opt-in: the far huts and the expansion's houses keep their bars.
+   */
+  roundWalkway?: boolean;
   /** cap rise above the eave (m) */
   capHeight: number;
   /**
@@ -119,12 +142,14 @@ export interface DistantHouseDef {
   /**
    * walkway stub: azimuth relative to the window (deg) and length (m). Round 49: `end` (world
    * x, y, z) instead lays the deck from the platform rim to exactly that point — the head of a
-   * flight — and `deg` / `length` are derived and ignored as authored. exp-south2: `none` builds
-   * no walkway at all — no deck, posts, rails, end-post pod or deck underside (the caller builds
-   * the hut's own access); the walk surface keeps the platform and the wall, its deck collapsed
-   * onto the platform's centre.
+   * flight — and `deg` / `length` are derived and ignored as authored. 2026-09-24: `from` (m from
+   * the hut's centre) starts the deck there instead of at the platform rim, the rails' inner ends
+   * standing there instead of on the wall (the grove's stilt house: a veranda runs round the hut
+   * out to that radius). exp-south2: `none` builds no walkway at all — no deck, posts, rails,
+   * end-post pod or deck underside (the caller builds the hut's own access); the walk surface keeps
+   * the platform and the wall, its deck collapsed onto the platform's centre.
    */
-  walkway: { deg: number; length: number; end?: [number, number, number]; none?: boolean };
+  walkway: { deg: number; length: number; end?: [number, number, number]; from?: number; none?: boolean };
   /** 2–3 pods: end post, eave, mid post */
   pods: number;
   /**
@@ -249,6 +274,8 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
 
 /** a published seat counts as a hut's host when its base is within this of the constants (m) */
 export const HOST_MATCH_M = 1.5;
+/** `postPodsOutboard`: the bracket's reach beyond its post (m), the pod 0.70 m off the walkway's line */
+const POST_POD_OUTBOARD = 0.28;
 /** wall clearance over the bole's radius (+ its axis drift) across the hut's height band (m) */
 export const BOLE_CLEARANCE = 0.06;
 /** the wall's radius factor at the eave (it tapers in a little) */
@@ -272,6 +299,10 @@ const WOBBLE_3 = 0.045;
 const WOBBLE_7 = 0.02;
 /** the smallest factor the taper and the wobble ever apply to the nominal radius */
 const WALL_MIN_FACTOR = WALL_TAPER * (1 - WOBBLE_3 - WOBBLE_7);
+/** the largest (at the floor, where the wall has not tapered yet) */
+export const WALL_MAX_FACTOR = 1 + WOBBLE_3 + WOBBLE_7;
+/** the bark's stand-off over the wobbled barrel (m): the cords' 1 cm, the collars' 1.5 cm */
+const WALL_RELIEF = 0.02;
 /** recess depths (m): window tunnel, door tunnel */
 const WINDOW_DEPTH = 0.3;
 const DOOR_DEPTH = 0.35;
@@ -340,6 +371,8 @@ export interface DistantHouseBuild {
   lights: PointLight[];
   /** round 49: every hut's platform, deck and wall for the character ground */
   walk: HutWalkSurface[];
+  /** every hut's wall as its exact solid, for a caller that gives the play camera it in place of the voxels */
+  cameraWalls: CameraWall[];
   /** the one emissive mesh shared by all houses */
   glow: Mesh;
   /**
@@ -416,6 +449,7 @@ const MOSS_DEEP: RGB = [0.266, 0.238, 0.052];
 const MOSS_SUN: RGB = [0.8, 0.79, 0.17];
 const PLANK: RGB = [0.42, 0.35, 0.27];
 const PLANK_DARK: RGB = [0.26, 0.21, 0.16];
+const ROPE: RGB = [0.4, 0.33, 0.23];
 const WALL: RGB = [0.66, 0.62, 0.55];
 const SOFFIT: RGB = [0.3, 0.27, 0.22];
 /**
@@ -839,6 +873,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
   const walk: HutWalkSurface[] = [];
+  const cameraWalls: CameraWall[] = [];
   let tris = 0;
   let degenerate = 0;
   const _axis = new Vector3();
@@ -855,6 +890,9 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // the hut sits on the bole's axis at floor height (plus the authored offset)
     const axisFloor = host.axisAt(floorH, _axis).clone();
     const c = new Vector3(axisFloor.x + def.offset[0], floorY, axisFloor.z + def.offset[1]);
+    /** a ring's uv u (`tile` m a repeat): whole repeats with `seamlessRings`, else angle × radius as the village's huts have it */
+    const ringU = (u: number, radius: number, tile: number) => (def.seamlessRings ? u * repeatsRound(radius, tile) : (u * TAU * radius) / tile);
+    const sealRing = (g: BufferGeometry, cols: number) => (def.seamlessRings ? seamUV(g, cols) : g);
 
     // ---- wall radius: over the hut's height band (platform underside → soffit), the bole's radius
     // plus its axis drift from the hut centre, + BOLE_CLEARANCE, at the wall's tightest factor ----
@@ -890,6 +928,15 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       return out.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
     };
     const wallAt = (dir: Vector3, y: number, out: number) => wallSurface(Math.atan2(dir.z, dir.x), y, new Vector3(), out);
+    cameraWalls.push({
+      id: def.id,
+      x: c.x,
+      z: c.z,
+      y0: floorY,
+      y1: eaveY,
+      rMax: R * WALL_MAX_FACTOR + WALL_RELIEF,
+      radiusAt: (a, y) => wallR(a) * lerp(1, WALL_TAPER, clamp((y - floorY) / def.wall, 0, 1)) + WALL_RELIEF,
+    });
 
     // ---- openings, in wall coordinates (angle a, height y) ----
     const aWin = Math.atan2(facing.z, facing.x);
@@ -897,8 +944,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const winR = R * 0.24;
     const doorDir = az(def.facingDeg + def.doorDeg);
     const aDoor = aWin + dAngle(Math.atan2(doorDir.z, doorDir.x), aWin);
-    const doorW = 0.7;
-    const doorH = 1.35;
+    const doorW = def.doorSize?.[0] ?? 0.7;
+    const doorH = def.doorSize?.[1] ?? 1.35;
     /** the arch's straight height (the semicircle sits above it) */
     const doorHs = doorH - doorW / 2;
     const inWindow = (a: number, y: number, margin: number) => Math.hypot(dAngle(a, aWin) * R, y - winY) < winR + margin;
@@ -1016,19 +1063,22 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     winLamp.y += WINDOW_LAMP_OFFSET[1] * winR;
     const winRadius = (v: number) => winR * lerp(1, WINDOW_SPLAY, v);
     const winSplaySlope = ((1 - WINDOW_SPLAY) * winR) / WINDOW_DEPTH;
-    const winTunnel = gridSurface(
-      (u, v, out) => {
-        const th = u * TAU;
-        const rr = winRadius(v);
-        wallSurface(aWin + (Math.cos(th) * rr) / R, winY + Math.sin(th) * rr, out.position, COLLAR_OUT * (1 - v)).addScaledVector(facing, -v * WINDOW_DEPTH);
-        out.uv = [(th * winR) / 1.6, (v * WINDOW_DEPTH) / 1.6];
-        // the splayed tunnel's inward normal: toward the axis, tilted out toward the mouth
-        _rad.copy(winTangent).multiplyScalar(Math.cos(th));
-        _rad.y += Math.sin(th);
-        _n.copy(_rad).multiplyScalar(-1).addScaledVector(facing, winSplaySlope).normalize();
-        out.color = revealTint(lampIrradiance(winLamp, out.position, _n), winGrain(th));
-      },
-      { cols: 20, rows: 4, closedU: true },
+    const winTunnel = sealRing(
+      gridSurface(
+        (u, v, out) => {
+          const th = u * TAU;
+          const rr = winRadius(v);
+          wallSurface(aWin + (Math.cos(th) * rr) / R, winY + Math.sin(th) * rr, out.position, COLLAR_OUT * (1 - v)).addScaledVector(facing, -v * WINDOW_DEPTH);
+          out.uv = [ringU(u, winR, 1.6), (v * WINDOW_DEPTH) / 1.6];
+          // the splayed tunnel's inward normal: toward the axis, tilted out toward the mouth
+          _rad.copy(winTangent).multiplyScalar(Math.cos(th));
+          _rad.y += Math.sin(th);
+          _n.copy(_rad).multiplyScalar(-1).addScaledVector(facing, winSplaySlope).normalize();
+          out.color = revealTint(lampIrradiance(winLamp, out.position, _n), winGrain(th));
+        },
+        { cols: 20, rows: 4, closedU: true },
+      ),
+      20,
     );
     const winBack = winC.clone().addScaledVector(facing, -WINDOW_DEPTH);
     const winBackDisc = facingDisc(winBack, facing, winRadius(1) + 0.01, REVEAL_DARK, 16);
@@ -1293,18 +1343,21 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     );
     // the bark skirt under the lobed edge: from the eave soffit's edge down and round the curl to
     // the moss edge's lowest reach, 2 cm inside the sheet (the huts' bark, merged into `barkGeo`)
-    const capSkirt = gridSurface(
-      (u, v, out) => {
-        const a = u * TAU;
-        const vm = v * 0.17;
-        capPoint(a, vm, out.position);
-        out.position.addScaledVector(_cq.set(out.position.x - c.x, 0, out.position.z - c.z).normalize(), -0.02);
-        out.uv = [(a * eaveR) / 1.6, vm * 2];
-        const cord = 0.8 + 0.3 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2)) * (0.5 + 0.5 * Math.sin(41 * a - capPhase));
-        const d = lerp(0.9, 1.15, v) * cord;
-        out.color = [SOFFIT[0] * d, SOFFIT[1] * d, SOFFIT[2] * d];
-      },
-      { cols: 28, rows: 3, closedU: true },
+    const capSkirt = sealRing(
+      gridSurface(
+        (u, v, out) => {
+          const a = u * TAU;
+          const vm = v * 0.17;
+          capPoint(a, vm, out.position);
+          out.position.addScaledVector(_cq.set(out.position.x - c.x, 0, out.position.z - c.z).normalize(), -0.02);
+          out.uv = [ringU(u, eaveR, 1.6), vm * 2];
+          const cord = 0.8 + 0.3 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2)) * (0.5 + 0.5 * Math.sin(41 * a - capPhase));
+          const d = lerp(0.9, 1.15, v) * cord;
+          out.color = [SOFFIT[0] * d, SOFFIT[1] * d, SOFFIT[2] * d];
+        },
+        { cols: 28, rows: 3, closedU: true },
+      ),
+      28,
     );
     // cushion lumps on the sheet: 10–18 cm, area-uniform over the dome, none on the under-curl
     const tuftRng = r.fork('moss-tufts');
@@ -1391,19 +1444,23 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       plankParts.push(bar(wallSurface(aWin - w, ledgeY, new Vector3(), 0.07), wallSurface(aWin + w, ledgeY, new Vector3(), 0.07), 0.12, [trim[0] * 1.1, trim[1] * 1.08, trim[2] * 1.05], 0.05));
       // the eave roll: a bark lip under the moss edge, following the cap rim's own wave
       const tube = def.dressing ? 0.095 : 0.07;
-      const roll = gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          const ang = v * TAU;
-          const rr = eaveR * capRim(a) - 0.055 + Math.cos(ang) * tube;
-          const y = eaveY - 0.16 + Math.sin(ang) * tube * 0.8;
-          out.position.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
-          out.uv = [(a * eaveR) / 1.2, v * 0.5];
-          const cord = 0.82 + 0.28 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2));
-          const lit = lerp(0.75, 1.15, 0.5 + 0.5 * Math.sin(ang));
-          out.color = [SOFFIT[0] * cord * lit * 1.3, SOFFIT[1] * cord * lit * 1.25, SOFFIT[2] * cord * lit * 1.2];
-        },
-        { cols: Math.max(32, steps), rows: 6, closedU: true },
+      const rollCols = Math.max(32, steps);
+      const roll = sealRing(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            const ang = v * TAU;
+            const rr = eaveR * capRim(a) - 0.055 + Math.cos(ang) * tube;
+            const y = eaveY - 0.16 + Math.sin(ang) * tube * 0.8;
+            out.position.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
+            out.uv = [ringU(u, eaveR, 1.2), v * 0.5];
+            const cord = 0.82 + 0.28 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2));
+            const lit = lerp(0.75, 1.15, 0.5 + 0.5 * Math.sin(ang));
+            out.color = [SOFFIT[0] * cord * lit * 1.3, SOFFIT[1] * cord * lit * 1.25, SOFFIT[2] * cord * lit * 1.2];
+          },
+          { cols: rollCols, rows: 6, closedU: true },
+        ),
+        rollCols,
       );
       // normals out from the tube's core circle
       faceTowards(roll, (p, o) => {
@@ -1422,14 +1479,17 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     plankParts.push(ring(c, 0.02, platR, floorY + 0.01, true, () => PLANK, 24, 3));
     plankParts.push(ring(c, 0.02, platR, floorY - 0.22, false, () => PLANK, 24, 3));
     plankParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          out.position.set(c.x + Math.cos(a) * platR, lerp(floorY - 0.22, floorY + 0.01, v), c.z + Math.sin(a) * platR);
-          out.uv = [(a * platR) / 1.6, v * 0.2];
-          out.color = PLANK;
-        },
-        { cols: 24, rows: 2, closedU: true },
+      sealRing(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            out.position.set(c.x + Math.cos(a) * platR, lerp(floorY - 0.22, floorY + 0.01, v), c.z + Math.sin(a) * platR);
+            out.uv = [ringU(u, platR, 1.6), v * 0.2];
+            out.color = PLANK;
+          },
+          { cols: 24, rows: 2, closedU: true },
+        ),
+        24,
       ),
     );
 
@@ -1438,9 +1498,10 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const wEnd = def.walkway.end ? new Vector3(def.walkway.end[0], def.walkway.end[1], def.walkway.end[2]) : null;
     const wDir = wEnd ? new Vector3(wEnd.x - c.x, 0, wEnd.z - c.z).normalize() : az(def.facingDeg + def.walkway.deg);
     const wSide = new Vector3(-wDir.z, 0, wDir.x);
-    const L = wEnd ? Math.hypot(wEnd.x - c.x, wEnd.z - c.z) - platR : def.walkway.length;
-    const deckStart = c.clone().addScaledVector(wDir, platR - 0.15).setY(floorY - 0.06);
-    const deckEnd = wEnd ? wEnd.clone().setY(wEnd.y - 0.06) : c.clone().addScaledVector(wDir, platR + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
+    const wRim = def.walkway.from ?? platR;
+    const L = wEnd ? Math.hypot(wEnd.x - c.x, wEnd.z - c.z) - wRim : def.walkway.length;
+    const deckStart = c.clone().addScaledVector(wDir, wRim - 0.15).setY(floorY - 0.06);
+    const deckEnd = wEnd ? wEnd.clone().setY(wEnd.y - 0.06) : c.clone().addScaledVector(wDir, wRim + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
     const noWalkway = def.walkway.none === true;
     walk.push({
       id: def.id,
@@ -1458,14 +1519,14 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         for (const side of [-1, 1]) {
           const base = foot.clone().addScaledVector(wSide, side * 0.42);
           const top = base.clone().setY(base.y + 1.05);
-          plankParts.push(bar(base, top, 0.09, PLANK_DARK));
+          plankParts.push(def.roundWalkway ? rod(base, top, 0.045, scaleRGB(PLANK_DARK, 1.1), 7, 0.042, false) : bar(base, top, 0.09, PLANK_DARK));
           postTops[side < 0 ? 0 : 1].push(top);
         }
       }
       for (const side of [0, 1]) {
         const wallAnchor = c
           .clone()
-          .addScaledVector(wDir, R - 0.05)
+          .addScaledVector(wDir, def.walkway.from ?? R - 0.05)
           .addScaledVector(wSide, (side === 0 ? -1 : 1) * 0.42)
           .setY(floorY + 1.0);
         const pts = [wallAnchor, ...postTops[side]];
@@ -1474,8 +1535,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           const b = pts[i + 1];
           const mid = a.clone().lerp(b, 0.5);
           mid.y -= 0.09;
-          plankParts.push(bar(a, mid, 0.035, PLANK_DARK));
-          plankParts.push(bar(mid, b, 0.035, PLANK_DARK));
+          if (def.roundWalkway) plankParts.push(rod(a, mid, 0.014, ROPE, 5, 0.014, false), rod(mid, b, 0.014, ROPE, 5, 0.014, false));
+          else plankParts.push(bar(a, mid, 0.035, PLANK_DARK), bar(mid, b, 0.035, PLANK_DARK));
         }
       }
     }
@@ -1495,7 +1556,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const podR = R * 0.15;
     const pods: Vector3[] = [];
     const hang = (from: Vector3, drop: number, color: RGB, bracketFrom?: Vector3) => {
-      if (bracketFrom) plankParts.push(bar(bracketFrom, from, 0.045, PLANK_DARK));
+      if (bracketFrom) plankParts.push(def.roundWalkway ? rod(bracketFrom, from, 0.022, scaleRGB(PLANK_DARK, 1.1), 6, 0.019, false) : bar(bracketFrom, from, 0.045, PLANK_DARK));
       if (def.dressing) {
         // round 55: a hut the player walks up to hangs the crafted near lantern (own fork per pod)
         const rig = buildLantern(from, drop, mats, r.fork(`lantern55/${pods.length}`), 1.1, color === GLOW_LIME ? 'lime' : 'orange');
@@ -1515,7 +1576,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // 2 podR, so a round-16 drop would have set its tip on the deck
     if (!noWalkway) {
       const endPostTop = postTops[1][1];
-      const endHook = endPostTop.clone().addScaledVector(wDir, 0.12).setY(endPostTop.y + 0.02);
+      const endHook = (def.postPodsOutboard ? endPostTop.clone().addScaledVector(wSide, POST_POD_OUTBOARD) : endPostTop.clone().addScaledVector(wDir, 0.12)).setY(endPostTop.y + 0.02);
       hang(endHook, 0.22, GLOW_AMBER, endPostTop.clone().setY(endPostTop.y + 0.02));
     }
     if (def.pods >= 2) {
@@ -1525,7 +1586,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     }
     if (def.pods >= 3 && !noWalkway) {
       const midPostTop = postTops[0][0];
-      const midHook = midPostTop.clone().addScaledVector(wSide, -0.12).setY(midPostTop.y + 0.02);
+      const midHook = midPostTop.clone().addScaledVector(wSide, def.postPodsOutboard ? -POST_POD_OUTBOARD : -0.12).setY(midPostTop.y + 0.02);
       hang(midHook, 0.2, GLOW_AMBER, midPostTop.clone().setY(midPostTop.y + 0.02));
     }
 
@@ -1743,7 +1804,6 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         return Math.hypot(p.x - _axis.x, p.z - _axis.z) - br;
       };
       const tone = (base: RGB, lo: number, hi: number): RGB => scaleRGB(base, ch.range(lo, hi));
-      const ROPE: RGB = [0.4, 0.33, 0.23];
 
       if (C.ladder) {
         // ---- the ROPE LADDER: two side ropes tied round the rim beam, a round rung every 0.3 m,
@@ -2267,6 +2327,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     lanterns,
     lights,
     walk,
+    cameraWalls,
     glow,
     soffit,
     triangles: tris,

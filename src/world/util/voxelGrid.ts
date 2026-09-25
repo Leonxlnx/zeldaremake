@@ -1,9 +1,9 @@
 /**
  * A world-aligned occupancy bitset built from triangle soups and spheres: every cell a surface
- * passes through is set, then the set is grown by whole cells (`dilate`). The play camera sweeps
- * its line of sight through two of these (camera/collision.ts): the structures' solid shells,
- * which it keeps Link in front of, and their slim parts (posts, pods, the plaza bough), which it
- * only refuses to stand inside.
+ * passes through is set, then the set is grown by whole cells (`dilate`), optionally keeping the
+ * set as written (`core`). The play camera sweeps its line of sight through two of these
+ * (camera/collision.ts): the structures' solid shells, which it keeps Link in front of, and their
+ * slim parts (posts, pods, the plaza bough), which it only refuses to stand inside.
  */
 import { Box3, type BufferGeometry, Matrix4, Vector3 } from 'three';
 
@@ -20,6 +20,8 @@ export class VoxelGrid {
   readonly nz: number;
   readonly cell: number;
   bits: Uint32Array;
+  /** the set as written, before `dilate(n, true)` grew it — the cells a surface itself passes through */
+  core: Uint32Array | null = null;
   /** surface triangles and spheres written (audit) */
   triangles = 0;
   spheres = 0;
@@ -53,6 +55,16 @@ export class VoxelGrid {
 
   hasPoint(x: number, y: number, z: number): boolean {
     return this.has(Math.floor((x - this.x0) / this.cell), Math.floor((y - this.y0) / this.cell), Math.floor((z - this.z0) / this.cell));
+  }
+
+  /** whether (x, y, z) is in a cell of the undilated set (the grown set when no core was kept) */
+  hasCorePoint(x: number, y: number, z: number): boolean {
+    const ix = Math.floor((x - this.x0) / this.cell);
+    const iy = Math.floor((y - this.y0) / this.cell);
+    const iz = Math.floor((z - this.z0) / this.cell);
+    if (ix < 0 || iy < 0 || iz < 0 || ix >= this.nx || iy >= this.ny || iz >= this.nz) return false;
+    const i = this.index(ix, iy, iz);
+    return ((this.core ?? this.bits)[i >>> 5] & (1 << (i & 31))) !== 0;
   }
 
   private mark(x: number, y: number, z: number): void {
@@ -113,8 +125,9 @@ export class VoxelGrid {
     this.spheres++;
   }
 
-  /** grow the set by `n` cells along each axis (a separable box dilation: a cube of 2n + 1 cells) */
-  dilate(n = 1): void {
+  /** grow the set by `n` cells along each axis (a separable box dilation: a cube of 2n + 1 cells); `keepCore` keeps the set as written in `core` */
+  dilate(n = 1, keepCore = false): void {
+    if (keepCore) this.core = this.bits.slice();
     const { nx, ny, nz } = this;
     for (let axis = 0; axis < 3; axis++) {
       const src = this.bits.slice();
@@ -153,7 +166,7 @@ export class VoxelGrid {
   }
 
   bytes(): number {
-    return this.bits.byteLength;
+    return this.bits.byteLength + (this.core?.byteLength ?? 0);
   }
 }
 

@@ -108,23 +108,51 @@ export interface SharedGeometry {
    */
   walkSpans?: WalkSpan[];
   /**
+   * 2026-09-24 (expansion-north): railings and unguarded deck edges — the grove's gangway, veranda,
+   * rope walk and hut platforms — published by structures for the character ground
+   * (character/ground.ts `blocked()`; nothing else reads them).
+   */
+  walkEdges?: WalkEdge[];
+  /**
+   * 2026-09-24 (expansion-north): ground footprints of built things the vegetation keeps off that
+   * `propFootprints` (the props system's own, assigned after structures) does not carry — the
+   * grove's pots, baskets, woodpiles, ladder feet, posts and sign — published by structures.
+   */
+  builtFootprints?: { x: number; z: number; r: number }[];
+  /**
    * The play camera's collision grids over the structures (structures/cameraSolids.ts; never built
    * under a headless capture): `solid` shells it keeps Link in front of, `slim` parts it only
-   * refuses to stand inside.
+   * refuses to stand inside; `walls`, round walls it tests exactly instead of voxelised.
    */
-  cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null };
-  /**
-   * exp-south2: solid walls the play camera sweeps as exact vertical cylinders (base centre, wall
-   * radius, height span — world), not as grown cells: the bridge keeper's hut, whose cells reached
-   * over the gallery Link walks round it. Their parts carry `cameraShell.exact` (cameraSolids.ts).
-   */
-  cameraCylinders?: { x: number; z: number; r: number; y0: number; y1: number }[];
+  cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null; walls?: CameraWall[] };
   /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
   slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
 }
 
+/**
+ * A round wall as a solid for the play camera (camera/collision.ts): centre, floor and eave heights,
+ * the radius at angle `a` (rad, from +x toward +z) and height `y`, and the largest radius anywhere.
+ * A walk round a barrel runs the line of sight along it inside the voxels' ±0.18 m surface cells.
+ */
+export interface CameraWall {
+  id: string;
+  x: number;
+  z: number;
+  y0: number;
+  y1: number;
+  rMax: number;
+  radiusAt(a: number, y: number): number;
+}
+
 /** a walkable polyline: (x, top y, z) along its centre line, walkable within `hw` m of it */
 export interface WalkSpan {
+  id: string;
+  pts: [number, number, number][];
+  hw: number;
+}
+
+/** a railing or deck edge: (x, top y, z) along it; the character is blocked within `hw` m of the line at any height */
+export interface WalkEdge {
   id: string;
   pts: [number, number, number][];
   hw: number;

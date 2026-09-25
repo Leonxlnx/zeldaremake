@@ -93,7 +93,15 @@ export function createUnderstoryTree(p: UnderstoryParams, palette: Palette, deta
   }
 
   // ---------- the crown: laminae on an ellipsoid shell with an inner fill ----------
-  const leafOpts = { widthRatio: 0.62, wideFirst: 0.55, wideSecond: 0.3, stiffness: 0.35, flutter: 0.05 };
+  // Round 54 (fable-4, squad2's lodcheck): the medium LOD keeps EVERY lamina at its size. On the
+  // writer's default (one in 4 at 1.8 ×) these crowns were the owner's "trees only get detailed when
+  // I come up close" at his north and west poses — 64–74 % of the pixels that differ between the
+  // shipped rungs and every tree forced high are understory stems at 28–44 m, whose leaves
+  // quadrupled and shrank at the 28 m rung. Every leaf at medium reads as the high LOD (same size,
+  // count and tone; the swap is the wood's sides only) for +34 K / +20 K triangles at those poses,
+  // where the rung at 40.6 m costs +163 K / +495 K. The low LOD keeps the default 1 in 8 at 2.6 ×
+  // past 44 m (art/environment/round54-understory-medium).
+  const leafOpts = { widthRatio: 0.62, wideFirst: 0.55, wideSecond: 0.3, stiffness: 0.35, flutter: 0.05, mediumEvery: 1, mediumScale: 1 };
   // Round 53 follow-up (a walker passes these at 2–4 m): twice the laminae at two thirds the size —
   // the same covered area (count × size² ≈ 0.95 of before), leaves that read as leaves instead of
   // 0.45 m cards at arm's length. Distance LODs keep their coverage through addLeaf's retention.
