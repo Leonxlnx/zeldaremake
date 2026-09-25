@@ -125,6 +125,19 @@ export interface SharedGeometry {
    * refuses to stand inside; `walls`, round walls it tests exactly instead of voxelised.
    */
   cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null; walls?: CameraWall[] };
+  /**
+   * Round 57 (expansion-ruins): further solid shells for the play camera, each in a grid of its own
+   * bounds — the waterfall ruins' cliff, ivy rock, walls and arch (ruins/cameraSolid.ts). The
+   * camera treats them as it treats `cameraSolids.solid`; never built under a headless capture.
+   */
+  cameraSolidGrids?: VoxelGrid[];
+  /**
+   * Round 57 (expansion-ruins): where growth can root in the ruins' paving as laid (x, z, kind):
+   * 0 in a joint or a crack running along z, 2 in a joint running along x, 1 in a lost slab's bed
+   * (clear of the broken pieces in it). Published by the ruins system for the vegetation, which
+   * roots the terrace's tufts and joint moss there instead of on a slab's face.
+   */
+  pavingSeats?: [number, number, number][];
   /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
   slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
 }

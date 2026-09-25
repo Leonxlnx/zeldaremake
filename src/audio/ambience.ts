@@ -25,6 +25,8 @@
  *   - the pod lanterns are a FLAME, not a hum: low-passed pink noise fluttering irregularly with
  *     one soft husk resonance under it, at the NEAREST pod's distance (the rest only add a fifth
  *     each), so walking through the village no longer walks through a tone.
+ *   - the ruins' WATERFALL: the one continuous noise the forest is allowed, and only near it — a
+ *     roar placed at the nearest plunge that is silent from `FALL_AUDIBLE_M` on.
  */
 import { adEnvelope, cleanupAt, controlNoiseBuffer, controlSource, filter, gain, pinkNoiseBuffer, type Rng } from './graph';
 
@@ -59,6 +61,8 @@ export interface AmbienceState {
   windDir?: { x: number; z: number };
   /** 0 well back from the ravine, 1 out over it (index.ts `gorgeAt`) */
   gorge?: number;
+  /** waterfall plunge points (world; index.ts gathers the `waterfall-plunge` markers) */
+  falls?: readonly Vec3[];
 }
 
 export interface Ambience {
@@ -91,6 +95,8 @@ export interface AmbienceStats {
   birdSpots: [BirdKind, number, number][];
   /** how much wood stood between him and the last bird that called, 0 … 1 */
   birdShadow: number;
+  /** the nearest waterfall's attenuation at the listener: 1 at its plunge, 0 out of earshot */
+  fall: number;
 }
 /** how many calls back `birdSpots` remembers */
 export const BIRD_SPOT_MEMORY = 24;
@@ -134,6 +140,8 @@ export const PERCH_FAR_M = 28;
 export const PINK_SECONDS = 19;
 export const LEAF_RATE = 0.84;
 export const FLAME_RATE = 0.71;
+/** the waterfall's tap (the ruins' fall): ≥ 1.9 % off every simple ratio to 1, LEAF_RATE and FLAME_RATE */
+export const FALL_RATE = 1.37;
 /** how far the taps' rate wanders, and how slowly — enough to smear the loop, far too little to hear */
 export const PINK_DRIFT = 0.02;
 export const PINK_DRIFT_HZ = 0.03;
@@ -210,6 +218,23 @@ export const FAIRY_LEVEL = 0.014;
 export const FAIRY_GAP: [number, number] = [1.4, 4];
 /** past this she is not heard at all (the inverse-square reach alone runs on to eleven metres) */
 export const FAIRY_AUDIBLE_M = FAIRY_REACH_M * Math.sqrt(1 / 0.25 - 1);
+/**
+ * A waterfall (the ruins' fall, 2026-09-24). A fall is noise by nature and the owner's standing
+ * complaint is noise that never stops, so it is kept to where it is: half level `FALL_REACH_M` from
+ * the plunge, faded to exactly nothing by `FALL_AUDIBLE_M` — the trail hears it come up over the
+ * outcrop, the village never does. The air takes the spray's hiss first (the far roar is low) and
+ * the further off it is the more of it arrives through the hall.
+ */
+export const FALL_REACH_M = 7;
+export const FALL_LEVEL = 0.06;
+export const FALL_AUDIBLE_M = 42;
+const FALL_NEAR_HZ = 9000;
+const FALL_FAR_HZ = 650;
+/** the fall's attenuation `d` m from its plunge: 1 at it, inverse-square, 0 from FALL_AUDIBLE_M on */
+export function fallAttenuation(d: number): number {
+  const t = Math.max(0, Math.min(1, (d - FALL_AUDIBLE_M * 0.7) / (FALL_AUDIBLE_M * 0.3)));
+  return (1 - t * t * (3 - 2 * t)) / (1 + (d / FALL_REACH_M) ** 2);
+}
 /** the bed's top in the open, and with the log tunnel's wood closed over the listener */
 export const ENCLOSURE_OPEN_HZ = 18000;
 export const ENCLOSURE_CLOSED_HZ = 900;
@@ -475,9 +500,37 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   flameSrc.connect(husk).connect(huskGain).connect(flameGain);
   rides(husk.frequency, 0.35, 1, 14, 'husk');
 
+  // ---- waterfall: the plunge's roar and the sheet's wash, placed and coloured by distance -------
+  // the fourth tap of the buffer: its own rate and wander, like the other three (PINK_SECONDS)
+  const fallSrc = ctx.createBufferSource();
+  fallSrc.buffer = pink;
+  fallSrc.loop = true;
+  fallSrc.playbackRate.value = FALL_RATE;
+  fallSrc.start(startAt, pink.duration * 0.5);
+  nodes.push(fallSrc);
+  drift(fallSrc, 'falldrift');
+  const fallGain = gain(ctx, 0);
+  const fallAir = filter(ctx, 'lowpass', FALL_NEAR_HZ, 0.6);
+  const fallPan = ctx.createStereoPanner();
+  fallGain.connect(fallAir).connect(fallPan).connect(out);
+  const fallSend = gain(ctx, 0.25);
+  fallAir.connect(fallSend).connect(reverbSend);
+  const roarHp = filter(ctx, 'highpass', 48, 0.6);
+  const roarLp = filter(ctx, 'lowpass', 420, 0.5);
+  const roar = gain(ctx, 1);
+  fallSrc.connect(roarHp).connect(roarLp).connect(roar).connect(fallGain);
+  const washHp = filter(ctx, 'highpass', 700, 0.5);
+  const washLp = filter(ctx, 'lowpass', 3600, 0.5);
+  const wash = gain(ctx, 0.45);
+  fallSrc.connect(washHp).connect(washLp).connect(wash).connect(fallGain);
+  // falling water never holds still: slow irregular surges in its weight, a faster churn in the wash
+  rides(roar.gain, 0.22, 1.3, 0.22, 'fall-surge');
+  rides(wash.gain, 0.9, 1.2, 0.12, 'fall-churn');
+  rides(washLp.frequency, 0.6, 1, 700, 'fall-colour');
+
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
-  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0 };
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0, fall: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
   /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
@@ -868,6 +921,36 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
     flamePan.pan.setTargetAtTime(pan, t, PLACE_TAU);
+    // the waterfall: the nearest plunge sets the level and the bearing, its distance the air
+    let fa = 0;
+    let fd = 0;
+    let fx = 0;
+    let fz = 0;
+    for (const f of s.falls ?? []) {
+      const dx = f.x - s.listener.x;
+      const dy = f.y - s.listener.y;
+      const dz = f.z - s.listener.z;
+      const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      const a = fallAttenuation(d);
+      if (a > fa) {
+        fa = a;
+        fd = d;
+        fx = dx;
+        fz = dz;
+      }
+    }
+    counts.fall = fa;
+    fallGain.gain.setTargetAtTime(fa * FALL_LEVEL, t, PLACE_TAU);
+    if (fa > 0) {
+      const near = 1 - Math.max(0, Math.min(1, (fd - 4) / 30));
+      fallAir.frequency.setTargetAtTime(FALL_FAR_HZ * Math.pow(FALL_NEAR_HZ / FALL_FAR_HZ, near), t, PLACE_TAU);
+      fallSend.gain.setTargetAtTime(0.2 + 0.5 * (1 - near), t, PLACE_TAU);
+      // close in, a sheet three metres wide fills more of the field than a point: the pan narrows
+      const rx = -s.forward.z;
+      const rz = s.forward.x;
+      const len = Math.hypot(fx, fz) || 1;
+      fallPan.pan.setTargetAtTime(Math.max(-1, Math.min(1, ((fx * rx + fz * rz) / len) * (0.85 - 0.35 * near))), t, PLACE_TAU);
+    }
     // the nearest fairy: a glint every second or three while one is within a couple of metres
     if (t >= nextGlint && s.fairies?.length) {
       let best = 0;

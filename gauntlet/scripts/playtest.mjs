@@ -142,6 +142,29 @@ const eastFrames = () => {
     stepD: (D.stepInner + D.stepOuter) / 2,
   };
 };
+ * layout.ts EXPANSION_RUINS (round 57): the trail's nodes from the west house's discs to the
+ * outcrop, the stair (base, run west), the arch, the terrace block (its open edges held
+ * `edge` m out, terrain/ruins.ts TERRACE_EDGE_M) and the lantern posts
+ */
+const RUINS = {
+  trail: [[-13.7, 8.3], [-13.75, 6.6], [-14.0, 4.9], [-14.9, 3.4], [-17.0, 2.55], [-19.6, 2.6], [-23.0, 2.6], [-26.4, 2.3], [-29.8, 1.6], [-33.4, 0.6], [-37.2, -0.5], [-41.0, -1.6], [-44.8, -2.6], [-48.4, -3.5], [-51.4, -4.1], [-54.2, -4.3], [-57.0, -4.3]],
+  stair: { base: [-61.0, -4.2], run: 3.2 },
+  arch: [-64.75, -4.2],
+  offering: [-63.72, -6.28],
+  terrace: { x0: -74.9, x1: -61.0, z0: -9.8, z1: -1.85, y: 4.5, notchZ: -7.0, notchX: -63.0, edge: 0.45 },
+  posts: [[-45.6, -1.14], [-49.74, -5.32], [-55.1, -2.62]],
+  // the water stair (layout EXPANSION_RUINS.waterStair / quay): the flight's foot (x), line (z), tread,
+  // rise and steps up to the landing; the quay's level and south edge, the platform's east end and south
+  // edge, the landing's east face, the crossing's middle (x) through the parapet's break
+  waterStair: { foot: -69.2, z: -0.9, tread: 0.35, rise: 0.2028, steps: 18, quay: 0.85, z1: -0.3, fallX: -71.5, fallZ: 0.0, east: -61.3, crossX: -61.9 },
+};
+/** the water stair's round trip (the strip is 0.83 m walkable: the turns get their own waypoints) */
+function waterStairRoute() {
+  const W = RUINS.waterStair;
+  const x = W.crossX;
+  const down = [[-63.6, -2.65], [x, -2.65], [x, -1.9], [x, -0.8], [-62.9, W.z], [-66.2, W.z], [W.foot - 1.3, W.z], [-72.6, -0.8], [-73.3, -0.7]];
+  return [...down, [W.foot - 1.3, W.z], [-66.2, W.z], [-62.9, W.z], [x, -1.3], [x, -2.0], [x, -2.65], [-63.6, -2.65]];
+}
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
   const dx = f.dir[0] / l;
@@ -648,8 +671,8 @@ async function climbScenario(page, results) {
   }
 }
 
-/** steer Link through waypoints with the movement keys (camera-relative, as a player would) */
-async function walkRoute(page, name, points, maxFrames = 900) {
+/** steer Link through waypoints with the movement keys (camera-relative, as a player would); `opts.cams` keeps every frame's camera position */
+async function walkRoute(page, name, points, maxFrames = 900, opts = {}) {
   const keysDown = new Set();
   const setKeys = async (want) => {
     for (const k of [...keysDown]) if (!want.has(k)) (await page.keyboard.up(k), keysDown.delete(k));
@@ -746,6 +769,7 @@ async function walkRoute(page, name, points, maxFrames = 900) {
     minCameraAboveGroundM: fixed(minCam),
     feet: feetStats(rows),
     trace: trace.filter((_, i) => i % 4 === 0),
+    ...(opts.cams ? { cams: rows.map((r) => [...r.cam.map((v) => fixed(v, 3)), ...r.link.map((v) => fixed(v, 3))]) } : {}),
   };
 }
 
@@ -792,13 +816,26 @@ async function walkScenario(page, results) {
     // the yard, up the gangway onto the stilt house's veranda, round it the south way (past the
     // decorative ladder's gap) to the walkway, over the rope walk onto the tree hut's walkway deck
     ['north-grove', [[3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6), gf.at(-0.9), gf.at(gf.run * 0.5), gf.at(gf.run + 0.6), ...GROVE.trail.slice(1), GROVE.house.door, [2.0, -97.2], [4.9, -95.4], gv.gangway(-0.1), gv.gangway(0.5), gv.gangway(1), gv.stilt(GROVE.stilt.walkR + 0.05, -165), gv.stilt(GROVE.stilt.walkR + 0.05, 160), gv.stilt(GROVE.stilt.walkR + 0.05, 120), gv.stilt(GROVE.stilt.walkR + 0.05, 80), gv.stilt(2.65, GROVE.stilt.walkDeg), gv.rope(0), gv.rope(0.5), gv.rope(1), gv.hut(1.8, gv.hutWalkDeg)], 3600],
+    // round 57 (expansion-ruins): out of the plaza past the west house, the trail west between the
+    // lantern posts to the outcrop through the gate boulders, up the worn stair, through the arch,
+    // onto the terrace toward the broken arch
+    ['plaza-to-ruins-terrace', [[0, 4], [-6, 8], [-12.5, 8.5], ...RUINS.trail, [-59.6, -4.2], [-60.7, -4.2], [-62.6, -4.2], [-64.3, -4.2], RUINS.arch, [-67.5, -4.6], [-70.5, -5.6]], 3000, { cams: true }],
+    // the pool's shore: off the trail east of the south gate boulder, down the east shore and 0.8 m
+    // out into the east shallows (the ground 0.38 m under the water; he is held 0.3 m further on), back
+    // up the bank, round the south bank to the middle of the south shore, down to the water's edge (the
+    // waypoint lies in its 0.25 m paddle, so the 0.5 m arrival leaves him on the bank's foot)
+    ['ruins-trail-to-shore', [RUINS.trail[14], [-50.6, -1.2], [-51.6, 1.8], [-52.8, 3.35], [-55.9, 4.55], [-54.2, 5.0], [-53.5, 7.5], [-57.5, 10.0], [-62.0, 10.3], [-64.9, 9.3], [-64.9, 8.35]], 2600, { cams: true }],
+    // the water stair and back: from the paving's strip south of the outcrop stair's cut over the wall
+    // top through the parapet's break, onto the landing, down the flight along the wall's pool face,
+    // west along the quay onto the platform at the fall's foot; then back up the same way
+    ['ruins-water-stair', waterStairRoute(), 2600, { cams: true }],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
-  for (const [name, pts, maxFrames] of routes) {
+  for (const [name, pts, maxFrames, opts] of routes) {
     if (pickRoutes && !pickRoutes.has(name)) continue;
     log(`walk: ${name}`);
-    results.walk.push(await walkRoute(page, name, pts, maxFrames));
+    results.walk.push(await walkRoute(page, name, pts, maxFrames, opts));
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
   if (!pickRoutes || pickRoutes.has('south-bridge-to-log')) {
@@ -866,6 +903,11 @@ async function eastProbes(page) {
     return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ok };
   });
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
+  if (!pickRoutes || ['plaza-to-ruins-terrace', 'ruins-trail-to-shore', 'ruins-water-stair'].some((r) => pickRoutes.has(r))) {
+    results.ruinsProbes = await ruinsProbes(page);
+    results.ruinsCamera = await ruinsCamera(page);
+    fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  }
 }
 
 /**
@@ -907,6 +949,154 @@ async function northProbes(page) {
     return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, want: p.y !== undefined ? +p.y.toFixed(3) : undefined, ok };
   });
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
+}
+
+/**
+ * Round 57: the waterfall ruins hold Link where they should — the trail, the outcrop, the flight,
+ * the arch's passage and the paving walk (the paving at its height); the pool past its paddle, the
+ * wall and parapet, the terrace's open edges (a step inside each walks, a step off it does not),
+ * the cliff, the ivy rock, the gate boulders, the columns and piers, the plunge and the lantern
+ * posts block; the water stair walks at its heights (the crossing, the landing, the treads, the quay,
+ * the platform) and holds him off its open edges, past the landing's end and on the wall beside it.
+ */
+async function ruinsProbes(page) {
+  const T = RUINS.terrace;
+  const probes = [];
+  const P = (where, at, expect, y = null) => probes.push({ where, at, expect, y });
+  for (const i of [6, 10, 12, 14]) P('trail', RUINS.trail[i], 'walk');
+  P('trail-by-lantern', [-45.21, -2.7], 'walk');
+  P('trail-by-lantern', [-50.05, -3.87], 'walk');
+  for (const at of [[-57.0, -4.3], [-58.5, -6.5], [-56.5, -3.0], [-52.8, 3.35]]) P('outcrop-and-shore', at, 'walk');
+  P('stair-mouth', [RUINS.stair.base[0] + 0.3, RUINS.stair.base[1]], 'walk');
+  P('stair', [RUINS.stair.base[0] - 1.4, RUINS.stair.base[1]], 'walk');
+  P('arch-passage', RUINS.arch, 'walk', T.y);
+  for (const at of [[-67.5, -4.6], [-72.0, -3.2], [-68.0, -8.4], [-62.2, -5.7], [-62.0, -2.65]]) P('paving', at, 'walk', T.y);
+  // the ivy rock's lobe stands over the paving by the notch at head height: it holds him there
+  for (const at of [[-62.0, -6.75], [-63.25, -8.5]]) P('ivy-rock-over-paving', at, 'blocked');
+  // the open edges: 0.25 m inside walks at the paving's height, 0.15 m and 0.35 m outside is held
+  const edges = [
+    ['east-front-north', [T.x1 - 0.25, -5.65], [1, 0]],
+    ['east-front-south', [T.x1 - 0.25, -2.65], [1, 0]],
+    // the notch's east face is the ivy rock's foot (0.3 m onto the paving at z −9.5): he is held off
+    // its stone at x −64.1, where the follow camera still has room between him and the rock
+    ['ivy-rock-west-face', [-64.35, -9.5], [1, 0]],
+    ['north-face', [-68.0, T.z0 + 0.25], [0, -1]],
+    ['north-face', [-72.8, T.z0 + 0.25], [0, -1]],
+  ];
+  for (const [id, [x, z], [dx, dz]] of edges) {
+    P(`edge-inside:${id}`, [x, z], 'walk', T.y);
+    for (const o of [0.4, 0.6]) P(`edge-off:${id}`, [x + dx * o, z + dz * o], 'blocked');
+  }
+  for (const at of [[-64.9, 3.35], [-70.0, 3.0], [-60.0, 4.0], [-64.9, 7.0]]) P('pool-deep', at, 'blocked');
+  for (const at of [[-66.0, -1.85], [-70.0, -1.85]]) P('wall', at, 'blocked');
+  P('parapet', [-58.0, -1.72], 'blocked');
+  for (const at of [[-75.2, -5.0], [-76.0, 0.0], [-75.6, 6.0]]) P('cliff', at, 'blocked');
+  for (const at of [[-60.6, -9.0], [-59.0, -8.0]]) P('ivy-rock', at, 'blocked');
+  for (const at of [[-52.9, -7.2], [-53.2, -1.2]]) P('gate-boulder', at, 'blocked');
+  for (const at of [[-64.75, -5.9], [-64.75, -2.5]]) P('arch-column', at, 'blocked');
+  for (const at of [[-66.8, -9.1], [-69.2, -9.1], [-71.6, -9.1]]) P('colonnade', at, 'blocked');
+  for (const at of [[-73.3, -7.6], [-73.3, -4.2]]) P('broken-arch-pier', at, 'blocked');
+  P('plunge', [-73.8, 2.7], 'blocked');
+  for (const at of RUINS.posts) P('lantern-post', at, 'blocked');
+  P('offering', RUINS.offering, 'blocked');
+  // the water stair: the crossing and the landing at the paving's height, two treads at theirs, the
+  // quay and the platform; off its open edges, past the landing's east face and the wall either side
+  // of the crossing held
+  const W = RUINS.waterStair;
+  P('water-stair-crossing', [W.crossX, -1.85], 'walk', T.y);
+  P('water-stair-landing', [-62.4, W.z], 'walk', T.y);
+  for (const i of [1, 8, 15]) P(`water-stair-tread-${i}`, [W.foot + (i + 0.5) * W.tread, W.z], 'walk', +(W.quay + (i + 1) * W.rise).toFixed(3));
+  P('water-stair-quay', [W.foot - 1.3, W.z], 'walk', W.quay);
+  P('water-stair-platform', [-73.0, -0.6], 'walk', W.quay);
+  for (const x of [-70.5, -66.2, -63.0]) for (const dz of [0.2, 0.6]) P('water-stair-off-edge', [x, W.z1 + dz], 'blocked');
+  for (const dz of [0.2, 0.6]) P('water-stair-off-platform', [-73.0, W.fallZ + dz], 'blocked');
+  for (const dx of [0.2, 0.5]) P('water-stair-past-landing', [W.east + dx, W.z], 'blocked');
+  for (const at of [[-63.0, -1.85], [-60.8, -1.85]]) P('wall-beside-crossing', at, 'blocked');
+  const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
+  const rows = probes.map((p, i) => {
+    const g = got[i];
+    const ok = p.expect === 'blocked' ? g.blocked === true : g.blocked === false && (p.y === null || Math.abs(g.walk - p.y) < 0.15);
+    return { where: p.where, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ...(p.y !== null ? { y: p.y } : {}), ok };
+  });
+  // the wading: from the shore toward the pool's middle (layout pool centre / half extents), where
+  // the ground goes under the water (0.55) and how far Link paddles before it holds him — the east
+  // shore, the south bank (held on its slope before the water), the south shore's middle and the
+  // east end; west of the south shore's middle the rock pile, the cliff and the terrace hold him
+  // before he reaches it
+  const wade = await page.evaluate(() => {
+    const P = window.__ZR_PLAY__;
+    const out = [];
+    for (const deg of [15, 68, 90, 345]) {
+      const a = (deg * Math.PI) / 180;
+      const x0 = -64.9 + Math.cos(a) * 12.5;
+      const z0 = 3.35 + Math.sin(a) * 7.85;
+      let wet = null;
+      let held = null;
+      for (let s = 0; s < 8; s += 0.05) {
+        const x = x0 - Math.cos(a) * s;
+        const z = z0 - Math.sin(a) * s;
+        const g = P.ground(x, z);
+        if (wet === null && g.terrain < 0.55) wet = s;
+        if (g.blocked) {
+          held = s;
+          break;
+        }
+      }
+      out.push({ deg, waterlineM: wet === null ? null : +wet.toFixed(2), heldM: held === null ? null : +held.toFixed(2), paddleM: wet !== null && held !== null ? +(held - wet).toFixed(2) : null });
+    }
+    return out;
+  });
+  return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows, wade };
+}
+
+/**
+ * Round 57: the follow camera round the ruins' tight spots — Link placed by the cliff, the broken
+ * arch, the colonnade, in the arch, on the flight, by the ivy rock, the parapet and the gate, on the
+ * pool's shore and in its shallows, on the water stair, the view swung round him (8 headings × 3 pitches, the collision
+ * resolving at once): every camera position with its collision state, for an offline test against
+ * the ruins' solids and the water's surface.
+ */
+async function ruinsCamera(page) {
+  const spots = [
+    ['terrace-west-by-cliff', [-73.62, -2.9]],
+    ['terrace-northwest-by-cliff', [-73.43, -8.9]],
+    ['colonnade', [-68.0, -8.6]],
+    ['arch-passage', [-64.75, -4.2]],
+    ['stair-mid', [-62.4, -4.2]],
+    ['outcrop-by-ivy-rock', [-58.27, -6.67]],
+    ['parapet', [-57.5, -2.6]],
+    ['gate', [-53.0, -4.2]],
+    ['terrace-south-by-wall', [-68.5, -2.6]],
+    ['south-shore-in-the-shallows', [-64.9, 8.35]],
+    ['east-shore-by-the-water', [-54.9, 4.5]],
+    // the water stair: on its landing, halfway down the flight against the wall's face, on the quay,
+    // on the platform at the fall's foot
+    ['water-stair-landing', [-62.4, -0.95]],
+    ['water-stair-mid', [-66.2, -0.95]],
+    ['water-stair-quay', [-70.5, -0.95]],
+    ['water-stair-platform', [-73.0, -0.7]],
+  ];
+  const rows = [];
+  for (const [id, [x, z]] of spots) {
+    await page.evaluate(([x, z]) => window.__ZR_PLAY__.place(x, z, 0), [x, z]);
+    await sim(page, 4);
+    for (let k = 0; k < 8; k++) {
+      for (const pitch of [-0.55, -0.06, 0.45]) {
+        const s = await page.evaluate(
+          ([yaw, pitch, dt]) => {
+            const P = window.__ZR_PLAY__;
+            P.setView(yaw, pitch);
+            P.step(6, dt, false);
+            const st = P.state();
+            return { cam: st.camera.position, link: st.link, follow: st.follow };
+          },
+          [(k / 8) * Math.PI * 2, pitch, DT],
+        );
+        rows.push({ spot: id, yawDeg: k * 45, pitch, cam: s.cam.map((v) => +v.toFixed(3)), link: s.link.map((v) => +v.toFixed(3)), keep: fixed(s.follow?.keep, 3), hit: s.follow?.hit ?? null, lift: fixed(s.follow?.lift, 3) });
+      }
+    }
+  }
+  return { samples: rows.length, rows };
 }
 
 /**

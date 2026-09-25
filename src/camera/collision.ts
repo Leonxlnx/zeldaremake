@@ -3,7 +3,8 @@
  *  - the ground Link walks (terrain, stair treads, decks — the character's walk height): the camera
  *    keeps CLEARANCE above it and is lifted where a ridge or a flight would cut the line;
  *  - SOLID shells (the structures' voxelised trunks, roofs, eaves, porches, the log arch, the huts —
- *    structures/cameraSolids.ts) and the big boles (the giants' and columns' seats as built): the
+ *    structures/cameraSolids.ts; the ruins' cliff, ivy rock, walls and arch — ruins/cameraSolid.ts)
+ *    and the big boles (the giants' and columns' seats as built): the
  *    camera stays in front of the first one on the line, so Link is never behind a wall or a bole,
  *    and out of the cell grown round each; a line that only grazes that cell, or clips the corner
  *    of a surface's own cell, is not blocked; round walls given exactly (the grove's huts) are
@@ -14,6 +15,7 @@
  */
 import { Vector3 } from 'three';
 import type { SharedGeometry } from '../world/system';
+import type { VoxelGrid } from '../world/util/voxelGrid';
 
 /** the camera's own radius against solids (m) — the near plane is 0.08 m */
 export const CAMERA_RADIUS = 0.3;
@@ -63,7 +65,17 @@ const _d = new Vector3();
 const _c = new Vector3();
 
 export function createCameraCollider(ground: (x: number, z: number) => number, shared: SharedGeometry): CameraCollider {
-  const solid = shared.cameraSolids?.solid ?? null;
+  // the structures' shells and any other system's (the ruins'), each grid in its own bounds
+  const solids = [shared.cameraSolids?.solid ?? null, ...(shared.cameraSolidGrids ?? [])].filter((g): g is VoxelGrid => g !== null);
+  const grownAt = (x: number, y: number, z: number): boolean => {
+    for (const g of solids) if (g.hasPoint(x, y, z)) return true;
+    return false;
+  };
+  const coreAt = (x: number, y: number, z: number): boolean => {
+    for (const g of solids) if (g.hasCorePoint(x, y, z)) return true;
+    return false;
+  };
+  const solidCell = solids.length ? Math.min(...solids.map((g) => g.cell)) : SWEEP_CELL;
   const slim = shared.cameraSolids?.slim ?? null;
   const trunks: Cylinder[] = (shared.trunkSeats ?? []).map((s) => ({
     x: s.x,
@@ -108,19 +120,19 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     if (len < 1e-6) return { t: 1, hit: null };
     let t = 1;
     let hit: Resolved['hit'] = null;
-    if (solid || walls.length) {
-      const step = (solid?.cell ?? SWEEP_CELL) * 0.2;
+    if (solids.length || walls.length) {
+      const step = solidCell * 0.2;
       const grown = (s: number) => {
         const x = a.x + (_d.x * s) / len;
         const y = a.y + (_d.y * s) / len;
         const z = a.z + (_d.z * s) / len;
-        return !!solid?.hasPoint(x, y, z) || insideWall(x, y, z, CAMERA_RADIUS);
+        return grownAt(x, y, z) || insideWall(x, y, z, CAMERA_RADIUS);
       };
       const core = (s: number) => {
         const x = a.x + (_d.x * s) / len;
         const y = a.y + (_d.y * s) / len;
         const z = a.z + (_d.z * s) / len;
-        return !!solid?.hasCorePoint(x, y, z) || insideWall(x, y, z, 0);
+        return coreAt(x, y, z) || insideWall(x, y, z, 0);
       };
       // The line is blocked where it runs through a surface (the grid's core) for SURFACE_RUN
       // samples; the grown cell round it only keeps the camera itself off the surface. A line
@@ -234,6 +246,6 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
       cam.set(pivot.x + (_d.x * s) / len, pivot.y + (_d.y * s) / len, pivot.z + (_d.z * s) / len);
       return len - s;
     },
-    info: () => ({ solidGrid: !!solid, slimGrid: !!slim, trunks: trunks.length, slimCylinders: slimCylinders.length }),
+    info: () => ({ solidGrid: !!shared.cameraSolids?.solid, solidGrids: solids.length, slimGrid: !!slim, trunks: trunks.length, slimCylinders: slimCylinders.length }),
   };
 }

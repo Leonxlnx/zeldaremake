@@ -2,7 +2,7 @@
  * Footsteps: synthesised steps that follow the ground under Link — stone (the flagstone paths),
  * stair (the same slab with the flight's log riser knocking under the boot), grass (the lawns and
  * verges), dirt (the trodden earth and path shoulders), leaf litter (the north forest floor), wood
- * (the deck planks) and the hollow wood inside the log tunnel.
+ * (the deck planks), the hollow wood inside the log tunnel and the ruins pool's shallows.
  *
  * 2026-09-23 (owner, 06:50, straight after "the background sound is too buzzy": "the steps need to
  * be like…"). Every step used to be ONE event — a short pitched thump with one or two gated bands
@@ -27,7 +27,7 @@
  */
 import { adEnvelope, cleanupAt, filter, gain, noiseBuffer, noiseSource, type Rng } from './graph';
 
-export type Surface = 'stone' | 'stair' | 'grass' | 'dirt' | 'wood' | 'hollow' | 'leaf' | 'bridge';
+export type Surface = 'stone' | 'stair' | 'grass' | 'dirt' | 'wood' | 'hollow' | 'leaf' | 'bridge' | 'water';
 
 /** a pitched part of a step: the body of the impact */
 export interface BodyPart {
@@ -330,6 +330,20 @@ export function designStep(surface: Surface, strength: number, running: boolean,
       if (rnd() < 0.6) parts.push(band(0.02 + rnd() * 0.05, 430 * j(0.2), 330, 7, 1600, 0.016 * k, 0.03, 0.22));
       parts.push(body(toe, f * 0.96, f * 0.92, 0.03, 0.075 * k, 0.002, 0.12));
       reverb = 0.3;
+      end = 0.5;
+      break;
+    }
+    case 'water': {
+      // wading: the boot breaks the skin (a soft plunk under a bright splash falling in pitch), the
+      // shin shoves the water aside, and the drops it threw patter back after the step
+      parts.push(body(0, 128 * j(0.08), 70, 0.06, 0.1 * k, 0.004, 0.09));
+      parts.push(band(0, 2600 * j(0.12), 1100, 0.8, 7000, 0.036 * k, 0.004, 0.1));
+      parts.push(band(0.015 * j(0.3), 480 * j(0.12), 300, 0.7, 1800, 0.035 * k, 0.03, 0.22));
+      const drops = 5 + Math.floor(rnd() * 4);
+      for (let i = 0; i < drops; i++) parts.push(grain(0.07 + (0.28 * i) / drops + rnd() * 0.04, 1800 + rnd() * 4200, 0.01 * k * j(0.5), 0.012));
+      parts.push(body(toe, 112 * j(0.08), 66, 0.06, 0.042 * k, 0.005, 0.08));
+      parts.push(band(toe, 1700 * j(0.12), 900, 0.9, 5200, 0.022 * k, 0.006, 0.09));
+      reverb = 0.26;
       end = 0.5;
       break;
     }
