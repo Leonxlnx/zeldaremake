@@ -103,5 +103,5 @@ test('a shadow takes the top off harder than it takes the level', () => {
   // than the low, so this must never become a plain fader
   assert.ok(A.OCCLUSION_TOP < 1 - A.OCCLUSION_DUCK, `the top must fall further than the level: ${A.OCCLUSION_TOP} against ${1 - A.OCCLUSION_DUCK}`);
   assert.ok(A.OCCLUSION_DUCK > 0 && A.OCCLUSION_DUCK < 1, 'a bole is not a wall: a shadowed bird is quieter, not gone');
-  assert.ok(A.PERCH_FAR_M > A.PERCH_RESEED_M, 'the furthest perch must lie outside the radius that re-seeds them, or walking never changes the wood');
+  assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a bird is retired only once it is out past the distance clamp, where swapping it cannot be heard');
 });
