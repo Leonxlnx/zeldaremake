@@ -47,6 +47,8 @@ LEGS = [('grass', 3.0, 8.0), ('dirt', 8.0, 13.0), ('stone', 13.0, 18.0), ('stair
 # the legs whose between-step gaps are quoted in the report
 GAP_LEGS = ['wood', 'stone', 'run stone']
 GAP_WIN = 0.02
+# the trace's plot box in the clip-video background; the playhead is swept across exactly this span
+CARD_BOX = (72, 1180, 150, 400)
 
 BG = (17, 19, 22)
 GRID = (44, 48, 54)
@@ -93,11 +95,44 @@ def added(x, ref, sr, t0=0.0, t1=None):
     return lvl(a[:n] - b[:n]) - lvl(b[:n])
 
 
+def card(takes, sr, out_dir):
+    """the two backgrounds the clip video sweeps a playhead across, one per take"""
+    leg, t0, t1 = next(l for l in LEGS if l[0] == 'wood')
+    W, H = 1280, 480
+    x0, x1, y0, y1 = CARD_BOX
+    top, bot = -18.0, -78.0
+    traces = {s: short_term(takes[s][int(t0 * sr) : int(t1 * sr)], sr) for s, _, _ in SPACES[:2]}
+    for playing, label, colour in SPACES[:2]:
+        im = Image.new('RGB', (W, H), BG)
+        d = ImageDraw.Draw(im)
+        d.text((40, 24), 'Four seconds of walking on planks', font=_font(26, True), fill=INK)
+        d.text((40, 60), 'the same walk, the same seed \u2014 the only difference is whether he is inside a hut', font=_font(14), fill=DIM)
+        d.text((40, 96), f'now playing: {label}', font=_font(20, True), fill=colour)
+        for db_ in range(-20, int(bot), -10):
+            y = y0 + (y1 - y0) * (top - db_) / (top - bot)
+            d.line([(x0, y), (x1, y)], fill=GRID)
+            d.text((x0 - 34, y - 8), f'{db_}', font=_font(12), fill=(110, 116, 124))
+        for space, lab, col in SPACES[:2]:
+            st = traces[space]
+            pts = [(x0 + (x1 - x0) * i / len(st), y0 + (y1 - y0) * (top - np.clip(v, bot, top)) / (top - bot)) for i, v in enumerate(st)]
+            d.line(pts, fill=col if space == playing else tuple(c * 2 // 3 for c in col), width=2 if space == playing else 1)
+            p50 = float(np.percentile(st, 50))
+            y = y0 + (y1 - y0) * (top - p50) / (top - bot)
+            d.line([(x0, y), (x1, y)], fill=col if space == playing else tuple(c * 2 // 3 for c in col))
+            d.text((x1 + 8, y - 8), f'{p50:.0f}', font=_font(13, True), fill=col if space == playing else tuple(c * 2 // 3 for c in col))
+        d.text((x1 + 8, y0 - 6), 'the middle of', font=_font(11), fill=DIM)
+        d.text((x1 + 8, y0 + 7), 'the walk (p50)', font=_font(11), fill=DIM)
+        d.text((40, H - 40), 'The peaks are the boots and they land on top of each other. What moves is the quiet in between: the room is still sounding when the next boot arrives.', font=_font(14), fill=(170, 176, 184))
+        im.save(os.path.join(out_dir, f'card-{playing}.png'))
+        print('wrote', os.path.join(out_dir, f'card-{playing}.png'))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--takes', default='/tmp/room')
     ap.add_argument('--tag', default='after')
     ap.add_argument('--out')
+    ap.add_argument('--card', help='write the clip video backgrounds to this directory instead')
     args = ap.parse_args()
 
     takes, curves = {}, {}
@@ -105,6 +140,9 @@ def main():
         a, sr = load(os.path.join(args.takes, f'{args.tag}-{space}.wav'))
         takes[space] = mono(a)
         curves[space] = tail(takes[space], sr)
+
+    if args.card:
+        return card(takes, sr, args.card)
 
     open_ = takes['open']
     for space, label, _ in SPACES:
