@@ -1,0 +1,8 @@
+{
+ "note": "two places the canopy term tells apart: the plaza, open to the sky, and the north path under closed crowns twenty metres short of the log arch. Standing still for two minutes each, so the only events are the wood's own. The leaves overhead are what the canopy term is about, so if anything in the bed should change width between these two, it is the flutters.",
+ "gust": 0.6,
+ "spots": [
+  { "id": "open", "at": [0.5, 2.0], "seconds": 120, "note": "the plaza, open sky" },
+  { "id": "crowns", "at": [5.1, -49.6], "seconds": 120, "note": "the north path under closed crowns" }
+ ]
+}
