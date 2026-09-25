@@ -1,0 +1,346 @@
+[
+ {
+  "name": "look-back",
+  "note": "the integrator's far-bank look-back",
+  "from": {
+   "p": [
+    4.8,
+    2.6,
+    43.6
+   ],
+   "t": [
+    2,
+    0.8,
+    24
+   ],
+   "fov": 46
+  }
+ },
+ {
+  "name": "P3",
+  "note": "path node 3, walking to the north sill",
+  "player": [
+   3.3,
+   27.9
+  ],
+  "toward": [
+   3.72,
+   30.45
+  ]
+ },
+ {
+  "name": "B0",
+  "note": "bridge head, walking onto the bridge",
+  "player": [
+   3.704,
+   29.85
+  ],
+  "toward": [
+   4.08,
+   43.7
+  ]
+ },
+ {
+  "name": "mid-span-S",
+  "note": "mid-span, walking on to the log",
+  "player": [
+   3.9,
+   37.075
+  ],
+  "toward": [
+   4.08,
+   43.7
+  ]
+ },
+ {
+  "name": "mid-span-N",
+  "note": "mid-span, walking back to the village",
+  "player": [
+   3.9,
+   37.075
+  ],
+  "toward": [
+   3.72,
+   30.45
+  ]
+ },
+ {
+  "name": "F0",
+  "note": "the south sill, walking back north",
+  "player": [
+   4.064,
+   43.1
+  ],
+  "toward": [
+   3.72,
+   30.45
+  ]
+ },
+ {
+  "name": "F4",
+  "note": "the far path, walking back north",
+  "player": [
+   4.14,
+   45.2
+  ],
+  "toward": [
+   4.08,
+   43.7
+  ]
+ },
+ {
+  "name": "F6",
+  "note": "the log's mouth, walking back north",
+  "player": [
+   4.25,
+   46.9
+  ],
+  "toward": [
+   4.14,
+   45.2
+  ]
+ },
+ {
+  "name": "F4-in",
+  "note": "the far path, walking into the log",
+  "player": [
+   4.14,
+   45.2
+  ],
+  "toward": [
+   4.25,
+   46.9
+  ]
+ },
+ {
+  "name": "L2-in",
+  "note": "two metres into the log, walking on",
+  "player": [
+   4.31,
+   48.899
+  ],
+  "toward": [
+   4.394,
+   51.698
+  ]
+ },
+ {
+  "name": "L4.8-in",
+  "note": "at the roots before the dead end, facing the exit",
+  "player": [
+   4.394,
+   51.698
+  ],
+  "toward": [
+   4.478,
+   54.497
+  ]
+ },
+ {
+  "name": "L3-out",
+  "note": "three metres in, walking out",
+  "player": [
+   4.34,
+   49.899
+  ],
+  "toward": [
+   4.25,
+   46.9
+  ]
+ },
+ {
+  "name": "D1",
+  "note": "the south path, the waystation ahead on the left",
+  "player": [
+   2,
+   26.55
+  ],
+  "toward": [
+   5.12,
+   25.95
+  ]
+ },
+ {
+  "name": "D2",
+  "note": "on the waystation's floor, facing out to the path",
+  "player": [
+   4.832,
+   26.033
+  ],
+  "toward": [
+   3.197,
+   26.501
+  ]
+ },
+ {
+  "name": "D3",
+  "note": "the keeper's gallery entrance, walking on",
+  "player": [
+   5.591,
+   30.588
+  ],
+  "toward": [
+   5.426,
+   32.195
+  ]
+ },
+ {
+  "name": "D4",
+  "note": "the gallery over the gorge, walking east",
+  "player": [
+   6.25,
+   33.372
+  ],
+  "toward": [
+   7.95,
+   33.372
+  ]
+ },
+ {
+  "name": "D5",
+  "note": "the gallery, facing the bridge",
+  "player": [
+   5.584,
+   32.775
+  ],
+  "toward": [
+   3.9,
+   36
+  ]
+ },
+ {
+  "name": "D6",
+  "note": "the gallery's east end, walking back west",
+  "player": [
+   8.783,
+   31.663
+  ],
+  "toward": [
+   8.402,
+   32.993
+  ]
+ },
+ {
+  "name": "X1",
+  "note": "mid-span, eye 1.6 m over the deck, on the exit",
+  "eye": [
+   3.9,
+   37.075,
+   1.6
+  ],
+  "look": [
+   4.478,
+   54.497,
+   1.28,
+   4.31,
+   48.899
+  ],
+  "exit": true
+ },
+ {
+  "name": "X1-f4",
+  "note": "fable-4's bridge-mid pose",
+  "from": {
+   "p": [
+    3.9,
+    1.9,
+    37
+   ],
+   "t": [
+    4.5,
+    1.5,
+    52
+   ],
+   "fov": 46
+  }
+ },
+ {
+  "name": "X2",
+  "note": "the far path, 2.3 m short of the mouth, on the exit",
+  "eye": [
+   4.13,
+   44.6,
+   1.6
+  ],
+  "look": [
+   4.478,
+   54.497,
+   1.28,
+   4.31,
+   48.899
+  ],
+  "exit": true
+ },
+ {
+  "name": "X3",
+  "note": "four metres inside, on the exit",
+  "eye": [
+   4.37,
+   50.898,
+   1.5,
+   4.31,
+   48.899
+  ],
+  "look": [
+   4.478,
+   54.497,
+   1.28,
+   4.31,
+   48.899
+  ],
+  "exit": true
+ },
+ {
+  "name": "X4",
+  "note": "at the dead end, on the exit",
+  "eye": [
+   4.409,
+   52.198,
+   1.5,
+   4.31,
+   48.899
+  ],
+  "look": [
+   4.478,
+   54.497,
+   1.28,
+   4.31,
+   48.899
+  ],
+  "exit": true
+ },
+ {
+  "name": "G1",
+  "note": "in the glade 3.4 m past the far end, looking back at it",
+  "eye": [
+   4.58,
+   57.895,
+   1.6
+  ],
+  "look": [
+   4.478,
+   54.497,
+   1.28,
+   4.31,
+   48.899
+  ]
+ },
+ {
+  "name": "L9",
+  "note": "1.5 m inside the mouth, looking back out north",
+  "eye": [
+   4.295,
+   48.399,
+   1.5,
+   4.31,
+   48.899
+  ],
+  "look": [
+   4.06,
+   40,
+   0.5,
+   4.14,
+   45.2
+  ]
+ }
+]
