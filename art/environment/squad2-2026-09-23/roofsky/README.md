@@ -57,6 +57,26 @@ The finished frames (`broll --settle 6`, same pose order before and after):
 
 Cost is unchanged by construction and measured: the canopy system draws **4 calls / 5,806 triangles**
 at that pose before and after (`isolate.json` in both runs). It is a uniform and two lines of GLSL.
+The capture harness agrees on the whole frame: `A_stairs` is 614 draws / 8.97 M triangles on the
+branch, the same as the head.
+
+## The owner's fixed frames: byte-identical, all of them
+
+`sixcheck.mjs` (this directory) renders the five distinct fixed viewpoints (E repeats B's camera) on
+both builds in the same order and compares them, with the luminance SSIM against `reference/frames`
+that `gauntlet/scripts/compare.mjs` reports:
+
+| frame | pixels moved > 4 | mean | local detail | SSIM vs reference |
+| --- | --- | --- | --- | --- |
+| A_stairs | 0 % | 95.6 → 95.6 | 4.83 → 4.83 | 0.3332 → 0.3332 |
+| B_house (= E_ground) | 0 % | 92.6 → 92.6 | 4.64 → 4.64 | 0.2412 → 0.2412 |
+| C_lookback | 0 % | 90.9 → 90.9 | 4.44 → 4.44 | 0.1236 → 0.1236 |
+| D_log | 0 % | 90.6 → 90.6 | 4.15 → 4.15 | 0.4021 → 0.4021 |
+| F_canopy | 0 % | 85.5 → 85.5 | 4.78 → 4.78 | 0.4330 → 0.4330 |
+
+Not "small": zero pixels differ by more than 4 levels in any of the five. The roof is dropped inside
+the hero frusta and its `HERO_TOP_KEEP` band sits outside every one of these pitches, so this term
+cannot reach them — now measured rather than argued.
 
 Hero A does not move: the roof is dropped inside the hero frames and its `HERO_TOP_KEEP` band is out
 of A's view. Tests: 206 pass, four of them new in `src/world/canopy/roofSky.test.mjs`, which pins the
