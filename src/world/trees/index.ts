@@ -1756,10 +1756,11 @@ const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce(
  * (its parts must share one layout, and the compaction is conditional per part), but the pool's
  * accounting uses these bytes so its admission is the same as the per-mesh parts' was.
  */
-const compactedBytes = (g: BufferGeometry) => {
+const compactedBytes = (g: BufferGeometry, everyNarrowable = false) => {
   const fits = (name: string, lo: number, hi: number) => {
     const a = g.attributes[name] as BufferAttribute | undefined;
     if (!a || !(a.array instanceof Float32Array)) return false;
+    if (everyNarrowable) return true;
     const src = a.array;
     for (let i = 0; i < src.length; i++) if (src[i] < lo || src[i] > hi) return false;
     return true;
@@ -2115,6 +2116,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       this.vertices -= vertices;
       this.indices -= indices;
       this.instances--;
+      this.removedSince++;
+    }
+    private removedSince = 0;
+    /** parts built whose colours or wind fell outside the compaction's ranges (Float32 on the per-mesh path too) */
+    wideParts = 0;
+    /**
+     * A BatchedMesh never shrinks by itself: the reserve stays at the high-water mark and deleted
+     * parts leave holes (an add that does not fit compacts, but the reserve keeps its size). Once a
+     * frame the pool has evicted from, when the parts left use under half the reserve, compact and
+     * give the reserve back to 1.25 × the live set — the heap follows the pool's resident bytes
+     * instead of the walk's peak.
+     */
+    trim() {
+      if (this.removedSince === 0) return;
+      this.removedSince = 0;
+      if (this.vertices * 2 > this.maxVertices && this.indices * 2 > this.maxIndices) return;
+      this.mesh.optimize();
+      this.grow(Math.max(65_536, this.vertices * 1.25), Math.max(196_608, this.indices * 1.25));
     }
     setVisible(instId: number, visible: boolean) {
       this.mesh.setVisibleAt(instId, visible);
@@ -2132,7 +2151,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       this.mesh.setGeometrySize(this.maxVertices, this.maxIndices);
     }
     get stats() {
-      return { instances: this.instances, vertices: this.vertices, indices: this.indices, maxVertices: this.maxVertices, maxIndices: this.maxIndices };
+      return { instances: this.instances, vertices: this.vertices, indices: this.indices, maxVertices: this.maxVertices, maxIndices: this.maxIndices, wideParts: this.wideParts };
     }
     /** the bytes of the batch's CPU copy (every attribute's reserved array and the index) */
     get heapBytes() {
@@ -2150,6 +2169,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // full compaction would have left, so its admission matches the per-mesh parts'.
     const wrap = (geometry: BufferGeometry): GeometryBuilt => {
       const bytes = compactedBytes(geometry);
+      if (bytes !== compactedBytes(geometry, true)) batch.wideParts++;
       compactAttributes(geometry, 'normal');
       return { geometry, bytes, dispose: () => geometry.dispose() };
     };
@@ -4690,6 +4710,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // the many; the bases take what is left, at least a chunk's worth so they never starve)
       const t0 = performance.now();
       nearCanopyPool.work(NEAR_LOD_BUILD_BUDGET_MS);
+      nearCanopyBatch?.trim();
       nearBasePool.work(Math.max(0.5, NEAR_LOD_BUILD_BUDGET_MS - (performance.now() - t0)));
     },
     onCameraMove(camera) {
