@@ -487,3 +487,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 00:05 — the east × ruins trees resolution redone from the current tips (ruins f29ad20e's heroFramesCard):
   `agent/fable-4-trees-merge2` a25594a0, four hunks both sides, tsc/build/tests 26/26 green; patch against the head b9993008
   (fifth hunk: the layout import union). A wrong "tips unchanged" claim in the 23:40 refresh corrected. PR #65 ready, no reply yet.
+- 2026-09-25 01:25 — PR #65 merged (23:45). The white-barks' medium measured at two walking poses (round54-whitebark-medium):
+  1 in 4 at 1.8 × halves the gap to high at w2 (1.05 → 0.72 blurred) for A +16 K / C +55 K / F +39 K; 1 in 2 costs 3× for a
+  third more. PR #74 `agent/fable-4-wbmed` 2896a08a (one line); the 1280 × 720 pair head 2f6c8ae2 vs branch queued. INBOX 01:25.
