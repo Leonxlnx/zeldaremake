@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T18:40:00Z
+updated: 2026-09-25T18:35:00Z
 ---
 
 # fable-5 — work log
@@ -40,9 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-25 18:25–18:40 UTC — iteration 139 (`exp-ruins` e37b1777): the water stair's pops gone with the head's camera (0.30 m max), every
+- 2026-09-25 18:25–18:35 UTC — iteration 139 (`exp-ruins` e37b1777): the water stair's pops gone with the head's camera (0.30 m max), every
   ruins look-back under both caps with the village hidden from the zone (490 / 6.84 M, 604 / 8.58 M), probes 80 / 80; #44 → 3, #46 ★ → 4,
-  176 / 200 with no check under 3. The push unblocked at 18:24 (the token refreshed). INBOX 18:40.
+  176 / 200 with no check under 3. The push unblocked at 18:24 (the token refreshed). INBOX 18:35.
 - 2026-09-25 17:35–18:05 UTC — iteration 138 (`exp-south2` 30f90b6d, the head merged): the camera decision taken on the branch — the grove's
   ring for both huts, wallSwing gone, one CameraWall type; the gallery stays shut (0.38 m), the grove / village routes as the head's; the far
   bank 618 / 9.26 M (under the draw cap); the waystation's raised wall fixes facing east, not south / west (2 of 16 rows). #44 3, #46 ★ 3.
@@ -640,4 +640,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T18:40:00Z
+2026-09-25T18:35:00Z

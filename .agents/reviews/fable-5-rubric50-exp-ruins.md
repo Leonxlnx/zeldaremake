@@ -289,7 +289,7 @@ Against the branch's base `31146062`, the same capture: **A, B, D, E, F pixel-id
 that `3776cc81`'s prune caused in every hero frame is gone; **C 0.9998, 0.07 % of its pixels, −0.0004 vs the reference** — scattered over C's right third at
 mid-height (x 867–1279, y 150–396 of 1280 × 720, +9 luma), the trail side of the frame where the card cull reached to x −1. Inside the budget; the author's own catch, confirmed from outside.
 
-## Re-read on `e37b1777` (18:22 — the head merged with the grove's camera; the village's drawables hidden while the camera stands in the ruins' zone; the fixed frames' plant order kept) — 18:25–18:40 UTC
+## Re-read on `e37b1777` (18:22 — the head merged with the grove's camera; the village's drawables hidden while the camera stands in the ruins' zone; the fixed frames' plant order kept) — 18:25–18:35 UTC
 
 - **The water stair's camera pops are gone.** `ruins-water-stair` 15 / 15 with **one 0.30 m step** (was 3.90 / 3.26 / 2.67 m at
   `fdb4d338`), camera acceleration max 3,479 → **269 m/s²** — the head's grove camera (`d7432cc9`'s easing and ring steering, merged
