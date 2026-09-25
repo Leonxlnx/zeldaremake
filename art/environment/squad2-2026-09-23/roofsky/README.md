@@ -78,6 +78,22 @@ Not "small": zero pixels differ by more than 4 levels in any of the five. The ro
 the hero frusta and its `HERO_TOP_KEEP` band sits outside every one of these pitches, so this term
 cannot reach them — now measured rather than argued.
 
+## How far the change reaches
+
+Two more walkable up-looks, rendered the same way on both builds:
+
+| up-look | pixels moved > 4 | mean | local detail |
+| --- | --- | --- | --- |
+| the plaza, looking up into the giants (`0.5, 1.6, 1.0`) | 0 % | 96.5 → 96.5 | 6.49 → 6.49 |
+| the ledge top, looking up (`1.42, 7.3, −75.53`) | 0 % | 65.5 → 65.5 | 3.10 → 3.10 |
+| the open north at 60° up | 36.6 % | 72.9 → 77.0 | 3.73 → 4.04 |
+| the open north, straight up | 42.5 % | 74.9 → 79.7 | 5.87 → 5.96 |
+
+So the term reaches exactly what it is for: the roof is what a walker sees overhead **in the open
+north**, and everywhere else the sky overhead is the giants' own crowns (over the plaza) or the
+flight's trees (at the ledge), which this change does not touch. A reviewer wanting to see it has to
+stand in the open north and look up; anywhere else it is a no-op, by measurement.
+
 Hero A does not move: the roof is dropped inside the hero frames and its `HERO_TOP_KEEP` band is out
 of A's view. Tests: 206 pass, four of them new in `src/world/canopy/roofSky.test.mjs`, which pins the
 term to `thin` linear, un-gated by the sun, additive to the flat lift, and the cache key bumped.
