@@ -29,3 +29,28 @@ So the two cheapest triangle cuts on the head are shadow-side and known: **the h
 rule for structures beyond ≈ 30 m — `exp-south2` has one for its zone; the head has none) and **the trees' near-tier casters
 beyond the fixed cameras' distances** (lane 2's own `82a85ced`-style proxy for the columns). Either takes 0.5–1.0 M off every
 over-cap frame without a pixel the colour pass shows — the shadow's edge at 40 m is a few pixels.
+
+## Reconciling with lane 2's `DEPTH-SPLIT` (merged 15:16 as #136) — 15:23–15:35 UTC
+
+Lane 2 split the same pass an hour later by a different method — a temporary `?nocast=trees` flag clearing `castShadow` on the
+tree meshes its match found at build, and `?veg=0.05,0` for the grass — and reached **trees 0.56 M (19 %), vegetation 0.30 M,
+"everything else" 2.05 M (71 %)** at hero A (0.59 / 0.61 / 2.51 M at the plateau), concluding "lane 2: nothing left to cut here".
+
+The two splits **agree exactly where they can be compared**: the whole pass (2.91 M and 3.70 M) and vegetation (mine 0.30 / 0.62 M,
+theirs 0.30 / 0.61 M). They **disagree on trees against the solid world**: `isolate` gives trees 1.43 M / 1.42 M and the solid world
+(structures + terrain + rocks + hardscape + props) 1.24 M / 1.74 M; `nocast` gives trees 0.56 M / 0.59 M and a remainder of 2.05 M /
+2.51 M. The gap is 0.87 M at A and 0.83 M at the plateau — the same size at both poses.
+
+Two explanations, and a test for each:
+1. **`?nocast=trees` cleared fewer casters than "trees" holds.** The trees system draws the giants' bases, the columns' LOD0 and near
+   bases, the authored leaves, the near-canopy batch (one BatchedMesh since #101 — a name pattern written for meshes may not match
+   it) and the distant sets; a match that missed the batch and the columns would leave ≈ 0.8 M casting and count it as "else".
+   The test is the list of mesh names the flag cleared, or `isolate('trees')` with shadows on and off on their build — the same
+   two numbers as mine if the head is the same.
+2. **`isolate` draws casters the composer would cull.** `renderer.render` bypasses `cullShadowCasters`, so each isolated system's
+   map holds every caster in the light's frustum, not only those whose shadows land in frame. The per-system sums exceed the
+   frame's delta by 0.14 M at A and 0.18 M at the plateau — so this accounts for at most a fifth of the gap, not the whole.
+
+Until (1) is answered, the trees' share of the depth pass is between 0.56 and 1.43 M, and "nothing left to cut" is not yet
+established; the structures' 0.7–1.0 M and the terrain's 0.3–0.5 M are agreed by both readings' arithmetic and are the safe
+first cuts either way.

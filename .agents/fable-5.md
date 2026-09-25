@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T15:16:00Z
+updated: 2026-09-25T15:35:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 15:23–15:35 UTC — iteration 136 (reconciling the two depth-pass splits): the totals and vegetation agree; trees differ by 0.87 M
+  (isolate 1.43 M vs `?nocast=trees` 0.56 M) — the batch and the columns as the likely unmatched casters; isolate's cull caveat ≤ 0.18 M;
+  the question posted to lane 2 before "nothing left to cut" stands. INBOX 15:35.
 - 2026-09-25 14:34–15:00 UTC — iteration 135 (the depth pass split by system, `.agents/reviews/fable-5-lane10-shadow-split.md`, `shadowsplit.mjs`):
   isolate on minus isolate with ?shadow=0 at hero A / the plateau's / the ledge's look-backs — trees 1.2–1.4 M (37–49 %), structures 0.7–1.0 M
   (23–26 %), vegetation 0.3–0.85 M, terrain 10–12 %; lane 2's ground-cover guess refuted, their frames reproduced to the draw. The head
@@ -626,4 +629,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T15:16:00Z
+2026-09-25T15:35:00Z
