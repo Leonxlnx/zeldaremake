@@ -176,33 +176,39 @@ const crawl: Shot = {
   },
 };
 
-/** Long-take flight keys in the Venator frame (V-frame). */
+/** Long-take flight keys in the Venator frame (V-frame, units; hull: deck 30–130 high, towers z −1472…−1120, gap 160). */
 const LT_ANAKIN: Key[] = [
-  [2.6, 60, 1500, -3500],
-  [3.6, 10, 1180, -2980],
-  [4.4, -10, 780, -2250],
-  [5.2, 0, 430, -1480],
-  [6.1, 0, 205, -700],
-  [7.2, 0, 150, 0],
-  [8.3, 10, 150, 620],
-  [9.2, 60, 142, 1050],
-  [10.0, 220, 118, 1330],
-  [10.7, 390, 60, 1520],
-  [11.4, 520, -130, 1720],
-  [12.3, 610, -470, 2020],
-  [13.4, 660, -820, 2500],
-  [14.6, 660, -1020, 3150],
-  [16.5, 640, -1100, 4100],
+  [2.5, 90, 1520, -3480],
+  [3.5, 20, 1190, -2990],
+  [4.5, 0, 700, -2200],
+  [5.6, 0, 335, -1330],
+  [6.5, 0, 274, -930],
+  [7.3, 0, 232, -560],
+  [8.2, 0, 112, -200],
+  [9.2, 0, 92, 200],
+  [10.3, 10, 74, 600],
+  [11.2, 70, 64, 900],
+  [12.0, 190, 38, 1090],
+  [12.8, 300, -60, 1270],
+  [13.7, 380, -260, 1510],
+  [14.8, 420, -520, 1910],
+  [16.5, 430, -760, 2700],
 ];
-const LT_OBI_OFFSET = v3(-26, 10, -34);
+const LT_OBI_OFFSET = v3(-30, 5, -14);
 
 function ltPath(T: number, who: 'anakin' | 'obiwan') {
   return (tt: number) => {
     const t = tt - LONG_T0;
-    const p = keyed(LT_ANAKIN, who === 'anakin' ? t : t - 0.22);
-    if (who === 'obiwan') p.add(LT_OBI_OFFSET.clone().multiplyScalar(1 - 0.4 * smooth(9, 12, t)));
+    const p = keyed(LT_ANAKIN, who === 'anakin' ? t : t - 0.18);
+    if (who === 'obiwan') p.add(LT_OBI_OFFSET.clone().multiplyScalar(1 - 0.35 * smooth(11, 13, t)));
     return p.add(vFrame(tt));
   };
+}
+
+/** heading basis with the pitch damped, so a chase camera does not stare at the planet in a dive */
+function flatBasis(fwd: Vector3, damp = 0.35): Quaternion {
+  const f = v3(fwd.x, fwd.y * damp, fwd.z).normalize();
+  return basisQuat(f, v3(0, 1, 0));
 }
 
 const longTake: Shot = {
@@ -212,9 +218,9 @@ const longTake: Shot = {
   schedule(w, T0) {
     // flak and hits once the dive reveals the battle
     const rng = new Rng(31);
-    for (let t = 10.5; t < 16; t += rng.range(0.15, 0.35)) {
+    for (let t = 11.8; t < 16; t += rng.range(0.14, 0.3)) {
       const st = flight(ltPath(T0 + t, 'anakin'), T0 + t);
-      const p = local(st, rng.range(-260, 260), rng.range(-160, 120), rng.range(250, 900));
+      const p = local({ pos: st.pos, quat: flatBasis(st.fwd) }, rng.range(-260, 260), rng.range(-140, 160), rng.range(250, 900));
       w.fx.explosion(T0 + t, p, { size: rng.range(12, 28), pieces: 14, sparks: 16, smoke: 3, colors: ['dbg', 'lbg', 'black'], seed: Math.floor(t * 97) });
     }
   },
@@ -222,40 +228,42 @@ const longTake: Shot = {
     battle(w, T, { hero: true });
     const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
     const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3 });
-    const arrive = smooth(2.4, 3.2, t);
-    if (arrive > 0) {
+    if (t > 2.3) {
       fly(w, w.anakinShip, a, 0, 1);
       fly(w, w.obiwanShip, o, 0, 1);
       face(w.anakin, { mouth: 'smirk', brows: -0.3 }, t, 1);
       face(w.obiwan, { mouth: 'flat', brows: 0.3 }, t, 2);
     }
     const V = vFrame(T);
-    // camera: hold C0 while tilting down from the stars, then chase the fighters over the hull
+    // hold C0 while tilting down from the stars
     const tilt = smoother(0.0, 4.2, t);
-    const lookUp = C0_UP_TARGET.clone();
-    const lookDown = v3(0, 80, -700).add(vFrame(LONG_T0 + 4.2));
+    const lookDown = v3(0, 120, -900).add(vFrame(LONG_T0 + 4.2));
     let pos = C0.clone();
-    let target = lookUp.clone().lerp(lookDown, tilt);
-    // follow phase
-    const follow = smoother(4.0, 6.4, t);
+    let target = C0_UP_TARGET.clone().lerp(lookDown, tilt);
+    // then chase the pair over the hull
+    const follow = smoother(4.2, 6.2, t);
     if (follow > 0) {
-      const lag = flight(ltPath(T - 0.35, 'anakin'), T - 0.35);
-      const behind = local({ pos: lag.pos, quat: basisQuat(lag.fwd, v3(0, 1, 0)) }, 12, 48, -150);
+      const lagT = T - 0.12;
+      const lag = flight(ltPath(lagT, 'anakin'), lagT);
+      const lagO = flight(ltPath(lagT, 'obiwan'), lagT);
+      const behind = local({ pos: lag.pos.clone().lerp(lagO.pos, 0.5), quat: flatBasis(lag.fwd) }, 0, 30, -104);
       pos = pos.lerp(behind, follow);
-      const mid = a.pos.clone().lerp(o.pos, 0.4).add(a.fwd.clone().multiplyScalar(60));
-      target = target.lerp(mid, follow);
+      const mid = a.pos.clone().lerp(o.pos, 0.35);
+      const ahead = mid.clone().add(v3(0, 0, 1).applyQuaternion(flatBasis(a.fwd)).multiplyScalar(90));
+      target = target.lerp(ahead, follow);
     }
-    // over the edge: swing wide to port so the dive reveals the battle below
-    const dive = smoother(9.6, 12.5, t);
+    // over the port edge: swing out to port, keep the horizon and the battle in frame
+    const dive = smoother(11.0, 13.4, t);
     if (dive > 0) {
-      const d = local({ pos: a.pos, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, 70, 55, -130);
-      pos = pos.lerp(d, dive * 0.6);
-      const look = a.pos.clone().add(a.fwd.clone().multiplyScalar(260)).add(v3(0, -120, 0));
-      target = target.lerp(look, dive * 0.55);
+      const q = flatBasis(a.fwd, 0.25);
+      const d = local({ pos: a.pos.clone().lerp(o.pos, 0.4), quat: q }, 44, 34, -88);
+      pos = pos.lerp(d, dive);
+      const look = a.pos.clone().add(v3(0, 0, 1).applyQuaternion(q).multiplyScalar(340)).add(v3(0, -30, 0));
+      target = target.lerp(look, dive);
     }
-    pos.add(shake(t, follow * 1.2, 1.3, 3));
-    w.aimShadow(follow > 0.5 ? a.pos : V.clone().add(v3(0, 150, -900)), follow > 0.5 ? 90 : 1800);
-    return { pos, target, fov: lerp(34, 40, follow) - dive * 2, roll: -0.08 * dive, lens: { exposure: 1.0 } };
+    pos.add(shake(t, follow * 0.8, 1.3, 3));
+    w.aimShadow(follow > 0.5 ? a.pos : V.clone().add(v3(0, 150, -900)), follow > 0.5 ? 70 : 1800);
+    return { pos, target, fov: lerp(34, 38, follow) + dive * 4, roll: -0.1 * dive * (1 - smooth(14, 16, t)), lens: { exposure: 1.0 } };
   },
 };
 
