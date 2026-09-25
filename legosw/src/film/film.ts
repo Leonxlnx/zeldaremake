@@ -8,7 +8,7 @@ import { renderSoundtrack } from '../audio/soundtrack';
 export interface Film {
   duration: number;
   renderAt(t: number, o?: { subframes?: number; shutter?: number; fps?: number }): void;
-  shots(): { name: string; start: number; end: number }[];
+  shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAudio(): Promise<string>;
 }
 
@@ -116,7 +116,7 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         },
       });
     },
-    shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur })),
+    shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur, lines: (s.lines ?? []).map((l) => ({ who: l.who, text: l.text })) })),
     renderAudio: () =>
       renderSoundtrack({
         shots: SHOTS,

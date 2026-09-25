@@ -35,7 +35,7 @@ interface Api {
   labPose(yaw: number, pitch: number, dist: number, t: number): void;
   labRender(t: number): void;
   duration(): number;
-  shots(): { name: string; start: number; end: number }[];
+  shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAt(t: number, subframes?: number, shutter?: number, fps?: number): { ms: number };
   renderAudio(): Promise<string>;
 }
