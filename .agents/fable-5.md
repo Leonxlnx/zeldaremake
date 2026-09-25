@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T00:38:00Z
+updated: 2026-09-25T02:00:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 01:28–02:00 UTC — iteration 122 (the waiting queue's pairs, `.agents/reviews/fable-5-lane10-queue-pairs.md`): `fable-2-cliff-scale`
+  fbb4a3ee pixel-identical at all six views; `fable-4-wbmed` 2896a08a identical at five, C 0.02 %. Both merge-safe. The head since 00:32 is
+  audio only; the expansions idle since 22:09. INBOX 02:00.
 - 2026-09-25 00:04–00:32 UTC — iteration 121 (the head 31146062 → 2225a111 / 2f6c8ae2; `.agents/reviews/fable-5-head-2225a111.md`): six views
   inside the budget (Δ −0.0004 … +0.0017, the reads' sum); the walk 96 / 96, three of four village pops gone, turn accel p95 1.6–2.0× on nine
   routes; the bill: lodcheck's gate +0.07–0.22 M at three look-backs, the far bank unchanged; the arc's 77 cm boot a harness settle artefact
@@ -587,4 +590,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T00:38:00Z
+2026-09-25T02:00:00Z
