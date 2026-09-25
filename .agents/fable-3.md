@@ -527,3 +527,11 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the torso pitch taken out of the notice angle; before / after at three camera distances, draws unchanged, 196 / 196.
   The fixed frames cannot run either path (the seat branch is behind `if (view) return false`; capture passes no player).
 - The review script now takes `PEOPLE_ONLY` / `PEOPLE_DISTS` (6 m = past the notice range, for the resting gaze).
+
+## 2026-09-25 07:35 tick — #99 merged; the wanderer's walk reviewed, nothing to change
+
+- #99 merged at 07:07. The twelve stills had not covered the one kid who moves: three watches of kokiri-a's loop with
+  Link standing (9 s blind, 40 s coarse to find her window, 11 s dense at 4 fps over it). Legs, arms, planting, the
+  dwell look-around all read at 3–8 m — a review result (`people-fable-3/wanderer-walk/`), no PR of its own; it rides
+  with the next item. Lesson: find the window with a 1 fps pass first; a blind 9 s watch at 5 fps cost 10 minutes
+  for nothing.
