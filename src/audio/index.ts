@@ -87,6 +87,15 @@ export interface RenderLoad {
 export interface OfflineRender {
   wav: Uint8Array;
   music: MusicSource;
+  /**
+   * What the bed put in it — the same counts `stats()` publishes live, but for the render.
+   *
+   * Until now an offline render handed back a WAV and nothing else, so every question of the form
+   * "when did the birds call in this file" had to be answered by finding them in the audio. The
+   * bed already knows; `birdSpots` carries the context time of each call. null for a stem with no
+   * ambience in it.
+   */
+  bed: AmbienceStats | null;
 }
 
 /** what an offline render contains — the evidence path renders the parts separately */
@@ -131,7 +140,13 @@ export interface OfflineOptions {
    * under the crowns or out over the ravine carries its own. The wind still moves — a place with no
    * weather in it is not a place.
    */
-  at?: { x: number; z: number; y?: number; facing?: number };
+  /**
+   * …and `turn` degrees a second while he stands there, because a player turns far more often than
+   * he walks anywhere. Everything in the bed that is placed by BEARING rather than by position —
+   * the birds on their perches, the wind's lean — is a function of the facing alone, and the only
+   * way to see whether those follow him is to turn him. A fixed facing cannot ask the question.
+   */
+  at?: { x: number; z: number; y?: number; facing?: number; turn?: number };
   /**
    * Walk the listener in a straight line from `from` to `to` at `speed` m/s, facing along it, with
    * every space term read from `surfaceAt` where he is — a real journey rather than the scripted
@@ -515,6 +530,20 @@ export function skyOpening(x: number, z: number): number {
 export const TICK_MS = 1000 / 30;
 
 /**
+ * How far ahead of the clock the bed and the score are filled in.
+ *
+ * Named because the offline render has to use the same numbers. Until 2026-09-25 it did not use
+ * them at all: it ran the whole walk calling `update` and then called `scheduleUntil(seconds)`
+ * ONCE at the end, so every bird, every leaf and every note in every evidence render this lane has
+ * published was decided by the last frame's weather, the last frame's canopy and the last frame's
+ * facing. A standing take's gust swings right across its range in the course of a couple of
+ * minutes, and the bird gaps follow the gust — so the twin was not scheduling the same forest the
+ * game does.
+ */
+export const AMBIENCE_AHEAD = 4;
+export const MUSIC_AHEAD = 6;
+
+/**
  * How much of the space around the listener is the ravine (0 well back from it, 1 out over it on
  * the bridge). `EXPANSION_SOUTH.ravine.line` is (x, z, top half width, depth) west → east; the
  * depth term means the shallow ends where the gorge closes to nothing do not open the sound.
@@ -689,8 +718,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     }
     lastGust = o.wind?.uniforms.uGust.value ?? 0.4;
     ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, occlude: (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
-    ambience.scheduleUntil(ctx.currentTime + 4);
-    music.scheduleUntil(ctx.currentTime + 6);
+    ambience.scheduleUntil(ctx.currentTime + AMBIENCE_AHEAD);
+    music.scheduleUntil(ctx.currentTime + MUSIC_AHEAD);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
     // speed otherwise (see footsteps.ts — a step is heard when a boot lands, not on a stride timer)
     if (p && player?.playMode?.()) {
@@ -904,6 +933,18 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const facing = options.at?.facing ?? 0;
   const pass = options.pass ?? null;
   const passLen = pass ? Math.hypot(pass.to[0] - pass.from[0], pass.to[1] - pass.from[1]) : 0;
+  /**
+   * Top the schedulers up the way the live tick does, from inside the loop.
+   *
+   * This used to be one `scheduleUntil(seconds)` after the loop had finished, which is not the same
+   * forest: every event then read `gustNow`, `canopyNow`, `forwardNow` and `occludeNow` as the LAST
+   * frame left them. A bird's gap follows the gust and its bearing follows the facing, so the twin
+   * was booking the whole take out of one instant of weather.
+   */
+  const fill = (t: number) => {
+    ambience?.scheduleUntil(Math.min(seconds, t + AMBIENCE_AHEAD));
+    music?.scheduleUntil(Math.min(seconds, t + MUSIC_AHEAD));
+  };
   for (let t = 0; t < seconds; t += step) {
     if (pass) {
       const u = Math.max(0, Math.min(1, ((t - (pass.lead ?? 0)) * pass.speed) / (passLen || 1)));
@@ -925,13 +966,15 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
       });
       footsteps?.drive(t, step, { speed: u > 0 && u < 1 ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      fill(t);
       continue;
     }
     if (options.at && spot) {
+      const th = facing + ((options.at.turn ?? 0) * Math.PI * t) / 180;
       ambience?.update(t, {
         gust: gust(t),
         listener: { x: options.at.x, y: options.at.y ?? 1.2, z: options.at.z },
-        forward: { x: Math.sin(facing), z: Math.cos(facing) },
+        forward: { x: Math.sin(th), z: Math.cos(th) },
         pods,
         fairies,
         enclosure: options.enclosure ?? spot.enclosure,
@@ -940,6 +983,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         gorge: options.gorge ?? spot.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
       });
+      fill(t);
       continue;
     }
     const leg = OFFLINE_WALK.find((l) => t < l.until) ?? lastLeg;
@@ -951,11 +995,13 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
     ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, enclosure: options.enclosure, occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure });
+    fill(t);
   }
+  // and the tail, for anything the last tick's lookahead did not reach
   ambience?.scheduleUntil(seconds);
   music?.scheduleUntil(seconds);
   const buffer = await ctx.startRendering();
-  return { wav: encodeWav(buffer), music: musicSource };
+  return { wav: encodeWav(buffer), music: musicSource, bed: ambience?.stats() ?? null };
 }
 
 /** 16-bit PCM WAV. */
