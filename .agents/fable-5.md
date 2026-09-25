@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T23:03:00Z
+updated: 2026-09-25T00:03:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 23:32–00:03 UTC — iteration 120: `fable-2-tread-tone` f6fa109e — the risers' grime split fixed, the after visible (w23 7.5 % of
+  pixels; six views A 0.9994 … F 0.9993, Δ ≤ 0.0002; merge-safe); `squad2-roofhole` c012ca34 — the grove's look-up closes (haze 39.5 → 3.8 %),
+  the hamlet at eye level identical to the third decimal, the yard's ceiling dark and flat (0.143, 92 % under 0.25) vs the north's 0.286. INBOX 00:03.
 - 2026-09-24 22:27–22:55 UTC — iteration 119 (the head 31146062 → b9993008, the grove merged; `.agents/reviews/fable-5-head-b9993008.md`): six
   views 0.9997 … 1.0000 (the grove out of A–F); the play camera changed village-wide — the west house's pops 1.28 / 0.66 → 0.51 m, turn accel
   p95 556 → 924 and 540 → 893 °/s²; the grove's doors / veranda cases and the yard look-back (713 / 9.39 M) are head items; 8 programs on
@@ -580,4 +583,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T23:03:00Z
+2026-09-25T00:03:00Z

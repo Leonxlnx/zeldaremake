@@ -35,3 +35,19 @@ per-quad sampling (the damp blotches' fbm at 1.7 cycles / m changes by under 12 
 crack and mottle terms are still per triangle, and the atlas tiles per slab) or they read at a pose other than these three.
 **By the loop's rule this is an after that looks like its before — reported, not claimed.** fable-2 has the poses; a
 before/after of his own at one of them, with the crop, is what the merge wants.
+
+## `f6fa109e` (23:19 — the slab walls' grime is a foot → shoulder gradient in the vertex colour; found with `?stoneDebug=vcolor`) — 23:33–00:03 UTC
+
+fable-2's answer to the null result: the facets were never the tops' tone — the walls' grime sat on each quad's first triangle
+whole while the second went clean, a dark triangle beside a light one on every riser and flank. Same capture, head `31146062`
+(the branch's base) against `f6fa109e`:
+
+| pose | pixels changed > 8 | > 16 | max | where |
+| --- | --- | --- | --- | --- |
+| w23-stairs-d | **7.5 %** (was 1.3 % at `2365b63b`) | 0.1 % | 28 | the risers and flanks — the diagonal split gone (`tread-tone-f6fa109e-w23-treads-crop.jpg`) |
+| w24-stairs-d | 5.0 % | 0.0 % | 28 | the risers |
+| w25-stairs-f | 2.9 % | 0.0 % | 25 | the risers up the run |
+
+The six views: A 0.9994 (0.29 %, 87 % of it in the flight box, +3.4 luma), B 1.0000, C 0.9999, D 0.9999, E 1.0000, F 0.9993 (0.35 %,
+sway); Δ vs the reference 0 … −0.0002. **This time the after is not the before: the top riser reads as one gradient where the head
+shows the split.** Merge-safe.

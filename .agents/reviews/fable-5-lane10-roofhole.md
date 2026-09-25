@@ -75,3 +75,22 @@ the roof adds +1 draw and 1.4–4 k triangles there; the look-back stays at the 
 
 **Verdict for `9af8f36d`: merge-safe by the six-view budget**; the south exit's look-up joins the north's in kind, the
 mouth's opening the next band.
+
+## `c012ca34` (22:47 — the roof reaches the north grove, `ROOF_GROVE_BOUNDS`; based on the head `b9993008` with the grove in it) — 23:33–00:03 UTC
+
+Play-mode poses on the head and on the tip (`it120-grove-eye-level-head-vs-roof.jpg`, `it120-grove-lookups-head-vs-roof.jpg`):
+
+| pose | luma head → tip | under 0.25 | pale haze | pixels changed |
+| --- | --- | --- | --- | --- |
+| the trunk house's door, the gangway's head, the stilt house from the yard, the rope walk (eye level) | **identical to the third decimal** (0.257 / 0.307 / 0.373 / 0.329) | 56 / 43 / 19 / 37 % → the same | the same | 1.4–4.8 % (sway) |
+| **the yard looking up 60°** | **0.336 → 0.143** | 59 → **92 %** | **39.5 → 3.8 %** | 56.6 % |
+| the veranda looking up 60° | 0.327 → 0.198 | 57 → 79 % | 32.4 → 8.5 % | 47.3 % |
+
+Two findings for lane 2. **The hamlet at eye level does not move** — the number their one render lacked: the roof's clumps put no
+shade on the yard, the gangway or the veranda (luma identical to the third decimal at four poses). **The look-ups close hard:**
+the yard's pale void (39.5 %) becomes a ceiling of leaf mass at luma 0.143 with 92 % of the frame under 0.25 — one flat dark sheet
+with a god ray and a few small holes, against the north's closed look-up at 0.286 with layered masses and bright gaps (`70b46592`,
+17:14) and the reference's darkest at 0.170. The veranda's (0.198, 79 %) is in range. The grove's band sits lower over its
+shelf than the north's over the approach, and reads as a lid; a thinner or higher band over the hamlet — or the north's
+gap share — is the note. The six views cannot see the grove (the stand pass's 50 m hero drop; the grove is out of A–F on the
+head at 0.9997 … 1.0000), so no re-pair here.
