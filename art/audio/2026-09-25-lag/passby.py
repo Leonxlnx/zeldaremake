@@ -166,9 +166,36 @@ def tick_buzz(path, tick_hz=30.0):
     return 10 * np.log10(max(s[near].max(), 1e-30) / max(float(np.median(s[around])), 1e-30))
 
 
+def spectrogram(path, lead, secs, rows=260, cols=900, floor=-96, ceil=-30):
+    """a log-frequency spectrogram of the take from the moment he starts walking, as a dB array"""
+    x, rate = read_wav(path)
+    x = x[int(round(lead * rate)) : int(round((lead + secs) * rate))]
+    n = 8192
+    step = max(1, (len(x) - n) // cols)
+    w = np.hanning(n)
+    f = np.fft.rfftfreq(n, 1 / rate)
+    edges = np.geomspace(60, min(16000, rate / 2 - 1), rows + 1)
+    # a log axis puts several rows inside one FFT bin down low; those rows take the nearest bin
+    # rather than the floor, which is what made the first draft's bottom half a barcode
+    bins = []
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        sel = (f >= lo) & (f < hi)
+        bins.append(sel if sel.any() else np.abs(f - (lo + hi) / 2).argmin())
+    out = np.full((rows, cols), floor, dtype=float)
+    for c in range(cols):
+        i = c * step
+        if i + n > len(x):
+            break
+        p = np.abs(np.fft.rfft(x[i : i + n] * w)) ** 2
+        for r, sel in enumerate(bins):
+            out[r, c] = 10 * np.log10(max(float(p[sel].mean() if not np.isscalar(sel) else p[sel]), 1e-20))
+    return np.clip((out - floor) / (ceil - floor), 0, 1), edges
+
+
 ap = argparse.ArgumentParser()
 ap.add_argument('--takes', default='/tmp/lag')
 ap.add_argument('--out', default='')
+ap.add_argument('--spectro', default='', help='write a before/after spectrogram of the bore take here')
 a = ap.parse_args()
 
 report = json.load(open(os.path.join(a.takes, 'lag.json')))
@@ -217,59 +244,96 @@ for r in rows:
         out.append((tick_buzz(p, 30.0), max(tick_buzz(p, hz) for hz in CONTROLS)))
     print(f"{r['id']:14} {out[0][0]:>12.1f} {out[1][0]:>7.1f}   {out[0][1]:>20.1f} {out[1][1]:>7.1f}")
 
-if not a.out:
-    raise SystemExit(0)
-
 # ---- the figure: the world's own term, and what came out of the graph, before and after ---------
 W, H = 1500, 310 * len(rows) + 90
 BG, INK, DIM = (17, 19, 22), (238, 240, 243), (120, 128, 138)
 WORLD, BEFORE, AFTER = (244, 214, 120), (226, 106, 106), (120, 214, 150)
-im = Image.new('RGB', (W, H), BG)
-d = ImageDraw.Draw(im)
-f14, f17, f22 = font(14), font(17), font(22)
-d.text((28, 22), 'Running past what the world is doing: the term, and the sound that came out', font=f22, fill=INK)
-d.text((28, 52), 'gold = the world where he is  |  red = heard, before  |  green = heard, after  |  each curve scaled to its own range', font=f14, fill=DIM)
+if a.out:
+    im = Image.new('RGB', (W, H), BG)
+    d = ImageDraw.Draw(im)
+    f14, f17, f22 = font(14), font(17), font(22)
+    d.text((28, 22), 'Running past what the world is doing: the term, and the sound that came out', font=f22, fill=INK)
+    d.text((28, 52), 'gold = the world where he is  |  red = heard, before  |  green = heard, after  |  each curve scaled to its own range', font=f14, fill=DIM)
 
-for i, r in enumerate(rows):
-    top = 90 + i * 310
-    plot_h = 210
-    d.text((28, top), f"{r['id']} \u2014 {r['note']}", font=f17, fill=INK)
-    if 'before' in r and 'after' in r:
-        d.text(
-            (28, top + 22),
-            f"watching {r['watch']}  \u2014  heard {r['before']['lagM']:.2f} m behind him before, {r['after']['lagM']:.2f} m after",
-            font=f14,
-            fill=DIM,
-        )
-    x0, y0, x1, y1 = 28, top + 48, W - 28, top + 48 + plot_h
-    d.rectangle([x0, y0, x1, y1], outline=(44, 48, 54))
-    src = {'world': np.array(report['takes'][i]['trace']['world'])}
-    src.update(r['curves'])
-    for name, colour in (('world', WORLD), ('before', BEFORE), ('after', AFTER)):
-        v = src.get(name)
-        if v is None or len(v) < 4:
-            continue
-        v = np.asarray(v, dtype=float)
-        lo, hi = float(v.min()), float(v.max())
-        rng = (hi - lo) or 1.0
-        pts = [(x0 + (x1 - x0) * k / (len(v) - 1), y1 - (y1 - y0) * (val - lo) / rng) for k, val in enumerate(v)]
-        d.line(pts, fill=colour, width=2)
-    secs = len(src['world']) * report['takes'][i]['trace']['hopS']
-    # the mark: where the world passes the halfway point of the change
-    mark = report['takes'][i]['marks'].get(r['watch'])
-    if mark:
-        mx = x0 + (x1 - x0) * min(1.0, mark['atS'] / secs)
-        d.line([(mx, y0), (mx, y1)], fill=(90, 96, 104), width=1)
-        d.text((mx + 5, y0 + 4), f"halfway at {mark['atS']:.2f} s", font=f14, fill=(150, 156, 164))
-    for s in range(0, int(secs) + 1):
-        tx = x0 + (x1 - x0) * s / secs
-        d.line([(tx, y1), (tx, y1 + 5)], fill=(70, 76, 84), width=1)
-        d.text((tx + 3, y1 + 4), f'{s} s', font=f14, fill=(96, 102, 110))
-    # how far the watched band stands over the rest of the bed: where that is small the audio is
-    # weak evidence whatever the shift search says, and the model carries the claim
-    if 'before' in r:
-        contrast = float(np.percentile(r['curves']['before'], 98) - np.percentile(r['curves']['before'], 2))
-        d.text((x1 - 250, top + 22), f'band moves {contrast:.1f} dB across the take', font=f14, fill=DIM)
+    for i, r in enumerate(rows):
+        top = 90 + i * 310
+        plot_h = 210
+        d.text((28, top), f"{r['id']} \u2014 {r['note']}", font=f17, fill=INK)
+        if 'before' in r and 'after' in r:
+            d.text(
+                (28, top + 22),
+                f"watching {r['watch']}  \u2014  heard {r['before']['lagM']:.2f} m behind him before, {r['after']['lagM']:.2f} m after",
+                font=f14,
+                fill=DIM,
+            )
+        x0, y0, x1, y1 = 28, top + 48, W - 28, top + 48 + plot_h
+        d.rectangle([x0, y0, x1, y1], outline=(44, 48, 54))
+        src = {'world': np.array(report['takes'][i]['trace']['world'])}
+        src.update(r['curves'])
+        for name, colour in (('world', WORLD), ('before', BEFORE), ('after', AFTER)):
+            v = src.get(name)
+            if v is None or len(v) < 4:
+                continue
+            v = np.asarray(v, dtype=float)
+            lo, hi = float(v.min()), float(v.max())
+            rng = (hi - lo) or 1.0
+            pts = [(x0 + (x1 - x0) * k / (len(v) - 1), y1 - (y1 - y0) * (val - lo) / rng) for k, val in enumerate(v)]
+            d.line(pts, fill=colour, width=2)
+        secs = len(src['world']) * report['takes'][i]['trace']['hopS']
+        # the mark: where the world passes the halfway point of the change
+        mark = report['takes'][i]['marks'].get(r['watch'])
+        if mark:
+            mx = x0 + (x1 - x0) * min(1.0, mark['atS'] / secs)
+            d.line([(mx, y0), (mx, y1)], fill=(90, 96, 104), width=1)
+            d.text((mx + 5, y0 + 4), f"halfway at {mark['atS']:.2f} s", font=f14, fill=(150, 156, 164))
+        for s in range(0, int(secs) + 1):
+            tx = x0 + (x1 - x0) * s / secs
+            d.line([(tx, y1), (tx, y1 + 5)], fill=(70, 76, 84), width=1)
+            d.text((tx + 3, y1 + 4), f'{s} s', font=f14, fill=(96, 102, 110))
+        # how far the watched band stands over the rest of the bed: where that is small the audio is
+        # weak evidence whatever the shift search says, and the model carries the claim
+        if 'before' in r:
+            contrast = float(np.percentile(r['curves']['before'], 98) - np.percentile(r['curves']['before'], 2))
+            d.text((x1 - 250, top + 22), f'band moves {contrast:.1f} dB across the take', font=f14, fill=DIM)
 
-im.save(a.out, quality=92)
-print(f'wrote {a.out}')
+    im.save(a.out, quality=92)
+    print(f'wrote {a.out}')
+
+# ---- the bore, before and after, as a picture of the bed's top -----------------------------------
+if a.spectro:
+    take = next(t for t in report['takes'] if t['id'] == 'bore-run')
+    secs = len(take['trace']['world']) * take['trace']['hopS']
+    # where the world takes the top off: the steepest descent of its own trace, which on this path
+    # is the bore's mouth rather than the canopy edge the halfway mark sits on
+    wt = np.array(take['trace']['world'])
+    mark = int(np.argmin(np.diff(wt))) * take['trace']['hopS']
+    ROWS, COLS = 260, 900
+    W2, H2 = COLS + 260, 2 * ROWS + 210
+    im = Image.new('RGB', (W2, H2), BG)
+    d = ImageDraw.Draw(im)
+    f14, f17, f22 = font(14), font(17), font(22)
+    d.text((28, 20), 'Running in through the log arch: the bed, and when its top comes off', font=f22, fill=INK)
+    d.text((28, 48), f"{take['note']} \u2014 4.2 m/s, gust held at {report['gust']}. Same seed and path, so the birds and the leaves land together in both.", font=f14, fill=DIM)
+    for k, tag in enumerate(('before', 'after')):
+        img, edges = spectrogram(os.path.join(a.takes, f'bore-run-bed-{tag}.wav'), report['lead'], secs, ROWS, COLS)
+        y0 = 90 + k * (ROWS + 50)
+        px = im.load()
+        for r in range(ROWS):
+            for c in range(COLS):
+                v = img[ROWS - 1 - r, c]
+                px[110 + c, y0 + r] = (int(26 + v * 212), int(22 + v * 190), int(34 + v * 120))
+        d.rectangle([110, y0, 110 + COLS - 1, y0 + ROWS - 1], outline=(60, 66, 74))
+        d.text((28, y0 - 22), f"{tag} \u2014 tau 0.35 s" if tag == 'before' else f"{tag} \u2014 PLACE_TAU {report['proposedTau']} s", font=f17, fill=BEFORE if tag == 'before' else AFTER)
+        for hz in (125, 500, 2000, 8000):
+            yy = y0 + ROWS - 1 - int(ROWS * np.log(hz / edges[0]) / np.log(edges[-1] / edges[0]))
+            d.text((66, yy - 8), f'{hz // 1000}k' if hz >= 1000 else str(hz), font=f14, fill=(110, 116, 124))
+            d.line([(104, yy), (110, yy)], fill=(70, 76, 84))
+        for s in range(0, int(secs) + 1):
+            xx = 110 + int(COLS * s / secs)
+            d.line([(xx, y0 + ROWS), (xx, y0 + ROWS + 5)], fill=(70, 76, 84))
+            d.text((xx + 3, y0 + ROWS + 4), f'{s} s', font=f14, fill=(96, 102, 110))
+        mx = 110 + int(COLS * mark / secs)
+        d.line([(mx, y0), (mx, y0 + ROWS)], fill=(244, 214, 120), width=1)
+    d.text((28, H2 - 28), 'gold line: where the world takes the top off. To the right of it the "before" pane keeps its top for most of a second longer.', font=f14, fill=DIM)
+    im.save(a.spectro, quality=92)
+    print(f'wrote {a.spectro}')

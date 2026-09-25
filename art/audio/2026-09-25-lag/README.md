@@ -119,6 +119,11 @@ top (gold) falls off a cliff at 2.3 s; the new bed (green) goes with it inside a
 and the old one (red) slides down for a further second — you are well inside the log before the log
 sounds like one. `clips/bore-run-bed-{before,after}.mp3`.
 
+It is plainer still as a spectrogram, where what is being argued about is visible rather than
+inferred. The gold line is the moment the world takes the top off:
+
+![the log arch's mouth, before and after](bore.jpg)
+
 **The canopy take is better described by the second column than the first.** Its lag reads 0.25 m,
 which is small, but the take only ever received **61 %** of the level change the world asked for
 before and **79 %** after: at a run the 0.9 s had not finished arriving by the time the canopy edge
@@ -131,6 +136,28 @@ held, the flame stands only 3 to 5 dB over the bed in its own bands (60–320 Hz
 model's 1.02, and at a walk it resolves nothing at all. The peak lands at the right place in both.
 The model is exact and the audio is consistent with it; the audio does not independently confirm it.
 `clips/lantern-run-mix-{before,after}.mp3` is what a player would hear going past, mix and all.
+
+## And in the real game
+
+`live.mjs` drives play mode through the log arch three times with real key events, the character
+system's own gait, the world's own gust and the live `setInterval` tick, and records the master:
+
+```
+simFrames 1191 over 15 s   voices 5-21   steps 73, gaitDriven true   pods 62
+pageErrors []              enclosure max 1.00, 231 frames inside the bore
+```
+
+Which is worth exactly what it says. It proves the live path still works after the constants moved,
+and it proves the term the offline pass reads out of `surfaceAt` is the one the game really feeds
+the bed — the enclosure reaches 1.00 on every lap. It does **not** resolve the change: the master
+carries the score and boots at a run, and measured on the recording the 2–8 kHz band swings as
+widely between the laps as it does across the bore. That is the whole reason this lane measures
+stems, and it is worth writing down rather than quietly rendering a stem and hoping nobody asks.
+
+Two harness traps were paid for on the way and are in the script's header for the next person:
+`__ZR_PLAY__.step` with `render: true` draws through SwiftShader in seconds while the audio ticks on
+the wall clock — the first run of this logged **3 simulation frames against 12 seconds of audio** —
+and at 4.2 m/s he is out of the wood in five seconds, so he has to be put back.
 
 ## The thing that could have gone wrong, measured
 
@@ -216,7 +243,9 @@ citation only.
 npm run build
 node art/audio/2026-09-25-lag/lag.mjs --out /tmp/lag                      # the model, ~3 s, no browser
 node art/audio/2026-09-25-lag/passby.mjs --dist dist --tag after --out /tmp/lag
-python3 art/audio/2026-09-25-lag/passby.py --takes /tmp/lag --out /tmp/lag/passby.jpg
+python3 art/audio/2026-09-25-lag/passby.py --takes /tmp/lag \
+    --out /tmp/lag/passby.jpg --spectro /tmp/lag/bore.jpg
+node art/audio/2026-09-25-lag/live.mjs --dist dist --out /tmp/lag         # play mode, the live graph
 ```
 
 The `before` WAVs come from the build at `aacc71f0`, the last commit before the constants moved —
