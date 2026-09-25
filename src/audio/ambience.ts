@@ -419,7 +419,17 @@ export const BIRD_GAP_TRIM = 1.42;
  */
 export const BIRD_ANSWERS_LULL: [number, number] = [0.5, 1.8];
 
-export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
+/**
+ * Layers an offline take can switch off, so the lane can ask what each one is worth.
+ *
+ * Every random draw still happens and every node is still built — a muted layer is simply not
+ * connected to the output. A take with one layer off is therefore the SAME forest with one thing
+ * silent, rather than a different forest: the birds call at the same moments whether the leaves are
+ * heard or not, which is the only way the difference between two takes is the layer and not the seed.
+ */
+export type AmbienceLayer = 'flutters' | 'birds' | 'wind';
+
+export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0, mute: ReadonlySet<AmbienceLayer> = new Set()): Ambience {
   // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
   // closes over the listener, so the wind, the leaves and the birds arrive muffled and quieter.
   // Walking through the arch used to change nothing at all except what was under the boots.
@@ -547,18 +557,21 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * cluster read as a branch shaking; a continuous band of the same noise reads as hiss.
    */
   const flutter = (t: number, centre: number, level: number, pan: number, decay: number) => {
+    // drawn before anything can return, so a muted take draws the same stream as a full one
+    const attack = 0.018 + eventRng() * 0.03;
     counts.flutters++;
+    const heard = !mute.has('flutters');
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
-    panner.connect(out);
+    if (heard) panner.connect(out);
     const send = gain(ctx, FLUTTER_SEND);
-    panner.connect(send).connect(reverbSend);
+    if (heard) panner.connect(send).connect(reverbSend);
     const bp = filter(ctx, 'bandpass', centre, 1.1);
     const lp = filter(ctx, 'lowpass', centre * 2.6, 0.7);
     const g = gain(ctx, 0);
     leafSrc.connect(bp);
     bp.connect(lp).connect(g).connect(panner);
-    adEnvelope(g.gain, t, level, 0.018 + eventRng() * 0.03, decay);
+    adEnvelope(g.gain, t, level, attack, decay);
     cleanupAt(ctx, t + decay + 0.4, () => {
       try {
         leafSrc.disconnect(bp);
@@ -646,9 +659,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const g = gain(ctx, 0);
     g.connect(reach);
     reach.connect(hp);
-    hp.connect(lp).connect(panner).connect(out);
+    hp.connect(lp).connect(panner);
+    if (!mute.has('birds')) panner.connect(out);
     const send = gain(ctx, birdWet(distance));
-    panner.connect(send).connect(reverbSend);
+    if (!mute.has('birds')) panner.connect(send).connect(reverbSend);
     // and all four keep following him until the call is over (see `turning`)
     turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, x: perch.x, z: perch.z, until: end });
     cleanupAt(ctx, end + 0.5, () => {
@@ -1010,9 +1024,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
-    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
+    const windOff = mute.has('wind') ? 0 : 1;
+    canopyGain.gain.setTargetAtTime(windOff * (CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
     canopyMod.gain.setTargetAtTime(sw, t, 0.9);
-    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
+    hushGain.gain.setTargetAtTime(windOff * (HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST), t, 0.55);
     hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
     // pods: the NEAREST lantern sets the level; the rest of the village adds a fifth each
     let sum = 0;
