@@ -953,13 +953,17 @@ const droids: Shot = {
       sb.setIgnite(i === 0 ? ign : smooth(3.0, 3.35, t), Math.sin(T * 70 + i) * 0.5);
     });
     // droid line
+    // two staggered ranks a few metres in front of the Jedi (the anchor marks the back line)
+    const front = mid.clone().add(toDroids.clone().multiplyScalar(17));
+    const facing = new Quaternion().setFromAxisAngle(v3(0, 1, 0), yaw + Math.PI);
+    const perRow = Math.ceil(w.droids.length / 2);
     w.droids.forEach((d, i) => {
       d.group.visible = true;
-      const n = w.droids.length;
-      const off = (i - (n - 1) / 2) * 3.2;
-      const dside = v3(1, 0, 0).applyQuaternion(s.Dq);
-      d.group.position.copy(s.D).add(dside.multiplyScalar(off)).add(v3(0, 0, 0));
-      d.group.quaternion.copy(s.Dq);
+      const row = i < perRow ? 0 : 1;
+      const k = row === 0 ? i : i - perRow;
+      const off = (k - (perRow - 1) / 2) * 3.4 + row * 1.7;
+      d.group.position.copy(front).add(side.clone().multiplyScalar(off)).add(toDroids.clone().multiplyScalar(row * 3.4));
+      d.group.quaternion.copy(facing);
       const aim = smooth(1.2 + i * 0.08, 1.8 + i * 0.08, t);
       d.pose({ aim, headTilt: t > 3.5 ? Math.sin(t * 6 + i) * 0.15 : 0, lookYaw: t > 3.4 && i === 0 ? -0.4 : 0 });
     });
@@ -973,11 +977,11 @@ const droids: Shot = {
       w.aimShadow(obiPos, 20, v3(0.2, 1, 0.3).normalize());
       return { pos: camPos, target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(head), aperture: 7, exposure: 1.12 } };
     }
-    camPos = mid.clone().sub(toDroids.clone().multiplyScalar(9)).add(v3(0, 5.5, 0)).add(side.clone().multiplyScalar(1.5));
-    look = s.D.clone().lerp(mid, 0.55).add(v3(0, 2.4, 0));
+    camPos = mid.clone().sub(toDroids.clone().multiplyScalar(lerp(6.2, 5.2, smooth(2.4, 5.2, t)))).add(v3(0, 3.4, 0)).add(side.clone().multiplyScalar(0.8));
+    look = front.clone().lerp(mid, 0.3).add(v3(0, 2.5, 0));
     fov = 38;
     w.aimShadow(mid, 40, v3(0.2, 1, 0.3).normalize());
-    return { pos: camPos.add(shake(t, 0.05, 1, 43)), target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(s.D), aperture: 3, exposure: 1.12 } };
+    return { pos: camPos.add(shake(t, 0.05, 1, 43)), target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(front), aperture: 2.5, exposure: 1.12 } };
   },
 };
 
