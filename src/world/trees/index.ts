@@ -2923,7 +2923,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const giantGroup = new Group();
   giantGroup.name = 'giants';
   if (nearCanopyBatch) giantGroup.add(nearCanopyBatch.mesh);
-  const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
+  const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number; heroDistance: number }[] = [];
   const contacts: [number, number, number][] = [];
   /** the contacts of the giants seated on the live ground (`southSeat` below), for the base-gap audit */
   const liveContacts = new Set<[number, number, number]>();
@@ -3121,6 +3121,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const canopyBoughs: CanopyBough[] = CANOPY_BOUGHS.filter((b) => b.giant === def.id).map(toLocalBough);
     const detachedSpecs = DETACHED_BOUGHS.filter((b) => b.giant === def.id);
     const detachedBoughs: CanopyBough[] = detachedSpecs.map(toLocalBough);
+    // the nearest hero camera that holds this giant in its forward cone (the frames' horizontal half
+    // angle is 37–38°, so 0.5 · |f| · d is 60°: in shot or just past its edge). It gates the near-bole
+    // bark below, and the audit reports it beside each giant's wood so a rung proposal can see which
+    // of the heavy trees a fixed frame actually looks at.
+    const heroDistance = Math.min(
+      ...ctx.layout.viewpoints.map((v) => {
+        const fx = v.target[0] - v.position[0];
+        const fz = v.target[2] - v.position[2];
+        const dx = px - v.position[0];
+        const dz = pz - v.position[2];
+        const d = Math.hypot(dx, dz);
+        return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
+      }),
+    );
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => giantTerrain.height(px + lx, pz + lz) - gy,
       limbSpec,
@@ -3164,16 +3178,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // its edge). The south giants stand 13–23 m from cameras A and F but 65–120° off their axes,
       // and are only ever seen as hazed columns 28–35 m into shot C, where the relief measured
       // −0.013 SSIM. GIANT_PROFILES.relief overrides this (the lantern tree).
-      heroDistance: Math.min(
-        ...ctx.layout.viewpoints.map((v) => {
-          const fx = v.target[0] - v.position[0];
-          const fz = v.target[2] - v.position[2];
-          const dx = px - v.position[0];
-          const dz = pz - v.position[2];
-          const d = Math.hypot(dx, dz);
-          return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
-        }),
-      ),
+      heroDistance,
       nearCanopy: { defer: true },
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
@@ -3265,7 +3270,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     // the giant's bole joins the seats under its layout id (giants are only translated: yaw 0, scale 1)
     trunkSeats.push(trunkSeatFromRings(def.id, origin, 0, 1, asset.trunkPath.map((p) => p.clone().add(origin)), asset.trunkRadii, asset.bareHeight));
-    giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
+    giants.push({ def, asset, origin, angle: Math.atan2(pz, px), heroDistance });
     attachGiantNearParts(giants[giants.length - 1]);
     pruneNearPools();
     for (const c of asset.contacts) {
@@ -4376,6 +4381,30 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** per giant, its un-authored big limbs' azimuths (0° = +x, 90° = +z); 'g' = ghosted (GiantProfile.wildLimbGhost) */
       giantWildLimbs: Object.fromEntries(giants.map((g) => [g.def.id, g.asset.wildLimbs.map((l) => `${l.azimuthDeg}${l.ghost ? 'g' : ''}`)])),
       giantLeaves,
+      /**
+       * Where a giant's WOOD triangles are, one row per giant, heaviest first — the question the
+       * family total (`submission.byFamily['giant-wood']`, 1.51 M) cannot answer and the reason a rung
+       * for it could not be designed (art/environment/squad2-2026-09-23/giantwood/CORRECTION.md).
+       *
+       *   [id, wood triangles, of them the relief bole, of them the authored boughs' dressing,
+       *    the rest (plain sweep, wild limbs, buttress roots), the tree's LEAF triangles in the same
+       *    mesh, the nearest hero camera holding it in its forward cone (m, null when none does —
+       *    that is what gates the relief bole)]
+       *
+       * The leaf column matters: a giant's laminae share the geometry its wood is in (the sector mesh
+       * is grouped 1 wood + GIANT_LEAF_BANDS leaf bands per giant), so the family the audit calls
+       * `giant-wood` is wood AND leaves. Measured on the head, the wood is a sixth of it.
+       *
+       * The near base is NOT in these totals: it is pooled and drawn only inside NEAR_BASE_IN_M
+       * (`nearBase.boles` has its own per-bole rows).
+       */
+      giantWoodByTree: [...giants]
+        .map((g) => {
+          const bark = g.asset.bark?.triangles ?? 0;
+          const boughs = g.asset.boughDress.reduce((n, b) => n + b.triangles, 0);
+          return [g.def.id, g.asset.woodTriangles, bark, boughs, g.asset.woodTriangles - bark - boughs, g.asset.leafTriangles, Number.isFinite(g.heroDistance) ? Math.round(g.heroDistance * 10) / 10 : null] as [string, number, number, number, number, number, number | null];
+        })
+        .sort((a, b) => b[1] - a[1]),
       /** of `giantLeaves`, the authored canopy-bough lobes' laminae, drawn from their own non-casting mesh */
       giantAuthoredLeaves,
       giantAuthoredLeavesCast: sectorMeshes.some((m) => m.userData.kind === 'giant-authored-leaves' && m.castShadow),
