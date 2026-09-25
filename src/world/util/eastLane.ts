@@ -155,6 +155,19 @@ export function eastSpheres(casters: Caster[], sunDir: Vector3): Sphere[] {
   return casters.flatMap((c) => casterSpheres(c, sunDir));
 }
 
+/**
+ * The index range (start, count) that draws the runs flagged in `on` out of a bucket whose runs
+ * lie one after another (`ends[k]` = where run k's indices end): from the first flagged run's
+ * start to the last one's end, the runs between included. Nothing flagged draws nothing.
+ */
+export function eastRunRange(on: readonly boolean[], ends: readonly number[]): [number, number] {
+  const first = on.indexOf(true);
+  if (first < 0) return [0, 0];
+  const last = on.lastIndexOf(true);
+  const start = first === 0 ? 0 : ends[first - 1];
+  return [start, ends[last] - start];
+}
+
 const _m = new Matrix4();
 const _f = new Frustum();
 const _p = new Vector3();

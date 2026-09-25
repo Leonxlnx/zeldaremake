@@ -37,6 +37,7 @@
  */
 import {
   AddEquation,
+  Box3,
   BoxGeometry,
   BufferGeometry,
   CatmullRomCurve3,
@@ -45,6 +46,7 @@ import {
   CylinderGeometry,
   DstColorFactor,
   Float32BufferAttribute,
+  Frustum,
   Group,
   LatheGeometry,
   type Material,
@@ -70,7 +72,7 @@ import {
 import { EXPANSION_EAST, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
 import { applyShadeFloor } from '../materials/shadeFloor';
 import type { WalkSurface, WorldContext } from '../system';
-import { EAST_DETAIL_M, EAST_GREEN, EAST_OVER_Y, EAST_SEEN_M, EAST_VISIBLE_M, eastHouseCasters, eastInReach, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
+import { EAST_DETAIL_M, EAST_GREEN, EAST_OVER_Y, EAST_SEEN_M, EAST_VISIBLE_M, eastHouseCasters, eastInReach, eastLookoutCasters, eastPostCasters, eastRunRange, eastSpheres } from '../util/eastLane';
 import { frustumMeets, sunVector, type Caster } from '../util/expansionLocality';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -1834,12 +1836,20 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     });
     return n;
   };
-  // the moss tufts as one tier across the lane: the houses stand within 13 m of each other and of
-  // the green (every pose on the lane is within EAST_DETAIL_M of all three), so the caps', trunks'
-  // and feet's cushions merge into one bucket
+  // the moss tufts as one tier across the lane: the caps', trunks' and feet's cushions merge into one
+  // bucket (they cast nothing), in which each house's and the lookout's foot moss lie together as a
+  // run of their own (TUFT_RUNS), so a frame draws only the runs from the first in view to the last
   const detail = new Group();
   detail.name = 'structures-east-near';
   const nearTris = houses.map(() => 0);
+  /**
+   * The tufts' runs in bucket order: the tall house, the shop, the small house, then the lookout's
+   * foot moss. The walking views that leave a house out take in the shop and the small house (the
+   * green looking back), the small house and the lookout (the lookout looking west) or the three
+   * houses (the deck): each set lies together in this order.
+   */
+  const TUFT_RUNS = [...(['tall', 'shop', 'small'] as const).map((k) => EXPANSION_EAST.houses.findIndex((h) => h.kind === k)), -1];
+  const tuftRunOf = new Map<Object3D, number>();
   houses.forEach((hb, i) => {
     for (const child of [...hb.group.children]) {
       const m = child as Mesh;
@@ -1852,6 +1862,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
         m.renderOrder = 0;
         nearTris[i] += tri(m.geometry);
         detail.add(child);
+        tuftRunOf.set(child, TUFT_RUNS.indexOf(i));
         movedNear++;
       } else if (m.isMesh) {
         // the lichen lies flat on the bark and the threshold slab flat on the ground: their shadows
@@ -1863,10 +1874,16 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     }
     for (const child of [...hb.group.children]) core.add(child);
   });
-  for (const g of [...near, lane]) {
-    for (const child of [...g.children]) (EAST_TUFTS.test(child.name) ? detail : core).add(child);
+  [...near, lane].forEach((g, i) => {
+    for (const child of [...g.children]) {
+      if (!EAST_TUFTS.test(child.name)) core.add(child);
+      else {
+        detail.add(child);
+        tuftRunOf.set(child, TUFT_RUNS.indexOf(i < near.length ? i : -1));
+      }
+    }
     g.removeFromParent();
-  }
+  });
   group.add(rooms, roomsNear, detail);
 
   // ---- visibility: casters (with their sun shadows) per tier ----
@@ -1909,6 +1926,22 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       return w0 * (1 - t) + w * t <= w1 + wide && w1 * (1 - t) + w * t >= w0 - wide;
     });
   let roomsFaced = true;
+  /**
+   * The tufts' bucket as merged (`consolidate`), where each of TUFT_RUNS' indices end, each run's
+   * box and the plan point its reach is measured from (the house's trunk axis, the lookout moss's
+   * box centre): a run draws while the camera is within EAST_DETAIL_M of that point and the
+   * frustum meets its box, and the frame draws from the first such run to the last.
+   */
+  const tufts = {
+    mesh: null as Mesh | null,
+    ends: [] as number[],
+    triangles: TUFT_RUNS.map(() => 0),
+    boxes: TUFT_RUNS.map(() => new Box3()),
+    at: TUFT_RUNS.map(() => ({ x: 0, z: 0 })),
+    on: TUFT_RUNS.map(() => false),
+  };
+  const _tuftFrustum = new Frustum();
+  const _tuftM = new Matrix4();
   const _p = new Vector3();
   const update = (camera: Camera) => {
     camera.getWorldPosition(_p);
@@ -1919,6 +1952,15 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     roomsFaced = doorFaces(_p);
     rooms.visible = on && roomsFaced;
     roomsNear.visible = detail.visible && roomsFaced;
+    if (tufts.mesh) {
+      _tuftFrustum.setFromProjectionMatrix(_tuftM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+      for (let k = 0; k < TUFT_RUNS.length; k++) {
+        const at = tufts.at[k];
+        tufts.on[k] = detail.visible && Math.hypot(_p.x - at.x, _p.z - at.z) < EAST_DETAIL_M && _tuftFrustum.intersectsBox(tufts.boxes[k]);
+      }
+      const [start, count] = eastRunRange(tufts.on, tufts.ends);
+      tufts.mesh.geometry.setDrawRange(start, count);
+    }
   };
 
   let draws = { before: 0, after: 0, merged: 0 };
@@ -1946,12 +1988,31 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       into.add(mesh);
       podMeshes.push(mesh);
     }
+    // the tufts in run order: the merge appends each mesh's indices in the order it meets them
+    const runOf = (o: Object3D) => tuftRunOf.get(o) ?? TUFT_RUNS.length - 1;
+    detail.children.sort((a, b) => runOf(a) - runOf(b));
+    detail.updateMatrixWorld(true);
+    const runIndices = TUFT_RUNS.map(() => 0);
+    for (const c of detail.children) {
+      const m = c as Mesh;
+      if (!m.isMesh || !m.geometry.index) continue;
+      runIndices[runOf(c)] += m.geometry.index.count;
+      tufts.boxes[runOf(c)].union(new Box3().setFromObject(m));
+    }
     const out = { before: 0, after: 0, merged: 0 };
     for (const g of [core, detail, rooms, roomsNear]) {
       const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern');
       out.before += r.before;
       out.after += r.after;
       out.merged += r.merged;
+    }
+    const tuftMeshes = detail.children.filter((c) => (c as Mesh).isMesh) as Mesh[];
+    if (tuftMeshes.length === 1 && tuftMeshes[0].geometry.index?.count === runIndices.reduce((a, b) => a + b, 0)) {
+      tufts.mesh = tuftMeshes[0];
+      let n = 0;
+      tufts.ends = runIndices.map((c) => (n += c));
+      tufts.triangles = runIndices.map((c) => c / 3);
+      tufts.at = TUFT_RUNS.map((i, k) => (i >= 0 ? { x: sites[i].h.x, z: sites[i].h.z } : { x: (tufts.boxes[k].min.x + tufts.boxes[k].max.x) / 2, z: (tufts.boxes[k].min.z + tufts.boxes[k].max.z) / 2 }));
     }
     for (const [tier, material, cell] of PROXY_CELLS) {
       tier.traverse((o) => {
@@ -2028,7 +2089,15 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     /** the casters the shadow pass draws from a coarser triangle list (shadowProxy.ts), and the shadow triangles that saves when all of them cast */
     shadowProxies: { casters: proxies, saved: proxies.reduce((n, p) => n + p.fine - p.coarse, 0) },
     coreTriangles: countTris(core),
-    nearTriangles: countTris(detail),
+    nearTriangles: tufts.mesh ? tufts.triangles.reduce((a, b) => a + b, 0) : countTris(detail),
+    /** the tufts' runs in their bucket (TUFT_RUNS): triangles each, which the current frame draws, and the triangles it submits */
+    tuftRuns: {
+      order: TUFT_RUNS.map((i) => (i >= 0 ? EXPANSION_EAST.houses[i].id : 'lookout')),
+      triangles: tufts.triangles,
+      on: [...tufts.on],
+      boxes: tufts.boxes.map((b) => [...b.min.toArray(), ...b.max.toArray()].map((v) => +v.toFixed(2))),
+      drawnTriangles: tufts.mesh && detail.visible ? tri(tufts.mesh.geometry) : 0,
+    },
     roomTriangles: countTris(rooms),
     roomNearTriangles: countTris(roomsNear),
     draws,

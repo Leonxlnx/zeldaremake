@@ -913,6 +913,14 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
   for (const v of LAYOUT.viewpoints) assert.equal(E.eastInReach(at(v.position)), false, `${v.id}: the east lane is out of reach`);
   for (const p of [[-0.2, 2.1, 3.1], [1.4, 1.75, -10.2], [4.8, 2.6, 43.6], [4.45, 1.0, 35.8], [5.2, 6.05, -50]]) assert.equal(E.eastInReach(at(p)), false, `the east lane is out of reach from ${fmt(p[0], p[2])} (${p[1]} m up)`);
   for (const p of [[17.4, 6.95, -7.5], [31.3, 7.3, -4.5], [46.4, 7.45, 5.2], [49.6, 7.25, 8.9], [7.3, 1.75, -0.1], [-10, 30, 20]]) assert.equal(E.eastInReach(at(p)), true, `the east lane is in reach from ${fmt(p[0], p[2])} (${p[1]} m up)`);
+  // the moss tufts' draw range (structures/east.ts TUFT_RUNS): from the first run in view to the last
+  const ends = [30, 90, 120, 126];
+  assert.deepEqual(E.eastRunRange([false, false, false, false], ends), [0, 0], 'no run in view draws nothing');
+  assert.deepEqual(E.eastRunRange([true, true, true, true], ends), [0, 126], 'every run');
+  assert.deepEqual(E.eastRunRange([false, true, true, false], ends), [30, 90], 'the middle two');
+  assert.deepEqual(E.eastRunRange([false, false, true, true], ends), [90, 36], 'the last two');
+  assert.deepEqual(E.eastRunRange([true, false, false, true], ends), [0, 126], 'the first and the last draw the runs between');
+  assert.deepEqual(E.eastRunRange([false, false, false, true], ends), [120, 6], 'the last alone');
 }
 
 console.log('expansion2.test.mjs: ok');
