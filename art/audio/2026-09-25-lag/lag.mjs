@@ -65,6 +65,11 @@ fs.mkdirSync(out, { recursive: true });
 const root = path.resolve(here, '../../..');
 const AUDIO = loadTs(path.join(root, 'src/audio/index.ts'));
 const AMB = loadTs(path.join(root, 'src/audio/ambience.ts'));
+/**
+ * The 62 pod lanterns as the scene reports them. A file rather than a live read so the model needs
+ * no browser; refresh it from a page with `__ZR_AUDIO__.stats().podSpots` (see
+ * `2026-09-25-occlusion/shadow.mjs`) if the village gains or loses lanterns.
+ */
 const PODS = JSON.parse(fs.readFileSync(path.join(here, 'pods.json'), 'utf8'));
 
 const TICK = AUDIO.TICK_MS / 1000;

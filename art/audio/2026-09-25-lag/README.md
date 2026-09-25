@@ -14,7 +14,7 @@ The bed's spatial terms shipped on five different constants — **0.9 s** on the
 `RUN_GROUND_SPEED`) those are 3.8, 2.5, 1.5, 1.3 and 0.5 metres of ground.
 
 They are now one constant, `ambience.ts` `PLACE_TAU = 0.05` — one and a half ticks of the 30 Hz
-update — and the same journeys arrive within **0.3 m** of him.
+update — and the same journeys arrive within **0.31 m** of him.
 
 ## Why nothing had seen it
 
