@@ -117,6 +117,28 @@ export const PERCH_RESEED_M = 25;
 export const PERCH_FAR_M = 28;
 
 /**
+ * How long the one pink buffer the whole bed is tapped off runs before it comes round again, and
+ * how much slower the second tap plays it.
+ *
+ * It was nine seconds, and both wind layers played it — one from the start and one from a third of
+ * the way in, on the reasoning that an offset made them "not the same noise". An offset is the same
+ * noise delayed. Measured on five minutes of standing still (`art/audio/2026-09-25-loop/`), the
+ * bed's waveform correlated **+0.30 with itself at nine seconds, +0.32 at eighteen and +0.51 at
+ * twenty-seven** — half the forest, at twenty-seven second intervals, was a literal repeat.
+ *
+ * Nineteen seconds costs about 3.5 MB more of buffer and moves the repeat out past where an ear
+ * holds on to it. The rate is the other half: pink noise is self-similar under time-scaling, so a
+ * tap played at `LEAF_RATE` is still pink and is no longer the first tap at any lag. 0.84 is chosen
+ * to be well clear of any simple ratio — at 5/6 or 4/5 the two would re-align every few loops.
+ */
+export const PINK_SECONDS = 19;
+export const LEAF_RATE = 0.84;
+export const FLAME_RATE = 0.71;
+/** how far the taps' rate wanders, and how slowly — enough to smear the loop, far too little to hear */
+export const PINK_DRIFT = 0.02;
+export const PINK_DRIFT_HZ = 0.03;
+
+/**
  * What a full shadow does to a call: how much of its level it keeps, and how far its top comes down.
  *
  * Not symmetrical, because a shadow is not a fader. An obstacle wide enough to matter removes the
@@ -322,7 +344,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const enclosureLp = filter(ctx, 'lowpass', ENCLOSURE_OPEN_HZ, 0.7);
   const out = gain(ctx, 1);
   out.connect(enclosureLp).connect(outBus);
-  const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), 9);
+  const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), PINK_SECONDS);
   const nodes: AudioScheduledSourceNode[] = [];
   /** one always-running pink source every layer taps (a per-layer source would cost a buffer each) */
   const bedSrc = ctx.createBufferSource();
@@ -330,12 +352,28 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   bedSrc.loop = true;
   bedSrc.start(startAt);
   nodes.push(bedSrc);
-  // a second tap started a third of the loop later, so the two wind layers are not the same noise
+  // The second wind layer plays the same buffer SLOWER rather than three seconds into it. An offset
+  // is the same noise delayed — which is what the old comment here claimed was "not the same noise"
+  // — and two taps of one loop put a hard repeat into everything downstream of them. Pink noise is
+  // self-similar under time-scaling (1/f stays 1/f, give or take a decibel of level), so this is
+  // still pink; what it is not is the other tap, at any lag.
   const leafSrc = ctx.createBufferSource();
   leafSrc.buffer = pink;
   leafSrc.loop = true;
+  leafSrc.playbackRate.value = LEAF_RATE;
   leafSrc.start(startAt, pink.duration / 3);
   nodes.push(leafSrc);
+  // Even one tap of one loop repeats itself, and lengthening the buffer only buys seconds per
+  // megabyte. Letting the rate wander a couple of per cent on a slow random walk means the loop
+  // never comes round to the same place twice: the phase drifts, and a repeat that never lines up
+  // is not a repeat. Inaudible in itself — noise has no pitch to shift — and it costs one envelope.
+  const drift = (src: AudioBufferSourceNode, seed: string) => {
+    const cs = controlSource(ctx, controlNoiseBuffer(ctx, rng.fork(seed), { hz: PINK_DRIFT_HZ, shape: 1, seconds: 53 }), PINK_DRIFT, 120, startAt);
+    cs.out.connect(src.playbackRate);
+    nodes.push(cs.src);
+  };
+  drift(bedSrc, 'beddrift');
+  drift(leafSrc, 'leafdrift');
 
   const wander = (hz: number, shape: number, seed: string) => controlNoiseBuffer(ctx, rng.fork(seed), { hz, shape, seconds: 47 });
   /** an irregular envelope added to a param's own value (its automation stays the floor) */
@@ -386,11 +424,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   flameGain.connect(flamePan).connect(out);
   const flameSend = gain(ctx, 0.45);
   flameGain.connect(flameSend).connect(reverbSend);
+  // the third tap of the same buffer, and the one that matters most for a repeat: standing a metre
+  // from a pod the flame is the loudest never-stopping thing in the world. Its own rate and its own
+  // wander, for the reason the other two have theirs.
   const flameSrc = ctx.createBufferSource();
   flameSrc.buffer = pink;
   flameSrc.loop = true;
+  flameSrc.playbackRate.value = FLAME_RATE;
   flameSrc.start(startAt, pink.duration * 0.66);
   nodes.push(flameSrc);
+  drift(flameSrc, 'flamedrift');
   const flameLp = filter(ctx, 'lowpass', 320, 0.8);
   const flameBody = gain(ctx, 0.35);
   flameSrc.connect(flameLp).connect(flameBody).connect(flameGain);

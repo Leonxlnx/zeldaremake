@@ -419,6 +419,37 @@ test('a bird keeps its tree while he turns on the spot', () => {
   assert.ok(Math.max(...[...north.values()].map(Math.abs)) <= A.PERCH_PAN + 1e-9, 'no bird may sit outside PERCH_PAN');
 });
 
+test('the forest does not play the same nine seconds over and over', () => {
+  // The whole bed is tapped off one pink buffer. It was nine seconds long and both wind layers
+  // played it — one from the start and one a third of the way in, on the reasoning that an offset
+  // made them "not the same noise". An offset is the same noise delayed. Five minutes standing
+  // still correlated +0.51 with itself at 27 s (`art/audio/2026-09-25-loop/`).
+  assert.ok(A.PINK_SECONDS >= 15, `a ${A.PINK_SECONDS} s loop comes round inside the time an ear holds on to it`);
+  assert.notEqual(A.LEAF_RATE, 1, 'the second tap must not play the same buffer at the same rate as the first');
+  // and not at a rate that re-aligns with it every few loops, which is the same fault with a longer
+  // period: 5/6 or 4/5 would put the two back in step after six or five times round
+  for (let k = 1; k <= 8; k++) {
+    const off = Math.abs(k * A.LEAF_RATE - Math.round(k * A.LEAF_RATE));
+    assert.ok(off > 0.03, `${k} turns of the second tap land within ${off.toFixed(3)} of a whole turn of the first — they re-align every ${k}`);
+  }
+  assert.ok(A.PINK_DRIFT > 0 && A.PINK_DRIFT < 0.06, 'the rate wander has to exist and has to be small enough that noise stays noise');
+  assert.ok(A.PINK_DRIFT_HZ < 0.2, 'a fast wander is an effect; this one has to be slower than the gusts');
+});
+
+test('both taps of the pink buffer are driven, and driven differently', () => {
+  const { ctx } = bed({ seed: 'loop' });
+  // by the pink buffer's own length: the flame taps a different looping stereo buffer
+  const sources = ctx.made.source.filter((s) => s.buffer && s.loop && Math.abs(s.buffer.duration - A.PINK_SECONDS) < 0.5);
+  assert.ok(sources.length >= 2, `${sources.length} looping stereo sources — the bed taps the pink buffer twice`);
+  const rates = sources.map((s) => s.playbackRate.value);
+  assert.ok(new Set(rates).size > 1, `both taps play at ${rates.join(', ')} — one loop at one rate is one loop`);
+  // every tap has an envelope on its rate, so neither comes round to the same place twice
+  for (const src of sources) {
+    const driven = ctx.made.gain.some((g) => g.outputs.includes(src.playbackRate));
+    assert.ok(driven, 'a tap with a fixed rate repeats exactly; each one needs its wander');
+  }
+});
+
 test('walking far enough puts him among different birds', () => {
   const heard = (moveM) => {
     const { amb } = bed({ seed: 'perch/move' });
