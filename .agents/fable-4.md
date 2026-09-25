@@ -537,3 +537,12 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 13:40 — #127 (trees cpuArrays) merged 12:55. squad2's lookbacks: white-barks cheap (76/73 K), trees +0.17 M of the
   +2.19 M. Answered their giants-shadow question (hooks not called in the depth pass; a shadow-only low mesh per giant is the
   lever, a look call) and asked lane 3 for a 4-line USE_BATCHING hook in materials.ts to batch the columns' lobes too.
+- 2026-09-25 15:20 — the depth pass attributed to the trees (round54-shadow-attrib): 1.32 M of 2.91 M at A; the giants' three
+  sectors 36 draws / 755 K (every group casts — squad2's 0 was its flag), columns 0.30 M, white-barks 0.18 M, understory 0.05 M.
+  The lever: a shadow-only low mesh per giant (look call, offered). INBOX 15:20 to squad2, cc fable-cursor.
+- 2026-09-25 15:35 — reconciled squad2's DEPTH-SPLIT (trees 19 %) with mine (45 %): `submitGiants()` re-arms the sectors'
+  castShadow at every cull, so their build-time flags were overwritten; their −0.56 M is the InstancedMesh families + near bases,
+  the sectors add 0.76 M. Split corrected in the INBOX: trees 45 / solid 44 / veg 10 %. The giants' shadow proxy stays the offer.
+- 2026-09-25 16:45 — the builders relaunched (east/south2/ruins, all on the head); the east × ruins trees resolution refreshed on
+  the current tips: `agent/fable-4-trees-merge3` e09a2c29 (four hunks both sides, tsc/build/tests green), the patch against
+  ecaf3df7's trees file; INBOX to fable-cursor and the builders. squad2's giantwood (no distance rung on the giants' boles) noted.

@@ -555,3 +555,149 @@ test('a term that moved because HE did arrives at his pace, not the weather\u201
   const weatherTaus = new Set(held.map(({ p }) => [...p.events].reverse().find((e) => e[0] === 'tgt')?.[3]).filter((v) => v !== A.PLACE_TAU && v !== undefined));
   assert.ok(weatherTaus.size > 0, 'nothing is left on a weather time — either the split is gone or the fake no longer records it');
 });
+
+test('a call booked four seconds ago comes from the tree, not from where he was looking', () => {
+  // `scheduleBirds` runs on a four-second lookahead, so a call's bearing used to be decided up to
+  // four seconds before it was heard — and an answering call up to six and a half. Walking does not
+  // matter (a perch is a bearing from the anchor, deliberately), but turning does, and turning is
+  // what a player does most. Measured, a call swept the same 0.1 pan units standing still as it did
+  // at sixty degrees a second (`art/audio/2026-09-25-turning/`).
+  //
+  // `windDir` is left out on purpose: then the ONLY panner in the bed that answers a change of
+  // facing is a bird's, so the live voices identify themselves and the test does not have to know
+  // the graph's shape.
+  const { ctx, amb } = bed({ seed: 'turn/guard' });
+  const N = { x: 0, z: -1 };
+  const S = { x: 0, z: 1 };
+  const base = { gust: 0.5, listener: LISTENER, pods: [], canopy: 1 };
+  let t = 0;
+  let pending = [];
+  // run until the wood has booked a call that has not sounded yet — that is the one this is about
+  for (; t < 600; t += 1 / 30) {
+    amb.update(t, { ...base, forward: N });
+    amb.scheduleUntil(t + 4);
+    pending = amb.stats().birdSpots.filter(([, , , at]) => at > t + 0.5);
+    if (pending.length > 0 && amb.stats().birds > 6) break;
+  }
+  assert.ok(pending.length > 0, 'nothing is booked ahead of the clock, so there is nothing to keep up');
+  // one more tick facing north, so a voice created by the tick that broke the loop has been aimed
+  // once before the snapshot — otherwise its target is still whatever the node was built with
+  t += 1 / 30;
+  amb.update(t, { ...base, forward: N });
+  const before = ctx.made.panner.map((p) => p.pan.target);
+  amb.update(t, { ...base, forward: S });
+  const moved = ctx.made.panner.map((p, i) => ({ i, before: before[i], after: p.pan.target })).filter((r) => Math.abs(r.after - r.before) > 1e-9);
+  assert.ok(moved.length > 0, `he turned right round and not one of ${ctx.made.panner.length} panners noticed`);
+  for (const r of moved) {
+    assert.ok(Math.abs(r.after + r.before) < 1e-9, `a bird sat at ${r.before.toFixed(3)} facing north and ${r.after.toFixed(3)} facing south — turning round must mirror it`);
+  }
+  // …and only the calls that are still going: the register has to let a finished voice go, or every
+  // bird the wood has ever sung stays on the books and follows him about for the rest of the session
+  assert.ok(moved.length <= 4, `${moved.length} voices are still being re-aimed out of ${ctx.made.panner.length} panners — finished calls are not being dropped`);
+  assert.ok(ctx.made.panner.length > moved.length * 3, 'the wood should have sung many more calls than are alive at once');
+});
+
+test('walk past a tree and the bird in it goes past you', () => {
+  // A perch used to be a bearing and a distance from the spot the wood was drawn at, held until he
+  // had walked PERCH_RESEED_M — twenty-five metres — so inside that radius a bird did not move
+  // relative to him at all. Measured on a two-minute pace along a 21 m line
+  // (`art/audio/2026-09-25-parallax/`), a call arrived a median 20 degrees from its own tree at a
+  // walk and 49 at a run, the worst of them 139 — the wrong side of him.
+  //
+  // The contract is the geometry itself: standing anywhere, a call's bearing and distance must be
+  // the ones its own tree has from THERE. `perchSpots` publishes where the trees are.
+  const { amb } = bed({ seed: 'perch/parallax' });
+  const N = { x: 0, z: -1 };
+  const base = { gust: 0.5, forward: N, pods: [], canopy: 1 };
+  const runAt = (x, z, from, until) => {
+    for (let t = from; t < until; t += 1 / 30) {
+      amb.update(t, { ...base, listener: { x, y: 1.2, z } });
+      amb.scheduleUntil(t + 4);
+    }
+    return amb.stats();
+  };
+  // stand at the origin long enough to draw the wood and hear it, then twelve metres east — well
+  // inside the re-seed radius, so it must be the SAME six birds seen from a different place
+  const a = runAt(0, 0, 0, 90);
+  const seenAt = (stats, since) => stats.birdSpots.filter(([, , , at]) => at >= since);
+  const first = seenAt(a, 0);
+  assert.ok(first.length >= 3, `only ${first.length} calls in ninety seconds`);
+  const b = runAt(12, 0, 90, 200);
+  const perches = new Map(b.perchSpots.map(([kind, x, z]) => [kind, { x, z }]));
+  assert.equal(perches.size, 6, 'the wood must not have been re-seeded: twelve metres is inside PERCH_RESEED_M');
+  assert.ok(A.PERCH_RESEED_M > 12, 'this test assumes twelve metres does not re-seed');
+
+  // every call made while he stood at (12, 0) must point at its own tree from there
+  for (const [kind, pan, distance, at] of seenAt(b, 91)) {
+    const p = perches.get(kind);
+    const want = A.panFor(N, { x: p.x - 12, z: p.z - 0 }) * A.PERCH_PAN;
+    const wantD = Math.min(1, Math.hypot(p.x - 12, p.z) / A.PERCH_FAR_M);
+    // birdSpots publishes to three decimals, so that is the tolerance
+    assert.ok(Math.abs(pan - want) < 1e-3, `the ${kind} at ${at.toFixed(1)} s came from ${pan.toFixed(3)} and its tree is at ${want.toFixed(3)} from where he is standing`);
+    assert.ok(Math.abs(distance - wantD) < 1e-3, `the ${kind} was given distance ${distance.toFixed(3)} and its tree is ${wantD.toFixed(3)} away`);
+  }
+  // …and the move has to have been worth something: the same bird must not be in the same place
+  const panOf = (stats, since) => {
+    const m = new Map();
+    for (const [kind, pan, , at] of stats.birdSpots) if (at >= since) m.set(kind, pan);
+    return m;
+  };
+  const before = panOf(a, 0);
+  const after = panOf(b, 91);
+  const shared = [...after.keys()].filter((k) => before.has(k));
+  assert.ok(shared.length > 0, 'no bird called from both places, so nothing can be compared');
+  assert.ok(
+    shared.some((k) => Math.abs(before.get(k) - after.get(k)) > 0.02),
+    `walking twelve metres moved no bird: ${shared.map((k) => `${k} ${before.get(k).toFixed(3)}→${after.get(k).toFixed(3)}`).join(', ')}`,
+  );
+});
+
+test('a call booked four seconds ago arrives at the loudness and colour it should have now', () => {
+  // The bearing follows him; the level, the top and the hall share used to not. All four were
+  // decided when the call was booked, up to AMBIENCE_AHEAD before it is heard — six metres at a
+  // walk and seventeen at a run. Measured on the path spine between three boles
+  // (`art/audio/2026-09-25-stale/`), a call's level was out by a median 0.9 dB at a walk and 1.7 at
+  // a run, and one call in the take carried 0.73 of a shadow it no longer had: 4.0 dB and 1.8
+  // octaves of top, a bird heard from behind a tree he had already walked out from behind.
+  //
+  // The weather, the facing and the space terms are all held, and there are no pods, so the only
+  // filter in the bed whose cutoff answers a change of PLACE is a bird's.
+  const { ctx, amb } = bed({ seed: 'perch/stale' });
+  const N = { x: 0, z: -1 };
+  const base = { gust: 0.5, forward: N, pods: [], canopy: 1 };
+  let t = 0;
+  let pending = [];
+  for (; t < 600; t += 1 / 30) {
+    amb.update(t, { ...base, listener: { x: 0, y: 1.2, z: 0 } });
+    amb.scheduleUntil(t + 4);
+    pending = amb.stats().birdSpots.filter(([, , , at]) => at > t + 0.5);
+    if (pending.length > 0) break;
+  }
+  assert.ok(pending.length > 0, 'nothing is booked ahead of the clock');
+  t += 1 / 30;
+  amb.update(t, { ...base, listener: { x: 0, y: 1.2, z: 0 } });
+  const before = ctx.made.filter.map((f) => f.frequency.target);
+
+  // twelve metres east — inside PERCH_RESEED_M, so the same six trees seen from somewhere else
+  t += 1 / 30;
+  amb.update(t, { ...base, listener: { x: 12, y: 1.2, z: 0 } });
+  const moved = ctx.made.filter.map((f, i) => ({ i, after: f.frequency.target })).filter((r, i) => Math.abs(r.after - before[i]) > 1e-9);
+  assert.ok(moved.length > 0, `he moved twelve metres and not one of ${ctx.made.filter.length} filters noticed`);
+
+  // every cutoff that moved must be the one some tree's distance asks for from where he now is
+  const want = amb
+    .stats()
+    .perchSpots.map(([, x, z]) => {
+      const d = Math.min(1, Math.hypot(x - 12, z) / A.PERCH_FAR_M);
+      return 7000 - 5200 * d;
+    })
+    .sort((a, b) => a - b);
+  for (const r of moved) {
+    assert.ok(
+      // perchSpots publishes to two decimals of a metre, which is a couple of hertz here
+      want.some((w) => Math.abs(w - r.after) < 20),
+      `a bird's top landed at ${r.after.toFixed(0)} Hz and no tree is at a distance that asks for it (${want.map((w) => w.toFixed(0)).join(', ')})`,
+    );
+  }
+  assert.ok(moved.length <= 3, `${moved.length} filters are being re-aimed — finished calls are not being let go`);
+});

@@ -26,11 +26,18 @@ to be covering real faults and the third a fault in the shipped game, so they ke
 evidence rather than gaining a point: the bed repeated every nine seconds, a run was a louder walk,
 and one step in fifteen was dropped at the tick the game runs at.
 
-Check 13 has since been **amended rather than re-scored**: it asked whether a space change fades
-rather than switching, which the sound passed at 4 while arriving up to four metres behind a runner,
-because the check could not see a listener who moves. It now also asks that the fade land where he
-is (`2026-09-25-lag`). Worth saying plainly: fifty checks written for a listener standing in a place
-missed the largest positional error in the bed, and only a measurement nobody had asked for found it.
+Two checks have since been **amended rather than re-scored**, and they failed the same way. Check 13
+asked whether a space change fades rather than switching, which the sound passed at 4 while arriving
+up to four metres behind a runner (`2026-09-25-lag`). Check 41 asked whether the world turns under
+the listener, which the sound passed at 4 while every bird in it was panned to the facing of four
+seconds earlier (`2026-09-25-turning`). Both now also ask about a listener who is *moving* — the
+first that the fade lands where he is, the second that a bearing keeps up with him while a sound is
+already playing.
+
+Worth saying plainly, twice over: fifty checks written for a listener standing still in a place
+missed the two largest positional errors in the bed, and both were found by measurements nobody had
+asked for. Anything on this scorecard that rests on an `at` render or a fixed-facing test is scored
+against a listener who does not exist.
 
 It now fails on **one check**: 27, nothing a player touches makes a sound. That is a real hole and
 not a mis-score, and it is the only thing between the sound and the rubric's own ship rule.
@@ -166,8 +173,8 @@ score is a judgement and is marked as such.
 | 38 | stems balance | 3 | bed 10.6 LU under the mix, steps 6.4, music 0.9; audibility checked per band |
 | 39 | levels hold over a session | **4** | 13 min soak, no creep |
 | 40 | same on a second machine | **4** | 44.1 vs 48 kHz, largest shift anywhere 0.5 dB (below) |
-| 41 | ★ the world turns under him | **4** | #79, and two guards that fail on a sign flip or a frozen heading |
-| 42 | distance is more than level | 3 | a far bird is dulled (7 kHz → 1.8 kHz) and wetter. **Pods and fairies are level-only** |
+| 41 | ★ the world turns under him, **including mid-sound** | **4** | #79, and two guards that fail on a sign flip or a frozen heading. Check amended 2026-09-25 — both of those guards hold the facing still for a whole run, and under them every bird was panned to the facing of up to four seconds earlier: turning at 60°/s moved a call exactly as much as standing still, which is not at all. On the new wording it was a 2; the 4 is on the evidence of `2026-09-25-turning` (a call leaning 0.635 pan/s against the 0.629 the geometry asks) and `2026-09-25-parallax` (a call heard 0.004 pan units from its own tree's bearing while he paces past it, against 0.153 before, and 0.007 for a listener who does not move at all) |
+| 42 | distance is more than level | 3 | a far bird is dulled (7 kHz → 1.8 kHz) and wetter, and since 2026-09-25 that distance is the one its tree really is at — walking twenty metres toward a bird used to change nothing at all (`2026-09-25-parallax`: 4.8 m of median error, worth 890 Hz of cutoff, now 1.9 m). **Pods and fairies are still level-only**, which is what holds this at 3 |
 | 43 | the field is used, never collapses | **4** | side 3–4.6 dB under mid; `PERCH_PAN` caps at 0.85 |
 | 44 | reflection belongs to the space | **4** | the wood's hall and the hut's room are separate convolvers |
 | 45 | walking behind something changes it | **3** | #88: a bird behind the west house loses 9.3 dB of its own band and the level between calls does not move. Still level-only for the fairy glints and the flames |
