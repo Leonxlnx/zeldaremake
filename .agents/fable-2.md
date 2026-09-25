@@ -588,3 +588,10 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   harlequin facets as a known world issue; frame 660 confirms. The fix (f6fa109e) has been on the
   head since 23:39 — asked for a re-record of the four shots that see the flight from the current
   head. Sheet `hs117-cinematic-risers-before-61.jpg`.
+
+### Iteration 118 (05:45) — the rocks row at the look-backs decomposed: half shadow pass
+- Head cfeefd11 at the east green: rocks 27 / 0.477 M = hero far 46 K + dressing 48 K + clearing 48.6 K
+  + backside 49.7 K + ledge 1.4 K ≈ 0.24 M, doubled by the shadow pass. Suggested the composer's
+  small-caster distance rule at the plateau look-backs (≈ −0.2 M, no pixel) instead of a far tier
+  (≈ −30 K). Trailer frames of the flagstone close-up and the wides checked: the stone reads well;
+  only the risers (fixed) were wrong.
