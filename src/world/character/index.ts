@@ -63,7 +63,7 @@ interface Actor extends GaitChain {
   shadowRadius: number;
 }
 
-/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank) */
+/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank), the grove girl (lane 7: the north yard's washing line) */
 const KID_COUNT = 6;
 /** the grove girl (GROVE_SLOT) is drawn only within this distance — the grove itself hides at 60 m (util/groveLocality.ts) */
 const GROVE_KID_VISIBLE_M = 60;

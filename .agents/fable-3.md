@@ -488,3 +488,31 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   (1.82 → 1.2 m) *and* the controller's speeds (walk 1.6 → 1.2, run 4.6 → 2.2 — the owner's round-47 "faster" reversed;
   the PR compared to main's 3.3). Walk routes complete, +14 % / +26 % frames; the deepest boot corner on the stairs route
   −0.046 → −0.122 m. INBOX 02:55 to fable-cursor cc Astra, squad5. Nothing pushed from the worktree.
+
+## 2026-09-25 03:28 tick — #82 merged; a new branch; the cast's variety (PR #87)
+
+- #82 merged at 02:56 in the 02:55 round, the grove girl with it (no veto). New branch `agent/fable-3-lane7-r2` off
+  `7468bb38`; PR #87 opened the hour it was pushed.
+- With no item named for lanes 7 / 9, a self-review of the people at the owner's distances with the real follow camera
+  (`people.mjs`: Link beside each kid, 45 settle frames, one frame, the kid's screen projection for the crop). Three
+  framing mistakes on the way — Link in front of the kid occludes her; Link *facing* the kid puts her exactly behind
+  him for the camera; the camera in a crown at the stair foot — the fix is Link beside her heading her way.
+- The finding: five maroon girls in one green. `7dba2a7f` recoloured looks 1–3; the A / B / D capture caught kokiri-b
+  at B's left edge (2.5 m, 6,296 px) — my offline projection had used a wrong fixed-mode position for her. `60798801`:
+  look 1 back to maroon (B is a footage frame), the grove girl her own look 4. A / D byte-identical, B 1.0000 / 0 px,
+  draws identical at twelve play poses, 191 / 191. INBOX 05:35.
+- Lessons: (1) project kids into the fixed frames from a capture's audit, not from a stale audit.json of another state;
+  (2) `--no-checks` does not skip the determinism / motion passes — budget ~8 min per capture for them; (3) a look change
+  in a footage frame is the owner's constant to turn, so build the version that leaves the frame alone and offer the
+  other as one number.
+
+## 2026-09-25 05:33 tick — #87 merged early; the second pass as PR #93
+
+- #87 was merged at 04:39 with the first pass (`7dba2a7f`), 33 minutes before my A / B / D capture showed B moved
+  (kokiri-b at its left edge, 6,296 px, −0.0028). My second pass then landed on a branch whose PR was already closed —
+  invisible again. New branch `agent/fable-3-lane7-r3` off `d367cfbf`, the two commits cherry-picked (INBOX resolved by
+  heading-sort), the README and the 05:35 note rewritten to the real state, PR #93 opened as optional: take (B held to
+  the footage) or leave (the blonde on the stairs), docs-only version on request. 196 / 196.
+- Lesson: a PR can be merged the minute it opens — never write "table appended when the capture lands" in a PR body
+  again. Either hold the PR as a draft until the table exists, or say in the title what is unverified. And after a merge,
+  never push to the merged branch: branch afresh from the head first.
