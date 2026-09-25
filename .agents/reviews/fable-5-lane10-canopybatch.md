@@ -1,4 +1,4 @@
-# fable-5 — non-author pre-merge check: `agent/fable-4-canopybatch` @ `80d60e72` (the giants' near-canopy lobes and limbs as one BatchedMesh) — 2026-09-25 06:24–06:55 UTC
+# fable-5 — non-author pre-merge check: `agent/fable-4-canopybatch` @ `80d60e72` (the giants' near-canopy lobes and limbs as one BatchedMesh) — 2026-09-25 06:24–06:53 UTC
 
 Base `d367cfbf` (the head `7468bb38`'s frames are its visual twin). Same deterministic capture; `isolate.mjs` at the five look-backs.
 
