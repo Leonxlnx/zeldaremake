@@ -140,3 +140,23 @@ eighteen over at the far bank** (where `exp-south2`'s −87 waits on its camera 
 `playcost` note (08:26, the same `isolate` method) reads the plaza's flight foot at 9.58 M with vegetation +1.0 M over hero A —
 the vegetation row from the plaza side; my pose there gives vegetation 2.59 M of 8.23 M. Row 4 (one pack per LOD beyond 30 m,
 lane 4) and the far tier for crowns (row 2's second half, lane 2) are what is left, and the merged `exp-south2` at the far bank.
+
+## The branches' payments on the two worst columns (`exp-south2` `ec0b776b`, `exp-east` `a3f57348`; the head `e438c6e5` beside them) — 19:30–21:20 UTC
+
+| pose | the head now | the branch | rows that moved (head → branch) |
+| --- | --- | --- | --- |
+| the far bank (`exp-south2`) | 718 / 10.06 M | **563 / 8.23 M** | structures 171 / 2.36 M → **84 / 1.61 M**; the whole frame −155 where the rows alone show −87 — the far-bank shadow reach (casters wholly 20 m outside the zone cast nothing) takes the rest out of the sun's depth pass, which no single row shows |
+| the east green (`exp-east`) | 701 / 9.80 M | **646 / 9.31 M** | structures 173 / 2.33 M → **133 / 1.84 M** — the far colour LOD (cells of 1/400 of the distance, 77 meshes 911 k → 490 k fine → coarse); trees 218 ↔ 216, vegetation 123 ↔ 123 (−0.08 M, the tufts' coarse copy), the rest identical |
+| the east lookout (`exp-east`) | 672 / 9.82 M (`cd9400b2`) | **616 / 9.21 M** | the same rule: structures 134 / 1.90 M |
+| the tall deck (`exp-east`) | — | 616 / 9.09 M | structures 134 / 1.84 M |
+
+**Both branches meet the draw cap at their own hardest views; the far bank meets the triangle cap too (8.23 M).** The green, the lookout
+and the deck sit 0.1–0.3 M over 9.0 M, and the rows that hold them there are the head's — trees 3.7–3.8 M and vegetation 1.5–1.8 M —
+the same two rows as at every pose in the table above. The ruins' trail (`exp-ruins` hides the village west of x −30: 490 / 6.84 M at
+the terrace look-back, iteration 139) makes it three of the four over-cap look-backs paid by their own lanes; the grove's yard is the
+one left at 674 / 9.57 M, and it is the head's trees and vegetation there too.
+
+A method note: the far-bank rows on `exp-south2` sum 54 **over** the frame (617 vs 563), where on the head they sum 14 under it — the
+shadow reach is applied in the composer's caster cull for the whole frame, so each system alone still shows the casters the whole
+frame has culled. From here on the frame is the cap number and the rows the attribution, and a rows-over-frame gap is itself a
+reading: that much of the branch's cut is in the depth pass.

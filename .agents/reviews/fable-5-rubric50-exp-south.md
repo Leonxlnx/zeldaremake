@@ -245,3 +245,34 @@ and vegetation.
 **Scores:** #44 3 (the gallery shut; the waystation's two headings and the standing cases keep it from 4), **#46 ★ 2 → 3** (the far
 bank under 700; the triangles the head's), the rest as before. **The camera hunks that blocked this merge are resolved on the branch;
 it is the first of the three to merge cleanly against the grove's camera.**
+
+## Re-read of `exp-south2` @ `ec0b776b` (18:50 `f1494e57` the far-bank zone reaches back over the bridge to 4 m past its north sill, and a shadow reach — casters wholly more than 20 m outside FAR_BANK_SOUTH in plan cast nothing; `50288082` the dwelling camera check reads the waystation's dimensions; the head `60085f03` merged) — 19:58–21:10 UTC
+
+**The far bank: 618 → 563 draws / 9.26 → 8.23 M — under both caps, the first of the over-cap look-backs to be.** Against the head
+`e438c6e5` at the same pose (718 / 10.06 M, unchanged since `cd9400b2`) the branch is −155 draws / −1.83 M. The rows alone
+(`isolate`): trees 200 / 3.61 M, vegetation 143 / 2.14 M, **structures 84 / 1.61 M** (the head's 171 / 2.36 M), character 65, terrain 50,
+rocks 30, props 18 (the head's 18), hardscape 16 — they sum to 617, **54 over the frame**, where on the head they sum 14 under it (704 vs
+718) and at the branch's own bridge sill 7 under (663 vs 670). So the shadow reach cuts more in the whole frame than any system shows
+alone — the sun's depth pass on the village's casters, which `isolate` cannot pin to a row; the frame is the number for the caps, the
+rows for the attribution. The frame itself (Link on the south sill facing the village — `it140-s2-farbank-lookback.png`): the keeper's
+hut and its lanterns, the bridge, the giants in haze beyond; nothing missing that the eye finds at 30–60 m.
+
+**The bridge's north sill** (Link at (4, 20) facing the village, the camera 2.9 m behind on the bridge): 670 draws / 9.76 M — the zone
+now reaches here (the camera stays in it until Link steps off), and the frame is under the draw cap, 0.76 M over the triangle line.
+
+**Six views against the head `e438c6e5`:** A B D E F 1.0000 / 0.00 %, C 0.9998 / 0.09 % (−0.0002 vs the reference — the same C as every
+read of this branch: the keeper's hut in C's far distance). Within tolerance everywhere.
+
+**The waystation (#44), on its floor's centre (5.12, 25.95):** facing **north** (the half wall) the camera stands 4.0 m back, normal;
+facing **south** it now stops **1.75 m** behind Link under the roof (was 0.6–0.7 m) — Link's cap at the frame's bottom edge, a post and
+Navi in the foreground: the squeeze the author's check now names, tight but Link is in it; facing **west**, out the open front, the
+camera is still pinned **0.6 m** behind him at the back wall — Link out of frame, the path and the giants where he should be. A 1.35 m
+deep lean-to cannot hold a follow camera behind a Link who faces its opening; the fix is the pull-in floor I keep naming (≈ 1.2 m, with
+the camera rising over the eave when the wall is that close), or the back wall letting the camera through and going undrawn from
+behind — a cutaway. Not a merge blocker on its own (the small house's door on `exp-east` is the same case), but it should be in the
+brief's camera list. (`it140-s2-waystation-south-west-north.png`; the frames: south 367 draws / 3.99 M, west 540 / 6.17 M, north 695 /
+10.26 M — the last is the village's bulk through the half wall, at the draw cap.)
+
+**Scores:** #44 3 (the south heading improved, the west heading stands), **#46 ★ 3 → 4** (both caps met at the branch's own hardest
+view; the triangles at the bridge's sill and the waystation's north heading are the head's trees and vegetation), the rest as before.
+**Merge-ready from this lane's side.**
