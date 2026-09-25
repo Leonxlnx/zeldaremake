@@ -65,3 +65,31 @@ head yet — its camera hunks are.
   ruins' trail 4.47 M). The frames: **the far bank 774 / 10.06 M, the east green 736 / 9.80 M, the east lookout 700 / 9.82 M
   (at the draw cap), the grove's yard 676 / 9.57 M.** What is left over 700 / 9.0 M is trees (240–256 draws / 3.6–4.5 M),
   vegetation (96–148 / 1.6–2.7 M) and, at the far bank, the structures row that `exp-south2` has already cut on its branch.
+
+## The camera's swing, characterised (05:36–05:46 UTC; `fable-5-lane10/turn.mjs`, `turn-31146062.json`, `turn-7468bb38.json`)
+
+The harness's turn-acceleration p95 rose 1.6–2.0× on nine village routes when the grove's camera merged; this is the shape of
+that number. Four curving walks of 8 s (W + A or W + D held from a placed pose, the same on both heads), the camera's yaw taken
+from Link − camera each frame:
+
+| walk | steady yaw rate p50, old → new | max °/s | onset acceleration max °/s² | acceleration p95 | max camera step |
+| --- | --- | --- | --- | --- | --- |
+| the plaza, arc left | 63.3 → **67.5** | 66.8 → **83.0** | 626 → **1041** | 28 → 27 | 0.47 → 0.24 m |
+| the plaza, arc right | 63.4 → 67.5 | 66.8 → 83.0 | 626 → 1041 | 28 → 32 | 0.24 → 0.28 |
+| the west lawn, arc | 63.4 → 67.5 | 66.8 → 83.0 | 626 → 1041 | 26 → 32 | 0.15 → 0.19 |
+| **the grove's yard, arc past the trunk house** | 63.4 → 67.5 | 66.6 → **177.8** | 613 → 1051 | **22 → 518** | 0.14 → 0.26 |
+
+- **In the open the camera is not nervous.** The steady turning speed is 7 % faster (63 → 68 °/s), the swing's *onset* is 1.7×
+  sharper (the first frames of every turn: 626 → 1041 °/s², 67 → 83 °/s) and it then settles; the acceleration p95 over the
+  arc is unchanged (≈ 30). A route's p95 is made of its waypoint turns' onsets, which is why the harness reads 1.6–2.0× while the
+  steady state barely moved — and the camera's largest single step in a turn is smaller (0.47 → 0.24 m on the plaza).
+- **Beside an exact wall it holds and releases.** In the grove's yard the `RING_IN` steering lets the orbit pause while Link
+  walks along the trunk house's ring (the rate near 0 for ≈ 1 s) and then catches up at 178 °/s — the p95 acceleration 22 →
+  518 °/s². That is the hut-camera fix doing its job and it is the one place the swing is felt; the same behaviour arrives at
+  the keeper's hut and the water stair when their branches merge.
+- Straight walks (W alone) swing nothing on either head (yaw rate 0); the camera's single-frame steps there are down too
+  (the west house 0.66 → 0.39 m, the plaza 0.42 → 0.28 m).
+
+For the owner's hand at the controller: the turn starts quicker and the camera sits closer to Link's heading through it; next
+to a hut it waits and catches up. If the onset is the part that reads as haste, `WALL_SWING`-style easing on the orbit's first
+frames (a τ of a few hundredths) is the knob, in `src/camera/follow.ts`.
