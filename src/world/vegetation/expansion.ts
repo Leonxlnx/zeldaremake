@@ -58,12 +58,16 @@ export const buriedInExpansion = (x: number, z: number): boolean => expansionCul
 
 /**
  * Drop every item of `sets` that `expansionCull` flags (before `build`). Returns how many went,
- * per set name — the audit reports them (`expansionCulled`).
+ * per set name — the audit reports them (`expansionCulled`). The ruins' share (round 57) goes
+ * last, with the packs' sort centres pinned to the list as the rules before it leave it, so the
+ * six fixed frames draw their plants in the same order as before the ruins.
  */
 export function pruneExpansion(sets: LodInstancedSet[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const set of sets) {
-    const removed = set.prune((it) => expansionCull(it.x, it.z));
+    let removed = set.prune((it) => expansionCull(it.x, it.z, 0.3, false));
+    set.pinSortCentres();
+    removed += set.prune((it) => expansionCull(it.x, it.z));
     if (removed) out[set.opts.name] = removed;
   }
   return out;

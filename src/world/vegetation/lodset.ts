@@ -300,6 +300,8 @@ export class LodInstancedSet {
   /** packOf[lod][variant], slotOf[lod][variant] */
   private packOf: number[][] = [];
   private slotOf: number[][] = [];
+  /** the list the packs' sort centres are summed over, once `pinSortCentres` has run (else `items`) */
+  private sortItems: Item[] | null = null;
   private built = false;
   private lastCam = new Vector3(Infinity, Infinity, Infinity);
   /** set once `cull()` has run: buckets are then trimmed instead of submitted whole */
@@ -388,6 +390,18 @@ export class LodInstancedSet {
     return removed;
   }
 
+  /**
+   * Keep the packs' sort centres (`build`) where the items as they stand now put them, whatever is
+   * pruned after this. three orders one material's opaque packs by the depth of those centres, so
+   * a prune far outside a frame (round 57: the ruins' trail and site, 12–75 m west) still reorders
+   * the frame's draws and flips the depth ties of overlapping leaves; the items it drops go on
+   * weighing in the centre, never drawn.
+   */
+  pinSortCentres(): void {
+    if (this.built) throw new Error(`${this.opts.name}: pin before build`);
+    this.sortItems = [...this.items];
+  }
+
   /** Allocate meshes (capacity = items per pack) once all items were added. */
   build(): Group {
     if (this.built) return this.group;
@@ -428,6 +442,7 @@ export class LodInstancedSet {
       this.packs[l].forEach((pack, pi) => {
         const inPack = new Set(pack);
         const mine = this.items.filter((it) => inPack.has(it.variant));
+        const weighed = this.sortItems ? this.sortItems.filter((it) => inPack.has(it.variant)) : mine;
         // The mesh sphere's centre is the pack's centroid, fixed for good: three sorts the opaque
         // meshes of one material by the depth of this centre, so a centre that followed the
         // submitted instances would reorder a set's draws between poses and flip the depth ties of
@@ -435,12 +450,12 @@ export class LodInstancedSet {
         // submission (`fill`). Summed in item order and scaled like the pre-cull code, so the sort
         // key is bit-identical to it.
         centre.set(0, 0, 0);
-        for (const it of mine) {
+        for (const it of weighed) {
           centre.x += it.x;
           centre.y += it.y;
           centre.z += it.z;
         }
-        if (mine.length) centre.multiplyScalar(1 / mine.length);
+        if (weighed.length) centre.multiplyScalar(1 / weighed.length);
         const capacity = Math.max(1, mine.length);
         const geometry = packGeometries(pack.map((v) => variants[v][l]));
         const slots = new InstancedBufferAttribute(new Float32Array(capacity), 1);
