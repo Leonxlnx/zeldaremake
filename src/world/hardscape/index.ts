@@ -1136,6 +1136,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   let jointMeasured: ReturnType<typeof quantiles> | null = null;
   ctx.audit('hardscape', () => ({
+    /** the CPU arrays the group still holds (bytes) — position + index after the first draw (#115) */
+    cpuArrays: cpuArrayBytes(group),
     stairways: stairInfo.map((s) => ({ id: s.id, steps: s.steps, width: s.width, treadSlabs: s.treadSlabs })),
     // round 50 (fable-5 V17, the tone half): the main flight's tread tint by step — the mean of
     // the first and the last four; the demo's treads go l 0.37 (foot) → 0.65 (top)
@@ -1473,3 +1475,28 @@ function round(v: number) {
 const dropArray = function (this: { array: ArrayLike<number> | null }) {
   this.array = null;
 };
+
+/**
+ * The CPU arrays a group still holds (bytes): every unique geometry's attributes and index whose
+ * `array` is not null — after the first draw only what `onUpload` left (position, the index, the
+ * instanced sprouts' per-instance data). A memory audit line, cheap enough for every call.
+ */
+function cpuArrayBytes(root: Group): { bytes: number; geometries: number; positionBytes: number } {
+  const seen = new Set<string>();
+  let bytes = 0;
+  let positionBytes = 0;
+  root.traverse((o) => {
+    const g = (o as Mesh).geometry;
+    if (!g || seen.has(g.uuid)) return;
+    seen.add(g.uuid);
+    for (const [name, attr] of Object.entries(g.attributes)) {
+      const arr = (attr as BufferAttribute).array as ArrayBufferView | null;
+      if (!arr) continue;
+      bytes += arr.byteLength;
+      if (name === 'position') positionBytes += arr.byteLength;
+    }
+    const idx = g.index?.array as ArrayBufferView | null | undefined;
+    if (idx) bytes += idx.byteLength;
+  });
+  return { bytes, geometries: seen.size, positionBytes };
+}
