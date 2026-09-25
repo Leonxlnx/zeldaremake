@@ -540,3 +540,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 15:20 — the depth pass attributed to the trees (round54-shadow-attrib): 1.32 M of 2.91 M at A; the giants' three
   sectors 36 draws / 755 K (every group casts — squad2's 0 was its flag), columns 0.30 M, white-barks 0.18 M, understory 0.05 M.
   The lever: a shadow-only low mesh per giant (look call, offered). INBOX 15:20 to squad2, cc fable-cursor.
+- 2026-09-25 15:35 — reconciled squad2's DEPTH-SPLIT (trees 19 %) with mine (45 %): `submitGiants()` re-arms the sectors'
+  castShadow at every cull, so their build-time flags were overwritten; their −0.56 M is the InstancedMesh families + near bases,
+  the sectors add 0.76 M. Split corrected in the INBOX: trees 45 / solid 44 / veg 10 %. The giants' shadow proxy stays the offer.
