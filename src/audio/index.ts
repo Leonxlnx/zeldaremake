@@ -696,6 +696,10 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       canopy,
       gorge,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
+      // the flames' world positions, as the fairies' already were. A harness cannot ask "is there
+      // anything in this world you could stand behind" without knowing where the sources are, and
+      // `pods` was only ever a count.
+      podSpots: gatherPods(o.scene).map((p) => [Number(p.x.toFixed(2)), Number(p.y.toFixed(2)), Number(p.z.toFixed(2))] as [number, number, number]),
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
