@@ -22,6 +22,7 @@
  *            LOD on, off, on again from the same time, the off and again frames compared with the
  *            first on frame. The on frames go to `out/png/`. Poses marked `exit` (their target is the
  *            log's far end) get the luminance of the far end's disc on screen.
+ * --ab play | --ab capture   the A/B reads in that phase only (a pose's `ab: false` skips both).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,6 +40,7 @@ const args = Object.fromEntries(
 const [W, H] = String(args.size ?? '960x540').split('x').map(Number);
 const SETTLE = Number(args.settle ?? 6);
 const DRAW_EVERY = Number(args['draw-every'] ?? 24);
+const AB = { play: args.ab === true || args.ab === 'play', capture: args.ab === true || args.ab === 'capture' };
 const DT = 1 / 30;
 const log = (...m) => console.error(`[south2 ${new Date().toISOString().slice(11, 19)}]`, ...m);
 
@@ -183,7 +185,7 @@ async function playPoses(page, poses, result, out) {
       fs.writeFileSync(path.join(out, 'png', `play-${p.name}.png`), await page.screenshot({ type: 'png' }));
       const c = on.camera;
       const row = { name: p.name, link: on.link.map((v) => +v.toFixed(3)), air: on.air, camera: c.position.map((v) => +v.toFixed(3)), cameraInZone: inFarBankZone(...c.position), on: counts(on) };
-      if (args.ab && p.ab !== false) {
+      if (AB.play && p.ab !== false) {
         row.off = counts(await read(true));
         row.again = counts(await read(false));
       }
@@ -431,7 +433,7 @@ async function capture(browser, url, poses, result, out) {
     fs.writeFileSync(path.join(out, 'png', `${s.name}.png`), on.png);
     const pose = s.viewpoint ?? s.from;
     const row = { name: s.name, pose, cameraInZone: s.viewpoint ? false : inFarBankZone(...s.from.p), on: { draws: on.draws, triangles: on.triangles } };
-    if (args.ab && !s.viewpoint && s.ab !== false) {
+    if (AB.capture && !s.viewpoint && s.ab !== false) {
       const off = await read(true);
       const again = await read(false);
       row.off = { draws: off.draws, triangles: off.triangles };
