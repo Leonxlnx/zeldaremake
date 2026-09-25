@@ -1,6 +1,6 @@
-assets/index-C0D8lnJC.js
 assets/index-BH_2zcOO.js
 assets/index-BtYVApuO.js
 assets/index-CEg3V_ip.js
 assets/index-D4p2egDr.js
 assets/index-473TNBiv.js
+assets/index-BHkM8m66.js
