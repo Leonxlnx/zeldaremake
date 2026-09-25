@@ -144,3 +144,35 @@ Scores now: #42 L 4, #44 3, #46 ★ 2 (the lane's views over the triangle cap as
 Six views pixel-identical to `f84ff318` (1.0000 / 0.00 % at all six) — the fold changes nothing the fixed cameras see; against the
 head the pair is `f84ff318`'s (the A / B / E cluster). The lane's frames: the green 723 → **708** draws (10.35 M), the lookout 691 → **674**
 (10.27 M), the stair head 519 → 457 (7.63 M) — the fold takes 15–62 draws off the lane's own views. #46 ★ stays 2 on the triangles.
+
+## `a3f57348` (18:45 `72cbd118` — the far colour LOD: while the camera is on the plateau's far part, x > 40 m, the other structures draw a coarser triangle list, their vertices clustered on cells of 1/400 of their distance from there; 18:45 `882070d8` the houses' tufts' coarse copy past 6 m; the head `60085f03` merged) — 19:30–21:20 UTC
+
+**The rule pays: the green 708 → 646 draws / 10.35 → 9.31 M, the lookout 674 → 616 / 10.27 → 9.21 M, the tall deck 616 / 9.09 M — every
+plateau frame under the draw cap, 0.1–0.3 M over the triangle line.** Where the cut sits (`isolate`, the head `e438c6e5` at the same
+pose beside it): the structures row 173 → **133 draws / 2.33 → 1.84 M** (−40 / −0.49 M); every other row is the head's (trees 218 ↔ 216,
+vegetation 123 ↔ 123 — the 0.08 M less is the tufts' coarse copy, rocks, props, hardscape, terrain identical; the character row 56 ↔ 36
+is the kids' walk phase at sample time — nothing in the lane touches them). The structures' audit (`eastFarLod`): 77 meshes, fine 911 k →
+coarse 490 k triangles, the nearest such part 16.6 m from the box, the heaviest rows `merged:roof` 129 k → 76 k, `lantern-branch-bark`
+75 k → 32 k, `fence-south-bridge-rope` 54 k → less. The tests (`farLod.test.mjs` 6 / 6, `expansion2.test.mjs`) pass; the vite build is green.
+
+**What it looks like — designed to be under 2 px, and it is.** The green's frame before and after the rule (the same pose, `it138` ↔ `it140`):
+SSIM 0.9993, **0.35 % of pixels** over 8/255, all of it in the village tiles 40+ m off; the lookout 0.9999 / 0.09 %. The cleaner measure —
+the same frozen frame with `__KF_EAST_FAR_LOD_OFF__` set and cleared, nothing else moving — at the green: **0.01 % of pixels, max luma
+delta 65**, i.e. a few dozen pixels of relief on the far roofs. **The six views are pixel-identical to `a8486d32`** (1.0000 / 0.00 % at all
+six — no fixed camera is inside the box, as the layout comment says), so against the head the pair is still the A / B / E cluster of
+the 11 m crown rule (A 0.9905 / +0.0033 vs the reference, B 0.9941, E 0.9942, F 0.9947, C D 1.0000) — unchanged since 16:03 yesterday
+and still the owner's call.
+
+**The swap itself, in the play loop's own steps: clean.** A scare first, for the record: in my toggle probes the *first* time the coarse
+list was set after page load, the frame drawn right after it came out black (mean RGB 11 / 15 / 10, 99.5 % of pixels), while every later
+swap was the 0.01 % change above. That probe redraws with a zero-dt step; the play loop never does. Redone in drawn steps at dt 1/30
+on a fresh page — the camera placed at x 39.7 (outside, three drawn frames, mean luma 65.5–65.7), then at x 40.2 (the first swap, the
+triangles 9.94 → 9.67 M): **the swap frame and the three after it draw normally, mean luma 60.9–61.4**, the 4.6 difference being the
+camera's half-metre move (the second pass out and in reads 65.3 → 60.6, the same). No flash for the player. One line for the author,
+in case it is ever wired to a zero dt: with a 0-dt step the frame the swap lands in is black. And the rule has **no hysteresis** (a
+hard `p.x > 40`): a camera dithering on the line swaps 77 meshes' draw ranges back and forth each frame — 0.01 % of pixels a time,
+invisible; a 0.5 m band would only be tidiness.
+
+Scores now: #42 L 4, #44 3 (the small house's door pull-in stands), #46 ★ 2 → **3** on the lane's own views (draws met everywhere on the
+plateau, triangles 0.1–0.3 M over), the rest as the 16:36 read. **From this lane's side the branch is merge-ready once the owner has
+called the A / B / E top-edge crown change** — the one item that has not moved since yesterday.
