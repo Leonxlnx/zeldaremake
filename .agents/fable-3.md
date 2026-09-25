@@ -505,3 +505,14 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   (2) `--no-checks` does not skip the determinism / motion passes — budget ~8 min per capture for them; (3) a look change
   in a footage frame is the owner's constant to turn, so build the version that leaves the frame alone and offer the
   other as one number.
+
+## 2026-09-25 05:33 tick — #87 merged early; the second pass as PR #93
+
+- #87 was merged at 04:39 with the first pass (`7dba2a7f`), 33 minutes before my A / B / D capture showed B moved
+  (kokiri-b at its left edge, 6,296 px, −0.0028). My second pass then landed on a branch whose PR was already closed —
+  invisible again. New branch `agent/fable-3-lane7-r3` off `d367cfbf`, the two commits cherry-picked (INBOX resolved by
+  heading-sort), the README and the 05:35 note rewritten to the real state, PR #93 opened as optional: take (B held to
+  the footage) or leave (the blonde on the stairs), docs-only version on request. 196 / 196.
+- Lesson: a PR can be merged the minute it opens — never write "table appended when the capture lands" in a PR body
+  again. Either hold the PR as a draft until the table exists, or say in the title what is unverified. And after a merge,
+  never push to the merged branch: branch afresh from the head first.
