@@ -14,5 +14,8 @@
   { "name": "r13-pool-south-shore", "from": { "p": [-64.4, 2.3, 13.5], "t": [-65.0, 4.5, -3.0], "fov": 46 } },
   { "name": "r14-lookback-from-terrace", "from": { "p": [-70.2, 6.3, -4.6], "t": [-50.0, 3.5, -3.0], "fov": 46 } },
   { "name": "r15-lookback-from-outcrop", "from": { "p": [-59.8, 4.7, -4.6], "t": [-40.0, 3.0, -1.0], "fov": 46 } },
-  { "name": "r16-lookback-trail-to-village", "from": { "p": [-34.2, 4.3, 0.5], "t": [-15.0, 3.2, 4.0], "fov": 46 } }
+  { "name": "r16-lookback-trail-to-village", "from": { "p": [-34.2, 4.3, 0.5], "t": [-15.0, 3.2, 4.0], "fov": 46 } },
+  { "name": "r17-arch-from-below-59deg", "from": { "p": [-61.5, 4.2, -4.2], "t": [-64.75, 9.6, -4.2], "fov": 46 } },
+  { "name": "r18-pool-from-parapet-35deg-down", "from": { "p": [-58.3, 4.6, -2.4], "t": [-62.66, 0.55, 1.4], "fov": 46 } },
+  { "name": "r19-quay-from-terrace-35deg-down", "from": { "p": [-66.0, 6.25, -2.6], "t": [-66.0, 0.55, 5.54], "fov": 46 } }
 ]

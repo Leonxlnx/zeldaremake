@@ -2,7 +2,9 @@
 // The ruins' views: pose-counts.mjs (draws and triangles after a composed frame, the sun's depth pass
 // included) plus a canvas frame per pose, one world load per dist; the fixed viewpoints' frames also as PNG.
 //   node art/environment/exp-ruins-2026-09-24/views.mjs --dist <dist> --out <dir> [--shots poses.json]
-//        [--heroes 1] [--size 960x540] [--settle 8] [--only a,b] [--no-shots] [--audit 1] [--hud 1]
+//        [--heroes 1] [--size 960x540] [--settle 8] [--only a,b] [--no-shots] [--audit 1] [--hud 1 | --hud heroes]
+// (the HUD is hidden unless --hud; `--hud heroes` keeps it on the fixed viewpoints' frames only, to diff them
+// against captures that carry it)
 import fs from 'node:fs';
 import path from 'node:path';
 import { launchBrowser, openWorld, serveStatic } from '../../../gauntlet/scripts/lib/browser.mjs';
@@ -24,9 +26,10 @@ try {
   const { page } = await openWorld(browser, server.url, { width, height, log: console.error });
   const heroes = args.heroes ? await page.evaluate(() => window.__ZR__.viewpoints().filter((v) => !v.diagnostic).map((v) => v.id)) : [];
   const poses = [...heroes.map((id) => ({ name: id, viewpoint: id })), ...shots.map((s) => ({ name: s.name, pose: s.from }))].filter((p) => !only || only.has(p.name));
-  if (!args.hud) await page.evaluate(() => { for (const sel of ['.zr-hud', '.zr-equip']) { const el = document.querySelector(sel); if (el) el.style.display = 'none'; } });
+  const hudOn = (p) => args.hud === true || args.hud === '1' || (args.hud === 'heroes' && !!p.viewpoint);
   const canvas = await page.$('canvas');
   for (const p of poses) {
+    await page.evaluate((on) => { for (const sel of ['.zr-hud', '.zr-equip']) { const el = document.querySelector(sel); if (el) el.style.display = on ? '' : 'none'; } }, hudOn(p));
     await page.evaluate(({ viewpoint, pose }) => {
       window.__ZR__.setTime(12.5);
       if (viewpoint) window.__ZR__.setViewpoint(viewpoint);
