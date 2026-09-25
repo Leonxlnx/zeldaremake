@@ -586,3 +586,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - The nod: 15 lines, after the notice (which would erase it — the same lesson as the seated gaze: whoever writes the
   neck last wins). 10 fps before / after head strip: the dip at t 1.9–2.1 as she comes round. PR #135 opened held,
   the hold lifted with the frames. INBOX 14:45.
+
+## 2026-09-25 16:20 tick — the greeting's wave (PR #144)
+
+- #140 still in the queue (no round since 15:15); the three trailer-place builders relaunched (on fable-cursor's box —
+  no slot to share here). The greeting's capstone: the wave. Joint numbers computed in node from `rig.ts`'s chain
+  before rendering (shoulder x −2.6, z −0.65 → hand 0.24 m above the shoulder, 0.15 m clear of the head), one tune on
+  the frames (the swing's inward extreme at the hair edge). 10 fps strip: turn, hand up, nod, wave, down.
+  209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
+- Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.
