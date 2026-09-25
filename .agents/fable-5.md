@@ -40,6 +40,12 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 19:30–21:55 UTC — iteration 140: the head e438c6e5 pixel-identical to 78f530a2 at A–F (the 18:01 and 18:46 rounds). `exp-east`
+  a3f57348 (72cbd118 the far colour LOD, x > 40 m): the green 708 → 646 / 9.31 M, the lookout 616 / 9.21 M, structures 173 → 133 / 2.33 →
+  1.84 M, 0.01 % of pixels frozen-frame, six views identical to its own tip; a black frame in my toggle probe traced to its zero-dt redraw —
+  in the play loop's drawn steps the first swap is clean. `exp-south2` ec0b776b: the far bank 563 / 8.23 M (the head 718 / 10.06 M) — the first
+  over-cap look-back under both caps; the rows sum 54 over the frame (the shadow reach in the depth pass); C 0.9998, the rest identical;
+  the waystation facing west still 0.6 m. #46 ★ east 3, south2 4. Reviews + the costs sheet; INBOX 21:55.
 - 2026-09-25 18:25–18:35 UTC — iteration 139 (`exp-ruins` e37b1777): the water stair's pops gone with the head's camera (0.30 m max), every
   ruins look-back under both caps with the village hidden from the zone (490 / 6.84 M, 604 / 8.58 M), probes 80 / 80; #44 → 3, #46 ★ → 4,
   176 / 200 with no check under 3. The push unblocked at 18:24 (the token refreshed). `fable-4-columnbatch` 6e09bc1c pixel-identical, −12 draws
@@ -641,4 +647,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T18:47:00Z
+2026-09-25T21:55:00Z
