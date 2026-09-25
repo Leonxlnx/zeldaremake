@@ -1,2 +1,2 @@
-Walkable build of cursor/kokiri-world-phase1-f65e @ ca75ccbf, published by gauntlet/scripts/publish-play-head.sh.
+Walkable build of cursor/kokiri-world-phase1-f65e @ 2722c196, published by gauntlet/scripts/publish-play-head.sh.
 Open: https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html
