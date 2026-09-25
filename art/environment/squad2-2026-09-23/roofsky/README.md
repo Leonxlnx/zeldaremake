@@ -57,6 +57,42 @@ The finished frames (`broll --settle 6`, same pose order before and after):
 
 Cost is unchanged by construction and measured: the canopy system draws **4 calls / 5,806 triangles**
 at that pose before and after (`isolate.json` in both runs). It is a uniform and two lines of GLSL.
+The capture harness agrees on the whole frame: `A_stairs` is 614 draws / 8.97 M triangles on the
+branch, the same as the head.
+
+## The owner's fixed frames: byte-identical, all of them
+
+`sixcheck.mjs` (this directory) renders the five distinct fixed viewpoints (E repeats B's camera) on
+both builds in the same order and compares them, with the luminance SSIM against `reference/frames`
+that `gauntlet/scripts/compare.mjs` reports:
+
+| frame | pixels moved > 4 | mean | local detail | SSIM vs reference |
+| --- | --- | --- | --- | --- |
+| A_stairs | 0 % | 95.6 → 95.6 | 4.83 → 4.83 | 0.3332 → 0.3332 |
+| B_house (= E_ground) | 0 % | 92.6 → 92.6 | 4.64 → 4.64 | 0.2412 → 0.2412 |
+| C_lookback | 0 % | 90.9 → 90.9 | 4.44 → 4.44 | 0.1236 → 0.1236 |
+| D_log | 0 % | 90.6 → 90.6 | 4.15 → 4.15 | 0.4021 → 0.4021 |
+| F_canopy | 0 % | 85.5 → 85.5 | 4.78 → 4.78 | 0.4330 → 0.4330 |
+
+Not "small": zero pixels differ by more than 4 levels in any of the five. The roof is dropped inside
+the hero frusta and its `HERO_TOP_KEEP` band sits outside every one of these pitches, so this term
+cannot reach them — now measured rather than argued.
+
+## How far the change reaches
+
+Two more walkable up-looks, rendered the same way on both builds:
+
+| up-look | pixels moved > 4 | mean | local detail |
+| --- | --- | --- | --- |
+| the plaza, looking up into the giants (`0.5, 1.6, 1.0`) | 0 % | 96.5 → 96.5 | 6.49 → 6.49 |
+| the ledge top, looking up (`1.42, 7.3, −75.53`) | 0 % | 65.5 → 65.5 | 3.10 → 3.10 |
+| the open north at 60° up | 36.6 % | 72.9 → 77.0 | 3.73 → 4.04 |
+| the open north, straight up | 42.5 % | 74.9 → 79.7 | 5.87 → 5.96 |
+
+So the term reaches exactly what it is for: the roof is what a walker sees overhead **in the open
+north**, and everywhere else the sky overhead is the giants' own crowns (over the plaza) or the
+flight's trees (at the ledge), which this change does not touch. A reviewer wanting to see it has to
+stand in the open north and look up; anywhere else it is a no-op, by measurement.
 
 Hero A does not move: the roof is dropped inside the hero frames and its `HERO_TOP_KEEP` band is out
 of A's view. Tests: 206 pass, four of them new in `src/world/canopy/roofSky.test.mjs`, which pins the

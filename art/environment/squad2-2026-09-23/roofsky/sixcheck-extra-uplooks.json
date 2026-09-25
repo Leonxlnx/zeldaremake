@@ -1,0 +1,22 @@
+[
+ {
+  "name": "plaza-up",
+  "beforeMean": 96.5,
+  "afterMean": 96.5,
+  "beforeNd": 6.49,
+  "afterNd": 6.49,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0
+ },
+ {
+  "name": "ledge-up",
+  "beforeMean": 65.5,
+  "afterMean": 65.5,
+  "beforeNd": 3.1,
+  "afterNd": 3.1,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0
+ }
+]
