@@ -157,8 +157,8 @@ void main(){
   float temp = clamp((1.0 - vAge * 1.25) * (1.15 - r) * 1.6 + (n - 0.5) * 0.5, 0.0, 1.0) * vHeat;
   vec3 col = mix(vec3(0.5, 0.06, 0.01), vec3(1.0, 0.45, 0.08), smoothstep(0.1, 0.45, temp));
   col = mix(col, vec3(1.0, 0.85, 0.5), smoothstep(0.45, 0.8, temp));
-  col = mix(col, vec3(1.0, 0.97, 0.9), smoothstep(0.8, 1.0, temp));
-  float inten = mix(1.2, 9.0, temp) * pow(1.0 - vAge, 1.3);
+  col = mix(col, vec3(1.0, 0.93, 0.75), smoothstep(0.85, 1.0, temp));
+  float inten = mix(0.9, 5.5, temp) * pow(1.0 - vAge, 1.3);
   gl_FragColor = vec4(col * inten * shape, 1.0);
 }`;
 

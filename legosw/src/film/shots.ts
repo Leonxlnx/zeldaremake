@@ -900,8 +900,8 @@ const droids: Shot = {
     w.stand(w.anakin, anaPos, yaw + (t < 2.4 ? 0.6 : 0));
     const ign = smooth(2.9, 3.25, t);
     const raise = smooth(2.5, 3.0, t);
-    w.obiwan.pose({ armR: 0.2 + raise * 1.2, armL: 0.1 + raise * 0.3, splayL: 0.1, headYaw: t < 2.4 ? 0.3 : 0, headPitch: 0 });
-    w.anakin.pose({ armR: 0.25 + raise * 1.35, armL: 0.15, splayL: 0.1, headYaw: t < 2.4 ? -0.5 : 0 });
+    w.obiwan.pose({ armR: 0.2 + raise * 1.0, armL: 0.1 + raise * 0.3, splayL: 0.1, wristR: raise * Math.PI / 2, headYaw: t < 2.4 ? 0.3 : 0, headPitch: 0 });
+    w.anakin.pose({ armR: 0.25 + raise * 1.15, armL: 0.15, splayL: 0.1, wristR: raise * Math.PI / 2, headYaw: t < 2.4 ? -0.5 : 0 });
     face(w.obiwan, { mouth: talk(t, 0.35, 2.0, t < 2.4 ? 'smile' : 'smirk'), brows: t < 2.4 ? 0.2 : -0.4, lookX: t < 2.4 ? -0.03 : 0 }, t, 2);
     face(w.anakin, { mouth: t < 2.4 ? 'grin' : 'smirk', brows: -0.4 }, t, 1);
     w.sabers.forEach((sb, i) => {

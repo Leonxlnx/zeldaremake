@@ -128,6 +128,48 @@ export function drawFace(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceS
         ellipse(g, x, y - h * (1.55 - s.squint * 0.55), 0.07, h * 0.9);
         g.fill();
       }
+      // upper lid crease
+      g.strokeStyle = style.line;
+      g.lineWidth = 0.009 * FACE_PX;
+      g.globalAlpha = 0.8;
+      g.beginPath();
+      curve(g, [x - sgn * 0.035 - 0.03 * sgn, y + h + 0.018], [x + sgn * 0.01, y + h + 0.045 + s.brows * 0.01], [x + sgn * 0.075, y + h + 0.005]);
+      g.stroke();
+      g.globalAlpha = 1;
+    }
+  }
+  // frown furrow between the brows
+  if (s.brows < -0.4) {
+    g.strokeStyle = style.line;
+    g.lineWidth = 0.01 * FACE_PX;
+    g.globalAlpha = Math.min(1, (-s.brows - 0.4) * 2);
+    for (const sgn of [-1, 1]) {
+      g.beginPath();
+      curve(g, [sgn * 0.035, 0.82], [sgn * 0.045, 0.77], [sgn * 0.03, 0.72]);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  // worry lines on the forehead
+  if (s.brows > 0.5) {
+    g.strokeStyle = style.line;
+    g.lineWidth = 0.008 * FACE_PX;
+    g.globalAlpha = Math.min(0.8, (s.brows - 0.5) * 2);
+    for (const yy of [0.9, 0.95]) {
+      g.beginPath();
+      curve(g, [-0.13, yy - 0.01], [0, yy + 0.012], [0.13, yy - 0.01]);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  // smile lines for open / grinning mouths
+  if (s.mouth === 'grin' || s.mouth === 'grit' || s.mouth === 'shout' || s.mouth === 'open') {
+    g.strokeStyle = style.line;
+    g.lineWidth = 0.01 * FACE_PX;
+    for (const sgn of [-1, 1]) {
+      g.beginPath();
+      curve(g, [sgn * 0.14, 0.45], [sgn * 0.2, 0.38], [sgn * 0.18, 0.3]);
+      g.stroke();
     }
   }
   // eyebrows: thick tapered strokes, inner end raised by +brows
