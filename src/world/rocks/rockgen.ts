@@ -304,15 +304,17 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const crackAt = (p: Vector3) => clamp(Math.max(mainCrackAt(p), fineCrackAt(p)), 0, 1);
 
   // 1. displacement (do it per unique direction so shared vertices stay welded)
-  const disp = new Map<string, number>();
+  const welds0 = positionGroups(pos);
+  const disp = new Float64Array(welds0.groups.length).fill(NaN);
   // the plate field per vertex (joint weight, ledge id) for the colour pass, from the same
   // pre-displacement point the geometry used, so the dark joints sit on the geometric steps
   const plateStep = plates > 0 ? new Float32Array(count) : null;
   const plateId = plates > 0 ? new Uint8Array(count) : null;
   for (let i = 0; i < count; i++) {
     _p.fromBufferAttribute(pos, i);
-    const key = `${_p.x.toFixed(4)},${_p.y.toFixed(4)},${_p.z.toFixed(4)}`;
-    let d = disp.get(key);
+    const key = welds0.groupOf[i];
+    let d: number | undefined = disp[key];
+    if (Number.isNaN(d)) d = undefined;
     if (plateStep && plateId) {
       const pl = plateAt(_p.x * freq + ox, _p.y * freq + oy, _p.z * freq + oz);
       plateStep[i] = pl.step;
@@ -367,7 +369,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
         _t.set(_p.x * d, _p.y * d * squashY, _p.z * d);
         d *= 1 - crackDepth * mainCrackAt(_t) - fineCrackDepth * fineCrackAt(_t);
       }
-      disp.set(key, d);
+      disp[key] = d;
     }
     _p.multiplyScalar(d);
     _p.y *= squashY;
@@ -532,14 +534,17 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   // reads as a thick pad sitting on the rock rather than a green tint. The mask is evaluated on
   // the fully smoothed vertex normal (no crease jumps), otherwise the pad's thickness steps at
   // every crease and the cushion comes out crumpled.
-  computeCreaseNormals(base, 180);
+  // (the welds after the displacement — the displaced positions of a weld are one value, so the
+  // grouping is the pre-displacement one; recomputed here all the same, from the moved positions)
+  let welds = positionGroups(pos);
+  computeCreaseNormals(base, 180, welds);
   if (mossThick > 0) {
     const nrm0 = base.attributes.normal as Float32BufferAttribute;
-    const swell = new Map<string, [number, number, number]>();
+    const swell: ([number, number, number] | undefined)[] = new Array(welds.groups.length);
     for (let i = 0; i < count; i++) {
       _p.fromBufferAttribute(pos, i);
-      const key = `${_p.x.toFixed(4)},${_p.y.toFixed(4)},${_p.z.toFixed(4)}`;
-      let s = swell.get(key);
+      const key = welds.groupOf[i];
+      let s = swell[key];
       if (!s) {
         _n.fromBufferAttribute(nrm0, i);
         // vertex-averaged direction (independent of which face we came from) → welded offset
@@ -562,23 +567,24 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
         }
         _n.set(_p.x, _p.y * 1.4, _p.z).normalize().lerp(_n, 0.5).normalize();
         s = [_n.x * k, _n.y * k, _n.z * k];
-        swell.set(key, s);
+        swell[key] = s;
       }
       pos.setXYZ(i, _p.x + s[0], _p.y + s[1], _p.z + s[2]);
     }
     pos.needsUpdate = true;
-    computeCreaseNormals(base, 180);
+    welds = positionGroups(pos);
+    computeCreaseNormals(base, 180, welds);
   }
   // the moss mask of the final shape, on smooth normals (colour pass + normal blend below)
   const smoothN = (base.attributes.normal.array as Float32Array).slice();
 
   // 4. crease-angle normals on the final shape: hard creases on the bare rock; the cushion, when
   // there is one, is a soft pad (its own wide crease angle, blended in by the moss value below)
-  computeCreaseNormals(base, o.creaseDeg ?? 38);
+  computeCreaseNormals(base, o.creaseDeg ?? 38, welds);
   const hardN = (base.attributes.normal.array as Float32Array).slice();
   let softN: Float32Array | null = null;
   if (mossThick > 0) {
-    computeCreaseNormals(base, 85);
+    computeCreaseNormals(base, 85, welds);
     softN = (base.attributes.normal.array as Float32Array).slice();
   }
 
@@ -705,7 +711,43 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
 }
 
 /** normals for a non-indexed geometry: average adjacent face normals within the crease angle */
-export function computeCreaseNormals(g: BufferGeometry, creaseDeg: number) {
+/**
+ * The vertices of a non-indexed geometry grouped by position at 0.1 mm — the welds the crease
+ * normals, the displacement and the moss swell all work per position. Keyed on quantised integers
+ * in a two-level numeric map (exact: x, y packed into one 42-bit integer, z the second level), which
+ * replaces the `toFixed(4)` string keys that took 90 % of a rock's build (a near kit's 170 K vertices
+ * were stringified three to five times each). `groups[k]` lists the vertex indices of weld k;
+ * `groupOf[i]` is vertex i's weld.
+ */
+export function positionGroups(pos: Float32BufferAttribute): { groups: number[][]; groupOf: Int32Array } {
+  const count = pos.count;
+  const arr = pos.array as ArrayLike<number>;
+  const groups: number[][] = [];
+  const groupOf = new Int32Array(count);
+  const outer = new Map<number, Map<number, number>>();
+  for (let i = 0; i < count; i++) {
+    const qx = Math.round(arr[i * 3] * 1e4);
+    const qy = Math.round(arr[i * 3 + 1] * 1e4);
+    const qz = Math.round(arr[i * 3 + 2] * 1e4);
+    const k1 = qx * 4194304 + qy;
+    let inner = outer.get(k1);
+    if (!inner) {
+      inner = new Map<number, number>();
+      outer.set(k1, inner);
+    }
+    let gi = inner.get(qz);
+    if (gi === undefined) {
+      gi = groups.length;
+      groups.push([]);
+      inner.set(qz, gi);
+    }
+    groups[gi].push(i);
+    groupOf[i] = gi;
+  }
+  return { groups, groupOf };
+}
+
+export function computeCreaseNormals(g: BufferGeometry, creaseDeg: number, welds?: { groups: number[][] }) {
   const pos = g.attributes.position as Float32BufferAttribute;
   const count = pos.count;
   const faceN = new Float32Array(count * 3);
@@ -714,7 +756,6 @@ export function computeCreaseNormals(g: BufferGeometry, creaseDeg: number) {
   const c = new Vector3();
   const cb = new Vector3();
   const ab = new Vector3();
-  const byPos = new Map<string, number[]>();
   for (let i = 0; i < count; i += 3) {
     a.fromBufferAttribute(pos, i);
     b.fromBufferAttribute(pos, i + 1);
@@ -726,15 +767,12 @@ export function computeCreaseNormals(g: BufferGeometry, creaseDeg: number) {
       faceN[(i + k) * 3] = cb.x;
       faceN[(i + k) * 3 + 1] = cb.y;
       faceN[(i + k) * 3 + 2] = cb.z;
-      const key = `${pos.getX(i + k).toFixed(4)},${pos.getY(i + k).toFixed(4)},${pos.getZ(i + k).toFixed(4)}`;
-      const l = byPos.get(key);
-      if (l) l.push(i + k);
-      else byPos.set(key, [i + k]);
     }
   }
+  const groups = (welds ?? positionGroups(pos)).groups;
   const cosT = Math.cos((creaseDeg * Math.PI) / 180);
   const out = new Float32Array(count * 3);
-  for (const list of byPos.values()) {
+  for (const list of groups) {
     for (const i of list) {
       let nx = 0;
       let ny = 0;
