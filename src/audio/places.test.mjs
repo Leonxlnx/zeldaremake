@@ -40,8 +40,8 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { surfaceAt, skyOpening, CLEARING_OPEN_MAX } = loadTs(path.join(here, 'index.ts'));
-const { LAYOUT } = loadTs(path.join(here, '../world/layout.ts'));
+const { surfaceAt, skyOpening, CLEARING_OPEN_MAX, WALL_AT, INDOORS_FULL, INDOORS_CLOSE } = loadTs(path.join(here, 'index.ts'));
+const { LAYOUT, EXPANSION, EXPANSION_NORTH } = loadTs(path.join(here, '../world/layout.ts'));
 
 const canopyAt = (x, z) => surfaceAt(x, z).canopy;
 
@@ -71,6 +71,48 @@ test('skyOpening only cuts holes, and only where the world has one', () => {
     assert.equal(skyOpening(x, z), 0, `(${x}, ${z}) is not a clearing and must not be given a hole`);
   }
   assert.ok(CLEARING_OPEN_MAX > 0 && CLEARING_OPEN_MAX <= 1, 'the opening is a fraction of the roof, not a gain');
+});
+
+test('a hut is a room: inside it the forest is muffled, on its veranda it is not', () => {
+  // Every hut is built by distantHouse as a platform disc with a wall ring at radius × WALL_TAPER
+  // and a gap in it for the door, and all three are walkable — the west house off its flight, the
+  // grove's two off the gangway and the walkway. Walking into one used to change nothing at all:
+  // the forest came through the walls at full level and full brightness, which is the fault the
+  // log arch's bore had before this lane closed it.
+  const N = EXPANSION_NORTH;
+  const huts = [
+    ['the west house', EXPANSION.westHouse.host[0], EXPANSION.westHouse.host[1], EXPANSION.westHouse.radius],
+    ['the stilt house', N.stilt.host[0], N.stilt.host[1], N.stilt.radius],
+    ['the tree hut', N.hut.host[0], N.hut.host[1], N.hut.radius],
+  ];
+  const bore = surfaceAt(4.84, -55.4).enclosure;
+  for (const [name, cx, cz, r] of huts) {
+    const middle = surfaceAt(cx, cz);
+    assert.ok(middle.enclosure > 0.4, `${name}: standing in the middle of it the bed is only ${middle.enclosure.toFixed(2)} closed`);
+    assert.ok(middle.enclosure < bore, `${name}: a hut with a door in it must be less closed than the log's bore (${bore.toFixed(2)})`);
+    assert.equal(middle.surface, 'wood', `${name}: a plank floor`);
+    // it fades across the doorway rather than switching at the wall line
+    const walk = [];
+    for (let d = 0; d <= r * 1.4; d += r * 0.05) walk.push(surfaceAt(cx + d, cz).enclosure);
+    for (let i = 1; i < walk.length; i++) assert.ok(walk[i] <= walk[i - 1] + 1e-9, `${name}: the walls close again on the way out`);
+    assert.ok(Math.max(...walk.slice(1).map((v, i) => walk[i] - v)) < 0.25, `${name}: the doorway is a switch, not a fade`);
+    assert.equal(surfaceAt(cx + r * 1.2, cz).enclosure, 0, `${name}: past its wall he is outdoors`);
+  }
+  // the grove's veranda and its walkway are outside the room
+  assert.equal(surfaceAt(N.stilt.host[0] + N.stilt.radius + 0.6, N.stilt.host[1]).enclosure, 0, "the stilt house's veranda is outdoors");
+  const mid = [(N.stilt.host[0] + N.hut.host[0]) / 2, (N.stilt.host[1] + N.hut.host[1]) / 2];
+  assert.equal(surfaceAt(mid[0], mid[1]).enclosure, 0, 'the rope walk is outdoors');
+});
+
+test('the wall the huts are measured against is the one they are built with', () => {
+  // WALL_AT duplicates distantHouse's WALL_TAPER, which is not exported. Read it out of the source
+  // so it cannot drift: if a hut's wall moves, this says so instead of the audio going quietly wrong.
+  const dh = readFileSync(path.join(here, '../world/structures/distantHouse.ts'), 'utf8');
+  const m = dh.match(/const WALL_TAPER = ([\d.]+);/);
+  assert.ok(m, 'WALL_TAPER should be readable from distantHouse.ts — has it moved or been renamed?');
+  assert.equal(WALL_AT, Number(m[1]), `distantHouse builds the wall at ${m[1]} of the radius; this file says ${WALL_AT}`);
+  assert.ok(INDOORS_FULL < WALL_AT, 'the fade must finish inside the wall, not outside it');
+  assert.ok(INDOORS_CLOSE > 0 && INDOORS_CLOSE < 1, 'a hut has a door in it: it is never as closed as a bore');
 });
 
 test('the places that carry their own space still do', () => {

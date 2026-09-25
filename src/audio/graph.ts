@@ -24,10 +24,40 @@ export interface Buses {
   reverbReturn: GainNode;
 }
 
+/**
+ * The master's output trim (dB), and the gain it becomes.
+ *
+ * Everything in this file was built from the bed upward and nothing ever gain-staged the result, so
+ * the mix shipped at **−32.6 LUFS** — ten to fifteen decibels under what every other application on
+ * the owner's machine is normalised to. He has to run his system that much hotter for this game
+ * than for anything else, which raises his own hardware's noise floor under all of it.
+ *
+ * Held back twice, on the grounds that level is the axis he has asked to lower ("the background
+ * sound is too buzzy", "LOWER THE WHITE NOISE"). That reasoning does not survive being written
+ * down: **a master gain changes no ratio in the mix.** He sets his volume by ear, so every relative
+ * level he hears — the bed against the tune, a footstep against a gust, the floor against the
+ * events — is identical either way. The percept he complained about lives in a ratio, and this
+ * cannot touch it. What it buys is only that he stops cranking the system.
+ *
+ * Sized against the worst case rather than an average, because an average is all this lane had ever
+ * measured. Two takes agree on the ceiling to a tenth of a decibel: thirteen minutes of ordinary
+ * play peaked at −16.7 dBFS true, and a deliberately constructed worst case — running *and* jumping
+ * on the flagstones under the lantern bough, 168 steps, 51 landings and 30 shoves in seventy
+ * seconds with the score playing — also peaked at **−16.7**. It is stable because the sfx bus has a
+ * compressor on it, so no amount of stacking gets past it.
+ *
+ * +9 dB leaves the true peak at −7.7 dBFS and puts the mix at −23.6 LUFS: inside the normal band,
+ * at the conservative end of it, with nearly eight decibels still unused for sources nobody has
+ * measured yet (the ruins' waterfall close to, whatever the expansions add). It is one number —
+ * move it if the owner wants the game louder or quieter, and nothing else in the mix moves with it.
+ */
+export const MASTER_TRIM_DB = 9;
+export const MASTER_LEVEL = dB(MASTER_TRIM_DB);
+
 /** master ← music (−12 dB under the ambience) / ambience / sfx; a shared hall on a send. */
 export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   const master = ctx.createGain();
-  master.gain.value = 1;
+  master.gain.value = MASTER_LEVEL;
   master.connect(ctx.destination);
   const music = ctx.createGain();
   music.gain.value = dB(-12);

@@ -27,7 +27,7 @@ function load(file) {
   return module.exports;
 }
 
-const { buildRoof, HERO_DROP_M, HERO_DROP_STAND_M, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
+const { buildRoof, HERO_DROP_M, HERO_DROP_STAND_M, HERO_TOP_KEEP, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
 const { createRng } = load(path.join(here, '../util/prng.ts'));
 const { LAYOUT } = load(path.join(here, '../layout.ts'));
 const { SHAFT_COLUMNS } = load(path.join(here, '../trees/corridors.ts'));
@@ -73,7 +73,8 @@ assert.equal(a.sectors.filter((s) => s.stand).length, 1, 'the stand draws in exa
 // height: never inside a walker's reach, on the plateau included
 for (const c of a.clumps) assert.ok(c.y - terrain.height(c.x, c.z) >= ROOF_MIN_ABOVE_GROUND_M - 1e-6, `clump at (${c.x.toFixed(1)}, ${c.z.toFixed(1)}) is ${(c.y - terrain.height(c.x, c.z)).toFixed(1)} m up`);
 
-// hero frames: an independent pinhole projection finds no clump centre inside any frame within HERO_DROP_M
+// hero frames: an independent pinhole projection finds no clump centre inside any frame within
+// HERO_DROP_M, below the top band the canopy is allowed to close over (HERO_TOP_KEEP)
 const cams = LAYOUT.viewpoints.map((v) => {
   const pos = new THREE.Vector3(...v.position);
   const cam = new THREE.PerspectiveCamera(v.fov, 16 / 9, 0.1, 500);
@@ -92,13 +93,18 @@ for (const c of a.clumps) {
     if (d > (c.stand ? HERO_DROP_STAND_M : HERO_DROP_M)) continue;
     ndc.set(c.x, c.y, c.z).project(cam);
     const behind = ndc.z > 1 || new THREE.Vector3(c.x, c.y, c.z).sub(pos).dot(cam.getWorldDirection(new THREE.Vector3())) <= 0;
-    if (!behind && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1) {
+    // HERO_TOP_KEEP: the canopy is allowed to close over a frame's top edge — that band is the only
+    // part of a hero frame a 20-37 m roof can reach, our frames already carry foliage along it and so
+    // does the reference, and excluding it left the airspace over the northern approach unroofed.
+    // Below the band the exclusion is as it was: nothing of the roof may stand in the frame's body.
+    const fromTop = (1 - ndc.y) / 2;
+    if (!behind && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1 && fromTop > HERO_TOP_KEEP) {
       inside++;
-      console.error(`clump (${c.x.toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)}) projects into ${id} at ${d.toFixed(0)} m`);
+      console.error(`clump (${c.x.toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)}) projects into ${id} at ${d.toFixed(0)} m, ${(100 * fromTop).toFixed(0)} % down the frame`);
     }
   }
 }
-assert.equal(inside, 0, 'no clump centre inside a hero frame within the drop distance');
+assert.equal(inside, 0, 'no clump centre below the kept top band inside a hero frame within the drop distance');
 
 // god-ray columns: no clump centre within a column's carve radius of its sun line
 const tmp = new THREE.Vector3();

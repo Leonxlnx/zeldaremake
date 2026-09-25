@@ -1617,7 +1617,20 @@ const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier
  * extra tree promoted is expensive, and camera A sits 0.05 M under W38's 9 M gate. The 8 m is paid
  * for out of `DISTANT_NEAR_M` below, which was buying nothing.
  */
-const TREE_LOD_NEAR_M = 28;
+/**
+ * The high→medium rung (m). 20 m through round 53, 28 after the treepop round, and 32 after the 18:20
+ * health check attributed the whole of the residual pop to this rung: with every tree forced high
+ * (`?treelod=10`) the owner's walking poses differ from the shipped rungs by 2.06 % and 2.24 % of the
+ * frame, and opening THIS gate to 40.6 m takes that to 0.10 % while opening the medium→low rung or the
+ * distant gate changes nothing. A tree between the rung and ≈ 41 m is on its medium LOD and fills out
+ * as he closes, which is his "the trees … only get detailed when I come up close".
+ *
+ * 40.6 m is not affordable: `pose-counts.mjs` puts camera A at 9.17 M triangles, 171 k OVER the 9 M cap
+ * (D left with 41 k). 32 m with the distant gate below pulled in to pay for it fits with room and takes
+ * draws DOWN — A 8.91 M / 620 draws (89 k headroom, −19 draws), B and E −49 k, C −20 k, D 8.69 M (+52 k),
+ * F +14 k — the same trade the treepop round made when it moved this rung from 20 to 28.
+ */
+const TREE_LOD_NEAR_M = 32;
 /**
  * The distant / mid layers' near→far gate (m, × `ctx.quality.distance`). 120 m through round 51; the
  * same measurement shows the near LOD's bent trunk, cords and root toes at 72–120 m — behind 60–86 %
@@ -1625,7 +1638,16 @@ const TREE_LOD_NEAR_M = 28;
  * rung above needs. The mid grove's own 40 m gate and the north stand's 50 m gate are both under this
  * and unchanged.
  */
-const DISTANT_NEAR_M = 72;
+const DISTANT_NEAR_M = 45;
+/**
+ * The medium→low rung (m). 59 m was tried at 19:00 and backed out: it cost the owner's walking poses
+ * +0.51 % and +0.75 % of their triangles (+45 k, +51 k) and the hero views up to +54 k, and the frame
+ * did not change — with every tree forced high (`?treelod=10`) those poses differ from the shipped
+ * rungs by 2.06 % and 2.24 % at 44 m and by 2.06 % and 2.24 % at 59 m, to the second decimal. The
+ * medium and high LODs of a tree at 44-60 m read the same at that range; the close-only detail those
+ * two per cent measure belongs to another gate, and finding which is the open question (the candidates
+ * are `DISTANT_NEAR_M` and the giants' near-canopy swap band, both reachable with `?treelod=`).
+ */
 const TREE_LOD_MID_M = 44;
 /**
  * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
