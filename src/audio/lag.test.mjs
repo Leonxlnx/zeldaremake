@@ -107,3 +107,24 @@ test('the wood closes over him where he is, not a metre back', () => {
     }
   }
 });
+
+test('a stopped clock is asked to start again, and not thirty times a second', () => {
+  // Chrome suspends an AudioContext when the output device changes under the page, when a
+  // background tab is frozen, and when a page comes back from the back/forward cache. Nothing in
+  // `index.ts` listened for it: the only `resume()` was the one behind the first gesture, so the
+  // game went quiet for the rest of the session and not even the mute key brought it back.
+  // Measured (`art/audio/2026-09-25-suspend/`): twelve seconds of a twenty-seven second run, and
+  // the recorded master held fifteen seconds of it.
+  //
+  // `tick` closes over a live context and a scene and cannot be reached from here, so the policy
+  // is a function of its own and this is the whole of what was missing.
+  assert.equal(A.shouldWake('suspended', 1000, 0), true, 'a stopped clock must be asked to start');
+  assert.equal(A.shouldWake('closed', 1000, 0), true, 'a closed context is not running either');
+  assert.equal(A.shouldWake('running', 1000, 0), false, 'a running clock must be left alone');
+  assert.equal(A.shouldWake('suspended', 1000, 1400), false, 'and not asked again before the retry window');
+  assert.equal(A.shouldWake('suspended', 1400, 1400), true, 'but asked the moment it opens');
+  // a resume outside a user gesture can be refused, and the tick runs at TICK_MS: asking every
+  // tick would be a hundred and eighty refusals before the user touched anything
+  assert.ok(A.WAKE_RETRY_MS > A.TICK_MS * 2, `the retry is ${A.WAKE_RETRY_MS} ms against a ${A.TICK_MS.toFixed(1)} ms tick — that is asking on almost every one`);
+  assert.ok(A.WAKE_RETRY_MS <= 1000, `${A.WAKE_RETRY_MS} ms of silence is long enough to be heard as a fault`);
+});

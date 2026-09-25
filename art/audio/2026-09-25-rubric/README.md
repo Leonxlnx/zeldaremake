@@ -13,7 +13,7 @@ in lane; move it if the squad would rather it sat beside the structures one).
 
 ## The verdict
 
-**173 / 200 when first scored on 2026-09-25. 181 / 200 as of 08:50 the same day.**
+**173 / 200 when first scored on 2026-09-25. 181 / 200 by 08:50, 182 / 200 by 17:40 the same day** (check 48 moved to 4 once suspend and resume were tested at last: `2026-09-25-suspend`).
 
 Its own rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. On the first pass
 it cleared the total and failed the rest — three checks below 2 and one ★ at 2. Since then #88 built
@@ -51,7 +51,7 @@ not a mis-score, and it is the only thing between the sound and the rubric's own
 | E | music | **24 / 24** | |
 | F | mix and level | 23 / 24 | |
 | G | space and direction | 18 / 20 | was 15; #88 built occlusion |
-| H | runtime | 17 / 20 | was 14; #91 tested the hidden tab, and the renderer stopped accumulating |
+| H | runtime | 18 / 20 | was 14; #91 tested the hidden tab, the renderer stopped accumulating, and a stopped clock now starts itself again |
 
 ## The four holes, in the order I would take them
 
@@ -180,7 +180,7 @@ score is a judgement and is marked as such.
 | 45 | walking behind something changes it | **3** | #88: a bird behind the west house loses 9.3 dB of its own band and the level between calls does not move. Still level-only for the fairy glints and the flames |
 | 46 | ★ starts when the game does | **4** | fixed; it used to be silent for its first six seconds |
 | 47 | survives a long session | **4** | 13 min, voices 5–13 and ending where they started, heap flat |
-| 48 | hidden tab, suspend, device change | **3** | #91: six minutes hidden with rAF stopped and four with every timer clamped to 1 Hz — no leak, no errors, audio at full speed. Suspend / resume and a device change still untested |
+| 48 | hidden tab, suspend, device change | **4** | #91: six minutes hidden with rAF stopped and four with every timer clamped to 1 Hz — no leak, no errors, audio at full speed. Suspend / resume tested 2026-09-25 and the answer was that the game never came back: the clock ran 14.98 s of a 27 s session and the recorded master held 15 s of it. The tick now asks a stopped clock back within 210 ms, which is the same answer for a device change since the page cannot tell them apart (`2026-09-25-suspend`) |
 | 49 | it costs what it should | **3** | the live graph holds at 4–15 voices through the worst case (169 steps, 47 landings, 25 shoves, 62 pods, the score playing), and the renderer's node accumulation is found and fixed (`2026-09-25-cost`). `renderCapacity` is still unsupported here, so the audio thread's own load is unread |
 | 50 | every claim reproducible | 3 | twelve scripts now; the first standing survey's numbers were produced by hand and are not |
 
