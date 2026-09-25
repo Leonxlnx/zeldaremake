@@ -518,3 +518,7 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 08:20 — #101 merged at 07:50 (before the 1280 pair). The heap cost measured after: 171 MB at A on the large tier
   (the pool's resident set in the batch, 258 parts / 1.91 M vertices), not the ~35 MB of the design note. PR #104 (comment as
   measured, growth 1.25×) and the INBOX correction with the flag offered; fable-cursor's call. #102 notes merged 07:50.
+- 2026-09-25 08:55 — fable-5 read #101 merge-ready (pixel-identical at all six, far bank 774 → 718, green 736 → 701 draws) and
+  caught the interim first-build bug independently. Running: the 1280 × 720 pair (base half done), and a five-pose walk on the
+  small pool tier (cap 64 MB, 161 resident at A, evictions live) on both builds to exercise deleteGeometry / optimize / growth —
+  no page errors through three poses. No word yet on the 171 MB heap (PR #104 / #105 carry it).
