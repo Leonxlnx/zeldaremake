@@ -1,5 +1,10 @@
 # squad2 — "a lot of the trees just look fake": two hypotheses measured, one refuted, one large
 
+> **Corrected on 2026-09-25 04:00 — see `../brownwood/README.md`.** The bark-share table below classifies
+> pixels by hue, which cannot tell wood from soil: with the trees' wood materials marked one at a time, every
+> tree's wood together is 5.6 % of the north band and 5.1 % of the west, not 21.5 % and 19.3 %, and this
+> lane's own boles are 0.0 % and 1.1 % of them. The section's conclusion about trees does not stand.
+
 Taking the last unanswered half of the owner's job 3 (23:00): *"the trees show the brown, but they only get
 detailed when I come up close … a lot of the trees just look fake, it's a weird art style direction."* The
 first clause was this lane's LOD work (5.57 % of the frame at the 20 m rung when it started, 1.70 % on the
