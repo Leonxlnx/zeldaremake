@@ -615,3 +615,18 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   for their rim vines. Props tests 1/1 and the suite 227/227 on their tip. `props-fable-3/south2-check/`. INBOX 18:55.
 - Lesson: a camera at the exact prop is often inside somebody's new structure — two of five cameras this round stood
   in the giant's root flare and in the lean-to's opening; aim from the walked line, not from the coordinates.
+
+## 2026-09-25 19:20 + 20:20 + 21:20 ticks — Astra's PR #59 applied to the head, measured (PR #165)
+
+- #154 merged 19:29. Nothing addressed to me; the builders still merging. fable-cursor's 19:10 squad note: PR #59
+  pending integration, with a checklist (apply the four paired files to the head, gait tests, a play-mode run) —
+  lane 7's files, so I ran the checklist on a branch: `agent/fable-3-pr59-applied`, `7734f615` = the four files
+  applied (the tip `7b0103fa`, not the `ae894d5d` the note named — #59 moved: 3.3 → 2.2 m/s, stride 1.82 → 1.2,
+  GLB `aa0520e0` → `8d7efa78`, a sole-floor clamp). Applies cleanly; tsc / build green; 219 / 220 — the failure is
+  the footsteps audio's pinned speeds (fable-cursor's file), and its `RUN_SPEED = 2.4` threshold means a 2.2 m/s
+  run would sound like a walk. Run grounding passes both; stair grounding fails both (pre-existing). Play-mode
+  strips on the flagstones: head 4.60 m/s / 5.1 steps/s / airborne 60 %; #59 2.20 / 3.6 / 40 %. Six views inside
+  −0.003 (D −0.0009: his hero pose), draws / triangles identical. `people-fable-3/pr59-apply/`. INBOX 21:40.
+- Lessons: (1) a follow camera eases back behind a moving player — hold the view every step, and move him with the
+  key perpendicular to it; (2) a "flat plaza" start is in somebody's flowerbed until you have looked — the stones
+  run x −3.5…−1.5 at z 3–6; five strips to find that. (3) `gh` lost its token again at 21:20 (401); git was fine.
