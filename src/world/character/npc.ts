@@ -531,7 +531,7 @@ const GREET_TURN_RATE = 2.5;
  * face Link and holds it — the head's notice then has him straight ahead; once he has stayed beyond
  * GREET_FAR_M for GREET_RELEASE_S she turns back to her stand's yaw. Each turn blends over the longer
  * of GREET_BLEND_S and the turn at GREET_TURN_RATE, with the schedule's turn-shuffle under the feet.
- * State per kid; capture passes no player, so the six frames never see a turn.
+ * State per kid (the ledge, bank, grove and veranda stands); capture passes no player, so the six frames never see a turn.
  */
 interface Greet {
   active: boolean;
@@ -822,6 +822,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const verandaLookPeriod = 19;
   const verandaPhase = verandaRng.range(0, verandaLookPeriod);
   const verandaSt: WanderState = { ...wander };
+  const verandaGreet = newGreet();
 
   // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
   // (lane 7): a light that leaves or joins the scene changes the light count every lit program
@@ -934,9 +935,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
         // at the rail in every mode, 11.6 m up on the published deck (`ground.height` reads the walk
         // surface); no fairy, so nothing to dim
         actor.pos.set(veranda.x, 0, veranda.z);
-        actor.yaw = veranda.yaw;
+        const vg = standGreet(verandaGreet, t, veranda.x, veranda.z, veranda.yaw, view ? null : player);
+        actor.yaw = vg.yaw;
         const [hy, hp] = seatedLook(t, verandaPhase, verandaKeys, verandaLookPeriod);
-        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, veranda.yaw, t, 6.1, hy, hp, verandaSt);
+        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, vg.yaw, t, 6.1, hy * (1 - verandaGreet.g), hp, verandaSt, vg.shuffle, vg.shufflePhi);
         plantFeet(verandaChar.rig, ground.height, actor.contact);
         noticeFor(verandaChar.rig, actor, player);
         actor.shadow.position.set(veranda.x, ground.decalHeight(veranda.x, veranda.z, actor.shadowRadius), veranda.z);
