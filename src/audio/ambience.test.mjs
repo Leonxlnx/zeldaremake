@@ -570,3 +570,58 @@ test('a call booked four seconds ago comes from the tree, not from where he was 
   assert.ok(moved.length <= 4, `${moved.length} voices are still being re-aimed out of ${ctx.made.panner.length} panners — finished calls are not being dropped`);
   assert.ok(ctx.made.panner.length > moved.length * 3, 'the wood should have sung many more calls than are alive at once');
 });
+
+test('walk past a tree and the bird in it goes past you', () => {
+  // A perch used to be a bearing and a distance from the spot the wood was drawn at, held until he
+  // had walked PERCH_RESEED_M — twenty-five metres — so inside that radius a bird did not move
+  // relative to him at all. Measured on a two-minute pace along a 21 m line
+  // (`art/audio/2026-09-25-parallax/`), a call arrived a median 20 degrees from its own tree at a
+  // walk and 49 at a run, the worst of them 139 — the wrong side of him.
+  //
+  // The contract is the geometry itself: standing anywhere, a call's bearing and distance must be
+  // the ones its own tree has from THERE. `perchSpots` publishes where the trees are.
+  const { amb } = bed({ seed: 'perch/parallax' });
+  const N = { x: 0, z: -1 };
+  const base = { gust: 0.5, forward: N, pods: [], canopy: 1 };
+  const runAt = (x, z, from, until) => {
+    for (let t = from; t < until; t += 1 / 30) {
+      amb.update(t, { ...base, listener: { x, y: 1.2, z } });
+      amb.scheduleUntil(t + 4);
+    }
+    return amb.stats();
+  };
+  // stand at the origin long enough to draw the wood and hear it, then twelve metres east — well
+  // inside the re-seed radius, so it must be the SAME six birds seen from a different place
+  const a = runAt(0, 0, 0, 90);
+  const seenAt = (stats, since) => stats.birdSpots.filter(([, , , at]) => at >= since);
+  const first = seenAt(a, 0);
+  assert.ok(first.length >= 3, `only ${first.length} calls in ninety seconds`);
+  const b = runAt(12, 0, 90, 200);
+  const perches = new Map(b.perchSpots.map(([kind, x, z]) => [kind, { x, z }]));
+  assert.equal(perches.size, 6, 'the wood must not have been re-seeded: twelve metres is inside PERCH_RESEED_M');
+  assert.ok(A.PERCH_RESEED_M > 12, 'this test assumes twelve metres does not re-seed');
+
+  // every call made while he stood at (12, 0) must point at its own tree from there
+  for (const [kind, pan, distance, at] of seenAt(b, 91)) {
+    const p = perches.get(kind);
+    const want = A.panFor(N, { x: p.x - 12, z: p.z - 0 }) * A.PERCH_PAN;
+    const wantD = Math.min(1, Math.hypot(p.x - 12, p.z) / A.PERCH_FAR_M);
+    // birdSpots publishes to three decimals, so that is the tolerance
+    assert.ok(Math.abs(pan - want) < 1e-3, `the ${kind} at ${at.toFixed(1)} s came from ${pan.toFixed(3)} and its tree is at ${want.toFixed(3)} from where he is standing`);
+    assert.ok(Math.abs(distance - wantD) < 1e-3, `the ${kind} was given distance ${distance.toFixed(3)} and its tree is ${wantD.toFixed(3)} away`);
+  }
+  // …and the move has to have been worth something: the same bird must not be in the same place
+  const panOf = (stats, since) => {
+    const m = new Map();
+    for (const [kind, pan, , at] of stats.birdSpots) if (at >= since) m.set(kind, pan);
+    return m;
+  };
+  const before = panOf(a, 0);
+  const after = panOf(b, 91);
+  const shared = [...after.keys()].filter((k) => before.has(k));
+  assert.ok(shared.length > 0, 'no bird called from both places, so nothing can be compared');
+  assert.ok(
+    shared.some((k) => Math.abs(before.get(k) - after.get(k)) > 0.02),
+    `walking twelve metres moved no bird: ${shared.map((k) => `${k} ${before.get(k).toFixed(3)}→${after.get(k).toFixed(3)}`).join(', ')}`,
+  );
+});

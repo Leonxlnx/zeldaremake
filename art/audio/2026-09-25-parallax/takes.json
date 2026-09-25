@@ -1,0 +1,10 @@
+{
+ "note": "the same 21 m line across the plaza, paced for two minutes at three speeds. It stays well inside PERCH_RESEED_M (25 m) the whole way, which is where the fault lives: inside that radius the wood may not move relative to him at all. `still` is the control — he never leaves the spot, so nothing may change. Speeds are the player's own (footsteps.ts WALK_SPEED / RUN_GROUND_SPEED).",
+ "gust": 0.6,
+ "lead": 4,
+ "takes": [
+  { "id": "still", "from": [-9.0, 6.0], "to": [9.0, -6.0], "speed": 0, "loop": false, "seconds": 124, "note": "standing at one end of the line for two minutes — the control" },
+  { "id": "walk", "from": [-9.0, 6.0], "to": [9.0, -6.0], "speed": 1.5, "loop": true, "seconds": 124, "note": "pacing the line at a walk for two minutes" },
+  { "id": "run", "from": [-9.0, 6.0], "to": [9.0, -6.0], "speed": 4.2, "loop": true, "seconds": 124, "note": "pacing the same line at a run" }
+ ]
+}
