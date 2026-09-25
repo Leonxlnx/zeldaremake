@@ -95,12 +95,23 @@ export interface OfflineOptions {
   stem?: 'mix' | 'bed' | 'steps' | 'music';
   /** include the music bus (default: only in `mix`) */
   music?: boolean;
-  /** mute the shared hall's return — the same stem dry, so the tail can be measured on its own */
+  /** mute the shared hall's return and the room's — the same stem dry, so a tail can be measured alone */
   reverb?: boolean;
   /** force the canopy over the whole render (0 open sky, 1 closed crowns) instead of the walk's own */
   canopy?: number;
   /** force the ravine over the whole render (0 well back from it, 1 out over it) */
   gorge?: number;
+  /**
+   * Force the space over the whole render (0 outdoors, 0.7 inside a hut, 1 inside the log bore),
+   * for the bed and for the boots both.
+   *
+   * The scripted walk crosses surfaces, not places, so there is no leg of it that is indoors and no
+   * way to ask "what does this step sound like in a room" by walking. Forcing the term is not a
+   * journey anyone takes — he would be walking on grass inside a hut — but it is the only way to
+   * hold every other variable still, which is what a measurement needs. Two takes at 0 and 0.7
+   * differ in exactly one input.
+   */
+  enclosure?: number;
   /**
    * Stand still at (x, z) for the whole render instead of walking the scripted route.
    *
@@ -590,13 +601,13 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         if (air > 0.02) {
           // the rising edge is the shove: he is leaving the ground here, and until now that was
           // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
-          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed);
+          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure);
           peakAir = Math.max(peakAir, air);
         } else if (peakAir > 0.05) {
-          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir);
+          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir, s.enclosure);
           peakAir = 0;
         } else peakAir = 0;
-        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance });
+        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure });
       }
       lastPos.x = p.x;
       lastPos.z = p.z;
@@ -617,7 +628,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const buses = createBuses(ctx, rng.fork('buses'));
       buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
       const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
-      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), ctx.currentTime);
+      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
@@ -749,13 +760,16 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
   const buses = createBuses(ctx, rng.fork('buses'));
-  if (options.reverb === false) buses.reverbReturn.gain.value = 0;
+  if (options.reverb === false) {
+    buses.reverbReturn.gain.value = 0;
+    buses.roomReturn.gain.value = 0;
+  }
   // every fork is drawn whatever the stem, so one part's stream never depends on another's presence
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
   const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
-  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
+  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
@@ -787,7 +801,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         forward: { x: Math.sin(facing), z: Math.cos(facing) },
         pods,
         fairies,
-        enclosure: spot.enclosure,
+        enclosure: options.enclosure ?? spot.enclosure,
         canopy: options.canopy ?? spot.canopy,
         gorge: options.gorge ?? spot.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
@@ -801,8 +815,8 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
-    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, enclosure: options.enclosure, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure });
   }
   ambience?.scheduleUntil(seconds);
   music?.scheduleUntil(seconds);
