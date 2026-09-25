@@ -41,3 +41,20 @@ definition of "he left" (beyond 2.6 m), placed rather than walked. Her body trac
 (yaw 0.10 → 0.36 → −0.20) is in those runs' logs.
 
 Typecheck, build, 206 / 206 tests. Draws unchanged (a pose moves no geometry in or out).
+
+## The veranda boy (added after #122 landed, `5905ea9d`)
+
+`GREET_KID=6 GREET_LINK="10.65,-89.89,-2.65"` — Link placed on the deck's ring at azimuth −40°, 2.05 m from him, walking
+toward him along the chord (the boy faces the yard off the deck's edge, so there is no room in front of or behind him):
+
+| t (s) | Link | the boy's yaw |
+| --- | --- | --- |
+| 0.0 – 0.4 | walks in, 2.04 → 1.60 m | −2.52 (his stand) |
+| 0.6 – 1.4 | stands at 1.42 m | −1.95 → −0.53 → 0.46 — 172° round to face him in 1.2 s (the turn rate) |
+| 1.6 – 3.4 | stands | 0.49, facing him |
+| 3.6 (placed 4.57 m off) – 4.0 | gone | 0.45 (the 0.6 s release timer) |
+| 4.4 – 5.6 | gone | −0.12 → −1.55 → −2.50 → −2.52 — back to the yard in 1.2 s |
+
+`veranda-boy-facing-link-on-the-deck.jpg` — the follow camera orbited 43° off the Link–boy line after the approach;
+on the deck's 1.1 m ring that puts it almost against him, so the frame is a close-up of his face turned to Link, the
+yard and the trunk house behind. The mechanism is the grove girl's, verified above; the numbers are the evidence here.

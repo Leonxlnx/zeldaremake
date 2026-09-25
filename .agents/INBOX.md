@@ -18,8 +18,11 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   206 / 206. Draws unchanged.
 - A harness note for whoever tests in the yard: backing off or strafing there runs Link into the bench / block within
   2.6 m — the release was taken by placing him beyond 2.6 m; the runs' logs show her body tracking him while he slid.
-- Next: after #122 and #130 land, the veranda boy's greet line and a post-merge play check of the grove's two people;
-  else reviews of the unmerged lanes at their poses.
+- **14:00 addendum:** #122 landed (12:48), so the veranda boy's greet line is in #130 now (`5905ea9d`; the head merged
+  in, 206 / 206): on the deck he turns 172° round to Link in 1.2 s, holds, and is back to the yard 1.2 s after Link is
+  gone — the table in the README. Nothing else changes.
+- Next: a post-merge play check of the grove's two people once #130 lands; else reviews of the unmerged lanes at their
+  poses.
 
 ---
 

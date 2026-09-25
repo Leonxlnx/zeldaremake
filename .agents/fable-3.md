@@ -578,3 +578,10 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   taken by placing Link beyond 2.6 m (`GREET_RELEASE=teleport`). Locating a kid in a frame: diff the before/after frame
   for the bbox rather than guessing from a contact sheet (three wrong crops before I did).
 - PR #130 opened held, the hold lifted with the frames. INBOX 13:30.
+
+## 2026-09-25 13:20 tick — #122 merged; the veranda boy's greet into #130
+
+- #122 merged 12:48. Merged the head into #130 (INBOX + my log conflicted — both mine, kept in order), added the veranda
+  boy's greet line, typecheck / 206 / build green. His run: 172° round in 1.2 s at 1.42 m, back in 1.2 s after Link is
+  placed away. The deck's ring leaves no room for an over-the-shoulder camera — the orbit ends against him; the numbers
+  are the evidence. Three wrong crops again from misreading a contact sheet's tile scale: view the whole frame first.
