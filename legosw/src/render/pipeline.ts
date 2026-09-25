@@ -390,9 +390,9 @@ void main() {
     vec3 acc = texture2D(tScene, uv).rgb;
     float wsum = 1.0;
     const float GA = 2.39996323;
-    for (int i = 1; i < 40; i++) {
+    for (int i = 1; i < 28; i++) {
       float fi = float(i);
-      float r = sqrt(fi / 40.0) * max(c0, 0.001);
+      float r = sqrt(fi / 28.0) * max(c0, 0.001);
       float a = fi * GA;
       vec2 o = vec2(cos(a), sin(a)) * r * px;
       float cs = coc(uv + o);

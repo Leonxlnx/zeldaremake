@@ -50,6 +50,14 @@ export interface Ship {
   root: Object3D;
 }
 
+/** Position of `o` expressed in `root`'s local frame (root's current pose is factored out). */
+export function localIn(root: Object3D, o: Object3D): Vector3 {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert();
+  o.updateWorldMatrix(true, false);
+  return new Vector3().setFromMatrixPosition(o.matrixWorld).applyMatrix4(inv);
+}
+
 export class World {
   scene = new Scene();
   camera = new PerspectiveCamera(30, 2.39, 0.05, 3e6);
@@ -91,6 +99,16 @@ export class World {
   droids: BattleDroid[] = [];
   /** everything whose visibility the shots control */
   actors: Object3D[] = [];
+  /** ship-local anchor positions (computed once at build) */
+  loc = {
+    muzzlesA: [] as Vector3[],
+    muzzlesO: [] as Vector3[],
+    socketA: new Vector3(),
+    socketO: new Vector3(),
+    zapA: new Vector3(),
+    cockpitA: new Vector3(),
+    cockpitO: new Vector3(),
+  };
 
   constructor(pipeline: Pipeline) {
     const r = pipeline.renderer;
@@ -171,6 +189,15 @@ export class World {
     this.obiwanShip.astromechAnchor.add(this.r4.group);
     s.add(this.anakinShip.group, this.obiwanShip.group);
     this.sabers = [lightsaber('blue'), lightsaber('blue')];
+    this.anakinShip.setFoils(1);
+    this.obiwanShip.setFoils(1);
+    this.loc.muzzlesA = this.anakinShip.muzzles.map((m) => localIn(this.anakinShip.group, m));
+    this.loc.muzzlesO = this.obiwanShip.muzzles.map((m) => localIn(this.obiwanShip.group, m));
+    this.loc.socketA = localIn(this.anakinShip.group, this.anakinShip.astromechAnchor);
+    this.loc.socketO = localIn(this.obiwanShip.group, this.obiwanShip.astromechAnchor);
+    this.loc.zapA = localIn(this.anakinShip.group, this.r2.zapAnchor);
+    this.loc.cockpitA = localIn(this.anakinShip.group, this.anakinShip.cockpitAnchor);
+    this.loc.cockpitO = localIn(this.obiwanShip.group, this.obiwanShip.cockpitAnchor);
 
     // --- droid craft
     for (let i = 0; i < 8; i++) {

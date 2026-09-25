@@ -14,7 +14,7 @@ export interface Layout {
 }
 
 const css = `
-#film-ui .sub { position: absolute; left: 0; right: 0; text-align: center; color: #fff; font-family: Inter, "Source Sans 3", Arimo, Arial, sans-serif; font-weight: 600; letter-spacing: 0.01em; text-shadow: 0 2px 3px rgba(0,0,0,0.85); transition: opacity 0.12s linear; white-space: nowrap; }
+#film-ui .sub { position: absolute; left: 0; right: 0; text-align: center; color: #fff; font-family: Inter, "Source Sans 3", Arimo, Arial, sans-serif; font-weight: 600; letter-spacing: 0.01em; text-shadow: 0 2px 3px rgba(0,0,0,0.85); white-space: nowrap; }
 #film-ui .sub b { color: #f2c33a; font-weight: 600; }
 #film-ui .card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; opacity: 0; }
 #film-ui .card.farfar { color: #4cc3ff; font-family: "Source Sans 3", Inter, Arimo, sans-serif; font-weight: 400; line-height: 1.35; letter-spacing: 0.01em; }

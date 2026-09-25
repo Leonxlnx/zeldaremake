@@ -81,8 +81,8 @@ const LONG_T0 = 19.5;
 const vFrame = (T: number) => v3(0, 0, VENATOR_SPEED * (T - LONG_T0));
 
 /** Background battle motion shared by all space shots (fleet drift, dogfight swarms). */
-function battle(w: World, T: number, o: { swarms?: boolean; fleet?: boolean } = {}): void {
-  w.venator.group.visible = o.fleet ?? true;
+function battle(w: World, T: number, o: { swarms?: boolean; fleet?: boolean; hero?: boolean } = {}): void {
+  w.venator.group.visible = (o.fleet ?? true) && (o.hero ?? false);
   w.venator.group.position.copy(vFrame(T));
   w.venator.group.rotation.set(0, 0, 0);
   for (const f of w.fleet) f.root.visible = o.fleet ?? true;
@@ -156,7 +156,7 @@ const crawl: Shot = {
   name: 'crawl',
   dur: 15,
   pose(w, t, T) {
-    battle(w, T, { swarms: false });
+    battle(w, T, { swarms: false, hero: true });
     w.crawl.group.visible = true;
     // the crawl lives in camera space: tipped back, sliding away up its own plane
     const cam = C0.clone();
@@ -219,7 +219,7 @@ const longTake: Shot = {
     }
   },
   pose(w, t, T) {
-    battle(w, T);
+    battle(w, T, { hero: true });
     const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
     const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3 });
     const arrive = smooth(2.4, 3.2, t);
@@ -299,7 +299,7 @@ const track: Shot = {
     }
   },
   pose(w, t, T) {
-    battle(w, T);
+    battle(w, T, { hero: true });
     const T0 = T - t;
     const victim = w.munis[0];
     victim.group.visible = t < 4.05;
@@ -313,7 +313,7 @@ const track: Shot = {
     face(w.anakin, { mouth: 'grit', brows: -0.7 }, t, 1);
     face(w.obiwan, { mouth: 'flat', brows: 0.5 }, t, 2);
     const mid = a.pos.clone().lerp(o.pos, 0.5);
-    const pos = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -58 + t * 3, 10, 18 - t * 4).add(shake(t, 1.2, 1.1, 9));
+    const pos = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -34 + t * 2, 7, 14 - t * 3.5).add(shake(t, 0.8, 1.1, 9));
     w.aimShadow(mid, 60);
     return { pos, target: mid.clone().add(v3(0, -2, 6)), fov: 30, lens: { exposure: 1.05 } };
   },
@@ -353,7 +353,7 @@ function cockpitShot(o: {
       face(fig, o.faceAt(t), t, o.who === 'anakin' ? 1 : 2);
       const hd = o.headAt?.(t) ?? { yaw: 0, pitch: 0 };
       fig.pose({ legL: Math.PI / 2, legR: Math.PI / 2, armL: 0.95, armR: 0.95, splayL: 0.08, splayR: 0.08, headYaw: hd.yaw, headPitch: hd.pitch });
-      const head = anchorWorld(ship.cockpitAnchor).add(v3(0, 2.75, 0).applyQuaternion(st.quat));
+      const head = anchorWorld(ship.cockpitAnchor).add(v3(0, 2.5, 0).applyQuaternion(st.quat));
       const cl = o.camLocal ?? [1.8, 3.4, 7.6];
       const cam = local(st, cl[0], cl[1], cl[2]);
       // live background: approaching fighters, laser fire
@@ -399,10 +399,10 @@ const vultures: Shot = {
     // Anakin's cannons
     for (let t = 0.9; t < 2.6; t += 0.11) {
       const st = flight(pathA, T0 + t);
-      for (const side of [1, -1]) {
-        const from = local(st, side * 3.2, -0.2, 13);
-        w.fx.laser({ t0: T0 + t + (side > 0 ? 0 : 0.05), from, dir: st.fwd.clone().add(v3(rng.range(-0.02, 0.02), rng.range(-0.02, 0.02), 0)), speed: 1500, life: 0.9, length: 9, width: 0.8, color: 'red' });
-      }
+      w.loc.muzzlesA.forEach((mz, k) => {
+        const from = local(st, mz.x, mz.y, mz.z + 0.6);
+        w.fx.laser({ t0: T0 + t + k * 0.05, from, dir: st.fwd.clone().add(v3(rng.range(-0.02, 0.02), rng.range(-0.02, 0.02), 0)), speed: 1500, life: 0.9, length: 9, width: 0.8, color: 'red' });
+      });
     }
     // two kills
     for (const [k, tk] of [[0, 1.55], [2, 2.35]] as const) {
@@ -552,13 +552,16 @@ function missilePath(k: number, T0: number) {
   };
 }
 /** buzz droid perches on Obi-Wan's fighter (local coords) */
+// surface heights: wing/stub tops 0.98, deck 1.6, open upper foil 0.8 + 0.384·(|x| − 5.5) (+0.18 studs)
+const BUZZ_LIFT = 1.15;
+const foilTop = (x: number) => (Math.abs(x) > 5.5 ? 0.98 + 0.384 * (Math.abs(x) - 5.5) : 0.98);
 const PERCH: [number, number, number][] = [
-  [5.5, 1.2, 2],
-  [8, 0.9, -3],
-  [-6, 1.1, 1],
-  [-8.5, 0.8, -4],
-  [2.6, 1.8, 6.5],
-  [4.8, 1.6, -7],
+  [5.8, foilTop(5.8) + BUZZ_LIFT, 2.4],
+  [8.2, foilTop(8.2) + BUZZ_LIFT, -3],
+  [-6.2, foilTop(-6.2) + BUZZ_LIFT, 1],
+  [-8.6, foilTop(-8.6) + BUZZ_LIFT, -4],
+  [2.2, 1.6 + BUZZ_LIFT, 6.2],
+  [4.9, 0.98 + BUZZ_LIFT, -7],
 ];
 
 const missiles: Shot = {
@@ -619,7 +622,7 @@ const buzzClose: Shot = {
     for (let i = 0; i < 4; i++) {
       w.fx.sparkStream(T0 + 0.1, T0 + 4.4, (T) => buzzWorld(w, i, T, T0), () => v3(0, 1, 0), 60, 70 + i, 6);
     }
-    w.fx.explosion(T0 + R4_POP, r4World(T0 + R4_POP, T0), { size: 1.6, pieces: 6, sparks: 50, smoke: 2, colors: ['red', 'flatSilver', 'white'], seed: 901 });
+    w.fx.explosion(T0 + R4_POP, r4World(w, T0 + R4_POP, T0), { size: 1.6, pieces: 6, sparks: 50, smoke: 2, colors: ['red', 'flatSilver', 'white'], seed: 901 });
   },
   pose(w, t, T) {
     battle(w, T);
@@ -630,7 +633,7 @@ const buzzClose: Shot = {
     face(w.obiwan, { mouth: t > R4_POP ? 'o' : 'frown', brows: 0.9, lookX: 0.03, lookY: -0.01 }, t, 2);
     w.obiwan.pose({ legL: Math.PI / 2, legR: Math.PI / 2, armL: 0.95, armR: 0.95, splayL: 0.08, splayR: 0.08, headYaw: 0.45, headPitch: 0.1 });
     w.buzz.forEach((b, i) => {
-      b.group.visible = i < 5;
+      b.group.visible = i === 0 || i === 1 || i === 5;
       b.group.position.copy(local(o, ...PERCH[i]).add(v3(0, 0, 0)));
       b.group.quaternion.copy(o.quat);
       b.setDeploy(1);
@@ -662,9 +665,10 @@ function obiPath9(T0: number) {
   const base = v3(1300, -1150, 23500);
   return (tt: number) => base.clone().add(v3(Math.sin((tt - T0) * 0.8) * 6, Math.sin((tt - T0) * 0.6) * 4, (tt - T0) * 200));
 }
-function r4World(T: number, T0: number): Vector3 {
+function r4World(w: World, T: number, T0: number): Vector3 {
   const st = flight(obiPath9(T0), T);
-  return local(st, 3.2, 2.2, 3.5);
+  const k = w.loc.socketO;
+  return local(st, k.x, k.y + 0.9, k.z);
 }
 function buzzWorld(w: World, i: number, T: number, T0: number): Vector3 {
   const st = flight(obiPath9(T0), T);
@@ -706,15 +710,16 @@ const rescue: Shot = {
     for (let t = 0.45; t < 0.8; t += 0.1) {
       const st = flight(pa, T0 + t);
       const target = local(flight(pair11(T0), T0 + 0.85), ...PERCH[3]);
-      for (const side of [1, -1]) {
-        const from = local(st, side * 3.2, -0.2, 13);
+      for (const mz of w.loc.muzzlesA) {
+        const from = local(st, mz.x, mz.y, mz.z + 0.6);
         w.fx.laser({ t0: T0 + t, from, dir: target.clone().sub(from), speed: 900, life: target.distanceTo(from) / 900, length: 5, width: 0.6, color: 'red' });
       }
     }
     const pk = local(flight(pair11(T0), T0 + 0.85), ...PERCH[3]);
     w.fx.explosion(T0 + 0.85, pk, { size: 5, pieces: 26, sparks: 40, smoke: 3, colors: ['flatSilver', 'dbg', 'lbg'], seed: 1101, inherit: v3(0, 0, 150) });
     // R2's zap: a crackling stream of blue sparks
-    const r2At = (T: number) => local(flight((tt) => pair11(T0)(tt).add(v3(-30, 6, -26)), T), 3.2, 2.4, 4.2);
+    const z = w.loc.zapA;
+    const r2At = (T: number) => local(flight((tt) => pair11(T0)(tt).add(v3(-30, 6, -26)), T), z.x, z.y + 0.2, z.z + 0.3);
     w.fx.sparkStream(T0 + 2.0, T0 + 2.7, r2At, () => v3(0.4, 0.6, 0.2), 140, 1102, 4);
     w.fx.explosion(T0 + 2.65, r2At(T0 + 2.65).add(v3(1, 1, 0)), { size: 1.4, pieces: 5, sparks: 30, smoke: 1, colors: ['flatSilver', 'dbg'], seed: 1103 });
   },
@@ -757,9 +762,11 @@ const rescue: Shot = {
     }
     w.r2.setHeadYaw(t > 1.8 ? Math.sin(T * 9) * 0.6 : 0);
     const mid = o.pos.clone().lerp(a.pos, 0.5);
-    const cam = local({ pos: mid, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, -40, 16, 44).add(shake(t, 0.5, 1.2, 19));
-    w.aimShadow(mid, 40);
-    return { pos: cam, target: mid, fov: 30 - smooth(1.6, 2.4, t) * 8, lens: { exposure: 1.05 } };
+    const zapFocus = local(a, w.loc.zapA.x, w.loc.zapA.y, w.loc.zapA.z);
+    const look = mid.clone().lerp(zapFocus, smooth(1.4, 2.2, t) * 0.8);
+    const cam = local({ pos: mid, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, lerp(-24, -12, smooth(1.4, 2.2, t)), lerp(10, 6, smooth(1.4, 2.2, t)), lerp(30, 16, smooth(1.4, 2.2, t))).add(shake(t, 0.35, 1.2, 19));
+    w.aimShadow(mid, 30);
+    return { pos: cam, target: look, fov: 30, lens: { exposure: 1.05 } };
   },
 };
 
