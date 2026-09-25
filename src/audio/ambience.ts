@@ -81,40 +81,69 @@ export interface AmbienceStats {
   /** where the canopy roll is sitting: −1 hard left, +1 hard right (the wind's lean) */
   windLean: number;
   /**
-   * Where the last few bird calls came from — `[kind, bearing, distance]`, newest last, bearing
-   * −1 hard left to +1 hard right and distance 0 overhead to 1 deep in the wood.
+   * Where the last few bird calls came from — `[kind, bearing, distance, at]`, newest last, bearing
+   * −1 hard left to +1 hard right, distance 0 overhead to 1 deep in the wood, and `at` the context
+   * time the call is booked to sound.
    *
    * Published for the same reason `fairySpots` is: it is the only way a harness can see what the
    * scheduler decided, and "how many birds does this wood have in it" is not a question a
-   * recording can answer.
+   * recording can answer. `at` is there because a call is booked up to four seconds before it is
+   * heard, so "when was this decided" and "when does it sound" are different questions.
    */
-  birdSpots: [BirdKind, number, number][];
+  birdSpots: [BirdKind, number, number, number][];
   /** how much wood stood between him and the last bird that called, 0 … 1 */
   birdShadow: number;
+  /**
+   * How many birds have been retired and replaced since the context started.
+   *
+   * The wood used to be re-drawn whole whenever he walked out of the radius it was drawn in, which
+   * on a run across the village happened more often than a bird called. This counts the one-at-a-
+   * time replacements that took its place, so a harness can say how much of the wood a journey
+   * actually turned over.
+   */
+  rehomed: number;
+  /**
+   * Where the six birds currently are — `[kind, x, z]` in world metres. One is replaced whenever he
+   * leaves it more than `PERCH_DROP_M` behind.
+   *
+   * `birdSpots` says where a call was heard FROM, as a bearing off his facing. That cannot be
+   * checked against anything without knowing where the tree is, and a stereo pan cannot tell front
+   * from back, so the bearing is not invertible either. This is the ground truth a harness needs to
+   * ask "did that call come from where the bird is".
+   */
+  perchSpots: [BirdKind, number, number][];
 }
 /** how many calls back `birdSpots` remembers */
 export const BIRD_SPOT_MEMORY = 24;
 /** the wood holds one bird of each kind within earshot; the weights decide who calls */
 /**
- * How far the listener walks before the wood he is in is a different wood (m).
- *
- * Birds do not follow you, and they are not the same birds a hundred metres on. Holding the perches
- * in world coordinates for ever would leave them all behind by the time he reached the ruins;
- * re-seeding every step would be the random stream this replaces. Re-seeding once he has walked out
- * of earshot of the last lot is both — consistent individuals while he is among them, new ones when
- * he is somewhere else. `FALL_AUDIBLE_M` is 42 m for a waterfall; a bird carries less far than that.
- */
-export const PERCH_RESEED_M = 25;
-
-/**
  * How far away a perch at `distance` 1 is, in metres.
  *
  * A bird's `distance` is a 0–1 shorthand for "overhead" to "deep in the wood" and shapes its
  * brightness and its share of the hall. Occlusion needs it as a place, because a bole only shadows
- * what is behind it. Set just past `PERCH_RESEED_M`: the birds a listener has are the ones within
- * the radius that walking re-seeds, so the furthest of them sits at about the edge of it.
+ * what is behind it. A perch is seeded no further out than this, and past it a perch's distance
+ * is clamped — which is what makes `PERCH_DROP_M` safe: a bird out there sounds the same wherever
+ * it is, so replacing it changes nothing but its bearing.
  */
 export const PERCH_FAR_M = 28;
+
+/**
+ * How far behind a bird has to be left before another takes its place (m).
+ *
+ * Birds do not follow you, and they are not the same birds a hundred metres on — but they do not
+ * all change at once either, and until 2026-09-25 they did. The rule was: when the listener is more
+ * than twenty-five metres from the spot the wood was drawn at, draw the whole wood again around
+ * where he is now. Measured on real journeys (`art/audio/2026-09-25-reseed/`), that fired **every
+ * 7.2 s running from the plaza to the log arch and every 8.0 s pacing a 26 m line** — against a
+ * wood that calls once every 5.5 s. Two calls in three arrived after all six birds had jumped to
+ * new, unrelated bearings, which is the scattered stream the perch system was built to replace.
+ *
+ * So a bird is retired on its own, when it is far enough behind that nothing about it can change
+ * except its bearing: past `PERCH_FAR_M` a perch's distance is already clamped, so it sounds the
+ * same at PERCH_FAR_M as at 1.6 times it, and the one that replaces it is drawn into the widest gap in the
+ * others' bearings so the wood stays spread.
+ */
+export const PERCH_DROP_M = PERCH_FAR_M * 1.6;
 
 /**
  * How long the one pink buffer the whole bed is tapped off runs before it comes round again, and
@@ -477,13 +506,15 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
-  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0 };
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0, perchSpots: [], rehomed: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
   /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
   let canopyNow = 0;
-  /** which way he was facing, likewise: the perches keep a world bearing, not a stereo position */
+  /** which way he was facing, likewise: a perch is a place, so its bearing is read off this */
   let forwardNow = { x: 0, z: 1 };
+  /** and where he was standing, which is the other half of a perch's bearing and all of its distance */
+  let listenerNow = { x: 0, z: 0 };
   /** the world's occluders as of the last update; null until one arrives, so the bed still runs headless */
   let occludeNow: ((x: number, z: number) => number) | null = null;
 
@@ -536,38 +567,87 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   };
 
   /**
+   * Calls that have not finished yet, so their bearing can keep up with him.
+   *
+   * A bird's pan is `sin(bearing − facing)`, and it used to be worked out once, in `scheduleBirds`,
+   * which runs on a **four-second lookahead** — and the answering call is booked from the same tick
+   * and sounds up to 2.5 s after that. So every bird in the wood was panned to the way he was
+   * facing up to four seconds earlier, and an answer to up to six and a half.
+   *
+   * Walking is not the problem: a perch is stored as a bearing and a distance from the anchor, so
+   * crossing the clearing does not move a bird in the field at all, which is deliberate
+   * (`PERCH_RESEED_M`). Turning is. Measured standing on the plaza and turning at 0, 10, 30 and 60
+   * degrees a second (`art/audio/2026-09-25-turning/`), a call swept **0.11 to 0.17 pan units
+   * whatever the rate** — the same at a standstill as at sixty degrees a second, which is to say
+   * turning did nothing at all, while sixty degrees a second asks for 0.89 pan units a second.
+   *
+   * Two or three entries live at a time (a call lasts under 2.6 s and the wood calls eleven times a
+   * minute), and each costs four `setTargetAtTime` a tick while it is alive.
+   *
+   * It carries the whole of what the distance and the wood between them are worth, not only the
+   * bearing, because all four were decided when the call was BOOKED — up to `AMBIENCE_AHEAD`, four
+   * seconds, before it is heard, which is six metres at a walk and seventeen at a run. Measured on
+   * the path spine between three boles (`art/audio/2026-09-25-stale/`): a call's level was out by a
+   * median 0.9 dB at a walk and 1.7 at a run (worst 2.6), its cutoff by 404 and 602 Hz (worst
+   * 1483), and one call in the take was booked **0.73 of a shadow** it did not have by the time it
+   * sang — 4.0 dB of level and 1.8 octaves of top, a bird heard from behind a tree that he had
+   * already walked out from behind.
+   */
+  const turning: { pan: AudioParam; reach: AudioParam; top: AudioParam; wet: AudioParam; x: number; z: number; until: number }[] = [];
+
+  /** the three things a bird's distance and its shadow are worth, in the units the graph wants */
+  const birdReach = (distance: number, occlusion: number) => (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
+  // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
+  const birdTop = (distance: number, occlusion: number) => (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion);
+  const birdWet = (distance: number) => 0.2 + 0.55 * distance;
+
+  /**
    * A bird heard from `distance` (0 = overhead, 1 = deep in the wood): the air takes its top off,
    * the level falls and more of it arrives through the hall. Every call is built on this.
+   *
+   * The distance and the shadow sit on `reach` — a gain of their own between the note's envelope
+   * and the air — rather than being folded into the envelope's peak. An envelope is written once
+   * and cannot be taken back; a gain can be re-aimed every tick, which is what lets a call that
+   * was booked four seconds ago arrive at the loudness it should have now.
    */
-  const birdVoice = (t: number, pan: number, distance: number, end: number, occlusion = 0) => {
+  const birdVoice = (t: number, perch: { x: number; z: number }, distance: number, end: number, occlusion = 0) => {
     const panner = ctx.createStereoPanner();
-    panner.pan.value = pan;
+    panner.pan.value = panFor(forwardNow, perchFrom(perch).dir) * PERCH_PAN;
     const hp = filter(ctx, 'highpass', 320, 0.5);
-    // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
-    const lp = filter(ctx, 'lowpass', (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion), 0.6);
+    const lp = filter(ctx, 'lowpass', birdTop(distance, occlusion), 0.6);
+    const reach = gain(ctx, birdReach(distance, occlusion));
     const g = gain(ctx, 0);
-    g.connect(hp);
+    g.connect(reach);
+    reach.connect(hp);
     hp.connect(lp).connect(panner).connect(out);
-    const send = gain(ctx, 0.2 + 0.55 * distance);
+    const send = gain(ctx, birdWet(distance));
     panner.connect(send).connect(reverbSend);
+    // and all four keep following him until the call is over (see `turning`)
+    turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, x: perch.x, z: perch.z, until: end });
     cleanupAt(ctx, end + 0.5, () => {
-      for (const n of [g, hp, lp, panner, send]) n.disconnect();
+      for (const n of [g, reach, hp, lp, panner, send]) n.disconnect();
     });
     // `voice` is the enveloped input for the oscillator; `air` is the same distance and space
     // without it, for a call built out of noise (the woodpecker's taps)
-    return { voice: g, air: hp as AudioNode };
+    return { voice: g, air: reach as AudioNode };
   };
 
-  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number, occlusion = 0) => {
+  const birdCall = (kind: BirdKind, t: number, perch: { x: number; z: number }, level: number, distance: number, occlusion = 0) => {
     counts.birds++;
-    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3))]);
+    const pan = panFor(forwardNow, perchFrom(perch).dir) * PERCH_PAN;
+    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3)), Number(t.toFixed(3))]);
     if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
     counts.birdShadow = Number(occlusion.toFixed(3));
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
-    const lv = level * (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
+    // the envelope carries only the call's own loudness now; what the distance and the wood between
+    // them are worth rides `reach`, which can still be moved after the note is written
+    const lv = level;
+    // the air rounds a far call's attack. This one cannot be taken back once the envelope is
+    // written, so it keeps the distance the call was booked at — worth up to a millisecond or two
+    // of attack, against 2.6 dB of level and 1483 Hz of cutoff that no longer do
     const soft = 1 + distance * 1.6;
     let end = t + 1.6;
-    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6, occlusion);
+    const { voice: g, air } = birdVoice(t, perch, distance, t + 2.6, occlusion);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.connect(g);
@@ -733,18 +813,25 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * each calling from the same direction over and over, and that is most of what makes one sound
    * inhabited rather than sprinkled.
    *
-   * A perch keeps a world direction rather than a stereo position, so the bearing is worked out
-   * against the listener's facing when the call is scheduled — turn your head and the birds stay
-   * where they were, which a random pan can never do. They sit in slots round the compass so the
-   * wood is not all on one side, jittered inside the slot so it is not a ring.
+   * A perch is a PLACE — a point in the world — and its bearing and its distance are worked out
+   * from where the listener is standing at the moment the call is made. They sit in slots round
+   * the compass so the wood is not all on one side, jittered inside the slot so it is not a ring.
+   *
+   * It used to keep a bearing and a distance from the spot the wood was drawn at, and hold both
+   * until he had walked `PERCH_RESEED_M` — twenty-five metres — away from it. Inside that radius a
+   * bird did not move relative to him at all: he could cross the plaza and back and every call
+   * came from the same side at the same loudness, and then the whole wood rearranged at once when
+   * he crossed the line. Measured on a two-minute pace along a 21 m line
+   * (`art/audio/2026-09-25-parallax/`), a call arrived a median **20 degrees** from where its own
+   * tree was at a walk and **49 degrees** at a run, the worst of them **139 degrees** — the wrong
+   * side of him — and its distance was out by 3.6 to 4.8 m, worth about 2 dB of level.
    */
   const perchRng = rng.fork('perches');
-  let perches: { kind: BirdKind; weight: number; dirX: number; dirZ: number; distance: number }[] = [];
+  let perches: { kind: BirdKind; weight: number; x: number; z: number }[] = [];
   let perchWeight = 0;
-  let perchAnchor: { x: number; z: number } | null = null;
   let lastPerch = -1;
+  const perchSpots = () => perches.map((p) => [p.kind, Number(p.x.toFixed(2)), Number(p.z.toFixed(2))] as [BirdKind, number, number]);
   const seedPerches = (at: Vec3) => {
-    perchAnchor = { x: at.x, z: at.z };
     // One bird of each kind, not six drawn from the weighted list: drawing doubled kinds up and
     // left a wood with three species in it. The weights belong on how often a bird calls, which is
     // what they always meant — a wood has one of everything and you hear the common ones more.
@@ -752,10 +839,46 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     perches = order.map(({ b }, i) => {
       // a slot each round the compass, jittered inside it: spread, but not a ring
       const a = ((i + 0.2 + perchRng() * 0.6) / order.length) * Math.PI * 2;
-      return { kind: b.kind, weight: b.weight, dirX: Math.sin(a), dirZ: Math.cos(a), distance: b.near + perchRng() * (b.far - b.near) };
+      const m = (b.near + perchRng() * (b.far - b.near)) * PERCH_FAR_M;
+      return { kind: b.kind, weight: b.weight, x: at.x + Math.sin(a) * m, z: at.z + Math.cos(a) * m };
     });
     perchWeight = perches.reduce((s, p) => s + p.weight, 0);
     lastPerch = -1;
+    counts.perchSpots = perchSpots();
+  };
+
+  /**
+   * Retire the birds he has left behind, one at a time, and put a new one of each kind in the
+   * widest gap the others leave in the bearings round him.
+   *
+   * The gap rather than a fresh draw because six uniform draws are what `seedPerches` uses slots to
+   * avoid — a wood all on one side. With five already placed, the widest gap between their bearings
+   * is the slot, and jittering inside it keeps it off a ring.
+   */
+  const rehomePerches = () => {
+    for (const p of perches) {
+      if (Math.hypot(p.x - listenerNow.x, p.z - listenerNow.z) <= PERCH_DROP_M) continue;
+      const kind = BIRDS.find((b) => b.kind === p.kind) ?? BIRDS[0];
+      const others = perches
+        .filter((q) => q !== p)
+        .map((q) => Math.atan2(q.x - listenerNow.x, q.z - listenerNow.z))
+        .sort((a, b) => a - b);
+      let at = perchRng() * Math.PI * 2;
+      let widest = 0;
+      for (let i = 0; i < others.length; i++) {
+        const lo = others[i];
+        const hi = i + 1 < others.length ? others[i + 1] : others[0] + Math.PI * 2;
+        if (hi - lo > widest) {
+          widest = hi - lo;
+          at = lo + (hi - lo) * (0.25 + perchRng() * 0.5);
+        }
+      }
+      const m = (kind.near + perchRng() * (kind.far - kind.near)) * PERCH_FAR_M;
+      p.x = listenerNow.x + Math.sin(at) * m;
+      p.z = listenerNow.z + Math.cos(at) * m;
+      counts.perchSpots = perchSpots();
+      counts.rehomed++;
+    }
   };
   /** which bird calls next: the commoner kinds more often, and never the one that just called */
   const pickPerch = (avoid: number) => {
@@ -766,21 +889,28 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     }
     return perches.length - 1 === avoid ? 0 : perches.length - 1;
   };
-  /** the bearing of a perch as the listener is facing now: −1 hard left, +1 hard right */
-  const perchPan = (p: { dirX: number; dirZ: number }) => panFor(forwardNow, { x: p.dirX, z: p.dirZ }) * PERCH_PAN;
+  /**
+   * A perch as it is from where he is standing now: which way it lies, and how far off it is on the
+   * 0 (overhead) to 1 (deep in the wood) scale the call's brightness, level and hall share are cut
+   * from. Walk toward a bird and it gets nearer; walk past it and it goes behind you.
+   */
+  const perchFrom = (p: { x: number; z: number }) => {
+    const dx = p.x - listenerNow.x;
+    const dz = p.z - listenerNow.z;
+    const m = Math.hypot(dx, dz);
+    return { dir: { x: dx, z: dz }, distance: Math.min(1, m / PERCH_FAR_M) };
+  };
   /**
    * How much wood stands between him and a perch, right now.
    *
-   * The perch is a bearing and a distance from where the birds were last seeded, which makes it a
-   * place — so this is asked at the moment the call is scheduled rather than when the bird was put
-   * there. Walking behind a bole has to change what the bird on the other side of it sounds like,
-   * and the anchor does not move while he does (`PERCH_RESEED_M`).
+   * Asked at the moment the call is scheduled, which is up to four seconds before it is heard —
+   * unlike the bearing and the distance, this one does not then follow him. Walking behind a bole
+   * has to change what the bird on the other side of it sounds like, and at a run four seconds is
+   * seventeen metres, so it is still stale; it stays that way here because the shadow scales the
+   * level as well as the top, and the level is inside each note's envelope rather than on a
+   * parameter that can be re-aimed.
    */
-  const perchShadow = (p: { dirX: number; dirZ: number; distance: number }) => {
-    if (!occludeNow || !perchAnchor) return 0;
-    const m = p.distance * PERCH_FAR_M;
-    return occludeNow(perchAnchor.x + p.dirX * m, perchAnchor.z + p.dirZ * m);
-  };
+  const perchShadow = (p: { x: number; z: number }) => (occludeNow ? occludeNow(p.x, p.z) : 0);
 
   // its own stream: the lull trigger is drawn from `update`, whose call rate differs between the
   // live tick and an offline render, and it must not shift what the schedulers draw
@@ -793,13 +923,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const p = perches[i];
       lastPerch = i;
       const level = 0.03 + eventRng() * 0.045;
-      birdCall(p.kind, nextBird, perchPan(p), level, p.distance, perchShadow(p));
+      birdCall(p.kind, nextBird, p, level, perchFrom(p).distance, perchShadow(p));
       // and sometimes another answers — a different bird in its own tree, not this one mirrored
       if (eventRng() < 0.3 && perches.length > 1) {
         const j = pickPerch(i);
         const q = perches[j];
         lastPerch = j;
-        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchPan(q), level * 0.6, q.distance, perchShadow(q));
+        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, q, level * 0.6, perchFrom(q).distance, perchShadow(q));
       }
       // Birds shelter and stop calling in a blow, and sing when it drops. Measured, the world's
       // wind falls under the gust knee about twice a minute for three seconds at a time
@@ -830,9 +960,25 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
     const fl = Math.hypot(s.forward.x, s.forward.z) || 1;
     forwardNow = { x: s.forward.x / fl, z: s.forward.z / fl };
+    listenerNow = { x: s.listener.x, z: s.listener.z };
     occludeNow = s.occlude ?? null;
-    // a different part of the wood holds different birds (PERCH_RESEED_M)
-    if (!perchAnchor || Math.hypot(s.listener.x - perchAnchor.x, s.listener.z - perchAnchor.z) > PERCH_RESEED_M) seedPerches(s.listener);
+    // the birds that are mid-call keep their trees while he turns under them
+    for (let i = turning.length - 1; i >= 0; i--) {
+      const v = turning[i];
+      if (v.until < t) {
+        turning.splice(i, 1);
+        continue;
+      }
+      const from = perchFrom(v);
+      const shadow = occludeNow ? occludeNow(v.x, v.z) : 0;
+      v.pan.setTargetAtTime(panFor(forwardNow, from.dir) * PERCH_PAN, t, PLACE_TAU);
+      v.reach.setTargetAtTime(birdReach(from.distance, shadow), t, PLACE_TAU);
+      v.top.setTargetAtTime(birdTop(from.distance, shadow), t, PLACE_TAU);
+      v.wet.setTargetAtTime(birdWet(from.distance), t, PLACE_TAU);
+    }
+    // the wood is drawn once, and after that a bird he has left behind is retired on its own
+    if (!perches.length) seedPerches(s.listener);
+    else rehomePerches();
     const sw = swell(gust);
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
@@ -920,7 +1066,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   return {
     scheduleUntil,
     update,
-    stats: () => ({ ...counts, birdSpots: counts.birdSpots.map((s) => [...s] as [BirdKind, number, number]) }),
+    stats: () => ({ ...counts, birdSpots: counts.birdSpots.map((s) => [...s] as [BirdKind, number, number, number]), perchSpots: counts.perchSpots.map((s) => [...s] as [BirdKind, number, number]) }),
     dispose() {
       for (const n of nodes) {
         try {
