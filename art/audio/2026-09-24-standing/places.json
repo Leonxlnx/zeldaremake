@@ -73,6 +73,38 @@
     48.9
    ],
    "note": "two metres into the far bank's hollow log"
+  },
+  {
+   "id": "grove-trail",
+   "at": [
+    -0.43,
+    -90.11
+   ],
+   "note": "a set stone on the grove's trail, under the crowns"
+  },
+  {
+   "id": "grove-deck",
+   "at": [
+    14.2,
+    -91.5
+   ],
+   "note": "the stilt house's veranda, 11.6 m up"
+  },
+  {
+   "id": "grove-room",
+   "at": [
+    12,
+    -91.5
+   ],
+   "note": "inside the stilt house, its door open"
+  },
+  {
+   "id": "west-room",
+   "at": [
+    -23,
+    9
+   ],
+   "note": "inside the west house, under open sky"
   }
  ]
 }

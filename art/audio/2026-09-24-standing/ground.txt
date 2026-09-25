@@ -1,0 +1,14 @@
+place                                              x        z  he stands at  terrain  air under him
+the shelf pad, at the gangway’s foot            6.16   -94.68         10.11    10.00           0.11
+the stilt house’s veranda                      12.00   -91.50         11.61     8.49           3.12
+open ground 4 m east of the stilt house        16.00   -91.50          8.19     8.19           0.00
+the rope walk, midway                          14.40   -88.35         11.43     7.60           3.83
+open ground under the rope walk, 4 m north     14.40   -84.40          6.81     6.81           0.00
+the tree hut’s platform                        16.80   -85.20         11.31     6.89           4.42
+the grove trail, on a set stone                -0.43   -90.11          9.26     9.19           0.07
+the west house                                -23.00     9.00          3.38     1.87           1.51
+open ground 5 m east of the west house        -18.00     9.00          1.66     1.66           0.00
+the plaza                                       1.50    -6.00          0.04    -0.00           0.05
+the ravine bridge, quarter span                 3.90    30.50         -0.15    -0.37           0.22
+the ravine bridge, midspan                      3.90    37.08         -0.76    -9.47           8.71
+the ravine bridge, three quarters               3.90    43.60         -0.01    -0.25           0.23
