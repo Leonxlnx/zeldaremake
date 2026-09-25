@@ -42,7 +42,7 @@ function loadTs(file) {
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const { surfaceAt } = loadTs(path.join(here, 'index.ts'));
-const { LAYOUT, EXPANSION, EXPANSION_SOUTH, EXPANSION_NORTH, northGangway } = loadTs(path.join(here, '../world/layout.ts'));
+const { LAYOUT, EXPANSION, EXPANSION_SOUTH, EXPANSION_NORTH, EXPANSION_RUINS, northGangway } = loadTs(path.join(here, '../world/layout.ts'));
 
 /** rotate (u along, v across) in a thing's own frame into the world */
 const inFrame = (x, z, yaw, u, v) => [x + Math.cos(yaw) * u - Math.sin(yaw) * v, z + Math.sin(yaw) * u + Math.cos(yaw) * v];
@@ -92,6 +92,26 @@ function standingPlaces() {
     const dz = N.hut.host[1] - N.stilt.host[1];
     for (const t of [0.4, 0.5, 0.6]) p.push([`the rope walk at ${(t * 100).toFixed(0)} % of its span`, N.stilt.host[0] + dx * t, N.stilt.host[1] + dz * t, 'bridge']);
   }
+
+  // Round 57, the waterfall ruins west of the village: the trail is packed earth the path mask
+  // calls flagstones, the outcrop bare rock the masks call lawn, and the flight, the terrace's
+  // paving and the water stair are masonry the masks know nothing of. Past the pool's waterline he
+  // wades — the shallows he can stand in before the pool holds him.
+  const R = EXPANSION_RUINS;
+  for (const i of [5, 9, 11]) p.push([`the ruins trail at its node ${i}`, R.trail[i][0], R.trail[i][2], 'dirt']);
+  const o = R.platform;
+  p.push(['the pale outcrop', (o.x0 + o.x1) / 2, (o.z0 + o.z1) / 2, 'stone']);
+  p.push(['the outcrop by the gate', -56.5, -3.0, 'stone']);
+  const st = R.stairs;
+  p.push(['the worn flight up to the arch', st.base[0] + st.dir[0] * st.tread * st.steps * 0.5, st.base[2], 'stone']);
+  p.push(["the arch's passage", R.arch.x, R.arch.z, 'stone']);
+  for (const [x, z] of [[-67.5, -4.6], [-72.0, -3.2], [-68.0, -8.4]]) p.push([`the terrace's paving at (${x}, ${z})`, x, z, 'stone']);
+  const ws = R.waterStair;
+  p.push(["the water stair's landing", (R.quay.head[0] + R.quay.head[1]) / 2, ws.base[2], 'stone']);
+  for (const i of [2, 9, 16]) p.push([`the water stair's tread ${i}`, ws.base[0] + (i + 0.5) * ws.tread, ws.base[2], 'stone']);
+  p.push(['the quay along the wall', ws.base[0] - 1.3, ws.base[2], 'stone']);
+  p.push(["the platform at the fall's foot", -73.0, -0.6, 'stone']);
+  for (const [x, z] of [[-56.7, 4.8], [-64.9, 8.35]]) p.push([`the pool's shallows at (${x}, ${z})`, x, z, 'water']);
   return p;
 }
 
@@ -117,11 +137,17 @@ test('the ground around them is still the ground', () => {
   assert.equal(surfaceAt(c.x, c.z + c.radius + 2).surface, 'leaf', 'the forest floor outside the clearing');
   const wh = EXPANSION.westHouse;
   assert.notEqual(surfaceAt(wh.host[0] + wh.radius + 1.5, wh.host[1]).surface, 'wood', 'the ground off the west house platform');
+  // the ruins: the forest floor beside the trail, and the pool's banks above its waterline
+  assert.equal(surfaceAt(-45.0, 2.0).surface, 'grass', 'the forest floor south of the ruins trail');
+  assert.equal(surfaceAt(-52.8, 3.35).surface, 'grass', "the pool's east bank");
+  assert.equal(surfaceAt(-64.9, 9.3).surface, 'grass', "the pool's south bank over the waterline");
 });
 
 test('every surface the footstep designer knows is reachable somewhere in the world', () => {
   // the other direction: a surface nothing in the world returns is a voice nobody ever hears
   const heard = new Set();
   for (let x = -40; x <= 40; x += 0.5) for (let z = -90; z <= 60; z += 0.5) heard.add(surfaceAt(x, z).surface);
-  for (const s of ['stone', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge']) assert.ok(heard.has(s), `nowhere in the world sounds like ${s}`);
+  // the waterfall ruins' site, west of that square (its pool is the world's one wading water)
+  for (let x = -76; x < -40; x += 0.5) for (let z = -12; z <= 14; z += 0.5) heard.add(surfaceAt(x, z).surface);
+  for (const s of ['stone', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge', 'water']) assert.ok(heard.has(s), `nowhere in the world sounds like ${s}`);
 });
