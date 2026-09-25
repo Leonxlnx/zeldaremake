@@ -3,7 +3,7 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, InstancedMesh, Matrix4, Mesh, type BufferAttribute, type Camera } from 'three';
+import { Group, InstancedMesh, Matrix4, Mesh, StaticDrawUsage, type BufferAttribute, type Camera } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES, southRouteSurface, surfaceMask } from '../terrain/heightfield';
@@ -1403,11 +1403,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const done = new Set<string>();
     group.traverse((o) => {
       const m = o as Mesh;
-      if (!m.isMesh || !m.geometry || done.has(m.geometry.uuid)) return;
+      // the instanced sprouts (joint tufts, flower heads) rewrite their per-instance attributes on
+      // every camera move (materials/sprouts.ts `cull`): their arrays stay
+      if (!m.isMesh || (m as InstancedMesh).isInstancedMesh || !m.geometry || done.has(m.geometry.uuid)) return;
       done.add(m.geometry.uuid);
       for (const [name, attr] of Object.entries(m.geometry.attributes)) {
-        if (name === 'position') continue;
-        (attr as BufferAttribute).onUpload(dropArray as unknown as () => void);
+        const a = attr as BufferAttribute & { isInstancedBufferAttribute?: boolean };
+        if (name === 'position' || a.isInstancedBufferAttribute || a.usage !== StaticDrawUsage) continue;
+        a.onUpload(dropArray as unknown as () => void);
       }
     });
   }
