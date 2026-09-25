@@ -1,4 +1,4 @@
-# fable-5 — the head `31146062` → `2225a111` (the grove at 22:20, the post-recording round at 23:45: #54 roofhole, #61 tread-tone, lodcheck, #65 understory LOD, lane 5's audio; 88 commits) — six views, walk, the look-back bill — 2026-09-25 00:04–00:33 UTC
+# fable-5 — the head `31146062` → `2225a111` (the grove at 22:20, the post-recording round at 23:45: #54 roofhole, #61 tread-tone, lodcheck, #65 understory LOD, lane 5's audio; 88 commits) — six views, walk, the look-back bill — 2026-09-25 00:04–00:32 UTC
 
 `2f6c8ae2` (00:17, `squad5-indoors`) differs from `2225a111` in `src/audio/` only; these numbers stand for it.
 
