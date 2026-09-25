@@ -15,7 +15,8 @@
  * tube runs on under the bank's face to its snapped far end, which opens into the cleft behind
  * the bank (terrain/south.ts `cleftWeight`): real ground, lit by the sun, with ferns, roots,
  * saplings and a thicket of young trees where it runs out — daylight at the end of the tunnel,
- * not a lamp. No light source
+ * not a lamp. Moss and turf roll over the far rim with grass on it and beards hanging over the
+ * opening; in the glade the children's slingshot target stands on its stake. No light source
  * joins the scene: the hollow's own materials emit per vertex (`aGlow`, the daylight bounced in
  * from the far end, falling off along the bore, times the surface's albedo — so the fissures stay
  * dark in it), and the pods are the scene's emissive pods.
@@ -163,7 +164,19 @@ export interface SouthBuild {
     triangles: { bridge: number; log: number; foliage: number; walls: number };
     /** the ravine walls' roots and vines near the bridge */
     walls: { roots: number; vines: number };
-    log: { mouth: [number, number, number]; floorY: number; axisY: number; lightA: number; farEnd: [number, number]; walkEnd: number; barrierRoots: number; cleft: { roots: number; saplings: number; plants: number; trees: number; shrubs: number } };
+    log: {
+      mouth: [number, number, number];
+      floorY: number;
+      axisY: number;
+      lightA: number;
+      farEnd: [number, number];
+      walkEnd: number;
+      barrierRoots: number;
+      /** the far end's lip: moss cushions, grass and ferns, hanging beards and runners */
+      farLip: { moss: number; tufts: number; vines: number };
+      /** the glade's plants, roots and trees, and the target's face centre */
+      cleft: { roots: number; saplings: number; plants: number; trees: number; shrubs: number; target: [number, number, number] };
+    };
     pointLights: 0;
   };
 }
@@ -1080,6 +1093,70 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     tuftSpecs.push({ position: p, normal: n, rx: rad, rz: rad * (0.7 + barrierRng() * 0.5), h: rad * 0.6, yaw: barrierRng() * TAU, color: [0.3 * gain, 0.42 * gain, 0.1 * gain], uv: [p.x / 1.6, p.z / 1.6], sink: rad * 0.4, seed: 1 + Math.floor(barrierRng() * 1e6) });
   }
 
+  // the far end's lip: where the snapped end meets the glade, the log's moss cap and the bank's turf
+  // roll over the rim — cushions along the crown and over its edge, grass and ferns standing on it,
+  // moss beards and runners hanging over the top of the opening — so the rim ends under a soft edge
+  // that shades its end grain, not a bare ring of bark against the light
+  const lipRng = logRng.fork('far-lip');
+  const farLip = { moss: 0, tufts: 0, vines: 0 };
+  const AXIS_DIR = new Vector3(TF_AX, 0, TF_AZ);
+  /** the crown at (a, phi), `lift` m out — or the bank's turf over it where the turf buries it — and its outward normal */
+  const crown = (a: number, phi: number, lift: number) => {
+    const p = ring(a, phi, shellR(phi, a) + lift);
+    const g = terrain.height(p.x, p.z);
+    const n = new Vector3();
+    if (g > p.y) {
+      p.y = g;
+      terrain.normal(p.x, p.z, n);
+      return { p, n, turf: true };
+    }
+    return { p, n: n.copy(p).sub(logAxis(a)).normalize(), turf: false };
+  };
+  for (let k = 0; k < 44; k++) {
+    const phi = (lipRng() - 0.5) * 2.5;
+    const a = aFar(phi) - 0.04 - Math.pow(lipRng(), 1.6) * 0.6;
+    const { p, n, turf } = crown(a, phi, 0);
+    const rad = 0.05 + lipRng() * 0.1;
+    const gain = 0.8 + lipRng() * 0.4;
+    const tint: RGB = turf ? [0.33, 0.5, 0.12] : [0.36, 0.5, 0.11];
+    logTufts.push({ position: p, normal: n, rx: rad, rz: rad * (0.7 + lipRng() * 0.5), h: rad * (0.55 + lipRng() * 0.4), yaw: lipRng() * TAU, color: [tint[0] * gain, tint[1] * gain, tint[2] * gain], uv: [p.x / 1.6, p.z / 1.6], sink: rad * 0.5, seed: 1 + Math.floor(lipRng() * 1e6) });
+    farLip.moss++;
+  }
+  // cushions rolled over the rim's outer edge, tipped out toward the glade
+  for (let k = 0; k < 22; k++) {
+    const phi = (lipRng() - 0.5) * 2.2;
+    const a0 = aFar(phi);
+    const edge = ring(a0 - 0.02, phi, shellR(phi, a0) - 0.03);
+    const rad = 0.06 + lipRng() * 0.07;
+    const gain = 0.85 + lipRng() * 0.3;
+    const yaw = lipRng() * TAU;
+    const seedK = 1 + Math.floor(lipRng() * 1e6);
+    if (terrain.height(edge.x, edge.z) > edge.y + 0.05) continue;
+    const n = ring(a0, phi, 1).sub(logAxis(a0)).normalize().add(AXIS_DIR).normalize();
+    logTufts.push({ position: edge, normal: n, rx: rad, rz: rad * 0.8, h: rad * 0.7, yaw, color: [0.36 * gain, 0.5 * gain, 0.11 * gain], uv: [edge.x / 1.6, edge.z / 1.6], sink: rad * 0.45, seed: seedK });
+    farLip.moss++;
+  }
+  // grass and ferns on the crown, the ones at the edge leaning out over it
+  for (let k = 0; k < 18; k++) {
+    const phi = (lipRng() - 0.5) * 1.9;
+    const back = 0.06 + lipRng() * 0.55;
+    const { p, n } = crown(aFar(phi) - back, phi, -0.01);
+    const out = n.clone().lerp(new Vector3(0, 1, 0), 0.4).addScaledVector(AXIS_DIR, 0.7 * (1 - smoothstep(0.08, 0.35, back))).normalize();
+    logFoliage.addTuft(p, out, 0.18 + lipRng() * 0.22, lipRng() < 0.4 ? 1 : 0, 0.06, [0.9, 1.0, 0.85]);
+    farLip.tufts++;
+  }
+  // moss beards and runners off the rim: short over the opening, longer down the flanks
+  for (let k = 0; k < 14; k++) {
+    const phi = phiAt(0.2 + lipRng() * 0.6);
+    const a0 = aFar(phi) + 0.03;
+    const hookP = ring(a0, phi, shellR(phi, a0) + 0.02);
+    hookP.y = Math.max(hookP.y, terrain.height(hookP.x, hookP.z));
+    const overOpening = Math.abs(Math.sin(phi) * T.outerRadius) < 1.25;
+    const length = overOpening ? 0.22 + lipRng() * 0.4 : 0.5 + lipRng() * 1.0;
+    logFoliage.addHangingVine(hookP, length, { drift: AXIS_DIR.clone().multiplyScalar(0.1), leafSize: lipRng() < 0.5 ? 0.055 : 0.075, thickness: 0.008, amount: 0.1 });
+    farLip.vines++;
+  }
+
   // ================= the cleft past the far end =================
   // real ground behind the bank's face (terrain/south.ts `cleftWeight`), seen through the log:
   // ferns and grass on its bed and banked at the walls' feet, roots out of the cut walls, runners
@@ -1296,6 +1373,82 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     else cleftFoliage.addTuft(p, up, 0.2 + thicketRng() * 0.2, 0, 0.06, [1.0, 1.02, 0.9]);
     cleftStats.plants++;
   }
+  // a slingshot target in the glade, 2.6 m past the far end and 1 m west of the axis (clear of the
+  // look back from the glade), facing the log: a sawn round of a young trunk with its bark left on,
+  // rings painted on its face in cream and red ochre — worn thin, chipped, dented dark where the
+  // stones struck — pegged to a leaning stake. The children climb down here to shoot.
+  const target = (() => {
+    const tN = new Noise2D(`${seed}/cleft/target`);
+    const R = 0.27;
+    const TH = 0.07;
+    const STAKE_R = 0.045;
+    const [ta, tc] = [T.length + 2.6, 1.0];
+    const base = onGround(ta, tc, 0);
+    const lean = AXIS_DIR.clone().multiplyScalar(0.09).add(new Vector3(0, 1, 0)).normalize();
+    const stake = new CatmullRomCurve3([base.clone().addScaledVector(lean, -0.3), base.clone().addScaledVector(lean, 0.55).add(new Vector3(0.012, 0, -0.008)), base.clone().addScaledVector(lean, 1.36)]);
+    cleftParts.push(sweepTube(stake, { radius: (t) => STAKE_R * (1 - 0.2 * t), tubularSegments: 10, radialSegments: 8, uvMetres: 0.4, capEnd: true, displace: (t, ang) => 0.003 * Math.sin(ang * 5 + t * 11), color: (t) => [0.5 - 0.06 * t, 0.45 - 0.05 * t, 0.38 - 0.04 * t] }));
+    // the face square to the stake, toward the log
+    const nf = AXIS_DIR.clone().negate();
+    nf.addScaledVector(lean, -nf.dot(lean)).normalize();
+    const right = new Vector3().crossVectors(lean, nf).normalize();
+    const C = base.clone().addScaledVector(lean, 0.98).addScaledVector(nf, STAKE_R + TH / 2);
+    const bare: RGB = [0.5, 0.43, 0.35];
+    const disc = (front: boolean) => {
+      const g = gridSurface(
+        (u, v, out) => {
+          const th = u * TAU;
+          const x = Math.cos(th) * v * R;
+          const y = Math.sin(th) * v * R;
+          out.position.copy(C).addScaledVector(right, x).addScaledVector(lean, y).addScaledVector(nf, (front ? 1 : -1) * (TH / 2 + 0.002 * tN.noise(x * 20, y * 20)));
+          out.uv = [u * 2, 1 - v];
+          if (!front) {
+            const d = 0.4 * (0.85 + 0.3 * tN.noise(x * 9 + 5, y * 9));
+            out.color = [d, d * 0.84, d * 0.7];
+            return;
+          }
+          // from the middle out: a red bull, cream, red, cream, the sapwood left bare
+          const band = v < 0.17 ? 0 : v < 0.4 ? 1 : v < 0.63 ? 0 : v < 0.85 ? 1 : 2;
+          const col: RGB = band === 0 ? [0.6, 0.24, 0.15] : band === 1 ? [0.86, 0.78, 0.6] : bare;
+          const worn = 0.25 + 0.2 * tN.noise(x * 6 + 1, y * 6);
+          const chip = smoothstep(0.45, 0.62, tN.noise(x * 30 + 3, y * 30 - 2));
+          const paint = band === 2 ? 0 : clamp(1 - worn - chip, 0, 1);
+          const dark = 1 - 0.45 * smoothstep(0.5, 0.72, tN.noise(x * 44 + 9, y * 44 + 4)) * (1 - smoothstep(0.25, 0.6, v));
+          out.color = [lerp(bare[0], col[0], paint) * dark, lerp(bare[1], col[1], paint) * dark, lerp(bare[2], col[2], paint) * dark];
+        },
+        { cols: 32, rows: 22, closedU: true },
+      );
+      const toward = front ? nf : nf.clone().negate();
+      faceTowards(g, (p, o) => o.copy(p).addScaledVector(toward, 5));
+      const nrm = g.attributes.normal;
+      for (let i = 0; i < nrm.count; i++) nrm.setXYZ(i, toward.x, toward.y, toward.z);
+      return g;
+    };
+    endParts.push(disc(true), disc(false));
+    // the bark left round its edge
+    cleftParts.push(
+      sweepTube(new LineCurve3(C.clone().addScaledVector(nf, -TH / 2), C.clone().addScaledVector(nf, TH / 2)), {
+        radius: () => R,
+        tubularSegments: 1,
+        radialSegments: 32,
+        uvMetres: 0.3,
+        color: (t, ang) => {
+          const d = 0.46 * (0.85 + 0.3 * tN.noise(ang * 2.2, t * 3 + 7));
+          return [d, d * 0.9, d * 0.76];
+        },
+      }),
+    );
+    // two pegs through it into the stake, their heads proud of the face
+    for (const s of [-0.72, 0.72]) {
+      const at = C.clone().addScaledVector(lean, s * R);
+      cleftParts.push(sweepTube(new LineCurve3(at.clone().addScaledVector(nf, TH / 2 - 0.02), at.clone().addScaledVector(nf, TH / 2 + 0.012)), { radius: () => 0.013, tubularSegments: 1, radialSegments: 7, uvMetres: 0.3, capEnd: true, color: () => [0.34, 0.28, 0.21] }));
+    }
+    for (let k = 0; k < 4; k++) {
+      const ang = k * 1.7 + 0.4;
+      cleftFoliage.addTuft(onGround(ta + Math.cos(ang) * 0.12, tc + Math.sin(ang) * 0.12, -0.02), new Vector3(0, 1, 0), 0.2 + 0.05 * k, 0, 0.06, [1.0, 1.02, 0.9]);
+      cleftStats.plants++;
+    }
+    return [+C.x.toFixed(2), +C.y.toFixed(2), +C.z.toFixed(2)] as [number, number, number];
+  })();
   for (let a = T.length; a <= CLEFT_END; a += 2) {
     const p = onGround(a, 0);
     casters.push({ x: p.x, z: p.z, r: 4.2, y0: p.y - 0.5, y1: p.y + 3.4, shadow: true });
@@ -1549,7 +1702,8 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
         farEnd: [+farEnd.x.toFixed(2), +farEnd.z.toFixed(2)],
         walkEnd: T.deadEnd - 0.2,
         barrierRoots,
-        cleft: cleftStats,
+        farLip,
+        cleft: { ...cleftStats, target },
       },
       pointLights: 0,
     },

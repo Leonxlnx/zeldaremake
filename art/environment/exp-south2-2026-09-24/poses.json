@@ -526,6 +526,44 @@
   ]
  },
  {
+  "name": "E-up",
+  "note": "1.5 m short of the roots, looking up 60 deg at the hollow's roof where the roots come through",
+  "eye": [
+   4.376,
+   51.098,
+   1.5,
+   4.31,
+   48.899
+  ],
+  "look": [
+   4.4,
+   51.898,
+   2.9,
+   4.31,
+   48.899
+  ],
+  "ab": false
+ },
+ {
+  "name": "E-down",
+  "note": "two metres in, looking down 35 deg along the litter floor toward the roots",
+  "eye": [
+   4.31,
+   48.899,
+   1.6,
+   4.31,
+   48.899
+  ],
+  "look": [
+   4.379,
+   51.198,
+   0,
+   4.31,
+   48.899
+  ],
+  "ab": false
+ },
+ {
   "name": "L9",
   "note": "1.5 m inside the mouth, looking back out north",
   "eye": [
