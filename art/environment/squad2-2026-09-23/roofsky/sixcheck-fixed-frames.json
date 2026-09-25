@@ -1,0 +1,67 @@
+[
+ {
+  "name": "A_stairs",
+  "beforeMean": 95.6,
+  "afterMean": 95.6,
+  "beforeNd": 4.83,
+  "afterNd": 4.83,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0,
+  "ssimBefore": 0.3332,
+  "ssimAfter": 0.3332,
+  "towardReference": 0
+ },
+ {
+  "name": "B_house",
+  "beforeMean": 92.6,
+  "afterMean": 92.6,
+  "beforeNd": 4.64,
+  "afterNd": 4.64,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0,
+  "ssimBefore": 0.2412,
+  "ssimAfter": 0.2412,
+  "towardReference": 0
+ },
+ {
+  "name": "C_lookback",
+  "beforeMean": 90.9,
+  "afterMean": 90.9,
+  "beforeNd": 4.44,
+  "afterNd": 4.44,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0,
+  "ssimBefore": 0.1236,
+  "ssimAfter": 0.1236,
+  "towardReference": 0
+ },
+ {
+  "name": "D_log",
+  "beforeMean": 90.6,
+  "afterMean": 90.6,
+  "beforeNd": 4.15,
+  "afterNd": 4.15,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0,
+  "ssimBefore": 0.4021,
+  "ssimAfter": 0.4021,
+  "towardReference": 0
+ },
+ {
+  "name": "F_canopy",
+  "beforeMean": 85.5,
+  "afterMean": 85.5,
+  "beforeNd": 4.78,
+  "afterNd": 4.78,
+  "movedPct": 0,
+  "meanAbs": 0,
+  "maxDelta": 0,
+  "ssimBefore": 0.433,
+  "ssimAfter": 0.433,
+  "towardReference": 0
+ }
+]
