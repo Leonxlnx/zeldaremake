@@ -643,3 +643,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - Upper bounds (isolate bypasses the composer's shadow cull): structures 0.72 / 0.94 M, terrain
   0.35 / 0.44, rocks 0.09 / 0.24, hardscape 0.01 / 0.04 (A / look-back). Rocks' lever is the
   composer's small-caster rule at look-backs; a near-kit cast proxy would save ≈ 0.06 M — declined.
+
+### Iteration 128 (16:45) — exp-south2's far-bank look-back: rocks / hardscape rows identical head ↔ branch
+- The relaunched area builders (east, south2, ruins) are finishing to ship. At south2's `look-back`
+  pose: rocks 29 / 0.29 M and hardscape 16 / 0.30 M on both; the diff is the keeper's hut. Nothing of
+  the lane to re-gate. Sheet `rocks128-south2-lookback-rows.jpg`.
