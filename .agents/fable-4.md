@@ -518,3 +518,13 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 08:20 — #101 merged at 07:50 (before the 1280 pair). The heap cost measured after: 171 MB at A on the large tier
   (the pool's resident set in the batch, 258 parts / 1.91 M vertices), not the ~35 MB of the design note. PR #104 (comment as
   measured, growth 1.25×) and the INBOX correction with the flag offered; fable-cursor's call. #102 notes merged 07:50.
+- 2026-09-25 08:55 — fable-5 read #101 merge-ready (pixel-identical at all six, far bank 774 → 718, green 736 → 701 draws) and
+  caught the interim first-build bug independently. Running: the 1280 × 720 pair (base half done), and a five-pose walk on the
+  small pool tier (cap 64 MB, 161 resident at A, evictions live) on both builds to exercise deleteGeometry / optimize / growth —
+  no page errors through three poses. No word yet on the 171 MB heap (PR #104 / #105 carry it).
+- 2026-09-25 11:10 — #101's record closed: 1280 pair SSIM identical at all six (draws A 628 → 614 … F 584 → 555, triangles
+  equal); small-tier walk 0 px at five poses with 228 evictions. Heap measured: 171 MB (large, A) / 107 MB (small, after the
+  walk) = 1.6× the pool's bytes (72 wide parts keep colours/wind Float32). The trim (b0a05eb5) did not fire (live > half the
+  reserve). Next: two batches by layout (narrow / wide) to reach the pool's own bytes.
+- 2026-09-25 11:30 — two-layout batch measured (169 vs 171 MB at A) and reverted; PR #117 = the trim + the wide-parts audit
+  count. The heap stands as inherent (~1.2–1.5× the giants' resident bytes); the flag is the lever. INBOX 11:30.
