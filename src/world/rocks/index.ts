@@ -1440,6 +1440,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const samplePebbles = pebbles.filter((_, i) => i % Math.max(1, Math.ceil(pebbles.length / 200)) === 0).slice(0, 200);
   const rnd = (v: number) => Math.round(v * 1000) / 1000;
   ctx.audit('rocks', () => ({
+    /** the CPU arrays the group still holds (bytes) — what compactRockGeometry's onUpload left */
+    cpuArrays: cpuArrayBytes(group),
     heroBoulders: boulderInfo.length,
     boulders: boulderInfo,
     /** the highest any hero boulder's underside stands above the terrain (m); 0 = fully seated */
@@ -1547,4 +1549,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (const nr of nearRocks) nr.near.geometry.dispose();
     },
   };
+}
+
+/**
+ * The CPU arrays a group still holds (bytes): every unique geometry's attributes and index whose
+ * `array` is not null — after the first draw only what `onUpload` left (position, the index, the
+ * instanced sprouts' per-instance data). A memory audit line, cheap enough for every call.
+ */
+function cpuArrayBytes(root: Group): { bytes: number; geometries: number; positionBytes: number } {
+  const seen = new Set<string>();
+  let bytes = 0;
+  let positionBytes = 0;
+  root.traverse((o) => {
+    const g = (o as Mesh).geometry;
+    if (!g || seen.has(g.uuid)) return;
+    seen.add(g.uuid);
+    for (const [name, attr] of Object.entries(g.attributes)) {
+      const arr = (attr as BufferAttribute).array as ArrayBufferView | null;
+      if (!arr) continue;
+      bytes += arr.byteLength;
+      if (name === 'position') positionBytes += arr.byteLength;
+    }
+    const idx = g.index?.array as ArrayBufferView | null | undefined;
+    if (idx) bytes += idx.byteLength;
+  });
+  return { bytes, geometries: seen.size, positionBytes };
 }
