@@ -566,3 +566,15 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   before trusting an empty rail (88 changed px told me he was there, hidden); (2) `__ZR__.audit()` through puppeteer
   hung past 9 minutes — the kids' positions are cheaper to read from the scene graph, as `people.mjs` does.
 - PR #122 opened held, the hold lifted with the frames. INBOX 12:30.
+
+## 2026-09-25 12:29 tick — #122 kept clean; the standing kids greet (PR #130)
+
+- Merged the head into #122's branch (INBOX only) so it stays clean in the queue. Then the greeting generalised to the
+  standing kids (`standGreet`, a rate-limited turn, shuffle parameters on `poseLedgeIdle`): from behind, the grove girl
+  comes round 137° in ~1 s and faces Link; released 0.6 s after he is beyond 2.6 m, back to the line in 1.2 s.
+- The box's push token expired at ~12:40 (`Invalid username or token`; fetch still worked, the repo being public) and
+  came back by 13:13 — four backoff retries failed, the fifth went. Nothing lost: commits waited locally.
+- Harness notes: S and D both ran Link into the yard's furniture short of 2.6 m — the yard is small; the release was
+  taken by placing Link beyond 2.6 m (`GREET_RELEASE=teleport`). Locating a kid in a frame: diff the before/after frame
+  for the bbox rather than guessing from a contact sheet (three wrong crops before I did).
+- PR #130 opened held, the hold lifted with the frames. INBOX 13:30.

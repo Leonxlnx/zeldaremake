@@ -477,15 +477,15 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
  * The ledge girl's idle (round 48): standing on her spot facing `yaw`, weight shifting, breathing,
  * the dwell-style look-around from the seeded head keys — the wander pose with the walk weight 0.
  */
-function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState): void {
+function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState, shuffle = 0, shufflePhi = 0): void {
   st.x = x;
   st.z = z;
   st.yaw = yaw;
   st.speed = 0;
   st.walk = 0;
   st.phi = 0;
-  st.shuffle = 0;
-  st.shufflePhi = 0;
+  st.shuffle = shuffle;
+  st.shufflePhi = shufflePhi;
   st.headYaw = headYaw;
   st.headPitch = headPitch;
   st.segment = 'dwell';
@@ -523,6 +523,65 @@ const GREET_FAR_M = 2.6;
 const GREET_RELEASE_S = 0.6;
 /** the stop-and-turn and the turn-back each blend over this (s) */
 const GREET_BLEND_S = 0.5;
+/** a standing kid's body turn toward Link runs at most this fast (rad/s): a 180° turn takes 1.26 s, not the blend's 0.5 */
+const GREET_TURN_RATE = 2.5;
+
+/**
+ * A standing kid's greeting (lane 7, after the wanderer's): within GREET_NEAR_M she turns her body to
+ * face Link and holds it — the head's notice then has him straight ahead; once he has stayed beyond
+ * GREET_FAR_M for GREET_RELEASE_S she turns back to her stand's yaw. Each turn blends over the longer
+ * of GREET_BLEND_S and the turn at GREET_TURN_RATE, with the schedule's turn-shuffle under the feet.
+ * State per kid (the ledge, bank, grove and veranda stands); capture passes no player, so the six frames never see a turn.
+ */
+interface Greet {
+  active: boolean;
+  since: number;
+  until: number;
+  dur: number;
+  farSince: number;
+  yaw: number;
+  g: number;
+  lastT: number;
+}
+const newGreet = (): Greet => ({ active: false, since: 0, until: -1e9, dur: GREET_BLEND_S, farSince: -1, yaw: 0, g: 0, lastT: -1 });
+function standGreet(gr: Greet, t: number, x: number, z: number, standYaw: number, player: Vector3 | null | undefined): { yaw: number; shuffle: number; shufflePhi: number } {
+  const dt = gr.lastT < 0 ? 0 : Math.min(0.1, Math.max(0, t - gr.lastT));
+  gr.lastT = t;
+  if (player) {
+    const d = Math.hypot(player.x - x, player.z - z);
+    if (!gr.active) {
+      if (d < GREET_NEAR_M && t - gr.until > gr.dur) {
+        gr.active = true;
+        gr.since = t;
+        gr.farSince = -1;
+        gr.yaw = Math.atan2(player.x - x, player.z - z);
+        gr.dur = Math.max(GREET_BLEND_S, Math.abs(angleTo(standYaw, gr.yaw)) / GREET_TURN_RATE);
+      }
+    } else if (d > GREET_FAR_M) {
+      if (gr.farSince < 0) gr.farSince = t;
+      if (t - gr.farSince > GREET_RELEASE_S) {
+        gr.active = false;
+        gr.until = t;
+        gr.dur = Math.max(GREET_BLEND_S, Math.abs(angleTo(standYaw, gr.yaw)) / GREET_TURN_RATE);
+      }
+    } else gr.farSince = -1;
+    // while he stays, the body follows him round at the turn rate (the yaw target eases, the blend is at 1)
+    if (gr.active && t - gr.since > gr.dur) gr.yaw += MathUtils.clamp(angleTo(gr.yaw, Math.atan2(player.x - x, player.z - z)), -GREET_TURN_RATE * dt, GREET_TURN_RATE * dt);
+  } else if (gr.active) {
+    gr.active = false;
+    gr.until = t;
+  }
+  const g = gr.active ? smooth((t - gr.since) / gr.dur) : 1 - smooth((t - gr.until) / gr.dur);
+  gr.g = g;
+  if (g <= 0) return { yaw: standYaw, shuffle: 0, shufflePhi: 0 };
+  const turn = angleTo(standYaw, gr.yaw);
+  const bell = 4 * g * (1 - g);
+  return {
+    yaw: standYaw + turn * g,
+    shuffle: Math.min(1, Math.abs(turn) / 1.2) * bell,
+    shufflePhi: Math.PI * 2 * 2.4 * (t - (gr.active ? gr.since : gr.until)) * Math.sign(turn || 1),
+  };
+}
 /** how far the neck turns (rad); past it the turn fades out over 0.7 rad rather than pinning to the shoulder */
 const NOTICE_YAW_MAX = 1.05;
 /** Link's eyes over his root (the GLB's 1.25 m to the cap) */
@@ -682,6 +741,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const ledgeLookPeriod = 17;
   const ledgePhase = ledgeRng.range(0, ledgeLookPeriod);
   const ledgeSt: WanderState = { ...wander };
+  const ledgeGreet = newGreet();
   let ledgeShown = true;
   const showLedge = (on: boolean) => {
     if (!ledgeChar || ledgeShown === on) return;
@@ -714,6 +774,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const bankLookPeriod = 15;
   const bankPhase = bankRng.range(0, bankLookPeriod);
   const bankSt: WanderState = { ...wander };
+  const bankGreet = newGreet();
 
   // -- kokiri-grove-yard: the stand by the north grove's washing line (lane 7, after exp-north landed).
   // Its rng is a fork of its own (`grove`), drawn after the bank's: nothing above moves. She faces the
@@ -737,6 +798,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const groveLookPeriod = 17;
   const grovePhase = groveRng.range(0, groveLookPeriod);
   const groveSt: WanderState = { ...wander };
+  const groveGreet = newGreet();
 
   // -- kokiri-grove-veranda: the boy at the stilt house's rail (lane 7, the grove's second person). His rng
   // is a fork of its own (`veranda`), drawn after the grove's: nothing above moves. He stands turned along the
@@ -760,6 +822,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const verandaLookPeriod = 19;
   const verandaPhase = verandaRng.range(0, verandaLookPeriod);
   const verandaSt: WanderState = { ...wander };
+  const verandaGreet = newGreet();
 
   // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
   // (lane 7): a light that leaves or joins the scene changes the light count every lit program
@@ -825,9 +888,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
       if (slot === LEDGE_SLOT && ledgeChar) {
         // posed on her spot in every mode (the audit's contact stays true); shown only off the fixed views
         actor.pos.set(ledge.x, 0, ledge.z);
-        actor.yaw = ledge.yaw;
+        const lg = standGreet(ledgeGreet, t, ledge.x, ledge.z, ledge.yaw, view ? null : player);
+        actor.yaw = lg.yaw;
         const [hy, hp] = seatedLook(t, ledgePhase, ledgeKeys, ledgeLookPeriod);
-        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, ledge.yaw, t, 5.1, hy, hp, ledgeSt);
+        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, lg.yaw, t, 5.1, hy * (1 - ledgeGreet.g), hp, ledgeSt, lg.shuffle, lg.shufflePhi);
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
         noticeFor(ledgeChar.rig, actor, player);
         actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
@@ -839,9 +903,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
       if (slot === BANK_SLOT && bankChar) {
         // on her terrace spot in every mode, shown in every mode (outside the six fixed frustums)
         actor.pos.set(bank.x, 0, bank.z);
-        actor.yaw = bank.yaw;
+        const bg = standGreet(bankGreet, t, bank.x, bank.z, bank.yaw, view ? null : player);
+        actor.yaw = bg.yaw;
         const [hy, hp] = seatedLook(t, bankPhase, bankKeys, bankLookPeriod);
-        poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bank.yaw, t, 7.9, hy, hp, bankSt);
+        poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bg.yaw, t, 7.9, hy * (1 - bankGreet.g), hp, bankSt, bg.shuffle, bg.shufflePhi);
         plantFeet(bankChar.rig, ground.height, actor.contact);
         noticeFor(bankChar.rig, actor, player);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
@@ -856,9 +921,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
         // in the grove's yard in every mode (80–112 m north of the plaza, outside the six fixed
         // frustums); no fairy, so nothing to dim
         actor.pos.set(grove.x, 0, grove.z);
-        actor.yaw = grove.yaw;
+        const gg = standGreet(groveGreet, t, grove.x, grove.z, grove.yaw, view ? null : player);
+        actor.yaw = gg.yaw;
         const [hy, hp] = seatedLook(t, grovePhase, groveKeys, groveLookPeriod);
-        poseLedgeIdle(groveChar.rig, grove.x, grove.z, grove.y, grove.yaw, t, 8.3, hy, hp, groveSt);
+        poseLedgeIdle(groveChar.rig, grove.x, grove.z, grove.y, gg.yaw, t, 8.3, hy * (1 - groveGreet.g), hp, groveSt, gg.shuffle, gg.shufflePhi);
         plantFeet(groveChar.rig, ground.height, actor.contact);
         noticeFor(groveChar.rig, actor, player);
         actor.shadow.position.set(grove.x, ground.decalHeight(grove.x, grove.z, actor.shadowRadius), grove.z);
@@ -869,9 +935,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
         // at the rail in every mode, 11.6 m up on the published deck (`ground.height` reads the walk
         // surface); no fairy, so nothing to dim
         actor.pos.set(veranda.x, 0, veranda.z);
-        actor.yaw = veranda.yaw;
+        const vg = standGreet(verandaGreet, t, veranda.x, veranda.z, veranda.yaw, view ? null : player);
+        actor.yaw = vg.yaw;
         const [hy, hp] = seatedLook(t, verandaPhase, verandaKeys, verandaLookPeriod);
-        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, veranda.yaw, t, 6.1, hy, hp, verandaSt);
+        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, vg.yaw, t, 6.1, hy * (1 - verandaGreet.g), hp, verandaSt, vg.shuffle, vg.shufflePhi);
         plantFeet(verandaChar.rig, ground.height, actor.contact);
         noticeFor(verandaChar.rig, actor, player);
         actor.shadow.position.set(veranda.x, ground.decalHeight(veranda.x, veranda.z, actor.shadowRadius), veranda.z);

@@ -1,6 +1,6 @@
 // Play-mode greeting test: after a skip, Link is placed 3.6 m in front of the wanderer facing her, walks
 // up (W) until ~1.4 m, stands 3 s, backs off (S) 1.7 s, stands 2.5 s. Frames every 6th sim frame.
-// node art/environment/people-fable-3/greet/greet.mjs <dist> <outDir>   env: GREET_SKIP (s, default 18), GREET_SIDE (m, 1.0), GREET_RELEASE=walkpast
+// node /tmp/kg/greet.mjs <dist> <outDir>   env: GREET_SKIP (s, default 18)
 import fs from 'node:fs';
 import path from 'node:path';
 import { serveStatic, launchBrowser, READY_TIMEOUT_MS } from '/workspace/gauntlet/scripts/lib/browser.mjs';
@@ -55,23 +55,31 @@ try {
   await page.evaluate(() => window.__ZR_PLAY__.place(-6, 8, 0));
   const skip = Math.round(Number(process.env.GREET_SKIP || 18) * 30);
   await page.evaluate((n, dt) => window.__ZR_PLAY__.step(n, dt, false), skip, DT);
-  const kid = () => page.evaluate(() => { const g = window.__H.scene.getObjectByName('background-characters').children[0]; const w = g.getWorldPosition(g.position.clone()); return { x: w.x, z: w.z, yaw: g.rotation.y }; });
+  const KID = Number(process.env.GREET_KID || 0);
+  const kid = () => page.evaluate((k) => { const g = window.__H.scene.getObjectByName('background-characters').children[2 * k]; const w = g.getWorldPosition(g.position.clone()); return { x: w.x, z: w.z, yaw: g.rotation.y }; }, KID);
   const k0 = await kid();
   const fx = Math.sin(k0.yaw), fz = Math.cos(k0.yaw);
   const side = Number(process.env.GREET_SIDE || 1.0);
   const rx = Math.cos(k0.yaw), rz = -Math.sin(k0.yaw);
-  const lx = k0.x + fx * 3.6 + rx * side, lz = k0.z + fz * 3.6 + rz * side;
-  // heading parallel to her facing, reversed: he walks past her at `side` metres, she stays in frame beside him
-  await page.evaluate(([x, z, y]) => window.__ZR_PLAY__.place(x, z, y), [lx, lz, Math.atan2(-fx, -fz)]);
+  const behind = process.env.GREET_FROM === 'behind';
+  // in front of her (default) heading her way reversed, or behind her heading her way: he walks past her at `side` metres, she stays in frame beside him
+  const lx = k0.x + (behind ? -fx : fx) * 3.6 + rx * side, lz = k0.z + (behind ? -fz : fz) * 3.6 + rz * side;
+  await page.evaluate(([x, z, y]) => window.__ZR_PLAY__.place(x, z, y), [lx, lz, behind ? Math.atan2(fx, fz) : Math.atan2(-fx, -fz)]);
   await page.evaluate((dt) => window.__ZR_PLAY__.step(20, dt, false), DT);
   log(`kid at ${k0.x.toFixed(2)}, ${k0.z.toFixed(2)} yaw ${k0.yaw.toFixed(2)}; Link placed at ${lx.toFixed(2)}, ${lz.toFixed(2)}`);
 
   // W until within 1.45 m (max 2.5 s), stand 3 s, S 1.7 s, stand 2.5 s
-  const phases = process.env.GREET_RELEASE === 'walkpast' ? [['W', 90, 1.5], [null, 90, null], ['W', 66, null], ['look', 105, null]] : [['W', 90, 1.5], [null, 90, null], ['S', 66, null], [null, 90, null]];
+  const phases = process.env.GREET_RELEASE === 'walkpast' ? [['W', 90, 1.5], [null, 90, null], ['W', 66, null], ['look', 105, null]] : process.env.GREET_RELEASE === 'strafe' ? [['W', 90, 1.5], [null, 90, null], ['D', 75, null], [null, 105, null]] : process.env.GREET_RELEASE === 'teleport' ? [['W', 90, 1.5], [null, 90, null], ['away', 120, null]] : [['W', 90, 1.5], [null, 90, null], ['S', 66, null], [null, 90, null]];
   const frames = [];
   let k = 0, i = 0;
   for (const [key, maxFrames, stopAt] of phases) {
-    if (key === 'look') {
+    if (key === 'away') {
+      // he leaves: Link is put 4.5 m behind her on the open side, facing her, the camera behind him
+      const kk = await kid();
+      const ax = kk.x - fx * 4.5 + rx * 0.8, az = kk.z - fz * 4.5 + rz * 0.8;
+      await page.evaluate(([x, z, y]) => window.__ZR_PLAY__.place(x, z, y), [ax, az, Math.atan2(kk.x - ax, kk.z - az)]);
+      log(`away: Link placed at ${ax.toFixed(2)}, ${az.toFixed(2)}`);
+    } else if (key === 'look') {
       // the camera turns back to her, 20° off the Link–girl line so he does not hide her
       const kk = await kid(); const st = await page.evaluate(() => window.__ZR_PLAY__.state());
       const y = Math.atan2(kk.x - st.link[0], kk.z - st.link[2]) + 0.35;
@@ -93,7 +101,7 @@ try {
         if (stopAt) { const kk = await kid(); const st = await page.evaluate(() => window.__ZR_PLAY__.state()); if (Math.hypot(st.link[0] - kk.x, st.link[2] - kk.z) < stopAt) { i++; break; } }
       }
     }
-    if (key && key !== 'look') await page.keyboard.up(`Key${key}`);
+    if (key && key !== 'look' && key !== 'away') await page.keyboard.up(`Key${key}`);
   }
   fs.writeFileSync(path.join(out, 'greet.json'), JSON.stringify(frames, null, 1));
   log(`done: ${k} frames`);
