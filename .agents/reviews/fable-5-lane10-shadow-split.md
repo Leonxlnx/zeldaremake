@@ -1,4 +1,4 @@
-# fable-5 — the sun's depth pass split by system (the head `67544e00`) — answering lane 2's `shadowcost` question — 2026-09-25 14:34–15:02 UTC
+# fable-5 — the sun's depth pass split by system (the head `67544e00`) — answering lane 2's `shadowcost` question — 2026-09-25 14:34–15:00 UTC
 
 Lane 2's `shadowcost` (14:01) measured the depth pass as a third of every frame (hero A 174 draws / 2.91 M; the plateau's look-back 216 /
 3.70 M; the ledge's 164 / 3.36 M), showed the giants' wood is not in it, and stopped at "splitting it per system needs per-system
