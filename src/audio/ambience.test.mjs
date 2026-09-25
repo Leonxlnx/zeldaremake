@@ -745,3 +745,37 @@ test('a leaf never sits further out than a bird, and the crowns bring it in', ()
   assert.equal(A.flutterPan(0), A.FLUTTER_PAN_OPEN);
   assert.equal(A.flutterPan(1), A.FLUTTER_PAN_CLOSED);
 });
+
+test('below the gust knee the leaves are the only thing keeping the wood from silence', () => {
+  // `QUIET_GAP_MAX` caps the flutter scheduler and says why: below the knee the wind layers are
+  // silent by design, "and the wood could otherwise fall to nothing for five seconds at a time,
+  // which reads as the sound having broken rather than as a quiet forest. A leaf turning over is
+  // the answer to that, not a floor put back under everything."
+  //
+  // Rendered and measured (`art/audio/2026-09-25-layers/`), that is true and only there: below the
+  // knee, muting the leaves takes the longest stretch with nothing audible from 3.25 s to 8.43 s,
+  // and above it they change nothing at all. Nothing guarded the claim, so this does — at the
+  // schedule, which is where the cap lives.
+  const { amb } = bed({ seed: 'quiet/gap' });
+  const gust = A.GUST_KNEE * 0.5;
+  assert.equal(A.swell(gust), 0, 'this test needs a gust under the knee, where the wind layers are silent');
+  const at = [];
+  let seen = 0;
+  for (let t = 0; t < 300; t += 1 / 30) {
+    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+    amb.scheduleUntil(t + 4);
+    const now = amb.stats();
+    const total = now.flutters + now.birds + now.glints;
+    if (total > seen) {
+      at.push(t);
+      seen = total;
+    }
+  }
+  assert.ok(at.length > 60, `only ${at.length} events in five minutes below the knee`);
+  let worst = 0;
+  for (let i = 1; i < at.length; i++) worst = Math.max(worst, at[i] - at[i - 1]);
+  assert.ok(
+    worst <= A.QUIET_GAP_MAX + 0.5,
+    `the wood was left with nothing for ${worst.toFixed(2)} s below the gust knee, against a ${A.QUIET_GAP_MAX} s cap — with the wind silent there is nothing else to hear`,
+  );
+});
