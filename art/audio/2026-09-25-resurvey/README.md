@@ -167,5 +167,9 @@ node art/audio/2026-09-24-standing/ground.mjs --dist dist
 node art/audio/2026-09-23-lane5/render-mix.mjs --dist dist --out /tmp/head --seconds 200 --stems bed,music
 ```
 
-Typecheck clean, build green, **185 / 185 tests** (this branch adds none — it changes no `src/`), `playtest.mjs --only walk` 11 / 11 with no page
-errors. Nothing in `src/` changes on this branch.
+Typecheck clean, build green, **189 / 189 tests** (this branch adds none — it changes no `src/`),
+`playtest.mjs --only walk` 11 / 11 with no page errors.
+
+The takes were rendered at `c3c446be`, before #73 (the room) merged; the integration branch is
+merged in here and the numbers stand, because the room is fed by footsteps alone and every take in
+this survey is the `bed` stem with no boots in it.
