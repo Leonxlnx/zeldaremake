@@ -615,3 +615,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   attributes excluded (the first cut nulled the sprouts' per-instance arrays → `setViewpoint` crash
   on the second view; fixed in 97d78408). performance.memory −43…−49 MB at the six views; six views
   0 pixels; tests green. Tool: `--heap` in pose.mjs (CDP GC + page.metrics + performance.memory).
+
+### Iteration 123 (11:50) — #119 cpuArrays audit; the gated meshes' arrays and a warm-up suggestion
+- #115 merged 11:19. Added `cpuArrays` to both audits: at A hardscape 29.7 MB (10.6 position), rocks
+  39.9 MB (20.4 position) — the rest is meshes never drawn at a fixed camera (upload happens on first
+  draw). Suggested a one-frame warm-up at load to fable-cursor (≈ 50 MB and the first-appearance hitch).
