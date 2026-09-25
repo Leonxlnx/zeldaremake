@@ -270,13 +270,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     draws.after += d.after;
     draws.merged += d.merged;
   }
-  // exp-south2: from the far bank, the log and the cleft (util/farBankLocality.ts) the village stands
-  // 27 m and more off through the haze: there its structures cast no shadow and its roof and trunk
-  // tufts are not drawn — a shadow and detail distance for that zone alone (lights untouched); nor
-  // is its fine dressing — the rooms' props, rug and plants (seen only through doorways), the huts'
-  // fringes and flowers, the bough's vines and leaves, Saria's house's flowers and tufts, the lantern
-  // posts' rope rings, the lanterns' hanger toggles, the fences' foot moss and the sign's carved
-  // runes, centimetres across: a pixel or two from there
+  // exp-south2: from the bridge head, the bridge, the far bank, the log and the cleft
+  // (util/farBankLocality.ts) the village stands past the south giants' boles or across the gorge,
+  // in the haze (`farBank.nearestVillageM` below): there its structures cast no shadow and its roof
+  // and trunk tufts are not drawn — a shadow and detail distance for that zone alone (lights
+  // untouched); nor is its fine dressing — the rooms' props, rug and plants (seen only through
+  // doorways), the huts' fringes and flowers, the bough's vines and leaves, Saria's house's flowers
+  // and tufts, the lantern posts' rope rings, the lanterns' hanger toggles, the fences' foot moss
+  // and the sign's carved runes, centimetres across: a pixel or two from there
   const FAR_DETAIL = /^merged:(roof-tufts|trunk-moss-tufts)$|^(merged:)?(interior-props|interior-rug|room47-(leaves|vines)|house-saria-(flowers|tufts)|lantern-post-rope|lantern-hanger|signpost-runes|lantern-branch-(vines|leaves)|hut-(fringe|character):.+|fence-[a-z-]+-foot-moss)$/;
   const farCasters: Mesh[] = [];
   const farDetail: Mesh[] = [];

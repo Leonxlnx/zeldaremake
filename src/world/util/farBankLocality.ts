@@ -1,11 +1,12 @@
 /**
- * The far-bank locality (exp-south2) — the camera past the rope bridge's first 4 m: the rest of the
- * bridge, the far bank's path, the hollow log and the cleft past it, at play-camera height. Looking
- * back north from there the frustum takes in the whole village, which shows, where it shows at all,
- * through the haze beyond the gorge and in the gaps between the south giants' boles (the far-bank
- * look-back: 818 draws / 9.30 M on cc02a9cf against the 700 / 9.0 M budget; walking back over the
- * bridge, 700–725 draws / 9.8–10.4 M without this LOD). Hiding the village there is not an option:
- * zone-probe finds it on screen from every pose tried. While the camera is inside, the structures
+ * The far-bank locality (exp-south2) — the camera south of the rope bridge's north sill: over the
+ * bridge head and the bridge, the far bank's path, the hollow log and the cleft past it, at
+ * play-camera height. Looking back north from there the frustum takes in the whole village, which
+ * shows, where it shows at all, through the haze beyond the gorge and in the gaps between the south
+ * giants' boles (the far-bank look-back: 818 draws / 9.30 M on cc02a9cf against the 700 / 9.0 M
+ * budget; walking back over the bridge and off it, 700–725 draws / 9.8–10.4 M without this LOD).
+ * Hiding the village there is not an option: zone-probe finds it on screen from every pose tried.
+ * While the camera is inside, the structures
  * system stops the village's shadow casting, draws none of its tuft buckets or its
  * centimetre-scale dressing and folds its pods at rest, and the composer applies
  * `farBankShadowRules` and `farBankDrawRule` — shadow and draw distances for this zone alone, and on
@@ -19,12 +20,15 @@
 import type { Box3 } from 'three';
 
 /**
- * x / z bounds (m, exclusive) and the camera height it stops at (m, absolute). `z0` is 4 m past the
- * bridge's north sill: the follow camera stands 4.3 m behind Link's aim (camera/follow.ts), 4.04 m
- * or more in plan at up to 20° of pitch, so walking back over the bridge to the village it is inside
- * until he steps off the north sill.
+ * x / z bounds (m, exclusive) and the camera height it stops at (m, absolute). `z0` is the bridge's
+ * north sill. The follow camera stands 4.3 m behind Link's aim (camera/follow.ts), 4.04 m or more in
+ * plan at up to 20° of pitch, so walking back it stays inside while Link crosses the bridge, steps
+ * off the sill and walks the path's last straight to its bend, all the while facing the village
+ * (just off the sill 703 draws / 10.08 M, at the bridge head 718 / 10.15 M, without the LOD). At the
+ * bend the path turns him north-west, the camera swings round behind him and soon leaves the zone as
+ * the village swings out of the frustum (turned at the bend: 583 / 7.73 M, the camera at z 30.2).
  */
-export const FAR_BANK_ZONE = { x0: -2, x1: 11, z0: 34.45, z1: 62, yMax: 4 } as const;
+export const FAR_BANK_ZONE = { x0: -2, x1: 11, z0: 30.45, z1: 62, yMax: 4 } as const;
 
 /** the zone from the bridge's last 1.2 m on (plan bounds as the zone's): the far bank itself, where `FAR_BANK_SHADOW_REACH` applies */
 export const FAR_BANK_SOUTH = { x0: FAR_BANK_ZONE.x0, x1: FAR_BANK_ZONE.x1, z0: 42.5, z1: FAR_BANK_ZONE.z1 } as const;
@@ -58,9 +62,9 @@ export function farBankLodAt(p: { x: number; y: number; z: number }): boolean {
 /**
  * The zone's shadow distance for small casters (postfx/shadowcull.ts ShadowDistanceRule): a caster
  * whose bounding sphere has a radius of at most 1.5 m and lies more than 25 m off casts nothing
- * while the camera is inside — from the zone that is the village's children and whatever the
- * capture leaves standing in the plaza, each still grounded by its contact-shadow decal. Beside the
- * camera (the player, 3–6 m off in play) nothing changes.
+ * while the camera is inside — from the zone that is the village's children and props and whatever
+ * the capture leaves standing in the plaza, each still grounded by its contact-shadow decal. Beside
+ * the camera (the player, 3–6 m off in play) nothing changes.
  */
 export const FAR_BANK_SMALL_SHADOWS = { maxRadiusM: 1.5, minDistanceM: 25 } as const;
 
@@ -68,9 +72,10 @@ export const FAR_BANK_SMALL_SHADOWS = { maxRadiusM: 1.5, minDistanceM: 25 } as c
  * The far bank's shadow reach (postfx/shadowcull.ts ShadowDistanceRule with a box): while the camera
  * is in `FAR_BANK_SOUTH`, a caster whose bounding sphere lies wholly more than 20 m outside it in
  * plan casts nothing, whatever its size — from there the giants of the village's north and east
- * sectors (their merged sector meshes) and the village's far terrain and rocks, their shadows 40 m
- * and more off in the haze. It is measured from the box, not the camera, so the same casters are
- * off from anywhere on the far bank and nothing switches as the camera moves there.
+ * sectors (their merged sector meshes), the village's far terrain chunks and rocks. The sun stands
+ * in the north-west, so their shadows fall east and south-east of them, 30 m and more from the far
+ * bank, in the haze. It is measured from the box, not the camera, so the same casters are off from
+ * anywhere on the far bank and nothing switches as the camera moves there.
  */
 export const FAR_BANK_SHADOW_REACH = { box: FAR_BANK_SOUTH, minDistanceM: 20 } as const;
 
