@@ -32,7 +32,20 @@ parallel to her facing (so she stays beside him in frame), walks (W) until 1.5 m
   −0.24) and stands facing him through the whole stand; when he backs and slides round her, her body tracks him
   (−0.27 → −0.76).
 - `before-full-frames.jpg`, `after-full-frames.jpg` — the same eight frames uncropped.
-- The release: see the table below when the walk-past pass lands (Link walks on past her to ≈ 3.5 m, the camera turns
-  back to her).
+- The release (`GREET_RELEASE=walkpast`: after the stand Link walks on past her 2.2 s, then the camera turns back to
+  her 20° off the Link–girl line while he stands) — `after-pass-by-and-release-full-frames.jpg`,
+  `after-release-turn-back-t6.6-8.6s.jpg`:
 
-Draws at the stand: 600–660 (the plaza in play mode; unchanged by a pose). Typecheck, build, 199 / 199 tests.
+| t (s) | Link | her | yaw |
+| --- | --- | --- | --- |
+| 1.4 – 4.2 | stands 1.44 m off | stands facing him | −0.24 |
+| 4.4 – 6.4 | walks past, 1.04 → 2.42 m | her body follows him round | −0.21 → 0.23 → 0.84 → 1.31 → 1.71 |
+| 6.6 | 2.62 m — beyond 2.6 | still facing him; the 0.6 s release timer runs | 1.75 |
+| 7.2 – 7.8 | stands | released: turns back toward her next leg | 1.75 → 0.51 → 0.70 → 0.75 |
+| 8.2 – 10.0 | stands | walks on from (2.2, 2.3) toward (3.6, 3.8) | 0.75 |
+
+  The turn-back reads 1.75 → 0.51 → 0.70 → 0.75: the schedule resumed inside her dwell's last 0.3 s and its own turn
+  segment (−1.0 → 0.75) ran under the 0.5 s blend, so she settles from 14° past her heading. Not perceptible at 0.4 s
+  frame spacing (the crops); noted so nobody hunts for it later.
+
+Draws at the stand: 600–660 (the plaza in play mode; unchanged by a pose). Typecheck, build, 199 / 199 tests on the branch; 206 / 206 with the head `eb3687cb` merged in.

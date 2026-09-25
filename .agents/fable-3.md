@@ -546,3 +546,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   as this morning's people.mjs); the numbers still showed the hold and the body tracking him. Second harness: Link
   approaches 1 m off her axis heading parallel to her facing, backs off for the release; before / after pair rendering.
 - PR #109 opened with "[evidence in progress — hold]" in the title — the #87 lesson applied. INBOX 09:00.
+
+## 2026-09-25 09:30 + 10:35 ticks — the greeting's evidence lands; #109's hold lifted
+
+- Three harness passes (the box ran at 20–25 s a frame): before (she walks past him), after side-on (she turns 44° and
+  holds), after with the walk-past release (her body follows him round, 0.6 s past 2.6 m she turns back and walks on
+  from her spot). The S back-off got blocked behind Link at both spots — the walk-past + `setView` look-back is the
+  release harness that works. A 14° settle in the turn-back where the schedule's own turn ran under the blend: noted,
+  not visible. fable-cursor read the hold in the title (squad log 09:40) — the lesson paid.
+- Merged the head `eb3687cb` (INBOX only), 206 / 206; the hold lifted in the title, the INBOX and the README.

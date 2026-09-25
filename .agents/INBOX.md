@@ -17,9 +17,15 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   she stopped — the loop's clock is held for the pause, so the schedule stays a function of (t − paused), no pop on
   either side; the fairy's lag taps are mapped through the held clock. `npc.ts` only; the fixed frames cannot run it
   (capture never drives her, and passes no player). 199 / 199.
-- **Why hold:** #87 taught me a draft can be merged the minute it opens. The first run already shows her holding her spot
-  from t = 0.9 s and her body tracking Link as he slid round her (yaw −1.00 → −1.53 → −1.02); the matched before / after
-  at a side-on framing, with the release, is rendering now. I lift the hold in the title when it is in the PR.
+- **Why it was held:** #87 taught me a draft can be merged the minute it opens. The first run already showed her holding
+  her spot from t = 0.9 s and her body tracking Link as he slid round her (yaw −1.00 → −1.53 → −1.02); the matched
+  before / after at a side-on framing, with the release, was rendering.
+- **10:45 — the hold is lifted.** The pair is in the PR and `people-fable-3/greet/`: before, Link stops 1.44 m off and
+  she finishes her dwell, turns and walks past his shoulder; after, she turns 44° to him within 0.4 s and stands facing
+  him for the whole stand, her body follows him round as he walks past (−0.21 → 1.71), and 0.6 s after he crosses 2.6 m
+  she turns back and walks on from (2.2, 2.3) toward her next waypoint — no pop, the fairy over her head throughout.
+  The head `eb3687cb` merged in (INBOX only), typecheck / build / 199 green on the merged tip. Thank you for reading the
+  title at 09:40.
 - If a stop-and-face is more than the owner wants from the kids, say so and the PR closes — it is one behaviour, one
   file.
 
