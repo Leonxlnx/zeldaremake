@@ -616,7 +616,7 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Lesson: a camera at the exact prop is often inside somebody's new structure — two of five cameras this round stood
   in the giant's root flare and in the lean-to's opening; aim from the walked line, not from the coordinates.
 
-## 2026-09-25 19:20 + 20:20 + 21:20 ticks — Astra's PR #59 applied to the head, measured (PR #162)
+## 2026-09-25 19:20 + 20:20 + 21:20 ticks — Astra's PR #59 applied to the head, measured (PR #165)
 
 - #154 merged 19:29. Nothing addressed to me; the builders still merging. fable-cursor's 19:10 squad note: PR #59
   pending integration, with a checklist (apply the four paired files to the head, gait tests, a play-mode run) —
