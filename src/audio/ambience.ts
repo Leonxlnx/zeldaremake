@@ -565,33 +565,54 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * turning did nothing at all, while sixty degrees a second asks for 0.89 pan units a second.
    *
    * Two or three entries live at a time (a call lasts under 2.6 s and the wood calls eleven times a
-   * minute), and each costs one `setTargetAtTime` a tick while it is alive.
+   * minute), and each costs four `setTargetAtTime` a tick while it is alive.
+   *
+   * It carries the whole of what the distance and the wood between them are worth, not only the
+   * bearing, because all four were decided when the call was BOOKED — up to `AMBIENCE_AHEAD`, four
+   * seconds, before it is heard, which is six metres at a walk and seventeen at a run. Measured on
+   * the path spine between three boles (`art/audio/2026-09-25-stale/`): a call's level was out by a
+   * median 0.9 dB at a walk and 1.7 at a run (worst 2.6), its cutoff by 404 and 602 Hz (worst
+   * 1483), and one call in the take was booked **0.73 of a shadow** it did not have by the time it
+   * sang — 4.0 dB of level and 1.8 octaves of top, a bird heard from behind a tree that he had
+   * already walked out from behind.
    */
-  const turning: { pan: AudioParam; x: number; z: number; until: number }[] = [];
+  const turning: { pan: AudioParam; reach: AudioParam; top: AudioParam; wet: AudioParam; x: number; z: number; until: number }[] = [];
+
+  /** the three things a bird's distance and its shadow are worth, in the units the graph wants */
+  const birdReach = (distance: number, occlusion: number) => (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
+  // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
+  const birdTop = (distance: number, occlusion: number) => (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion);
+  const birdWet = (distance: number) => 0.2 + 0.55 * distance;
 
   /**
    * A bird heard from `distance` (0 = overhead, 1 = deep in the wood): the air takes its top off,
    * the level falls and more of it arrives through the hall. Every call is built on this.
+   *
+   * The distance and the shadow sit on `reach` — a gain of their own between the note's envelope
+   * and the air — rather than being folded into the envelope's peak. An envelope is written once
+   * and cannot be taken back; a gain can be re-aimed every tick, which is what lets a call that
+   * was booked four seconds ago arrive at the loudness it should have now.
    */
   const birdVoice = (t: number, perch: { x: number; z: number }, distance: number, end: number, occlusion = 0) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = panFor(forwardNow, perchFrom(perch).dir) * PERCH_PAN;
-    // and it keeps following him until the call is over (see `turning`)
-    turning.push({ pan: panner.pan, x: perch.x, z: perch.z, until: end });
     const hp = filter(ctx, 'highpass', 320, 0.5);
-    // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
-    const lp = filter(ctx, 'lowpass', (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion), 0.6);
+    const lp = filter(ctx, 'lowpass', birdTop(distance, occlusion), 0.6);
+    const reach = gain(ctx, birdReach(distance, occlusion));
     const g = gain(ctx, 0);
-    g.connect(hp);
+    g.connect(reach);
+    reach.connect(hp);
     hp.connect(lp).connect(panner).connect(out);
-    const send = gain(ctx, 0.2 + 0.55 * distance);
+    const send = gain(ctx, birdWet(distance));
     panner.connect(send).connect(reverbSend);
+    // and all four keep following him until the call is over (see `turning`)
+    turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, x: perch.x, z: perch.z, until: end });
     cleanupAt(ctx, end + 0.5, () => {
-      for (const n of [g, hp, lp, panner, send]) n.disconnect();
+      for (const n of [g, reach, hp, lp, panner, send]) n.disconnect();
     });
     // `voice` is the enveloped input for the oscillator; `air` is the same distance and space
     // without it, for a call built out of noise (the woodpecker's taps)
-    return { voice: g, air: hp as AudioNode };
+    return { voice: g, air: reach as AudioNode };
   };
 
   const birdCall = (kind: BirdKind, t: number, perch: { x: number; z: number }, level: number, distance: number, occlusion = 0) => {
@@ -601,7 +622,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
     counts.birdShadow = Number(occlusion.toFixed(3));
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
-    const lv = level * (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
+    // the envelope carries only the call's own loudness now; what the distance and the wood between
+    // them are worth rides `reach`, which can still be moved after the note is written
+    const lv = level;
+    // the air rounds a far call's attack. This one cannot be taken back once the envelope is
+    // written, so it keeps the distance the call was booked at — worth up to a millisecond or two
+    // of attack, against 2.6 dB of level and 1483 Hz of cutoff that no longer do
     const soft = 1 + distance * 1.6;
     let end = t + 1.6;
     const { voice: g, air } = birdVoice(t, perch, distance, t + 2.6, occlusion);
@@ -893,7 +919,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
         turning.splice(i, 1);
         continue;
       }
-      v.pan.setTargetAtTime(panFor(forwardNow, perchFrom(v).dir) * PERCH_PAN, t, PLACE_TAU);
+      const from = perchFrom(v);
+      const shadow = occludeNow ? occludeNow(v.x, v.z) : 0;
+      v.pan.setTargetAtTime(panFor(forwardNow, from.dir) * PERCH_PAN, t, PLACE_TAU);
+      v.reach.setTargetAtTime(birdReach(from.distance, shadow), t, PLACE_TAU);
+      v.top.setTargetAtTime(birdTop(from.distance, shadow), t, PLACE_TAU);
+      v.wet.setTargetAtTime(birdWet(from.distance), t, PLACE_TAU);
     }
     // a different part of the wood holds different birds (PERCH_RESEED_M)
     if (!perchAnchor || Math.hypot(s.listener.x - perchAnchor.x, s.listener.z - perchAnchor.z) > PERCH_RESEED_M) seedPerches(s.listener);
