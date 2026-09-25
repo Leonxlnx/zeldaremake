@@ -327,6 +327,30 @@ export const PLACE_TAU = 0.05;
 export const PERCH_PAN = 0.85;
 
 /**
+ * How far out a leaf is allowed to sit, under open sky and under closed crowns.
+ *
+ * The flutters were drawn uniformly over ±0.9 with a further ±0.15 per leaf in the group, so a leaf
+ * could land at ±1.0 — hard against a speaker, which is the one thing `PERCH_PAN` above exists to
+ * forbid, and for a point source at that. A leaf turning over is the most diffuse thing in this bed
+ * and it was sitting further out than the most localised.
+ *
+ * It also took no notice of the canopy, which is the term that describes *these very leaves*.
+ * Measured standing for two minutes on the plaza and two under closed crowns
+ * (`art/audio/2026-09-25-leaves/`), the width of the leaf field was **0.811 and 0.819** — eight
+ * thousandths apart, in two places whose whole difference is whether there are leaves overhead.
+ *
+ * So: in the open the leaves are the ring of trees around him, which is wide but still narrower
+ * than a bird is allowed to be; under closed crowns they are above him, which is nearly centre —
+ * the same reasoning, and nearly the same number, as `WIND_LEAN`.
+ */
+export const FLUTTER_PAN_OPEN = 0.72;
+export const FLUTTER_PAN_CLOSED = 0.34;
+/** how far out a leaf may sit with the crowns this closed over him */
+export function flutterPan(canopy: number): number {
+  return FLUTTER_PAN_OPEN + (FLUTTER_PAN_CLOSED - FLUTTER_PAN_OPEN) * Math.max(0, Math.min(1, canopy));
+}
+
+/**
  * Where something lying in world direction `to` sits for a listener facing `forward` (both xz):
  * −1 hard left … +1 hard right.
  *
@@ -551,11 +575,14 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const t = nextFlutter;
       const g = gustNow;
       const n = 1 + Math.floor(eventRng() * (1 + g * 2));
-      const pan = (eventRng() * 2 - 1) * 0.9;
+      // the group sits somewhere in the field and its leaves scatter around that, and the two
+      // together are held inside `flutterPan` — 0.85 of it for the group, 0.15 for the scatter
+      const wide = flutterPan(canopyNow);
+      const pan = (eventRng() * 2 - 1) * wide * 0.85;
       for (let i = 0; i < n; i++) {
         const centre = 950 + eventRng() * 1900;
         const level = (FLUTTER_LEVEL[0] + eventRng() * (FLUTTER_LEVEL[1] - FLUTTER_LEVEL[0])) * (0.35 + g * 0.9);
-        flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
+        flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * wide * 0.3, 0.07 + eventRng() * 0.16);
       }
       // gusts crowd the flutters together; still air leaves long gaps — but never longer than
       // QUIET_GAP_MAX. With the bed gated below the gust knee and the tune resting between passes,

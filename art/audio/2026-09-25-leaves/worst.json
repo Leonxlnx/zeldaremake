@@ -1,0 +1,15 @@
+{
+ "note": "the worst case re-measured on the head at 60085f03, after six lane-5 changes",
+ "seconds": 70,
+ "steps": 174,
+ "landings": 51,
+ "pushOffs": 33,
+ "pods": 62,
+ "music": "procedural",
+ "measured": {
+  "lufs": -23.7,
+  "truePeakDb": -7.5,
+  "clipped": 0,
+  "at": "2026-09-25 19:30"
+ }
+}
