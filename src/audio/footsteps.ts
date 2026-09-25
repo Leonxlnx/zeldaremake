@@ -534,6 +534,8 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   };
 
   let travelled = 0;
+  /** how far the next step is, jittered — drawn when the last one fired, not every tick */
+  let strideNext = strideFor(WALK_SPEED, false);
   let side = 1;
   let moving = false;
   let lastStepAt = -1e9;
@@ -597,14 +599,25 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     }
     // 2. otherwise (or if the flags went quiet) the distance the boot has travelled
     if (first) {
+      strideNext = strideFor(speed, onStairs) * (1 + (stepRng() * 2 - 1) * 0.04);
       if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
       return;
     }
     travelled += speed * dt;
-    const stride = strideFor(speed, onStairs) * (1 + (stepRng() * 2 - 1) * 0.04);
-    if (travelled >= stride) {
-      travelled -= stride;
+    if (travelled >= strideNext) {
+      // Carry the overshoot. `fire` zeroes the integrator, which is right for a boot plant, a shove
+      // or a landing — the stride restarts from there — and wrong here: it throws away the distance
+      // he had already gone past the trigger, which is half a tick's worth every single step. At
+      // the shipping 33 ms tick that was 6-7 % of his steps never sounding, and at a tenth of a
+      // second, 16 % (`art/audio/2026-09-25-tickrate/`). A stride is a distance, so what is left
+      // over belongs to the next one.
+      const carry = travelled - strideNext;
       if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
+      travelled = carry;
+      // and the next stride's jitter is drawn HERE rather than every tick: drawn per tick it made
+      // the seeded stream depend on the frame rate, so the same walk rendered at 20 Hz and heard at
+      // 30 gave different steps
+      strideNext = strideFor(speed, onStairs) * (1 + (stepRng() * 2 - 1) * 0.04);
     }
   };
 
