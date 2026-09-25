@@ -1,0 +1,174 @@
+{
+ "g-back-mine-flat": {
+  "link": [
+   2,
+   10.006711959838867,
+   -100
+  ],
+  "stats": {
+   "simTime": 3.016666666666666,
+   "drawCalls": 109,
+   "triangles": 209538,
+   "geometries": 1211,
+   "textures": 123,
+   "programs": 288,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "structures",
+    "drawCalls": 180,
+    "triangles": 2853977,
+    "found": true
+   },
+   {
+    "system": "trees",
+    "drawCalls": 169,
+    "triangles": 2180327,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 126,
+    "triangles": 2715103,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 109,
+    "triangles": 209538,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 51,
+    "triangles": 751972,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 27,
+    "triangles": 314032,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 18,
+    "triangles": 336863,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 9,
+    "triangles": 16766,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 5938,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   }
+  ]
+ },
+ "farbank-lookback": {
+  "link": [
+   4.06,
+   -0.17494308983339038,
+   42.8
+  ],
+  "stats": {
+   "simTime": 5.0166666666666595,
+   "drawCalls": 127,
+   "triangles": 234412,
+   "geometries": 1345,
+   "textures": 124,
+   "programs": 296,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 234,
+    "triangles": 3324379,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 171,
+    "triangles": 2356415,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 142,
+    "triangles": 2156596,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 127,
+    "triangles": 234412,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 50,
+    "triangles": 916708,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 30,
+    "triangles": 480480,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 29,
+    "triangles": 125312,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 296927,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 5938,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   }
+  ]
+ }
+}

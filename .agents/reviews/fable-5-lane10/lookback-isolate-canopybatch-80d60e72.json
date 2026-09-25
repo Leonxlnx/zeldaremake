@@ -1,0 +1,432 @@
+{
+ "farbank-lookback": {
+  "link": [
+   4.06,
+   -0.17494308983339038,
+   42.8
+  ],
+  "stats": {
+   "simTime": 3.016666666666666,
+   "drawCalls": 66,
+   "triangles": 191020,
+   "geometries": 861,
+   "textures": 128,
+   "programs": 290,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 200,
+    "triangles": 3478489,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 171,
+    "triangles": 2356415,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 142,
+    "triangles": 2156596,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 66,
+    "triangles": 191020,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 50,
+    "triangles": 916708,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 30,
+    "triangles": 480480,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 18,
+    "triangles": 37454,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 296927,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   }
+  ]
+ },
+ "green-wide": {
+  "link": [
+   43,
+   5.750724792480469,
+   4
+  ],
+  "stats": {
+   "simTime": 5.0166666666666595,
+   "drawCalls": 56,
+   "triangles": 180214,
+   "geometries": 892,
+   "textures": 128,
+   "programs": 291,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 214,
+    "triangles": 3560414,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 173,
+    "triangles": 2333434,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 123,
+    "triangles": 1821888,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 56,
+    "triangles": 180214,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 49,
+    "triangles": 887908,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 26,
+    "triangles": 476680,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 20,
+    "triangles": 109658,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 296927,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   }
+  ]
+ },
+ "lookout-back": {
+  "link": [
+   47.5,
+   5.571996212005615,
+   7.5
+  ],
+  "stats": {
+   "simTime": 7.016666666666652,
+   "drawCalls": 56,
+   "triangles": 180214,
+   "geometries": 896,
+   "textures": 128,
+   "programs": 291,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 215,
+    "triangles": 3674885,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 174,
+    "triangles": 2453149,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 96,
+    "triangles": 1593248,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 56,
+    "triangles": 180214,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 50,
+    "triangles": 916708,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 26,
+    "triangles": 476680,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 20,
+    "triangles": 109658,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 296927,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   }
+  ]
+ },
+ "ruins-trail-mid-lookback": {
+  "link": [
+   -33.4,
+   2.48573660850525,
+   0.6
+  ],
+  "stats": {
+   "simTime": 9.016666666666646,
+   "drawCalls": 56,
+   "triangles": 180214,
+   "geometries": 925,
+   "textures": 128,
+   "programs": 292,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 203,
+    "triangles": 4321632,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 159,
+    "triangles": 2279503,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 148,
+    "triangles": 1961491,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 56,
+    "triangles": 180214,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 48,
+    "triangles": 907492,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 28,
+    "triangles": 464500,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 20,
+    "triangles": 109658,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 14,
+    "triangles": 287797,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   }
+  ]
+ },
+ "g-back-mine-flat": {
+  "link": [
+   2,
+   10.006711959838867,
+   -100
+  ],
+  "stats": {
+   "simTime": 11.016666666666639,
+   "drawCalls": 85,
+   "triangles": 212954,
+   "geometries": 1038,
+   "textures": 128,
+   "programs": 298,
+   "width": 1280,
+   "height": 720,
+   "pixelRatio": 1
+  },
+  "empty": {
+   "system": "__none__",
+   "drawCalls": 0,
+   "triangles": 0,
+   "found": false
+  },
+  "rows": [
+   {
+    "system": "structures",
+    "drawCalls": 180,
+    "triangles": 2853977,
+    "found": true
+   },
+   {
+    "system": "trees",
+    "drawCalls": 162,
+    "triangles": 2303156,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 126,
+    "triangles": 2715103,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 85,
+    "triangles": 212954,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 51,
+    "triangles": 751972,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 27,
+    "triangles": 314032,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 18,
+    "triangles": 336863,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 4,
+    "triangles": 6816,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 0,
+    "triangles": 0,
+    "found": true
+   }
+  ]
+ }
+}
