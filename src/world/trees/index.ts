@@ -4645,6 +4645,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.traverse((o) => {
     const g = (o as Mesh).geometry as BufferGeometry | undefined;
     if (!(o as Mesh).isMesh || !g) return;
+    // round 54: the near-canopy batch keeps its Float32 layout and its CPU copies (three copies new parts into them)
+    if ((o as BatchedMesh).isBatchedMesh) return;
     if (!g.boundingSphere) g.computeBoundingSphere();
     if (!compacted.has(g)) {
       compacted.add(g);
