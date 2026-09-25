@@ -4,7 +4,7 @@
  * shot, the asset turntables and the real-time film, as a self-contained static folder.
  *
  *   node legosw/scripts/wip-site.mjs --render /tmp/lsw-wip-render --out /tmp/lsw-wip
- *        [--film <built dist>] [--shots <shots.json>] [--hero <still.mjs --film output>] [--asset-stills /opt/cursor/artifacts]
+ *        [--film <built dist>] [--shots <shots.json>] [--hero <still.mjs --film output>] [--asset-stills <dir>[,<dir>…]]
  *        [--commit <sha>] [--fps 24] [--no-video] [--keep-video] [--video-url <absolute mp4 url>] [--print-hero-times]
  *
  * --print-hero-times lists the time of each shot's still, to pass to `still.mjs --film --times`; stills found
@@ -25,7 +25,7 @@ const args = Object.fromEntries(
 const renderDir = path.resolve(args.render || '/tmp/lsw-wip-render');
 const out = path.resolve(args.out || '/tmp/lsw-wip');
 const fps = Number(args.fps || 24);
-const assetStills = path.resolve(args['asset-stills'] || '/opt/cursor/artifacts');
+const assetStills = String(args['asset-stills'] || '/opt/cursor/artifacts').split(',').map((d) => path.resolve(d));
 const commit = args.commit || gitHead();
 const framesDir = path.join(renderDir, 'frames');
 
@@ -61,10 +61,10 @@ const ASSETS = [
   { id: 'vulture', title: 'Vulture droid', thumb: 'c-finals-vulture-buzz-b1.png', bg: 'space' },
   { id: 'trifighter', title: 'Droid tri-fighter', thumb: 'c-trifighter.png', bg: 'space' },
   { id: 'missile', title: 'Discord missile', thumb: 'c-finals-missile-trifighter.png', bg: 'space' },
-  { id: 'buzzdroid', title: 'Buzz droid', bg: 'studio' },
-  { id: 'battledroid', title: 'B1 battle droid', bg: 'studio' },
-  { id: 'anakin', title: 'Anakin minifigure', bg: 'studio' },
-  { id: 'obiwan', title: 'Obi-Wan minifigure', bg: 'studio' },
+  { id: 'buzzdroid', title: 'Buzz droid', thumb: 'buzzdroid.png', bg: 'studio' },
+  { id: 'battledroid-line', title: 'B1 battle droids', thumb: 'battledroid-line.png', bg: 'studio' },
+  { id: 'anakin', title: 'Anakin minifigure', thumb: 'anakin.png', bg: 'studio' },
+  { id: 'obiwan', title: 'Obi-Wan minifigure', thumb: 'obiwan.png', bg: 'studio' },
   { id: 'astromechs-pair', title: 'R2-D2 and R4-P17', thumb: 'final-droids.png', bg: 'studio' },
 ];
 
@@ -139,9 +139,9 @@ function main() {
 
   fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
   const assetCards = ASSETS.map((a) => {
-    const src = a.thumb && path.join(assetStills, a.thumb);
+    const src = a.thumb && assetStills.map((d) => path.join(d, a.thumb)).find((f) => fs.existsSync(f));
     let thumb = '';
-    if (src && fs.existsSync(src)) {
+    if (src) {
       thumb = `assets/${a.id}.jpg`;
       ff(['-i', src, '-vf', 'scale=720:-2', '-q:v', '4', path.join(out, thumb)]);
     }
