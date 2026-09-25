@@ -627,3 +627,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - `buildPhaseMs`: rocks 9.3 s = hero kits 4.9 / ravine 1.7 / clearing 0.8 / backside 0.7 / pebbles
   0.5 s. Offered to defer the three gated groups (3.2 s) if the world supports post-ready builds.
 - Tool: `--perf` in pose.mjs (buildMs per system).
+
+### Iteration 125 (14:35) — #132: rockgen welds on integer keys, the rocks' build 9.3 → 6.6 s
+- CPU profile: `computeCreaseNormals` 91 % self time (string keys × 3–5 passes). `positionGroups`
+  shared by displacement / swell / crease passes. Small rocks hash-identical; hero rocks differ by the
+  welds across the axis planes (the old '-0.0000' vs '0.0000' seam) — 4 of 6,626 welds. Six views
+  0 pixels. Tool: `rockgen-hash.mjs` in the store.
