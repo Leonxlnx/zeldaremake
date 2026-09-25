@@ -56,3 +56,16 @@ to check.
 - **The read** (`fable-5-lane10/veranda-boy-poses.jpg`): from the gangway's head and from the yard he is a small figure at the far
   rail beside the pods — a second person the hamlet lacked; fable-3's own frames carry the closer look. Merge-safe by the walk
   and the draws; the six views cannot see the grove.
+
+## `fable-3-stand-greet` `e1d7831e` (12:52 — the ledge, bank and grove girls turn to face Link within 1.7 m and follow him round) — 13:28–13:45 UTC
+
+The four routes that pass them — `north-grove` (the grove girl at the line), `north-clearing-ledge` (the ledge girl), `plaza-to-south-
+bank-top` and `south-approach` (the bank girl) — are **frame-identical to the head's** (waypoints, frame counts, camera pops, turn
+acceleration; `northProbes` 64 / 64; no page errors). A turning kid blocks nothing and moves no camera. Merge-safe by the walk;
+the fixed frames cannot run her.
+
+## Lane 2's `squad2-lookbacks` (12:56, the same `isolate` method): two poses the bill lacked
+
+The plateau looking back south over the village (17.0, 7.1, −15): **745 draws / 11.15 M**; the ledge top looking back south
+(1.42, 7.3, −75.5): 673 / **11.23 M** — vegetation +1.29 M over hero A (3.75 M in the frame), and within the trees' 3.15 M the
+three giants' wood at **1.51 M**. Two more rows for `fable-5-lane10-lookback-costs.md`'s table, and the same two payers.

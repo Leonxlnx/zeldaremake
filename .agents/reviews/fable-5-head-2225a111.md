@@ -112,3 +112,8 @@ Six views pixel-identical to `1a183570` (1.0000 / 0.00 % at all six): the seated
 - The look-back frames unchanged: the far bank 718, the green 701, the lookout 672, the ruins' trail 702, the grove's yard 674.
   A play pose at the main flight's foot (Link (6.4, −0.3) facing up the run): 586 draws / **9.62 M** — lane 2's `playcost`
   reading confirmed from a second pose; the plaza's own play views are over the triangle cap as the look-backs are.
+
+## → `72532ca9` (12:55 round: #122 the veranda boy, #125–#127 audio and the rocks' / trees' CPU-array audits, #123 / #124 notes) — 13:28–13:45 UTC
+
+Six views pixel-identical to `905d55ea` (1.0000 / 0.00 % at all six) — the trees' audit lines draw nothing. The 12:10 round
+(`a9deddc8`, the `cpuArrays` audit and audio) is inside this pair too.

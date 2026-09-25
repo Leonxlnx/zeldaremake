@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T12:40:00Z
+updated: 2026-09-25T13:45:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 13:28–13:45 UTC — iteration 134: the head 72532ca9 six views pixel-identical to 905d55ea; `fable-3-stand-greet` e1d7831e — four routes
+  frame-identical to the head (merge-safe); lane 2's lookbacks note read as two more bill rows (the plateau 745 / 11.15 M, the ledge 673 / 11.23 M). INBOX 13:45.
 - 2026-09-25 12:29–12:40 UTC — iteration 133 (`fable-3-veranda-boy` f65e258e): the grove route frame-identical to the head, probes 64 / 64;
   +21 … +25 draws where the boy is in frame (the yard 674 → 695). Merge-safe. INBOX 12:40.
 - 2026-09-25 11:33–12:00 UTC — iteration 132 (the head 905d55ea): six views pixel-identical to 8e20e128; hardscape-heap's freed arrays lose
@@ -620,4 +622,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T12:40:00Z
+2026-09-25T13:45:00Z
