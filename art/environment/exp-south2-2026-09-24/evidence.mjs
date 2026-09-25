@@ -125,7 +125,7 @@ function insideSolid(c, logFloor) {
     const backA = -(HD - 0.055) - 0.005;
     const northS = -(HW - 0.08) - 0.005;
     if (Math.abs(a - backA) < 0.075 && Math.abs(s) < HW - 0.08 && c[1] > WS.floorY - 0.12 && c[1] < WS.floorY + WS.backHeight) return 'waystation-back-wall';
-    if (Math.abs(s - northS) < 0.075 && Math.abs(a) < HD - 0.055 && c[1] > WS.floorY - 0.5 && c[1] < WS.floorY + WS.frontHeight) return 'waystation-north-wall';
+    if (Math.abs(s - northS) < 0.075 && Math.abs(a) < HD - 0.055 && c[1] > WS.floorY - 0.5 && c[1] < WS.floorY + WS.northHeight + 0.03) return 'waystation-north-wall';
     if (Math.abs(a) < HD && Math.abs(s) < HW && c[1] < WS.floorY && c[1] > WS.floorY - 0.6) return 'under-waystation-floor';
   }
   return null;

@@ -9,9 +9,9 @@
  *    bridge keeper's mast, the waystation's walls;
  *  - SLIM: the parts it only refuses to stand inside — fence and lantern posts, the sign, the pods,
  *    the grove's rails, stilts and limbs, the keeper's railing, braces, davit, firewood and beacon
- *    arm, the waystation's posts, bench and firewood, and its roof (0.42 m over Link's aim where he
- *    stands on its floor: as a shell it stopped every line but those out of the open front at the
- *    camera's minimum distance),
+ *    arm, the waystation's posts, bench and firewood, and its roof (0.3–0.5 m over Link's aim where
+ *    he stands on its floor: as a shell, a line out through it would pin the camera at its minimum
+ *    distance inside the roof; the back wall, higher than the level line, stops that line first),
  *    the buttress roots, the boughs, the plaza bough's sleeve and the bough itself (the trees
  *    system's limb path, as spheres). A slim part between Link and the camera is allowed to pass.
  * A hut whose wall comes as an exact solid (`walls`, the grove's) keeps its bark out of the grid.

@@ -85,6 +85,14 @@ const DWELLINGS = {
   waystation: { centre: [5.12, 25.95], facingDeg: -74, floorY: 0.22 },
 };
 const keeperAt = (thetaDeg, r) => [DWELLINGS.keeper.centre[0] + Math.cos(rad(thetaDeg)) * r, DWELLINGS.keeper.centre[1] + Math.sin(rad(thetaDeg)) * r];
+const waystationLocal = ([x, , z]) => {
+  const W = DWELLINGS.waystation;
+  const fx = Math.sin(rad(W.facingDeg));
+  const fz = Math.cos(rad(W.facingDeg));
+  const dx = x - W.centre[0];
+  const dz = z - W.centre[1];
+  return { a: dx * fx + dz * fz, s: dx * fz - dz * fx };
+};
 const waystationAt = (a, s) => {
   const W = DWELLINGS.waystation;
   const fx = Math.sin(rad(W.facingDeg));
@@ -897,8 +905,8 @@ async function southProbes(page) {
 /**
  * exp-south2: the dwellings hold Link where they are built — the keeper's gallery walks at its
  * boards' height all round the gorge side, its railing, the hut and the gorge past the railing
- * block, both steps walk; the waystation's floor walks at its boards' height, its back wall (with
- * the bench), its north wall and the firewood outside block, its step walks.
+ * block, both steps walk; the waystation's floor walks at its boards' height, its back wall, the
+ * bench in front of it, its north wall and the firewood outside block, its step walks.
  */
 async function southDwellingProbes(page) {
   const K = DWELLINGS.keeper;
@@ -912,6 +920,9 @@ async function southDwellingProbes(page) {
   probes.push({ where: 'keeper-step-east', th: -20.5, r: 1.86, at: keeperAt(-20.5, 1.86), expect: 'step' });
   for (const [a, s] of [[0.3, 0], [0.3, 0.6], [0.3, -0.5], [0.5, 0.2]]) probes.push({ where: 'waystation-floor', a, s, at: waystationAt(a, s), expect: 'deck', y: W.floorY });
   for (const [a, s] of [[-0.62, 0], [-0.62, 0.5], [-0.38, -0.2]]) probes.push({ where: 'waystation-back-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
+  // in front of the bench Link stops 0.64 m from the back wall's inner face (the camera's least distance, 0.6 m, stays inside)
+  for (const [a, s] of [[0, 0], [0.05, 0.42], [0.04, -0.5]]) probes.push({ where: 'waystation-bench', a, s, at: waystationAt(a, s), expect: 'blocked' });
+  probes.push({ where: 'waystation-floor', a: 0.2, s: 0, at: waystationAt(0.2, 0), expect: 'deck', y: W.floorY });
   for (const [a, s] of [[0, -0.95], [0.4, -0.95]]) probes.push({ where: 'waystation-north-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
   probes.push({ where: 'waystation-firewood', a: 0, s: -1.28, at: waystationAt(0, -1.28), expect: 'blocked' });
   probes.push({ where: 'waystation-step', a: 0.915, s: 0, at: waystationAt(0.915, 0), expect: 'step' });
@@ -929,11 +940,12 @@ async function southDwellingProbes(page) {
  * exp-south2: the follow camera at the dwellings — Link set down on the keeper's gallery facing
  * along it either way and on the waystation's floor facing in, out and along; once the camera has
  * settled, the drawn frame's clearance (the share of the view nearer than 0.35 m, Link's chest
- * hidden behind something nearer or off-screen) and whether the camera stands inside the hut (within
- * its wall, under its eave). Facing out of the waystation and south along it, its back wall (0.97 m
- * behind him) and its north wall (0.6 m) stop the camera at its minimum distance (camera/follow.ts),
- * where Link's chest drops below the frame: at those two (`squeeze`) only "not inside, nothing
- * within 0.35 m" is asked.
+ * hidden behind something nearer or off-screen), whether the camera stands inside the hut (within
+ * its wall, under its eave) and whether it stands in one of the waystation's walls (the back wall
+ * or the north half wall, below its top). Facing out of the waystation its back wall (0.92 m behind
+ * him) stops the camera at its minimum distance (camera/follow.ts) under the roof, where Link's
+ * chest drops below the frame: there (`squeeze`) the camera must stand in front of the wall's inner
+ * face; everywhere else Link must be in view (facing south the camera looks over the half wall).
  */
 async function southDwellingCamera(page) {
   const K = DWELLINGS.keeper;
@@ -946,8 +958,12 @@ async function southDwellingCamera(page) {
   }
   spots.push({ where: 'waystation-floor', facing: 'in', at: waystationAt(0.3, 0), yaw: f + Math.PI });
   spots.push({ where: 'waystation-floor', facing: 'out', at: waystationAt(0.3, 0), yaw: f, squeeze: true });
-  spots.push({ where: 'waystation-floor', facing: 'south', at: waystationAt(0.3, -0.4), yaw: Math.atan2(Math.cos(f), -Math.sin(f)), squeeze: true });
+  spots.push({ where: 'waystation-floor', facing: 'south', at: waystationAt(0.3, -0.4), yaw: Math.atan2(Math.cos(f), -Math.sin(f)) });
   spots.push({ where: 'waystation-floor', facing: 'north', at: waystationAt(0.3, 0.5), yaw: Math.atan2(-Math.cos(f), Math.sin(f)) });
+  // the walls in the waystation's frame (a out of its open front, s toward its south end)
+  const backA = -(W.depth / 2 - 0.055) - 0.005;
+  const northS = -(W.width / 2 - 0.08) - 0.005;
+  const backInner = backA + 0.07;
   const rows = [];
   for (const s of spots) {
     await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [s.at[0], s.at[1], s.yaw]);
@@ -958,9 +974,13 @@ async function southDwellingCamera(page) {
     const c = st.camera;
     const rHut = Math.hypot(c[0] - K.centre[0], c[2] - K.centre[1]);
     const inHut = rHut < 1.25 && c[1] < K.deckY + 3.0;
-    const ok = !inHut && clear.nearShare < 0.01 && (s.squeeze || clear.linkHidden === false);
+    const wl = waystationLocal(c);
+    const inWall =
+      (wl.a > backA - 0.09 && wl.a < backInner && Math.abs(wl.s) < W.width / 2 && c[1] < W.floorY + W.backHeight + 0.05) ||
+      (wl.s > northS - 0.09 && wl.s < northS + 0.07 && Math.abs(wl.a) < W.depth / 2 && c[1] < W.floorY + W.northHeight + 0.05);
+    const ok = !inHut && !inWall && clear.nearShare < 0.01 && (s.squeeze ? wl.a > backInner : clear.linkHidden === false);
     const { at, yaw, ...rest } = s;
-    rows.push({ ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), camera: c, cameraToLink: st.cameraToLink, cameraFromHutAxisM: +rHut.toFixed(3), inHut, ...clear, ok });
+    rows.push({ ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), camera: c, cameraToLink: st.cameraToLink, cameraFromHutAxisM: +rHut.toFixed(3), inHut, waystation: { a: +wl.a.toFixed(3), s: +wl.s.toFixed(3) }, inWall, ...clear, ok });
   }
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }

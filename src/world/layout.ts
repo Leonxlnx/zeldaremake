@@ -1075,7 +1075,10 @@ export function inExpansionSouth(x: number, z: number): boolean {
  * short board reaches 0.45 m north of its post, 0.3 m short of the roof's south eave): a
  * moss-roofed shelter open to the path (`facingDeg`), `width` × `depth`, on a plank floor at
  * `floorY` (the flare's ground is +0.16 under its back corner, −0.47 under its front one), its
- * back wall with a round window, a bench, firewood stacked against its north end.
+ * back wall with a round window, a bench, firewood stacked against its north end. `backHeight`
+ * clears the play camera's level line from Link's aim (1.5 m over the floor, 1.74–1.81 m where it
+ * meets the wall) so the wall stops the camera inside, under the roof; the north end is a half
+ * wall (`northHeight`) the camera looks over.
  */
 export const EXPANSION_SOUTH_DWELLINGS = {
   keeper: {
@@ -1097,7 +1100,8 @@ export const EXPANSION_SOUTH_DWELLINGS = {
     depth: 1.35,
     floorY: 0.22,
     frontHeight: 1.95,
-    backHeight: 1.3,
+    backHeight: 1.65,
+    northHeight: 0.95,
   },
 } as const;
 

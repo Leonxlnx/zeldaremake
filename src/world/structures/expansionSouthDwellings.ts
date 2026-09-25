@@ -12,8 +12,8 @@
  *
  * The waystation by the path: a lean-to open to the path, a moss roof on five rafters over a
  * plank floor on two bearer logs, a palisade back wall with a round window and a propped shutter,
- * a palisade north end, a bench, a basket, a walking stick, firewood stacked outside, a pod under
- * the front plate, a split-log step up from the path.
+ * a half-height palisade north end, a bench, a basket, a walking stick, firewood stacked outside, a
+ * pod under the front plate, a split-log step up from the path.
  *
  * Every part is built at the identity transform on the shared materials and named for the play
  * camera's solids (cameraSolids.ts); structures/index.ts moves them into the south group before
@@ -1531,13 +1531,13 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const stickFoot = at(backA - 0.085, winS - 0.02, winY - winR - 0.04);
     const stickTop = hinge.clone().addScaledVector(shutterOut, 0.4).addScaledVector(S, -0.02).addScaledVector(F, 0.012);
     put('waystation-walls', mats.bark, barkPole([stickFoot, stickTop], 0.014, 0.012, noise, 530, { moss: 0, ts: 2, rs: 5 }));
-    // the north end: a palisade under the roof's slope
+    // the north end: a half-height palisade
     const northS = -POST_S - 0.005;
     const m = 9;
     for (let i = 0; i < m; i++) {
       const a = lerp(-POST_A + 0.07, POST_A - (rootSeat ? 0.11 : 0.07), i / (m - 1)) + pr.range(-0.01, 0.01);
       const r = 0.055 + pr() * 0.012;
-      const yTop = lerp(backTop, frontTop, (a + POST_A) / (2 * POST_A)) - 0.03 + pr.range(-0.04, 0.02);
+      const yTop = FT + W.northHeight - 0.02 + pr.range(-0.04, 0.03);
       const gyN = terrain.height(at(a, northS, 0).x, at(a, northS, 0).z);
       const y0 = Math.min(FT - 0.12, gyN - 0.05);
       const p0 = at(a, northS - pr.range(0, 0.02), y0);
@@ -1547,14 +1547,14 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     }
     // two withy ties across each palisade
     for (const y of [FT + 0.35, backTop - 0.3]) put('waystation-rope', rope, ropeAlong([at(backA + 0.07, -POST_S, y), at(backA + 0.075, 0, y - 0.01), at(backA + 0.07, POST_S, y)], 0.011, noise, 560 + y));
-    for (const y of [FT + 0.35, FT + 1.0]) put('waystation-rope', rope, ropeAlong([at(-POST_A, northS + 0.07, y), at(0, northS + 0.075, y - 0.01), at(POST_A, northS + 0.07, y)], 0.011, noise, 570 + y));
+    for (const y of [FT + 0.3, FT + W.northHeight - 0.2]) put('waystation-rope', rope, ropeAlong([at(-POST_A, northS + 0.07, y), at(0, northS + 0.075, y - 0.01), at(POST_A, northS + 0.07, y)], 0.011, noise, 570 + y));
   }
 
   // ---- inside and round it: a bench, a basket, a walking stick, a rope coil, firewood, the pod ----
   {
     const ir = wRng.fork('props');
     // the bench: a split log on two stubs along the back wall
-    const benchA = -POST_A + 0.24;
+    const benchA = -POST_A + 0.34;
     const seatY = FT + 0.4;
     for (const s of [-0.55, 0.45]) {
       const c = at(benchA, s, 0);
@@ -1688,11 +1688,17 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   }
 
   // ---- the waystation's walk: the floor; the back wall with the bench and basket along it, the
-  // north wall and the front-south post blocked with a body's margin ----
+  // north wall and the front-south post blocked with a body's margin. Link stops in front of the
+  // bench 0.64 m or more from the back wall's inner face, so the play camera, which keeps 0.6 m
+  // from his aim, stays inside the wall when he faces out ----
   walkSurfaces.push(deckSurface('south-waystation-floor', at(0, -HW + 0.05, FT), at(0, HW - 0.05, FT), HD - 0.055));
   for (let i = 0; i < 6; i++) {
     const c = at(-HD + 0.12, lerp(-HW + 0.1, HW - 0.1, i / 5), FT);
     walkSurfaces.push(solidDisc(`south-waystation-back-${i}`, c.x, c.z, 0.48, FT));
+  }
+  for (let i = 0; i < 7; i++) {
+    const c = at(-0.22, lerp(-0.84, 0.84, i / 6), FT);
+    walkSurfaces.push(solidDisc(`south-waystation-bench-${i}`, c.x, c.z, 0.34, FT));
   }
   for (let i = 0; i < 4; i++) {
     const c = at(lerp(-HD + 0.1, HD - 0.1, i / 3), -POST_S - 0.03, FT);
