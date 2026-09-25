@@ -549,6 +549,26 @@ export const AMBIENCE_AHEAD = 4;
 export const MUSIC_AHEAD = 6;
 
 /**
+ * How often the tick asks a stopped clock to start again (ms).
+ *
+ * Well over `TICK_MS`, because a `resume()` outside a user gesture can be refused and there is no
+ * point asking thirty times a second; well under the time it takes anyone to notice silence.
+ */
+export const WAKE_RETRY_MS = 500;
+
+/**
+ * Whether to ask a stopped clock to start again on this tick.
+ *
+ * A function of its own because `tick` is not reachable from a test — it closes over a live
+ * `AudioContext` and a scene — and this is the whole of the decision that was missing. The failure
+ * it exists to prevent is not subtle: with no wake at all the game lost twelve seconds of a
+ * twenty-seven second session and would have lost the rest of it too.
+ */
+export function shouldWake(state: AudioContextState, now: number, nextAt: number): boolean {
+  return state !== 'running' && now >= nextAt;
+}
+
+/**
  * How much of the space around the listener is the ravine (0 well back from it, 1 out over it on
  * the bridge). `EXPANSION_SOUTH.ravine.line` is (x, z, top half width, depth) west → east; the
  * depth term means the shallow ends where the gorge closes to nothing do not open the sound.
@@ -676,6 +696,20 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const lastPos = { x: NaN, z: NaN };
   let lastT = 0;
+  let nextWake = 0;
+  /**
+   * Ask for the clock back, no more often than `WAKE_RETRY_MS`.
+   *
+   * Rate-limited because a `resume()` outside a user gesture can be refused, and the tick runs
+   * thirty times a second: without the limit a page that is not allowed to make a sound would ask
+   * a hundred and eighty times before the user touched anything. Twice a second is soon enough
+   * that nobody notices the gap and slow enough to be free.
+   */
+  const wake = (now: number) => {
+    if (!live || !shouldWake(live.ctx.state, now, nextWake)) return;
+    nextWake = now + WAKE_RETRY_MS;
+    live.ctx.resume().catch(() => undefined);
+  };
   /**
    * The audio's own clock.
    *
@@ -693,6 +727,18 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   const tick = (now: number) => {
     if (!live) return;
     const { ctx, ambience, footsteps, music } = live;
+    // The clock has stopped. Chrome does that when the output device changes under the page, when
+    // a background tab is frozen, and when a page comes back from the back/forward cache — and
+    // until 2026-09-25 nothing here noticed: the only `resume()` was the one behind the first
+    // gesture, so the game went quiet for the rest of the session and not even the mute key
+    // brought it back (measured: twelve seconds suspended, `art/audio/2026-09-25-suspend/`).
+    //
+    // Everything below this line reads `ctx.currentTime`, which does not move while it is stopped,
+    // so there is nothing useful to do but ask for it back.
+    if (ctx.state !== 'running') {
+      wake(now);
+      return;
+    }
     const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 1 / 60;
     lastT = now;
     const t = ctx.currentTime + 0.03;
@@ -796,10 +842,12 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     }
   };
 
-  // first gesture starts the context (pointer or key, once)
+  // the first gesture starts the context; every later one is another chance to wake it
   const onGesture = () => {
-    window.removeEventListener('pointerdown', onGesture, true);
-    window.removeEventListener('keydown', onGesture, true);
+    if (live) {
+      wake(performance.now());
+      return;
+    }
     start().catch((e) => console.warn('[audio] start failed:', e));
   };
   window.addEventListener('pointerdown', onGesture, true);
