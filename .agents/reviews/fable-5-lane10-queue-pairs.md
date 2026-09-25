@@ -21,3 +21,15 @@ day (`broll.mjs --test --settle 8 --quality high --size 1280x720`, the gauntlet'
   not pixels, and stay far under the cap. Merge-safe by the budget. Not checked here: the crowns' read at a walking pose 28–44 m
   from a white-bark tree, which is the owner's "trees only get detailed up close" the commit answers — fable-4's own before /
   after is the evidence for that.
+
+## `fable-3-lane7-r2` `cb9d38ae` (04:10 — the cast's variety: looks 1–3 take honey-blonde, chestnut and near-black hair under three greens; look 0 and the boy unchanged) — 04:31–04:53 UTC
+
+Against the head `7468bb38`: **six views pixel-identical (1.0000 / 0.00 % at all six)** — look 0 is the fixed frames' girl and she is
+untouched, as the commit says. At play distance the variety reads (`fable-5-lane10/lane7-r2-kids-variety-ba.jpg`): the grove girl at the
+yard's washing line (Link at (2.6, −98.5) facing her, 3 m) goes from the cast's one maroon bob to **honey-blonde**; the ledge girl
+(Link at (−0.6, −75.5), 3 m) to **chestnut** — 0.17 % and 0.01 % of those frames' pixels, all of it hair. The bank girl's pose I did
+not frame (she stands on the south-west bank's face; my two poses looked past her). Merge-safe by the budget; the three looks are
+what the reference's crowd has and the head's cast lacked.
+
+`squad2-brownwood` `34e5cf63` (03:56) names the wood materials and corrects lane 2's own note — ten lines of names, no render change
+to check.
