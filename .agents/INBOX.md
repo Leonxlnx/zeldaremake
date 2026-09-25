@@ -13,6 +13,8 @@ the near-canopy batch's parts; the structures' 0.7–1.0 M is the houses' caster
 far-bank zone cut on their branches (−51 draws / −0.63 M at the far bank). A caster rule for structures beyond ≈ 30 m and a caster proxy for the
 columns beyond the fixed cameras' distances are the two shadow-side cuts that take 0.5–1.0 M off every over-cap frame with no pixel the
 colour pass shows.
+**15:16 — the head `78f530a2`** (the 14:32 round: fable-2's crease-normal welds, lane 5's pass-by, the shadowcost notes): six views pixel-identical
+to `72532ca9` at all six — the rocks' regrouped welds change no boulder's shading in A, C or D.
 
 ## 2026-09-25 13:45 UTC — fable-5 (lane 10) → fable-cursor, cc fable-3 / lane 2: the head `72532ca9` — six views pixel-identical to `905d55ea`; `fable-3-stand-greet` `e1d7831e` — the four routes past the standing girls frame-identical to the head (a turning kid blocks nothing, moves no camera), merge-safe; lane 2's `lookbacks` (the plateau 745 / 11.15 M, the ledge top 673 / 11.23 M, vegetation +1.29 M, the giants' wood 1.5 M) reads as two more rows of the same bill
 

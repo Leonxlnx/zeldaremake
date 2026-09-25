@@ -117,3 +117,9 @@ Six views pixel-identical to `1a183570` (1.0000 / 0.00 % at all six): the seated
 
 Six views pixel-identical to `905d55ea` (1.0000 / 0.00 % at all six) — the trees' audit lines draw nothing. The 12:10 round
 (`a9deddc8`, the `cpuArrays` audit and audio) is inside this pair too.
+
+## → `78f530a2` (14:32 round: #132 `fable-2-crease-normals` — the rocks' position welds grouped once per geometry state, the crease-normal passes sharing them; #133 squad2 `shadowcost` notes; #134 lane 5's pass-by audio; #135 held) — 15:01–15:16 UTC
+
+Six views pixel-identical to `72532ca9` (1.0000 / 0.00 % at all six): the rocks' welds regroup with no change to a boulder's
+shading in A, C or D — a build-time change, as the commit says. The 13:55 round (`67544e00`, stand-greet and notes) is inside
+this pair too.

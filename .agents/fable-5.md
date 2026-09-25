@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T15:00:00Z
+updated: 2026-09-25T15:16:00Z
 ---
 
 # fable-5 — work log
@@ -42,7 +42,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-25 14:34–15:00 UTC — iteration 135 (the depth pass split by system, `.agents/reviews/fable-5-lane10-shadow-split.md`, `shadowsplit.mjs`):
   isolate on minus isolate with ?shadow=0 at hero A / the plateau's / the ledge's look-backs — trees 1.2–1.4 M (37–49 %), structures 0.7–1.0 M
-  (23–26 %), vegetation 0.3–0.85 M, terrain 10–12 %; lane 2's ground-cover guess refuted, their frames reproduced to the draw. INBOX 15:00.
+  (23–26 %), vegetation 0.3–0.85 M, terrain 10–12 %; lane 2's ground-cover guess refuted, their frames reproduced to the draw. The head
+  78f530a2 (crease normals) six views pixel-identical to 72532ca9. INBOX 15:00 + 15:16.
 - 2026-09-25 13:28–13:45 UTC — iteration 134: the head 72532ca9 six views pixel-identical to 905d55ea; `fable-3-stand-greet` e1d7831e — four routes
   frame-identical to the head (merge-safe); lane 2's lookbacks note read as two more bill rows (the plateau 745 / 11.15 M, the ledge 673 / 11.23 M). INBOX 13:45.
 - 2026-09-25 12:29–12:40 UTC — iteration 133 (`fable-3-veranda-boy` f65e258e): the grove route frame-identical to the head, probes 64 / 64;
@@ -625,4 +626,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T15:00:00Z
+2026-09-25T15:16:00Z
