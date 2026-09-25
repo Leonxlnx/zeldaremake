@@ -206,9 +206,37 @@ const grain = (at: number, freq: number, peak: number, decay = 0.006): NoisePart
 });
 
 /**
- * The sequence one footstep is made of. `strength` 0.3–1 is how hard it lands, `running` shortens
- * the heel-to-toe gap and hardens the heel, `rnd` is the seeded stream (never Math.random — a
- * before / after render has to be reproducible).
+ * What running does to a step, beyond arriving more often and harder.
+ *
+ * It used to do one thing. `running` appeared in exactly one expression — the heel-to-toe gap — so
+ * a run was a walk with its toe fifty milliseconds closer, and on leaf litter it was not even that,
+ * because the litter's last part is a settling grain rather than the toe. Comparing the two designs
+ * across eight surfaces and sixty seeds (`art/audio/2026-09-25-gait/`), every other number came back
+ * identical: part count, heel peak, heel attack, heel frequency, decay, reverb, top. The docstring
+ * said it "hardens the heel" and it did not.
+ *
+ * A running footfall is not a louder walking one. Peak vertical force is about 2.5 times body
+ * weight against a walk's 1.2, the foot lands flatter so the toe stops being a separate event, the
+ * strike is faster and so excites the surface higher, and the whole contact is briefer — which
+ * matters here for a practical reason as well as a physical one: at five steps a second a walking
+ * step's tail has not finished when the next one starts.
+ *
+ * `strengthFor` already makes a run louder, and that is where its hardness belongs: peak force IS
+ * level, so a "harder heel" here would be level twice. These four are what is left when loudness is
+ * taken out — they change the step's SHAPE, which is what tells a listener the difference when both
+ * are at a comfortable volume. A fifth, a 1.35x lift on the heel, was tried and removed: the
+ * headroom guard in `footsteps.test.mjs` caught it at 0.47 against its 0.45 limit on a bridge at
+ * full strength, and it was right to — that lift was loudness wearing shape's clothes.
+ */
+export const RUN_TOE = 0.7;
+export const RUN_ATTACK = 0.55;
+export const RUN_BRIGHT = 1.18;
+export const RUN_SHORTEN = 0.8;
+
+/**
+ * The sequence one footstep is made of. `strength` 0.3–1 is how hard it lands, `running` lands it
+ * flatter, brighter and briefer (see `RUN_TOE` and friends), `rnd` is the seeded stream (never
+ * Math.random — a before / after render has to be reproducible).
  */
 export function designStep(surface: Surface, strength: number, running: boolean, rnd: () => number): StepDesign {
   const k = strength;
@@ -325,7 +353,25 @@ export function designStep(surface: Surface, strength: number, running: boolean,
       break;
     }
   }
-  return { parts, reverb, end };
+  if (!running) return { parts, reverb, end };
+  // the heel takes more of a run and the toe less — the foot lands flatter, so the toe stops being
+  // its own event; the strike is faster and rings the surface higher; and the whole thing is
+  // briefer, which it has to be at five steps a second or each one is still sounding under the next
+  const run = parts.map((p) => {
+    const heel = p.at <= 0.004;
+    const late = p.at >= toe * 0.8;
+    const scale = late ? RUN_TOE : 1;
+    const shaped = { ...p, at: p.at, peak: p.peak * scale, decay: p.decay * RUN_SHORTEN };
+    if (heel) {
+      shaped.attack = p.attack * RUN_ATTACK;
+      if (shaped.kind === 'body') {
+        shaped.f0 = p.kind === 'body' ? p.f0 * RUN_BRIGHT : 0;
+        shaped.f1 = p.kind === 'body' ? p.f1 * RUN_BRIGHT : 0;
+      }
+    }
+    return shaped;
+  });
+  return { parts: run, reverb, end: end * RUN_SHORTEN };
 }
 
 /**
