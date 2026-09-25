@@ -288,3 +288,23 @@ down the wall's face to the quay, the fall ahead) once the camera can be on it.
 Against the branch's base `31146062`, the same capture: **A, B, D, E, F pixel-identical (1.0000, 0.00 %)** — the 34 butterflies' re-roll
 that `3776cc81`'s prune caused in every hero frame is gone; **C 0.9998, 0.07 % of its pixels, −0.0004 vs the reference** — scattered over C's right third at
 mid-height (x 867–1279, y 150–396 of 1280 × 720, +9 luma), the trail side of the frame where the card cull reached to x −1. Inside the budget; the author's own catch, confirmed from outside.
+
+## Re-read on `e37b1777` (18:22 — the head merged with the grove's camera; the village's drawables hidden while the camera stands in the ruins' zone; the fixed frames' plant order kept) — 18:25–18:40 UTC
+
+- **The water stair's camera pops are gone.** `ruins-water-stair` 15 / 15 with **one 0.30 m step** (was 3.90 / 3.26 / 2.67 m at
+  `fdb4d338`), camera acceleration max 3,479 → **269 m/s²** — the head's grove camera (`d7432cc9`'s easing and ring steering, merged
+  into the branch) does for the retaining wall what it did for the huts. `plaza-to-ruins-terrace` 26 / 26 and `ruins-trail-to-shore`
+  10 / 10 with no step over 0.3 m; probes 80 / 80; the sweep's 360 headings never inside a solid. What stands is the standing
+  pull-in: the two terrace-by-cliff spots at ≤ 0.7 m on 10–11 of 24 headings, the outcrop by the ivy rock 9, the stair's mid /
+  quay / platform 9 each (down from 13–17) — the ≈ 1.2 m floor, the one camera item across all four expansions.
+- **Every ruins look-back is under both caps** (`it139-ruins-zone-e37b1777.jpg`): the terrace looking east 660 → **490 draws / 6.84 M**,
+  the quay looking east 639 → **486 / 6.70 M**, the trail's middle 702 → **604 / 8.58 M** — the plaza's houses, posts, fences, arch and
+  huts 35–95 m east hide while the camera is west of x −30 at walking height; the near west house stays, nothing visible goes (the
+  terrace's frame reads the same; at the trail's middle the branch's frame is clean where the head's camera stood inside a birch).
+  The reference pose 128 / 0.98 M, the gate 138 / 1.15 M.
+- **The six views** (`ce2566a7`, the plant-order fix, against the head): A / B / D / E 1.0000, C 0.9998 / −0.0004 — the same residual as
+  `f29ad20e`; F's frame did not write in this run and the five stand.
+
+**Scores:** #44 2 → **3** (no pop on any route; the standing pull-in keeps it from 4), #46 ★ **4** (every pose of the site's own and every
+look-back under 700 / 9.0 M). **176 / 200 with no check under 3** — shippable by the rubric's letter; the standing pull-in floor is the
+polish item, shared with the grove, the keeper's hut and the east lane.
