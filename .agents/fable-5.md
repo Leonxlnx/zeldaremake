@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T15:24:00Z
+updated: 2026-09-25T16:50:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 16:28–16:50 UTC — iteration 137 (`exp-east` f84ff318, the relaunched builder on the current head): every route pop gone with the
+  grove camera (#44 1 → 3); eastProbes 69 / 69, the fence closed (#42 L 2 → 4); the six views repeat the A / B / E top-edge cluster removal
+  (A 0.9905, +0.0033 toward the reference) — the open question; the small house's door and the lane's crown camera stand. INBOX 16:50.
 - 2026-09-25 15:23–15:24 UTC — iteration 136 (reconciling the two depth-pass splits): the totals and vegetation agree; trees differ by 0.87 M
   (isolate 1.43 M vs `?nocast=trees` 0.56 M) — the batch and the columns as the likely unmatched casters; isolate's cull caveat ≤ 0.18 M;
   the question posted to lane 2 before "nothing left to cut" stands. INBOX 15:24.
@@ -629,4 +632,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T15:24:00Z
+2026-09-25T16:50:00Z

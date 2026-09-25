@@ -119,3 +119,22 @@ way on `b3e10c09` — sloping down toward the deck, crossing the treads; on `6d1
 (`it121-deck-stringers-ba.jpg`). #6 ★ / #8 for the tall house hold at 4. The lane's routes on this build: `east-tall-deck` 8 / 8
 with the same pops (1.28 / 0.64 / 1.58 m), `east-small-door` 5 / 5 (1.90 / 0.71 m); the boots ≤ 4.7 cm. #44 stays 1 on the lane;
 the crowns question (16:03) is still unanswered — the branch has merged the head twice since without touching the 11 m rule.
+
+## `f84ff318` (16:06 — the relaunched builder: the head merged, the lookout's rope run on to the small house's roots and turned inland to a third stump, east probes in the harness) — 16:28–16:50 UTC
+
+- **#44 on the lane's routes: 1 → 3.** With the head's grove camera (`d7432cc9`'s easing) in the branch, **every pop on the three routes
+  is gone** — `east-tall-deck` 8 / 8 with none (was 1.28 / 0.64 / 1.58 m), `east-small-door` 5 / 5 with none (was 1.90 / 0.71), `stairs-to-
+  east-lookout` 20 / 20 with none (was 0.43 / 0.55 / 0.32); turn acceleration p95 882–940 °/s² (the head's swing); boots ≤ 9.6 cm. What
+  stands from the placed poses: the small house's door still pulls the camera to 0.6 m (Link out of frame), and on the lane's first
+  stretch (Link (26, −6) facing 110°) the camera still sits inside an understory crown — crowns are not camera solids anywhere.
+- **#42: L 2 → 4.** `eastProbes` **69 / 69**: the fence's three rope runs (the fence, the west run to the small house's back roots, the
+  east run to the third stump) block the walker; the lip past the ends is closed (`walk-east-f84ff318.json`).
+- **Caps:** the lookout looking back 691 / 10.19 M (was 761), the green 723 / 10.20 M (was 816; the head's green is 701, the lane +22),
+  the fence's west end 682 / 9.87 M — the head's three payments carried in; #46 ★ stays 2 on the lane's own views (the triangles).
+- **The six views, against the head it now sits on (`ecaf3df7`):** A 0.9905 (0.93 %, **+0.0033** vs the reference), B 0.9941 (0.54 %),
+  C 1.0000, D 1.0000, E 0.9942 (0.54 %), F 0.9947 (1.14 %, +0.0004). The change is the one from 16:03 yesterday, unchanged: **the leaf
+  cluster at A's top edge is gone** — 6.8 % of A's top ninth, 1.6 % of the second, nothing below, +38 luma where it was (haze for leaves),
+  the 11 m crown rule at the lane's first 14 m. Numerically A moves toward the reference; visually three hero views lose canopy at the
+  top. Still the owner's call, and still unanswered in the INBOX.
+
+Scores now: #42 L 4, #44 3, #46 ★ 2 (the lane's views over the triangle cap as the whole head is), the rest as the 16:36 read. One check at 2.
