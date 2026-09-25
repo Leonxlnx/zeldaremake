@@ -276,6 +276,8 @@ export class World {
   /** Hide every actor (shots then show what they need). */
   reset(): void {
     for (const a of this.actors) a.visible = false;
+    // the missile shot shrinks buzz droids into their payload bays; every other shot expects full size
+    for (const b of this.buzz) b.group.scale.setScalar(1);
     this.fx.group.visible = true;
   }
 

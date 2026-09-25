@@ -603,19 +603,25 @@ const missiles: Shot = {
       const st = flight(missilePath(k, T0), T);
       place(m.group, st);
       m.setOpen(smooth(1.55, 1.95, t));
+      // payload slot j of missile k carries buzz droid j * 2 + k
+      m.payloadAnchors.forEach((pa, j) => (pa.visible = t <= 1.9 + (j * 2 + k) * 0.07));
     }
-    // buzz droids fly from the missiles to their perches
+    // buzz droids burst out of the payload bays and grow to full size as they unfold on the way to their perches
     w.buzz.forEach((b, i) => {
       const k = i % 2;
+      const m = w.missiles[k];
       const tr = 1.9 + i * 0.07;
       b.group.visible = t > tr;
       if (t <= tr) return;
-      const from = missilePath(k, T0)(T0 + tr);
+      const slot = m.payloadAnchors[Math.floor(i / 2) % Math.max(1, m.payloadAnchors.length)];
+      const rel = slot ? payloadLocal(m.group, slot) : v3(0, 0, 0);
+      const from = local(flight(missilePath(k, T0), T0 + tr), rel.x, rel.y, rel.z);
       const perch = local(o, ...PERCH[i]);
       const f = smoother(tr, tr + 0.7, t);
       b.group.position.copy(from.lerp(perch, f));
       b.group.quaternion.copy(o.quat);
-      b.group.scale.setScalar(1);
+      const ps = (m.group.userData.payloadScale as number | undefined) ?? 0.28;
+      b.group.scale.setScalar(lerp(ps, 1, smoother(tr, tr + 0.55, t)));
       b.setDeploy(smooth(tr + 0.4, tr + 0.9, t));
       b.animate(T + i);
     });
@@ -624,6 +630,16 @@ const missiles: Shot = {
     return { pos: cam, target: o.pos.clone().add(o.fwd.clone().multiplyScalar(25)), fov: 30, lens: { exposure: 1.05 } };
   },
 };
+
+/** a payload slot's position in its missile's frame (scaled like the missile), cached: the slots never move */
+function payloadLocal(missile: Object3D, slot: Object3D): Vector3 {
+  const cached = slot.userData.missileLocal as Vector3 | undefined;
+  if (cached) return cached;
+  missile.updateMatrixWorld(true);
+  const v = missile.worldToLocal(slot.getWorldPosition(new Vector3())).multiply(missile.scale);
+  slot.userData.missileLocal = v;
+  return v;
+}
 
 /* --- shot 9: buzz droids at work; R4 loses her head */
 
