@@ -211,10 +211,10 @@ export const FAIRY_GAP: [number, number] = [1.4, 4];
 /** past this she is not heard at all (the inverse-square reach alone runs on to eleven metres) */
 export const FAIRY_AUDIBLE_M = FAIRY_REACH_M * Math.sqrt(1 / 0.25 - 1);
 /** the bed's top in the open, and with the log tunnel's wood closed over the listener */
-const ENCLOSURE_OPEN_HZ = 18000;
-const ENCLOSURE_CLOSED_HZ = 900;
+export const ENCLOSURE_OPEN_HZ = 18000;
+export const ENCLOSURE_CLOSED_HZ = 900;
 /** how much of the forest is left when he is right inside the bore */
-const ENCLOSURE_DUCK = 0.45;
+export const ENCLOSURE_DUCK = 0.45;
 /**
  * How far a closed canopy shuts the same filter (a share of the tunnel's travel, so a roof of
  * leaves is a hint of the tunnel's wood, not the same thing): at 1 the bed's top sits near 4 kHz.
@@ -236,8 +236,8 @@ const ENCLOSURE_DUCK = 0.45;
  * What the crowns actually do to this bed is `CANOPY_SHARE`, below. A filter cannot take away what
  * is not there.
  */
-const CANOPY_CLOSE = 0.5;
-const CANOPY_HALL = 0.8;
+export const CANOPY_CLOSE = 0.5;
+export const CANOPY_HALL = 0.8;
 const CANOPY_FLUTTER = 0.7;
 /**
  * The ravine. Every other space term CLOSES the bed — the tunnel's bore, the crowns overhead. A
@@ -250,8 +250,8 @@ const CANOPY_FLUTTER = 0.7;
  * returns the high end leaves absorb. It is gone: measured, it moved 4–8 kHz by +0.3 dB and
  * 8–16 kHz by −0.1, because this bed has almost nothing up there to return.
  */
-const GORGE_HALL = 2.0;
-const GORGE_WIND = 0.7;
+export const GORGE_HALL = 2.0;
+export const GORGE_WIND = 0.7;
 /**
  * How far the canopy roll leans toward upwind. Wind in a wood is not a point source, so this is a
  * lean and not a pan: turn to face into it and the weight of the air moves across you, but the bed
