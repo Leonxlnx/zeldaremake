@@ -1030,6 +1030,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(doorChar.rig, ground.height, actor.contact);
         noticeFor(doorChar.rig, actor, player);
         doorChar.rig.neck.rotation.x += greetNod(doorGreet, t);
+        greetWave(doorChar.rig, doorGreet, t);
         actor.shadow.position.set(actor.pos.x, ground.decalHeight(actor.pos.x, actor.pos.z, actor.shadowRadius), actor.pos.z);
         driven.add(2);
         return true;
