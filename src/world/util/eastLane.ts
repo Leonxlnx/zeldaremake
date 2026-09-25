@@ -26,6 +26,31 @@ export const EAST_SEEN_M = 35;
 export const EAST_OVER_Y = 6.5;
 /** a house's detail (cap tufts and plants, trunk moss, lichen, the room) draws within this distance of its trunk */
 export const EAST_DETAIL_M = 34;
+/**
+ * The plateau past the lane's bend (x from 30 m, the lane's box in z, the eye over 5 m — the
+ * plateau's ground is 5.0–6.0 m): from here every other structure — the village's houses, its
+ * log, signposts, fences and distant huts, the expansion, the south bridge, the north and the
+ * grove — is 30–95 m off, down the stair bank behind the plateau's lip, the bank's giants and
+ * the mid grove, in the haze. While the camera is inside, those stop casting (structures
+ * index.ts); the lane keeps its own shadows. No fixed camera is inside (they stand at x ≤ 2.3,
+ * under 2.7 m).
+ */
+export const EAST_ZONE = { x0: 30, x1: EAST_BOX.x1, z0: EAST_BOX.z0, z1: EAST_BOX.z1, yMin: 5 } as const;
+
+declare global {
+  /**
+   * set to `true` (devtools, or a harness through `page.evaluate`) to switch the zone's rule off
+   * from the next frame — A/B captures of exactly what it changes; unset as shipped
+   */
+  // eslint-disable-next-line no-var
+  var __KF_EAST_ZONE_OFF__: boolean | undefined;
+}
+
+/** true while a camera at `p` is inside EAST_ZONE (and `__KF_EAST_ZONE_OFF__` is not set) */
+export function inEastZone(p: { x: number; y: number; z: number }): boolean {
+  const Z = EAST_ZONE;
+  return globalThis.__KF_EAST_ZONE_OFF__ !== true && p.x > Z.x0 && p.x < Z.x1 && p.z > Z.z0 && p.z < Z.z1 && p.y > Z.yMin;
+}
 /** the green between the three houses, the centre the lane's distance rules measure from */
 export const EAST_GREEN = { x: 44.5, z: 3.5 };
 

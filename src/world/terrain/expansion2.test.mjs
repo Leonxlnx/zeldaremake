@@ -921,6 +921,18 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
   assert.deepEqual(E.eastRunRange([false, false, true, true], ends), [90, 36], 'the last two');
   assert.deepEqual(E.eastRunRange([true, false, false, true], ends), [0, 126], 'the first and the last draw the runs between');
   assert.deepEqual(E.eastRunRange([false, false, false, true], ends), [120, 6], 'the last alone');
+  // the east plateau's zone (structures index.ts: every other structure's casters stop casting while
+  // the camera is in it): no fixed camera, none of the owner's poses and none of the stair head's or
+  // the lane's first stretch is inside; the lane's cameras on the plateau past the bend are
+  for (const v of LAYOUT.viewpoints) assert.equal(E.inEastZone(at(v.position)), false, `${v.id}: outside the east plateau's zone`);
+  for (const p of [[-0.2, 2.1, 3.1], [1.4, 1.75, -10.2], [4.8, 2.6, 43.6], [13.54, 6.88, -8.77], [20.05, 7.16, -4.3], [24.6, 7.15, -4.17], [40.0, 3.2, 12.0], [-10, 30, 20]]) {
+    assert.equal(E.inEastZone(at(p)), false, `${fmt(p[0], p[2])} (${p[1]} m up) is outside the east plateau's zone`);
+  }
+  const plateau = [[32.16, 7.53, -0.71], [46.73, 7.44, 0.91], [47.26, 7.45, 6.02], [50.32, 7.36, 10.21], [50.27, 7.35, 8.41], [53.69, 8.61, 1.81], [52.19, 8.61, 3.18], [40.5, 7.45, -1.09], [38.95, 7.3, 5.23], [45.9, 7.4, 7.96]];
+  for (const p of plateau) assert.equal(E.inEastZone(at(p)), true, `${fmt(p[0], p[2])} (${p[1]} m up) is inside the east plateau's zone`);
+  globalThis.__KF_EAST_ZONE_OFF__ = true;
+  for (const p of plateau) assert.equal(E.inEastZone(at(p)), false, `__KF_EAST_ZONE_OFF__ switches the zone off at ${fmt(p[0], p[2])}`);
+  delete globalThis.__KF_EAST_ZONE_OFF__;
 }
 
 console.log('expansion2.test.mjs: ok');
