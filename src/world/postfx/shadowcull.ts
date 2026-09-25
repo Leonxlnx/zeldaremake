@@ -15,10 +15,10 @@
  * keep casting. The image is unchanged by construction — the six fixed captures are byte-identical
  * — while the shadow pass draws only the casters whose shadows are in frame.
  *
- * An optional `ShadowDistanceRule` also switches off small casters far from the camera — a shadow
- * distance by caster size, which does change the image; the composer passes one only where a
- * locality asks for it (util/farBankLocality.ts). `hideSmallFar` is the same idea for drawing: a
- * draw distance by size, for the frame, again only where a locality asks for it.
+ * Optional `ShadowDistanceRule`s also switch off casters far from the camera — a shadow distance by
+ * caster size, or from a zone the camera is in — which does change the image; the composer passes
+ * them only where a locality asks for them (util/farBankLocality.ts). `hideSmallFar` is the same
+ * idea for drawing: a draw distance by size, for the frame, again only where a locality asks for it.
  */
 import { Frustum, Matrix4, Object3D, Plane, Sphere, Vector3, type Camera, type InstancedMesh, type Mesh } from 'three';
 
@@ -29,12 +29,24 @@ const _light = new Vector3();
 const _eye = new Vector3();
 
 /**
- * Casters whose world bounding sphere (before the margin) has a radius of at most `maxRadiusM` and
- * lies farther than `minDistanceM` from the camera (centre distance minus radius) cast nothing.
+ * Casters beyond a distance cast nothing, judged on the world bounding sphere before the margin:
+ * with `maxRadiusM`, a sphere of at most that radius lying farther than `minDistanceM` from the
+ * camera (centre distance minus radius); with `box`, a sphere lying wholly more than `minDistanceM`
+ * outside the box in plan (the centre's horizontal distance to the box minus the radius) — the same
+ * casters from anywhere in the box, so moving inside it switches nothing.
  */
-export interface ShadowDistanceRule {
-  maxRadiusM: number;
-  minDistanceM: number;
+export type ShadowDistanceRule =
+  | { maxRadiusM: number; minDistanceM: number }
+  | { box: { x0: number; x1: number; z0: number; z1: number }; minDistanceM: number };
+
+function beyondRule(rule: ShadowDistanceRule, s: Sphere, eye: Vector3): boolean {
+  if ('box' in rule) {
+    const b = rule.box;
+    const dx = Math.max(0, b.x0 - s.center.x, s.center.x - b.x1);
+    const dz = Math.max(0, b.z0 - s.center.z, s.center.z - b.z1);
+    return Math.hypot(dx, dz) - s.radius > rule.minDistanceM;
+  }
+  return s.radius <= rule.maxRadiusM && s.center.distanceTo(eye) - s.radius > rule.minDistanceM;
 }
 
 /**
@@ -82,16 +94,16 @@ export interface ShadowCullStats {
   tested: number;
   /** casters switched off for the frame */
   culled: number;
-  /** of `culled`, those the distance rule switched off (0 without one) */
-  small?: number;
+  /** of `culled`, those a distance rule switched off (0 without rules) */
+  far?: number;
 }
 
 /**
- * Switch off `castShadow` on every caster whose swept sphere misses the camera frustum, and with a
- * `rule` on every small caster beyond its distance; call the returned function after the render to
- * restore them. `sunDirection` points toward the sun.
+ * Switch off `castShadow` on every caster whose swept sphere misses the camera frustum, and with
+ * `rules` on every caster beyond one of their distances; call the returned function after the
+ * render to restore them. `sunDirection` points toward the sun.
  */
-export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: Vector3, marginM: number, stats?: ShadowCullStats, rule?: ShadowDistanceRule): () => void {
+export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: Vector3, marginM: number, stats?: ShadowCullStats, rules?: readonly ShadowDistanceRule[]): () => void {
   const light = _light.copy(sunDirection).multiplyScalar(-1).normalize();
   camera.updateMatrixWorld();
   _proj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
@@ -100,7 +112,7 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
   const planes = _frustum.planes;
   const off: Object3D[] = [];
   let tested = 0;
-  let small = 0;
+  let far = 0;
   root.traverseVisible((obj) => {
     const m = obj as Mesh;
     if (!m.castShadow || !(m.isMesh || (m as unknown as { isPoints?: boolean }).isPoints || (m as unknown as { isLine?: boolean }).isLine)) return;
@@ -108,10 +120,10 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
     const s = worldSphere(m, _sphere);
     if (!s) return;
     tested++;
-    if (rule && s.radius <= rule.maxRadiusM && s.center.distanceTo(_eye) - s.radius > rule.minDistanceM) {
+    if (rules && rules.some((r) => beyondRule(r, s, _eye))) {
       m.castShadow = false;
       off.push(m);
-      small++;
+      far++;
       return;
     }
     s.radius += marginM;
@@ -123,7 +135,7 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
   if (stats) {
     stats.tested = tested;
     stats.culled = off.length;
-    stats.small = small;
+    stats.far = far;
   }
   return () => {
     for (const o of off) o.castShadow = true;

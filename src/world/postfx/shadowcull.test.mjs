@@ -128,7 +128,7 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
   scene.updateMatrixWorld(true);
   const rule = { maxRadiusM: 1.5, minDistanceM: 25 };
   const stats = { tested: 0, culled: 0 };
-  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, rule);
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [rule]);
   assert.equal(nearSmall.castShadow, true, 'a small caster 9 m off keeps casting');
   assert.equal(farSmall.castShadow, false, 'a small caster 39 m off is switched off');
   assert.equal(farBig.castShadow, true, 'a caster over the radius keeps casting at any distance');
@@ -136,12 +136,56 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
   assert.equal(justShort.castShadow, true);
   assert.equal(stats.tested, 5);
   assert.equal(stats.culled, 2);
-  assert.equal(stats.small, 2);
+  assert.equal(stats.far, 2);
   restore();
   for (const m of [nearSmall, farSmall, farBig, justBeyond, justShort]) assert.equal(m.castShadow, true, 'restored');
   cullShadowCasters(scene, camera, sunDirection, 1.0, stats)();
   assert.equal(stats.culled, 0, 'no rule: every caster here is in view and keeps casting');
-  assert.equal(stats.small, 0);
+  assert.equal(stats.far, 0);
+}
+
+{
+  // the box rule: any caster whose sphere lies wholly more than the distance outside the box in plan
+  // is switched off, however big, and the same ones wherever the camera stands; one whose sphere
+  // reaches within the distance, or stands over the box, keeps casting; rules combine with `some`
+  const scene = new THREE.Scene();
+  const mk = (x, z, size) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshBasicMaterial());
+    m.position.set(x, 0, z);
+    m.castShadow = true;
+    scene.add(m);
+    return m;
+  };
+  const box = { x0: -5, x1: 5, z0: -10, z1: 0 };
+  const r20 = (Math.sqrt(3) / 2) * 20;
+  const bigFar = mk(0, -10 - 20 - r20 - 0.5, 20);
+  const bigReaching = mk(0, -10 - 20 - r20 + 0.5, 20);
+  const beside = mk(5 + 20 + 0.9, -5, 1);
+  const overBox = mk(0, -5, 1);
+  const smallFar = mk(-2, -60, 1);
+  scene.updateMatrixWorld(true);
+  const reach = { box, minDistanceM: 20 };
+  const stats = { tested: 0, culled: 0 };
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [reach]);
+  assert.equal(bigFar.castShadow, false, 'a 35 m sphere wholly 20.5 m outside the box is switched off');
+  assert.equal(bigReaching.castShadow, true, 'the same sphere reaching 19.5 m from the box keeps casting');
+  assert.equal(beside.castShadow, false, 'the plan distance counts across x as well');
+  assert.equal(overBox.castShadow, true, 'a caster over the box keeps casting');
+  assert.equal(smallFar.castShadow, false);
+  assert.equal(stats.far, 3);
+  restore();
+  const moved = camera.clone();
+  moved.position.set(3, 1, -8);
+  moved.updateMatrixWorld(true);
+  const restoreMoved = cullShadowCasters(scene, moved, sunDirection, 1.0, stats, [reach]);
+  assert.equal(bigFar.castShadow, false, 'from elsewhere in the box: the same caster is off');
+  assert.equal(bigReaching.castShadow, true);
+  restoreMoved();
+  const both = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [{ maxRadiusM: 1.5, minDistanceM: 4 }, reach]);
+  assert.equal(overBox.castShadow, false, 'the size rule still applies alongside: the caster over the box is small and 4.1 m off');
+  assert.equal(bigReaching.castShadow, true);
+  both();
+  for (const m of [bigFar, bigReaching, beside, overBox, smallFar]) assert.equal(m.castShadow, true, 'restored');
 }
 
 {
@@ -154,10 +198,10 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
   scene.add(m);
   scene.updateMatrixWorld(true);
   const stats = { tested: 0, culled: 0 };
-  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, { maxRadiusM: 1.5, minDistanceM: 25 });
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [{ maxRadiusM: 1.5, minDistanceM: 25 }]);
   assert.ok(m.boundingSphere.radius > 1.5, 'the batch sphere spans the pieces');
   assert.equal(m.castShadow, true, 'a spread batch of small far pieces keeps casting');
-  assert.equal(stats.small, 0);
+  assert.equal(stats.far, 0);
   restore();
 }
 

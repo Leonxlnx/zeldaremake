@@ -56,7 +56,7 @@ import {
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { perfRuntime } from '../../perfFlags';
 import { cullShadowCasters, hideSmallFar, type DrawDistanceStats, type ShadowCullStats } from './shadowcull';
-import { farBankDrawRule, farBankShadowRule } from '../util/farBankLocality';
+import { farBankDrawRule, farBankShadowRules } from '../util/farBankLocality';
 import { HEIGHT_FOG_DEFAULTS } from '../atmosphere/heightfog';
 import { SCREEN_FAN, SHAFT_COLUMNS } from '../atmosphere/shafts';
 import {
@@ -1086,12 +1086,12 @@ export function createComposer(opts: ComposerOptions): Composer {
     const hidden: { restore: (() => void) | null } = { restore: null };
     const prevOnBeforeRender = scene.onBeforeRender;
     const cullCasters = s.shadowCasterCull && renderer.shadowMap.enabled;
-    if (!cullCasters) shadowCull.tested = shadowCull.culled = shadowCull.small = 0;
+    if (!cullCasters) shadowCull.tested = shadowCull.culled = shadowCull.far = 0;
     scene.onBeforeRender = () => {
       const drawRule = farBankDrawRule(camera.position);
       if (drawRule) hidden.restore = hideSmallFar(scene, camera, drawRule, drawCull);
       else drawCull.tested = drawCull.hidden = 0;
-      if (cullCasters) casters.restore = cullShadowCasters(scene, camera, opts.sunDirection, SHADOW_CULL_MARGIN_M, shadowCull, farBankShadowRule(camera.position));
+      if (cullCasters) casters.restore = cullShadowCasters(scene, camera, opts.sunDirection, SHADOW_CULL_MARGIN_M, shadowCull, farBankShadowRules(camera.position));
     };
     renderer.setRenderTarget(hdr);
     renderer.autoClear = true;
@@ -1317,8 +1317,8 @@ export function createComposer(opts: ComposerOptions): Composer {
       shadowCasterCull: settings.shadowCasterCull,
       shadowCastersTested: shadowCull.tested,
       shadowCastersCulled: shadowCull.culled,
-      /** of those, the small far casters the camera's locality turned off (util/farBankLocality.ts) */
-      shadowCastersCulledSmall: shadowCull.small ?? 0,
+      /** of those, the far casters the camera's locality turned off (util/farBankLocality.ts) */
+      shadowCastersCulledFar: shadowCull.far ?? 0,
       shadowCullMarginM: SHADOW_CULL_MARGIN_M,
       /** drawables the camera's locality hid by size and distance last frame (util/farBankLocality.ts) */
       smallFarHidden: drawCull.hidden,
