@@ -652,3 +652,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 ### Iteration 129 (17:50) — exp-east's lane discs reviewed at player height (fine)
 - Three poses on a8486d32: the discs seated and worn, 50 / 50 laid, 0 skipped steep, 19 K tris in one
   gated mesh. Sheet `hs129-east-discs-player-height.jpg`. Nothing to change.
+
+### Iteration 130 (19:00) — exp-ruins' look-backs: rocks row identical; hardscape −2 at r14 (haze rule)
+- r14 / r16 on head vs 52ce2047: rocks 26 / 0.48 M and 29 / 0.47 M on both; hardscape 14 → 12 at r14
+  (their 60 m haze), 14 at r16. The three areas' pre-ship reads from lanes 2 / 6 are complete.
