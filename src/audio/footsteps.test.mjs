@@ -30,7 +30,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { designStep, designLanding, landingStrength, designPushOff, pushOffStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP, WALK_SPEED, RUN_GROUND_SPEED, WALK_STEP_M, RUN_STEP_M } = loadTs(path.join(here, 'footsteps.ts'));
+const { designStep, designLanding, landingStrength, designPushOff, pushOffStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP, WALK_SPEED, RUN_GROUND_SPEED, WALK_STEP_M, RUN_STEP_M, STEP_FORCE_STILL, STEP_FORCE_WALK, STEP_FORCE_RUN } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge'];
@@ -329,5 +329,30 @@ test('every step is quiet: nothing in a design can reach full scale on its own',
       const sum = d.parts.filter((p) => p.at < 0.01).reduce((s, p) => s + p.peak, 0);
       assert.ok(sum < 0.45, `${surface}: the heel's parts sum to ${sum.toFixed(2)} — a step should sit well under the bed's headroom`);
     }
+  }
+});
+
+test('a run is louder than a walk by a stated amount, not by an accident of slope', () => {
+  // `strengthFor` was `0.3 + speed × 0.1`, tuned when the controller ran at 4.6 m/s. PR #59 brought
+  // the run to 2.2 on 2026-09-25 and the slope quietly took the level difference between the gaits
+  // from 4.35 dB to 1.86 — a run has three cues (cadence, level, shape) and that is one of them
+  // halved by a change in another lane. Anchoring the curve to the controller's own speeds means
+  // the gap is a design value that a new controller cannot move.
+  const db = (a, b) => 20 * Math.log10(b / a);
+  const gap = db(strengthFor(WALK_SPEED), strengthFor(RUN_GROUND_SPEED));
+  assert.ok(gap > 3.5 && gap < 5.5, `a run is ${gap.toFixed(2)} dB over a walk; the design was tuned against about 4.3`);
+  assert.equal(Number(strengthFor(WALK_SPEED).toFixed(3)), STEP_FORCE_WALK, 'the walk must land exactly on its own constant');
+  assert.equal(Number(strengthFor(RUN_GROUND_SPEED).toFixed(3)), STEP_FORCE_RUN, 'and the run on its');
+  // …and it must still be the flat curve the owner asked for: a run that does not out-punch the
+  // music. 0.76 is what the game made at the old 4.6 m/s run and the headroom was sized against it.
+  assert.ok(STEP_FORCE_RUN < 0.76, `a run at ${STEP_FORCE_RUN} asks more of the headroom than the old controller ever did`);
+  assert.ok(strengthFor(0) === STEP_FORCE_STILL && strengthFor(-1) === STEP_FORCE_STILL, 'standing still is the floor');
+  // monotone, and never past full
+  let last = -1;
+  for (let v = 0; v <= 8; v += 0.1) {
+    const s = strengthFor(v);
+    assert.ok(s >= last - 1e-12, `the curve dips at ${v.toFixed(1)} m/s`);
+    assert.ok(s <= 1 + 1e-12, `the curve passes full force at ${v.toFixed(1)} m/s`);
+    last = s;
   }
 });
