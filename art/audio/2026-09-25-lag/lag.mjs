@@ -68,10 +68,17 @@ const AMB = loadTs(path.join(root, 'src/audio/ambience.ts'));
 const PODS = JSON.parse(fs.readFileSync(path.join(here, 'pods.json'), 'utf8'));
 
 const TICK = AUDIO.TICK_MS / 1000;
-/** the gait the player actually has (footsteps.ts WALK_SPEED / RUN_GROUND_SPEED) */
+/**
+ * The gait the player actually has, read out of `footsteps.ts` rather than copied.
+ *
+ * It was copied, as `[1.5, 4.2]`, and went stale the moment PR #59 landed a new controller on
+ * 2026-09-25: the game now walks at 1.2 m/s and runs at 2.2. Every number this file printed before
+ * that describes a player who no longer exists.
+ */
+const { WALK_SPEED, RUN_GROUND_SPEED } = loadTs(path.join(root, 'src/audio/footsteps.ts'));
 const GAITS = [
-  ['walk', 1.5],
-  ['run', 4.2],
+  ['walk', WALK_SPEED],
+  ['run', RUN_GROUND_SPEED],
 ];
 /** the gust is held still: what moves along a path then moves because the listener did */
 const TAKES = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8'));

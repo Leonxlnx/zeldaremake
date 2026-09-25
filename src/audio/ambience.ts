@@ -317,10 +317,12 @@ export const WIND_LEAN = 0.35;
  * A smoothing time is a distance once the listener has a speed, and every one of these constants
  * had been chosen for weather: 0.9 s on the leaf roll's level, 0.6 on the hall sends, 0.35 on the
  * bed's top, 0.3 on the lantern flame and its pan, 0.12 on the bore's duck. At the run the player
- * actually has (4.2 m/s) that is between half a metre and four metres of ground before the sound
- * gets to where he is — measured along five real journeys in `art/audio/2026-09-25-lag/`: walking
- * out of the village in under the crowns, the roll's level arrived **2.8 m** behind him and the
- * hall 2.2 m; in through the log arch's mouth it was over four metres.
+ * has that is between a quarter of a metre and two metres of ground before the sound gets to where
+ * he is — measured along five real journeys in `art/audio/2026-09-25-lag/`: walking out of the
+ * village in under the crowns, the roll's level arrived **1.76 m** behind him and the hall 1.32 m;
+ * in through the log arch's mouth the roll was 2.22 m back. (Those were 2.8, 2.2 and over four
+ * metres when first measured, against the controller PR #59 replaced later the same day — the fault
+ * halved with the player's legs and none of it went away.)
  *
  * Nothing before this could see it. Every `at` render stands still, so a space term is a constant;
  * the scripted walk crosses surfaces but never a doorway, a bore mouth, a canopy edge or a lantern.
