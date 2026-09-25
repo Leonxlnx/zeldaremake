@@ -564,3 +564,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - D_log 31146062 → 2f6c8ae2, both first-pose renders: SSIM 0.9855, 2.78 % pixels; the diff is the
   trees over the path and the house's side; paving / pebbles / log stones unchanged.
   `rocks113-D-move-canopy.jpg`. Notes #69 merged (4d9f766e); a fresh PR for the branch follows.
+
+### Iteration 114 (01:35) — cliff-scale gets its PR (#75)
+- The branch had no PR since 13:00; the merge rounds work from PRs. Rebased on 0fc66816, green, the
+  north terrace ledge byte-identical head vs branch (sha1 f19ab29c2867dac8). Lesson: every branch
+  meant for a merge gets a PR the moment it is pushed.
