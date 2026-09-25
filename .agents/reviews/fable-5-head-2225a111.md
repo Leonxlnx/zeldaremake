@@ -102,3 +102,13 @@ unchanged to the fourth decimal. `d367cfbf` (05:25) was notes only.
 ## → `24dc489f` (07:10 round: the sitter's gaze, lane 5's gait / loop / ambience) — 07:28–07:57 UTC
 
 Six views pixel-identical to `1a183570` (1.0000 / 0.00 % at all six): the seated kid's gaze does not move A.
+
+## → `905d55ea` (11:25 round: #109 greet, #112–#118 — the batch trim, `hardscape-heap`, lane 5's gait audio, squad2's roof check) — 11:33–12:00 UTC
+
+- Six views pixel-identical to `8e20e128` (1.0000 / 0.00 % at all six).
+- `hardscape-heap` (the slabs' shading attributes' CPU copies freed once uploaded; the first cut crashed `setViewpoint` on the
+  sprouts' nulled array and was fixed before merging): the three tread poses against the tread-tone branch it builds on —
+  `w23-stairs-d` 0.00 %, `w24-stairs-d` 0.01 %, `w25-stairs-f` 0.20 % (sway) — every slab attribute renders as before.
+- The look-back frames unchanged: the far bank 718, the green 701, the lookout 672, the ruins' trail 702, the grove's yard 674.
+  A play pose at the main flight's foot (Link (6.4, −0.3) facing up the run): 586 draws / **9.62 M** — lane 2's `playcost`
+  reading confirmed from a second pose; the plaza's own play views are over the triangle cap as the look-backs are.
