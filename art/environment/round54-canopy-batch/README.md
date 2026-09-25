@@ -42,4 +42,37 @@ The batch keeps a CPU copy of its buffers (300 K vertices reserved, grown × 1.5
 set on the large tier. With `WEBGL_multi_draw` (the capture browser and Chrome have it) the batch is one draw; without it three
 falls back to one draw per visible part, as before.
 
-Renders `/tmp/f4/r198/{base,H,B2,B3}`; dists `/tmp/f4/r198-dist-{base,batch}`. The 1280 × 720 pair follows.
+Renders `/tmp/f4/r198/{base,H,B2,B3}`; dists `/tmp/f4/r198-dist-{base,batch}`.
+
+## The six fixed views at 1280 × 720 (`capture.mjs --settle 12`; base `d367cfbf` vs the merged `3a339a0a`; SSIM vs `reference/frames`)
+
+| view | base draws → batch | triangles (equal) | SSIM, base and batch |
+|---|---|---|---|
+| A_stairs | 628 → **614** | 8.97 M | 0.1953 |
+| B_house / E_ground | 615 → **596** | 8.29 M | 0.1764 / 0.1991 |
+| C_lookback | 552 → **533** | 7.96 M | 0.1855 |
+| D_log | 549 → **523** | 8.74 M | 0.2511 |
+| F_canopy | 584 → **555** | 8.10 M | 0.2192 |
+
+Identical to four decimals at every view. (fable-5's pairing: pixel-identical at all six; the far bank 774 → 718, the green 736 → 701.)
+
+## The eviction path — a five-pose walk on the small pool tier (`?pool=small`, cap 64 MB)
+
+A → the owner's north pose → the arch's north approach → the east green → A again, 12 settle frames each, the page kept between
+poses so the pool churns (161 parts resident at A of 426, 228 evictions and 219 synchronous builds over the walk on the batch build).
+Base vs batch: **0 px at all five poses**, triangles equal at each, draws −12 / −9 / −2 / −28 / −12; no page errors. The
+`deleteGeometry` / `optimize` / growth paths the plaza's large-tier renders never hit are exercised here.
+
+## The heap, measured (`nearCanopy.batch.heapBytes`)
+
+| tier | pose | parts in the batch / vertices | reserve | heap of the batch's CPU copy | the pool's accounted bytes |
+|---|---|---|---|---|---|
+| large (cap 256 MB) | A, 24 frames | 258 / 1.91 M | 2.28 M vertices | **171 MB** | 146 MB (all resident parts, columns included) |
+| small (cap 64 MB) | A again after the walk | 148 / 1.12 M | 1.43 M | **107 MB** | 67 MB |
+
+The design note's "~35 MB" was the shown set; the batch mirrors the pool's RESIDENT set. It is 1.6 × the pool's accounted bytes
+because the batch keeps colours and wind Float32 (72 of the ~300 parts built on the walk have values outside the compaction's
+ranges, so one uniform layout cannot narrow them) and the reserve carries 1.25 × slack. Two batches by layout — a narrow one for
+the parts that compact, a wide one for the 72 — would put the heap near the pool's own bytes at the cost of a second draw; that is
+the follow-up. A trim that compacts and gives the reserve back after evictions (commit `b0a05eb5`) did not fire on this walk (the
+live set stayed over half the reserve) and is kept for longer walks.
