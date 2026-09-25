@@ -102,7 +102,21 @@ const EARTH_TINT = new Color(2.24, 1.98, 1.52);
 /** the earth treatment, for the hardscape audit */
 export const STONE_EARTH = { set: EARTH_SET, tileK: EARTH_TILE_K, tint: [EARTH_TINT.r, EARTH_TINT.g, EARTH_TINT.b] as [number, number, number] };
 
+/**
+ * `?stoneDebug=<mode>` (look-dev only, never in a capture): neutralises one term of the stone shader so a
+ * shading artefact can be attributed by a render each — `flat` (the albedo a constant grey after every
+ * colour term: only lighting, AO and roughness remain), `noao` / `norough` (those maps unbound),
+ * `nofine` (the fine-grain and pit samples off), `nonear` (the near tile off — the far tile everywhere),
+ * `uvgrid` / `vcolor` / `texonly` / `moss` (the albedo replaced by that one input, to see its continuity).
+ * Absent, nothing changes and the program cache key is the usual one.
+ */
+function stoneDebugMode(): string {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('stoneDebug') ?? '';
+}
+
 export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
+  const dbg = stoneDebugMode();
   const [color, normal, rough, ao, earthColor, earthNormal] = await Promise.all([
     textures.load(STONE_SET, 'color', { anisotropy }),
     textures.load(STONE_SET, 'normal', { anisotropy }),
@@ -121,8 +135,8 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     normalMap: normal,
     // dusty, low-relief surfaces: the reference slabs read almost flat, pitting is a 1–3 cm hint
     normalScale: new Vector2(0.55, 0.55),
-    roughnessMap: rough,
-    aoMap: aoT,
+    roughnessMap: dbg === 'norough' ? null : rough,
+    aoMap: dbg === 'noao' ? null : aoT,
     aoMapIntensity: 0.35,
     roughness: 0.92,
     metalness: 0,
@@ -183,7 +197,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           return mix(mix(stoneHash(i), stoneHash(i + vec2(1.0, 0.0)), f.x), mix(stoneHash(i + vec2(0.0, 1.0)), stoneHash(i + vec2(1.0, 1.0)), f.x), f.y);
         }
         // round 42: the near-camera tile blend (see NEAR_TILE_K / NEAR_FADE in material.ts)
-        float stoneFarW() { return smoothstep(${NEAR_FADE[0].toFixed(2)}, ${NEAR_FADE[1].toFixed(2)}, length(vViewPosition)); }
+        float stoneFarW() { return ${dbg === 'nonear' ? '1.0' : `smoothstep(${NEAR_FADE[0].toFixed(2)}, ${NEAR_FADE[1].toFixed(2)}, length(vViewPosition))`}; }
         vec2 stoneNearUv(vec2 uv) { return uv * ${NEAR_TILE_K.toFixed(3)} + vec2(0.13, 0.71); }
         vec2 stoneDetailUv(vec2 uv) { return vec2(uv.y, -uv.x) * ${(NEAR_TILE_K * 2.2).toFixed(3)} + vec2(0.71, 0.23); }`,
       )
@@ -198,14 +212,14 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           vec4 sampledDiffuseColor = mix(texture2D(map, stoneNearUv(vMapUv)), texture2D(map, vMapUv), farW);
           diffuseColor *= sampledDiffuseColor;
           vec3 pit = texture2D(map, stoneDetailUv(vMapUv)).rgb;
-          float lp = dot(pit, vec3(0.299, 0.587, 0.114));
+          float lp = ${dbg === 'nofine' ? '0.32' : 'dot(pit, vec3(0.299, 0.587, 0.114))'};
           diffuseColor.rgb *= mix(1.0, clamp(lp / 0.32, 0.6, 1.35), ${DETAIL_ALBEDO_K.toFixed(3)} * (1.0 - farW));
         }
         #endif
         {
           // second, finer sample (rotated 90°, 3.1× tighter) so the 0.55 m close-up shows real grain
           vec3 fine = texture2D(map, vec2(-vMapUv.y, vMapUv.x) * 3.1 + vec2(0.37, 0.61)).rgb;
-          float lf = dot(fine, vec3(0.299, 0.587, 0.114));
+          float lf = ${dbg === 'nofine' ? '0.32' : 'dot(fine, vec3(0.299, 0.587, 0.114))'};
           float wear = clamp(vWear, 0.0, 1.0);
           // (round 23: the flagstone tops - aWear - take the fine grain at 0.1, half the stairs',
           // and only half of the pit lift below: frame 1 s at 4× shows soft 10–30 cm blotches of
@@ -327,7 +341,12 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         #endif
         // joint soil creeping up a slab's flank (aStain: > 1 on the buried foot, 0 at the shoulder);
         // clamped after interpolation so the stained band ends where the caller put it
-        diffuseColor.rgb *= mix(vec3(1.0), uStainTint, clamp(vStain, 0.0, 1.0));`,
+        diffuseColor.rgb *= mix(vec3(1.0), uStainTint, clamp(vStain, 0.0, 1.0));
+        ${dbg === 'flat' ? 'diffuseColor.rgb = vec3(0.5);' : ''}
+        ${dbg === 'uvgrid' ? 'diffuseColor.rgb = vec3(fract(vMapUv * 8.0), 0.0);' : ''}
+        ${dbg === 'vcolor' ? 'diffuseColor.rgb = vColor.rgb;' : ''}
+        ${dbg === 'texonly' ? 'diffuseColor.rgb = texture2D(map, vMapUv).rgb;' : ''}
+        ${dbg === 'moss' ? 'diffuseColor.rgb = vec3(clamp(vMoss, 0.0, 1.0));' : ''}`,
       )
       .replace(
         '#include <lights_fragment_end>',
@@ -386,7 +405,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v25-earth-treads-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v25-earth-treads-${opts.instanced ? 'i' : 's'}${dbg ? `-dbg-${dbg}` : ''}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

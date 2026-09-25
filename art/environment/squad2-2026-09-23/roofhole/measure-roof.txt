@@ -1,0 +1,4 @@
+HERO_TOP_KEEP = 0      clumps   672  cards   2944  triangles    5888  dropped by the frames   76  over the approach  121
+as shipped             clumps   753  cards   3278  triangles    6556  dropped by the frames    3  over the approach  176
+
+delta: 81 clumps, 334 cards, 668 triangles (0.0074 % of the 9 M cap), and 55 more clumps over the northern approach

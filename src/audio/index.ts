@@ -19,9 +19,9 @@ import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
-import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
+import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
-import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
+import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -130,20 +130,27 @@ export interface WalkLeg {
  * The scripted walk the offline render uses, so a before / after pair is the same journey and the
  * analysis can label each surface's steps: stand, walk every surface in turn, run, stand.
  */
+/**
+ * The walk speeds are the **player controller's own** (`footsteps.ts` `WALK_SPEED` /
+ * `RUN_GROUND_SPEED`, which are `animation.ts` `PLAYER_SPEED`), not numbers chosen here. They were
+ * 1.5 and 4.2 against a game that walks at 1.6 and runs at 4.6 — close enough to look right and
+ * enough to put the render's step rate 5 % under the game's, which is the same class of mistake as
+ * the cadence model being an adult's. The twin should travel at the speed the player travels at.
+ */
 export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 3, speed: 0, surface: 'grass' },
-  { until: 8, speed: 1.5, surface: 'grass' },
-  { until: 13, speed: 1.5, surface: 'dirt' },
-  { until: 18, speed: 1.5, surface: 'stone' },
+  { until: 8, speed: WALK_SPEED, surface: 'grass' },
+  { until: 13, speed: WALK_SPEED, surface: 'dirt' },
+  { until: 18, speed: WALK_SPEED, surface: 'stone' },
   { until: 23, speed: 1.1, surface: 'stone', stairs: true },
-  { until: 27, speed: 1.5, surface: 'wood' },
-  { until: 31, speed: 1.5, surface: 'hollow' },
-  { until: 36, speed: 1.5, surface: 'leaf' },
-  { until: 41, speed: 4.2, surface: 'stone' },
+  { until: 27, speed: WALK_SPEED, surface: 'wood' },
+  { until: 31, speed: WALK_SPEED, surface: 'hollow' },
+  { until: 36, speed: WALK_SPEED, surface: 'leaf' },
+  { until: 41, speed: RUN_GROUND_SPEED, surface: 'stone' },
   { until: 45, speed: 0, surface: 'grass' },
   // appended 2026-09-24 with the south exit, AFTER the closing stand so every earlier leg keeps its
   // times and older before/after renders stay comparable
-  { until: 50, speed: 1.5, surface: 'bridge' },
+  { until: 50, speed: WALK_SPEED, surface: 'bridge' },
 ];
 
 export interface AudioOptions {
@@ -256,24 +263,62 @@ const GROVE_PLANKS = (() => {
       { x: N.hut.host[0], z: N.hut.host[1], r: N.hut.radius + 0.22 },
     ],
     segs: [
-      { ax: g.foot[0] - (g.head[0] - g.foot[0]) * lead, az: g.foot[2] - (g.head[2] - g.foot[2]) * lead, bx: g.head[0], bz: g.head[2], hw: N.gangway.halfWidth },
+      { ax: g.foot[0] - (g.head[0] - g.foot[0]) * lead, az: g.foot[2] - (g.head[2] - g.foot[2]) * lead, bx: g.head[0], bz: g.head[2], hw: N.gangway.halfWidth, surface: 'wood' as Surface },
       // the stubs and the rope walk between them lie on the line joining the two huts
-      { ax: N.stilt.host[0], az: N.stilt.host[1], bx: N.hut.host[0], bz: N.hut.host[1], hw: N.ropeWalk.halfWidth },
+      { ax: N.stilt.host[0], az: N.stilt.host[1], bx: N.hut.host[0], bz: N.hut.host[1], hw: N.ropeWalk.halfWidth, surface: 'bridge' as Surface },
     ],
   };
 })();
 
-/** true over the north grove's planking (GROVE_PLANKS: the two decks, the gangway, the stubs and the rope walk) */
-export function onGrovePlanks(x: number, z: number): boolean {
-  for (const d of GROVE_PLANKS.discs) if (Math.hypot(x - d.x, z - d.z) < d.r) return true;
+/**
+ * What the north grove's planking is underfoot, or null off it.
+ *
+ * The decks and the gangway are `wood`; **the rope walk is a `bridge`**. This lane split those two
+ * apart for the south exit and the reason holds here more strongly than it did there: a `bridge`
+ * knocks hollow with a deep body and the ropes and lashings answering, because a plank with nothing
+ * under it is not a plank on a joist. The ravine's bridge hangs over 8 m of air; the grove's
+ * walkway runs between two floors at **11.6 and 11.3 m** with a 0.12 m sag in it
+ * (`EXPANSION_NORTH.ropeWalk`), which is the same object higher up.
+ *
+ * The stubs go with the walkway rather than the decks — they are its first 0.7 m, cantilevered out
+ * past each rim — and the discs are tested first, so a plank still over its own veranda stays wood.
+ * exp-north scored its own check 45 at 3 of 4 for calling all of it wood; this is that point.
+ */
+export function onGrovePlanks(x: number, z: number): Surface | null {
+  for (const d of GROVE_PLANKS.discs) if (Math.hypot(x - d.x, z - d.z) < d.r) return 'wood';
   for (const s of GROVE_PLANKS.segs) {
     const dx = s.bx - s.ax;
     const dz = s.bz - s.az;
     const t = ((x - s.ax) * dx + (z - s.az) * dz) / (dx * dx + dz * dz);
     if (t < 0 || t > 1) continue;
-    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.hw) return true;
+    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.hw) return s.surface;
   }
-  return false;
+  return null;
+}
+
+/**
+ * The fraction of a hut's radius its wall ring stands at, and how far in the doorway's fade runs.
+ *
+ * `distantHouse.ts` builds every hut — the west house, the grove's stilt house and tree hut — as a
+ * platform disc with a wall ring at `radius × WALL_TAPER` (0.96) and a gap in it for the door, and
+ * publishes exactly that to `ctx.shared.walkSurfaces` for the character ground. So the player can
+ * walk into all three of them, and until now doing so changed nothing at all: the forest arrived
+ * through the walls at full level and full brightness, which is the same fault the log arch's bore
+ * had before this lane closed it.
+ *
+ * A hut is not a tunnel, though. Its walls are planks and its door stands open, so it takes the top
+ * off the wood rather than shutting it out — `INDOORS_CLOSE` is 0.7 of the bore's full enclosure,
+ * which lands the bed's filter at 2.2 kHz against the bore's 900 Hz. Faded across the doorway
+ * rather than switched, like the bore's: 0 at the wall, all of it by `INDOORS_FULL` of the radius.
+ */
+export const WALL_AT = 0.96;
+export const INDOORS_FULL = 0.55;
+export const INDOORS_CLOSE = 0.7;
+
+/** how far inside a hut the listener is, 0 at its wall and 1 well in; 0 anywhere else */
+function indoors(x: number, z: number, cx: number, cz: number, radius: number): number {
+  const d = Math.hypot(x - cx, z - cz) / radius;
+  return INDOORS_CLOSE * (1 - smoothstep01(INDOORS_FULL, WALL_AT, d));
 }
 
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
@@ -328,7 +373,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: indoors(x, z, hx, hz, wh.radius), canopy, gorge };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -341,7 +386,15 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
     }
   }
-  if (onGrovePlanks(x, z)) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+  {
+    const plank = onGrovePlanks(x, z);
+    // the two huts are rooms with plank floors; their verandas and the walkway are outdoors
+    if (plank) {
+      const N = EXPANSION_NORTH;
+      const enc = Math.max(indoors(x, z, N.stilt.host[0], N.stilt.host[1], N.stilt.radius), indoors(x, z, N.hut.host[0], N.hut.host[1], N.hut.radius));
+      return { surface: plank, stairs: false, enclosure: enc, canopy, gorge };
+    }
+  }
   if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
   if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy, gorge };
@@ -562,7 +615,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const ctx = new Ctor({ latencyHint: 'interactive' });
       const rng = createRng(seed);
       const buses = createBuses(ctx, rng.fork('buses'));
-      buses.master.gain.value = muted ? 0 : 1;
+      buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
       const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
       const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
@@ -606,7 +659,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const setMuted = (m: boolean) => {
     muted = m;
-    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : 1, live.ctx.currentTime, 0.03);
+    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : MASTER_LEVEL, live.ctx.currentTime, 0.03);
     emit();
   };
 
@@ -635,7 +688,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [] }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),

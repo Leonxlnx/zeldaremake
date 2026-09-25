@@ -313,6 +313,22 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `agent/fable-2-cliff-scale` (PROPOSED): `RockLedgeDef.scale` for the ruins' cliffs (opt-in; terrace byte-identical),
+  `?rockLedgePreview=cliff` 9 m sample. README §103.
+- `36d722fa` (`agent/fable-2-w02-treads`, PROPOSED on fable-cursor's 11:05 ask): the hero flight 20 × 0.27 × 0.54
+  again (W02 16–20; 18 × 0.30 breaks the 0.28 m step guard), stone kept; stairs/climb clean; A −0.0069 / F +0.0063
+  vs the 26-step head. README §102.
+- `7649f308` (`agent/fable-2-riser-shade`, PROPOSED): lane 6 — the hero flight's risers' shade / warmth (fable-5
+  §26): s2-owner sat 0.333 → 0.310, dark 29.9 → 27.8 %; A −0.0003, F +0.0002; the remaining dark is the upper
+  flight's shade, not stone. README §100.
+- `7bd4df13` review: the head `b306d6a9` at the six views and A by system (shadow a third; vegetation +0.5 M;
+  characters 63 draws). `.agents/reviews/fable-2-triangle-budget-b306d6a9.md`.
+- `02586843` (`agent/fable-2-ravine-rock`, PROPOSED): lane 2 for the south area — `rocks/ravine.ts`, bedded
+  shelves half-sunk into the gorge's walls + floor boulders, one mesh gated to 26 m of the gorge; C pixel-identical.
+  README §98; ravine.test (5).
+- `f90821e8` (`agent/fable-2-stone-value`, on `agent/stairs-look`; PROPOSED with squad4's candidate): lane 6 —
+  the hero stone flight's value up into the owner's 23:00 reference band (fable-5 §24): s2-owner box dark
+  59 → 33 %, mean l 0.25 → 0.32; A −0.0043 vs stairs-look, F +0.0014. README §96.
 - `78d18fe1` (`agent/fable-2-log-joint`): lane 6 — the log flight's angular dark joins closed by geometry
   (fable-cursor 18:10 / Astra's `s2-join-close`): split treads laid as one earth tread (outlines joined,
   draws kept), the riser 3 cm behind the nose (was 7.5–10.5), no rolled lip and no `LOG_SHADED_LIP` on
@@ -462,7 +478,84 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T13:00:00Z
+2026-09-24T12:10:00Z
+2026-09-24T10:20:00Z
+2026-09-24T07:35:00Z
+2026-09-24T05:45:00Z
 2026-09-23T22:30:00Z
 2026-09-23T17:45:00Z
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z
+
+### Iteration 105 (15:57) — the ruins' cliff: bedded relief tried on fable-cursor's surface — negative result
+- Branch `agent/fable-2-ruins-cliffbeds` (3fd08256) off exp-ruins 2c47fc66: `rocks/cliffBeds.ts`
+  (bed stack profile, pure) + hooks in `terrain/ruins.ts` / `ruins/rock.ts` (their files — proposal
+  only, not for merge). Typecheck + ruins.test.mjs green.
+- At the fall pose the face barely changes (σ 0.031 → 0.026); the face is in its own shade under the
+  WNW sun, in the fall's air, at ≈ 50/255 — relief cannot shade and ±20 % albedo is ±10 levels.
+  Sheet: `art/environment/rocks-lane/rocks105-ruins-cliffbeds-negative.jpg`. Reported to fable-cursor
+  with what would read (hard-edged shelves + moss/lichen, or a paler set); offer closed.
+
+### Iteration 106 (18:15) — the pebble tiles' far gate (#57, merged eb8b727e) and the look-back isolate table
+- fable-5: the head is over both caps at the east plateau's look-backs (833 / 9.94 M at the green).
+  Per-system isolate on 3c6cc553 at that pose: trees 250 / structures 175 / vegetation 124 /
+  character 107 / terrain 50 / rocks 45 / props 26 / hardscape 16 draws.
+- `PEBBLE_FAR_M = 34` (rocks/index.ts, 551878ae): a pebble tile past 34 m (nearest point) draws
+  neither look; rocks 45 → 27 / 26 at the two look-backs for 0 changed pixels; six views SSIM
+  1.0000, A 576 → 572 draws. Sheet `art/environment/rocks-lane/rocks106-pebble-far.jpg`.
+- Tooling: `/tmp/f2/pose.mjs` gained `"viewpoint"` (setViewpoint) and `"isolate": true` (per-system
+  draws / triangles via `__ZR__.isolate`) — the six views in ~26 min a run at quality high.
+
+### Iteration 107 (20:25) — the flight's tops shade per vertex (#61) and the lane re-verified on 31146062
+- Re-verify: seven poses on the new head vs the 10:00 head — SSIM 0.965–0.982, all from the merges
+  around them (20 treads, crown tone, south props); `rocks107-head-reverify.jpg`.
+- Found at `x-stairs-3rd-tread`: the tread tops as a patchwork of per-quad tones (CPU probe: 8,224 /
+  14,717 coincident top vertices differ in colour, none in normal). `geometry.ts buildSlab
+  vertexTone` (+ `MeshBuilder.tri` with three colours), on for the flights in `stairs.ts`. Six views
+  vs head A/B/C/E/F 1.0000, D 0.9999; draws unchanged; tests 13 green. PR #61, sheet
+  `hs107-tread-tone.jpg`.
+- Method note: A must be the first pose of a run to compare across dists — a later pose sits at a
+  later sim time (wind, lanterns, Navi) and reads 0.979 against itself.
+
+### Iteration 108 (20:40) — exp-ruins re-read at 4469755c; the desert / red-rock question
+- Head unchanged but a squad log; #61 unmerged; no note to me. Re-rendered the ruins' cliff and
+  hero poses on 4469755c: the cliff l 0.204 → 0.235, σ 0.029 (tone, not relief — right for a face in
+  shade); closed the cliff item from my side. Asked whether to prepare the desert's sandstone canyon
+  walls (scaled ledge builder + sandstone palette + preview flag).
+
+### Iteration 109 (21:20) — the sandstone palette (groundwork for the desert / red-rock town)
+- `ledge.ts` `palette: 'sandstone'` (bed ramp by bed index, varnish streaks, sand drift, bleached
+  brow; no moss / damp / roots) + `?rockLedgePreview=canyon` (16 m scale-4 wall at x 61) on
+  `agent/fable-2-cliff-scale` (ba41514c). Ledges outside the north locality left to the frustum
+  (the gate hid the preview). Forest palette byte-identical by probe. Tests 33 green.
+- First look in forest shade only (`rocks109-sandstone-first-look.jpg`) — colour tuning waits for
+  the desert's sky. Two preview poses landed inside canopies; the village has no open sunlit spot
+  for a 16 m wall.
+
+### Iteration 110 (22:20) — the tread facets: fable-5's challenge holds; the elimination so far
+- Not the vertex colour (#61), not the shadow map (`?shadow=0`), not the normal map (build without
+  it), not the vertex normals (rim / wall directions smoothed along the outline + top noise at
+  1.6 c/m — 19,649 normals changed, render unchanged; reverted, not committed). Sheet
+  `hs110-facets-elimination.jpg`. Left: the texture side (near / detail tiles, AO, roughness, the
+  per-triangle mip level). Next: a `?stoneDebug=` switch in `material.ts` to isolate per render.
+- PR #66 opened for this notes branch — 21 INBOX notes were not on the head (no PR existed).
+- Method: a `map: null` diagnostic build does not compile (the fine-grain sample reads `map` outside
+  its `#ifdef USE_MAP`), so the debug switch must keep the map bound and neutralise it in GLSL.
+
+### Iteration 111 (23:55) — the facets found: the slab walls' grime, one dark triangle per quad → a gradient (in #61, merged 23:39)
+- `?stoneDebug=` switch in `material.ts` (flat / noao / norough / nofine / nonear / uvgrid / vcolor /
+  texonly / moss): `flat` removed the facets (albedo), `nofine` / `nonear` / `noao` did not, `texonly`
+  continuous, `vcolor` the patchwork → the vertex colour of the WALLS (the risers fill the tread
+  poses). `buildSlab` side walls: tri 1 shaded × sideGrime, tri 2 clean → now foot → shoulder
+  gradient (`f6fa109e`). Six views vs head: A 0.9994 / B 1.0000 / C 0.9999 / D 0.9999 / E 1.0000 /
+  F 0.9993. Sheet `hs111-riser-grime.jpg`.
+- Method: at a pose looking up a flight, name the surface first — the "tread facets" were risers.
+- North grove merged (b9993008): my north poses re-rendered, no regression (`rocks111-north-grove-poses.jpg`).
+
+### Iteration 112 (00:10) — riser-shade re-measured on the merged head and withdrawn
+- s2-owner flight box: head 36.0 % dark / l 0.319 / sat 0.235; + riser-shade 34.8 / 0.323 / 0.225;
+  the 09:38 head 35.0 / 0.319 / 0.230. A point of dark share is not a merge → withdrawn (branch kept).
+  The wall-grime gradient did not move the flight's dark share (the average tone of a riser is the
+  same 0.875); the dark is the upper run's shade. Sheet `hs112-riser-shade-withdrawn.jpg`.
+- Queue for fable-cursor now one branch: `cliff-scale` (scale + sandstone palette + previews).
