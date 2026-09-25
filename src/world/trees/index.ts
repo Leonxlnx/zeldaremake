@@ -1635,8 +1635,8 @@ const TREE_LOD_NEAR_M = 32;
  * The distant / mid layers' near→far gate (m, × `ctx.quality.distance`). 120 m through round 51; the
  * same measurement shows the near LOD's bent trunk, cords and root toes at 72–120 m — behind 60–86 %
  * of the height fog — are worth 0.04 % of the frame, while they cost A 15 draws and the triangles the
- * rung above needs. The mid grove's own 40 m gate and the north stand's 50 m gate are both under this
- * and unchanged.
+ * rung above needs. The mid grove's own 40 m gate stays under this and unchanged; the north stand's
+ * 50 m rule (round 51) sat above 45 and is retired (see `bucketDistant`).
  */
 const DISTANT_NEAR_M = 45;
 /**
@@ -3534,18 +3534,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bucketFamily(understory, cam, groveNearXZ(cam.x, cam.z) ? undefined : (p) => p.grove === true);
   };
 
-  /**
-   * Round 51 (W38, after the grass blades to 26 m left A 170 K under the ceiling): the stand beyond
-   * the north clearing (the band-only 26 m poles at z < −62, three rows at 2.6–3.4 m spacing) stands
-   * 60–100 m from A and D inside their frusta, behind the north rise, and drew its near LOD (bent
-   * trunk, limbs, buttresses) to the global 120 m switch. Those poles take the far LOD (crossed strips,
-   * the same crown cards) from 50 m: every pose that sees them — the arch approach, the tunnel, the
-   * north path — is within 36 m and keeps the near LOD; the fixed cameras see them through 60 % haze.
-   * fable-cursor's far-trunk row at z −46 (D's depth histogram) keeps the 120 m switch: it is not
-   * north of the clearing.
-   */
-  const STAND_FAR_LOD_M = 50;
-  const isStandPole = (set: DistantSet, p: DistantPlacement) => set.variant.kind === 'slender' && set.variant.bandOnly && p.z < -62;
+  // Round 51's stand rule (the band-only poles at z < −62 took the far LOD from 50 m while the
+  // distant layer's gate was 120 / 72 m) retired in round 54: squad2's lodcheck pulled `DISTANT_NEAR_M`
+  // to 45 m, under the 50, so the min() it was inside always took the gate — every set switches at
+  // `distantNear` now, the mid grove at its own MID_FAR_LOD_M.
   const bucketDistant = (cam: Vector3) => {
     for (const set of distantSets) {
       const nearList: number[] = [];
@@ -3556,8 +3548,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]) : distantNear;
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]) : kindNear;
-        (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
+        (Math.hypot(p.x - cam.x, p.z - cam.z) < kindNear ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
       set.counts = [nearList.length, farList.length];
@@ -4271,7 +4262,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * `?treelod=` dev multiplier already applied): the white-barks' / columns' high→medium→low
        * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
        */
-      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), scale: TREE_LOD_SCALE },
+      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), scale: TREE_LOD_SCALE },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**

@@ -494,3 +494,6 @@ nearCanopy, materials, index otherwise) is edited.
   C 562 / 7.92, D 549 / 8.72, E 616 / 8.27, F 585 / 8.05. PR #74's capture runs next (A's +16 K in my harness would leave ~40 K);
   the SSIM table and the call on whether it fits go on the PR next tick. med2's six views: A +47 K … C +146 K, F +115 K (3× med4).
   `STAND_FAR_LOD_M` 50 is inert now that `DISTANT_NEAR_M` is 45 (min() takes 45) — harmless; the comment above it is stale.
+- 2026-09-25 03:05 — PR #74 merged (02:15 round); its pair: SSIM identical at all six, A 8.94 → 8.97 M (30 K under the gate —
+  heads-up posted). PR #81 `agent/fable-4-standlod-retire` a7006e1f: the inert stand 50 m rule retired (−17/+8), typecheck/build/
+  tests green; before/after renders at the stand poses + A/D rendering. Next: near-canopy fold if yes; the expansions' tree side.

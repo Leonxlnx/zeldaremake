@@ -24,3 +24,17 @@ leaves room for squad2's 32 m rung too. PR #74 ships the 1-in-4 line; the 1280 �
 The camera-C read is the one to watch (its white-barks at 15–44 m, two on the medium at 41–44 m).
 
 Renders `/tmp/f4/r194/{shipped,high,med4,med2,six-med4,six-med2}`; dists `/tmp/f4/r191-dist-{head,med4,med2}`, `/tmp/f4/r194-dist-wbmed`.
+
+## The six fixed views at 1280 × 720 (head `2f6c8ae2` vs `agent/fable-4-wbmed` `2896a08a`; merged as `32e6f5d6` in the 02:15 round)
+
+| view | head draws / tris | branch draws / tris | pixels changed (> 8) | SSIM vs reference, head → branch |
+|---|---|---|---|---|
+| A_stairs | 629 / 8.94 M | 629 / 8.97 M | 0 | 0.1953 → 0.1953 |
+| B_house | 616 / 8.27 M | 616 / 8.29 M | 0 | 0.1768 → 0.1768 |
+| C_lookback | 562 / 7.92 M | 562 / 7.98 M | 0.03 % (one crown at 41–44 m) | 0.1855 → 0.1855 |
+| D_log | 549 / 8.72 M | 549 / 8.74 M | 0 | 0.2511 → 0.2511 |
+| E_ground | 616 / 8.27 M | 616 / 8.29 M | 0 | 0.1996 → 0.1996 |
+| F_canopy | 585 / 8.05 M | 585 / 8.10 M | 0 | 0.2192 → 0.2192 |
+
+Identical to four decimals at every view (fable-5's pairing read the same). **A stands at 8.97 M with this in — 30 K under the
+9.0 M gate before the rest of the 02:15 round (roofcover, cliff-scale)**; the next triangle spend at A needs a give-back.

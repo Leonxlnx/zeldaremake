@@ -240,7 +240,7 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
 }
 
-// culling: from every fixed camera the clearing (45 m rule) and the backside (expansionLocality:
+// culling: from every fixed camera the clearing (the CLUSTER_VISIBLE_M rule) and the backside (expansionLocality:
 // frustum + shadow footprints) are hidden and the village drawn; from the deck landing the
 // backside draws; far north of the clearing everything is culled
 {

@@ -208,15 +208,40 @@ const GORGE_WIND = 0.7;
 export const WIND_LEAN = 0.35;
 
 /**
+ * How far out a bird on its perch is allowed to sit, short of the speakers themselves.
+ *
+ * A call hard against one channel does not read as "over there", it reads as a fault in the mix —
+ * nothing in a wood is at ninety degrees and zero distance. The wind's lean is a tenth of this
+ * again, and deliberately: a bird is a point and the air is not.
+ */
+export const PERCH_PAN = 0.85;
+
+/**
+ * Where something lying in world direction `to` sits for a listener facing `forward` (both xz):
+ * −1 hard left … +1 hard right.
+ *
+ * The one place this convention is written down. It was duplicated — once for the wind's lean, once
+ * for the birds' perches — and a sign error in either would be invisible to every measurement this
+ * lane makes, because all of them are mono sums. It is also the whole of what makes the bed a place
+ * rather than a pair of speakers: turn ninety degrees and a bird that was on your left has to move
+ * to the front. `art/audio/2026-09-25-facing/` renders the same spot at four facings and shows the
+ * stereo image rotating under the listener.
+ *
+ * Right-handed xz with forward = (sin θ, cos θ), so the listener's right is (−forward.z, forward.x).
+ * Front and back both project to 0, which is what a stereo pan can say and no more.
+ */
+export function panFor(forward: { x: number; z: number }, to: { x: number; z: number }): number {
+  const len = Math.hypot(to.x, to.z) || 1;
+  return Math.max(-1, Math.min(1, (to.x * -forward.z + to.z * forward.x) / len));
+}
+
+/**
  * Where the canopy roll sits for a listener facing `forward` while the wind travels along `dir`
- * (both unit xz): −1 hard left … +1 hard right. The air arrives from where the wind comes FROM, so
- * the source is upwind — behind its direction of travel — projected onto the listener's right.
+ * (both unit xz). The air arrives from where the wind comes FROM, so the source is upwind — behind
+ * its direction of travel.
  */
 export function windLeanFor(forward: { x: number; z: number }, dir: { x: number; z: number }): number {
-  const rx = -forward.z;
-  const rz = forward.x;
-  const len = Math.hypot(dir.x, dir.z) || 1;
-  return Math.max(-1, Math.min(1, ((-dir.x * rx - dir.z * rz) / len) * WIND_LEAN));
+  return panFor(forward, { x: -dir.x, z: -dir.z }) * WIND_LEAN;
 }
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
@@ -636,7 +661,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     return perches.length - 1 === avoid ? 0 : perches.length - 1;
   };
   /** the bearing of a perch as the listener is facing now: −1 hard left, +1 hard right */
-  const perchPan = (p: { dirX: number; dirZ: number }) => Math.max(-1, Math.min(1, (p.dirX * -forwardNow.z + p.dirZ * forwardNow.x) * 0.85));
+  const perchPan = (p: { dirX: number; dirZ: number }) => panFor(forwardNow, { x: p.dirX, z: p.dirZ }) * PERCH_PAN;
 
   // its own stream: the lull trigger is drawn from `update`, whose call rate differs between the
   // live tick and an offline render, and it must not shift what the schedulers draw

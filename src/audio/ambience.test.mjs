@@ -365,6 +365,60 @@ test('the wood has birds in it, not a stream of calls', () => {
   assert.ok(Math.max(...places) > 0.25 && Math.min(...places) < -0.25, `every bird is between ${Math.min(...places).toFixed(2)} and ${Math.max(...places).toFixed(2)} — they must be round him, not in a clump`);
 });
 
+test('the world turns under him: a bearing is a place, not a channel', () => {
+  // `panFor` is the one place the convention lives. It was duplicated — once for the wind's lean,
+  // once for the birds' perches — and a sign error in either is invisible to every other
+  // measurement on this lane, because all of them are mono sums. What a player would hear instead
+  // is a wood nailed to the speakers: turn round and the bird on your left stays on your left.
+  const N = { x: 0, z: -1 };
+  const S = { x: 0, z: 1 };
+  const E = { x: 1, z: 0 };
+  const W = { x: -1, z: 0 };
+  const near = (a, b, why) => assert.ok(Math.abs(a - b) < 1e-9, `${why}: ${a.toFixed(3)}, expected ${b}`);
+  // something due north of him
+  near(A.panFor(N, N), 0, 'facing it, a source dead ahead is centre');
+  near(A.panFor(S, N), 0, 'with his back to it, it is centre too — a stereo pan cannot say front from back');
+  near(A.panFor(W, N), 1, 'facing west, north is hard right');
+  near(A.panFor(E, N), -1, 'facing east, north is hard left');
+  // and the sweep is continuous and antisymmetric in between
+  for (let deg = 0; deg < 360; deg += 15) {
+    const th = (deg * Math.PI) / 180;
+    const fwd = { x: Math.sin(th), z: Math.cos(th) };
+    const back = { x: -fwd.x, z: -fwd.z };
+    near(A.panFor(fwd, N), -A.panFor(back, N), `turning right round at ${deg}\u00b0 must mirror the field`);
+  }
+  // the length of the world vector is a distance, not a loudness: only its bearing may show up here
+  near(A.panFor(W, { x: 0, z: -40 }), A.panFor(W, N), 'a bird further off must not pan wider');
+  // the wind leans rather than pans, and it leans from where the air comes FROM
+  assert.ok(A.WIND_LEAN < A.PERCH_PAN, 'the air is not a point source: it must lean less than a bird sits out');
+  near(A.windLeanFor(W, S), A.WIND_LEAN, 'wind travelling south comes from the north, which is his right facing west');
+  near(A.windLeanFor(W, N), -A.WIND_LEAN, 'and travelling north it comes from the south, on his left');
+});
+
+test('a bird keeps its tree while he turns on the spot', () => {
+  // the same perch, heard from four facings: the bearing has to move across him and come back.
+  const pansFacing = (fwd) => {
+    const { amb } = bed({ seed: 'perch/turn' });
+    const seen = new Map();
+    for (let t = 0; t < 600; t += 0.5) {
+      amb.update(t, { gust: 0.5, listener: LISTENER, forward: fwd, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+      for (const [kind, pan] of amb.stats().birdSpots) seen.set(kind, pan);
+    }
+    return seen;
+  };
+  const north = pansFacing({ x: 0, z: -1 });
+  const south = pansFacing({ x: 0, z: 1 });
+  assert.ok(north.size > 2, `only ${north.size} birds heard`);
+  assert.deepEqual([...north.keys()].sort(), [...south.keys()].sort(), 'turning round must not change which birds are in the wood');
+  for (const [kind, pan] of north) {
+    // the perches are seeded from the listener's position, which has not moved, so turning round
+    // must mirror every one of them and nothing else
+    assert.ok(Math.abs(pan + south.get(kind)) < 1e-9, `the ${kind} is at ${pan.toFixed(2)} facing north and ${south.get(kind).toFixed(2)} facing south — it should be its mirror`);
+  }
+  assert.ok(Math.max(...[...north.values()].map(Math.abs)) <= A.PERCH_PAN + 1e-9, 'no bird may sit outside PERCH_PAN');
+});
+
 test('walking far enough puts him among different birds', () => {
   const heard = (moveM) => {
     const { amb } = bed({ seed: 'perch/move' });

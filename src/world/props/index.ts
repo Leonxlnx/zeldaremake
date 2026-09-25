@@ -90,11 +90,15 @@ function aoDecal(x: number, z: number, radius: number, height: (x: number, z: nu
 }
 /**
  * A cluster draws only while the camera is within this distance of its bounding sphere (m). A
- * 0.6 m pot is a dozen pixels lost in the haze at 45 m; the north clearing's dressing (60–75 m
- * from every fixed camera, occluded by the log's root mass) would otherwise ride into the shadow
- * and colour passes of frames it cannot appear in.
+ * 0.6 m pot is a dozen pixels lost in the haze at 45 m and a handful at 30; the north clearing's
+ * dressing (60–75 m from every fixed camera, occluded by the log's root mass) would otherwise
+ * ride into the shadow and colour passes of frames it cannot appear in. 45 → 30 in round 56
+ * (the owner's "check everything", the south far-bank look-back at 818 draws): the village
+ * sphere's near edge is 33 m from that camera and ≤ 25 m from every fixed view and owner pose,
+ * so the change costs those nothing and drops the village's 11 draws from the look-back, and the
+ * south exit's 9 from camera C (35 m, hidden behind the plaza-south trunk there anyway).
  */
-export const CLUSTER_VISIBLE_M = 45;
+export const CLUSTER_VISIBLE_M = 30;
 
 export interface PlacementOptions {
   paving?: boolean;

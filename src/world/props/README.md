@@ -45,7 +45,7 @@ Draw calls: a `cluster` is a place (placement, audit, `audit.clusterBounds`); cl
 merge locality (`localityOf` in `layout.ts`: the eight village clusters → `village`, the north
 clearing → `clearing`), and each locality is ONE mesh per material — 9 meshes for the whole system
 (≤ 9 draws per pass in a frame). Each locality is distance-culled as one (`CLUSTER_VISIBLE_M`,
-45 m, through `update` / `onCameraMove`): the clearing never rides into the six frames' passes.
+30 m since round 56 — 45 before, through `update` / `onCameraMove`): the clearing never rides into the six frames' passes.
 
 ## Clusters
 
