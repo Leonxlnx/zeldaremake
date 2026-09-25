@@ -713,3 +713,35 @@ test('crossing the village retires the birds one at a time, not all six at once'
   assert.ok(amb.stats().rehomed >= 3, `only ${amb.stats().rehomed} birds were retired over a hundred and twenty metres`);
   assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a retired bird must already be out past the distance clamp, where the swap cannot be heard');
 });
+
+test('a leaf never sits further out than a bird, and the crowns bring it in', () => {
+  // `PERCH_PAN` caps a bird at 0.85 and says why: "a call hard against one channel does not read as
+  // 'over there', it reads as a fault in the mix". The flutters were drawn over ±0.9 with a further
+  // ±0.15 per leaf, so a leaf — the most diffuse thing in the bed — could land at ±1.0, harder than
+  // the most localised thing is allowed to. They also took no notice of the canopy, which is the
+  // term that describes these very leaves.
+  //
+  // The panners are told apart by what answers a change of CANOPY with the weather and the facing
+  // held: a bird's pan is a bearing and does not, the flame has no pods to follow, and the wind's
+  // lean needs a windDir that is not given here.
+  const widths = {};
+  for (const canopy of [0, 1]) {
+    const { ctx, amb } = bed({ seed: 'flutter/width' });
+    for (let t = 0; t < 60; t += 1 / 30) {
+      amb.update(t, { gust: 0.9, listener: LISTENER, forward: NORTH, pods: [], canopy });
+      amb.scheduleUntil(t + 4);
+    }
+    const pans = ctx.made.panner.map((p) => Math.abs(p.pan.value)).filter((v) => v > 1e-9);
+    assert.ok(pans.length > 40, `only ${pans.length} panned voices at canopy ${canopy}`);
+    for (const v of pans) assert.ok(v <= A.PERCH_PAN + 1e-9, `something in the bed sits at ${v.toFixed(3)}, past the ${A.PERCH_PAN} a bird is held to`);
+    widths[canopy] = pans.sort((a, b) => a - b)[Math.floor(pans.length * 0.9)];
+  }
+  assert.ok(A.FLUTTER_PAN_OPEN < A.PERCH_PAN, 'a leaf is diffuse and a bird is a point: the leaf must sit inside the bird');
+  assert.ok(A.FLUTTER_PAN_CLOSED < A.FLUTTER_PAN_OPEN, 'leaves overhead are nearer centre than a ring of trees around him');
+  assert.ok(
+    widths[1] < widths[0] - 0.1,
+    `the field is ${widths[0].toFixed(3)} wide under open sky and ${widths[1].toFixed(3)} under closed crowns — the canopy must bring the leaves in`,
+  );
+  assert.equal(A.flutterPan(0), A.FLUTTER_PAN_OPEN);
+  assert.equal(A.flutterPan(1), A.FLUTTER_PAN_CLOSED);
+});
