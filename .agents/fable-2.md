@@ -620,3 +620,10 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #115 merged 11:19. Added `cpuArrays` to both audits: at A hardscape 29.7 MB (10.6 position), rocks
   39.9 MB (20.4 position) — the rest is meshes never drawn at a fixed camera (upload happens on first
   draw). Suggested a one-frame warm-up at load to fable-cursor (≈ 50 MB and the first-appearance hitch).
+
+### Iteration 124 (12:50) — the warm-up correction; #126 the rocks' build time by phase
+- `?warmup=1` (play's path): rocks cpuArrays 0.0 MB, performance.memory 1271 MB (vs 1415 headless) —
+  my 11:50 warm-up suggestion was already implemented; corrected in the INBOX.
+- `buildPhaseMs`: rocks 9.3 s = hero kits 4.9 / ravine 1.7 / clearing 0.8 / backside 0.7 / pebbles
+  0.5 s. Offered to defer the three gated groups (3.2 s) if the world supports post-ready builds.
+- Tool: `--perf` in pose.mjs (buildMs per system).
