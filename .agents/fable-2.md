@@ -638,3 +638,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #132 merged (14:2x). Node profile of buildStairway + placeFlagstones: tri 14 %, smoothGroup 5 %,
   buildSlab 3 % — no hotspot; ≈ 0.5 s available at the cost of touching the slab builder's core;
   declined. Build-time thread closed for the lane.
+
+### Iteration 127 (15:45) — squad2's depth split, per system (isolate on/off shadows)
+- Upper bounds (isolate bypasses the composer's shadow cull): structures 0.72 / 0.94 M, terrain
+  0.35 / 0.44, rocks 0.09 / 0.24, hardscape 0.01 / 0.04 (A / look-back). Rocks' lever is the
+  composer's small-caster rule at look-backs; a near-kit cast proxy would save ≈ 0.06 M — declined.
