@@ -24,8 +24,9 @@ What the bake changes on purpose: on a plain mesh the shader adds its world-spac
 displacement in object space (`transformed += disp`; the instanced trees turn it back through
 `transpose(instanceMatrix)`), so a seated column's lobes swayed in a direction turned by the
 seat's yaw from its own trunk's. In the batch (identity) they sway with their tree. The
-near-canopy program's sway is 2–3 cm at lobe height (`giantWind` stiffness 0.97), so the
-direction change is sub-pixel where the lobes are seen — the numbers below.
+near-canopy program's sway is 2–3 cm at lobe height (`giantWind` stiffness 0.97): sub-pixel at
+the fixed views and the look-backs, a pixel or two of edge shift under a seat's crown at 8–15 m
+(the small-tier section below has the counts).
 
 ## Six fixed views, 1280 × 720, `capture.mjs --settle 12`
 
@@ -79,6 +80,34 @@ not), with draws / triangles for both. `poses-base.stats.json` / `poses-branch.s
   page sessions whose pools are a part apart (the giants' batch 321 vs 320 instances at the
   plateau), not the columns'; the six-view pipeline above, which runs each view fresh, has A, C, D
   and E at 0.
+
+## The small pool tier: evictions, rebuilds, and the lobes up close
+
+`?pool=small` (cap 64 MB, 161–164 of 426 parts resident), the same harness, four poses in one
+page: under the east seats (14, 14 → the crowns at 21, 8, lobes 8–15 m off), the north clearing
+looking away (0, −70 → −95), back under the east seats, then under the north seats (2, −18 →
+−3.5, −28). `small-walk-base.stats.json` / `small-walk-branch.stats.json`.
+
+| pose | head draws / M tris | lobes in frame | branch draws / M tris | Δ | columns' batch instances | px > 24/255 (> 0): lobes shown / hidden |
+|---|---|---|---|---|---|---|
+| east-seats | 318 / 5.879 | 8 draws / 41 K | 311 / 5.879 | −7 | 15 | 1,780 (43,956) / 0 |
+| north-clearing-away | 356 / 4.325 | 0 | 356 / 4.325 | 0 | 7 | 0 (0) / 0 |
+| east-seats-back | 318 / 5.879 | 8 draws / 41 K | 311 / 5.879 | −7 | 17 | 1,780 (43,956) / 0 |
+| north-seats | 349 / 5.920 | 13 draws / 67 K | 337 / 5.920 | −12 | 17 | 7,623 (95,426) / 0 |
+
+- **Evictions and rebuilds exercised:** the columns' batch went 15 → 7 → 17 instances (eight
+  column lobes evicted at the north clearing, rebuilt — `part.build` → bounds → bake → install —
+  on the way back). The branch's east-seats and east-seats-back frames are **identical to the
+  bit** (so are the head's): a rebuilt, re-baked lobe lands where the first build did.
+- **Up close the sway's direction shows.** 8–15 m from the seats every lobe's leaves and twigs
+  shift by up to a pixel or two between the builds — 0.2 % of the frame above 24/255 under the
+  east seats, 0.8 % under the north seats, 0 with the lobes hidden (`north-seats-small.pair.jpg`,
+  `north-seats-small.zoom3x.jpg`: head | branch | the difference × 4 — outlines along leaf and twig
+  edges, nothing moved wholesale). This is the wind correction above: the per-mesh lobes' 2–3 cm
+  sway was turned by the seat's yaw; in the batch it is the sway their own trunk and far laminae
+  have (the instanced path's `transpose(instanceMatrix)` gives exactly the world displacement).
+  No fixed view stands that close to a seated column's crown (F has one lobe in frame at the
+  haze floor: 0 px); at 40 m (green-west, 18 lobes) the two builds are identical.
 
 ## Heap
 

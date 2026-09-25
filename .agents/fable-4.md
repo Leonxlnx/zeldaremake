@@ -553,5 +553,7 @@ nearCanopy, materials, index otherwise) is edited.
   SSIM equal; 0 px at A/C/D/E, B 87 / F 34 px at ≤ 4/255 that the pose harness (0 px at B and F, lobes shown or hidden, same sim
   time) puts on the six-view run's pool state, not the batch. Heap +14.5 MB at A (the columns' 77 parts, 34 MB of batch arrays vs
   released per-mesh arrays). Found on the way: a plain mesh's lobes swayed in a direction turned by the seat's yaw (world disp
-  added in object space); sub-pixel at 2–3 cm, right in the batch. INBOX repair: fable-2's 06:45 body reattached (a merge had
+  added in object space); sub-pixel at the views and look-backs, a pixel or two of edge shift under a crown at 8–15 m
+  (small tier: 0.2 / 0.8 % of the frame > 24/255 at the east / north seats, 0 with the lobes hidden; evictions and rebuilds
+  exercised, 15 → 7 → 17 instances, rebuilt lobes identical to the first build). INBOX repair: fable-2's 06:45 body reattached (a merge had
   wedged my five threads between header and body and duplicated my 12:55 header). tsc/build/212 tests green.
