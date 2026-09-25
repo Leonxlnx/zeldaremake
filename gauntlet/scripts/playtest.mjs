@@ -779,6 +779,9 @@ async function walkScenario(page, results) {
     // north of the toll pile to the bridge head, onto the keeper's gallery at its entrance, round the
     // hut over the gorge, down the east step and back round the hut's north side to the path
     ['south-dwellings', [[3.3, 27.9], [3.9, 26.6], waystationAt(0.915, 0), waystationAt(0.3, 0), waystationAt(0.3, 0.5), waystationAt(0.94, 0.3), [3.9, 27.4], [4.3, 29.0], [5.1, 30.1], keeperAt(221, 2.0), keeperAt(200, 1.7), keeperAt(170, 1.7), keeperAt(135, 1.7), keeperAt(100, 1.7), keeperAt(60, 1.7), keeperAt(20, 1.7), keeperAt(-8, 1.7), keeperAt(-20.5, 1.86), [9.35, 31.0], [9.0, 30.0], [8.0, 29.35], [6.6, 29.2], [5.6, 28.55], [3.68, 28.95]], 2400],
+    // exp-south2: the way back — from the log's dead end (the exit's glade beyond the roots) out of
+    // the mouth, over the bridge, round plaza-south's foot and up the south approach to the plaza
+    ['south-log-to-village', [sf.log(4.8), sf.log(2), sf.log(0), [4.14, 45.2], sf.bridge(sf.len + 0.5), sf.bridge(12.2), sf.bridge(9.8), sf.bridge(6.9), sf.bridge(4.1), sf.bridge(1.4), sf.bridge(-0.6), [3.68, 28.95], [3.3, 27.9], [2.0, 26.55], [0.4, 25.15], [-0.8, 23.55], [-1.32, 21.6], [-1.2, 19.4], [-0.5, 17.2], [1, 16], [0.8, 10], [0.5, 3]], 2400],
     // 2026-09-24 (expansion-north): from the second clearing up the ledge flight, past the grove's
     // sign and up its flight, along the trail to the shelf and the trunk house's door, back across
     // the yard, up the gangway onto the stilt house's veranda, round it the south way (past the
