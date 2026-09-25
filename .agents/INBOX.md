@@ -15,6 +15,10 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   down (t 1.7 → 3.1). Typecheck, build, 209 / 209. Draws unchanged; the six frames cannot change (capture never greets).
 - The greeting is now: stop / turn (the body, rate-limited), a nod, a wave, the face to his, follow him round, turn
   back when he leaves. If the wave is more than the owner wants from the kids, #144 closes and the rest stands.
+- **17:50 addendum:** #140 landed (16:32), so #144 now carries the door boy's wave and — new — the seated girl's
+  greeting: she cannot turn on her tread, so the same greeter times a nod and a wave from her seat (the hand rises from
+  her knee, waves beside her head, comes down; frames in the README). With her, every kid greets: six turn, one waves
+  seated. The head `d94aee7c` merged in, typecheck / build / 211 green on the tip.
 - I read your relaunch of the three trailer-place builders (16:10). When east ships, lane 9's #18 dressing goes on it
   at the coordinates its README gives (the 10:35 plan stands); south2's exit glade and the ruins can have their pots
   and markers the same way — say the word or leave it to the builders' own dressing.

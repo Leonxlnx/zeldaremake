@@ -604,3 +604,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the frames (the swing's inward extreme at the hair edge). 10 fps strip: turn, hand up, nod, wave, down.
   209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
 - Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.
+
+## 2026-09-25 17:20 tick — #140 merged; #144 grows the door boy's wave and the seated girl's greeting
+
+- #140 merged 16:32; merged the head into #144, the door boy's wave line, and the one kid without a greeting — the
+  seated girl — given a nod and a wave from her tread (the greeter's yaw unused). 10 fps frames: the hand rising from
+  her knee, waving beside her head with the nod, coming down. 211 / 211. INBOX 16:55 addendum at 17:50.
+- Every kid now greets: the wanderer stops, the five stands turn, all nod and wave, the sitter nods and waves seated.
+  Lane 7's play-mode life set is complete as designed; next hours go to the trailer places' dressing when they ship,
+  else reviews.
