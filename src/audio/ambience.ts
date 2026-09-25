@@ -117,6 +117,17 @@ export interface AmbienceStats {
 export const BIRD_SPOT_MEMORY = 24;
 /** the wood holds one bird of each kind within earshot; the weights decide who calls */
 /**
+ * How far away a perch at `distance` 1 is, in metres.
+ *
+ * A bird's `distance` is a 0–1 shorthand for "overhead" to "deep in the wood" and shapes its
+ * brightness and its share of the hall. Occlusion needs it as a place, because a bole only shadows
+ * what is behind it. A perch is seeded no further out than this, and past it a perch's distance
+ * is clamped — which is what makes `PERCH_DROP_M` safe: a bird out there sounds the same wherever
+ * it is, so replacing it changes nothing but its bearing.
+ */
+export const PERCH_FAR_M = 28;
+
+/**
  * How far behind a bird has to be left before another takes its place (m).
  *
  * Birds do not follow you, and they are not the same birds a hundred metres on — but they do not
@@ -129,21 +140,10 @@ export const BIRD_SPOT_MEMORY = 24;
  *
  * So a bird is retired on its own, when it is far enough behind that nothing about it can change
  * except its bearing: past `PERCH_FAR_M` a perch's distance is already clamped, so it sounds the
- * same at 28 m as at 45, and the one that replaces it is drawn into the widest gap left in the
+ * same at PERCH_FAR_M as at 1.6 times it, and the one that replaces it is drawn into the widest gap in the
  * others' bearings so the wood stays spread.
  */
-export const PERCH_DROP_M = 45;
-
-/**
- * How far away a perch at `distance` 1 is, in metres.
- *
- * A bird's `distance` is a 0–1 shorthand for "overhead" to "deep in the wood" and shapes its
- * brightness and its share of the hall. Occlusion needs it as a place, because a bole only shadows
- * what is behind it. A perch is seeded no further out than this, and past it a perch's distance
- * is clamped — which is what makes `PERCH_DROP_M` safe: a bird out there sounds the same wherever
- * it is, so replacing it changes nothing but its bearing.
- */
-export const PERCH_FAR_M = 28;
+export const PERCH_DROP_M = PERCH_FAR_M * 1.6;
 
 /**
  * How long the one pink buffer the whole bed is tapped off runs before it comes round again, and
