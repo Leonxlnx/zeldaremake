@@ -3,6 +3,7 @@
 // heading her way, so the follow camera looks past his shoulder at her; the camera settles for 45 sim
 // frames, one frame is drawn and saved, with the kid's screen projection for cropping.
 // node art/environment/people-fable-3/variety/people.mjs <dist> <outDir>   (from the repo root; needs a built dist)
+//   PEOPLE_ONLY=b-seat,bank  PEOPLE_DISTS=1.2,3.0,6.0   — a subset of kids / other Link distances (6 m is past the notice range)
 import fs from 'node:fs';
 import path from 'node:path';
 import { serveStatic, launchBrowser, READY_TIMEOUT_MS } from '/workspace/gauntlet/scripts/lib/browser.mjs';
@@ -12,7 +13,8 @@ const W = 1280, H = 720, DT = 1 / 30;
 fs.mkdirSync(out, { recursive: true });
 const log = (...m) => console.error(`[people ${new Date().toISOString().slice(11, 19)}]`, ...m);
 const NAMES = ['a-wander', 'b-seat', 'c-door', 'ledge', 'bank', 'grove'];
-const DISTS = [1.2, 3.0];
+const DISTS = process.env.PEOPLE_DISTS ? process.env.PEOPLE_DISTS.split(",").map(Number) : [1.2, 3.0];
+const ONLY = process.env.PEOPLE_ONLY ? new Set(process.env.PEOPLE_ONLY.split(",")) : null;
 const SIDE = 0.8; // Link stands off the kid's axis so the camera looks past his shoulder
 
 async function grabHooks(page) {
@@ -78,6 +80,7 @@ try {
   }, i);
 
   for (let i = 0; i < NAMES.length; i++) {
+    if (ONLY && !ONLY.has(NAMES[i])) continue;
     if (i === 0) await page.evaluate((dt) => window.__ZR_PLAY__.step(240, dt, false), DT); // the wanderer walks on into the open plaza
     for (const d of DISTS) {
       const k = await kidState(i);
