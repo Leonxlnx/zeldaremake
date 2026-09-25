@@ -625,3 +625,53 @@ test('walk past a tree and the bird in it goes past you', () => {
     `walking twelve metres moved no bird: ${shared.map((k) => `${k} ${before.get(k).toFixed(3)}→${after.get(k).toFixed(3)}`).join(', ')}`,
   );
 });
+
+test('a call booked four seconds ago arrives at the loudness and colour it should have now', () => {
+  // The bearing follows him; the level, the top and the hall share used to not. All four were
+  // decided when the call was booked, up to AMBIENCE_AHEAD before it is heard — six metres at a
+  // walk and seventeen at a run. Measured on the path spine between three boles
+  // (`art/audio/2026-09-25-stale/`), a call's level was out by a median 0.9 dB at a walk and 1.7 at
+  // a run, and one call in the take carried 0.73 of a shadow it no longer had: 4.0 dB and 1.8
+  // octaves of top, a bird heard from behind a tree he had already walked out from behind.
+  //
+  // The weather, the facing and the space terms are all held, and there are no pods, so the only
+  // filter in the bed whose cutoff answers a change of PLACE is a bird's.
+  const { ctx, amb } = bed({ seed: 'perch/stale' });
+  const N = { x: 0, z: -1 };
+  const base = { gust: 0.5, forward: N, pods: [], canopy: 1 };
+  let t = 0;
+  let pending = [];
+  for (; t < 600; t += 1 / 30) {
+    amb.update(t, { ...base, listener: { x: 0, y: 1.2, z: 0 } });
+    amb.scheduleUntil(t + 4);
+    pending = amb.stats().birdSpots.filter(([, , , at]) => at > t + 0.5);
+    if (pending.length > 0) break;
+  }
+  assert.ok(pending.length > 0, 'nothing is booked ahead of the clock');
+  t += 1 / 30;
+  amb.update(t, { ...base, listener: { x: 0, y: 1.2, z: 0 } });
+  const before = ctx.made.filter.map((f) => f.frequency.target);
+
+  // twelve metres east — inside PERCH_RESEED_M, so the same six trees seen from somewhere else
+  t += 1 / 30;
+  amb.update(t, { ...base, listener: { x: 12, y: 1.2, z: 0 } });
+  const moved = ctx.made.filter.map((f, i) => ({ i, after: f.frequency.target })).filter((r, i) => Math.abs(r.after - before[i]) > 1e-9);
+  assert.ok(moved.length > 0, `he moved twelve metres and not one of ${ctx.made.filter.length} filters noticed`);
+
+  // every cutoff that moved must be the one some tree's distance asks for from where he now is
+  const want = amb
+    .stats()
+    .perchSpots.map(([, x, z]) => {
+      const d = Math.min(1, Math.hypot(x - 12, z) / A.PERCH_FAR_M);
+      return 7000 - 5200 * d;
+    })
+    .sort((a, b) => a - b);
+  for (const r of moved) {
+    assert.ok(
+      // perchSpots publishes to two decimals of a metre, which is a couple of hertz here
+      want.some((w) => Math.abs(w - r.after) < 20),
+      `a bird's top landed at ${r.after.toFixed(0)} Hz and no tree is at a distance that asks for it (${want.map((w) => w.toFixed(0)).join(', ')})`,
+    );
+  }
+  assert.ok(moved.length <= 3, `${moved.length} filters are being re-aimed — finished calls are not being let go`);
+});

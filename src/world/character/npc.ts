@@ -538,6 +538,35 @@ const greetNod = (gr: { active: boolean; since: number }, t: number): number => 
   const u = (t - gr.since) / NOD_S;
   return u > 0 && u < 1 ? NOD_RAD * Math.sin(Math.PI * u) : 0;
 };
+/** the greeting's wave: starts this long after the greeting (s), lasts this long, ramps in / out over these */
+const WAVE_DELAY_S = 0.2;
+const WAVE_S = 1.4;
+const WAVE_RAMP_S = 0.25;
+const WAVE_HZ = 2.4;
+/**
+ * the greeting's wave: the right hand raised beside the head — the upper arm up and a little out
+ * (shoulder x −2.6, z −0.65 puts the hand 0.24 m above the shoulder and 0.15 m clear of the head, the
+ * swing's inward extreme still 0.1 m clear of the hair bob), the
+ * forearm half bent — and waved side to side at WAVE_HZ, blended over the pose's own arm by a ramp
+ * in / out. Applied after the pose (the arms are the pose's; the notice never touches them).
+ */
+function greetWave(rig: Rig, gr: { active: boolean; since: number }, t: number): void {
+  if (!gr.active) return;
+  const u = t - gr.since - WAVE_DELAY_S;
+  if (u <= 0 || u >= WAVE_S) return;
+  const w = smooth(Math.min(u, WAVE_S - u) / WAVE_RAMP_S);
+  if (w <= 0) return;
+  const ph = Math.PI * 2 * WAVE_HZ * u;
+  const sw = Math.sin(ph);
+  const sh = rig.shoulderR.rotation;
+  const el = rig.elbowR.rotation;
+  sh.x += (-2.6 + 0.12 * sw - sh.x) * w;
+  sh.y += (0 - sh.y) * w;
+  sh.z += (-0.65 - 0.25 * sw - sh.z) * w;
+  el.x += (-0.7 + 0.35 * Math.sin(ph + 1.0) - el.x) * w;
+  el.y += (0 - el.y) * w;
+  el.z += (0 - el.z) * w;
+}
 
 /**
  * A standing kid's greeting (lane 7, after the wanderer's): within GREET_NEAR_M she turns her body to
@@ -734,6 +763,8 @@ export function createNpcs(opts: NpcOptions): Npcs {
   ];
   const seatLookPeriod = 14;
   const seatPhase = rng.range(0, seatLookPeriod);
+  /** the sitter's greeting (lane 7): she cannot turn on her tread, so the state only times her nod and wave */
+  const seatGreet = newGreet();
   const feetMid = new Vector3().addVectors(seat.ankleL, seat.ankleR).multiplyScalar(0.5);
 
   // -- kokiri-ledge: the stand on the raised ledge (round 48; ref-04), facing south over the clearing --
@@ -932,6 +963,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
         noticeFor(ledgeChar.rig, actor, player);
         ledgeChar.rig.neck.rotation.x += greetNod(ledgeGreet, t);
+        greetWave(ledgeChar.rig, ledgeGreet, t);
         actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
         showLedge(!view);
         actor.shadow.visible = !view;
@@ -948,6 +980,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(bankChar.rig, ground.height, actor.contact);
         noticeFor(bankChar.rig, actor, player);
         bankChar.rig.neck.rotation.x += greetNod(bankGreet, t);
+        greetWave(bankChar.rig, bankGreet, t);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
         // her fairy's light is dimmed to nothing under capture (round 50 kept it out of the six
         // frames' light loop; the light itself stays in the scene — see the fairies above); the
@@ -967,6 +1000,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(groveChar.rig, ground.height, actor.contact);
         noticeFor(groveChar.rig, actor, player);
         groveChar.rig.neck.rotation.x += greetNod(groveGreet, t);
+        greetWave(groveChar.rig, groveGreet, t);
         actor.shadow.position.set(grove.x, ground.decalHeight(grove.x, grove.z, actor.shadowRadius), grove.z);
         driven.add(GROVE_SLOT);
         return true;
@@ -982,6 +1016,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(verandaChar.rig, ground.height, actor.contact);
         noticeFor(verandaChar.rig, actor, player);
         verandaChar.rig.neck.rotation.x += greetNod(verandaGreet, t);
+        greetWave(verandaChar.rig, verandaGreet, t);
         actor.shadow.position.set(veranda.x, ground.decalHeight(veranda.x, veranda.z, actor.shadowRadius), veranda.z);
         driven.add(VERANDA_SLOT);
         return true;
@@ -997,6 +1032,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(doorChar.rig, ground.height, actor.contact);
         noticeFor(doorChar.rig, actor, player);
         doorChar.rig.neck.rotation.x += greetNod(doorGreet, t);
+        greetWave(doorChar.rig, doorGreet, t);
         actor.shadow.position.set(actor.pos.x, ground.decalHeight(actor.pos.x, actor.pos.z, actor.shadowRadius), actor.pos.z);
         driven.add(2);
         return true;
@@ -1051,6 +1087,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         plantFeet(rig, ground.height, actor.contact);
         noticeFor(rig, actor, player, wander.walk);
         rig.neck.rotation.x += greetNod(greet, t);
+        greetWave(rig, greet, t);
         actor.shadow.position.set(wander.x, ground.decalHeight(wander.x, wander.z, actor.shadowRadius), wander.z);
         driven.add(0);
         return true;
@@ -1059,13 +1096,17 @@ export function createNpcs(opts: NpcOptions): Npcs {
         actor.pos.set(seat.hips.x, 0, seat.hips.z);
         actor.yaw = seat.yaw;
         const [hy, hp] = seatedLook(t, seatPhase, seatKeys, seatLookPeriod);
-        poseSeated(sitter.rig, seat, t, 3.4, hy, hp);
+        poseSeated(sitter.rig, seat, t, 3.4, hy * (1 - seatGreet.g), hp);
         // contact: the lower sole (both rest on the tread below)
         sitter.rig.root.updateMatrixWorld(true);
         sitter.rig.ankleL.localToWorld(_tmp.copy(sitter.rig.sole));
         sitter.rig.ankleR.localToWorld(_tmp2.copy(sitter.rig.sole));
         actor.contact.copy(_tmp.y <= _tmp2.y ? _tmp : _tmp2);
         noticeFor(sitter.rig, actor, player);
+        // seated, she greets with the head and the hand: the yaw the greeter returns is not used
+        standGreet(seatGreet, t, seat.hips.x, seat.hips.z, seat.yaw, player);
+        sitter.rig.neck.rotation.x += greetNod(seatGreet, t);
+        greetWave(sitter.rig, seatGreet, t);
         actor.shadow.position.set(feetMid.x, ground.decalHeight(feetMid.x, feetMid.z, actor.shadowRadius), feetMid.z);
         driven.add(1);
         return true;

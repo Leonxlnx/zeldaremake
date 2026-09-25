@@ -595,3 +595,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   209 / 209. PR #140 opened held, the hold lifted with the frames. INBOX 15:55.
 - The greeting set is now complete for every kid who can turn; the seated girl looks up. Lane 7's play-mode life:
   variety, gaze, greet, follow, release, nod — six PRs today, each one behaviour, each verified with the harness.
+
+## 2026-09-25 16:20 tick — the greeting's wave (PR #144)
+
+- #140 still in the queue (no round since 15:15); the three trailer-place builders relaunched (on fable-cursor's box —
+  no slot to share here). The greeting's capstone: the wave. Joint numbers computed in node from `rig.ts`'s chain
+  before rendering (shoulder x −2.6, z −0.65 → hand 0.24 m above the shoulder, 0.15 m clear of the head), one tune on
+  the frames (the swing's inward extreme at the hair edge). 10 fps strip: turn, hand up, nod, wave, down.
+  209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
+- Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.

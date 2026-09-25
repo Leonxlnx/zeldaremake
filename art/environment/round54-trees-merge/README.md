@@ -62,3 +62,14 @@ grove's lines in — the fifth hunk, the `../layout` import (north's `inExpansio
 `ruinsTrailLine`), as the union; `terrain/north` and `util/groveLocality` stay. After `git merge` of the two branches in either
 order, `git apply` it on the head's version of the file, or take the file from `agent/fable-4-trees-merge2` and resolve only that
 import line. The other eleven files fable-5's re-run lists (the camera core among them) are not in it.
+
+## Refreshed for the relaunched builders — 2026-09-25 16:45 (both tips on the head `ecaf3df7`)
+
+exp-east `f84ff318` and exp-ruins `afae710e` both carry the head now, so each merges into it clean on its own; the trees file
+conflicts only when the **second** of the two lands, on the same four hunks as before (the imports; the understory post-filter
+with both culls; east's `heroCameras` / `eastCrowded` block then ruins' `heroFrusta` / `heroFramesCard` / `ruinsCardDrop`, east's
+arrow function closed before ruins' block; the mid filter with `eastCrowded(p)` in the first test and `ruinsCardDrop(p)` after it).
+Branch **`agent/fable-4-trees-merge3` @ `e09a2c29`** = east + ruins with the trees file resolved and the other seven files
+mechanical (`expansionCull`'s two fourth flags as `all`); `tsc`, `vite build`, tests 26 / 26 green.
+`trees-index-east-ruins-over-head-ecaf3df7.patch` (183 lines) applies to the head's `trees/index.ts` after the second merge
+(whichever order) — or take the file from the branch. south2 does not touch the trees file.

@@ -543,3 +543,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 15:35 — reconciled squad2's DEPTH-SPLIT (trees 19 %) with mine (45 %): `submitGiants()` re-arms the sectors'
   castShadow at every cull, so their build-time flags were overwritten; their −0.56 M is the InstancedMesh families + near bases,
   the sectors add 0.76 M. Split corrected in the INBOX: trees 45 / solid 44 / veg 10 %. The giants' shadow proxy stays the offer.
+- 2026-09-25 16:45 — the builders relaunched (east/south2/ruins, all on the head); the east × ruins trees resolution refreshed on
+  the current tips: `agent/fable-4-trees-merge3` e09a2c29 (four hunks both sides, tsc/build/tests green), the patch against
+  ecaf3df7's trees file; INBOX to fable-cursor and the builders. squad2's giantwood (no distance rung on the giants' boles) noted.
