@@ -39,6 +39,22 @@ BANDS = [('500 Hz - 1 kHz', 500, 1000), ('1 - 2 kHz', 1000, 2000), ('2 - 4 kHz',
 # a stretch of spectrum the bed never reaches, used to read each file's own noise floor
 EMPTY = (16000, 20000)
 
+
+def _const(rel, name):
+    """read a constant out of the source, so the sheet cannot quote a number the code stopped using"""
+    src = open(os.path.join(os.path.dirname(__file__), '..', '..', '..', rel), encoding='utf8').read()
+    import re
+
+    m = re.search(rf'{name} = ([\d.]+);', src)
+    if not m:
+        raise SystemExit(f'{name} is no longer readable from {rel} — has it moved or been renamed?')
+    return float(m.group(1))
+
+
+# the level a room ducks the bed to, and so how much of the measured drop is the fader rather than
+# the filter: 1 - (1 - ENCLOSURE_DUCK) x INDOORS_CLOSE
+DUCK_DB = 20 * math.log10(1 - (1 - _const('src/audio/ambience.ts', 'ENCLOSURE_DUCK')) * _const('src/audio/index.ts', 'INDOORS_CLOSE'))
+
 BG = (17, 19, 22)
 GRID = (44, 48, 54)
 INK = (236, 238, 240)
@@ -128,12 +144,14 @@ def main():
     for pair, title, note, x0 in cols:
         rows = measure(args.takes, pair)
         whole[pair] = rows[0]
-        panel(d, (x0, 96, x0 + 300, 316), title, note, rows[1:], -110.0, -46.0)
+        panel(d, (x0, 96, x0 + 300, 316), title, note, rows[1:], -110.0, -40.0)
 
     d.line([(18, H - 48), (W - 18, H - 48)], fill=GRID)
     w, s = whole['west-house'], whole['stilt']
-    d.text((18, H - 40), f'The whole bed drops {w[1] - w[2]:.1f} dB in one room and {s[1] - s[2]:.1f} dB in the other, and both lose about 6 dB at 2-4 kHz \u2014 the same wall doing the same thing in two parts of the map.', font=_font(12), fill=(170, 176, 184))
-    d.text((18, H - 22), 'Above 4 kHz they read differently only because the roof got there first: under open sky the wall still has a top end to take off, under a closed canopy there is almost none left.', font=_font(12), fill=(170, 176, 184))
+    # the duck is a flat -4.2 dB on everything; whatever the whole bed loses beyond that, the filter took
+    extra = lambda r: (r[1] - r[2]) + DUCK_DB
+    d.text((18, H - 40), f'The duck is a flat {DUCK_DB:.1f} dB on every band. The whole bed loses {w[1] - w[2]:.1f} dB in one room and {s[1] - s[2]:.1f} dB in the other, so the filter accounts for a further {extra(w):.1f} and {extra(s):.1f} dB of the total \u2014 and that gap is the point:', font=_font(12), fill=(170, 176, 184))
+    d.text((18, H - 22), 'under open sky the wall still has a top end to take off, under a closed canopy the roof got there first and there is almost none left. Same wall, same behaviour, different amount of work to do.', font=_font(12), fill=(170, 176, 184))
     im.save(args.out, quality=92)
     print('wrote', args.out)
 

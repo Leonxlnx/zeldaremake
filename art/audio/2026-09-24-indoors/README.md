@@ -1,7 +1,12 @@
 # Lane 5 — a hut is a room, and going indoors sounds like it
 
-Branch `agent/squad5-indoors`, stacked on `agent/squad5-ropewalk` (PR #68) because both touch
-`surfaceAt` in `src/audio/index.ts`. Merge #68 first.
+Branch `agent/squad5-indoors`. It was written stacked on `agent/squad5-ropewalk`; #68 has since
+merged, and the integration branch is merged in here, so this stands on its own.
+
+Everything below was **re-measured after that merge**, not carried over. The base had moved 86
+commits, two of them this lane's own — the master trim (#63) and the birds' perches (#67) — and
+both change what the bed sounds like. Numbers taken against the old bed would have described code
+nobody is going to run.
 
 ## The problem
 
@@ -39,13 +44,21 @@ A hut is also not a tunnel. Its walls are planks and its door stands open, so `I
 | **inside a hut** | **0.70** | **2.2 kHz** |
 | inside the log arch's bore | 1.00 | 900 Hz |
 
-and it fades across the doorway rather than switching at the wall line, the way the bore's does:
+and it fades across the doorway rather than switching at the wall line, the way the bore's does.
+Measured out from the middle of the west house (radius 3.4 m):
 
 ```
-0.70 through the middle of the room
-0.36 at the wall
-0    past it — the veranda and the rope walk are outdoors
+d/r 0.00 .. 0.55   0.700     the room
+d/r 0.76           0.354     halfway across the fade
+d/r 0.96           0         the wall, and everything past it
 ```
+
+So the veranda and the rope walk are outdoors, and the last metre before the doorway is the door
+opening rather than a line you cross.
+
+(The message on commit `fbf496b7` says "0.36 at the wall". That is the value at the middle of the
+fade, not at the wall, where it is 0 — the code comment in `index.ts` has it right and this table
+is what `surfaceAt` actually returns.)
 
 ## The measurement
 
@@ -57,23 +70,33 @@ takes *is* the wall.
 <img src="indoors.jpg" alt="Band levels inside and outside the west house and the grove's stilt house" />
 
 ```
-west-house   overall -4.1    500-1k -3.8   1-2k -2.6   2-4k -6.4   4-8k -16.2   8-16k ≤-13.7
-stilt        overall -4.1    500-1k -3.9   1-2k -3.3   2-4k -6.0   4-8k -14.9   8-16k  ≤-2.2
+west-house   overall -4.7    500-1k -3.8   1-2k -2.8   2-4k -5.1   4-8k -16.4   8-16k ≤-21.8
+stilt        overall -4.3    500-1k -3.9   1-2k -3.3   2-4k -6.8   4-8k -14.8   8-16k  ≤-4.3
 ```
 
-The overall **−4.1 dB is not a tuned number, it is a prediction met**: the bed ducks by
-`1 − (1 − ENCLOSURE_DUCK) × enc` = `1 − 0.55 × 0.70` = 0.615, which is −4.2 dB. The renders came
-back at −4.1. The rest of the change is the filter, and it is where it should be — the body of the
-bed barely moves (−2.6 dB at 1–2 kHz) while everything above 4 kHz goes.
+**The overall figure is two effects, and splitting them is the check that the change is a wall.**
+The duck is a flat, frequency-blind `1 − (1 − ENCLOSURE_DUCK) × INDOORS_CLOSE` = `1 − 0.55 × 0.70`
+= 0.615, or −4.22 dB (`bands.py` reads both constants out of the source so the sheet cannot quote a
+number the code stopped using). Anything the bed loses beyond that, the filter took:
+
+| | whole bed | the duck | left for the filter |
+| --- | ---: | ---: | ---: |
+| the west house, open sky | −4.7 dB | −4.2 dB | **−0.4 dB** |
+| the grove's stilt house, closed canopy | −4.3 dB | −4.2 dB | **−0.1 dB** |
+
+That gap is small because it is *total* energy and the bed keeps almost all of its energy below
+2 kHz — but it is the right gap, in the right direction, for the right reason: under open sky the
+wall still has a top end to remove, and under a canopy the roof had already removed it. Per band
+the filter is not subtle at all: −2.8 dB of body against −16.4 dB at 4–8 kHz in the same room.
 
 Two honest limits on reading those numbers, both marked on the sheet:
 
 * **The renders are 16-bit, and the two `8-16k` figures are bounds, not readings.** Inside either
-  room that band lands at −107.8 dBFS, which is exactly the file's own noise floor scaled to an
-  8 kHz width (measured from 16–20 kHz, where the bed has nothing). The true attenuation can only
-  be larger. The sheet draws each band's floor as a tick and prefixes a bound with `≤`.
+  room that band lands on the file's own noise floor — measured from 16–20 kHz, where the bed has
+  nothing, and scaled to an 8 kHz width. The true attenuation can only be larger. The sheet draws
+  each band's floor as a tick and prefixes a bound with `≤`.
 * 90 s of gusts and birds settles these to a few tenths, so the first decimal is real and the
-  second is not.
+  second is not. Read the −5.1 and −6.8 at 2–4 kHz as the same number.
 
 ## The two grove huts are one measurement, not two
 
@@ -97,17 +120,17 @@ they sound the same, which is correct. It does mean **the tree hut's take corrob
 stilt house's take did not already say**, and the sheet does not draw it as if it did.
 
 What *is* an independent check is the west house, because it stands under open sky (`canopy 0.00`)
-where the grove stands under a closed one (`canopy 1.00`). Both rooms lose the same 4.1 dB overall
-and the same ~6 dB at 2–4 kHz. They only diverge above 4 kHz, and for a reason the table above
-already gives: the grove's roof had taken the bed's top to 4 kHz before the wall got a turn, so
-there was almost nothing left up there for the wall to remove. Same wall, same behaviour, different
-amount of top end to work on.
+where the grove stands under a closed one (`canopy 1.00`). Both rooms lose about the same overall
+and about the same at 2–4 kHz. They diverge above 4 kHz, and for a reason the table above already
+gives: the grove's roof had taken the bed's top to 4 kHz before the wall got a turn, so there was
+almost nothing left up there for the wall to remove. Same wall, same behaviour, different amount of
+top end to work on.
 
-(`hut-out` reading `bridge` is PR #68 underneath this one, working.)
+(`hut-out` reading `bridge` is #68, now merged, working.)
 
 ## Listen
 
-Same gain on all four clips (+22 dB, so the quiet bed is audible on laptop speakers) — the
+Same gain on all four clips (+12 dB, so the quiet bed is audible on laptop speakers) — the
 difference you hear between a pair is the difference that was measured, not a normalisation.
 
 ```
@@ -143,9 +166,11 @@ python3 art/audio/2026-09-24-indoors/bands.py --takes /tmp/indoors --all \
     --out art/audio/2026-09-24-indoors/indoors.jpg
 node art/audio/2026-09-24-indoors/where.mjs
 node --test src/audio/places.test.mjs
+for n in west-house-in west-house-out stilt-in stilt-out; do \
+    ffmpeg -y -i /tmp/indoors/$n.wav -t 45 -af volume=12dB -b:a 112k \
+        art/audio/2026-09-24-indoors/clips/$n.mp3; done
 ```
 
-Typecheck clean, build green, **180 / 180 tests across the repo** (50 files; the two new ones here
-take it from 178). This branch's own commits touch nothing outside `src/audio/` and
-`art/audio/` — the one file elsewhere in the diff, `src/world/terrain/expansionNorth.test.mjs`,
-belongs to #68 underneath and is explained there.
+Typecheck clean, build green, **185 / 185 tests across the repo** (51 files; the two new ones here
+are part of that). `playtest.mjs --only walk`: 11 walks, every waypoint reached, nothing stuck, no
+page errors. Nothing outside `src/audio/` and `art/audio/` changes.
