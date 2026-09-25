@@ -30,3 +30,21 @@ on the head `7468bb38` at the owner's exact 06:50 poses, 896 × 776, clock froze
 
 Renders `/tmp/f4/r197/{base,hide}`; dist `/tmp/f4/r197-dist-head`; the classifier as squad2 wrote it, in
 `/tmp/f4/clarity/scripts/_f4barkattrib.mjs` (not committed).
+
+## Correction, 05:00 — the loose count above overstates the trees; squad2's material probe (`brownwood`, 03:56) and a stricter count agree
+
+The table above counts a bark pixel as a group's when it *changes* with the group hidden. A bole's shadow on a brown bank changes
+when the bole goes — and the bank stays bark-hued — so that count hands the groups the earth under their shadows. Counting a pixel
+as the group's only when it **stops being bark-class** with the group hidden:
+
+| owner pose | bark share of the band | columns | giants | understory | distant + mid | structures | white-bark | not the trees (earth, timber, the arch) |
+|---|---|---|---|---|---|---|---|---|
+| north | 17.2 % | **34 %** of the bark pixels (5.9 points of the band) | 1 % | 1 % | 0 | 1.3 % | 0 | **63 %** |
+| west | 8.2 % | 20.7 % | **59.8 %** (4.9 points) | 4.2 % | 5.4 % | 3.9 % | 0 | 6 % |
+
+That matches squad2's `brownwood` probe, which named the wood materials and marked them: every tree's wood together is **5.6 %** of
+the north band and 5.1 % of the west, and the rest of the 17–21 points of warm hue is earth, timber and paving — the classifier
+cannot tell wood from soil. So: "the trees show the brown" is not a statement about trees at the north pose (a third of its brown is
+tree wood, and that third is the seated columns' boles at 5–30 m); at the west pose the tree wood is most of a smaller brown, and it
+is one giant's trunk. The white-barks are 0 either way; the mid / distant boles 0–5 %. The reading in the section above that named
+"the columns and the giants, 84 %" is withdrawn for the north pose — the giants' 25 % there was their shade on the bank.
