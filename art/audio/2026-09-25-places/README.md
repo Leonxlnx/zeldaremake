@@ -86,5 +86,5 @@ python3 art/audio/2026-09-25-places/apart.py --takes /tmp/floor \
 node art/audio/2026-09-24-standing/term.mjs --dist dist --at 3.9,37.08 --term gorge --values 0,0.5,1
 ```
 
-**191 / 191 tests**, typecheck clean, build green. Nothing in `src/` changes on this branch — the
+**196 / 196 tests**, typecheck clean, build green. Nothing in `src/` changes on this branch — the
 change here is to two scores and the reason for them.
