@@ -4,7 +4,11 @@
  * shot, the asset turntables and the real-time film, as a self-contained static folder.
  *
  *   node legosw/scripts/wip-site.mjs --render /tmp/lsw-wip-render --out /tmp/lsw-wip
- *        [--film <built dist>] [--shots <shots.json>] [--asset-stills /opt/cursor/artifacts] [--commit <sha>] [--fps 24] [--no-video]
+ *        [--film <built dist>] [--shots <shots.json>] [--hero <still.mjs --film output>] [--asset-stills /opt/cursor/artifacts]
+ *        [--commit <sha>] [--fps 24] [--no-video] [--print-hero-times]
+ *
+ * --print-hero-times lists the time of each shot's still, to pass to `still.mjs --film --times`; stills found
+ * in --hero are used instead of video frames, so the shot list can be complete before the render is.
  *
  * <render> is a render.mjs output folder (frames/, shots.json, audio.wav). --film is copied to <out>/film
  * unless it already lives there. The page works from any static host (relative URLs only).
@@ -96,6 +100,8 @@ function nearestFrame(f) {
   return -1;
 }
 
+const heroTime = (s, info) => Math.round((s.start + (s.end - s.start) * info.at) * 100) / 100;
+
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -106,14 +112,23 @@ function main() {
   }
   const shots = JSON.parse(fs.readFileSync(path.resolve(args.shots || path.join(renderDir, 'shots.json')), 'utf8'));
   const duration = shots.at(-1).end;
+  if (args['print-hero-times']) {
+    console.log(shots.map((s) => heroTime(s, SHOT_INFO[s.name] ?? { at: 0.5 })).join(','));
+    return;
+  }
 
   fs.mkdirSync(path.join(out, 'stills'), { recursive: true });
   const shotCards = [];
   shots.forEach((s, i) => {
     const info = SHOT_INFO[s.name] ?? { title: s.name, at: 0.5 };
-    const f = nearestFrame(Math.round((s.start + (s.end - s.start) * info.at) * fps));
+    const T = heroTime(s, info);
+    const hero = args.hero ? path.join(path.resolve(args.hero), `film-${T.toFixed(2).padStart(6, '0')}.png`) : '';
+    const f = nearestFrame(Math.round(T * fps));
     let still = '';
-    if (f >= 0) {
+    if (hero && fs.existsSync(hero)) {
+      still = `stills/${String(i + 1).padStart(2, '0')}-${s.name}.jpg`;
+      ff(['-i', hero, '-vf', 'scale=1280:-2', '-q:v', '3', path.join(out, still)]);
+    } else if (f >= 0) {
       still = `stills/${String(i + 1).padStart(2, '0')}-${s.name}.jpg`;
       ff(['-i', frameFile(f), '-q:v', '3', path.join(out, still)]);
     }
