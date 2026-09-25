@@ -40,10 +40,6 @@ Walk `south-bridge-to-log` 21/21 and the 41 south probes pass on `bc757dfa`.
 
 ## 2. Dwellings on the way out
 
-**Status (interim, `a0795842`):** the description below is final. Typecheck, build and the tests (187 / 187) pass
-on `a0795842`. The walk, probe, camera-spot, pose-count and render evidence and the 50-check rubric tables
-(`docs/RUBRIC_50_STRUCTURES.md`) are queued behind the box's two capture slots and follow in the next commit.
-
 Two structures stand where the path straightens for the bridge (layout.ts `EXPANSION_SOUTH_DWELLINGS`, built by
 `structures/expansionSouthDwellings.ts`). Both sit in the wedge that `plaza-south`'s trunk hides from camera C, clear of
 the walked line, the bridge corridor, the trees and fable-3's toll pile (the marker at (5.6, 27.7), the crate at
@@ -102,15 +98,23 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   four sawn posts.)
 - A plank floor of 12 boards on two bearer logs on sunk stumps, each board pegged over both bearers (24 peg heads);
   plates and five rafters, each ending 0.1 m inside the roof's lobed edge. The roof is a moss cushion, 1.95 m high at
-  the front and 1.3 m at the back, over a bark underside: its rim rolls over and down all round (the roll's depth
+  the front and 1.65 m at the back, over a bark underside: its rim rolls over and down all round (the roll's depth
   wanders along the edge), 84 moss lumps sit along the rim and 90 on the cushion, and where the root passes the moss
   drapes over it. Moss beards, leaf clusters and hanging vines hang along the front eave, a few along the back and
   the ends.
 - A palisade of split poles at the back, with a round window and a shutter propped open outside it (hinged on withy
-  loops round two poles), and a palisade at the north end whose two withy ties end at the root.
-- Inside: a bench (a split log on two stubs with a board seat) along the back wall, a woven basket beside it, a walking
-  stick against the front-south post, and a rope coil hung on the root. Outside: 18 split logs in three rows against
-  the north end.
+  loops round two poles), and a half-height palisade (0.95 m) at the north end whose two withy ties end at the root.
+- Inside: a bench (a split log on two stubs with a board seat) 0.1 m off the back wall, a woven basket beside it, a
+  walking stick against the front-south post, and a rope coil hung on the root. Outside: 18 split logs in three rows
+  against the north end.
+- The follow camera (`30f90b6d`): canonical's camera keeps 0.6 m from Link's aim (1.5 m over his feet) whatever
+  stands behind it, and its level line meets the back wall 1.74–1.81 m up. With the back wall at 1.30 m that line
+  cleared it, passed through the roof (a slim part, which the camera may look through, like the keeper's eave) and
+  stood the camera behind the hut with Link hidden; facing south, the 0.6 m clamp put the camera in the full-height
+  north palisade. Now the back wall stands 1.65 m high and stops the line, a row of walk blockers over the bench
+  holds Link 0.64 m or more from the wall's inner face so the clamp leaves the camera inside, under the roof, and the
+  north end is a half wall the camera looks over. (Looking down from inside, the camera still rises through the slim
+  roof, as it does through the keeper's eave.)
 - Use and repair: 7 floor boards over the step are trodden paler, most at the front edge where feet land, and the
   step's top is worn too; the north corner board has lost 0.13 m of its front end.
 - The step up from the path: a split log along the front whose top sits halfway between the ground in front of it and
