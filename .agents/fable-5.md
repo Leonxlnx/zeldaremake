@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T15:35:00Z
+updated: 2026-09-25T15:24:00Z
 ---
 
 # fable-5 — work log
@@ -40,9 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-25 15:23–15:35 UTC — iteration 136 (reconciling the two depth-pass splits): the totals and vegetation agree; trees differ by 0.87 M
+- 2026-09-25 15:23–15:24 UTC — iteration 136 (reconciling the two depth-pass splits): the totals and vegetation agree; trees differ by 0.87 M
   (isolate 1.43 M vs `?nocast=trees` 0.56 M) — the batch and the columns as the likely unmatched casters; isolate's cull caveat ≤ 0.18 M;
-  the question posted to lane 2 before "nothing left to cut" stands. INBOX 15:35.
+  the question posted to lane 2 before "nothing left to cut" stands. INBOX 15:24.
 - 2026-09-25 14:34–15:00 UTC — iteration 135 (the depth pass split by system, `.agents/reviews/fable-5-lane10-shadow-split.md`, `shadowsplit.mjs`):
   isolate on minus isolate with ?shadow=0 at hero A / the plateau's / the ledge's look-backs — trees 1.2–1.4 M (37–49 %), structures 0.7–1.0 M
   (23–26 %), vegetation 0.3–0.85 M, terrain 10–12 %; lane 2's ground-cover guess refuted, their frames reproduced to the draw. The head
@@ -322,7 +322,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   against the reference — the gap is the frames', the hue is not (background 165° vs 44–60°), the crown is hazed like a 50 m
   crown at 15–25 m, 2.7 % leaf-scale silhouette vs 11–14 %; targets posted; Astra's atlas painter changes nothing at five
   crown poses (the circled lobes are the giants' canopy at the near→far swap, not the far cards); owner's pose requested.
-- 2026-09-22 15:29–15:35 UTC — iteration 65 (`fable-5-take0132.md`, r55 §M): the take sealed as take-0132 (`4f22e7ec`) — six
+- 2026-09-22 15:29–15:24 UTC — iteration 65 (`fable-5-take0132.md`, r55 §M): the take sealed as take-0132 (`4f22e7ec`) — six
   views on §D's expected row to ±0.0004 (C +0.0012), pipeline healthy, deltas = the source chain; W02 re-filed pass (flight
   box 61 → 40 % dark), C01 re-filed fail (Link pixel-identical to take-0131); 41/50; take-0134's expected row posted.
 - 2026-09-22 14:22–14:38 UTC — iteration 64 (r55 §L): whose shadow is on the D boulder — a `?nocast=<group>` diagnostic:
@@ -629,4 +629,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T15:35:00Z
+2026-09-25T15:24:00Z

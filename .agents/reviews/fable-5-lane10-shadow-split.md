@@ -30,7 +30,7 @@ rule for structures beyond ≈ 30 m — `exp-south2` has one for its zone; the h
 beyond the fixed cameras' distances** (lane 2's own `82a85ced`-style proxy for the columns). Either takes 0.5–1.0 M off every
 over-cap frame without a pixel the colour pass shows — the shadow's edge at 40 m is a few pixels.
 
-## Reconciling with lane 2's `DEPTH-SPLIT` (merged 15:16 as #136) — 15:23–15:35 UTC
+## Reconciling with lane 2's `DEPTH-SPLIT` (merged 15:16 as #136) — 15:23–15:24 UTC
 
 Lane 2 split the same pass an hour later by a different method — a temporary `?nocast=trees` flag clearing `castShadow` on the
 tree meshes its match found at build, and `?veg=0.05,0` for the grass — and reached **trees 0.56 M (19 %), vegetation 0.30 M,
