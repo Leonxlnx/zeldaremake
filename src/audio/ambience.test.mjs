@@ -226,8 +226,12 @@ test('a village of lanterns does not sum to a drone', () => {
   // 39 pods is what the real scene has, on every house, post and bough
   const village = Array.from({ length: 39 }, (_, i) => ({ x: Math.cos(i) * (8 + i * 0.4), y: 3, z: Math.sin(i) * (8 + i * 0.4) }));
   const moved = respondsTo(ctx, amb, { pods: [] }, { pods: one });
-  assert.equal(moved.length, 1, `${moved.length} gains follow the lanterns, expected the flame alone`);
-  const flame = moved[0].node;
+  // two follow the lanterns since 2026-09-25: the flame, and the share of it that goes to the hall
+  // — a lantern across the plaza is mostly reflection and one at arm's length is almost all flame
+  assert.equal(moved.length, 2, `${moved.length} gains follow the lanterns, expected the flame and its send`);
+  const lit = moved.filter((r) => r.after > r.before);
+  assert.equal(lit.length, 1, 'exactly one of them should come UP when a lantern arrives: the flame itself');
+  const flame = lit[0].node;
   const level = (pods) => {
     amb.update(9, { gust: 0.5, listener: LISTENER, forward: NORTH, pods });
     return flame.gain.target;
@@ -778,4 +782,31 @@ test('below the gust knee the leaves are the only thing keeping the wood from si
     worst <= A.QUIET_GAP_MAX + 0.5,
     `the wood was left with nothing for ${worst.toFixed(2)} s below the gust knee, against a ${A.QUIET_GAP_MAX} s cap — with the wind silent there is nothing else to hear`,
   );
+});
+
+test('a lantern and a fairy are further off in more than level', () => {
+  // Rubric checks 42 and 45 both stall on one sentence: "pods and fairies are level-only". A bird
+  // has had the other half since it was built — `birdWet` sends 0.2 of it to the hall at arm's
+  // length and 0.75 deep in the wood — and measured with the hall's return muted so the reverb
+  // could be subtracted exactly (`art/audio/2026-09-25-wet/`), the flame's reflected share was
+  // −26.6 dB at 0.6 m and −26.9 dB at 5 m. Two tenths of a decibel across its whole range.
+  assert.ok(A.flameWet(1) < A.flameWet(0), 'a lantern at arm\u2019s length must be drier than one across the plaza');
+  assert.ok(A.glintWet(1) < A.glintWet(0), 'and so must a fairy beside him');
+  assert.ok(A.FLAME_WET_NEAR > 0 && A.FLAME_WET_FAR < 1, 'a flame is never wholly dry nor wholly hall');
+  // the flame's send has to answer the pods, and answer them the right way round
+  const { ctx, amb } = bed({ seed: 'wet/flame' });
+  const base = { gust: 0.5, listener: LISTENER, forward: NORTH };
+  const sendAt = (pods) => {
+    amb.update(1, { ...base, pods });
+    const before = ctx.made.gain.map((g) => g.gain.target);
+    amb.update(2, { ...base, pods });
+    return { before, node: ctx.made.gain, targets: ctx.made.gain.map((g) => g.gain.target) };
+  };
+  const overhead = sendAt([{ x: LISTENER.x, y: LISTENER.y + 0.4, z: LISTENER.z }]).targets;
+  const across = sendAt([{ x: LISTENER.x + 9, y: LISTENER.y + 1, z: LISTENER.z }]).targets;
+  const wetter = overhead.filter((v, i) => across[i] > v + 1e-9).length;
+  assert.ok(wetter >= 1, 'nothing in the bed got wetter when the only lantern moved nine metres away');
+  // …and the flame itself got quieter, so this is not a level change wearing a send's clothes
+  const quieter = overhead.filter((v, i) => across[i] < v - 1e-9).length;
+  assert.ok(quieter >= 1, 'the flame must also be quieter across the plaza');
 });

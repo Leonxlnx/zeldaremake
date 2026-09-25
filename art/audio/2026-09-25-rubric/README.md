@@ -13,7 +13,7 @@ in lane; move it if the squad would rather it sat beside the structures one).
 
 ## The verdict
 
-**173 / 200 when first scored on 2026-09-25. 181 / 200 by 08:50, 182 / 200 by 17:40 the same day** (check 48 moved to 4 once suspend and resume were tested at last: `2026-09-25-suspend`).
+**173 / 200 when first scored on 2026-09-25. 181 / 200 by 08:50, 182 by 17:40, 183 by 21:40 the same day** (check 48 moved to 4 once suspend and resume were tested at last: `2026-09-25-suspend`).
 
 Its own rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. On the first pass
 it cleared the total and failed the rest — three checks below 2 and one ★ at 2. Since then #88 built
@@ -50,7 +50,7 @@ not a mis-score, and it is the only thing between the sound and the rubric's own
 | D | contact and events | 15 / 20 | **#27 scores 0 — the only check still under 2** |
 | E | music | **24 / 24** | |
 | F | mix and level | 23 / 24 | |
-| G | space and direction | 18 / 20 | was 15; #88 built occlusion |
+| G | space and direction | 19 / 20 | was 15; #88 built occlusion, and the lantern and the fairy stopped being level-only |
 | H | runtime | 18 / 20 | was 14; #91 tested the hidden tab, the renderer stopped accumulating, and a stopped clock now starts itself again |
 
 ## The four holes, in the order I would take them
@@ -174,7 +174,7 @@ score is a judgement and is marked as such.
 | 39 | levels hold over a session | **4** | 13 min soak, no creep |
 | 40 | same on a second machine | **4** | 44.1 vs 48 kHz, largest shift anywhere 0.5 dB (below) |
 | 41 | ★ the world turns under him, **including mid-sound** | **4** | #79, and two guards that fail on a sign flip or a frozen heading. Check amended 2026-09-25 — both of those guards hold the facing still for a whole run, and under them every bird was panned to the facing of up to four seconds earlier: turning at 60°/s moved a call exactly as much as standing still, which is not at all. On the new wording it was a 2; the 4 is on the evidence of `2026-09-25-turning` (a call leaning 0.635 pan/s against the 0.629 the geometry asks) and `2026-09-25-parallax` (a call heard 0.004 pan units from its own tree's bearing while he paces past it, against 0.153 before, and 0.007 for a listener who does not move at all) |
-| 42 | distance is more than level | 3 | a far bird is dulled (7 kHz → 1.8 kHz) and wetter, and since 2026-09-25 that distance is the one its tree really is at — walking twenty metres toward a bird used to change nothing at all (`2026-09-25-parallax`: 4.8 m of median error, worth 890 Hz of cutoff, now 1.9 m). **Pods and fairies are still level-only**, which is what holds this at 3 |
+| 42 | distance is more than level | **4** | a far bird is dulled (7 kHz → 1.8 kHz) and wetter, and since 2026-09-25 that distance is the one its tree really is at (`2026-09-25-parallax`). The flame and the glint are no longer level-only either: the flame's reflected share went from 0.2 dB of spread across its whole range to 3.9 dB, with its direct level unchanged (`2026-09-25-wet`) |
 | 43 | the field is used, never collapses | **4** | side 3–4.6 dB under mid; `PERCH_PAN` caps at 0.85 |
 | 44 | reflection belongs to the space | **4** | the wood's hall and the hut's room are separate convolvers |
 | 45 | walking behind something changes it | **3** | #88: a bird behind the west house loses 9.3 dB of its own band and the level between calls does not move. Still level-only for the fairy glints and the flames |

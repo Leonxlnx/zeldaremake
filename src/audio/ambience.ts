@@ -186,6 +186,29 @@ export const LANTERN_LEVEL = 0.055;
 export const LANTERN_CROWD_SHARE = 0.2;
 
 /**
+ * How much of a lantern flame and a fairy's glint arrives as reflection, close up and far off.
+ *
+ * A bird has had this since it was built — `birdWet` sends 0.2 of it to the hall at arm's length
+ * and 0.75 deep in the wood, so a far call is wetter as well as quieter, which is most of what
+ * tells a listener how far away something is once he has stopped trusting its loudness. The flame
+ * sent a flat 0.45 and the glint a flat 0.3, at any distance at all: measured with the hall's
+ * return muted so the reverb could be subtracted exactly (`art/audio/2026-09-25-wet/`), the flame's
+ * reflected share was **−26.6 dB at 0.6 m and −26.9 dB at 5 m** — two tenths of a decibel across
+ * its whole range. That is the sentence holding rubric checks 42 and 45 at 3: *pods and fairies are
+ * level-only*.
+ *
+ * The near values sit under the old flat ones and the far values over them, so the mid of each
+ * range is about where the mix already was.
+ */
+export const FLAME_WET_NEAR = 0.25;
+export const FLAME_WET_FAR = 0.7;
+export const GLINT_WET_NEAR = 0.18;
+export const GLINT_WET_FAR = 0.6;
+/** `close` is 1 with his nose against it and 0 far off — the attenuation the level is cut from */
+export const flameWet = (close: number) => FLAME_WET_NEAR + (FLAME_WET_FAR - FLAME_WET_NEAR) * (1 - Math.max(0, Math.min(1, close)));
+export const glintWet = (close: number) => GLINT_WET_NEAR + (GLINT_WET_FAR - GLINT_WET_NEAR) * (1 - Math.max(0, Math.min(1, close)));
+
+/**
  * The wind bed's levels.
  *
  * 2026-09-23, owner 20:08: "LOWER THE WHITE NOISE" — after the bed had already been cut 11 dB that
@@ -514,7 +537,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const flameGain = gain(ctx, 0);
   const flamePan = ctx.createStereoPanner();
   flameGain.connect(flamePan).connect(out);
-  const flameSend = gain(ctx, 0.45);
+  const flameSend = gain(ctx, flameWet(0));
   flameGain.connect(flameSend).connect(reverbSend);
   // the third tap of the same buffer, and the one that matters most for a repeat: standing a metre
   // from a pod the flame is the loudest never-stopping thing in the world. Its own rate and its own
@@ -797,13 +820,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * A fairy at `pan`, `level` loud: two or three tiny bell partials climbing over about 120 ms.
    * Short and sparse on purpose — the ear should catch a glint of light beside it, not a chime.
    */
-  const glint = (t: number, pan: number, level: number) => {
+  const glint = (t: number, pan: number, level: number, close: number) => {
     counts.glints++;
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     const hp = filter(ctx, 'highpass', 1200, 0.6);
     hp.connect(panner).connect(out);
-    const send = gain(ctx, 0.3);
+    const send = gain(ctx, glintWet(close));
     panner.connect(send).connect(reverbSend);
     const notes = 2 + Math.floor(eventRng() * 2);
     let end = t;
@@ -1047,6 +1070,9 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     }
     const level = Math.min(1, nearest + (sum - nearest) * LANTERN_CROWD_SHARE) * LANTERN_LEVEL;
     flameGain.gain.setTargetAtTime(level, t, PLACE_TAU);
+    // …and how much of it is reflection rather than the flame itself: a lantern across the plaza is
+    // mostly the village's own hall, one at arm's length is almost all flame
+    flameSend.gain.setTargetAtTime(flameWet(nearest), t, PLACE_TAU);
     let pan = 0;
     if (sum > 1e-4) {
       // right = forward × up
@@ -1079,7 +1105,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
         const rx = -s.forward.z;
         const rz = s.forward.x;
         const len = Math.hypot(bx, bz) || 1;
-        glint(t, Math.max(-1, Math.min(1, ((bx * rx + bz * rz) / len) * 0.85)), best * FAIRY_LEVEL);
+        glint(t, Math.max(-1, Math.min(1, ((bx * rx + bz * rz) / len) * 0.85)), best * FAIRY_LEVEL, best);
         nextGlint = t + FAIRY_GAP[0] + eventRng() * (FAIRY_GAP[1] - FAIRY_GAP[0]);
       } else {
         nextGlint = t + 0.5;
