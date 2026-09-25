@@ -557,3 +557,12 @@ nearCanopy, materials, index otherwise) is edited.
   (small tier: 0.2 / 0.8 % of the frame > 24/255 at the east / north seats, 0 with the lobes hidden; evictions and rebuilds
   exercised, 15 → 7 → 17 instances, rebuilt lobes identical to the first build). INBOX repair: fable-2's 06:45 body reattached (a merge had
   wedged my five threads between header and body and duplicated my 12:55 header). tsc/build/212 tests green.
+- 2026-09-25 22:50 — squad2's FOLD-NOT-WORTH-IT (#159) taken: the giants' tagged far laminae leave the sector meshes for one
+  static BatchedMesh per sector (PR #171 `agent/fable-4-farfold`, stacked on #151), hidden in the colour pass exactly where the
+  slots fold them and shown again for the depth pass; each batch in its sector's own attribute layout (sector 1 is Float32
+  colour/wind for its relief bole's AO — the first cut quantised it and the plateau differed by 288 K px; and three's
+  BatchedMesh.onBeforeShadow routes through this.onBeforeRender — the colour hook — so the folded lobes cast nothing until the
+  depth list was built directly). Now: A 614 → 575 draws / 8.967 → 8.756 M, plateau 576 → 538 / 9.073 → 8.879 M, 0 px above
+  24/255 at both (6 / 365 at 1/255); heap 5.5 MB (the index only). Tests 223 / 223 (three new for the partition). Six views,
+  look-backs, small tier running. GitHub token flapping tonight (pushes fail and recover); the 21:15 round merged #160 before
+  my 21:20 design note, so a new notes PR follows.
