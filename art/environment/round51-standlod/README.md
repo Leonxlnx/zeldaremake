@@ -39,3 +39,17 @@ A after this: 8.78 M — 220 K under W38 with the grass change in.
 
 ## Verification
 `npm run typecheck` green, build green, `lodPool.test.mjs` 10/10.
+
+## Postscript — the same cut under Astra's lighter haze (head `372915a6`, fog `ae880cf2` in)
+Astra's preview holds this cut "pending a fresh look under the lighter haze". The look, on the head with
+and without `60408959` (the revert built from the head), A and D through broll at 1280×720, settle 12:
+
+| view | pixels > 6 (old fog, round 51) | pixels > 6 (lighter haze) |
+|---|---|---|
+| A | 4 (0.000 %) | 789 (0.086 %) — bbox x 163–433, y 114–269: the stand's rows between the trunks |
+| D | 416 (0.045 %) | 1 901 (0.206 %) — bbox x 115–763, y 31–338: the window over the arch's log |
+
+`D-window-nostandlod-vs-head-newfog.jpg` (near LOD left, far LOD right, the arch window at 1:1): the
+poles at 60–90 m are faint silhouettes behind the log in both; the strips read as the same poles. The
+lighter haze shows more of them, so the footprint grows five-fold, and stays a fifth of a percent of D.
+The −50 K at A/B/D/E stands; the arch poses within 36 m are unaffected by construction.

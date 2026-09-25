@@ -298,6 +298,29 @@ test('the canopy roll leans upwind, and only leans', () => {
   assert.equal(Number.isFinite(windLeanFor(north, { x: 0, z: 0 })), true);
 });
 
+test('a run is not a louder walk', () => {
+  // `running` used to appear in exactly one expression — the heel-to-toe gap — so across eight
+  // surfaces and sixty seeds the only number that differed between a walk and a run was the time of
+  // the last part, and on leaf litter not even that (its last part is a settling grain, not the
+  // toe). Measured on the render, a run's spectral centroid was ONE HERTZ from a walk's.
+  for (const surface of SURFACES) {
+    for (let i = 0; i < 20; i++) {
+      const w = designStep(surface, 0.8, false, rng(`gait/${surface}/${i}`));
+      const r = designStep(surface, 0.8, true, rng(`gait/${surface}/${i}`));
+      const heel = (d) => d.parts.filter((p) => p.at <= 0.004);
+      const toe = (d) => d.parts.filter((p) => p.at > 0.02);
+      assert.ok(Math.min(...heel(r).map((p) => p.attack)) < Math.min(...heel(w).map((p) => p.attack)), `${surface}: a run's heel must arrive faster than a walk's`);
+      assert.ok(r.end < w.end, `${surface}: a run's step must be briefer — at five a second a walk's tail is still sounding under the next one`);
+      const bodies = (d) => heel(d).filter((p) => p.kind === 'body');
+      if (bodies(w).length) assert.ok(Math.max(...bodies(r).map((p) => p.f0)) > Math.max(...bodies(w).map((p) => p.f0)), `${surface}: a harder strike rings the surface higher`);
+      if (toe(w).length) assert.ok(Math.max(...toe(r).map((p) => p.peak)) < Math.max(...toe(w).map((p) => p.peak)), `${surface}: a run lands flatter, so the toe is less of its own event`);
+      // and none of it may be level: that is strengthFor's, and doing it here would be level twice
+      assert.ok(Math.abs(Math.max(...r.parts.map((p) => p.peak)) - Math.max(...w.parts.map((p) => p.peak))) < 1e-9, `${surface}: the run's shape must not change its peak — loudness is strengthFor's job`);
+    }
+  }
+  assert.ok(strengthFor(RUN_GROUND_SPEED) > strengthFor(WALK_SPEED), 'and a run must still be louder, by the thing whose job that is');
+});
+
 test('every step is quiet: nothing in a design can reach full scale on its own', () => {
   for (const surface of SURFACES) {
     for (const d of designs(surface, true, 1)) {

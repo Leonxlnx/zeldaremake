@@ -392,6 +392,14 @@ const HIP_LIFT = 0.065;
 const SEAT_BACK = 0.06;
 /** the ankle targets ahead of the hips joint (m, L / R): the heels just clear the riser face */
 const SEAT_REACH: [number, number] = [0.15, 0.17];
+/**
+ * the sitter's chin up (rad, relative to her curled chest): the back rounds 0.30 rad forward over the
+ * tipped pelvis, and the head used to take only 0.08 of it back, so her resting gaze sat 0.22 rad
+ * below level — from the follow camera's 1.5 m eye at 5–6 m her fringe covered her eyes and she read
+ * hunched, face hidden (lane 7's play-distance review, 2026-09-25). 0.25 leaves the head a hair
+ * below level: the back stays rounded, the face reads.
+ */
+const SEAT_CHIN_UP = 0.25;
 
 /**
  * Seated (round 48): root under the hips so the hips joint sits `HIP_LIFT` above the seat; each
@@ -457,7 +465,7 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
     elbow.rotation.x = -flex;
   }
   r.neck.rotation.y = headYaw;
-  r.neck.rotation.x = -headPitch - 0.08 + 0.02 * breath;
+  r.neck.rotation.x = -headPitch - SEAT_CHIN_UP + 0.02 * breath;
   if (r.cap) r.cap.rotation.x = 0.02 * Math.sin(t * 0.7 + phase);
   const b = blink(t + phase * 0.3);
   for (const e of r.eyes) e.scale.y = 1 - 0.92 * b;
@@ -531,9 +539,12 @@ function noticePlayer(rig: Rig, kidX: number, kidZ: number, kidYaw: number, head
   const pitch = Math.atan2(playerY + PLAYER_EYE_M - headY, dist);
   // the neck turns relative to the chest: take the pose's own hips / chest yaw (the idle turn, the walk's counter-rotation) out of the target
   const body = rig.hips.rotation.y + rig.chest.rotation.y;
+  // and its pitch — the sitter's torso curls 0.3 rad forward, a standing kid's leans a few hundredths — so the
+  // world pitch to his eyes is what the clamp sees, and the neck's own angle carries the torso back out
+  const torso = rig.hips.rotation.x + rig.chest.rotation.x;
   const n = rig.neck.rotation;
   n.y += (MathUtils.clamp(rel - body, -NOTICE_YAW_MAX, NOTICE_YAW_MAX) - n.y) * w;
-  n.x += (MathUtils.clamp(-pitch, -0.35, 0.5) - n.x) * w;
+  n.x += (MathUtils.clamp(-pitch, -0.35, 0.5) - torso - n.x) * w;
 }
 
 // ---- the system ----

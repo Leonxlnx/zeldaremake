@@ -262,3 +262,256 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 06:45 UTC — W38 give-back 2: white-bark mid LOD shadows off
 - A −60 K, C −240 K, F −130 K, six views within −0.0006 (A/B/E identical). The columns' mid casters measured too: E −0.0032 → kept casting. Branch `agent/fable-4-shadowlod`; README `art/environment/round51-shadowlod/`.
+### 2026-09-21 22:55 UTC — tick: plateau roof merged; the atlas fix pre-read
+- plateau-roof merged (99a69076). Measured Astra's atlas sRGB fix alone (head vs head-minus-commit): A −0.0001 … C −0.0022, hue-to-ref +0.02–0.21° in all six, 0.4 % of C's pixels (the cards) lighter by ~8 levels. Posted. A now 8.80 M (200 K headroom).
+
+### 2026-09-22 00:35 UTC — tick: the north spine's sky measured, not shipped
+- w19-spine-u 52.5 % blue. Six built lobes over the spine vanish from below when near-eligible (43 %), draw as far laminae (33 %); corridors / settle / hero pass / pool cap eliminated. README `art/environment/round51-spine-roof/`; question posted for the near-canopy kit's holder. Nothing shipped.
+
+### 2026-09-22 01:50 UTC — tick: the spine-roof question, two more eliminations
+- Settle 400 frames (2.4 s of pool build work) and a 512 MB canopy pool both leave w19 at 43.2 %: the near parts of the zenith lobes are not drawn from below for a reason I have not found; question stands in the INBOX. fable-cursor: A at 8.80 M, no more canopy on A's side without a matching cut — my lane's cut candidate is white-bark LOD 1 (147 K at the fixed views), ~45 K for a 30 % thin, held until the roof has an answer.
+
+### 2026-09-22 03:20 UTC — review: fable-2-pebble-tiles
+- Six views pixel-identical, A 8.80 → 8.77 M, F −130 K, draws +5 at A. IMPROVED (perf), posted.
+
+### 2026-09-22 00:45 UTC — tick
+- lodthin merged (tick 216, 0b33c641; 13/13 tree tests). Astra's `persistent-fold-audit` read: her bank-core parts are visible but excluded from the fold slots — the fold/slot coupling is deliberate there; not the zenith-lobe mechanism (giants are translated only, yaw 0 — one more hypothesis closed). fable-3's tunnel-floor branch is a note, no code. Nothing addressed to me; the spine-roof question stands.
+
+### 2026-09-22 01:50 UTC — tick
+- fable-5 iteration 50: lodthin reproduced on the head, harmless as claimed. fable-5 iteration 49 flags PR #29's bank-core recession at F −0.0104 (Astra's, in hand). take-0132 lost to a timeout, take-0133 restarted. `pruneNearPools` read (residency only) — the spine-roof question stands. Nothing addressed to me; no code branch to review (fable-2-b3-lo is a census fix).
+
+### 2026-09-22 07:40 UTC — tick: round-52 list read; hue measured
+- fable-5's round-52 list has nothing assigned to me; #2 (canopy hue 73–75° vs 60–65°) includes the white-bark crown (77.7° at C) — Astra's warmth hook covers `whiteTree`, so I posted the measurement and left the palette alone to avoid a double turn. take-0133 capturing; shadowlod waits.
+
+### 2026-09-22 08:20 UTC — the spine-roof question answered
+- Runtime probe (scene hooks): near parts built, drawn, 2.5 % of the frame each at 17 m — laminae-only clouds; the far lobes' cards are what roof. Not a bug; the question withdrawn, options posted (far-only lobes with an explicit flag, or cards / a higher laminae cap in the near kit). Probe scripts kept out of the repo.
+
+### 2026-09-22 09:45 UTC — fable-cursor's pool-residency ask answered
+- Six-view walk in one page: heap +8 MB, canopy pool 426/426 resident 223.9 MB, 0 builds / 0 evictions every view, frames steady 12–16 s (SwiftShader). Not the pools. README `art/environment/round51-pools-walk/`. shadowlod merged (tick 220).
+
+### 2026-09-22 11:20 UTC — shadow proxy measured, held
+- fable-5's option built: six views A/B/E/F identical, C +0.0005; A +20 K, C +120 K; grove 1.2 % darker by 9. Held as an option (a third of the give-back for a soft return). Branch `agent/fable-4-shadowproxy`; README `art/environment/round51-shadowproxy/`.
+
+### 2026-09-22 13:30 UTC — memory: CPU arrays released on upload
+- fable-cursor's OOM ask. Measured the split (renderer 2.1 GB = 0.73 GB arrays + 1.4 GB JS objects; GPU 1.7 GB). Shipped `releaseAfterUpload` for every tree geometry: renderer −125 MB at A / after six views, pixel-identical. Branch `agent/fable-4-poolmem` @ 79699a4f; README `art/environment/round51-poolmem/`. Next levers posted (JS objects, other systems' arrays, the pools' resident set).
+
+### 2026-09-22 14:40 UTC — poolmem with the warm-up
+- ?warmup=1 (the game's default path): renderer 2132 → 1690 MB, heap 1525 → 1085 MB — the full trees saving. Posted; offered to hoist the helper for other systems.
+
+### 2026-09-22 16:30 UTC — memory step two: vertex storage compacted
+- Normals Int8 / colours Uint8 / aWind Uint16, range-checked; trees 318 → 228 MB, renderer −94 MB (no warm-up) / GPU −61 MB (warm-up); six views ≤ 0.0001. Branch `agent/fable-4-vertexbytes`; README `art/environment/round51-vertexbytes/`. Held for the pass after take-0133 seals.
+
+### 2026-09-22 17:20 UTC — tick: corrections taken
+- fable-5: the merged release is −568 MB Chrome on the capture path; ?warmup=1 must stay off for takes (SwiftShader moves bytes to the GPU process); the heap's objects are 0.50 GB, not 1.4. Acknowledged in the INBOX. vertexbytes waits for the post-take pass. Offered to bisect a program-count jump for the stall.
+
+### 2026-09-22 19:10 UTC — overdraw measured; prepass proposed
+- vertexbytes merged (tick 227). Trees-only overdraw at A: 52 fragments per covered pixel (max 166), C 26.5 — fable-2's per-pixel cost explained. Proposed a depth prepass (needs three folding depth twins in materials.ts — Astra; trees side mine). README `art/environment/round51-overdraw/`.
+
+### 2026-09-22 20:40 UTC — prepass timed: no gain
+- Built the depth prepass prototype (twins wrapping onBeforeCompile; frame correct to 0.4 % px); A frame 14 950 → 14 703 ms (noise) for +72 draws / +3.2 M tris. SwiftShader pays the leaf shader regardless of depth rejection. Ask to Astra withdrawn; nothing shipped.
+
+### 2026-09-22 21:35 UTC — tick: heartbeat
+- Head c7379f98: fable-cursor's grass blades to 26 m (+60–100 K at A, measured at take-0134); take-0133 at F, det + motion to go. Nothing addressed to me; fable-2's V16 flush and form-2 are measurements, not landings. notes2 merged with the head; no code this tick.
+
+### 2026-09-22 15:30 UTC — round 51: the north stand's poles take the far LOD beyond 50 m (`agent/fable-4-standlod` @ `60408959`)
+- W38 give-back after fable-2's grass (A 8.83 M, 170 K under): the stand's ~150 poles stood 60–100 m from A/B/D/E
+  in their frusta and drew the near LOD to 120 m. `bucketDistant`: `variant.bandOnly && z < −62` → far LOD from
+  50 m × quality.distance. A/B/D/E −50 K each; SSIM Δ 0.0000 at all six; D 416 px (the strips through the arch);
+  the three arch poses (10–36 m from the poles) 0 pixels differ head vs branch. One file. A after: 8.78 M.
+- Method note: a per-placement LOD threshold keyed on the band-only variant and position keeps distant.ts (Astra's)
+  and the DepthBand type untouched; fable-cursor's far-trunk row at z −46 is excluded by the z test.
+
+### 2026-09-22 17:05 UTC — round 52: the owner's clarity circle attributed (no code)
+- The owner's marked screenshot (via Astra): blurry crown forms at height. Reproduced the symptom on the west
+  meadow around the hut knoll (six seated candidates); hide-one-group with a frozen clock over the upper-left
+  region: `trees/distant` far crown cards 29–69 %, white-bark 12–21 % (crisp leaf clusters, not blur), canopy
+  roof 1.5–12.6 %, columns 2–3 %. Panels show hiding the cards removes every soft form. Astra's lane; no
+  white-bark crown pass. Seam: re-check the white-barks' mid LOD at k3/k4 after her change.
+  `art/environment/round52-clarity-attrib/README.md`.
+- Tools learned: CPU raycasts miss shader-positioned instances (82 % no-hit over the cards); `__ZR__.probe`
+  seats third-person poses; `setTime` freezes wind/motes so hide-and-diff has a < 0.5 % floor.
+- 18:40 — second pass from the hut's back side: k10 at (−38, 70) reproduces the owner's framing; the region is
+  98.7 % `trees/distant` — bole, blurry crowns and lollipop trees are all the distant near LOD (strips + cards).
+  Posted `owner-clarity-1` for fable-5's clarity.py reads; reconciled with her clearing-pose read (giants there).
+- 18:58 — take-0134's clarity set at `owner-clarity-1` with fable-5's clarity.py: the fog closes the hue
+  (background 75° → 60°), the silhouette does not move (6.7 px, 2.9 % fine, one fused blob; crown l 0.44).
+  Arch poses −0.004…−0.011 luminance under the fog. README §Third pass.
+- 19:54 — standlod re-verified under the lighter haze (head with/without `60408959`): A 789 px (0.086 %),
+  D 1 901 px (0.206 %), no legible difference in the arch window; posted for Astra's preview. round51-standlod
+  README postscript + crop.
+
+### 2026-09-22 23:20 UTC — round 52: the colour pass draws only in-view family instances (`agent/fable-4-mainpass` @ `06a1dca5`)
+- Triangle map of A (hide-one-group): white-bark 0.52 M, of which 402 K two high-LOD instances behind the camera
+  kept for their shadows. Split kept into in-view + shadow-only; `onBeforeRender`/`onAfterRender` swap the
+  InstancedMesh count between the colour pass and the shadow pass. A three-sphere hull (crown / lower wood /
+  upper wood) replaces the fat bounding sphere for the colour-pass test (pad 1.5 m).
+- A −150 K, F −130 K, B/C/E −50 K, D −60 K; six views pixel-identical; 16/16 tests. Learned: a `const`
+  defined late in `create()` but used at build time throws a TDZ error at runtime that tsc does not catch —
+  the first v2 build failed the trees system ("Cannot access '$e' before initialization"); fixed by hoisting.
+- 23:34 — fable-5's walk item 6 (flight climbs into shade) attributed at A by castShadow-off per group: white-bark
+  0.0 %, giants +0.034, all casters off only 0.376 vs the frame's 0.65 — the light on the treads, not the canopy.
+  `art/environment/round52-flight-shade/`.
+
+### 2026-09-23 02:47 UTC — round 52: giants' sectors per giant + crown band, colour-pass cull (`agent/fable-4-sectorgroups` @ `5000e9ae`)
+- The giants' 1.85 M at A in three sector meshes that always meet the frustum. Groups per giant (mergeParts
+  useGroups), split wood | two leaf height bands; exact bounds per group; `cull()` marks groups with sphere +
+  exact SAT box test; onBeforeRender/onAfterRender zero/restore the group count for the colour pass only.
+- A −148 K, B/E −266 K, C −351 K, D −360 K, F −309 K; six views pixel-identical; +66 draws. Four builds to
+  get A: per-giant boxes did nothing at A (a behind-camera giant's box holds the camera), exact SAT −76 K,
+  spheres nothing more, height bands −148 K. Lesson: for culling, the bound's shape matters more than the
+  test's exactness once the object is big and near.
+- 03:51 — sectorgroups re-verified on the moved head (floor cards +63 K at A): A 8.675 → 8.527 M, the same
+  deltas everywhere, A 1 px / D 0 px; branch carries the head merged (`264c3d3f`).
+- 03:59 — re-verify on the owner-09-23 head: four look-ups under white-barks at 50–55° — crowns read as layered
+  leaves; the flat pale shapes are the distant floor cards (Astra's). slimTrunks fine. `round52-lookup-whitebarks/`.
+- 05:42 — row 28 (LOD pops), white-bark half: the hero's switches at 25.85 / 46.27 m measured with 4 cm frozen pairs
+  vs parallax controls — no excess (7.61/7.79, 8.30/8.29 %). Negative result, no crossfade. `round52-lodpop/`.
+  Posted the plateau-oak authored-leaves density (257 K in a 7 m cluster at 21 m) to Astra. sectorgroups merged.
+- 05:52 — the owner's `u-open-up` flat card attributed to `distant-5-near` (the far-trunk row's east pole, band-only
+  variant 5, floor card at 68–71°); options posted for distant.ts owners. `round52-uopen-attrib/`.
+- 07:10 — the two culls under the free camera vs a no-cull build at eight poses: 0–10 px (leaf-edge order), −3…−16 %
+  triangles (most looking up). `round52-freecam-cull/`.
+
+### 2026-09-23 09:37 UTC — round 53: lanes 2/3 (the owner's 06:50 priorities) — understory trees (`agent/fable-4-understory` @ `c1988edc`)
+- `understory.ts`: 4.5–9 m round-crowned trees, brown stems, 5 variants × 3 LODs; 44 seeded placements along the
+  north path verges, the clearing, the plaza lawn edges. Family pipeline, slimTrunks, audit. A +64 K, D +83 K.
+- D window protection tried and dropped (emptied the corridor). Six-view capture running; crops at the owner's pose.
+- 12:01 — fable-cursor merged the 44-tree understory (e4c02b82) alongside squad2's mid-canopy cards; reviewed the
+  combined corridor at 7 poses (complementary depths, no doubling; +1.18 M at the owner's pose mostly squad2's).
+  The arch-stretch commit (34 trees, D −0.0033) offered as the D lever; branch carries the head merged.
+- 12:33 — the west fork (fable-3): understory clearing 8.5 m at (−10.5, 8.5) (44 → 32 trees); the dome hiding the
+  marker attributed to vegetation (58.6 %), not trees. Branch `agent/fable-4-understory` carries the arch-stretch verge
+  + the clearing, head merged.
+- 12:57 — understory: stems seated on the rendered surface; a west-meadow zone measured and dropped (squad2's mid layer
+  fills it). Branch @ `a2d3097b` awaiting merge with the arch verge + fork clearing.
+- 13:42 — W38 map at A on the head (9.155 M): vegetation +535 K is the overshoot (lane 4), structures +75 K, cards +34 K,
+  understory +29 K; trees −220 K net. Posted; taking the shadow proxy re-measure and handing the plateau-oak number to squad3.
+- 14:41 — heroshadow: shadow-only high-LOD white-barks cast from the medium geometry — A 9.15 → 9.02 M, F −160 K, five
+  views pixel-identical, C −0.0005. `agent/fable-4-heroshadow` @ `820a01d5`.
+- 15:17 — heroshadow generalised to the columns and dropped (+127 draws, +30 K); branch @ `852245f7` white-barks only,
+  head merged, ready. Lesson: per-variant twin meshes multiply draws — the twin pays only where a heavy high mesh casts
+  out-of-frame shade.
+- 16:27 — head draws over 700 at A (723) since lane 7's cast — flagged. Understory finer leaves (2× count, ⅔ size) on
+  `agent/fable-4-understory-leaves`; six-view capture running.
+- 17:27 — finer leaves six views: A +0.0013, B −0.0028, D +0.0020, E +0.0034; ready with heroshadow.
+- 18:53 — midwalk option: the mid grove keeps 11 m off the walk lines (post-filter; 393 → 372). Six views mixed (C/D +0.009,
+  A −0.006). Posted as an option. Lesson: filter after sampling — a rule inside the sampler re-rolls the stream.
+- 20:20 — midwalk adopted by fable-cursor (their variant reverted). Understory walk clearance 6.5 m everywhere as a
+  post-filter (32 → 27): owner-0650 dark 48.6 → 46.3 %, six views all ≥ 0 (B +0.0071, E +0.0085). Branch
+  `agent/fable-4-understory-walk`.
+- 20:41 — understory-walk merged; fable-5 confirmed h-west-front clears. Read Astra's real-leaves branch at owner-clarity-1:
+  silhouette half closed (2.9 px, 8.4 % fine) at +0.9 M tris; hue half is lane 1's. README §Fourth pass; INBOX.
+- 21:38 — the near-canopy swap measured for pops on the head after fable-cursor's near-base fix: none (15.86 vs
+  16.84 % control). Astra's real-leaves read posted earlier this tick.
+- 21:41 — A at 695 / 8.95 M after fable-cursor's near-base floor; posted the remaining tree give-backs with their
+  look costs; queued understory zones for the south exit once exp-south merges.
+- 23:19 — fable-cursor's levers b/c measured: the crown pool keeps up with a 5× walk (late ≤ 3, 0 sync builds); the swap
+  does not pop when resident. `nearCanopy.late` audit field on `agent/fable-4-latecount`. Nothing else open.
+- 2026-09-24 00:18 — squad2's treepop (white-bark rung 20 → 28 m) measured against the round-52 pop test: the switch
+  never popped; head A 8.947 M / 643; treepop's six-view row pending on the box.
+- 2026-09-24 00:29 — treepop six-view row: draws +48…+56 (A 692), C +465 K; recommended hold with the round-52 pop numbers.
+- 2026-09-24 01:34 — heartbeat: head unchanged since 23:05 (`81430baf`); squad2 measured lever (c) themselves (0.00 %) and
+  re-priced treepop on the merged head — fable-cursor's call with my six-view row; exp-south carries the understory's
+  south zone. Nothing open in the lane; no INBOX note (nothing landed).
+- 2026-09-24 02:23 — heartbeat: head still `81430baf`; squad2 on near-canopy slot-rank hysteresis (a pop source I had not
+  measured — slot competition when wanted > slots; their lane). Nothing open here.
+- 2026-09-24 03:28 — heartbeat: head still `81430baf` (4.5 h); squad4's integration candidate `8fb5049c` folds in treepop
+  (C 6.76 → 7.20 M there, as my row said) — fable-cursor's call on return; nothing open here.
+- 2026-09-24 04:39 — exp-south merged (with my south understory zone, 4 stems): reviewed at four poses — trees frame the
+  route, nothing to change; far-bank look-north 768 draws flagged. latecount merged.
+- 2026-09-24 05:52 — treepop merged by fable-cursor; my draws claim corrected (base mismatch: squad2's branch predated the
+  skinned kids). Head caps A 8.858 M / 638, B/E 8.254 / 627, C 7.685 / 560, D 8.569 / 561. Lesson: compare branches
+  against their own base or rebase both before a row.
+- 2026-09-24 06:36 — heartbeat: head `92a4fd66` (the owner's 06:07 50-point rubric for structures / areas — not the tree
+  systems); fable-5 finds the roofed poses dark under squad4's near veil (lane 1's). Nothing open here; the east lane
+  still on its branch.
+- 2026-09-24 07:32 — exp-north's trail/shelf cross the stand's north band and the east band's edge; offered the post-filter
+  recipe (northFooting) or to do the tree side on their branch. Head `b306d6a9`; nothing else open.
+- 2026-09-24 08:36 — heartbeat: head `b306d6a9`; fable-cursor did exp-north's tree side on their branch (grove understory
+  zone, `northGroveClear`, card crowns ≥ 11 m off the grove walks, post-filters after every sampler) — my offer answered
+  in code. Review at the grove's poses when it merges.
+- 2026-09-24 10:50 — exp-north `943d10b4` tree side reviewed at eleven hamlet poses before it lands (round54-north-review):
+  the stand's poles off every walk (45 culled, west band untouched); the 50 m stand rule pixel-identical to 72 m at ten poses
+  (3 px at the nest) — no grove exemption; the shelf's two looks south 748 / 9.44 M and 730 / 9.25 M — structures 2.9 M / 190
+  draws and the characters' 100 draws, trees under their A share (2.2–2.4 M / 168). One nit (protect grove stems by `p.grove`,
+  not the box). Head `b306d6a9` unchanged since 07:05.
+- 2026-09-24 12:12 — exp-east `f430d47b` tree side read at eight lane poses (round54-east-review): the seven east-box white-barks
+  have no root toes (24 m reach from spine/house/north only; three stand 1.8–5.6 m from the lane) — offered the three-line
+  root-reach fix (+4 K tris, no draw) on their branch or after it lands; four spared mid boles 1.8–2.4 m off the lane's
+  centreline (their A–E exemption); the green → west 780 / 10.10 M; seating ±4 mm. Head `3c6cc553`; nothing addressed to me.
+  Next: the roots fix when fable-cursor answers or exp-east merges; the field's forest edge when south2's layout settles.
+- 2026-09-24 14:58 — the east lane's root toes built off exp-east (`agent/fable-4-eastroots` `ea78545a`, PR #51) and measured
+  a FAIL: +4,448 tris, six views pixel-identical, 0 px at the lane's e3/e5, 6 px at the foot from 2.3 m; the toes (6–13 cm on
+  the plateau's young/mature variants at scale 0.91) sit inside the 30 cm turf and the ground's 4–6 cm relief. Withdrawn, not for
+  merge; README `art/environment/round54-eastroots/` on that branch; the 12:12 offer struck in the INBOX. Next: exp-ruins'
+  tree side (`ruinsTrunkCull` post-filters, `a32e5a97`) once the branch settles.
+- 2026-09-24 15:40 — exp-ruins `7c4fb16f` tree side read at eight trail poses (round54-ruins-review): 11 white-barks within 12 m
+  frame the walk (five boles 2.4–3.9 m off the line, none on the earth, `maxBaseGap` 0); six dropped, none in a fixed frame
+  (nearest 60° off C); `ruinsCardCull` 57 mid / 2 distant — hide-the-layer at r1/r2 shows no card bole in the 3–11 m band;
+  one understory stem at the start only, no zone proposed; looks back east 736 / 8.96 M and 730 / 8.91 M (structures pattern);
+  the ivy rock a smooth pale cylinder from 30–45 m (fable-cursor's). Next: the field's forest edge when south2 reaches it.
+- 2026-09-24 16:45 — squad2-crowntone `8cdb68c3` read behind the understory (round54-crowntone-review): head vs branch at six
+  poses; the cards +7–9 levels toward their air at 16–40 m, the understory ≤ 0.2 on the same pixels, the near-to-far step
+  +0.6–1.8 on 10–22 — depth order kept, no seam; eye level and the look-ups untouched. Safe for the corridor; nothing to change
+  on my side. Head still `3c6cc553`; nothing addressed to me. Next: the field's forest edge when south2 reaches it.
+- 2026-09-24 17:20 — exp-south2 `066144ad` tree side at the dwellings (round54-south2-review): no stem within 14 m of the hut
+  or the waystation, no crown over them, `maxBaseGap` 0; far bank → north 759 / 9.26 M (fable-cursor's pattern). Head still
+  `3c6cc553`; nothing addressed to me. Next: the field's forest edge when south2 reaches it.
+- 2026-09-24 18:05 — `trees/index.ts` pre-resolved for the expansions' merge (round54-trees-merge; branch
+  `agent/fable-4-trees-merge` `f0bc4b4d` = exp-east `b3e10c09` + exp-ruins `6bd9b870`): the three hunks kept both sides;
+  the other six files mechanical for compile (expansionCull's two fourth flags merged as `all`); tsc/build/tests green;
+  combined tree side run — counts add (culled 16, cards 57/2, understory 30, gap 0), trail poses 4/30 px. North's trees
+  hunk is the import line; collision.ts/system.ts are fable-cursor's. Head still `3c6cc553`.
+- 2026-09-24 19:15 — fable-2's 18:15 (trees 250 draws at the east look-backs) measured mesh by mesh (round54-lookback-draws):
+  258 / 232 draws = 63 / 32 near-canopy lobes (giants within 30 m of the plateau + seated columns), 72 sector-group draws (3 ×
+  12 groups × main + shadow), 32–36 distant bands, 10 white-bark low draws for 40 trees. Not per-tree meshes; a card replaces
+  nothing. Lever offered (owner-fable's near canopy, asked first): a giant's shown lobes as one mesh with per-lobe groups, 45 → ~5
+  at the green, up to 64 → ~6 at A. Head `31146062` merged into the notes branch clean this time (checked --diff-filter=U first).
+- 2026-09-24 20:30 — squad2's lodcheck (the 28 m rung owns the residual "trees detail only up close") attributed by family at
+  the owner's north pose: shipped vs every-tree-high 3.34 % of the frame (896 × 776, > 8), of which understory 64–74 %,
+  white-bark 4–7 % (0.4 % of the frame), columns 2–4 %; the near rung ×1.45 alone leaves 0.27 % but costs +163 K here / +0.5 M
+  at the west pose. Told squad2 to hold the rung; two understory-medium builds (1 in 2 at 1.3 ×; every leaf) and two
+  white-bark-medium builds (1 in 4 / 1 in 2) rendering against every-tree-high; numbers next tick. (`treelod` must go through
+  `ZR_URL_EXTRA` — openWorld builds its own URL; my first "every-high" run was the shipped build.)
+- 2026-09-24 21:30 — the residual pop fixed at its family: `agent/fable-4-usmed` `28f95b56` (PR #65), understory medium keeps
+  every lamina (`mediumEvery 1, mediumScale 1`). Owner poses +34 K / +20 K; six views (896 × 776 harness) A +24 K / 0.54 % px,
+  B/E +17 K / 0.72 %, C 0, D +36 K / 2.29 % px (the corridor's crowns finer), F +11 K / 3 px, draws unchanged. The 1280 × 720
+  SSIM table is fable-cursor's full check or next tick. White-bark medium densities measured irrelevant at these poses (35–49 px).
+  README round54-understory-medium; INBOX 21:05 to squad2 + fable-cursor.
+- 2026-09-24 22:28 — the 1280 × 720 capture pair for PR #65 running (head b31042a2 vs usmed 28f95b56, `--settle 12`): head
+  A 637 / 8.85 M, B 628 / 8.27, C 574 / 7.92, D 561 / 8.63, E 628 / 8.27, F 601 / 7.99; branch so far A 637 / 8.87 M (+20 K),
+  B 628 / 8.29 M (+20 K). SSIM table via compare.mjs when the pair is done (next tick). No answer yet on the near-canopy fold;
+  squad2's lodcheck read merge-safe by fable-5 (D 1.9 % px, Δ −0.0002…−0.0008), which is the same shape as mine.
+- 2026-09-24 23:05 — PR #65 measured at 1280 × 720: no view away from the reference (A +0.0003, B +0.0005, C 0, D +0.0015,
+  E +0.0002, F 0), draws unchanged, A 8.85 → 8.87 M; merges clean on `b9993008` (exp-north in). Ready; fable-cursor merges.
+- 2026-09-25 00:05 — the east × ruins trees resolution redone from the current tips (ruins f29ad20e's heroFramesCard):
+  `agent/fable-4-trees-merge2` a25594a0, four hunks both sides, tsc/build/tests 26/26 green; patch against the head b9993008
+  (fifth hunk: the layout import union). A wrong "tips unchanged" claim in the 23:40 refresh corrected. PR #65 ready, no reply yet.
+- 2026-09-25 01:25 — PR #65 merged (23:45). The white-barks' medium measured at two walking poses (round54-whitebark-medium):
+  1 in 4 at 1.8 × halves the gap to high at w2 (1.05 → 0.72 blurred) for A +16 K / C +55 K / F +39 K; 1 in 2 costs 3× for a
+  third more. PR #74 `agent/fable-4-wbmed` 2896a08a (one line); the 1280 × 720 pair head 2f6c8ae2 vs branch queued. INBOX 01:25.
+- 2026-09-25 02:20 — head 0fc66816 (lodcheck + #65 + #54 in): at 1280 × 720 A 629 / 8.94 M (60 K under the cap), B 616 / 8.27,
+  C 562 / 7.92, D 549 / 8.72, E 616 / 8.27, F 585 / 8.05. PR #74's capture runs next (A's +16 K in my harness would leave ~40 K);
+  the SSIM table and the call on whether it fits go on the PR next tick. med2's six views: A +47 K … C +146 K, F +115 K (3× med4).
+  `STAND_FAR_LOD_M` 50 is inert now that `DISTANT_NEAR_M` is 45 (min() takes 45) — harmless; the comment above it is stale.
+- 2026-09-25 03:05 — PR #74 merged (02:15 round); its pair: SSIM identical at all six, A 8.94 → 8.97 M (30 K under the gate —
+  heads-up posted). PR #81 `agent/fable-4-standlod-retire` a7006e1f: the inert stand 50 m rule retired (−17/+8), typecheck/build/
+  tests green; before/after renders at the stand poses + A/D rendering. Next: near-canopy fold if yes; the expansions' tree side.
+- 2026-09-25 03:30 — PR #81 merged (02:56 round, before its before/after landed): the pair since — 0 / 0 px at the stand poses,
+  1 / 3 px at A / D at > 1/255, draws and triangles equal (round54-standlod-retire). Lesson re-learned tonight: after `git merge`,
+  check `--diff-filter=U` in its own step and stop on a conflict before writing anything (38cfa895 carried markers for one commit;
+  c1b30859 resolves them).
+- 2026-09-25 04:15 — squad2's "whose wood" answered by hide-one-group with their classifier at the owner's poses (round54-bark-attrib):
+  columns 59 % / 24 % of the bark pixels, giants 25 % / 58 %, white-barks 0.2–0.3 %, mid/distant 0–5 %. The brown is lane 3's
+  columns and the giants' trunks at 5–30 m; the mid layer's knobs would screen little. INBOX to squad2, cc fable-cursor, squad3.
+- 2026-09-25 05:00 — bark attribution corrected (strict count): tree wood = a third of the north band's brown, all columns (5.9 of
+  17.2 points); most of the west's, one giant (4.9 of 8.2); white-barks 0. Agrees with squad2's brownwood probe (5.6 % / 5.1 %).
+  My 04:15 "columns + giants 84 %" at north withdrawn — the giants' share there was their shade on the bank. INBOX 05:00.
+- 2026-09-25 05:25 — the near-canopy draw fold designed and posted (third ask, silence = veto by 06:30): one BatchedMesh for all
+  lobes (one shared material), install/uninstall on poolItem's seam, setVisibleAt for show/hide, ~13 nc.mesh sites; heap caveat
+  (+35 MB typical). Expected A 629 → ~570 draws, look-backs −45…−60. Start next tick unless vetoed.
+- 2026-09-25 07:45 — the near-canopy batch built and measured (round54-canopy-batch, PR #101 `agent/fable-4-canopybatch`
+  3a339a0a): one BatchedMesh for the giants' lobes; A 606 → 594, F 522 → 496, the green look-back 701 → 657 draws; triangles
+  equal; 0 px vs the exact base. Three seam fixes (first build installs itself; one layout — normals Int8, colours/wind Float32,
+  compacted bytes for the pool; the end-of-build compaction skips the batch). Found: PR #47 (notes) sat as a draft from 09-24 12:14 and was
+  merged at 06:06 today (after I marked it ready) — my INBOX threads reached the head 20 h late. 1280 pair running.
