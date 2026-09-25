@@ -353,6 +353,21 @@
   "ab": false
  },
  {
+  "name": "K-step",
+  "note": "the east step from the north-east, 1.7 m off: the split log along the gallery's open end, on its stumps",
+  "eye": [
+   10.25,
+   30.55,
+   1.3
+  ],
+  "look": [
+   8.8,
+   31.5,
+   -0.1
+  ],
+  "ab": false
+ },
+ {
   "name": "W-front",
   "note": "the waystation from 3.2 m in front",
   "eye": [

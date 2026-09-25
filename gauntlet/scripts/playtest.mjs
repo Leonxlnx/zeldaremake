@@ -919,6 +919,8 @@ async function southDwellingProbes(page) {
   for (const th of [60, 90, 120]) probes.push({ where: 'keeper-past-railing', th, r: 2.6, at: keeperAt(th, 2.6), expect: 'blocked' });
   for (const [th, r] of [[0, 0.3], [200, 1.0], [300, 1.2]]) probes.push({ where: 'keeper-hut', th, r, at: keeperAt(th, r), expect: 'blocked' });
   probes.push({ where: 'keeper-step-east', th: -20.5, r: 1.86, at: keeperAt(-20.5, 1.86), expect: 'step' });
+  // just off the gallery's open end (1° past it), where the walk off the end comes down: the east step, not the ground
+  for (const r of [1.6, 1.85, 2.05]) probes.push({ where: 'keeper-step-east-edge', th: -15, r, at: keeperAt(-15, r), expect: 'step' });
   for (const [a, s] of [[0.3, 0], [0.3, 0.6], [0.3, -0.5], [0.5, 0.2]]) probes.push({ where: 'waystation-floor', a, s, at: waystationAt(a, s), expect: 'deck', y: W.floorY });
   for (const [a, s] of [[-0.62, 0], [-0.62, 0.5], [-0.38, -0.2]]) probes.push({ where: 'waystation-back-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
   // in front of the bench Link stops 0.64 m from the back wall's inner face (the camera's least distance, 0.6 m, stays inside)

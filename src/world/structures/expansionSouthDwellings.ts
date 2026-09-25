@@ -123,7 +123,7 @@ export interface SouthDwellingsBuild {
       footings: number;
       mastTop: [number, number, number];
       pods: [number, number, number][];
-      steps: { west: { top: number[]; deckRiser: number[]; groundRiser: number[] }; east: { top: number[]; deckRiser: number[]; groundRiser: number[] } };
+      steps: { west: { top: number[]; deckRiser: number[]; groundRiser: number[] }; east: { top: number[]; deckRiser: number[]; groundRiser: number[] }; stumps: number };
       /** the exact camera cylinder of its wall and dome: radius, height span (m) */
       cameraWall: { r: number; y0: number; y1: number };
       triangles: number;
@@ -997,10 +997,10 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     put('keeper-rope', rope, ropeAlong(sagPts(block1.clone().addScaledVector(out, -0.03), tieAt, 0.06, 5), 0.008, noise, 224));
   }
 
-  // ---- steps: a split log at the entrance, a log at the east end ----
+  // ---- steps: a split log at the entrance, another along the east end ----
   const kSteps: WalkSurface[] = [];
-  /** audit: the steps' tops and risers (m) — deck to top, top to the ground under its ends */
-  const keeperSteps = { west: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] }, east: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] } };
+  /** audit: the steps' tops and risers (m) — deck to top, top to the ground under the west log's ends and a stride past the east log's — and the stumps under the east log */
+  const keeperSteps = { west: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] }, east: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] }, stumps: 0 };
   {
     const sr = kRng.fork('steps');
     // west: a half log flat side up across the entrance, just off the boards
@@ -1044,18 +1044,43 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       bases.push([mid.x, terrain.height(mid.x, mid.z), mid.z]);
     };
     halfLog(a, b, ta, tb, 0.14, 'keeper-steps', 'west');
-    // east: a log laid down the slope beside the gallery's open end, its top rising with the ground
-    const th = (K.gallery.from - 6.5) * DEG;
-    const out = new Vector3(Math.cos(th), 0, Math.sin(th));
-    const p = new Vector3(cx + out.x * (platR + 0.12), 0, cz + out.z * (platR + 0.12));
-    const q = new Vector3(cx + out.x * (GAL_OUT - 0.02), 0, cz + out.z * (GAL_OUT - 0.02));
-    const tp = Math.max(terrain.height(p.x, p.z) + 0.2, DECK_TOP - 0.5);
-    const tq = Math.max(terrain.height(q.x, q.z) + 0.2, tp);
-    kSteps.push(deckSurface('south-keeper-step-east', p.clone().setY(tp), q.clone().setY(tq), 0.15));
-    halfLog(p, q, tp, tq, 0.13, 'keeper-steps', 'east');
+    // east: a split log along the gallery's open end, its flat top's edge under the boards' ends, so
+    // the walk off the end comes down onto it and not into a gap beside it; the ground there falls
+    // 0.39–0.68 m under the deck toward the hut, so its top is halfway between the deck and the ground
+    // a stride past it (two even risers), and it rests on stumps where it clears the ground
+    const ER = 0.15;
+    const out = new Vector3(Math.cos(GAL_FROM), 0, Math.sin(GAL_FROM));
+    const away = new Vector3(Math.sin(GAL_FROM), 0, -Math.cos(GAL_FROM));
+    const along = (r: number, d: number) => new Vector3(cx, 0, cz).addScaledVector(out, r).addScaledVector(away, d);
+    const off = ER * 0.95 + 0.01;
+    const p = along(platR + 0.12, off);
+    const q = along(GAL_OUT - 0.02, off);
+    const past = (v: Vector3) => {
+      const g = v.clone().addScaledVector(away, ER + 0.25);
+      return terrain.height(g.x, g.z);
+    };
+    const tp = DECK_TOP - (DECK_TOP - past(p)) / 2;
+    const tq = DECK_TOP - (DECK_TOP - past(q)) / 2;
+    // its walk reaches on under the boards' ends: the gallery's walk is chords, their ends up to 5 cm
+    // short of the end line at the rim
+    kSteps.push(deckSurface('south-keeper-step-east', along(platR + 0.12, off - 0.04).setY(tp), along(GAL_OUT - 0.02, off - 0.04).setY(tq), ER + 0.04));
+    halfLog(p, q, tp, tq, ER, 'keeper-steps', 'east');
+    for (const k of [0.2, 0.8]) {
+      const c = p.clone().lerp(q, k);
+      const gy = terrain.height(c.x, c.z);
+      const underY = lerp(tp, tq, k) - ER * 0.85 + 0.01;
+      if (gy > underY - 0.05) continue;
+      const foot = new Vector3(c.x, gy - 0.2, c.z);
+      const head = new Vector3(c.x, underY, c.z);
+      put('keeper-steps', mats.bark, barkPole([foot, head], 0.085, 0.08, noise, 160 + k * 10, { moss: 0.5, groundY: gy, ts: 2, rs: 10 }));
+      capPole('keeper-steps', [foot, head], 2, 0.08, false, sr.fork(`east-stump/${k}`));
+      tuftSpecs.push(...footMoss(ctx, new Vector3(c.x, gy, c.z), sr.fork(`east-stump-moss/${k}`), { postRadius: 0.085, count: 7, color: FOOT_MOSS, favour: SHADE_SIDE }));
+      bases.push([c.x, gy, c.z]);
+      keeperSteps.stumps++;
+    }
     const r2 = (v: number) => +v.toFixed(2);
     keeperSteps.west = { top: [r2(ta), r2(tb)], deckRiser: [r2(DECK_TOP - ta), r2(DECK_TOP - tb)], groundRiser: [r2(ta - terrain.height(a.x, a.z)), r2(tb - terrain.height(b.x, b.z))] };
-    keeperSteps.east = { top: [r2(tp), r2(tq)], deckRiser: [r2(DECK_TOP - tp), r2(DECK_TOP - tq)], groundRiser: [r2(tp - terrain.height(p.x, p.z)), r2(tq - terrain.height(q.x, q.z))] };
+    keeperSteps.east = { top: [r2(tp), r2(tq)], deckRiser: [r2(DECK_TOP - tp), r2(DECK_TOP - tq)], groundRiser: [r2(tp - past(p)), r2(tq - past(q))] };
   }
 
   // ---- by the north wall: firewood stacked under the eave, a chopping block ----
