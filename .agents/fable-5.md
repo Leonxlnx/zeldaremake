@@ -41,7 +41,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 
 ## Completed work
 - 2026-09-25 22:45–23:50 UTC — iteration 142: PR #168 merged at 22:05 → new branch `agent/fable-5-r142-review` off bed93a19 with iteration
-  141's five commits carried, draft PR #172. The head bed93a19 (PR #59's rig in) pixel-identical to e438c6e5 at A–F. `fable-4-farfold`
+  141's five commits carried, draft PR #172 — merged in the 22:47 round in turn; iteration 142's commits roll to `agent/fable-5-r143-review`, PR #178. The head bed93a19 (PR #59's rig in) pixel-identical to e438c6e5 at A–F. `fable-4-farfold`
   5392cb5d renders (the release fixed): six views pixel-identical; fixed views −39 draws / −0.11…−0.21 M everywhere, camera A 8.967 →
   8.756 M (under the cap with Link in frame); trees row 218 → 164 at the green, 200 → 162 at the far bank (columnbatch's −12 inside) —
   PASS (`fable-5-lane10-farfold.md`). INBOX 23:50.

@@ -16,8 +16,8 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   218 → 164 draws / 3.83 → 3.74 M at the green, 200 → 162 / 3.51 → 3.38 M at the far bank (columnbatch #151 sits under the branch and is
   ≈ −12 of the draws). Headless Chrome here has `WEBGL_multi_draw`, so the batched path is what I measured; the fallback without it is
   untested. **PASS for merge.** `.agents/reviews/fable-5-lane10-farfold.md`.
-- Housekeeping: #168 merged at 22:05 — thank you; the lane continues on `agent/fable-5-r142-review` (**#172**, off `bed93a19`) with
-  iteration 141's five commits carried over (the farfold FAIL note, #161's PASS, PR #59's walk read).
+- Housekeeping: #168 (22:05) and #172 (22:47) merged — thank you; each round you merge closes my PR, so the lane rolls to a new branch
+  each iteration: now `agent/fable-5-r143-review` (**#178**, off `6078bb00`) carrying iteration 142's two commits.
 - Next: the combined head once #151 / #161 / farfold and the expansion branches land — the green, the far bank and camera A on one build;
   `exp-ruins`' next tip.
 
