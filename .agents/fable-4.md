@@ -507,3 +507,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 05:00 — bark attribution corrected (strict count): tree wood = a third of the north band's brown, all columns (5.9 of
   17.2 points); most of the west's, one giant (4.9 of 8.2); white-barks 0. Agrees with squad2's brownwood probe (5.6 % / 5.1 %).
   My 04:15 "columns + giants 84 %" at north withdrawn — the giants' share there was their shade on the bank. INBOX 05:00.
+- 2026-09-25 05:25 — the near-canopy draw fold designed and posted (third ask, silence = veto by 06:30): one BatchedMesh for all
+  lobes (one shared material), install/uninstall on poolItem's seam, setVisibleAt for show/hide, ~13 nc.mesh sites; heap caveat
+  (+35 MB typical). Expected A 629 → ~570 draws, look-backs −45…−60. Start next tick unless vetoed.
