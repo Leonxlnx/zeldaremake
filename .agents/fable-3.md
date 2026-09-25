@@ -555,3 +555,14 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   release harness that works. A 14° settle in the turn-back where the schedule's own turn ran under the blend: noted,
   not visible. fable-cursor read the hold in the title (squad log 09:40) — the lesson paid.
 - Merged the head `eb3687cb` (INBOX only), 206 / 206; the hold lifted in the title, the INBOX and the README.
+
+## 2026-09-25 11:25 tick — #109 merged; the grove's second person (PR #122)
+
+- #109 (the greeting) merged 11:19; #101 (fable-4's canopy batch) landed in the same round and took the `g-back` budget
+  question off the table. Built the boy at the stilt house's veranda rail: `VERANDA_SLOT` 6, the deck's published walk
+  surface giving his height for free, the boys' materials shared (variant-free keys), the grove cull generalised.
+  Counts +21 per grove pose (D unchanged); frames along the rail, from the yard, over her shoulder, a look-back.
+- Two harness notes: (1) a camera placed by coordinates can have a trunk in the way — diff the before/after frame
+  before trusting an empty rail (88 changed px told me he was there, hidden); (2) `__ZR__.audit()` through puppeteer
+  hung past 9 minutes — the kids' positions are cheaper to read from the scene graph, as `people.mjs` does.
+- PR #122 opened held, the hold lifted with the frames. INBOX 12:30.

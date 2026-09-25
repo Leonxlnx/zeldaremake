@@ -106,6 +106,14 @@ export interface FootstepStats {
   landings: number;
   /** shoves off the ground at the start of a jump or a step off a ledge */
   pushOffs: number;
+  /**
+   * the context time the last contact was SCHEDULED for, not the time it was decided.
+   *
+   * The gait-driven path exists so that "what is heard is what is seen" — a step sounds when a boot
+   * actually plants. Whether it does is a question about two clocks, and without this a harness can
+   * only see that the counter went up, not when the sound it counted is due.
+   */
+  scheduledAt: number;
 }
 
 /** above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind */
@@ -542,7 +550,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   /** while the gait's stance flags are driving the steps the distance integrator stays out of the way */
   let gaitUntil = -1e9;
   let wasStance: boolean[] = [];
-  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 };
+  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0, scheduledAt: 0 };
 
   const pushOff = (t: number, surface: Surface, speed: number, enclosure = 0) => {
     // the shove takes the place of the step he would have taken, so the stride integrator restarts
@@ -550,6 +558,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     if (t - lastStepAt < MIN_STEP_GAP) return;
     counts.pushOffs++;
     counts.lastSurface = surface;
+    counts.scheduledAt = t;
     lastStepAt = t;
     travelled = 0;
     play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0, enclosure);
@@ -558,6 +567,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   const land = (t: number, surface: Surface, fallM: number, enclosure = 0) => {
     counts.landings++;
     counts.lastSurface = surface;
+    counts.scheduledAt = t;
     lastStepAt = t;
     travelled = 0;
     play(designLanding(surface, landingStrength(fallM), stepRng), t, 0, enclosure);
@@ -566,6 +576,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false, enclosure = 0) => {
     if (t - lastStepAt < MIN_STEP_GAP) return false;
     lastStepAt = t;
+    counts.scheduledAt = t;
     travelled = 0;
     counts.steps++;
     if (fromGait) counts.gaitSteps++;

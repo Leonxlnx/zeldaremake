@@ -528,3 +528,9 @@ nearCanopy, materials, index otherwise) is edited.
   reserve). Next: two batches by layout (narrow / wide) to reach the pool's own bytes.
 - 2026-09-25 11:30 — two-layout batch measured (169 vs 171 MB at A) and reverted; PR #117 = the trim + the wide-parts audit
   count. The heap stands as inherent (~1.2–1.5× the giants' resident bytes); the flag is the lever. INBOX 11:30.
+- 2026-09-25 12:35 — the batch's page cost measured fable-2's way (performance.memory after GC, flag on vs off on the head):
+  +88 MB at A / +90 at the owner's north (large tier), +46 MB at A (small). The per-mesh path keeps unrendered resident parts'
+  arrays until first upload, so the page grows by less than the batch's 200 / 102 MB of arrays. #117 merged 11:25. INBOX 12:35.
+- 2026-09-25 12:55 — trees `cpuArrays` audit line (9e7b1a78): batch off 219 MB of arrays at A (giants 134, columns 52,
+  white-barks 32 — never-drawn meshes), on 312 MB. fable-2's warm-up pass would free ~200 MB in the trees; against a warmed
+  head the batch costs its whole copy (~200 / ~100 MB). Recommendation posted: keep the batch while draws are the binding cap.

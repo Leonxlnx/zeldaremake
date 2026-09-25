@@ -22,10 +22,10 @@ import type { WorldContext, WorldSystem } from '../system';
 import { GAIT_SPEED, GAITS, HERO_PHASE, PLAYER_ACCEL, PLAYER_DECEL, PLAYER_SPEED, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
-import { createNpcs, GROVE_SLOT, LEDGE_SLOT } from './npc';
+import { createNpcs, GROVE_SLOT, LEDGE_SLOT, VERANDA_SLOT } from './npc';
 import { createLink } from './link';
 import { createNavi, naviHoverAnchor, TRAIL_COUNT } from './navi';
-import { headingOf, marchToGround, matchViewpoint, NPC_GROVE_YARD, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
+import { headingOf, marchToGround, matchViewpoint, NPC_GROVE_VERANDA, NPC_GROVE_YARD, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
 import { consolidateRigParts } from './consolidate';
@@ -63,10 +63,11 @@ interface Actor extends GaitChain {
   shadowRadius: number;
 }
 
-/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank), the grove girl (lane 7: the north yard's washing line) */
-const KID_COUNT = 6;
-/** the grove girl (GROVE_SLOT) is drawn only within this distance — the grove itself hides at 60 m (util/groveLocality.ts) */
+/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank), the grove girl (lane 7: the north yard's washing line), the veranda boy (lane 7: the stilt house's rail) */
+const KID_COUNT = 7;
+/** the grove's kids (GROVE_SLOT, VERANDA_SLOT) are drawn only within this distance — the grove itself hides at 60 m (util/groveLocality.ts) */
 const GROVE_KID_VISIBLE_M = 60;
+const GROVE_KIDS = new Set([GROVE_SLOT, VERANDA_SLOT]);
 /** how far a kid's sun shadow can lie from them (1.12 m tall under the 38° sun → 1.43 m on level ground; margin for a slope and a frame of camera lag) */
 const KID_SHADOW_REACH_M = 2.6;
 /**
@@ -140,7 +141,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const fx = house.facing[0] / fl;
   const fz = house.facing[1] / fl;
   const doorKid: V3 = [house.position[0] + fx * (house.trunkRadius + 1.0) + fz * 1.3, 0, house.position[2] + fz * (house.trunkRadius + 1.0) - fx * 1.3];
-  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z], [NPC_GROVE_YARD.x, 0, NPC_GROVE_YARD.z]];
+  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z], [NPC_GROVE_YARD.x, 0, NPC_GROVE_YARD.z], [NPC_GROVE_VERANDA.x, 0, NPC_GROVE_VERANDA.z]];
   const kids: Actor[] = [];
   const kidChars: ReturnType<typeof createKokiri>[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
@@ -217,7 +218,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         kidDetailed[i] = detailed;
         for (const m of kidDetail[i]) m.visible = detailed;
       }
-      if (i === GROVE_SLOT) {
+      if (GROVE_KIDS.has(i)) {
         const shown = dist < GROVE_KID_VISIBLE_M;
         if (k.puppet.group.visible !== shown) {
           k.puppet.group.visible = shown;
