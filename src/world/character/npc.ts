@@ -763,6 +763,8 @@ export function createNpcs(opts: NpcOptions): Npcs {
   ];
   const seatLookPeriod = 14;
   const seatPhase = rng.range(0, seatLookPeriod);
+  /** the sitter's greeting (lane 7): she cannot turn on her tread, so the state only times her nod and wave */
+  const seatGreet = newGreet();
   const feetMid = new Vector3().addVectors(seat.ankleL, seat.ankleR).multiplyScalar(0.5);
 
   // -- kokiri-ledge: the stand on the raised ledge (round 48; ref-04), facing south over the clearing --
@@ -1094,13 +1096,17 @@ export function createNpcs(opts: NpcOptions): Npcs {
         actor.pos.set(seat.hips.x, 0, seat.hips.z);
         actor.yaw = seat.yaw;
         const [hy, hp] = seatedLook(t, seatPhase, seatKeys, seatLookPeriod);
-        poseSeated(sitter.rig, seat, t, 3.4, hy, hp);
+        poseSeated(sitter.rig, seat, t, 3.4, hy * (1 - seatGreet.g), hp);
         // contact: the lower sole (both rest on the tread below)
         sitter.rig.root.updateMatrixWorld(true);
         sitter.rig.ankleL.localToWorld(_tmp.copy(sitter.rig.sole));
         sitter.rig.ankleR.localToWorld(_tmp2.copy(sitter.rig.sole));
         actor.contact.copy(_tmp.y <= _tmp2.y ? _tmp : _tmp2);
         noticeFor(sitter.rig, actor, player);
+        // seated, she greets with the head and the hand: the yaw the greeter returns is not used
+        standGreet(seatGreet, t, seat.hips.x, seat.hips.z, seat.yaw, player);
+        sitter.rig.neck.rotation.x += greetNod(seatGreet, t);
+        greetWave(sitter.rig, seatGreet, t);
         actor.shadow.position.set(feetMid.x, ground.decalHeight(feetMid.x, feetMid.z, actor.shadowRadius), feetMid.z);
         driven.add(1);
         return true;
