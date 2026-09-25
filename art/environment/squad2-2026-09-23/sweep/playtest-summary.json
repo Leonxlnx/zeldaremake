@@ -1,0 +1,192 @@
+{
+ "look": [
+  {
+   "id": "plaza",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-base",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-mid",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-top",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-base",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-top",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "saria-side",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "upper-house",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "west-house",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "open-north",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  }
+ ],
+ "walk": [
+  {
+   "name": "plaza-to-upper-house",
+   "frames": 627,
+   "stuck": []
+  },
+  {
+   "name": "plaza-to-south-bank-top",
+   "frames": 306,
+   "stuck": []
+  },
+  {
+   "name": "saria-front-arc",
+   "frames": 105,
+   "stuck": []
+  },
+  {
+   "name": "west-deck",
+   "frames": 132,
+   "stuck": []
+  },
+  {
+   "name": "plaza-loop",
+   "frames": 510,
+   "stuck": []
+  },
+  {
+   "name": "south-approach",
+   "frames": 264,
+   "stuck": []
+  },
+  {
+   "name": "house-west-to-saria-door",
+   "frames": 204,
+   "stuck": []
+  },
+  {
+   "name": "west-house-to-plaza",
+   "frames": 402,
+   "stuck": []
+  },
+  {
+   "name": "north-clearing-ledge",
+   "frames": 1569,
+   "stuck": []
+  },
+  {
+   "name": "south-bridge-to-log",
+   "frames": 969,
+   "stuck": []
+  },
+  {
+   "name": "north-grove",
+   "frames": 1248,
+   "stuck": []
+  }
+ ],
+ "perf": [
+  {
+   "id": "plaza",
+   "drawnFrameWallMs": [
+    13207.89999999106,
+    13012.5,
+    12651.5,
+    14181.90000000596
+   ],
+   "jsMs": {
+    "step": 10.200000002980232,
+    "camera": 0.09999999403953552,
+    "update": 1.7000000029802322,
+    "render": 8.400000005960464
+   },
+   "draws": 578,
+   "triangles": 7994450
+  },
+  {
+   "id": "stairs2-base",
+   "drawnFrameWallMs": [
+    15711.5,
+    15887.20000000298,
+    15077.90000000596,
+    14670.79999999702
+   ],
+   "jsMs": {
+    "step": 14.700000002980232,
+    "camera": 0.09999999403953552,
+    "update": 3.1000000089406967,
+    "render": 11.5
+   },
+   "draws": 585,
+   "triangles": 9594334
+  },
+  {
+   "id": "saria-side",
+   "drawnFrameWallMs": [
+    15579.20000000298,
+    15452.70000000298,
+    15390.70000000298,
+    15827.20000000298
+   ],
+   "jsMs": {
+    "step": 13.399999991059303,
+    "camera": 0.09999999403953552,
+    "update": 4.600000008940697,
+    "render": 8.699999988079071
+   },
+   "draws": 559,
+   "triangles": 8942431
+  },
+  {
+   "id": "west-house",
+   "drawnFrameWallMs": [
+    14690.10000000894,
+    14860.39999999106,
+    14682.79999999702,
+    14394
+   ],
+   "jsMs": {
+    "step": 9,
+    "camera": 0.10000000894069672,
+    "update": 2.0999999940395355,
+    "render": 6.799999997019768
+   },
+   "draws": 463,
+   "triangles": 5557607
+  }
+ ],
+ "pageErrors": []
+}

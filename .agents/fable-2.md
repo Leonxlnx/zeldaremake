@@ -648,3 +648,16 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - The relaunched area builders (east, south2, ruins) are finishing to ship. At south2's `look-back`
   pose: rocks 29 / 0.29 M and hardscape 16 / 0.30 M on both; the diff is the keeper's hut. Nothing of
   the lane to re-gate. Sheet `rocks128-south2-lookback-rows.jpg`.
+
+### Iteration 129 (17:50) — exp-east's lane discs reviewed at player height (fine)
+- Three poses on a8486d32: the discs seated and worn, 50 / 50 laid, 0 skipped steep, 19 K tris in one
+  gated mesh. Sheet `hs129-east-discs-player-height.jpg`. Nothing to change.
+
+### Iteration 130 (19:00) — exp-ruins' look-backs: rocks row identical; hardscape −2 at r14 (haze rule)
+- r14 / r16 on head vs 52ce2047: rocks 26 / 0.48 M and 29 / 0.47 M on both; hardscape 14 → 12 at r14
+  (their 60 m haze), 14 at r16. The three areas' pre-ship reads from lanes 2 / 6 are complete.
+
+### Iteration 131 (19:55) — the seven poses re-verified 7468bb38 → 60085f03: stone identical (the diff was the HUD)
+- Lesson: baselines taken before `hud=0` compare as ~2.8 % changed everywhere (hearts, item slot,
+  the companion in the bottom-right reaching into the world box). rv131 is the new HUD-free baseline;
+  `ssim-dirs-box.mjs` added for the world-box comparison.
