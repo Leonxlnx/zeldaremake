@@ -559,3 +559,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   The wall-grime gradient did not move the flight's dark share (the average tone of a riser is the
   same 0.875); the dark is the upper run's shade. Sheet `hs112-riser-shade-withdrawn.jpg`.
 - Queue for fable-cursor now one branch: `cliff-scale` (scale + sandstone palette + previews).
+
+### Iteration 113 (00:50) — D's move across the 23:45 merges attributed (canopy / understory, not mine)
+- D_log 31146062 → 2f6c8ae2, both first-pose renders: SSIM 0.9855, 2.78 % pixels; the diff is the
+  trees over the path and the house's side; paving / pebbles / log stones unchanged.
+  `rocks113-D-move-canopy.jpg`. Notes #69 merged (4d9f766e); a fresh PR for the branch follows.
