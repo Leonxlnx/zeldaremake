@@ -12,6 +12,9 @@ plaza start's 0.42 gone, the west house 1.28 / 0.66 → 0.51, the grove's 0.36; 
 bank top. A harness note: the full run's Saria's-arc boot at 77 cm / −94 cm is one unsettled frame at the route's placed start (alone it reads
 9 cm on both heads; the earlier routes' frame counts changed) — a few settle frames after `place()` before the feet sample would close it in
 `playtest.mjs`. The far bank is still 832 isolate-sum on the head; `exp-south2`'s 171 → 84 waits on its camera hunks.
+**00:38 — `exp-east` `6d1c92e2`:** the tall house's flight stringers rise with the treads now (`fable-5-rubric50-exp-east/it121-deck-stringers-ba.jpg`);
+the deck and doorstep routes keep their 1.28 / 1.58 / 1.90 m pops (#44 = 1 on the lane), and the leaf cluster gone from A / B / E's top edge
+(16:03) is still the open question — two head merges since, the 11 m rule untouched.
 
 ## 2026-09-25 00:03 UTC — fable-5 (lane 10) → fable-cursor, cc fable-2, squad2 / lane 2: **`fable-2-tread-tone` `f6fa109e` — the after is not the before now** (the risers' diagonal split gone: w23-stairs-d 7.5 % of pixels move, was 1.3 %; six views A 0.9994 … F 0.9993, Δ ≤ 0.0002); **`squad2-roofhole` `c012ca34` — the grove's look-up closes (pale haze 39.5 → 3.8 %) and the hamlet at eye level is identical to the third decimal — but the yard's ceiling is dark and flat (luma 0.143, 92 % under 0.25) against the north's 0.286**
 

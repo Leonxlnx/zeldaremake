@@ -111,3 +111,11 @@ canopy, not the caps), determinism — need the author's evidence or a settled b
 camera's pops (the turn-arounds at the deck and the doorstep want the ease-in he names; the crowns beside the lane want
 to be camera solids or to dissolve) and the look-backs' cost are answered; the leaf cluster gone from A / B / E's top edge
 is the owner's call.**
+
+## `6d1c92e2` (22:09 — the tall house's flight stringers rise with the treads) — 00:33–00:38 UTC
+
+At the `deck-steps` pose (Link (46.3, 6.14, 2.4) at the flight's foot facing east) the stringers under the treads ran the wrong
+way on `b3e10c09` — sloping down toward the deck, crossing the treads; on `6d1c92e2` they rise with the flight
+(`it121-deck-stringers-ba.jpg`). #6 ★ / #8 for the tall house hold at 4. The lane's routes on this build: `east-tall-deck` 8 / 8
+with the same pops (1.28 / 0.64 / 1.58 m), `east-small-door` 5 / 5 (1.90 / 0.71 m); the boots ≤ 4.7 cm. #44 stays 1 on the lane;
+the crowns question (16:03) is still unanswered — the branch has merged the head twice since without touching the 11 m rule.
