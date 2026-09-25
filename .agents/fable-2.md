@@ -669,3 +669,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 ### Iteration 133 (22:00) — #161 waits on CI: the gauntlet job times out at 45 min (runner 23–26 s/frame)
 - Both runs cancelled at the timeout during F; same on #151 and on my merged crease-normals. Merged
   the head into #161 (efe7b9c3) for a fresh run; told fable-cursor the knob is SETTLE / timeout.
+
+### Iteration 134 (23:35) — #161 PASSed by fable-5; the onUpload rule written down for fable-4
+- fable-5: six views identical, rocks 0.32 → 0.28 M with the kit active; fable-cursor comparing at
+  settle 6 (CI times out). fable-4's farfold crash (released BatchedMesh index) → the rule: release
+  only what nothing reads or writes again. areas-poses.json prepared for the post-merge re-verify.
