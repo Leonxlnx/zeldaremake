@@ -43,8 +43,9 @@ fs.mkdirSync(out, { recursive: true });
  * and after it.
  */
 const TAKES = JSON.parse(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), 'takes.json'), 'utf8'));
-/** the one gust every take is held at, shared with `lag.mjs` through takes.json */
+/** the one gust every take is held at, and the settling stand before each, shared with `lag.mjs` */
 const GUST = TAKES.gust;
+const LEAD = TAKES.lead;
 
 const server = await serveStatic(dist);
 const browser = await launchBrowser({ width: 640, height: 360 });
@@ -53,11 +54,11 @@ try {
   const manifest = [];
   for (const t of TAKES.takes) {
     const len = Math.hypot(t.to[0] - t.from[0], t.to[1] - t.from[1]);
-    const seconds = Math.ceil((len / t.speed) * 10) / 10;
+    const seconds = LEAD + Math.ceil((len / t.speed) * 10) / 10;
     for (const stem of t.stems) {
       const b64 = await page.evaluate(
-        async (from, to, speed, secs, st, g) => {
-          const r = await window.__ZR_AUDIO__.renderOffline(secs, 44100, { stem: st, gust: g, pass: { from, to, speed } });
+        async (from, to, speed, secs, st, g, ld) => {
+          const r = await window.__ZR_AUDIO__.renderOffline(secs, 44100, { stem: st, gust: g, pass: { from, to, speed, lead: ld } });
           let o = '';
           for (let i = 0; i < r.wav.length; i += 0x8000) o += String.fromCharCode(...r.wav.subarray(i, i + 0x8000));
           return btoa(o);
@@ -68,13 +69,14 @@ try {
         seconds,
         stem,
         GUST,
+        LEAD,
       );
       fs.writeFileSync(path.join(out, `${t.id}-${stem}-${tag}.wav`), Buffer.from(b64, 'base64'));
     }
     manifest.push({ ...t, len, seconds });
     log(`${t.id} — ${t.note} (${len.toFixed(1)} m at ${t.speed} m/s, ${seconds} s)`);
   }
-  fs.writeFileSync(path.join(out, `takes-${tag}.json`), JSON.stringify({ tag, gust: GUST, takes: manifest }, null, 1));
+  fs.writeFileSync(path.join(out, `takes-${tag}.json`), JSON.stringify({ tag, gust: GUST, lead: LEAD, takes: manifest }, null, 1));
 } finally {
   await browser.close();
   await server.close();

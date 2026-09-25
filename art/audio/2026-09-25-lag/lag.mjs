@@ -74,7 +74,8 @@ const GAITS = [
   ['run', 4.2],
 ];
 /** the gust is held still: what moves along a path then moves because the listener did */
-const GUST = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8')).gust;
+const TAKES = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8'));
+const GUST = TAKES.gust;
 
 /**
  * The bed's smoothed parameters, in the order `update()` sets them. `tau` is what ships today;
@@ -303,6 +304,7 @@ function traceFor(take) {
 }
 
 // and the marks and traces the rendered takes are checked against, for the journeys `passby.mjs` walks
-report.takes = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8')).takes.map((t) => ({ ...t, marks: marksFor(t), trace: traceFor(t) }));
+report.lead = TAKES.lead;
+report.takes = TAKES.takes.map((t) => ({ ...t, marks: marksFor(t), trace: traceFor(t) }));
 fs.writeFileSync(path.join(out, 'lag.json'), JSON.stringify(report, null, 1));
 console.log(`wrote ${path.join(out, 'lag.json')}`);

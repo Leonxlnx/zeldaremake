@@ -53,8 +53,8 @@ def read_wav(path):
     return x, rate
 
 
-def band_db(x, rate, hop, lo, hi, win=0.06):
-    """energy in [lo, hi) every `hop` seconds, in dB, on a Hann-windowed rfft"""
+def band_power(x, rate, hop, lo, hi, win=0.02):
+    """linear energy in [lo, hi) every `hop` seconds, on a Hann-windowed rfft"""
     n = int(round(win * rate))
     n += n % 2
     step = int(round(hop * rate))
@@ -64,8 +64,26 @@ def band_db(x, rate, hop, lo, hi, win=0.06):
     out = []
     for i in range(0, max(1, len(x) - n), step):
         s = np.fft.rfft(x[i : i + n] * w)
-        out.append(10 * np.log10(np.maximum((np.abs(s[sel]) ** 2).sum(), 1e-20)))
+        out.append(float((np.abs(s[sel]) ** 2).sum()))
     return np.array(out)
+
+
+def always_on(x, rate, hop, lo, hi, window=0.2, pct=10):
+    """
+    The band's always-on level over time, in dB: the `pct`-th percentile of its short-time power
+    across a rolling `window`.
+
+    This lane scores a place on the level present in nine frames out of ten rather than on the mean,
+    because the mean of a forest is its birds. The same argument holds here with more force: a leaf
+    flutter puts 40 dB into the top bands for 80 ms, and a correlation has no defence against one.
+    The cost is resolution -- a 0.2 s window is 0.84 m of smear at a run -- which is small against
+    the metres this is looking for and is identical in both takes of a pair.
+    """
+    p = band_power(x, rate, hop, lo, hi)
+    k = max(1, int(round(window / hop)))
+    pad = np.pad(p, (k // 2, k - k // 2 - 1), mode='edge')
+    roll = np.lib.stride_tricks.sliding_window_view(pad, k)
+    return 10 * np.log10(np.maximum(np.percentile(roll, pct, axis=1), 1e-20))
 
 
 def best_shift(world, heard, hop, speed, max_m=4.0):
@@ -117,12 +135,14 @@ BANDS = {
 }
 
 
-def feature(path, rate_hop, watch):
+def feature(path, hop, watch, lead):
+    """the take's watched band, always-on, from the moment he starts walking"""
     x, rate = read_wav(path)
+    x = x[int(round(lead * rate)) :]
     bands = BANDS[watch]
-    v = band_db(x, rate, rate_hop, *bands[0])
+    v = always_on(x, rate, hop, *bands[0])
     if len(bands) > 1:
-        v = v - band_db(x, rate, rate_hop, *bands[1])
+        v = v - always_on(x, rate, hop, *bands[1])
     return v
 
 
@@ -142,7 +162,7 @@ for t in report['takes']:
         p = os.path.join(a.takes, f"{t['id']}-bed-{tag}.wav")
         if not os.path.exists(p):
             continue
-        h = feature(p, hop, tr['watch'])
+        h = feature(p, hop, tr['watch'], report['lead'])
         m, r = best_shift(world, h, hop, t['speed'])
         row[tag] = {'lagM': m, 'r': r, 'peakM': peak_shift(world, h, hop, t['speed']) if t['watch'] == 'flame level' else None}
         row['curves'][tag] = h

@@ -1,6 +1,8 @@
 {
  "note": "the journeys both scripts use, so the model and the renders cannot drift apart. speeds are the player's own (footsteps.ts WALK_SPEED / RUN_GROUND_SPEED).",
  "gust": 0.6,
+ "lead": 4,
+ "leadNote": "seconds standing at `from` before the walk starts, so the bed has settled: the 0.9 s smoothing this measures takes about eleven metres of a run to reach the world's value from a cold graph.",
  "takes": [
   {
    "id": "lantern-run",

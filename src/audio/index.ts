@@ -146,9 +146,14 @@ export interface OfflineOptions {
    *
    * The tick here is the live `TICK_MS` rather than the scripted walk's 20 Hz, because the quantity
    * being measured is a lag and half of it is the tick. Legs are the caller's: pass `seconds` long
-   * enough to cover the line (`|to − from| / speed`) and the walk stops at `to`.
+   * enough to cover the line (`|to − from| / speed` plus `lead`) and the walk stops at `to`.
+   *
+   * `lead` stands him at `from` first. Every smoothed parameter in the bed starts at whatever the
+   * node was built with and takes several time constants to reach the world's value, which at the
+   * 0.9 s this was written against is eleven metres of a run — so without a lead-in the first third
+   * of a take is the graph waking up and not the journey. Four seconds covers the longest of them.
    */
-  pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number };
+  pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number; lead?: number };
   /**
    * Hold the wind at one gust for the whole render instead of running the weather.
    *
@@ -901,7 +906,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const passLen = pass ? Math.hypot(pass.to[0] - pass.from[0], pass.to[1] - pass.from[1]) : 0;
   for (let t = 0; t < seconds; t += step) {
     if (pass) {
-      const u = Math.min(1, (t * pass.speed) / (passLen || 1));
+      const u = Math.max(0, Math.min(1, ((t - (pass.lead ?? 0)) * pass.speed) / (passLen || 1)));
       const px = pass.from[0] + (pass.to[0] - pass.from[0]) * u;
       const pz = pass.from[1] + (pass.to[1] - pass.from[1]) * u;
       const here = surfaceAt(px, pz);
@@ -919,7 +924,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         gorge: options.gorge ?? here.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
       });
-      footsteps?.drive(t, step, { speed: u < 1 ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      footsteps?.drive(t, step, { speed: u > 0 && u < 1 ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
       continue;
     }
     if (options.at && spot) {
