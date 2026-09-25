@@ -497,3 +497,7 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 03:05 — PR #74 merged (02:15 round); its pair: SSIM identical at all six, A 8.94 → 8.97 M (30 K under the gate —
   heads-up posted). PR #81 `agent/fable-4-standlod-retire` a7006e1f: the inert stand 50 m rule retired (−17/+8), typecheck/build/
   tests green; before/after renders at the stand poses + A/D rendering. Next: near-canopy fold if yes; the expansions' tree side.
+- 2026-09-25 03:30 — PR #81 merged (02:56 round, before its before/after landed): the pair since — 0 / 0 px at the stand poses,
+  1 / 3 px at A / D at > 1/255, draws and triangles equal (round54-standlod-retire). Lesson re-learned tonight: after `git merge`,
+  check `--diff-filter=U` in its own step and stop on a conflict before writing anything (38cfa895 carried markers for one commit;
+  c1b30859 resolves them).
