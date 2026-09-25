@@ -605,3 +605,6 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - Three deck poses on 3556b945: floor boulders seated, moss caps read, wall shelves subtle under the
   roots and mist; no change. Sheet `rocks120-gorge-from-deck.jpg`. Note: `groundEye` at the bridge
   lands on the gorge floor — use absolute y for deck poses.
+
+### Iteration 121 (08:45) — the canopy-batch round re-verified at three lane poses (0 pixels)
+- 24dc489f → cd9400b2: x-clearing-n / x-southbank-toe / w23-stairs-f SSIM 1.0000, 0 px over 8.
