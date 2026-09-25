@@ -13,15 +13,21 @@ in lane; move it if the squad would rather it sat beside the structures one).
 
 ## The verdict
 
-**173 / 200 when first scored on 2026-09-25. Re-scored the same day at 180 / 200.**
+**173 / 200 when first scored on 2026-09-25. 181 / 200 as of 08:50 the same day.**
 
 Its own rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. On the first pass
 it cleared the total and failed the rest — three checks below 2 and one ★ at 2. Since then #88 built
 occlusion (45: 0 → 3), #91 tested the hidden tab (48: 1 → 3), and checks 9 and 15 were **re-scored
 because I had judged them on the wrong axis** — level rather than colour, see `2026-09-25-places`.
 
+Since then check 49 has moved too (the renderer was accumulating nodes; the live graph was not), and
+three checks scored 3 on *trust* have been measured at last — 4, 21 and 28. Two of those turned out
+to be covering real faults and the third a fault in the shipped game, so they keep their 3s on
+evidence rather than gaining a point: the bed repeated every nine seconds, a run was a louder walk,
+and one step in fifteen was dropped at the tick the game runs at.
+
 It now fails on **one check**: 27, nothing a player touches makes a sound. That is a real hole and
-not a mis-score.
+not a mis-score, and it is the only thing between the sound and the rubric's own ship rule.
 
 | | section | score | |
 | --- | --- | ---: | --- |
@@ -32,7 +38,7 @@ not a mis-score.
 | E | music | **24 / 24** | |
 | F | mix and level | 23 / 24 | |
 | G | space and direction | 18 / 20 | was 15; #88 built occlusion |
-| H | runtime | 16 / 20 | was 14; #91 tested the hidden tab |
+| H | runtime | 17 / 20 | was 14; #91 tested the hidden tab, and the renderer stopped accumulating |
 
 ## The four holes, in the order I would take them
 
@@ -117,7 +123,7 @@ score is a judgement and is marked as such.
 | 1 | ★ no constant drone | **4** | 200 s, every band swings 13.4–33 dB (`resurvey`) |
 | 2 | ★ no hiss floor | **4** | always-on 1–8 kHz sits 20–45 dB under the bands below it (`floor.py`) |
 | 3 | a swell, not a floor | **4** | `ambience.test.mjs`: below the gust knee the wind layers are silent |
-| 4 | nothing periodic | 3 | every modulator is a seeded random walk; a test forbids a held tone. **No envelope-modulation spectrum has been run on the bed** the way one was on the music |
+| 4 | nothing periodic | 3 | measured at last, and it was not safe: the bed repeated every nine seconds (r = +0.51 at 27 s) and now does not (+0.05, no period). The envelope's own 26 s correlation is measured but explained only as a slow random walk (`2026-09-25-loop`) |
 | 5 | sparse, irregular events | 3 | flutter gap capped at 2.2 s, bird gaps measured (`birdvoice`, `wind`) |
 | 6 | birds are individuals | **4** | perches; `ambience.test.mjs` "a kind comes from its own tree" |
 | 7 | the wood answers weather | **4** | gusts bring leaves and lulls bring calls, both tested (#56) |
@@ -134,14 +140,14 @@ score is a judgement and is marked as such.
 | 18 | every surface reachable and classified | **4** | `surfaces.test.mjs`, both directions |
 | 19 | cadence matches the animation | **4** | derived from `CLIP_SPEC` with a guard that fails if the clip is re-authored |
 | 20 | believable level | 3 | steps peak −14.3 against the music's −19.1; the sfx compressor holds a run without touching the music |
-| 21 | walk and run differ in more than rate | 3 | the run branch shortens contact and hardens the heel. **Measured for level, not for spectral character** |
+| 21 | walk and run differ in more than rate | 3 | measured, and it was not: a run's centroid was 1 Hz from a walk's. Now +36 Hz (`2026-09-25-gait`). Not a 4 — the per-step instrument does not work at a running cadence |
 | 22 | stairs, bridges, hollow each own a body | **4** | separate designs, each guarded |
 | 23 | steps vary | **4** | 5.3 s noise loop, per-step jitter, tested |
 | 24 | landing scales with the fall | **4** | `landingStrength(fallM)`, tested |
 | 25 | leaving the ground sounds | **4** | #53, measured against a bed that used to swallow it |
 | 26 | the space is in the contact | **4** | #73: the room send scales with enclosure on every contact |
 | 27 | anything touched that is silent | **0** | doors, ladders, the grove's hoist, pots, crates, baskets, signposts, vegetation, **and the Kokiri** |
-| 28 | no double-fire, no misses | 3 | `MIN_STEP_GAP` and stance edges, tested. **Not tested across frame rates** |
+| 28 | no double-fire, no misses | 3 | frame rates now tested and a real fault fixed — one step in fifteen was being dropped at the shipping tick (`2026-09-25-tickrate`). The double-fire half still rests on `MIN_STEP_GAP` and the stance-edge test |
 | 29 | ★ the tune has a shape | **4** | #49: phrases, dynamics, an end |
 | 30 | ★ it stops | **4** | 20–23 s rests, 26 % of 200 s (`resurvey`) |
 | 31 | no held tone | **4** | the 73–110 Hz pad removed; a test forbids its return |
@@ -162,7 +168,7 @@ score is a judgement and is marked as such.
 | 46 | ★ starts when the game does | **4** | fixed; it used to be silent for its first six seconds |
 | 47 | survives a long session | **4** | 13 min, voices 5–13 and ending where they started, heap flat |
 | 48 | hidden tab, suspend, device change | **3** | #91: six minutes hidden with rAF stopped and four with every timer clamped to 1 Hz — no leak, no errors, audio at full speed. Suspend / resume and a device change still untested |
-| 49 | it costs what it should | **2** | voices counted; `renderCapacity` is plumbed but unsupported in this Chrome, so the audio thread's load has never been read |
+| 49 | it costs what it should | **3** | the live graph holds at 4–15 voices through the worst case (169 steps, 47 landings, 25 shoves, 62 pods, the score playing), and the renderer's node accumulation is found and fixed (`2026-09-25-cost`). `renderCapacity` is still unsupported here, so the audio thread's own load is unread |
 | 50 | every claim reproducible | 3 | twelve scripts now; the first standing survey's numbers were produced by hand and are not |
 
 ## Reproduce

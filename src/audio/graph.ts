@@ -299,12 +299,43 @@ export function controlSource(ctx: BaseAudioContext, buffer: AudioBuffer, depth:
  * leaf flutter, a bird) tear themselves down with this so the live graph does not grow.
  */
 export function cleanupAt(ctx: BaseAudioContext, when: number, fn: () => void): void {
-  if (typeof (ctx as OfflineAudioContext).startRendering === 'function') return;
   liveVoices++;
-  setTimeout(() => {
+  const done = () => {
     liveVoices--;
     fn();
-  }, Math.max(0, (when - ctx.currentTime) * 1000 + 50));
+  };
+  // A silent source stopped at `when`, so the teardown rides the AUDIO clock.
+  //
+  // This was a `setTimeout` with an early return offline, on the reasoning that "the whole graph is
+  // discarded when the render finishes". True of memory and false of cost: nothing was ever
+  // disconnected during a render, so every node any event had ever built stayed in the graph and
+  // was processed for every remaining quantum. Measured, the cost grew as the SQUARE of the take —
+  // thirty seconds of the mix rendered in 33 s of wall clock and a hundred and twenty in 425
+  // (`art/audio/2026-09-25-cost/`).
+  //
+  // It is also the better clock live. A wall-clock timer drifts from the audio it is cleaning up
+  // after, and a background tab throttles it; `onended` fires in step with the render offline and
+  // with the context live, which is when the voice is actually finished.
+  const make = (ctx as BaseAudioContext & { createConstantSource?: () => ConstantSourceNode }).createConstantSource;
+  if (typeof make !== 'function') {
+    // no ConstantSourceNode (a harness's stand-in context): fall back to the wall clock live, and
+    // to nothing offline, which is what this did everywhere before
+    if (typeof (ctx as OfflineAudioContext).startRendering === 'function') {
+      liveVoices--;
+      return;
+    }
+    setTimeout(done, Math.max(0, (when - ctx.currentTime) * 1000 + 50));
+    return;
+  }
+  const tick = make.call(ctx);
+  tick.offset.value = 0;
+  tick.connect(ctx.destination);
+  tick.start();
+  tick.stop(Math.max(when, ctx.currentTime + 1 / ctx.sampleRate));
+  tick.onended = () => {
+    tick.disconnect();
+    done();
+  };
 }
 
 /**
