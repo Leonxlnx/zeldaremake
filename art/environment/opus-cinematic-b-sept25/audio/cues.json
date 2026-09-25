@@ -1,0 +1,177 @@
+{
+  "schema": "opus-cinematic-audio-cues/2",
+  "note": "Edit-second section boundaries of the 36.000 s cut (picture locked, 1080 frames at 30 fps; sections/durationSeconds/musicHit/fadeOut.start written by ../sync-cues.mjs from ../shots.json). Every sound cue (gust swells, bird placements, lantern, ticks, hamlet creaks, music rise and hit) is placed relative to these; after any retime run node ../sync-cues.mjs (or edit ONLY this file) and re-render. hamlet is optional: drop it and every curve glides from stairs to reveal.",
+  "durationSeconds": 36,
+  "sampleRate": 48000,
+  "seed": "kokiri-opus-cinematic-s24",
+  "preRollSeconds": 4,
+  "sections": [
+    {
+      "id": "hero",
+      "start": 0,
+      "end": 4.5
+    },
+    {
+      "id": "lantern",
+      "start": 4.5,
+      "end": 5.9
+    },
+    {
+      "id": "macro",
+      "start": 5.9,
+      "end": 8.2
+    },
+    {
+      "id": "canopy",
+      "start": 8.2,
+      "end": 11.2
+    },
+    {
+      "id": "walk",
+      "start": 11.2,
+      "end": 17
+    },
+    {
+      "id": "run",
+      "start": 17,
+      "end": 21.2
+    },
+    {
+      "id": "stairs",
+      "start": 21.2,
+      "end": 25.2
+    },
+    {
+      "id": "hamlet",
+      "start": 25.2,
+      "end": 28.8
+    },
+    {
+      "id": "reveal",
+      "start": 28.8,
+      "end": 36
+    }
+  ],
+  "musicHit": 28.8,
+  "musicMinPreSeconds": 0.5,
+  "fadeIn": 0.05,
+  "fadeOut": {
+    "start": 33.5,
+    "duration": 2.5
+  },
+  "placeholderSteps": {
+    "walk": 0.367,
+    "run": 0.273,
+    "stairs": 0.367
+  },
+  "steps": {
+    "note": "surface = the material per section (aliases ok); the game's stairs rule then turns stone into 'stair' when the boot is on the stairs (stairsFrom 'map': the world's stairs mask at the logged pos, as the game does; 'gait': gait 'stairs'; placeholder steps always use the gait); surfaceOverride = forced final surface per section; the row's gait wins over sectionGait; strength per gait; gainDb per section rides after the game's sfx compressor.",
+    "surface": {
+      "walk": "stone",
+      "run": "stone",
+      "stairs": "stone"
+    },
+    "surfaceOverride": {},
+    "surfaceFrom": "cues",
+    "stairsFrom": "map",
+    "sectionGait": {
+      "walk": "walk",
+      "run": "run",
+      "stairs": "stairs"
+    },
+    "armFromPreroll": false,
+    "strength": {
+      "walk": 0.45,
+      "run": 0.66,
+      "stairs": 0.43,
+      "idle": 0.3
+    },
+    "pan": {
+      "L": -0.15,
+      "R": 0.15
+    },
+    "gainDb": {
+      "walk": 0,
+      "run": 0,
+      "stairs": 2
+    },
+    "minGap": 0.16
+  },
+  "music": {
+    "note": "scoreDb = the score over the game's in-game balance; gain / lowpassHz are reached at the END of each section; the section leading into the hit (hamlet) uses preHitGain / preHitHz at hit - 0.35 / 0.4 s.",
+    "enterSection": "canopy",
+    "scoreDb": 15,
+    "gain": {
+      "canopy": 0.16,
+      "walk": 0.26,
+      "run": 0.4,
+      "stairs": 0.52
+    },
+    "lowpassHz": {
+      "canopy": 3000,
+      "walk": 4200,
+      "run": 5200,
+      "stairs": 6500
+    },
+    "preHitGain": 0.58,
+    "preHitHz": 10000,
+    "hitGain": 0.8,
+    "afterGain": 0.76,
+    "floorHz": 1400,
+    "openHz": 17000
+  },
+  "ambience": {
+    "windDir": {
+      "x": 0.722,
+      "z": -0.692
+    },
+    "forward": {
+      "x": 0,
+      "z": -1
+    }
+  },
+  "curves": {
+    "note": "optional per-section overrides of cine.js tables: gust / intimacy take [[anchor 'start'|'end', offset s, value], ...]; canopy / chorusRate / chorusLevel / rustle take one number per section.",
+    "canopy": {
+      "hero": 0.7,
+      "lantern": 0.4,
+      "macro": 0.6,
+      "canopy": 1,
+      "walk": 0.15,
+      "run": 0.15,
+      "stairs": 0.25,
+      "hamlet": 0.85,
+      "reveal": 0.5
+    }
+  },
+  "levels": {
+    "gameBed": 2,
+    "roomTone": 0.03,
+    "lantern": 0.5,
+    "ticks": 1.8,
+    "creak": 1,
+    "birdWet": 0.8,
+    "foley": 0.8,
+    "ornaments": 0.55,
+    "swell": 1.3,
+    "bloom": 0.28
+  },
+  "mixDb": {
+    "bed": 0,
+    "birds": 0,
+    "detail": 0,
+    "steps": 4,
+    "music": 0
+  },
+  "master": {
+    "targetLufs": -14,
+    "truePeakDb": -1.5,
+    "limiterCeilingDb": -2.3,
+    "loudnormLra": 11
+  },
+  "syncedFrom": {
+    "shots": "../shots.json",
+    "frames": 1080,
+    "fps": 30
+  }
+}

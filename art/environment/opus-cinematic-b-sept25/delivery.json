@@ -1,0 +1,208 @@
+{
+  "createdAt": "2026-09-25T03:16:47.861Z",
+  "sourceCommit": "2ef05b06437265a62527d829b5eb4e8321bfff6c",
+  "framesDir": "gauntlet/out/opus-cinematic-b-sept25/take1/frames",
+  "frameSequenceSha256": "8aeacefbbe6b6ab6f417c55618848ffad9316ef3026f9801f3fedde2b2eaab43",
+  "frames": 1080,
+  "fps": 30,
+  "seconds": 36,
+  "nativeSize": "1920x1080",
+  "audio": {
+    "file": "art/environment/opus-cinematic-b-sept25/audio/mix-36s-48k.wav",
+    "sha256": "768e05bf1e338f009eb54b15becf29a76ce1a8ef3115f65ec0c2fa14369d98d4"
+  },
+  "shots": {
+    "file": "art/environment/opus-cinematic-b-sept25/shots.json",
+    "sha256": "af2649320ff945dd3d566ce27ba0a9e6f635acb3f89cbe2ed094dbd8c35ba4da",
+    "cuts": [
+      {
+        "name": "01-open",
+        "start": 0,
+        "frames": 135
+      },
+      {
+        "name": "02-pods",
+        "start": 135,
+        "frames": 42
+      },
+      {
+        "name": "03-bark",
+        "start": 177,
+        "frames": 33
+      },
+      {
+        "name": "04-stone",
+        "start": 210,
+        "frames": 36
+      },
+      {
+        "name": "05-canopy",
+        "start": 246,
+        "frames": 90
+      },
+      {
+        "name": "06-walk-back",
+        "start": 336,
+        "frames": 102
+      },
+      {
+        "name": "07-walk-front",
+        "start": 438,
+        "frames": 72
+      },
+      {
+        "name": "08-run-side",
+        "start": 510,
+        "frames": 72
+      },
+      {
+        "name": "09-run-rear",
+        "start": 582,
+        "frames": 54
+      },
+      {
+        "name": "10-stairs",
+        "start": 636,
+        "frames": 66
+      },
+      {
+        "name": "11-stairs-front",
+        "start": 702,
+        "frames": 54
+      },
+      {
+        "name": "12-hamlet",
+        "start": 756,
+        "frames": 108
+      },
+      {
+        "name": "13-reveal",
+        "start": 864,
+        "frames": 216
+      }
+    ]
+  },
+  "grade": "curves=all='0/0 0.06/0.11 0.2/0.29 0.5/0.58 0.8/0.84 1/1':enable='between(n\\,135\\,176)',curves=all='0/0 0.09/0.03 0.25/0.2 0.5/0.5 0.75/0.8 0.93/0.965 1/1',eq=saturation=1.15:gamma=0.99,colorbalance=rs=-0.012:bs=0.016:rh=0.02:bh=-0.025,vignette=angle=PI/6.5:mode=forward",
+  "film": {
+    "file": "Kokiri-Forest-Cinematic.mp4",
+    "sha256": "26d1cc3c28dd584a76275f1dc65bb5f85a1d147d46c70d96cacaa08eef59675b",
+    "bytes": 74496678,
+    "checks": {
+      "frames": true,
+      "fps": true,
+      "pixFmt": true,
+      "codec": true,
+      "profile": true,
+      "size": true,
+      "audio": true,
+      "duration": true,
+      "faststart": true,
+      "loudness": true,
+      "truePeak": true,
+      "posterNotBlack": true,
+      "under100MB": true
+    },
+    "loudness": {
+      "integratedLufs": -14.1,
+      "lraLu": 9.4,
+      "truePeakDbtp": -2
+    }
+  },
+  "poster": {
+    "file": "poster.png",
+    "sha256": "3f56ae796201daaa7412b6942437c34fe0d206463000e21b376c45e4b0a0302f",
+    "from": "frame 0 of Kokiri-Forest-Cinematic.mp4 (decoded)"
+  },
+  "contactSheet": {
+    "file": "contact-sheet.jpg",
+    "frames": [
+      0,
+      134,
+      135,
+      176,
+      177,
+      209,
+      210,
+      245,
+      246,
+      335,
+      336,
+      437,
+      438,
+      509,
+      510,
+      581,
+      582,
+      635,
+      636,
+      701,
+      702,
+      755,
+      756,
+      863,
+      864,
+      1079
+    ]
+  },
+  "ffmpeg": [
+    "-hide_banner",
+    "-y",
+    "-framerate",
+    "30",
+    "-start_number",
+    "0",
+    "-i",
+    "<repo>/gauntlet/out/opus-cinematic-b-sept25/take1/frames/f%04d.png",
+    "-i",
+    "<repo>/art/environment/opus-cinematic-b-sept25/audio/mix-36s-48k.wav",
+    "-map",
+    "0:v:0",
+    "-map",
+    "1:a:0",
+    "-vf",
+    "curves=all='0/0 0.06/0.11 0.2/0.29 0.5/0.58 0.8/0.84 1/1':enable='between(n/,135/,176)',curves=all='0/0 0.09/0.03 0.25/0.2 0.5/0.5 0.75/0.8 0.93/0.965 1/1',eq=saturation=1.15:gamma=0.99,colorbalance=rs=-0.012:bs=0.016:rh=0.02:bh=-0.025,vignette=angle=PI/6.5:mode=forward,format=yuv420p",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "slow",
+    "-crf",
+    "16",
+    "-maxrate",
+    "16M",
+    "-bufsize",
+    "32M",
+    "-profile:v",
+    "high",
+    "-level:v",
+    "4.2",
+    "-pix_fmt",
+    "yuv420p",
+    "-colorspace",
+    "bt709",
+    "-color_primaries",
+    "bt709",
+    "-color_trc",
+    "bt709",
+    "-color_range",
+    "tv",
+    "-r",
+    "30",
+    "-g",
+    "30",
+    "-bf",
+    "2",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "256k",
+    "-ar",
+    "48000",
+    "-ac",
+    "2",
+    "-t",
+    "36.000000",
+    "-movflags",
+    "+faststart",
+    "<repo>/art/environment/opus-cinematic-b-sept25/Kokiri-Forest-Cinematic.mp4"
+  ]
+}

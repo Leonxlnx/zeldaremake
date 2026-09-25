@@ -1,0 +1,830 @@
+{
+ "source": [
+  "gauntlet/out/opus-cinematic-b-sept25/take1/steps-06-walk-back.json",
+  "gauntlet/out/opus-cinematic-b-sept25/take1/steps-07-walk-front.json",
+  "gauntlet/out/opus-cinematic-b-sept25/take1/steps-08-run-side.json",
+  "gauntlet/out/opus-cinematic-b-sept25/take1/steps-09-run-rear.json",
+  "gauntlet/out/opus-cinematic-b-sept25/take1/steps-10-stairs.json",
+  "gauntlet/out/opus-cinematic-b-sept25/take1/steps-11-stairs-front.json"
+ ],
+ "armFromPreroll": false,
+ "surfaceFrom": "cues",
+ "count": 40,
+ "summary": {
+  "bySection": {
+   "walk": 14,
+   "run": 15,
+   "stairs": 11
+  },
+  "byGait": {
+   "walk": 15,
+   "run": 15,
+   "stairs": 10
+  },
+  "bySurface": {
+   "stone": 29,
+   "stair": 11
+  },
+  "dropped": {
+   "outOfCut": 0,
+   "minGap": 0
+  }
+ },
+ "logs": [
+  {
+   "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-06-walk-back.json",
+   "shot": "06-walk-back",
+   "rows": 262,
+   "recRows": 203,
+   "skipRows": 59,
+   "edit": [
+    11.2,
+    14.56667
+   ],
+   "recorder": {
+    "recorded": 8,
+    "onFirstTick": 0,
+    "agrees": true
+   },
+   "fromEvents": false
+  },
+  {
+   "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-07-walk-front.json",
+   "shot": "07-walk-front",
+   "rows": 406,
+   "recRows": 143,
+   "skipRows": 263,
+   "edit": [
+    14.6,
+    16.96667
+   ],
+   "recorder": {
+    "recorded": 6,
+    "onFirstTick": 0,
+    "agrees": true
+   },
+   "fromEvents": false
+  },
+  {
+   "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-08-run-side.json",
+   "shot": "08-run-side",
+   "rows": 190,
+   "recRows": 143,
+   "skipRows": 47,
+   "edit": [
+    17,
+    19.36667
+   ],
+   "recorder": {
+    "recorded": 9,
+    "onFirstTick": 1,
+    "agrees": true
+   },
+   "fromEvents": false
+  },
+  {
+   "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-09-run-rear.json",
+   "shot": "09-run-rear",
+   "rows": 298,
+   "recRows": 107,
+   "skipRows": 191,
+   "edit": [
+    19.4,
+    21.16667
+   ],
+   "recorder": {
+    "recorded": 7,
+    "onFirstTick": 0,
+    "agrees": true
+   },
+   "fromEvents": false
+  },
+  {
+   "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-10-stairs.json",
+   "shot": "10-stairs",
+   "rows": 178,
+   "recRows": 131,
+   "skipRows": 47,
+   "edit": [
+    21.2,
+    23.36667
+   ],
+   "recorder": {
+    "recorded": 6,
+    "onFirstTick": 0,
+    "agrees": true
+   },
+   "fromEvents": false
+  },
+  {
+   "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-11-stairs-front.json",
+   "shot": "11-stairs-front",
+   "rows": 286,
+   "recRows": 107,
+   "skipRows": 179,
+   "edit": [
+    23.4,
+    25.16667
+   ],
+   "recorder": {
+    "recorded": 5,
+    "onFirstTick": 0,
+    "agrees": true
+   },
+   "fromEvents": false
+  }
+ ],
+ "mapCheck": {
+  "source": "src/audio/index.ts surfaceAt",
+  "sha256": "af556af93a9b4dae511dade1ca939a2c0b6817a41ee09f2fc91e5329067d9321",
+  "disagree": 0,
+  "examples": [],
+  "meanCanopyBySection": {
+   "walk": 0,
+   "run": 0,
+   "stairs": 0
+  }
+ },
+ "steps": [
+  {
+   "t": 11.35,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4561,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 11.76667,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4717,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 12.21667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.3826,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 12.63333,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5036,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 13.06667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4501,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 13.5,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4328,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 13.93333,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4035,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 14.35,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5031,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "06-walk-back",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 14.8,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4301,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "07-walk-front",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 15.21667,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4522,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "07-walk-front",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 15.66667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.3996,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "07-walk-front",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 16.08333,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4693,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "07-walk-front",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 16.51667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4019,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "07-walk-front",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 16.95,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5126,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "07-walk-front",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 17.26667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.7636,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 17.55,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6382,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 17.81667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6445,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 18.08333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6553,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 18.36667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6775,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 18.63333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6147,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 18.9,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6845,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 19.18333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6711,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "08-run-side",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 19.45,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.7232,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 19.73333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.5884,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 20,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6828,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 20.26667,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.5738,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 20.55,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.6404,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 20.81667,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.5757,
+   "running": true,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 21.08333,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.761,
+   "running": true,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "09-run-rear",
+   "map": {
+    "surface": "stone",
+    "stairs": false,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 21.4,
+   "foot": "L",
+   "gait": "walk",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.3961,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "10-stairs",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 21.76667,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4692,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "10-stairs",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 22.13333,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4193,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "10-stairs",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 22.5,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4705,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "10-stairs",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 22.86667,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.3859,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "10-stairs",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 23.23333,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4129,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "10-stairs",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 23.6,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4012,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "11-stairs-front",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 23.96667,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4309,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "11-stairs-front",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 24.33333,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.3817,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "11-stairs-front",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 24.7,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4631,
+   "running": false,
+   "pan": 0.15,
+   "source": "log",
+   "shot": "11-stairs-front",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  },
+  {
+   "t": 25.06667,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.3909,
+   "running": false,
+   "pan": -0.15,
+   "source": "log",
+   "shot": "11-stairs-front",
+   "map": {
+    "surface": "stair",
+    "stairs": true,
+    "canopy": 0
+   }
+  }
+ ]
+}

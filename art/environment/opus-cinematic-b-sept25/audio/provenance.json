@@ -1,0 +1,823 @@
+{
+  "project": "Kokiri Forest cinematic — opus-cinematic-b-sept25 soundtrack",
+  "renderedAt": "2026-09-25T02:48:55.926Z",
+  "sourceRoot": "E:/zeldaremake-cinematic-b",
+  "sources": {
+    "src/world/util/prng.ts": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9",
+    "src/audio/graph.ts": "8e5ad3684f157eb6e978deb574c7c0c24b0b0b62c3723677a34f5b778f4890a3",
+    "src/audio/ambience.ts": "48ef328de3047eba9c937f9a132e320c3c180af1ede58d3b1490f8f5c0e10763",
+    "src/audio/footsteps.ts": "66b1f85f92fee58faedf2604077567d995e773bb4c95cd222acd9664d7bf19e8",
+    "src/audio/music.ts": "a1a9634f9993a461b3bca2bd430accfcbb7d833206bd05ad5d17c07c25e5fc01"
+  },
+  "scripts": {
+    "render-audio.mjs": "9b7c6121d45f9215b0610f3707f82b9ee215ac29c11b6aca1ca92b5ba4b5fc11",
+    "finish-audio.mjs": "2f4e2713f6343c8616bbdcbff0eb35bcb5d2b019597d266760102d931a401876",
+    "synth/cine.js": "da46c107274d4f03f90c5dfa3921780171a0b2feb7915527a7b2f88604504265"
+  },
+  "cues": {
+    "file": "art/environment/opus-cinematic-b-sept25/audio/cues.json",
+    "sha256": "49d59f29a401d69d5d9c25f22d13b90e08983987b224e1755d4227b9bbe78b4f"
+  },
+  "stepLog": {
+    "files": [
+      {
+        "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-06-walk-back.json",
+        "sha256": "034f32991b94a82b7d1a8c07ec5f9b0d551e643def701a305e7c600c0c3abdb8",
+        "shot": "06-walk-back",
+        "steps": 8,
+        "recorder": {
+          "recorded": 8,
+          "onFirstTick": 0,
+          "agrees": true
+        }
+      },
+      {
+        "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-07-walk-front.json",
+        "sha256": "e5d6b38e1bedda18e6455d005e79257a2f7ebcb8811b03b5f3274c8720885d0a",
+        "shot": "07-walk-front",
+        "steps": 6,
+        "recorder": {
+          "recorded": 6,
+          "onFirstTick": 0,
+          "agrees": true
+        }
+      },
+      {
+        "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-08-run-side.json",
+        "sha256": "5877cc97a384cc2a5285bcdcbd134d074829c0d099b828678248149e21249d8a",
+        "shot": "08-run-side",
+        "steps": 8,
+        "recorder": {
+          "recorded": 9,
+          "onFirstTick": 1,
+          "agrees": true
+        }
+      },
+      {
+        "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-09-run-rear.json",
+        "sha256": "3dd3911201f9893e8eb64554b3c44cb41ccd72b2384d301ea80567ffe1ac0e08",
+        "shot": "09-run-rear",
+        "steps": 7,
+        "recorder": {
+          "recorded": 7,
+          "onFirstTick": 0,
+          "agrees": true
+        }
+      },
+      {
+        "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-10-stairs.json",
+        "sha256": "1f86378d3a866028ac1598187492968be6c660defd56d7b5dca01a8bfdc465c8",
+        "shot": "10-stairs",
+        "steps": 6,
+        "recorder": {
+          "recorded": 6,
+          "onFirstTick": 0,
+          "agrees": true
+        }
+      },
+      {
+        "file": "gauntlet/out/opus-cinematic-b-sept25/take1/steps-11-stairs-front.json",
+        "sha256": "9c3e88345879aff71e5cce87e7516c2525fd007347d3c91a2958fdf51fe11d00",
+        "shot": "11-stairs-front",
+        "steps": 5,
+        "recorder": {
+          "recorded": 5,
+          "onFirstTick": 0,
+          "agrees": true
+        }
+      }
+    ],
+    "armFromPreroll": false,
+    "mapCheck": {
+      "source": "src/audio/index.ts surfaceAt",
+      "sha256": "af556af93a9b4dae511dade1ca939a2c0b6817a41ee09f2fc91e5329067d9321",
+      "disagree": 0,
+      "examples": [],
+      "meanCanopyBySection": {
+        "walk": 0,
+        "run": 0,
+        "stairs": 0
+      }
+    }
+  },
+  "stepsResolved": {
+    "file": "steps-resolved.json",
+    "sha256": "12da918039b72896e8f405737e3d59cf9f86d94b0f9aed1cb09babbf2719158f",
+    "count": 40,
+    "summary": {
+      "bySection": {
+        "walk": 14,
+        "run": 15,
+        "stairs": 11
+      },
+      "byGait": {
+        "walk": 15,
+        "run": 15,
+        "stairs": 10
+      },
+      "bySurface": {
+        "stone": 29,
+        "stair": 11
+      },
+      "dropped": {
+        "outOfCut": 0,
+        "minGap": 0
+      }
+    }
+  },
+  "seed": "kokiri-opus-cinematic-s24",
+  "seedForks": "createRng(seed).fork(<stem>) per stem; bed: buses/ambience/wind0/wind1/room/rustle; birds: placed-<i>-<species>, chorus; detail: creak, lantern, ticks; steps: buses/footsteps/foley<i>; music: buses/score/ornaments; forest IR: createRng(seed).fork(\"forest-ir\"); step jitter: <seed>/steps",
+  "engine": "OfflineAudioContext (48 kHz, 2 ch) in a blank headless Chrome page loaded from file:// (--disable-gpu --disable-webgl --mute-audio). No world page, no GPU capture slot.",
+  "licensing": "All sound is original synthesis in code (repo: MIT; AGENTS.md original/CC0 only). No recordings, samples or downloads. \"Under the Boughs\" is the repo's original placeholder score (src/audio/music.ts, tryFiles=false), not a Nintendo melody. Bird songs are original synthesis modelled on the general song structure of European woodland species.",
+  "timing": {
+    "sampleRate": 48000,
+    "durationSeconds": 36,
+    "preRollSeconds": 4,
+    "sections": [
+      {
+        "id": "hero",
+        "start": 0,
+        "end": 4.5
+      },
+      {
+        "id": "lantern",
+        "start": 4.5,
+        "end": 5.9
+      },
+      {
+        "id": "macro",
+        "start": 5.9,
+        "end": 8.2
+      },
+      {
+        "id": "canopy",
+        "start": 8.2,
+        "end": 11.2
+      },
+      {
+        "id": "walk",
+        "start": 11.2,
+        "end": 17
+      },
+      {
+        "id": "run",
+        "start": 17,
+        "end": 21.2
+      },
+      {
+        "id": "stairs",
+        "start": 21.2,
+        "end": 25.2
+      },
+      {
+        "id": "hamlet",
+        "start": 25.2,
+        "end": 28.8
+      },
+      {
+        "id": "reveal",
+        "start": 28.8,
+        "end": 36
+      }
+    ],
+    "musicHitEdit": 28.8,
+    "musicHitBeat": 32,
+    "beatSeconds": 0.78947,
+    "scoreLeadInSeconds": 0.3,
+    "musicRenderOffsetSeconds": 0.5,
+    "musicStartAt": 3.73684,
+    "musicPhraseBRenderSeconds": 29.3,
+    "scoreFirstNoteEdit": 3.53684,
+    "phraseGainBeforeHit": 0.3314,
+    "phraseGainAtHit": 0.7
+  },
+  "warnings": [],
+  "renders": {
+    "bed": {
+      "file": "stems/bed.wav",
+      "bytes": 10368044,
+      "sha256": "8f53c0fa7497ef85c06d2db27469d7b5ed9e027173cbf3e3607d4b8c4c1e5034",
+      "clipped": 0,
+      "stem": "bed",
+      "ctxSeconds": 40,
+      "preSeconds": 4,
+      "clusters": 107,
+      "layerRms": {
+        "air": 0.005724567316644167,
+        "body": 0.007101681897025433,
+        "leaves": 0.0020175683658896376,
+        "far": 0.0014515088732227632,
+        "room": 0.006667252416917926
+      },
+      "gameBed": 2,
+      "meanCanopy": 0.476,
+      "windLean": -0.25268130227542185,
+      "peak": 0.13139760494232178,
+      "rms": [
+        0.013696063408534884,
+        0.012352019761546778
+      ],
+      "frames": 1728000,
+      "offsetFrames": 192000,
+      "peakDb": -17.63,
+      "seconds": 43.6
+    },
+    "birds": {
+      "file": "stems/birds.wav",
+      "bytes": 10368044,
+      "sha256": "562eb4084bd2e5175b1e56fda2b48ae7e7a071902747d24ecba32dc82e9dfaed",
+      "clipped": 0,
+      "stem": "birds",
+      "ctxSeconds": 40,
+      "preSeconds": 4,
+      "peak": 0.08136496692895889,
+      "rms": [
+        0.00940169500826756,
+        0.010091682477828249
+      ],
+      "frames": 1728000,
+      "offsetFrames": 192000,
+      "peakDb": -21.79,
+      "seconds": 15.5
+    },
+    "detail": {
+      "file": "stems/detail.wav",
+      "bytes": 10368044,
+      "sha256": "8934323f3060c921f0b25ee9327f1bbeb867d55dc82a24a40e1cedb0dcf5cbfc",
+      "clipped": 0,
+      "stem": "detail",
+      "ctxSeconds": 40,
+      "preSeconds": 4,
+      "crackles": 10,
+      "ticks": 14,
+      "creaks": 2,
+      "peak": 0.0993470624089241,
+      "rms": [
+        0.003417189234602111,
+        0.0037820377126185373
+      ],
+      "frames": 1728000,
+      "offsetFrames": 192000,
+      "peakDb": -20.06,
+      "seconds": 14.6
+    },
+    "steps": {
+      "file": "stems/steps.wav",
+      "bytes": 10368044,
+      "sha256": "03d20bbca193854d9f40ca4803fffc63b8defb75c4d95fad9e4ea45337aa3bcc",
+      "clipped": 0,
+      "stem": "steps",
+      "ctxSeconds": 40,
+      "preSeconds": 4,
+      "steps": 40,
+      "foley": 25,
+      "surfaces": {
+        "stone": 29,
+        "stair": 11
+      },
+      "peak": 0.10139884799718857,
+      "rms": [
+        0.005765521904264291,
+        0.0058156079938316676
+      ],
+      "frames": 1728000,
+      "offsetFrames": 192000,
+      "peakDb": -19.88,
+      "seconds": 208.1
+    },
+    "music": {
+      "file": "stems/music.wav",
+      "bytes": 10368044,
+      "sha256": "75503e41c746dc8cefb55b77ee0e560f559b4f605174869f38ac7d9302ecd3d4",
+      "clipped": 0,
+      "stem": "music",
+      "ctxSeconds": 36.5,
+      "preSeconds": 0.5,
+      "musicSource": "procedural",
+      "ornaments": {
+        "glissando": [
+          28.011,
+          28.8
+        ],
+        "swell": [
+          26.2,
+          28.8
+        ],
+        "bloom": [
+          28.8,
+          33.3
+        ]
+      },
+      "automation": {
+        "gain": [
+          [
+            -10,
+            0
+          ],
+          [
+            7.85,
+            0
+          ],
+          [
+            11.2,
+            0.16
+          ],
+          [
+            17,
+            0.26
+          ],
+          [
+            21.2,
+            0.4
+          ],
+          [
+            25.2,
+            0.52
+          ],
+          [
+            28.45,
+            0.58
+          ],
+          [
+            28.85,
+            0.8
+          ],
+          [
+            31.8,
+            0.76
+          ],
+          [
+            88.8,
+            0.76
+          ]
+        ],
+        "lowpassHz": [
+          [
+            -10,
+            1400
+          ],
+          [
+            8.2,
+            1400
+          ],
+          [
+            11.2,
+            3000
+          ],
+          [
+            17,
+            4200
+          ],
+          [
+            21.2,
+            5200
+          ],
+          [
+            25.2,
+            6500
+          ],
+          [
+            28.400000000000002,
+            10000
+          ],
+          [
+            28.900000000000002,
+            17000
+          ],
+          [
+            88.8,
+            17000
+          ]
+        ]
+      },
+      "phraseB": {
+        "startAt": 3.7368421052631575,
+        "beat": 32,
+        "renderSeconds": 29.3,
+        "offsetSeconds": 0.5,
+        "editSeconds": 28.8,
+        "scoreStartsAtEdit": 3.53684
+      },
+      "peak": 0.22378018498420715,
+      "rms": [
+        0.02154104409826462,
+        0.024575078163110976
+      ],
+      "frames": 1728000,
+      "offsetFrames": 24000,
+      "peakDb": -13,
+      "seconds": 90
+    }
+  },
+  "console": [
+    "info: [audio] music: original placeholder \"Under the Boughs\" (50.5 s loop)"
+  ],
+  "final": {
+    "file": "mix-36s-48k.wav",
+    "sha256": "768e05bf1e338f009eb54b15becf29a76ce1a8ef3115f65ec0c2fa14369d98d4",
+    "bytes": 10368102,
+    "mixDb": {
+      "bed": 0,
+      "birds": 0,
+      "detail": 0,
+      "steps": 4,
+      "music": 0
+    },
+    "master": {
+      "targetLufs": -14,
+      "truePeakDb": -1.5,
+      "limiterCeilingDb": -2.3,
+      "loudnormLra": 11
+    },
+    "makeupIterations": [
+      {
+        "makeupDb": 13.15,
+        "premixI": -15.09,
+        "premixTP": -2.18
+      },
+      {
+        "makeupDb": 14.294,
+        "premixI": -14.22,
+        "premixTP": -2.18
+      },
+      {
+        "makeupDb": 14.525,
+        "premixI": -14.05,
+        "premixTP": -2.18
+      }
+    ],
+    "sumMeasurement": {
+      "input_i": "-27.15",
+      "input_tp": "-11.95",
+      "input_lra": "9.70",
+      "input_thresh": "-37.34",
+      "output_i": "-12.79",
+      "output_tp": "-1.50",
+      "output_lra": "6.40",
+      "output_thresh": "-22.97",
+      "normalization_type": "dynamic",
+      "target_offset": "-1.21"
+    },
+    "premixMeasurement": {
+      "input_i": "-14.05",
+      "input_tp": "-2.18",
+      "input_lra": "8.90",
+      "input_thresh": "-24.31",
+      "output_i": "-12.72",
+      "output_tp": "-1.50",
+      "output_lra": "7.00",
+      "output_thresh": "-22.94",
+      "normalization_type": "dynamic",
+      "target_offset": "-1.28"
+    },
+    "loudnormPass2": {
+      "input_i": "-13.64",
+      "input_tp": "-2.30",
+      "input_lra": "9.20",
+      "input_thresh": "-23.85",
+      "output_i": "-13.59",
+      "output_tp": "-2.25",
+      "output_lra": "9.10",
+      "output_thresh": "-23.79",
+      "normalization_type": "linear",
+      "target_offset": "-0.41"
+    },
+    "pass2Filter": "loudnorm=I=-14:TP=-1.5:LRA=11:measured_I=-14.05:measured_TP=-2.18:measured_LRA=8.90:measured_thresh=-24.31:offset=-1.28:linear=true:print_format=json,aresample=48000,afade=t=in:st=0:d=0.05:curve=qsin,afade=t=out:st=33.5:d=2.4995:curve=tri,apad=whole_len=1728000,atrim=end_sample=1728000",
+    "measured": {
+      "integratedLufs": -14.1,
+      "lraLu": 9.4,
+      "truePeakDbtp": -2.1
+    },
+    "sections": [
+      {
+        "id": "hero",
+        "start": 0,
+        "end": 4.5,
+        "M_mean": -17.1,
+        "M_max": -14.6,
+        "S_max": -16.5,
+        "S_end": -18.4
+      },
+      {
+        "id": "lantern",
+        "start": 4.5,
+        "end": 5.9,
+        "M_mean": -16.6,
+        "M_max": -16.2,
+        "S_max": -18,
+        "S_end": -18
+      },
+      {
+        "id": "macro",
+        "start": 5.9,
+        "end": 8.2,
+        "M_mean": -24.5,
+        "M_max": -18.9,
+        "S_max": -17.9,
+        "S_end": -20.9
+      },
+      {
+        "id": "canopy",
+        "start": 8.2,
+        "end": 11.2,
+        "M_mean": -14.9,
+        "M_max": -13.1,
+        "S_max": -15.3,
+        "S_end": -15.3
+      },
+      {
+        "id": "walk",
+        "start": 11.2,
+        "end": 17,
+        "M_mean": -16.7,
+        "M_max": -12.9,
+        "S_max": -14.4,
+        "S_end": -19
+      },
+      {
+        "id": "run",
+        "start": 17,
+        "end": 21.2,
+        "M_mean": -15.5,
+        "M_max": -12,
+        "S_max": -15.2,
+        "S_end": -15.2
+      },
+      {
+        "id": "stairs",
+        "start": 21.2,
+        "end": 25.2,
+        "M_mean": -16.3,
+        "M_max": -15.1,
+        "S_max": -15.4,
+        "S_end": -16.3
+      },
+      {
+        "id": "hamlet",
+        "start": 25.2,
+        "end": 28.8,
+        "M_mean": -15,
+        "M_max": -9.7,
+        "S_max": -14.3,
+        "S_end": -14.3
+      },
+      {
+        "id": "reveal",
+        "start": 28.8,
+        "end": 36,
+        "M_mean": -10.4,
+        "M_max": -8.2,
+        "S_max": -9,
+        "S_end": -13.2
+      }
+    ],
+    "stemLoudness": {
+      "bed": {
+        "rawI": -35.4,
+        "rawTP": -17.6,
+        "mixDb": 0,
+        "sections": [
+          {
+            "id": "hero",
+            "M_mean": -34.7
+          },
+          {
+            "id": "lantern",
+            "M_mean": -46.2
+          },
+          {
+            "id": "macro",
+            "M_mean": -46.1
+          },
+          {
+            "id": "canopy",
+            "M_mean": -33.5
+          },
+          {
+            "id": "walk",
+            "M_mean": -40.1
+          },
+          {
+            "id": "run",
+            "M_mean": -38.6
+          },
+          {
+            "id": "stairs",
+            "M_mean": -37.7
+          },
+          {
+            "id": "hamlet",
+            "M_mean": -35.4
+          },
+          {
+            "id": "reveal",
+            "M_mean": -32.5
+          }
+        ]
+      },
+      "birds": {
+        "rawI": -34.1,
+        "rawTP": -21.7,
+        "mixDb": 0,
+        "sections": [
+          {
+            "id": "hero",
+            "M_mean": -34.7
+          },
+          {
+            "id": "lantern",
+            "M_mean": -35.3
+          },
+          {
+            "id": "macro",
+            "M_mean": -38.8
+          },
+          {
+            "id": "canopy",
+            "M_mean": -32
+          },
+          {
+            "id": "walk",
+            "M_mean": -34.3
+          },
+          {
+            "id": "run",
+            "M_mean": -35.6
+          },
+          {
+            "id": "stairs",
+            "M_mean": -38.9
+          },
+          {
+            "id": "hamlet",
+            "M_mean": -34.6
+          },
+          {
+            "id": "reveal",
+            "M_mean": -32.7
+          }
+        ]
+      },
+      "detail": {
+        "rawI": -36.1,
+        "rawTP": -20.1,
+        "mixDb": 0,
+        "sections": [
+          {
+            "id": "hero",
+            "M_mean": -50.1
+          },
+          {
+            "id": "lantern",
+            "M_mean": -33.5
+          },
+          {
+            "id": "macro",
+            "M_mean": -44.9
+          },
+          {
+            "id": "canopy",
+            "M_mean": null
+          },
+          {
+            "id": "walk",
+            "M_mean": null
+          },
+          {
+            "id": "run",
+            "M_mean": null
+          },
+          {
+            "id": "stairs",
+            "M_mean": null
+          },
+          {
+            "id": "hamlet",
+            "M_mean": -54.9
+          },
+          {
+            "id": "reveal",
+            "M_mean": null
+          }
+        ]
+      },
+      "steps": {
+        "rawI": -38.9,
+        "rawTP": -19.9,
+        "mixDb": 4,
+        "sections": [
+          {
+            "id": "hero",
+            "M_mean": null
+          },
+          {
+            "id": "lantern",
+            "M_mean": null
+          },
+          {
+            "id": "macro",
+            "M_mean": null
+          },
+          {
+            "id": "canopy",
+            "M_mean": null
+          },
+          {
+            "id": "walk",
+            "M_mean": -40.8
+          },
+          {
+            "id": "run",
+            "M_mean": -37.2
+          },
+          {
+            "id": "stairs",
+            "M_mean": -38.7
+          },
+          {
+            "id": "hamlet",
+            "M_mean": null
+          },
+          {
+            "id": "reveal",
+            "M_mean": null
+          }
+        ]
+      },
+      "music": {
+        "rawI": -27,
+        "rawTP": -13,
+        "mixDb": 0,
+        "sections": [
+          {
+            "id": "hero",
+            "M_mean": null
+          },
+          {
+            "id": "lantern",
+            "M_mean": null
+          },
+          {
+            "id": "macro",
+            "M_mean": null
+          },
+          {
+            "id": "canopy",
+            "M_mean": -42.4
+          },
+          {
+            "id": "walk",
+            "M_mean": -40.8
+          },
+          {
+            "id": "run",
+            "M_mean": -38.9
+          },
+          {
+            "id": "stairs",
+            "M_mean": -37.2
+          },
+          {
+            "id": "hamlet",
+            "M_mean": -33.2
+          },
+          {
+            "id": "reveal",
+            "M_mean": -24.2
+          }
+        ]
+      }
+    },
+    "checks": {
+      "frames": 1728000,
+      "expectedFrames": 1728000,
+      "sampleRate": 48000,
+      "channels": 2,
+      "bits": 24,
+      "durationSeconds": 36,
+      "firstSampleZero": true,
+      "lastSampleZero": true,
+      "syncLagSamples": 0,
+      "loudnormMode": "linear"
+    },
+    "format": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s24le",
+          "sample_rate": "48000",
+          "channels": 2,
+          "bits_per_sample": 24,
+          "duration_ts": 1728000,
+          "duration": "36.000000",
+          "bits_per_raw_sample": "24"
+        }
+      ],
+      "format": {
+        "duration": "36.000000",
+        "size": "10368102"
+      }
+    }
+  }
+}
