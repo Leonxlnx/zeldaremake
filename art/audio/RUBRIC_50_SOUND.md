@@ -37,7 +37,11 @@ moves enough to matter.
 10. A roof over him changes the sound (level, colour, or both) and the change is measurable.
 11. Indoors is not outdoors: walls take the top off and the room answers.
 12. Open ground, a ravine and a bore are three different spaces, not one with three labels.
-13. Space changes fade across the threshold rather than switching at a line.
+13. Space changes fade across the threshold rather than switching at a line, and the fade arrives
+    where he is rather than behind him. (Amended 2026-09-25: the wording asked only about the shape
+    of the fade, and the sound scored 4 on it while the crowns closed over a runner 2.8 m after he
+    was under them — `art/audio/2026-09-25-lag/`. A check that a moving listener cannot fail is not
+    a check.)
 14. No place is silent, and no place is the loudest thing in the world without a reason standing in it.
 15. The world's places span a useful range — not all within a decibel of each other.
 

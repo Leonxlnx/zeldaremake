@@ -132,6 +132,37 @@ export interface OfflineOptions {
    * weather in it is not a place.
    */
   at?: { x: number; z: number; y?: number; facing?: number };
+  /**
+   * Walk the listener in a straight line from `from` to `to` at `speed` m/s, facing along it, with
+   * every space term read from `surfaceAt` where he is — a real journey rather than the scripted
+   * walk's abstract legs.
+   *
+   * `at` asks what a place sounds like to someone standing in it. This asks the question a standing
+   * listener cannot: what the world sounds like to someone **moving through it**. Everything in the
+   * bed that depends on where he is arrives through a `setTargetAtTime`, and a smoothing time is a
+   * distance once the listener has a speed — at a run the shipped constants put the arrival several
+   * metres behind him. That is not visible from any fixed spot, and it is not visible on the
+   * scripted walk either, which crosses surfaces but never a doorway, a bore mouth or a lantern.
+   *
+   * The tick here is the live `TICK_MS` rather than the scripted walk's 20 Hz, because the quantity
+   * being measured is a lag and half of it is the tick. Legs are the caller's: pass `seconds` long
+   * enough to cover the line (`|to − from| / speed` plus `lead`) and the walk stops at `to`.
+   *
+   * `lead` stands him at `from` first. Every smoothed parameter in the bed starts at whatever the
+   * node was built with and takes several time constants to reach the world's value, which at the
+   * 0.9 s this was written against is eleven metres of a run — so without a lead-in the first third
+   * of a take is the graph waking up and not the journey. Four seconds covers the longest of them.
+   */
+  pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number; lead?: number };
+  /**
+   * Hold the wind at one gust for the whole render instead of running the weather.
+   *
+   * The render's gust is a function of the clock that swings the bed through its whole range in
+   * about ten seconds, which is right for a fifty-second walk and wrong for a four-second pass: at
+   * a run the weather moves 18 dB under the thing being measured and buries it. Holding it makes
+   * the take a controlled experiment — what moves then moved because the listener did.
+   */
+  gust?: number;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -857,11 +888,13 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     .filter((v): v is Vec3 => !!v);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
+    if (options.gust !== undefined) return options.gust;
     const g = 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3);
     const push = Math.max(0, Math.sin(t * 0.23 + 0.4)) ** 3;
     return Math.min(1, g * 0.8 + push * 0.6);
   };
-  const step = 1 / 20;
+  // the pass ticks at the game's rate because what it measures is a lag and half of one is the tick
+  const step = options.pass ? TICK_MS / 1000 : 1 / 20;
   let x = 0;
   let z = 2;
   const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
@@ -869,7 +902,31 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   // standing somewhere: the place's own space terms, and nothing underfoot
   const spot = options.at ? surfaceAt(options.at.x, options.at.z) : null;
   const facing = options.at?.facing ?? 0;
+  const pass = options.pass ?? null;
+  const passLen = pass ? Math.hypot(pass.to[0] - pass.from[0], pass.to[1] - pass.from[1]) : 0;
   for (let t = 0; t < seconds; t += step) {
+    if (pass) {
+      const u = Math.max(0, Math.min(1, ((t - (pass.lead ?? 0)) * pass.speed) / (passLen || 1)));
+      const px = pass.from[0] + (pass.to[0] - pass.from[0]) * u;
+      const pz = pass.from[1] + (pass.to[1] - pass.from[1]) * u;
+      const here = surfaceAt(px, pz);
+      const listener: Vec3 = { x: px, y: pass.y ?? 1.2, z: pz };
+      const forward = { x: (pass.to[0] - pass.from[0]) / (passLen || 1), z: (pass.to[1] - pass.from[1]) / (passLen || 1) };
+      ambience?.update(t, {
+        gust: gust(t),
+        listener,
+        forward,
+        pods,
+        fairies,
+        enclosure: options.enclosure ?? here.enclosure,
+        occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(px, pz, ox, oz),
+        canopy: options.canopy ?? here.canopy,
+        gorge: options.gorge ?? here.gorge,
+        windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
+      });
+      footsteps?.drive(t, step, { speed: u > 0 && u < 1 ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      continue;
+    }
     if (options.at && spot) {
       ambience?.update(t, {
         gust: gust(t),
