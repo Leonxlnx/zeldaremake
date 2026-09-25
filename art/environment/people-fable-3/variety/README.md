@@ -43,10 +43,11 @@ re-captured on the revised build — the row below.
 | view | head `7468bb38` vs ref | branch vs ref | Δ | SSIM head↔branch | changed px |
 | --- | --- | --- | --- | --- | --- |
 | A | 0.1953 | 0.1953 | 0 | 1.0000 | 0 (byte-identical) |
-| B | 0.1767 | see below | | | |
+| B | 0.1767 | 0.1767 | 0 | 1.0000 | 0 above threshold (sub-threshold values differ; the first pass had 6,296) |
 | D | 0.2511 | 0.2511 | 0 | 1.0000 | 0 (byte-identical) |
 
-C and F hold only kokiri-a and the boy (unchanged); E is B's camera.
+Draws 628 / 615 / 549 and 8.97 / 8.29 / 8.74 M on both. C and F hold only kokiri-a and the boy (unchanged); E is B's
+camera.
 
 ## Evidence
 
