@@ -53,3 +53,15 @@ The rows are as the branch reads predicted: lodcheck's 45 m gate puts +0.07–0.
 bank; the roof's clumps add nothing measurable. Rows 2 (a far tier for crowns beyond ≈ 35 m), 4 (vegetation, one pack per LOD)
 and 1 (the kids' 66 colour draws) are still the bill; `exp-south2`'s structures work (171 → 84 at the far bank) is not on the
 head yet — its camera hunks are.
+
+## → `7468bb38` (02:15 round: #74 `wbmed`, #75 `cliff-scale`, #77; 02:55 round: #82 fable-3's far-kid cut + belts + cuffs + the grove girl, #81 fable-4's inert stand rule retired, #79 / #83 / #84) — 03:27–03:52 UTC
+
+- **Six views** against `2225a111`: A / B / D / E / F 1.0000 / 0.00 %, C 1.0000 / 0.02 % (#74's white-bark crown at range); vs the
+  reference unchanged to the fourth decimal. Every branch in both rounds had its pair before it merged (02:00, 02:57).
+- **The walk**: 96 / 96, 0 stuck, probes 41 / 41 and 64 / 64, no page errors; every route's camera pops and turn-acceleration
+  p95 identical to `2225a111`'s — the kids' cull and the grove girl touch no camera.
+- **The look-back bill on this head** (`lookback-isolate-7468bb38.json`): the character row **66 / 56 / 56 / 56 / 85** (was 127 /
+  110 / 110 / 110 / 109) — row 1 paid on the head; the trees row +0.03–0.09 M (#74's medium crowns: the far bank 3.63 M, the
+  ruins' trail 4.47 M). The frames: **the far bank 774 / 10.06 M, the east green 736 / 9.80 M, the east lookout 700 / 9.82 M
+  (at the draw cap), the grove's yard 676 / 9.57 M.** What is left over 700 / 9.0 M is trees (240–256 draws / 3.6–4.5 M),
+  vegetation (96–148 / 1.6–2.7 M) and, at the far bank, the structures row that `exp-south2` has already cut on its branch.

@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T02:57:00Z
+updated: 2026-09-25T03:52:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 03:27–03:52 UTC — iteration 124 (the head 7468bb38): six views identical to 2225a111 (C 0.02 %), the walk 96 / 96 with every route's
+  camera unchanged; the far-kid cut on the head — the character row 66 / 56 / 56 / 56 / 85; the frames far bank 774, green 736, lookout 700,
+  the grove's yard 676. INBOX 03:52.
 - 2026-09-25 02:33–02:57 UTC — iteration 123 (`fable-3-south-props` f2cecdb5, the far-kid cut): the character row 127 → 66 at the far bank and
   110 → 56 at the other three look-backs; the frames 846 → 774, 797 → 731, the grove's yard 713 → 676 (under the draw cap); six views identical
   to the head; row 1 of the bill paid; the rigMergedMeshes reading corrected (kidSkinned 37 → 12). INBOX 02:57.
@@ -593,4 +596,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T02:57:00Z
+2026-09-25T03:52:00Z
