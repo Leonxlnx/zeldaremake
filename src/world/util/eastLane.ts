@@ -47,6 +47,9 @@ declare global {
   /** the same for the east houses' coarse tufts (EAST_TUFT_FAR_M): `true` draws every run fine */
   // eslint-disable-next-line no-var
   var __KF_EAST_FAR_TUFTS_OFF__: boolean | undefined;
+  /** the same for the other structures' far colour LOD on the plateau's far part (EAST_FAR) */
+  // eslint-disable-next-line no-var
+  var __KF_EAST_FAR_LOD_OFF__: boolean | undefined;
 }
 
 /** true while a camera at `p` is inside EAST_ZONE (and `__KF_EAST_ZONE_OFF__` is not set) */
@@ -54,6 +57,31 @@ export function inEastZone(p: { x: number; y: number; z: number }): boolean {
   const Z = EAST_ZONE;
   return globalThis.__KF_EAST_ZONE_OFF__ !== true && p.x > Z.x0 && p.x < Z.x1 && p.z > Z.z0 && p.z < Z.z1 && p.y > Z.yMin;
 }
+
+/**
+ * The plateau's far part: EAST_ZONE from x = 40 m — the green, the tall house, its deck and the
+ * lookout. While the camera is inside, the structures outside the lane draw their far colour LOD
+ * (structures farLod.ts), clustered with cells of each vertex's distance to this box over
+ * EAST_FAR_LOD_K: 1 / 400 of the distance is 1.6 px of a 540-row frame at fov 46 there, and the
+ * cells are quantised down from it. The structures' audit `eastFarLod.nearestM` is how far the
+ * nearest such part's box lies from this one; no fixed camera is inside.
+ */
+export const EAST_FAR = { ...EAST_ZONE, x0: 40 } as const;
+export const EAST_FAR_LOD_K = 400;
+
+/** true while a camera at `p` is inside EAST_FAR (and neither `__KF_EAST_ZONE_OFF__` nor `__KF_EAST_FAR_LOD_OFF__` is set) */
+export function inEastFar(p: { x: number; y: number; z: number }): boolean {
+  return globalThis.__KF_EAST_FAR_LOD_OFF__ !== true && inEastZone(p) && p.x > EAST_FAR.x0;
+}
+
+/** distance (m) from (x, y, z) to EAST_FAR: its plan box, from its floor up */
+export function eastFarDistance(x: number, y: number, z: number): number {
+  const Z = EAST_FAR;
+  return Math.hypot(Math.max(Z.x0 - x, 0, x - Z.x1), Math.max(Z.yMin - y, 0), Math.max(Z.z0 - z, 0, z - Z.z1));
+}
+
+/** the far colour LOD's cell (m) at a vertex at (x, y, z) */
+export const eastFarCell = (x: number, y: number, z: number) => eastFarDistance(x, y, z) / EAST_FAR_LOD_K;
 /** the green between the three houses, the centre the lane's distance rules measure from */
 export const EAST_GREEN = { x: 44.5, z: 3.5 };
 

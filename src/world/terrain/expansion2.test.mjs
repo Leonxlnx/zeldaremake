@@ -933,6 +933,29 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
   globalThis.__KF_EAST_ZONE_OFF__ = true;
   for (const p of plateau) assert.equal(E.inEastZone(at(p)), false, `__KF_EAST_ZONE_OFF__ switches the zone off at ${fmt(p[0], p[2])}`);
   delete globalThis.__KF_EAST_ZONE_OFF__;
+  // the plateau's far part (structures index.ts: the other structures' far colour LOD): inside the
+  // zone from x = 40 on — the green's, the deck's and the lookout's cameras; the lane's bend, the
+  // shop's door and the small house's doorstep looking back stay out, and so does every fixed camera
+  assert.equal(E.EAST_FAR.x0, 40);
+  for (const k of ['x1', 'z0', 'z1', 'yMin']) assert.equal(E.EAST_FAR[k], E.EAST_ZONE[k], `EAST_FAR shares the zone's ${k}`);
+  for (const v of LAYOUT.viewpoints) assert.equal(E.inEastFar(at(v.position)), false, `${v.id}: outside the plateau's far part`);
+  const farPart = plateau.filter((p) => p[0] > 40);
+  assert.equal(farPart.length, 8);
+  for (const p of plateau) assert.equal(E.inEastFar(at(p)), p[0] > 40, `${fmt(p[0], p[2])} is ${p[0] > 40 ? 'inside' : 'outside'} the plateau's far part`);
+  for (const off of ['__KF_EAST_FAR_LOD_OFF__', '__KF_EAST_ZONE_OFF__']) {
+    globalThis[off] = true;
+    for (const p of farPart) assert.equal(E.inEastFar(at(p)), false, `${off} switches the far part off at ${fmt(p[0], p[2])}`);
+    delete globalThis[off];
+  }
+  // the far LOD's cells: a vertex's distance to the far part's box over EAST_FAR_LOD_K, which is under
+  // 1.7 px of a 540-row frame at fov 46 at that distance
+  assert.equal(E.eastFarDistance(46, 7.4, 3), 0, 'inside the box');
+  assert.ok(Math.abs(E.eastFarDistance(30, 7, 0) - 10) < 1e-9, 'west of the box, level with it');
+  assert.ok(Math.abs(E.eastFarDistance(45, 1, 0) - 4) < 1e-9, 'under the floor');
+  assert.ok(Math.abs(E.eastFarDistance(0, 1, -30) - Math.hypot(40, 4, 30 - 17.75)) < 1e-9, 'the village side, below and north of it');
+  assert.ok(Math.abs(E.eastFarCell(20, 7, 0) - 20 / E.EAST_FAR_LOD_K) < 1e-12);
+  const pxPerM = 540 / (2 * Math.tan((23 * Math.PI) / 180));
+  assert.ok(pxPerM / E.EAST_FAR_LOD_K < 1.7, `a far cell spans ${(pxPerM / E.EAST_FAR_LOD_K).toFixed(2)} px`);
   // the tufts' fine and coarse windows (structures/east.ts): every run in view draws once, the coarse
   // window never takes a near run, and the two windows never overlap
   const W = (visible, far) => E.eastTuftWindows(visible, far);

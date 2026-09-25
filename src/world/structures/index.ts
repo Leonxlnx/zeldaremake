@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, Vector3, type Material, type Mesh, type Object3D, type PointLight } from 'three';
+import { Box3, Group, Vector3, type BufferGeometry, type InstancedMesh, type Material, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -17,7 +17,7 @@ import { buildEast } from './east';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
 import { buildExpansionNorth, GROVE_VISIBLE_M } from './expansionNorth';
-import { EAST_ZONE, inEastZone } from '../util/eastLane';
+import { EAST_FAR, EAST_FAR_LOD_K, EAST_ZONE, eastFarCell, inEastFar, inEastZone } from '../util/eastLane';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, HOUSE_CLONES, type HouseSharedMaterials } from './house';
@@ -27,6 +27,7 @@ import { buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { NORTH_LANTERN_POSTS, NORTH_ROPE_FENCES, NORTH_SIGNPOSTS, NORTH_VISIBLE_M } from './north';
+import { attachFarLod, type FarLod } from './farLod';
 import { attachShadowLod, rangedTriangles } from './shadowProxy';
 import { buildSignpost } from './signpost';
 
@@ -34,6 +35,8 @@ import { buildSignpost } from './signpost';
 const VILLAGE_TUFTS_M = 34;
 /** a village room still draws while the camera is this far behind its doorway's plane */
 const VILLAGE_ROOM_MARGIN_M = 0.5;
+/** the smallest part (triangles) the far colour LOD clusters */
+const EAST_FAR_MIN_TRIANGLES = 1000;
 const _toDoor = new Vector3();
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
@@ -380,6 +383,43 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   scopeEastZone(ctx.camera.position);
   /**
+   * The far colour LOD (exp-east): while the camera is on the plateau's far part (util/eastLane.ts
+   * EAST_FAR) the village, its log, signposts and huts, the expansion and the south bridge draw a
+   * coarser triangle list (farLod.ts), clustered with cells of 1 / EAST_FAR_LOD_K of each vertex's
+   * distance from there; pieces that would thin out under their cells (blades, ribbons, cards) keep
+   * their triangles. Left alone: the north and the grove (hidden from there), the houses' tufts
+   * (drawn within VILLAGE_TUFTS_M only) and parts under EAST_FAR_MIN_TRIANGLES.
+   */
+  const eastFarUsers = new Map<BufferGeometry, number>();
+  group.traverse((o) => {
+    if ((o as Mesh).isMesh) eastFarUsers.set((o as Mesh).geometry, (eastFarUsers.get((o as Mesh).geometry) ?? 0) + 1);
+  });
+  const eastFarLods: FarLod[] = [];
+  let eastFarNearestM = Infinity;
+  const eastFarBox = new Box3();
+  const collectEastFar = (o: Object3D) => {
+    if (o === east.group || o === grove.group || o === north) return;
+    const m = o as Mesh;
+    if (m.isMesh && !(m as InstancedMesh).isInstancedMesh && !Array.isArray(m.material) && !m.material.transparent && !villageTufts.includes(m) && !/tufts$/.test(m.name) && rangedTriangles(m.geometry) >= EAST_FAR_MIN_TRIANGLES) {
+      const lod = attachFarLod(m, eastFarCell, { users: eastFarUsers });
+      if (lod) {
+        eastFarLods.push(lod);
+        const b = eastFarBox.setFromObject(m);
+        eastFarNearestM = Math.min(eastFarNearestM, Math.hypot(Math.max(EAST_FAR.x0 - b.max.x, 0, b.min.x - EAST_FAR.x1), Math.max(EAST_FAR.yMin - b.max.y, 0), Math.max(EAST_FAR.z0 - b.max.z, 0, b.min.z - EAST_FAR.z1)));
+      }
+    }
+    for (const c of o.children) collectEastFar(c);
+  };
+  collectEastFar(group);
+  let inEastFarNow = false;
+  const scopeEastFar = (p: Vector3) => {
+    const far = inEastFar(p);
+    if (far === inEastFarNow) return;
+    inEastFarNow = far;
+    for (const l of eastFarLods) l.set(far);
+  };
+  scopeEastFar(ctx.camera.position);
+  /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
    * whether it belongs to the hero group or the detached village. A hero bucket whose sphere spans
@@ -523,6 +563,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     /** exp-east: the casters outside the east lane, which stop casting while the camera is on the east plateau (util/eastLane.ts EAST_ZONE) */
     eastZone: { zone: EAST_ZONE, casters: eastZoneCasters.length, inside: inEastZoneNow },
+    /** exp-east: the parts that draw a coarser triangle list while the camera is on the plateau's far part (util/eastLane.ts EAST_FAR, farLod.ts) — triangles fine / coarse, the nearest part's distance from there (m) and the ten that save most */
+    eastFarLod: {
+      zone: EAST_FAR,
+      k: EAST_FAR_LOD_K,
+      meshes: eastFarLods.length,
+      fine: eastFarLods.reduce((n, l) => n + l.fine, 0),
+      coarse: eastFarLods.reduce((n, l) => n + l.coarse, 0),
+      nearestM: +eastFarNearestM.toFixed(1),
+      active: inEastFarNow,
+      top: [...eastFarLods].sort((a, b) => b.fine - b.coarse - (a.fine - a.coarse)).slice(0, 10).map((l) => ({ name: l.name, fine: l.fine, coarse: l.coarse })),
+    },
     /** exp-east: per village room (house.ts HOUSE_CLONES door plane), its meshes / triangles and whether they draw for the current camera */
     villageRooms: [...villageRooms.values()].map((r) => ({
       door: r.point.toArray().map((v) => +v.toFixed(2)),
@@ -614,6 +665,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       scopeVillageTufts(c.camera.position.x, c.camera.position.z);
       scopeVillageRooms(c.camera.position);
       scopeEastZone(c.camera.position);
+      scopeEastFar(c.camera.position);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
@@ -625,6 +677,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       scopeVillageTufts(camera.position.x, camera.position.z);
       scopeVillageRooms(camera.position);
       scopeEastZone(camera.position);
+      scopeEastFar(camera.position);
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
