@@ -522,3 +522,7 @@ nearCanopy, materials, index otherwise) is edited.
   caught the interim first-build bug independently. Running: the 1280 × 720 pair (base half done), and a five-pose walk on the
   small pool tier (cap 64 MB, 161 resident at A, evictions live) on both builds to exercise deleteGeometry / optimize / growth —
   no page errors through three poses. No word yet on the 171 MB heap (PR #104 / #105 carry it).
+- 2026-09-25 11:10 — #101's record closed: 1280 pair SSIM identical at all six (draws A 628 → 614 … F 584 → 555, triangles
+  equal); small-tier walk 0 px at five poses with 228 evictions. Heap measured: 171 MB (large, A) / 107 MB (small, after the
+  walk) = 1.6× the pool's bytes (72 wide parts keep colours/wind Float32). The trim (b0a05eb5) did not fire (live > half the
+  reserve). Next: two batches by layout (narrow / wide) to reach the pool's own bytes.
