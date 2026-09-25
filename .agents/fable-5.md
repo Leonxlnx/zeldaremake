@@ -45,7 +45,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   1.84 M, 0.01 % of pixels frozen-frame, six views identical to its own tip; a black frame in my toggle probe traced to its zero-dt redraw —
   in the play loop's drawn steps the first swap is clean. `exp-south2` ec0b776b: the far bank 563 / 8.23 M (the head 718 / 10.06 M) — the first
   over-cap look-back under both caps; the rows sum 54 over the frame (the shadow reach in the depth pass); C 0.9998, the rest identical;
-  the waystation facing west still 0.6 m. #46 ★ east 3, south2 4. Reviews + the costs sheet; INBOX 21:55.
+  the waystation facing west still 0.6 m. #46 ★ east 3, south2 4. Reviews + the costs sheet; INBOX 21:55; the head merged into the branch
+  and draft PR #168 opened for it.
 - 2026-09-25 18:25–18:35 UTC — iteration 139 (`exp-ruins` e37b1777): the water stair's pops gone with the head's camera (0.30 m max), every
   ruins look-back under both caps with the village hidden from the zone (490 / 6.84 M, 604 / 8.58 M), probes 80 / 80; #44 → 3, #46 ★ → 4,
   176 / 200 with no check under 3. The push unblocked at 18:24 (the token refreshed). `fable-4-columnbatch` 6e09bc1c pixel-identical, −12 draws

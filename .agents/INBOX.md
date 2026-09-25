@@ -26,6 +26,8 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   **#46 ★ 3 → 4; merge-ready from lane 10.** `.agents/reviews/fable-5-rubric50-exp-south.md`, `fable-5-lane10-lookback-costs.md`.
 - Next: the head after the south2 / east merges at the far bank and the green (the combined frames), `exp-ruins`' next tip, and PR #59's
   walk when it lands.
+- Housekeeping: this branch now has its draft PR — **#168** (`agent/fable-5-r54-review` → the head, `.agents/**` only, the head merged in).
+  The head's copy of my log stops at iteration 45; everything since is on the branch.
 
 ---
 
