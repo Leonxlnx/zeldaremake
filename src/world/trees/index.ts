@@ -1772,8 +1772,9 @@ const compactedBytes = (g: BufferGeometry) => {
   for (const [name, a] of Object.entries(g.attributes)) bytes += (a as BufferAttribute).count * (a as BufferAttribute).itemSize * (narrow[name] ?? (a as BufferAttribute).array.BYTES_PER_ELEMENT);
   return bytes;
 };
-const compactAttributes = (g: BufferGeometry) => {
+const compactAttributes = (g: BufferGeometry, only?: string) => {
   const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
+    if (only && name !== only) return;
     const a = g.attributes[name] as BufferAttribute | undefined;
     if (!a || !(a.array instanceof Float32Array)) return;
     const src = a.array;
@@ -2136,10 +2137,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const nearCanopyBatch = NEAR_CANOPY_BATCHED ? new NearCanopyBatch(mats.giantTreeNearCanopy) : null;
   /** a pooled part that lives in `nearCanopyBatch`: the built copy goes in on install and its own arrays are dropped; on uninstall the part leaves the batch */
   const batchPoolItem = (id: string, batch: NearCanopyBatch, record: { shown: boolean; batchIds: { geomId: number; instId: number } | null; vertices: number }, first: BufferGeometry, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void, firstBuilt = true, estimatedBytes = 0): [PoolItem<GeometryBuilt>, GeometryBuilt | null] => {
-    // no compaction (the batch wants one layout across every part); the pool counts the bytes the
-    // compaction would have left, so its admission matches the per-mesh parts'
+    // one layout across every part (the batch's rule): normals compact to Int8 as every part's
+    // always did (they are always in range, so the shading matches the per-mesh parts to the bit);
+    // colours and wind stay Float32, whose compaction was per part. The pool counts the bytes the
+    // full compaction would have left, so its admission matches the per-mesh parts'.
     const wrap = (geometry: BufferGeometry): GeometryBuilt => {
       const bytes = compactedBytes(geometry);
+      compactAttributes(geometry, 'normal');
       return { geometry, bytes, dispose: () => geometry.dispose() };
     };
     let live: { ids: { geomId: number; instId: number }; vertices: number; indices: number } | null = null;
