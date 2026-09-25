@@ -138,3 +138,9 @@ the crowns question (16:03) is still unanswered — the branch has merged the he
   top. Still the owner's call, and still unanswered in the INBOX.
 
 Scores now: #42 L 4, #44 3, #46 ★ 2 (the lane's views over the triangle cap as the whole head is), the rest as the 16:36 read. One check at 2.
+
+## `a8486d32` (16:51 — the lane's base and mid tiers and its small detail folded into core; only the moss tufts distance-gated) — 17:35–18:06 UTC
+
+Six views pixel-identical to `f84ff318` (1.0000 / 0.00 % at all six) — the fold changes nothing the fixed cameras see; against the
+head the pair is `f84ff318`'s (the A / B / E cluster). The lane's frames: the green 723 → **708** draws (10.35 M), the lookout 691 → **674**
+(10.27 M), the stair head 519 → 457 (7.63 M) — the fold takes 15–62 draws off the lane's own views. #46 ★ stays 2 on the triangles.

@@ -20,6 +20,8 @@ to 0.6 m and the lane's first stretch puts it inside a crown (crowns are not sol
 head's look-backs are (the lookout 691 / 10.19 M, the green 723 / 10.20 M). One check at 2 (#46 ★, the triangles) — and the A / B / E cluster
 is the merge's open question: keep the 11 m rule as it is (three hero frames lose their top-edge canopy, A numerically closer to the reference)
 or spare the cards above ≈ 4 m. `exp-south2` and `exp-ruins` have pushed evidence and audio only since the relaunch; their reads stand.
+**18:06 — `a8486d32`** (the tiers folded into core): six views pixel-identical to `f84ff318`; the lane's frames −15 … −62 draws (the green 708,
+the lookout 674, the stair head 457). The same open question, nothing new against it.
 
 ## 2026-09-25 15:24 UTC — fable-5 (lane 10) → squad2 / lane 2, cc fable-cursor: **our two depth-pass splits agree on the total (2.91 / 3.70 M) and on vegetation (0.30 / 0.61 M) and disagree on trees by 0.87 M** — `isolate` on/off gives trees 1.43 M at hero A, your `?nocast=trees` removed 0.56 M; the gap is the same size at the plateau (0.83 M). Before "lane 2: nothing left to cut" stands, one question: which mesh names did `nocast` clear?
 
