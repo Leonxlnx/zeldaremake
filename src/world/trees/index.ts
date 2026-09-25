@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -1750,8 +1750,31 @@ const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce(
  * reaches the shader as the same float; range-checked, so a geometry outside the range keeps its
  * floats. Run once per geometry after every build-time read of the arrays (bounds, rootsToWorld).
  */
-const compactAttributes = (g: BufferGeometry) => {
+/**
+ * The bytes `compactAttributes` would leave a geometry with, without compacting it — the batched
+ * near-canopy parts (round 54) keep every attribute Float32 so that a BatchedMesh accepts them all
+ * (its parts must share one layout, and the compaction is conditional per part), but the pool's
+ * accounting uses these bytes so its admission is the same as the per-mesh parts' was.
+ */
+const compactedBytes = (g: BufferGeometry) => {
+  const fits = (name: string, lo: number, hi: number) => {
+    const a = g.attributes[name] as BufferAttribute | undefined;
+    if (!a || !(a.array instanceof Float32Array)) return false;
+    const src = a.array;
+    for (let i = 0; i < src.length; i++) if (src[i] < lo || src[i] > hi) return false;
+    return true;
+  };
+  const narrow: Record<string, number> = {};
+  if (fits('normal', -1, 1)) narrow.normal = 1;
+  if (fits('color', 0, 1)) narrow.color = 1;
+  if (fits('aWind', 0, 1)) narrow.aWind = 2;
+  let bytes = g.index ? g.index.array.byteLength : 0;
+  for (const [name, a] of Object.entries(g.attributes)) bytes += (a as BufferAttribute).count * (a as BufferAttribute).itemSize * (narrow[name] ?? (a as BufferAttribute).array.BYTES_PER_ELEMENT);
+  return bytes;
+};
+const compactAttributes = (g: BufferGeometry, only?: string) => {
   const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
+    if (only && name !== only) return;
     const a = g.attributes[name] as BufferAttribute | undefined;
     if (!a || !(a.array instanceof Float32Array)) return;
     const src = a.array;
@@ -2019,6 +2042,153 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return [item, firstBuilt ? wrap(first) : null];
   };
   /**
+   * Round 54 (fable-4): the giants' near-canopy lobes and limbs draw as ONE mesh. Each part is a
+   * pooled geometry of its own (built lazily, evicted by the memory tier) and used to be a Mesh of
+   * its own too, so every shown lobe was a draw: up to NEAR_CANOPY_SLOTS + NEAR_CANOPY_LIMBS_MAX
+   * of them under the plaza's giants (camera A: 64 → 1), 45 at the east green's look back at the
+   * plaza (round54-lookback-draws). They all share `mats.giantTreeNearCanopy` and their geometry is
+   * already in world space (giantPartToWorld), so a BatchedMesh holds them: the pool's `install` /
+   * `uninstall` become addGeometry / deleteGeometry, `mesh.visible` becomes setVisibleAt, each
+   * part keeps its own cull sphere (three copies the geometry's padded boundingSphere into the
+   * batch) and the fold slots are vertex data (`aRoot`) that travel with the copy. With
+   * WEBGL_multi_draw the batch is one draw; without it three draws the visible parts one by one,
+   * as before. The batch keeps a CPU copy of its buffers (three needs it to copy new parts in),
+   * where the pooled parts dropped theirs after upload — the geometry is reserved in steps and
+   * grown when the pool wants more, so the heap cost is the RESIDENT set's bytes, not the shown
+   * set's: measured at camera A on the large tier, 258 giant parts / 1.91 M vertices in the batch,
+   * 171 MB of typed arrays (the pool holds 379 parts within its 42 m prefetch there); on the small
+   * tier the pool's 32 MB cap bounds it near 45 MB. The columns' parts stay meshes of their own: they carry a yaw and a
+   * scale in their matrix, which the tree shader reads through modelMatrix, not batchingMatrix.
+   * `NEAR_CANOPY_BATCHED` false restores the per-part meshes.
+   */
+  const NEAR_CANOPY_BATCHED = true;
+  class NearCanopyBatch {
+    readonly mesh: BatchedMesh;
+    private maxVertices: number;
+    private maxIndices: number;
+    private maxInstances: number;
+    private vertices = 0;
+    private indices = 0;
+    private instances = 0;
+    constructor(material: Material, maxInstances = 96, maxVertices = 300_000, maxIndices = 900_000) {
+      this.maxInstances = maxInstances;
+      this.maxVertices = maxVertices;
+      this.maxIndices = maxIndices;
+      this.mesh = new BatchedMesh(maxInstances, maxVertices, maxIndices, material);
+      this.mesh.name = 'giant-near-canopy-batch';
+      this.mesh.castShadow = false;
+      this.mesh.receiveShadow = true;
+      this.mesh.frustumCulled = false;
+      this.mesh.perObjectFrustumCulled = true;
+      this.mesh.sortObjects = false;
+      this.mesh.userData.kind = 'giant-near-canopy';
+    }
+    /** copies the part in (one geometry, one instance at the identity), hidden; the caller disposes its own copy */
+    add(geometry: BufferGeometry): { geomId: number; instId: number } {
+      const v = geometry.getAttribute('position').count;
+      const i = geometry.index ? geometry.index.count : v;
+      this.reserve(v, i);
+      let geomId: number;
+      try {
+        geomId = this.mesh.addGeometry(geometry);
+      } catch {
+        // the free space is there but fragmented by evictions: compact, then grow if it still does not fit
+        this.mesh.optimize();
+        try {
+          geomId = this.mesh.addGeometry(geometry);
+        } catch {
+          this.grow(this.maxVertices + v, this.maxIndices + i);
+          geomId = this.mesh.addGeometry(geometry);
+        }
+      }
+      const instId = this.mesh.addInstance(geomId);
+      this.mesh.setMatrixAt(instId, IDENTITY_M4);
+      this.mesh.setVisibleAt(instId, false);
+      this.vertices += v;
+      this.indices += i;
+      this.instances++;
+      return { geomId, instId };
+    }
+    remove(ids: { geomId: number; instId: number }, vertices: number, indices: number) {
+      this.mesh.deleteInstance(ids.instId);
+      this.mesh.deleteGeometry(ids.geomId);
+      this.vertices -= vertices;
+      this.indices -= indices;
+      this.instances--;
+    }
+    setVisible(instId: number, visible: boolean) {
+      this.mesh.setVisibleAt(instId, visible);
+    }
+    private reserve(v: number, i: number) {
+      if (this.instances + 1 > this.maxInstances) {
+        this.maxInstances = Math.ceil(this.maxInstances * 1.5);
+        this.mesh.setInstanceCount(this.maxInstances);
+      }
+      if (this.vertices + v > this.maxVertices || this.indices + i > this.maxIndices) this.grow(Math.max(this.maxVertices * 1.25, this.vertices + v), Math.max(this.maxIndices * 1.25, this.indices + i));
+    }
+    private grow(v: number, i: number) {
+      this.maxVertices = Math.ceil(v);
+      this.maxIndices = Math.ceil(i);
+      this.mesh.setGeometrySize(this.maxVertices, this.maxIndices);
+    }
+    get stats() {
+      return { instances: this.instances, vertices: this.vertices, indices: this.indices, maxVertices: this.maxVertices, maxIndices: this.maxIndices };
+    }
+    /** the bytes of the batch's CPU copy (every attribute's reserved array and the index) */
+    get heapBytes() {
+      const g = this.mesh.geometry;
+      return Object.values(g.attributes).reduce((b, a) => b + (a as BufferAttribute).array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
+    }
+  }
+  const IDENTITY_M4 = new Matrix4();
+  const nearCanopyBatch = NEAR_CANOPY_BATCHED ? new NearCanopyBatch(mats.giantTreeNearCanopy) : null;
+  /** a pooled part that lives in `nearCanopyBatch`: the built copy goes in on install and its own arrays are dropped; on uninstall the part leaves the batch */
+  const batchPoolItem = (id: string, batch: NearCanopyBatch, record: { shown: boolean; batchIds: { geomId: number; instId: number } | null; vertices: number }, first: BufferGeometry, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void, firstBuilt = true, estimatedBytes = 0): [PoolItem<GeometryBuilt>, GeometryBuilt | null] => {
+    // one layout across every part (the batch's rule): normals compact to Int8 as every part's
+    // always did (they are always in range, so the shading matches the per-mesh parts to the bit);
+    // colours and wind stay Float32, whose compaction was per part. The pool counts the bytes the
+    // full compaction would have left, so its admission matches the per-mesh parts'.
+    const wrap = (geometry: BufferGeometry): GeometryBuilt => {
+      const bytes = compactedBytes(geometry);
+      compactAttributes(geometry, 'normal');
+      return { geometry, bytes, dispose: () => geometry.dispose() };
+    };
+    let live: { ids: { geomId: number; instId: number }; vertices: number; indices: number } | null = null;
+    const item: PoolItem<GeometryBuilt> = {
+      id,
+      bytes: estimatedBytes,
+      build: function* () {
+        const g = yield* steps();
+        finalize(g);
+        return wrap(g);
+      },
+      install: (b) => {
+        const vertices = b.geometry.getAttribute('position').count;
+        const indices = b.geometry.index ? b.geometry.index.count : vertices;
+        const ids = batch.add(b.geometry);
+        live = { ids, vertices, indices };
+        record.batchIds = ids;
+        record.vertices = vertices;
+        batch.setVisible(ids.instId, record.shown);
+        // the batch holds the only copy that draws; the part's own arrays go now, not at eviction
+        for (const name of Object.keys(b.geometry.attributes)) b.geometry.deleteAttribute(name);
+        b.geometry.setIndex(null);
+        b.geometry.dispose();
+      },
+      uninstall: () => {
+        if (live) batch.remove(live.ids, live.vertices, live.indices);
+        live = null;
+        record.batchIds = null;
+        record.vertices = 0;
+      },
+    };
+    // the pool's `add(item, built)` takes a first build as already installed (a mesh holds its own
+    // first geometry): a batched part installs it here
+    const built = firstBuilt ? wrap(first) : null;
+    if (built) item.install(built);
+    return [item, built];
+  };
+  /**
    * Near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): every eligible lobe of a giant
    * (and every big limb below the cap) has a near part of its own — twiglets forking off the far
    * twigs, dense sprays of cupped laminae, moss along the boughs, vines — shown only while the
@@ -2045,7 +2215,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** authored NEAR_CANOPY_FLAT_SWAP_M distances (nearCanopy.ts NearCanopyPart.fixedSwap) */
     fixedSwap: boolean;
     persistent?: boolean;
-    mesh: Mesh;
+    /** the part's own mesh (the columns' parts, and every part when NEAR_CANOPY_BATCHED is off) */
+    mesh?: Mesh;
+    /** drawn this frame (the mesh's `visible`, or the batch instance's) */
+    shown: boolean;
+    /** the part's place in `nearCanopyBatch` while resident there */
+    batchIds: { geomId: number; instId: number } | null;
+    /** the resident buffers' vertex count (a batched part's; a mesh's is read from its geometry) */
+    vertices: number;
     triangles: number;
     leaves: number;
     farLeaves: number;
@@ -2661,6 +2838,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         outM: part.outM,
         fixedSwap: part.fixedSwap === true,
         mesh,
+        shown: false,
+        batchIds: null,
+        vertices: 0,
         triangles: part.triangles,
         leaves: part.leaves,
         farLeaves: part.farLeaves,
@@ -2692,6 +2872,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ------------------------------------------------------------------ giants
   const giantGroup = new Group();
   giantGroup.name = 'giants';
+  if (nearCanopyBatch) giantGroup.add(nearCanopyBatch.mesh);
   const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
   /** the contacts of the giants seated on the live ground (`southSeat` below), for the base-gap audit */
@@ -2767,17 +2948,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         geometry.boundingSphere!.radius += CULL_PAD_M;
       };
       finalize(part.geometry);
-      const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
-      mesh.name = `giant-near-canopy-${g.def.id}-${part.kind}-${i}`;
-      mesh.castShadow = false;
-      mesh.receiveShadow = true;
-      mesh.visible = false;
-      mesh.userData.kind = 'giant-near-canopy';
-      mesh.userData.giants = [g.def.id];
-      giantGroup.add(mesh);
-      const [item, first] = poolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, mesh, part.build, finalize, !part.deferred, part.estimatedBytes);
-      nearCanopyPool.add(item, first);
-      nearCanopies.push({
+      // the record first: a batched part's pool item writes its batch ids and vertex count into it
+      const nc: NearCanopy = {
         id: `${g.def.id}/${part.kind}-${i}`,
         tree: g.def.id,
         kind: part.kind,
@@ -2789,15 +2961,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         outM: part.outM,
         fixedSwap: part.fixedSwap === true,
         ...(part.persistent ? { persistent: true } : {}),
-        mesh,
+        shown: false,
+        batchIds: null,
+        vertices: 0,
         get triangles() { return part.triangles; },
         get leaves() { return part.leaves; },
         farLeaves: part.farLeaves,
         farCards: part.farCards,
         active: false,
         dist: Infinity,
-        item,
-      });
+        item: null as unknown as PoolItem<GeometryBuilt>,
+      };
+      let first: GeometryBuilt | null;
+      if (nearCanopyBatch) {
+        [nc.item, first] = batchPoolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, nearCanopyBatch, nc, part.geometry, part.build, finalize, !part.deferred, part.estimatedBytes);
+      } else {
+        const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
+        mesh.name = `giant-near-canopy-${g.def.id}-${part.kind}-${i}`;
+        mesh.castShadow = false;
+        mesh.receiveShadow = true;
+        mesh.visible = false;
+        mesh.userData.kind = 'giant-near-canopy';
+        mesh.userData.giants = [g.def.id];
+        giantGroup.add(mesh);
+        nc.mesh = mesh;
+        [nc.item, first] = poolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, mesh, part.build, finalize, !part.deferred, part.estimatedBytes);
+      }
+      nearCanopyPool.add(nc.item, first);
+      nearCanopies.push(nc);
     });
   };
   /**
@@ -3940,7 +4131,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const shownLobes = lobeCandidates.filter(resident).filter(fits);
     const shownLimbs = limbCandidates.filter(resident).filter(fits);
     // A walking camera keeps far foliage for parts still queued through work()'s frame budget.
-    for (const nc of nearCanopies) nc.mesh.visible = shownPersistent.includes(nc) || shownLobes.includes(nc) || shownLimbs.includes(nc);
+    for (const nc of nearCanopies) {
+      const shown = shownPersistent.includes(nc) || shownLobes.includes(nc) || shownLimbs.includes(nc);
+      nc.shown = shown;
+      if (nc.mesh) nc.mesh.visible = shown;
+      else if (nc.batchIds && nearCanopyBatch) nearCanopyBatch.setVisible(nc.batchIds.instId, shown);
+    }
     // the incumbents the next update ranks with NEAR_CANOPY_KEEP (see byRank)
     shownLastFrame.clear();
     for (const nc of shownLobes) shownLastFrame.add(nc);
@@ -4039,7 +4235,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       add(family(`${layer}-far`), d.far);
     }
     for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
-    for (const nc of nearCanopies) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
+    for (const nc of nearCanopies) if (nc.mesh) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
+    if (nearCanopyBatch) add(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
     if (detachedGroup.visible) for (const m of detachedMeshes) add(family(m.userData.kind as string), m);
     const total = tally();
     for (const t of Object.values(byFamily)) {
@@ -4367,8 +4564,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         builtTriangles: nearCanopies.reduce((n, nc) => n + nc.triangles, 0),
         residentTriangles: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? nc.triangles : 0), 0),
         /** vertices and buffer bytes (position, colour, uv, wind, root, normal + the index) of the parts in the pool now */
-        residentVertices: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? nc.mesh.geometry.getAttribute('position').count : 0), 0),
+        residentVertices: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? (nc.mesh ? nc.mesh.geometry.getAttribute('position').count : nc.vertices) : 0), 0),
         residentBytes: nearCanopyPool.poolBytes,
+        /** round 54: the giants' parts' batch — its instances and the buffers it holds (reserved, in vertices / indices) with the heap those buffers take */
+        batch: nearCanopyBatch ? { ...nearCanopyBatch.stats, heapBytes: nearCanopyBatch.heapBytes } : null,
         /** Measured bytes after a first build; deferred records retain conservative estimates. */
         builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
         estimatedUnbuiltBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? 0 : nc.item.bytes), 0),
@@ -4396,7 +4595,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           }),
         /** [id, distance, in-radius, triangles, laminae, crown radius, world centre] */
         shown: nearCanopies
-          .filter((nc) => nc.mesh.visible)
+          .filter((nc) => nc.shown)
           .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, Math.round(nc.radius * 10) / 10, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
         /**
          * What the 64 slots actually buy: the shown lobes' summed apparent area (Σ r² / d², steradian-ish)
@@ -4406,7 +4605,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
          */
         shownCoverage:
           Math.round(
-            nearCanopies.filter((nc) => nc.mesh.visible && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000,
+            nearCanopies.filter((nc) => nc.shown && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000,
           ) / 1000,
         activeCoverage:
           Math.round(nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000) / 1000,
@@ -4420,12 +4619,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
          */
         activeLobes: nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe' && !nc.persistent).length,
         slotOverflow: Math.max(0, nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe' && !nc.persistent).length - NEAR_CANOPY_SLOTS),
-        farthestShownM: nearCanopies.filter((nc) => nc.mesh.visible).reduce((m, nc) => Math.max(m, Math.round(nc.dist * 10) / 10), 0),
+        farthestShownM: nearCanopies.filter((nc) => nc.shown).reduce((m, nc) => Math.max(m, Math.round(nc.dist * 10) / 10), 0),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
-        shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
+        shownTriangles: nearCanopies.filter((nc) => nc.shown).reduce((n, nc) => n + nc.triangles, 0),
         /** parts inside their swap-in radius whose near buffers are not resident yet — the crown a walker sees pop in when its build lands (owner 2026-09-23 20:08) */
         late: nearCanopies.filter((nc) => nc.dist < nc.inM && !nearCanopyPool.isResident(nc.item)).length,
-        foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
+        foldedTriangles: nearCanopies.filter((nc) => nc.shown && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
       },
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,
@@ -4463,6 +4662,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.traverse((o) => {
     const g = (o as Mesh).geometry as BufferGeometry | undefined;
     if (!(o as Mesh).isMesh || !g) return;
+    // round 54: the near-canopy batch keeps its Float32 layout and its CPU copies (three copies new parts into them)
+    if ((o as BatchedMesh).isBatchedMesh) return;
     if (!g.boundingSphere) g.computeBoundingSphere();
     if (!compacted.has(g)) {
       compacted.add(g);
