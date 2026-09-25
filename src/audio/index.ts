@@ -87,6 +87,15 @@ export interface RenderLoad {
 export interface OfflineRender {
   wav: Uint8Array;
   music: MusicSource;
+  /**
+   * What the bed put in it — the same counts `stats()` publishes live, but for the render.
+   *
+   * Until now an offline render handed back a WAV and nothing else, so every question of the form
+   * "when did the birds call in this file" had to be answered by finding them in the audio. The
+   * bed already knows; `birdSpots` carries the context time of each call. null for a stem with no
+   * ambience in it.
+   */
+  bed: AmbienceStats | null;
 }
 
 /** what an offline render contains — the evidence path renders the parts separately */
@@ -131,7 +140,13 @@ export interface OfflineOptions {
    * under the crowns or out over the ravine carries its own. The wind still moves — a place with no
    * weather in it is not a place.
    */
-  at?: { x: number; z: number; y?: number; facing?: number };
+  /**
+   * …and `turn` degrees a second while he stands there, because a player turns far more often than
+   * he walks anywhere. Everything in the bed that is placed by BEARING rather than by position —
+   * the birds on their perches, the wind's lean — is a function of the facing alone, and the only
+   * way to see whether those follow him is to turn him. A fixed facing cannot ask the question.
+   */
+  at?: { x: number; z: number; y?: number; facing?: number; turn?: number };
   /**
    * Walk the listener in a straight line from `from` to `to` at `speed` m/s, facing along it, with
    * every space term read from `surfaceAt` where he is — a real journey rather than the scripted
@@ -928,10 +943,11 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
       continue;
     }
     if (options.at && spot) {
+      const th = facing + ((options.at.turn ?? 0) * Math.PI * t) / 180;
       ambience?.update(t, {
         gust: gust(t),
         listener: { x: options.at.x, y: options.at.y ?? 1.2, z: options.at.z },
-        forward: { x: Math.sin(facing), z: Math.cos(facing) },
+        forward: { x: Math.sin(th), z: Math.cos(th) },
         pods,
         fairies,
         enclosure: options.enclosure ?? spot.enclosure,
@@ -955,7 +971,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   ambience?.scheduleUntil(seconds);
   music?.scheduleUntil(seconds);
   const buffer = await ctx.startRendering();
-  return { wav: encodeWav(buffer), music: musicSource };
+  return { wav: encodeWav(buffer), music: musicSource, bed: ambience?.stats() ?? null };
 }
 
 /** 16-bit PCM WAV. */

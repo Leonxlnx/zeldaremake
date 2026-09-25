@@ -81,14 +81,16 @@ export interface AmbienceStats {
   /** where the canopy roll is sitting: −1 hard left, +1 hard right (the wind's lean) */
   windLean: number;
   /**
-   * Where the last few bird calls came from — `[kind, bearing, distance]`, newest last, bearing
-   * −1 hard left to +1 hard right and distance 0 overhead to 1 deep in the wood.
+   * Where the last few bird calls came from — `[kind, bearing, distance, at]`, newest last, bearing
+   * −1 hard left to +1 hard right, distance 0 overhead to 1 deep in the wood, and `at` the context
+   * time the call is booked to sound.
    *
    * Published for the same reason `fairySpots` is: it is the only way a harness can see what the
    * scheduler decided, and "how many birds does this wood have in it" is not a question a
-   * recording can answer.
+   * recording can answer. `at` is there because a call is booked up to four seconds before it is
+   * heard, so "when was this decided" and "when does it sound" are different questions.
    */
-  birdSpots: [BirdKind, number, number][];
+  birdSpots: [BirdKind, number, number, number][];
   /** how much wood stood between him and the last bird that called, 0 … 1 */
   birdShadow: number;
 }
@@ -560,7 +562,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number, occlusion = 0) => {
     counts.birds++;
-    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3))]);
+    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3)), Number(t.toFixed(3))]);
     if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
     counts.birdShadow = Number(occlusion.toFixed(3));
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
@@ -920,7 +922,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   return {
     scheduleUntil,
     update,
-    stats: () => ({ ...counts, birdSpots: counts.birdSpots.map((s) => [...s] as [BirdKind, number, number]) }),
+    stats: () => ({ ...counts, birdSpots: counts.birdSpots.map((s) => [...s] as [BirdKind, number, number, number]) }),
     dispose() {
       for (const n of nodes) {
         try {
