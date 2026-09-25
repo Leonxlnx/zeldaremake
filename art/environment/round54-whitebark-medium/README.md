@@ -15,7 +15,7 @@ high (`ZR_URL_EXTRA=treelod=10`).
 |---|---|---|---|---|
 | shipped 1 in 8 at 2.53 × | 1.60 / 1.05 | 4.816 M / 8.043 M | — |
 | **1 in 4 at 1.8 ×** | **1.14 / 0.72** | +61 K / +37 K | **A +16 K, B / E +20 K, C +55 K (+1 draw), D +25 K, F +39 K** |
-| 1 in 2 at 1.3 × | 0.90 / 0.66 | +183 K / +109 K | (running) |
+| 1 in 2 at 1.3 × | 0.90 / 0.66 | +183 K / +109 K | A +47 K, B +60 K, C +146 K, D +75 K, E +60 K, F +115 K |
 | every tree high | 0 | +2.6 M / +3.2 M | — |
 
 The 1-in-4 medium takes the gap half-way for a third of 1-in-2's cost; what 1-in-2 adds is close to the arrangement floor
