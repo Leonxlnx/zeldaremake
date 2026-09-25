@@ -587,6 +587,31 @@ test('no fixed frame sees the ruins or their shadows, and the zone views do', as
   ]) assert.equal(L.ruinsVisible(cam(55, p, t, 16 / 9), spheres), true, `${name} hides the ruins`);
 });
 
+test('the village hides only from the ruins zone at walking height, never from a fixed frame', () => {
+  const L = loadTs(path.join(here, '../util/expansionLocality.ts'));
+  const at = (x, lift, z) => {
+    const c = new THREE.PerspectiveCamera(46, 16 / 9, 0.1, 400);
+    c.position.set(x, ground(x, z) + lift, z);
+    c.lookAt(0, 1, 0);
+    return c;
+  };
+  for (const v of LAYOUT.viewpoints) {
+    const c = new THREE.PerspectiveCamera(v.fov, 16 / 9, 0.1, 400);
+    c.position.set(...v.position);
+    assert.equal(L.villageHiddenFromRuins(c, ground), false, `${v.id} hides the village`);
+  }
+  // the look-backs on the site and along the trail's west stretch, at eye height and at the
+  // follow camera's highest over the ground (3.8 m)
+  for (const [x, z] of [[-70.2, -4.6], [-59.8, -4.6], [-51.4, -4.1], [-44.8, -2.6], [-37.2, -0.5], [-64.4, 13.5], [-66.3, -0.9]]) {
+    for (const lift of [1.5, 3.8]) assert.equal(L.villageHiddenFromRuins(at(x, lift, z), ground), true, `(${x}, ${z}) +${lift} m draws the village`);
+  }
+  // east of the zone's line, lifted over the forest, off the trail's and site's boxes
+  assert.equal(L.villageHiddenFromRuins(at(L.RUINS_VILLAGE_ZONE_X + 0.5, 1.6, 2.5), ground), false, 'the trail east of the line hides the village');
+  assert.equal(L.villageHiddenFromRuins(at(-18.4, 1.6, 7.1), ground), false, "the west house's deck hides the village");
+  assert.equal(L.villageHiddenFromRuins(at(-44.8, L.RUINS_VILLAGE_ZONE_EYE_M + 0.5, -2.6), ground), false, 'a camera over the forest hides the village');
+  assert.equal(L.villageHiddenFromRuins(at(-40, 1.6, -30), ground), false, 'the forest north of the trail hides the village');
+});
+
 test('the ruins move no butterfly', () => {
   const hf = loadTs(path.join(here, '../terrain/heightfield.ts'));
   const { VegField } = loadTs(path.join(here, '../vegetation/field.ts'));

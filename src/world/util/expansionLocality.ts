@@ -13,7 +13,7 @@
  * group use it, so the house and its stair appear and vanish together.
  */
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southPathLine } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, inExpansionRuins, southPathLine } from '../layout';
 
 /** beyond this distance from the box the content is hidden regardless of the frustum (haze) */
 export const EXPANSION_VISIBLE_M = 60;
@@ -190,6 +190,26 @@ export function ruinsVisible(camera: Camera, spheres: Sphere[]): boolean {
   const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
   const dz = Math.max(b.z0 - _p.z, 0, _p.z - b.z1);
   return Math.hypot(dx, dz) < RUINS_VISIBLE_M && frustumMeets(camera, spheres);
+}
+
+/**
+ * 2026-09-25 (exp-ruins, the look-backs' budget): the village as seen from the waterfall ruins.
+ * From the site and from the trail west of RUINS_VILLAGE_ZONE_X, at walking height, the plaza's
+ * houses, posts, fences and kids lie 35–95 m east behind the west giant, the trail's white-barks
+ * and the forest. Hidden by hand at the three look-backs and at six trail look-backs 3–7 m apart
+ * (each camera turned on the village), none of them moved a pixel, yet all of them were drawn:
+ * frustum culling passes the whole village from there, and the sun's 46 m shadow window, 18 m
+ * ahead of a look-back, covers its west half. The eye limit keeps the rule to the play camera
+ * (≤ 3.8 m over the ground under Link on the ruins' routes and swung views); a camera lifted
+ * over the forest sees the village again.
+ */
+export const RUINS_VILLAGE_ZONE_X = -30;
+export const RUINS_VILLAGE_ZONE_EYE_M = 5;
+export function villageHiddenFromRuins(camera: Camera, groundAt: (x: number, z: number) => number): boolean {
+  camera.updateMatrixWorld();
+  camera.getWorldPosition(_p);
+  if (_p.x >= RUINS_VILLAGE_ZONE_X || !inExpansionRuins(_p.x, _p.z)) return false;
+  return _p.y - groundAt(_p.x, _p.z) < RUINS_VILLAGE_ZONE_EYE_M;
 }
 
 /** true when the camera's frustum meets one of `spheres` (world matrix refreshed first, see above) */

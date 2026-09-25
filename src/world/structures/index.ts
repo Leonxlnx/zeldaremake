@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Mesh, type Object3D, type PointLight } from 'three';
+import { Group, type Camera, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -16,7 +16,7 @@ import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
 import { buildExpansionNorth, GROVE_VISIBLE_M } from './expansionNorth';
-import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
+import { SOUTH_VISIBLE_M, villageHiddenFromRuins } from '../util/expansionLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
@@ -259,6 +259,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     draws.after += d.after;
     draws.merged += d.merged;
   }
+  // 2026-09-25 (exp-ruins): the village's own drawables — everything outside the four localities'
+  // groups — are hidden while the camera stands in the waterfall ruins' zone, where none of them
+  // reaches a pixel (util/expansionLocality.ts villageHiddenFromRuins). Meshes only: the lights
+  // stay (a light leaving the scene recompiles every lit program), and a mesh built hidden stays so.
+  const localities = new Set<Object3D>([north, expansion.group, south.group, grove.group]);
+  const villageDrawables: Object3D[] = [];
+  for (const c of group.children) {
+    if (localities.has(c)) continue;
+    c.traverse((o) => {
+      const r = o as Object3D & { isMesh?: boolean; isLine?: boolean; isPoints?: boolean; isSprite?: boolean };
+      if ((r.isMesh || r.isLine || r.isPoints || r.isSprite) && o.visible) villageDrawables.push(o);
+    });
+  }
+  const groundAt = (x: number, z: number) => ctx.terrain.height(x, z);
+  let villageShown = true;
+  const showVillage = (camera: Camera) => {
+    const show = !villageHiddenFromRuins(camera, groundAt);
+    if (show === villageShown) return;
+    villageShown = show;
+    for (const o of villageDrawables) o.visible = show;
+  };
+  showVillage(ctx.camera);
   /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
@@ -393,6 +415,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
     /** 2026-09-24 (expansion-north): the grove hamlet — trunk house, stilt house, tree hut, gangway, rope walk, nest, yard (expansionNorth.ts); drawn only within `visibleWithinM` of the grove, in the frustum */
     grove: { ...grove.audit, draws: groveDraws.after, visibleWithinM: GROVE_VISIBLE_M, visible: grove.group.visible },
+    /** 2026-09-25 (exp-ruins): the village's drawables, hidden while the camera stands in the waterfall ruins' zone */
+    villageFromRuins: { drawables: villageDrawables.length, shown: villageShown },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -472,6 +496,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansion.far.visible = expansion.farVisible(c.camera);
       south.group.visible = south.visible(c.camera);
       grove.group.visible = grove.visible(c.camera);
+      showVillage(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
@@ -479,6 +504,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansion.far.visible = expansion.farVisible(camera);
       south.group.visible = south.visible(camera);
       grove.group.visible = grove.visible(camera);
+      showVillage(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however
