@@ -1,0 +1,84 @@
+{
+ "rows": [
+  {
+   "gait": "walk",
+   "dt": 0.016666666666666666,
+   "steps": 37,
+   "gaitSteps": 37,
+   "metres": 16,
+   "perMetre": 2.312
+  },
+  {
+   "gait": "walk",
+   "dt": 0.03333333333333333,
+   "steps": 36,
+   "gaitSteps": 36,
+   "metres": 16,
+   "perMetre": 2.25
+  },
+  {
+   "gait": "walk",
+   "dt": 0.05,
+   "steps": 36,
+   "gaitSteps": 36,
+   "metres": 16,
+   "perMetre": 2.25
+  },
+  {
+   "gait": "walk",
+   "dt": 0.06666666666666667,
+   "steps": 36,
+   "gaitSteps": 36,
+   "metres": 16,
+   "perMetre": 2.25
+  },
+  {
+   "gait": "walk",
+   "dt": 0.1,
+   "steps": 36,
+   "gaitSteps": 36,
+   "metres": 16,
+   "perMetre": 2.25
+  },
+  {
+   "gait": "run",
+   "dt": 0.016666666666666666,
+   "steps": 47,
+   "gaitSteps": 47,
+   "metres": 42.64,
+   "perMetre": 1.102
+  },
+  {
+   "gait": "run",
+   "dt": 0.03333333333333333,
+   "steps": 47,
+   "gaitSteps": 47,
+   "metres": 42.63,
+   "perMetre": 1.102
+  },
+  {
+   "gait": "run",
+   "dt": 0.05,
+   "steps": 47,
+   "gaitSteps": 47,
+   "metres": 42.57,
+   "perMetre": 1.104
+  },
+  {
+   "gait": "run",
+   "dt": 0.06666666666666667,
+   "steps": 46,
+   "gaitSteps": 39,
+   "metres": 42.38,
+   "perMetre": 1.085
+  },
+  {
+   "gait": "run",
+   "dt": 0.1,
+   "steps": 42,
+   "gaitSteps": 7,
+   "metres": 42.57,
+   "perMetre": 0.987
+  }
+ ]
+}
