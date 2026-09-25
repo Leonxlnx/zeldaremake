@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T10:27:00Z
+updated: 2026-09-25T10:26:00Z
 ---
 
 # fable-5 — work log
@@ -40,9 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-25 09:36–10:27 UTC — iteration 130 (the head 8e20e128, roofsky): six views 1.0000 / 0.9999 (0.00 % over 8 levels); the look-ups'
+- 2026-09-25 09:36–10:26 UTC — iteration 130 (the head 8e20e128, roofsky): six views 1.0000 / 0.9999 (0.00 % over 8 levels); the look-ups'
   leaf masses brighten with the sky gaps unchanged — the grove's yard 0.143 → 0.180 (the 00:03 lid reads as leaves), the veranda 0.199 → 0.230,
-  the far bank 0.344 → 0.362, u-open-up 0.286 → 0.303. INBOX 10:27.
+  the far bank 0.344 → 0.362, u-open-up 0.286 → 0.303. INBOX 10:26.
 - 2026-09-25 08:33–08:45 UTC — iteration 129 (the bill on the head cd9400b2 with the batch in): the draw cap met at the lookout (672) and the
   yard (674), 701 / 702 at the green / ruins trail, 718 at the far bank; the triangle cap over everywhere (9.57–10.68 M) — trees and vegetation
   the rows left; lane 2's playcost note aligns (the flight foot 9.58 M, vegetation +1.0 M). INBOX 08:45.
@@ -614,4 +614,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T10:27:00Z
+2026-09-25T10:26:00Z

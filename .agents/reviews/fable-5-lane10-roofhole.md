@@ -95,7 +95,7 @@ shelf than the north's over the approach, and reads as a lid; a thinner or highe
 gap share — is the note. The six views cannot see the grove (the stand pass's 50 m hero drop; the grove is out of A–F on the
 head at 0.9997 … 1.0000), so no re-pair here.
 
-## The head `8e20e128` (09:32 — `squad2-roofsky`: the roof's underside takes sky light through the layer) — 09:36–10:27 UTC
+## The head `8e20e128` (09:32 — `squad2-roofsky`: the roof's underside takes sky light through the layer) — 09:36–10:26 UTC
 
 The answer to the 00:03 note (the grove's ceiling "one flat dark sheet"). Play-mode look-ups on the head before (`cd9400b2`) and after
 (`it130-lookups-roofsky-ba.jpg`), and the owner's `u-open-up` against the roofhole build that first closed it:
