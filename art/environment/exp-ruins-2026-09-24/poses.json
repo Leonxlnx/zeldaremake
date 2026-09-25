@@ -1,0 +1,18 @@
+[
+  { "name": "r01-trail-leaves-village", "from": { "p": [-12.8, 4.5, 3.2], "t": [-30.0, 3.4, 1.6], "fov": 46 } },
+  { "name": "r02-trail-mid-forest", "from": { "p": [-29.2, 4.25, 1.7], "t": [-45.0, 3.6, -2.8], "fov": 46 } },
+  { "name": "r03-trail-lanterns", "from": { "p": [-40.6, 4.5, -1.6], "t": [-56.0, 4.2, -4.3], "fov": 46 } },
+  { "name": "r04-gate-to-outcrop", "from": { "p": [-47.8, 4.6, -3.4], "t": [-64.0, 5.5, -4.4], "fov": 46 } },
+  { "name": "r05-hero-outcrop", "from": { "p": [-53.2, 5.5, -4.0], "t": [-64.5, 5.2, -4.8], "fov": 46 } },
+  { "name": "r06-stair-to-arch", "from": { "p": [-58.3, 5.4, -4.0], "t": [-67.0, 6.3, -4.3], "fov": 46 } },
+  { "name": "r07-arch-passage", "from": { "p": [-60.6, 6.3, -3.6], "t": [-72.0, 5.8, -5.3], "fov": 46 } },
+  { "name": "r08-terrace-colonnade", "from": { "p": [-64.6, 6.3, -4.4], "t": [-73.5, 5.5, -8.0], "fov": 46 } },
+  { "name": "r09-terrace-to-fall", "from": { "p": [-68.5, 6.3, -5.8], "t": [-74.4, 4.5, 2.7], "fov": 46 } },
+  { "name": "r10-water-stair-quay", "from": { "p": [-66.3, 2.6, -0.9], "t": [-74.4, 3.0, 2.2], "fov": 46 } },
+  { "name": "r11-fall-foot-platform", "from": { "p": [-70.2, 2.5, -1.0], "t": [-74.4, 5.5, 2.7], "fov": 46 } },
+  { "name": "r12-pool-east-shore", "from": { "p": [-50.8, 4.7, 5.4], "t": [-72.0, 3.5, 2.5], "fov": 46 } },
+  { "name": "r13-pool-south-shore", "from": { "p": [-64.4, 2.3, 13.5], "t": [-65.0, 4.5, -3.0], "fov": 46 } },
+  { "name": "r14-lookback-from-terrace", "from": { "p": [-70.2, 6.3, -4.6], "t": [-50.0, 3.5, -3.0], "fov": 46 } },
+  { "name": "r15-lookback-from-outcrop", "from": { "p": [-59.8, 4.7, -4.6], "t": [-40.0, 3.0, -1.0], "fov": 46 } },
+  { "name": "r16-lookback-trail-to-village", "from": { "p": [-34.2, 4.3, 0.5], "t": [-15.0, 3.2, 4.0], "fov": 46 } }
+]
