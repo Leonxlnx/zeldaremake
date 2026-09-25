@@ -26,3 +26,14 @@ The grove girl, Link walking up behind her to 1.45 m; the greeting starts at t �
 - `the-raised-hand-t2.1-2.7s.jpg` — close: the hand beside the head, clear of the hair.
 
 Typecheck, build, 209 / 209 tests. Draws unchanged; capture never greets, so the six fixed frames cannot change.
+
+## The door boy and the seated girl (after #140 landed; `7873377c`, `7f2bcf87`)
+
+- The door boy takes the wave line like the other stands.
+- The seated girl on the main flight cannot turn on her tread, so her greeting is the head and the hand: the same
+  greeter times her nod and wave (its yaw is not used), her dwell look-around fading under it. Before: hands on her
+  knees, the head's notice only (#99's gaze). After — `seated-girl-nod-and-wave-t1.8-3.0s.jpg` (`GREET_KID=1`, Link
+  walking up from the stair foot to 1.44 m, 10 fps): the right hand rises from her knee (1.8), waves beside her head
+  with the nod (2.0 – 2.6), comes down (2.8 – 3.0). With her, every kid greets: six turn, one waves from her seat.
+
+Typecheck, build, 211 / 211 on the merged tip (the head `d94aee7c` merged in).
