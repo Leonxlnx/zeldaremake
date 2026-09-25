@@ -78,7 +78,8 @@ const TAKES = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8'))
 const GUST = TAKES.gust;
 
 /**
- * The bed's smoothed parameters, in the order `update()` sets them. `tau` is what ships today;
+ * The bed's smoothed parameters, in the order `update()` sets them. `tau` is what each SHIPPED
+ * WITH before 2026-09-25 — the "before" this study is measured against;
  * `place` marks the ones that change because the listener moved. A parameter is scored in the unit
  * an ear works in — decibels for a level, octaves for a cutoff.
  */
@@ -255,15 +256,16 @@ const PATHS = [
 ];
 
 const shipped = Object.fromEntries(PARAMS.map((p) => [p.id, p.tau]));
-const proposed = Number(args.tau ?? 0.08);
+const proposed = Number(args.tau ?? AMB.PLACE_TAU);
 const after = Object.fromEntries(PARAMS.map((p) => [p.id, p.place ? proposed : p.tau]));
 
 const report = { tickMs: AUDIO.TICK_MS, gust: GUST, proposedTau: proposed, paths: [] };
-console.log(`tick ${AUDIO.TICK_MS.toFixed(1)} ms, gust held at ${GUST}; "after" puts every positional term on tau = ${proposed} s\n`);
+console.log(`tick ${AUDIO.TICK_MS.toFixed(1)} ms, gust held at ${GUST}. "was" is the constant each term shipped with before`);
+console.log(`2026-09-25; "now" puts every positional term on ambience.ts PLACE_TAU = ${proposed} s\n`);
 for (const p of PATHS) {
   const row = { id: p.id, note: p.note, gaits: {} };
   console.log(`--- ${p.id}: ${p.note} (${Math.hypot(p.to[0] - p.from[0], p.to[1] - p.from[1]).toFixed(1)} m) ---`);
-  console.log(`${'parameter'.padEnd(12)} ${'tau'.padStart(5)} ${'span'.padStart(9)}  ${'walk lag'.padStart(9)} ${'walk miss'.padStart(10)}  ${'run lag'.padStart(9)} ${'run miss'.padStart(10)}  ${('run @' + proposed).padStart(9)} ${'miss'.padStart(10)}`);
+  console.log(`${'parameter'.padEnd(12)} ${'was'.padStart(5)} ${'span'.padStart(9)}  ${'walk lag'.padStart(9)} ${'walk miss'.padStart(10)}  ${'run lag'.padStart(9)} ${'run miss'.padStart(10)}  ${'run now'.padStart(9)} ${'miss now'.padStart(10)}`);
   for (const q of PARAMS) {
     const cells = {};
     for (const [g, v] of GAITS) {

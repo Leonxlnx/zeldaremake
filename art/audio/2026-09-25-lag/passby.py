@@ -146,6 +146,26 @@ def feature(path, hop, watch, lead):
     return v
 
 
+def tick_buzz(path, tick_hz=30.0):
+    """
+    How far the take's own envelope stands over its neighbours at the tick rate.
+
+    Shortening a smoothing time is only safe while the glide still outlives the tick. If it does
+    not, a moving parameter becomes a staircase at 30 Hz, and a staircase on a gain is amplitude
+    modulation — the buzz this lane exists to remove. So: the broadband envelope's spectrum, and
+    the 30 Hz bin against the median of 10-50 Hz. Anything at or under 0 dB is not there.
+    """
+    x, rate = read_wav(path)
+    env = np.abs(x)
+    n = 1 << int(np.floor(np.log2(len(env))))
+    env = env[:n] - env[:n].mean()
+    s = np.abs(np.fft.rfft(env * np.hanning(n))) ** 2
+    f = np.fft.rfftfreq(n, 1 / rate)
+    near = (f >= tick_hz - 0.6) & (f <= tick_hz + 0.6)
+    around = (f >= 10) & (f <= 50)
+    return 10 * np.log10(max(s[near].max(), 1e-30) / max(float(np.median(s[around])), 1e-30))
+
+
 ap = argparse.ArgumentParser()
 ap.add_argument('--takes', default='/tmp/lag')
 ap.add_argument('--out', default='')
@@ -164,29 +184,44 @@ for t in report['takes']:
             continue
         h = feature(p, hop, tr['watch'], report['lead'])
         m, r = best_shift(world, h, hop, t['speed'])
-        row[tag] = {'lagM': m, 'r': r, 'peakM': peak_shift(world, h, hop, t['speed']) if t['watch'] == 'flame level' else None}
+        # how much of the world's own change actually reached the ear. A one-pole that has not
+        # settled by the end of a change delivers less of it, which is the half of this a lag does
+        # not describe; and it is the half a player hears as "the place did not arrive".
+        # ... and only where the band and the term are in the same unit: the bore is watched through
+        # a ratio of two bands against a cutoff in octaves, which have no share in common
+        got = float(np.percentile(h, 98) - np.percentile(h, 2)) / (float(world.max() - world.min()) or 1) if tr['unit'] == 'dB' else None
+        bump = abs(world[-1] - world[0]) < (world.max() - world.min()) * 0.5
+        row[tag] = {'lagM': m, 'r': r, 'got': got, 'peakM': peak_shift(world, h, hop, t['speed']) if bump else None}
         row['curves'][tag] = h
     rows.append(row)
 
-print(f"{'take':14} {'watched'.ljust(12)} {'speed':>6}   {'before':>9} {'r':>6}   {'after':>9} {'r':>6}   {'closer by':>9}   peak before / after")
+print(f"{'take':14} {'watched'.ljust(12)} {'speed':>6}   {'lag before':>10} {'r':>5}   {'lag after':>10} {'r':>5}   {'of the change heard':>21}   {'peak b/a':>16}")
 for r in rows:
     if 'before' not in r or 'after' not in r:
         continue
-    pk = ''
-    if r['before']['peakM'] is not None:
-        pk = f"   {r['before']['peakM']:+.2f} m / {r['after']['peakM']:+.2f} m"
-    print(
-        f"{r['id']:14} {r['watch'].ljust(12)} {r['speed']:>4} m/s   "
-        f"{r['before']['lagM']:>7.2f} m {r['before']['r']:>6.2f}   "
-        f"{r['after']['lagM']:>7.2f} m {r['after']['r']:>6.2f}   "
-        f"{r['before']['lagM'] - r['after']['lagM']:>7.2f} m" + pk
-    )
+    b, f_ = r['before'], r['after']
+    got = f"{b['got'] * 100:>8.0f} % \u2192 {f_['got'] * 100:>3.0f} %" if b['got'] is not None else f"{'\u2014':>16}"
+    peak = f"{b['peakM']:>+6.2f} m / {f_['peakM']:>+6.2f} m" if b['peakM'] is not None else ''
+    print(f"{r['id']:14} {r['watch'].ljust(12)} {r['speed']:>4} m/s   " f"{b['lagM']:>8.2f} m {b['r']:>5.2f}   {f_['lagM']:>8.2f} m {f_['r']:>5.2f}   " + got + '   ' + peak)
+
+print('\nthe tick in the envelope, dB over the median of 10-50 Hz. The controls are off-tick')
+print('frequencies in the same band: 30 Hz has to stand over THOSE to be the tick and not the noise.')
+CONTROLS = (14, 18, 23, 27, 33, 37, 42, 47)
+print(f"{'take':14} {'30 Hz before':>13} {'after':>7}   {'worst control before':>21} {'after':>7}")
+for r in rows:
+    if 'before' not in r or 'after' not in r:
+        continue
+    out = []
+    for tag in ('before', 'after'):
+        p = os.path.join(a.takes, f"{r['id']}-bed-{tag}.wav")
+        out.append((tick_buzz(p, 30.0), max(tick_buzz(p, hz) for hz in CONTROLS)))
+    print(f"{r['id']:14} {out[0][0]:>12.1f} {out[1][0]:>7.1f}   {out[0][1]:>20.1f} {out[1][1]:>7.1f}")
 
 if not a.out:
     raise SystemExit(0)
 
 # ---- the figure: the world's own term, and what came out of the graph, before and after ---------
-W, H = 1500, 300 * len(rows) + 90
+W, H = 1500, 310 * len(rows) + 90
 BG, INK, DIM = (17, 19, 22), (238, 240, 243), (120, 128, 138)
 WORLD, BEFORE, AFTER = (244, 214, 120), (226, 106, 106), (120, 214, 150)
 im = Image.new('RGB', (W, H), BG)
@@ -196,7 +231,7 @@ d.text((28, 22), 'Running past what the world is doing: the term, and the sound 
 d.text((28, 52), 'gold = the world where he is  |  red = heard, before  |  green = heard, after  |  each curve scaled to its own range', font=f14, fill=DIM)
 
 for i, r in enumerate(rows):
-    top = 90 + i * 300
+    top = 90 + i * 310
     plot_h = 210
     d.text((28, top), f"{r['id']} \u2014 {r['note']}", font=f17, fill=INK)
     if 'before' in r and 'after' in r:
@@ -208,7 +243,6 @@ for i, r in enumerate(rows):
         )
     x0, y0, x1, y1 = 28, top + 48, W - 28, top + 48 + plot_h
     d.rectangle([x0, y0, x1, y1], outline=(44, 48, 54))
-    curves = [('world', np.array(r['trace']['world']) if 'trace' in r else None)]
     src = {'world': np.array(report['takes'][i]['trace']['world'])}
     src.update(r['curves'])
     for name, colour in (('world', WORLD), ('before', BEFORE), ('after', AFTER)):
@@ -220,13 +254,22 @@ for i, r in enumerate(rows):
         rng = (hi - lo) or 1.0
         pts = [(x0 + (x1 - x0) * k / (len(v) - 1), y1 - (y1 - y0) * (val - lo) / rng) for k, val in enumerate(v)]
         d.line(pts, fill=colour, width=2)
+    secs = len(src['world']) * report['takes'][i]['trace']['hopS']
     # the mark: where the world passes the halfway point of the change
     mark = report['takes'][i]['marks'].get(r['watch'])
     if mark:
-        secs = len(src['world']) * report['takes'][i]['trace']['hopS']
         mx = x0 + (x1 - x0) * min(1.0, mark['atS'] / secs)
         d.line([(mx, y0), (mx, y1)], fill=(90, 96, 104), width=1)
         d.text((mx + 5, y0 + 4), f"halfway at {mark['atS']:.2f} s", font=f14, fill=(150, 156, 164))
+    for s in range(0, int(secs) + 1):
+        tx = x0 + (x1 - x0) * s / secs
+        d.line([(tx, y1), (tx, y1 + 5)], fill=(70, 76, 84), width=1)
+        d.text((tx + 3, y1 + 4), f'{s} s', font=f14, fill=(96, 102, 110))
+    # how far the watched band stands over the rest of the bed: where that is small the audio is
+    # weak evidence whatever the shift search says, and the model carries the claim
+    if 'before' in r:
+        contrast = float(np.percentile(r['curves']['before'], 98) - np.percentile(r['curves']['before'], 2))
+        d.text((x1 - 250, top + 22), f'band moves {contrast:.1f} dB across the take', font=f14, fill=DIM)
 
 im.save(a.out, quality=92)
 print(f'wrote {a.out}')

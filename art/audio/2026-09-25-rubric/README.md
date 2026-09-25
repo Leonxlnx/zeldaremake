@@ -26,6 +26,12 @@ to be covering real faults and the third a fault in the shipped game, so they ke
 evidence rather than gaining a point: the bed repeated every nine seconds, a run was a louder walk,
 and one step in fifteen was dropped at the tick the game runs at.
 
+Check 13 has since been **amended rather than re-scored**: it asked whether a space change fades
+rather than switching, which the sound passed at 4 while arriving up to four metres behind a runner,
+because the check could not see a listener who moves. It now also asks that the fade land where he
+is (`2026-09-25-lag`). Worth saying plainly: fifty checks written for a listener standing in a place
+missed the largest positional error in the bed, and only a measurement nobody had asked for found it.
+
 It now fails on **one check**: 27, nothing a player touches makes a sound. That is a real hole and
 not a mis-score, and it is the only thing between the sound and the rubric's own ship rule.
 
@@ -132,7 +138,7 @@ score is a judgement and is marked as such.
 | 10 | a roof is measurable | 3 | +2.9 dB between gusts, reproduced at a second spot (`facing`) |
 | 11 | indoors is not outdoors | **4** | −4.7 dB and the top off, plus the room answering (#70, #73) |
 | 12 | three spaces, not three labels | 3 | canopy, gorge and enclosure each measured in isolation (`term.mjs`) |
-| 13 | fades, not switches | **4** | the doorway fade monotone, no step > 0.25; the clearing's roof cut across its rim |
+| 13 | fades, not switches, **and arrives where he is** | **4** | the doorway fade monotone, no step > 0.25; the clearing's roof cut across its rim. Check amended 2026-09-25 — the old wording asked only about the fade's shape, and on it the sound scored 4 while the crowns closed over a runner 2.8 m late. On the new wording it would have been a 2; the 4 is on this branch's evidence, every journey inside 0.31 m at a run (`2026-09-25-lag`) |
 | 14 | nowhere silent, nowhere loud without cause | **4** | 13 places; the loudest is a flame at arm's length (`floor.py`) |
 | 15 | the world spans a useful range | **3** | colour spans 0.2 to 10.2 dB across the pairs. The real weakness is narrower than the old score said: the enclosed places are each a place, and the open outdoors is one place (`2026-09-25-places`) |
 | 16 | ★ the surface is the surface | **4** | `surfaces.test.mjs` covers every built standing place by name |

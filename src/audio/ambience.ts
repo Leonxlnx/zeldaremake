@@ -260,6 +260,35 @@ export const GORGE_WIND = 0.7;
 export const WIND_LEAN = 0.35;
 
 /**
+ * How long a term takes to arrive when it changed **because the listener moved**.
+ *
+ * A smoothing time is a distance once the listener has a speed, and every one of these constants
+ * had been chosen for weather: 0.9 s on the leaf roll's level, 0.6 on the hall sends, 0.35 on the
+ * bed's top, 0.3 on the lantern flame and its pan, 0.12 on the bore's duck. At the run the player
+ * actually has (4.2 m/s) that is between half a metre and four metres of ground before the sound
+ * gets to where he is — measured along five real journeys in `art/audio/2026-09-25-lag/`: walking
+ * out of the village in under the crowns, the roll's level arrived **2.8 m** behind him and the
+ * hall 2.2 m; in through the log arch's mouth it was over four metres.
+ *
+ * Nothing before this could see it. Every `at` render stands still, so a space term is a constant;
+ * the scripted walk crosses surfaces but never a doorway, a bore mouth, a canopy edge or a lantern.
+ *
+ * 0.05 s is one and a half ticks of the 30 Hz update. Shorter and the glide finishes inside a tick,
+ * which turns a moving parameter into a staircase at the tick rate — audible on a gain as a buzz,
+ * and this lane exists because the owner heard a buzz. Longer buys nothing: the terms whose
+ * geometry is gentle are already right at 0.05 (the roll's worst error across the canopy edge falls
+ * from 2.0 dB to 0.23), and the ones that are not — the bore mouth and the hut doorway, both of
+ * which a runner crosses in under a fifth of a second — are limited by the tick and not by this.
+ *
+ * The weather's own terms are left alone. The gust is analytic (`wind.ts`: two sines at 0.37 and
+ * 0.11 rad/s) and its fastest component has a seventeen-second period, so their 0.55–0.9 s smooths
+ * nothing that was not already smooth, and moving a constant that no measurement objects to is
+ * churn. The wind's lean keeps its 1.2 s for the reason written beside it — that one answers
+ * turning your head, not walking.
+ */
+export const PLACE_TAU = 0.05;
+
+/**
  * How far out a bird on its perch is allowed to sit, short of the speakers themselves.
  *
  * A call hard against one channel does not read as "over there", it reads as a fault in the mix —
@@ -808,7 +837,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
-    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, 0.9);
+    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
     canopyMod.gain.setTargetAtTime(sw, t, 0.9);
     hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
     hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
@@ -829,7 +858,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       pz += dz * a;
     }
     const level = Math.min(1, nearest + (sum - nearest) * LANTERN_CROWD_SHARE) * LANTERN_LEVEL;
-    flameGain.gain.setTargetAtTime(level, t, 0.3);
+    flameGain.gain.setTargetAtTime(level, t, PLACE_TAU);
     let pan = 0;
     if (sum > 1e-4) {
       // right = forward × up
@@ -838,7 +867,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const len = Math.hypot(px, pz) || 1;
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
-    flamePan.pan.setTargetAtTime(pan, t, 0.3);
+    flamePan.pan.setTargetAtTime(pan, t, PLACE_TAU);
     // the nearest fairy: a glint every second or three while one is within a couple of metres
     if (t >= nextGlint && s.fairies?.length) {
       let best = 0;
@@ -874,18 +903,18 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // the crowns close the same filter part of the way and hand more of the bed to the hall; only
     // the tunnel's wood ducks the level, because only the tunnel puts something between him and it
     const closed = Math.max(enc, canopyNow * CANOPY_CLOSE);
-    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, 0.35);
-    out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
+    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, PLACE_TAU);
+    out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, PLACE_TAU);
     // and more of the forest comes back as reflection off the walls
     const hall = (1 + canopyNow * CANOPY_HALL) * (1 + gorge * GORGE_HALL);
-    canopySend.gain.setTargetAtTime(0.3 * hall, t, 0.6);
+    canopySend.gain.setTargetAtTime(0.3 * hall, t, PLACE_TAU);
     // the roll leans upwind: the air arrives from where the wind comes FROM, which is behind its
     // direction of travel. Slow (1.2 s) — turning your head should move the weather, not flick it.
     if (s.windDir) {
       counts.windLean = windLeanFor(s.forward, s.windDir);
       canopyPan.pan.setTargetAtTime(counts.windLean, t, 1.2);
     }
-    hushSend.gain.setTargetAtTime(0.2 * hall, t, 0.6);
+    hushSend.gain.setTargetAtTime(0.2 * hall, t, PLACE_TAU);
   };
 
   return {

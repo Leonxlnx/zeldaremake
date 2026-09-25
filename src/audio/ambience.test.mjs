@@ -61,9 +61,9 @@ function param(value) {
       this.target = v;
       this.events.push(['exp', v, t]);
     },
-    setTargetAtTime(v, t) {
+    setTargetAtTime(v, t, tau) {
       this.target = v;
-      this.events.push(['tgt', v, t]);
+      this.events.push(['tgt', v, t, tau]);
     },
     cancelScheduledValues() {},
   };
@@ -493,4 +493,39 @@ test('moving the birds about does not add any', () => {
   const swinging = run((t) => 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3));
   assert.ok(swinging > 7 && swinging < 13, `${swinging.toFixed(1)} birds a minute — the flat gap this replaced gave 10.3, and one every four seconds is an aviary`);
   assert.ok(A.BIRD_GAP_TRIM > 1, 'the trim only ever lengthens the gap; without it the rate climbs');
+});
+
+test('a term that moved because HE did arrives at his pace, not the weather\u2019s', () => {
+  // The bed's spatial terms had five different smoothing times between them (0.12 and 0.9 s), all
+  // of them chosen against weather, and a smoothing time is a distance once the listener has a
+  // speed. `art/audio/2026-09-25-lag/` measured the ground that costs on five real journeys.
+  //
+  // This is the contract rather than the constant: run `update` twice with the WEATHER AND THE
+  // FACING HELD and only the listener's place changed, take every parameter that moved, and
+  // require it to have been aimed with PLACE_TAU. A new spatial term added later with a literal
+  // time constant fails here without anyone having to remember this file exists.
+  const { ctx, amb } = bed();
+  const params = [];
+  for (const kind of ['gain', 'filter', 'panner', 'source']) {
+    for (const n of ctx.made[kind]) {
+      for (const [name, p] of Object.entries(n)) if (p && typeof p === 'object' && Array.isArray(p.events)) params.push({ id: `${kind}.${name}`, p });
+    }
+  }
+  const weather = { gust: 0.6, windDir: { x: 0.7, z: -0.7 }, forward: NORTH, pods: [{ x: 1, y: 2, z: 0 }] };
+  // the open village, then well inside the log arch's bore under closed crowns with the ravine open
+  amb.update(1, { ...weather, listener: { x: 0, y: 1.2, z: 0 }, canopy: 0, gorge: 0, enclosure: 0 });
+  const before = params.map(({ p }) => ({ target: p.target, n: p.events.length }));
+  amb.update(2, { ...weather, listener: { x: 7, y: 1.2, z: -3 }, canopy: 1, gorge: 1, enclosure: 1 });
+  const moved = params.filter(({ p }, i) => Math.abs(p.target - before[i].target) > 1e-12);
+  assert.ok(moved.length >= 5, `only ${moved.length} parameters noticed that he had moved seven metres into a log`);
+  for (const { id, p } of moved) {
+    const last = [...p.events].reverse().find((e) => e[0] === 'tgt');
+    assert.ok(last, `${id} moved with him but was not aimed with setTargetAtTime`);
+    assert.equal(last[3], A.PLACE_TAU, `${id} moved because the listener did and was smoothed over ${last[3]} s — at a run that is ${(last[3] * 4.2).toFixed(2)} m of ground behind him`);
+  }
+  // and the weather's own terms are left where they were: the gust is two sines whose fastest
+  // component has a seventeen-second period, so their longer times smooth nothing that moves
+  const held = params.filter(({ p }, i) => p.events.length > before[i].n && Math.abs(p.target - before[i].target) <= 1e-12);
+  const weatherTaus = new Set(held.map(({ p }) => [...p.events].reverse().find((e) => e[0] === 'tgt')?.[3]).filter((v) => v !== A.PLACE_TAU && v !== undefined));
+  assert.ok(weatherTaus.size > 0, 'nothing is left on a weather time — either the split is gone or the fake no longer records it');
 });
