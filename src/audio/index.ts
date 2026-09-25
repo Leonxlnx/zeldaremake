@@ -167,8 +167,13 @@ export interface OfflineOptions {
    * node was built with and takes several time constants to reach the world's value, which at the
    * 0.9 s this was written against is eleven metres of a run — so without a lead-in the first third
    * of a take is the graph waking up and not the journey. Four seconds covers the longest of them.
+   *
+   * `loop` shuttles him back and forth along the line instead of stopping at `to`. A single
+   * traverse of a twenty-metre walk is fourteen seconds, and the wood only calls eleven times a
+   * minute, so anything that needs several calls from the same perches needs him to stay in that
+   * part of the world — which pacing about is, and teleporting back to the start is not.
    */
-  pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number; lead?: number };
+  pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number; lead?: number; loop?: boolean };
   /**
    * Hold the wind at one gust for the whole render instead of running the weather.
    *
@@ -835,7 +840,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0, scheduledAt: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0, perchSpots: [] }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
@@ -947,12 +952,17 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   };
   for (let t = 0; t < seconds; t += step) {
     if (pass) {
-      const u = Math.max(0, Math.min(1, ((t - (pass.lead ?? 0)) * pass.speed) / (passLen || 1)));
+      const travel = Math.max(0, (t - (pass.lead ?? 0)) * pass.speed) / (passLen || 1);
+      // pacing: a triangle wave along the line, facing whichever way he is going. Otherwise a ramp
+      // that stops at `to`.
+      const leg = travel % 2;
+      const u = pass.loop ? (leg <= 1 ? leg : 2 - leg) : Math.min(1, travel);
+      const way = pass.loop && leg > 1 ? -1 : 1;
       const px = pass.from[0] + (pass.to[0] - pass.from[0]) * u;
       const pz = pass.from[1] + (pass.to[1] - pass.from[1]) * u;
       const here = surfaceAt(px, pz);
       const listener: Vec3 = { x: px, y: pass.y ?? 1.2, z: pz };
-      const forward = { x: (pass.to[0] - pass.from[0]) / (passLen || 1), z: (pass.to[1] - pass.from[1]) / (passLen || 1) };
+      const forward = { x: (way * (pass.to[0] - pass.from[0])) / (passLen || 1), z: (way * (pass.to[1] - pass.from[1])) / (passLen || 1) };
       ambience?.update(t, {
         gust: gust(t),
         listener,
@@ -965,7 +975,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         gorge: options.gorge ?? here.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
       });
-      footsteps?.drive(t, step, { speed: u > 0 && u < 1 ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      footsteps?.drive(t, step, { speed: t > (pass.lead ?? 0) && (pass.loop || u < 1) ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
       fill(t);
       continue;
     }
