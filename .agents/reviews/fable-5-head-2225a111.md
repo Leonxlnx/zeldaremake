@@ -98,3 +98,7 @@ frames (a τ of a few hundredths) is the knob, in `src/camera/follow.ts`.
 
 Six views pixel-identical to `7468bb38` (1.0000 / 0.00 % at all six): the boy at A's right edge reads as before; vs the reference
 unchanged to the fourth decimal. `d367cfbf` (05:25) was notes only.
+
+## → `24dc489f` (07:10 round: the sitter's gaze, lane 5's gait / loop / ambience) — 07:28–07:57 UTC
+
+Six views pixel-identical to `1a183570` (1.0000 / 0.00 % at all six): the seated kid's gaze does not move A.

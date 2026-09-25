@@ -35,3 +35,13 @@ the commit does not intend.
 
 **Not merge-ready until the lobes render as before**; then it is −28 … −56 draws at every look-back for free. The check is
 one lobe's colour attribute and uniforms, mesh vs batch, at A's pose.
+
+## `e82cef73` (06:55 — a part's first build goes into the batch at creation) — 07:28–08:05 UTC
+
+**Merge-ready.** Against the head `24dc489f` the six views are **pixel-identical at all six** (1.0000 / 0.00 %). The pair
+`80d60e72` → `e82cef73` changes exactly the 1.06 % / 1.46 % / 1.79 % at A / C / F that the first read flagged — and the trees row's
+triangles come back to the head's (the far bank 3.48 → 3.63 M, the ruins' trail 4.32 → 4.47 M) while the draws stay cut. So the
+"brighter lobes" were **lobes missing**: a part's first build was never installed in the batch, the −0.15 M triangles were those
+lobes, and the haze behind them was the brightness. The draws on the fixed batch: the far bank's trees **200** (−56), the green
+**214** (−35), the ruins' trail **203** (−37); the frames **the far bank 718 / 10.06 M, the east green 701 / 9.80 M** (was 774 and 736).
+Row 2 of the bill, its first payment, with the frames as they were.
