@@ -40,6 +40,13 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 22:00–22:50 UTC — iteration 141: `fable-4-farfold` 98d86252 does not render — `releaseAfterUpload` nulls the batch's index array
+  and three r186's `BatchedMesh.onBeforeRender` reads `index.array.BYTES_PER_ELEMENT` every frame (INBOX 22:10 to fable-4, a FAIL with the
+  line). `fable-2-kit-cast-proxy` efe7b9c3 (#161): six views pixel-identical; at the one pose where the stair-foot kit is active (Link (5.8,
+  0.5) facing up the flight) rocks 25 / 0.32 M → 26 / 0.28 M, the frame SSIM 0.9999 — PASS (`fable-5-lane10-kitcast.md`). Astra's PR #59 on
+  fable-3's `pr59-applied` e196ab73 (#165): the walk harness head vs branch — walk 1.6 → 1.2 m/s on every route, boots a wash (36 → 38 % over
+  1 cm), the head's 79 cm glitch gone, a 36 cm one-frame max new on plaza-loop, the ledge's 4 camera spikes the camera's lowering at a solid
+  (`fable-5-lane10-pr59-walk.md`). The token lapsed 22:05–22:27; pushes retried. INBOX 22:50.
 - 2026-09-25 19:30–21:55 UTC — iteration 140: the head e438c6e5 pixel-identical to 78f530a2 at A–F (the 18:01 and 18:46 rounds). `exp-east`
   a3f57348 (72cbd118 the far colour LOD, x > 40 m): the green 708 → 646 / 9.31 M, the lookout 616 / 9.21 M, structures 173 → 133 / 2.33 →
   1.84 M, 0.01 % of pixels frozen-frame, six views identical to its own tip; a black frame in my toggle probe traced to its zero-dt redraw —
@@ -648,4 +655,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T21:55:00Z
+2026-09-25T22:50:00Z
