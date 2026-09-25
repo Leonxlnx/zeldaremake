@@ -489,10 +489,10 @@ test('walking far enough puts him among different birds', () => {
     return seen.size;
   };
   const still = heard(0);
-  const walked = heard(A.PERCH_RESEED_M * 6);
-  assert.ok(walked > still, `standing still heard ${still} birds and walking ${(A.PERCH_RESEED_M * 6).toFixed(0)} m heard ${walked} — the wood must change as he crosses it`);
+  const walked = heard(A.PERCH_DROP_M * 4);
+  assert.ok(walked > still, `standing still heard ${still} birds and walking ${(A.PERCH_DROP_M * 4).toFixed(0)} m heard ${walked} — the wood must change as he crosses it`);
   assert.ok(still <= 6, `standing in one place heard ${still} birds; there are six kinds and one of each`);
-  assert.ok(A.PERCH_RESEED_M > 10, 'birds must not be re-seeded from under him as he walks');
+  assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a bird must be out past the distance clamp before it is retired, or swapping it would be heard');
 });
 
 test('moving the birds about does not add any', () => {
@@ -599,7 +599,7 @@ test('a call booked four seconds ago comes from the tree, not from where he was 
 
 test('walk past a tree and the bird in it goes past you', () => {
   // A perch used to be a bearing and a distance from the spot the wood was drawn at, held until he
-  // had walked PERCH_RESEED_M — twenty-five metres — so inside that radius a bird did not move
+  // had walked twenty-five metres from it, so inside that radius a bird did not move
   // relative to him at all. Measured on a two-minute pace along a 21 m line
   // (`art/audio/2026-09-25-parallax/`), a call arrived a median 20 degrees from its own tree at a
   // walk and 49 at a run, the worst of them 139 — the wrong side of him.
@@ -624,8 +624,8 @@ test('walk past a tree and the bird in it goes past you', () => {
   assert.ok(first.length >= 3, `only ${first.length} calls in ninety seconds`);
   const b = runAt(12, 0, 90, 200);
   const perches = new Map(b.perchSpots.map(([kind, x, z]) => [kind, { x, z }]));
-  assert.equal(perches.size, 6, 'the wood must not have been re-seeded: twelve metres is inside PERCH_RESEED_M');
-  assert.ok(A.PERCH_RESEED_M > 12, 'this test assumes twelve metres does not re-seed');
+  assert.equal(perches.size, 6, 'the wood must still hold one bird of each kind');
+  assert.ok(A.PERCH_DROP_M >= A.PERCH_FAR_M + 12, 'this test assumes a twelve metre walk cannot retire even the furthest bird');
 
   // every call made while he stood at (12, 0) must point at its own tree from there
   for (const [kind, pan, distance, at] of seenAt(b, 91)) {
@@ -678,7 +678,7 @@ test('a call booked four seconds ago arrives at the loudness and colour it shoul
   amb.update(t, { ...base, listener: { x: 0, y: 1.2, z: 0 } });
   const before = ctx.made.filter.map((f) => f.frequency.target);
 
-  // twelve metres east — inside PERCH_RESEED_M, so the same six trees seen from somewhere else
+  // twelve metres east — too short to retire even the furthest bird, so the same six trees from somewhere else
   t += 1 / 30;
   amb.update(t, { ...base, listener: { x: 12, y: 1.2, z: 0 } });
   const moved = ctx.made.filter.map((f, i) => ({ i, after: f.frequency.target })).filter((r, i) => Math.abs(r.after - before[i]) > 1e-9);
@@ -700,4 +700,42 @@ test('a call booked four seconds ago arrives at the loudness and colour it shoul
     );
   }
   assert.ok(moved.length <= 3, `${moved.length} filters are being re-aimed — finished calls are not being let go`);
+});
+
+test('crossing the village retires the birds one at a time, not all six at once', () => {
+  // The wood used to be re-drawn whole whenever he walked more than PERCH_RESEED_M from the spot it
+  // was drawn at. Measured on real journeys (`art/audio/2026-09-25-reseed/`), that fired every
+  // 7.2 s running from the plaza to the log arch — against a wood that calls once every 5.5 s, so
+  // two calls in three arrived after all six birds had jumped to new bearings, which is the
+  // scattered stream the perch system exists to replace.
+  const { amb } = bed({ seed: 'perch/rehome' });
+  const base = { gust: 0.5, forward: NORTH, pods: [], canopy: 1 };
+  let atX = 0;
+  const walkTo = (x, from, until) => {
+    const was = atX;
+    for (let t = from; t < until; t += 1 / 30) {
+      const u = (t - from) / (until - from);
+      amb.update(t, { ...base, listener: { x: was + (x - was) * u, y: 1.2, z: 0 } });
+      amb.scheduleUntil(t + 4);
+    }
+    atX = x;
+  };
+  // a hundred and twenty metres straight, which is the length of the village and back
+  const seen = [];
+  let last = null;
+  for (let leg = 0; leg < 24; leg++) {
+    walkTo(5 * (leg + 1), leg * 5, (leg + 1) * 5);
+    const now = amb.stats().perchSpots.map(([k, x, z]) => `${k}|${x}|${z}`);
+    if (last) seen.push(now.filter((p, i) => p !== last[i]).length);
+    last = now;
+  }
+  const moved = seen.filter((n) => n > 0);
+  assert.ok(moved.length > 0, 'a hundred and twenty metres and not one bird was left behind');
+  assert.ok(
+    Math.max(...seen) <= 2,
+    `${Math.max(...seen)} birds changed tree in the same five metres — they must be retired one at a time, not as a wood (${seen.join(',')})`,
+  );
+  // and the ones still in earshot must not have moved at all while that happened
+  assert.ok(amb.stats().rehomed >= 3, `only ${amb.stats().rehomed} birds were retired over a hundred and twenty metres`);
+  assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a retired bird must already be out past the distance clamp, where the swap cannot be heard');
 });
