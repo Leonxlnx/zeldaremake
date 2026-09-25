@@ -1,0 +1,23 @@
+[
+ {
+  "pose": "u-open-up",
+  "system": "canopy",
+  "drawCalls": 4,
+  "triangles": 5806,
+  "found": true
+ },
+ {
+  "pose": "u-open-up",
+  "system": "trees",
+  "drawCalls": 125,
+  "triangles": 1481661,
+  "found": true
+ },
+ {
+  "pose": "u-open-up",
+  "system": "vegetation",
+  "drawCalls": 36,
+  "triangles": 241195,
+  "found": true
+ }
+]
