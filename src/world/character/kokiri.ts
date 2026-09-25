@@ -95,23 +95,23 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
  *
  * Lane 7 (2026-09-25), the cast's variety: until now the four looks were four maroons over four
  * near-identical greens, and at the follow camera's 4–7 m the five girls read as one girl five times.
- * Look 0 — the girl by the signpost, the one the fixed frames A / C / F hold against the footage — keeps
- * the footage's maroon and deep green. The three looks no fixed frame holds (kokiri-b stands at plaza
- * west in the fixed views, the bank girl is outside all six, the ledge girl is 75 m off in A / B / D /
- * E) take their own: 1 honey-blonde under a yellower, lighter green (kokiri-b on the stairs, and the
- * grove girl who shares it); 2 chestnut under a deep blue-green (the ledge); 3 near-black brown under a
- * mossy olive (the bank). Same materials, same canvases — only the colours under them change.
+ * The two girls the fixed frames hold against the footage keep the footage's maroon and deep green:
+ * look 0, the girl by the signpost (A / C / F), and look 1, kokiri-b at the left edge of B / E. The
+ * girls no fixed frame holds take their own colour under the same lock and cloth canvases: 2 chestnut
+ * under a deep blue-green (the ledge girl, 75 m off in A / B / D / E); 3 near-black brown under a mossy
+ * olive (the bank girl, outside all six); 4 honey-blonde under a yellower, lighter green (the grove
+ * girl, beyond the 60 m cull in every frame — her own look now instead of kokiri-b's).
  */
 const KID = {
-  tunic: [0x375f35, 0x4d7538, 0x2c5238, 0x546b36],
-  band: [0x4d7a3c, 0x5e8a44, 0x3f7a4a, 0x6a8a44],
+  tunic: [0x375f35, 0x2f522f, 0x2c5238, 0x546b36, 0x4d7538],
+  band: [0x4d7a3c, 0x44703a, 0x3f7a4a, 0x6a8a44, 0x5e8a44],
   belt: 0x4a3322,
   buckle: 0xb8963f,
   boot: 0x352721,
   cuff: 0x8f7f5a,
-  hair: [0x7e2f33, 0xc89c4c, 0x74492b, 0x3a2a1e],
-  skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687],
-  iris: ['#4a2c1a', '#556a2e', '#4a3320', '#2a1a10'],
+  hair: [0x7e2f33, 0x6e2a2e, 0x74492b, 0x3a2a1e, 0xc89c4c],
+  skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687, 0xd3a98a],
+  iris: ['#4a2c1a', '#3d2818', '#4a3320', '#2a1a10', '#556a2e'],
   lash: 0x1c120e,
 } as const;
 /** the boy's skin: round 47's tan brought to the girls' pale peach in step (lane 7 — the cast reads as one family) */
@@ -121,8 +121,8 @@ const BOY_TUNIC = 0x2f3320;
 /** the boy's hair: the palette's kid brown, a shade deeper under the lock canvas's lighter cores */
 const BOY_HAIR = 0x6b4630;
 
-/** the girl look index for a variant (the boy, variant 2, has none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl */
-const girlLook = (variant: number) => (variant === 3 ? 2 : variant === 4 ? 3 : variant % 2);
+/** the girl look index for a variant (the boy, variant 2, has none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl, 4 the grove girl */
+const girlLook = (variant: number) => (variant === 3 ? 2 : variant === 4 ? 3 : variant === 5 ? 4 : variant % 2);
 
 const mats = new Map<string, MeshStandardMaterial>();
 function kidMat(key: string, color: number, roughness = 0.9): MeshStandardMaterial {
