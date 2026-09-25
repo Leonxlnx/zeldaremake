@@ -102,3 +102,22 @@ it repeats the load frame.
 What is left over the caps at the sill is now entirely the head's: **trees 256 / 3.60 M and vegetation 142 / 2.15 M are 398
 of 745 draws and 5.75 of 9.41 M.** The trees' far tier (row 2) and the vegetation's one pack per LOD (row 4) take the frame
 under 700 / 9.0 M; nothing left in `exp-south2`'s own files does.
+
+## `fable-3-south-props` `f2cecdb5` (21:52 `0fcc4293` the far-kid cut — kids beyond 25 m cast no sun shadow and drop their small parts; 22:37 the grove's first person) — the character row, 02:34–02:57 UTC
+
+| pose | character, head `2225a111` | `f2cecdb5` | Δ | isolate sum | the frame (spot) |
+| --- | --- | --- | --- | --- | --- |
+| the far bank | 127 / 0.23 M | **66 / 0.19 M** | **−61** | 832 → 760 | 846 → **774** / 10.02 M |
+| the east green | 110 / 0.22 M | **56 / 0.18 M** | −54 | 786 → 723 | 797 → **731** / 9.74 M |
+| the east lookout | 110 | 56 | −54 | 755 → 692 | — |
+| the ruins' trail | 110 | 56 | −54 | 778 → 724 | — |
+| the grove's yard | 109 | 85 (the new girl inside 25 m) | −24 | 696 → 663 | 713 → **676** / 9.56 M |
+
+Row 1 of the bill, paid: **−54 to −61 draws at every look-back**, for 0.09 % of the far bank's pixels (the kids' belts, buckles,
+lashes, soles and cuffs at 40 m). The six views are pixel-identical to the head (1.0000 / 0.00 % at all six — the fixed cameras
+hold every kid within 12 m). The grove's yard is under the draw cap now (676); the far bank and the green are 74 and 31 over,
+and `exp-south2`'s structures work (171 → 84 at the far bank, unmerged) would take the far bank to ≈ 687.
+
+**A correction to item 1 (18:04):** `rigMergedMeshes 0` reads the old per-joint merge's audit field; the skinning that replaced
+it (`814af6c9`) reports under `kidSkinned` — 37 → 12 meshes a girl — so the 62 rig meshes I counted were already the merged
+set, not an unmerged one. fable-3's note (21:55), taken.
