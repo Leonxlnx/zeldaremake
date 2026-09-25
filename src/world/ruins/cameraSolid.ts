@@ -1,7 +1,7 @@
 /**
  * The play camera's view of the ruins (camera/collision.ts, through `ctx.shared.cameraSolidGrids`):
- * one grid over the site at 0.25 m, grown by a cell, holding the shells the camera keeps Link in
- * front of —
+ * one grid over the site at 0.25 m, grown by a cell (its core kept), holding the shells the camera
+ * keeps Link in front of —
  *  - the rock as built: the cliff, the ivy rock, the slab bridge and its pile (the cliff builder's
  *    geometry), and the gate boulders (as balls);
  *  - the masonry the walker never stands on: the terrace block's outer faces, the retaining wall and
@@ -146,6 +146,7 @@ export function buildRuinsCameraSolid(rock: BufferGeometry, ground: Ground): Rui
   const ringR0 = Math.abs(zB - zA) / 2 - 0.45;
   fillRing(Bk.x, yA, (zA + zB) / 2, ringR0, ringR0 + 0.45, Math.PI - (5 / 11) * Math.PI, Math.PI, 0.26);
 
-  grid.dilate(1);
+  // (the core kept, as the structures' solid grid: collision.ts blocks a line where it runs through a surface)
+  grid.dilate(1, true);
   return { grid, report: { cells: grid.count(), bytes: grid.bytes(), triangles: grid.triangles, ms: Math.round(performance.now() - t0) } };
 }

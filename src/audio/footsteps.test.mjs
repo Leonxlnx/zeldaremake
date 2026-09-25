@@ -30,7 +30,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { designStep, designLanding, landingStrength, designPushOff, pushOffStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
+const { designStep, designLanding, landingStrength, designPushOff, pushOffStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP, WALK_SPEED, RUN_GROUND_SPEED, WALK_STEP_M, RUN_STEP_M } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge', 'water'];
@@ -141,23 +141,48 @@ test('the surfaces balance: no step is more than 6 dB louder than another at the
   assert.ok(hi.db - lo.db <= 6, `${hi.s} is ${(hi.db - lo.db).toFixed(1)} dB(A) over ${lo.s} — surfaces should differ in colour, not in level: ${levels.map((l) => `${l.s} ${l.db.toFixed(1)}`).join(', ')}`);
 });
 
-test('the cadence model is the gait, measured — not an adult walking', () => {
+test("the step is the animation's own, and still is", () => {
   // The model is only consulted where the character system is NOT reporting boot plants: never in
-  // play, always in an offline render. So it is not "a rate that sounds plausible", it is a
-  // calibration, and its job is to make the evidence WAVs step like the game does. Counted in play
-  // over four seven-second legs (art/audio/2026-09-24-cadence/): 1.60 m/s → 3.63 boots a second,
-  // 4.60 → 4.92, and the audio fires exactly one step per stance edge.
-  for (const [speed, planted, stride] of [
-    [1.6, 3.63, 0.44],
-    [4.6, 4.92, 0.93],
-  ]) {
-    assert.ok(Math.abs(cadence(speed) - planted) < 0.1, `at ${speed} m/s the gait plants ${planted}/s, the model says ${cadence(speed).toFixed(2)}`);
-    assert.ok(Math.abs(strideFor(speed, false) - stride) < 0.04, `at ${speed} m/s the gait's step is ${stride} m, the model says ${strideFor(speed, false).toFixed(2)}`);
-  }
+  // play, always in an offline render. So its job is to make the evidence WAVs step like the game
+  // does, and the right source for that is not a measurement of this lane's own but the clip
+  // contract the animation is authored against. glbLink.ts publishes it; this reads it out of the
+  // source rather than importing it, because glbLink is 2,700 lines and pulls in the GLTF loader.
+  //
+  // If Astra re-authors a clip, this fails with her new numbers in the message. That is the whole
+  // point: the last version of this test asserted a measurement, which would have gone stale in
+  // silence the moment a stride changed.
+  const glb = readFileSync(path.join(here, '../world/character/glbLink.ts'), 'utf8');
+  const spec = glb.match(/export const CLIP_SPEC[\s\S]*?\n\};/);
+  assert.ok(spec, 'CLIP_SPEC should be readable from glbLink.ts — has it moved or been renamed?');
+  const strideOf = (gait) => {
+    const m = spec[0].match(new RegExp(`${gait}:\\s*\\{[^}]*strideM:\\s*([\\d.]+)`));
+    assert.ok(m, `no strideM for ${gait} in CLIP_SPEC`);
+    return Number(m[1]);
+  };
+  // a stride is two steps
+  assert.ok(Math.abs(WALK_STEP_M - strideOf('walk') / 2) < 1e-9, `the walk clip's stride is ${strideOf('walk')} m, so a step is ${(strideOf('walk') / 2).toFixed(3)} — this file says ${WALK_STEP_M}`);
+  assert.ok(Math.abs(RUN_STEP_M - strideOf('run') / 2) < 1e-9, `the run clip's stride is ${strideOf('run')} m, so a step is ${(strideOf('run') / 2).toFixed(3)} — this file says ${RUN_STEP_M}`);
+  // and the ground speeds the player controller drives at, from animation.ts
+  const anim = readFileSync(path.join(here, '../world/character/animation.ts'), 'utf8');
+  // anchored on the declaration: `PLAYER_SPEED` is also named inside GAIT_SPEED's comment, and an
+  // unanchored match reads GAIT_SPEED's run of 3.9 instead of the controller's 4.6
+  const decl = anim.match(/export const PLAYER_SPEED[\s\S]*?\};/);
+  assert.ok(decl, 'PLAYER_SPEED should be readable from animation.ts');
+  const speedOf = (gait) => Number(decl[0].match(new RegExp(`${gait}:\\s*([\\d.]+)`))[1]);
+  assert.equal(WALK_SPEED, speedOf('walk'), 'the walk speed must be the controller\u2019s');
+  assert.equal(RUN_GROUND_SPEED, speedOf('run'), 'the run speed must be the controller\u2019s');
+
+  // the rate then falls out, and a play-mode probe counted it off the character system's own stance
+  // edges to check the derivation is the right one: 3.56 and 3.71 walking, 4.85 and 4.99 running
+  // (art/audio/2026-09-24-cadence/; the run legs start from a standstill, so they read a little low)
+  assert.ok(Math.abs(cadence(1.6) - 3.64) < 0.02, `a walk should plant ${(1.6 / (strideOf('walk') / 2)).toFixed(2)}/s, the model says ${cadence(1.6).toFixed(2)}`);
+  assert.ok(Math.abs(cadence(4.6) - 5.05) < 0.02, `a run should plant ${(4.6 / (strideOf('run') / 2)).toFixed(2)}/s, the model says ${cadence(4.6).toFixed(2)}`);
+  assert.ok(Math.abs(strideFor(1.6, false) - 0.44) < 0.005 && Math.abs(strideFor(4.6, false) - 0.91) < 0.005, 'and the step lengths are the clips\u2019');
+
   // cadence rises with speed and never falls, and the ends are clamped rather than extrapolated
   for (let v = 0.5; v < 8; v += 0.25) assert.ok(cadence(v) >= cadence(v - 0.25), 'cadence must not fall as the speed rises');
-  assert.ok(cadence(0) > 1 && cadence(0) < 3, `a standstill extrapolates to ${cadence(0).toFixed(2)} steps/s`);
-  assert.ok(cadence(20) < 6, `an impossible speed extrapolates to ${cadence(20).toFixed(2)} steps/s`);
+  assert.ok(cadence(0) > 0 && cadence(0) < 2, `a standstill extrapolates to ${cadence(0).toFixed(2)} steps/s`);
+  assert.ok(cadence(20) <= 6, `an impossible speed extrapolates to ${cadence(20).toFixed(2)} steps/s`);
   // the walk / run design change is a real gait change, but it must be a step and not a cliff
   assert.ok(Math.abs(strideFor(RUN_SPEED + 0.01, false) - strideFor(RUN_SPEED - 0.01, false)) < 0.15, 'the walk / run stride change must not jump');
   assert.equal(strideFor(1.5, true), 0.54, 'on stairs one step is one tread');
@@ -284,6 +309,29 @@ test('the canopy roll leans upwind, and only leans', () => {
   assert.ok(WIND_LEAN <= 0.5, 'wind in a wood is not a point source');
   // a zero-length direction must not produce NaN
   assert.equal(Number.isFinite(windLeanFor(north, { x: 0, z: 0 })), true);
+});
+
+test('a run is not a louder walk', () => {
+  // `running` used to appear in exactly one expression — the heel-to-toe gap — so across eight
+  // surfaces and sixty seeds the only number that differed between a walk and a run was the time of
+  // the last part, and on leaf litter not even that (its last part is a settling grain, not the
+  // toe). Measured on the render, a run's spectral centroid was ONE HERTZ from a walk's.
+  for (const surface of SURFACES) {
+    for (let i = 0; i < 20; i++) {
+      const w = designStep(surface, 0.8, false, rng(`gait/${surface}/${i}`));
+      const r = designStep(surface, 0.8, true, rng(`gait/${surface}/${i}`));
+      const heel = (d) => d.parts.filter((p) => p.at <= 0.004);
+      const toe = (d) => d.parts.filter((p) => p.at > 0.02);
+      assert.ok(Math.min(...heel(r).map((p) => p.attack)) < Math.min(...heel(w).map((p) => p.attack)), `${surface}: a run's heel must arrive faster than a walk's`);
+      assert.ok(r.end < w.end, `${surface}: a run's step must be briefer — at five a second a walk's tail is still sounding under the next one`);
+      const bodies = (d) => heel(d).filter((p) => p.kind === 'body');
+      if (bodies(w).length) assert.ok(Math.max(...bodies(r).map((p) => p.f0)) > Math.max(...bodies(w).map((p) => p.f0)), `${surface}: a harder strike rings the surface higher`);
+      if (toe(w).length) assert.ok(Math.max(...toe(r).map((p) => p.peak)) < Math.max(...toe(w).map((p) => p.peak)), `${surface}: a run lands flatter, so the toe is less of its own event`);
+      // and none of it may be level: that is strengthFor's, and doing it here would be level twice
+      assert.ok(Math.abs(Math.max(...r.parts.map((p) => p.peak)) - Math.max(...w.parts.map((p) => p.peak))) < 1e-9, `${surface}: the run's shape must not change its peak — loudness is strengthFor's job`);
+    }
+  }
+  assert.ok(strengthFor(RUN_GROUND_SPEED) > strengthFor(WALK_SPEED), 'and a run must still be louder, by the thing whose job that is');
 });
 
 test('every step is quiet: nothing in a design can reach full scale on its own', () => {

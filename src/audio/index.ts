@@ -19,10 +19,10 @@ import type { PlayerHandle } from '../world/character/player';
 import { expansionDiscMask, getTerrain, steppingStoneMask, surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { buildTrailProfile, inStairCut, inTerrace, onWaterStair, onWaterStairFlight, outcropCover, trailInfluence } from '../world/terrain/ruins';
-import { EXPANSION, EXPANSION_RUINS, EXPANSION_SOUTH, LAYOUT, inExpansionRuins } from '../world/layout';
-import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
+import { EXPANSION, EXPANSION_NORTH, EXPANSION_RUINS, EXPANSION_SOUTH, LAYOUT, inExpansionRuins, northGangway } from '../world/layout';
+import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
-import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
+import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -98,12 +98,28 @@ export interface OfflineOptions {
   stem?: 'mix' | 'bed' | 'steps' | 'music';
   /** include the music bus (default: only in `mix`) */
   music?: boolean;
-  /** mute the shared hall's return — the same stem dry, so the tail can be measured on its own */
+  /** mute the shared hall's return and the room's — the same stem dry, so a tail can be measured alone */
   reverb?: boolean;
   /** force the canopy over the whole render (0 open sky, 1 closed crowns) instead of the walk's own */
   canopy?: number;
   /** force the ravine over the whole render (0 well back from it, 1 out over it) */
   gorge?: number;
+  /**
+   * Switch off the world's occluders, so the same take can be rendered with and without the wood
+   * between him and the birds. `false` is the "before" this change is measured against.
+   */
+  occlusion?: boolean;
+  /**
+   * Force the space over the whole render (0 outdoors, 0.7 inside a hut, 1 inside the log bore),
+   * for the bed and for the boots both.
+   *
+   * The scripted walk crosses surfaces, not places, so there is no leg of it that is indoors and no
+   * way to ask "what does this step sound like in a room" by walking. Forcing the term is not a
+   * journey anyone takes — he would be walking on grass inside a hut — but it is the only way to
+   * hold every other variable still, which is what a measurement needs. Two takes at 0 and 0.7
+   * differ in exactly one input.
+   */
+  enclosure?: number;
   /**
    * Stand still at (x, z) for the whole render instead of walking the scripted route.
    *
@@ -119,6 +135,37 @@ export interface OfflineOptions {
    * weather in it is not a place.
    */
   at?: { x: number; z: number; y?: number; facing?: number };
+  /**
+   * Walk the listener in a straight line from `from` to `to` at `speed` m/s, facing along it, with
+   * every space term read from `surfaceAt` where he is — a real journey rather than the scripted
+   * walk's abstract legs.
+   *
+   * `at` asks what a place sounds like to someone standing in it. This asks the question a standing
+   * listener cannot: what the world sounds like to someone **moving through it**. Everything in the
+   * bed that depends on where he is arrives through a `setTargetAtTime`, and a smoothing time is a
+   * distance once the listener has a speed — at a run the shipped constants put the arrival several
+   * metres behind him. That is not visible from any fixed spot, and it is not visible on the
+   * scripted walk either, which crosses surfaces but never a doorway, a bore mouth or a lantern.
+   *
+   * The tick here is the live `TICK_MS` rather than the scripted walk's 20 Hz, because the quantity
+   * being measured is a lag and half of it is the tick. Legs are the caller's: pass `seconds` long
+   * enough to cover the line (`|to − from| / speed` plus `lead`) and the walk stops at `to`.
+   *
+   * `lead` stands him at `from` first. Every smoothed parameter in the bed starts at whatever the
+   * node was built with and takes several time constants to reach the world's value, which at the
+   * 0.9 s this was written against is eleven metres of a run — so without a lead-in the first third
+   * of a take is the graph waking up and not the journey. Four seconds covers the longest of them.
+   */
+  pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number; lead?: number };
+  /**
+   * Hold the wind at one gust for the whole render instead of running the weather.
+   *
+   * The render's gust is a function of the clock that swings the bed through its whole range in
+   * about ten seconds, which is right for a fifty-second walk and wrong for a four-second pass: at
+   * a run the weather moves 18 dB under the thing being measured and buries it. Holding it makes
+   * the take a controlled experiment — what moves then moved because the listener did.
+   */
+  gust?: number;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -133,20 +180,27 @@ export interface WalkLeg {
  * The scripted walk the offline render uses, so a before / after pair is the same journey and the
  * analysis can label each surface's steps: stand, walk every surface in turn, run, stand.
  */
+/**
+ * The walk speeds are the **player controller's own** (`footsteps.ts` `WALK_SPEED` /
+ * `RUN_GROUND_SPEED`, which are `animation.ts` `PLAYER_SPEED`), not numbers chosen here. They were
+ * 1.5 and 4.2 against a game that walks at 1.6 and runs at 4.6 — close enough to look right and
+ * enough to put the render's step rate 5 % under the game's, which is the same class of mistake as
+ * the cadence model being an adult's. The twin should travel at the speed the player travels at.
+ */
 export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 3, speed: 0, surface: 'grass' },
-  { until: 8, speed: 1.5, surface: 'grass' },
-  { until: 13, speed: 1.5, surface: 'dirt' },
-  { until: 18, speed: 1.5, surface: 'stone' },
+  { until: 8, speed: WALK_SPEED, surface: 'grass' },
+  { until: 13, speed: WALK_SPEED, surface: 'dirt' },
+  { until: 18, speed: WALK_SPEED, surface: 'stone' },
   { until: 23, speed: 1.1, surface: 'stone', stairs: true },
-  { until: 27, speed: 1.5, surface: 'wood' },
-  { until: 31, speed: 1.5, surface: 'hollow' },
-  { until: 36, speed: 1.5, surface: 'leaf' },
-  { until: 41, speed: 4.2, surface: 'stone' },
+  { until: 27, speed: WALK_SPEED, surface: 'wood' },
+  { until: 31, speed: WALK_SPEED, surface: 'hollow' },
+  { until: 36, speed: WALK_SPEED, surface: 'leaf' },
+  { until: 41, speed: RUN_GROUND_SPEED, surface: 'stone' },
   { until: 45, speed: 0, surface: 'grass' },
   // appended 2026-09-24 with the south exit, AFTER the closing stand so every earlier leg keeps its
   // times and older before/after renders stay comparable
-  { until: 50, speed: 1.5, surface: 'bridge' },
+  { until: 50, speed: WALK_SPEED, surface: 'bridge' },
 ];
 
 export interface AudioOptions {
@@ -250,7 +304,10 @@ function gatherFalls(scene: Scene): Vec3[] {
  * walking — gentle stone, grass, etc."). Analytic, from the layout and the live terrain masks the
  * paving is built from — no raycasts:
  *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis where the path passes through, within 0.8 of its radius)
- *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse)
+ *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse); the north
+ *            grove's planking — the stilt house's veranda, the gangway up to it, the rope walk
+ *            with its stubs and the tree hut's platform (EXPANSION_NORTH; character/ground.ts
+ *            stands him on these wherever he is over them, so the test is XZ like the ground's)
  *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
  *            expansion's stepping discs count)
  *  - dirt:   the trodden shoulders beside the paving (path influence 0.12–0.5) and the stair aprons
@@ -260,6 +317,76 @@ function gatherFalls(scene: Scene): Vec3[] {
  *  - grass:  everything else
  * The waterfall ruins west of the village have their own (`ruinsSurfaceAt`).
  */
+const GROVE_PLANKS = (() => {
+  const N = EXPANSION_NORTH;
+  const g = northGangway();
+  const gl = Math.hypot(g.head[0] - g.foot[0], g.head[2] - g.foot[2]);
+  // the gangway's walk span starts 0.35 m before its foot (structures/expansionNorth.ts)
+  const lead = 0.35 / gl;
+  return {
+    discs: [
+      { x: N.stilt.host[0], z: N.stilt.host[1], r: N.stilt.radius + N.stilt.veranda },
+      { x: N.hut.host[0], z: N.hut.host[1], r: N.hut.radius + 0.22 },
+    ],
+    segs: [
+      { ax: g.foot[0] - (g.head[0] - g.foot[0]) * lead, az: g.foot[2] - (g.head[2] - g.foot[2]) * lead, bx: g.head[0], bz: g.head[2], hw: N.gangway.halfWidth, surface: 'wood' as Surface },
+      // the stubs and the rope walk between them lie on the line joining the two huts
+      { ax: N.stilt.host[0], az: N.stilt.host[1], bx: N.hut.host[0], bz: N.hut.host[1], hw: N.ropeWalk.halfWidth, surface: 'bridge' as Surface },
+    ],
+  };
+})();
+
+/**
+ * What the north grove's planking is underfoot, or null off it.
+ *
+ * The decks and the gangway are `wood`; **the rope walk is a `bridge`**. This lane split those two
+ * apart for the south exit and the reason holds here more strongly than it did there: a `bridge`
+ * knocks hollow with a deep body and the ropes and lashings answering, because a plank with nothing
+ * under it is not a plank on a joist. The ravine's bridge hangs over 8 m of air; the grove's
+ * walkway runs between two floors at **11.6 and 11.3 m** with a 0.12 m sag in it
+ * (`EXPANSION_NORTH.ropeWalk`), which is the same object higher up.
+ *
+ * The stubs go with the walkway rather than the decks — they are its first 0.7 m, cantilevered out
+ * past each rim — and the discs are tested first, so a plank still over its own veranda stays wood.
+ * exp-north scored its own check 45 at 3 of 4 for calling all of it wood; this is that point.
+ */
+export function onGrovePlanks(x: number, z: number): Surface | null {
+  for (const d of GROVE_PLANKS.discs) if (Math.hypot(x - d.x, z - d.z) < d.r) return 'wood';
+  for (const s of GROVE_PLANKS.segs) {
+    const dx = s.bx - s.ax;
+    const dz = s.bz - s.az;
+    const t = ((x - s.ax) * dx + (z - s.az) * dz) / (dx * dx + dz * dz);
+    if (t < 0 || t > 1) continue;
+    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.hw) return s.surface;
+  }
+  return null;
+}
+
+/**
+ * The fraction of a hut's radius its wall ring stands at, and how far in the doorway's fade runs.
+ *
+ * `distantHouse.ts` builds every hut — the west house, the grove's stilt house and tree hut — as a
+ * platform disc with a wall ring at `radius × WALL_TAPER` (0.96) and a gap in it for the door, and
+ * publishes exactly that to `ctx.shared.walkSurfaces` for the character ground. So the player can
+ * walk into all three of them, and until now doing so changed nothing at all: the forest arrived
+ * through the walls at full level and full brightness, which is the same fault the log arch's bore
+ * had before this lane closed it.
+ *
+ * A hut is not a tunnel, though. Its walls are planks and its door stands open, so it takes the top
+ * off the wood rather than shutting it out — `INDOORS_CLOSE` is 0.7 of the bore's full enclosure,
+ * which lands the bed's filter at 2.2 kHz against the bore's 900 Hz. Faded across the doorway
+ * rather than switched, like the bore's: 0 at the wall, all of it by `INDOORS_FULL` of the radius.
+ */
+export const WALL_AT = 0.96;
+export const INDOORS_FULL = 0.55;
+export const INDOORS_CLOSE = 0.7;
+
+/** how far inside a hut the listener is, 0 at its wall and 1 well in; 0 anywhere else */
+function indoors(x: number, z: number, cx: number, cz: number, radius: number): number {
+  const d = Math.hypot(x - cx, z - cz) / radius;
+  return INDOORS_CLOSE * (1 - smoothstep01(INDOORS_FULL, WALL_AT, d));
+}
+
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
   const gorge = gorgeAt(x, z);
@@ -312,7 +439,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: indoors(x, z, hx, hz, wh.radius), canopy, gorge };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -323,6 +450,15 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       const px = hx + ax * t;
       const pz = hz + az * t;
       if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+    }
+  }
+  {
+    const plank = onGrovePlanks(x, z);
+    // the two huts are rooms with plank floors; their verandas and the walkway are outdoors
+    if (plank) {
+      const N = EXPANSION_NORTH;
+      const enc = Math.max(indoors(x, z, N.stilt.host[0], N.stilt.host[1], N.stilt.radius), indoors(x, z, N.hut.host[0], N.hut.host[1], N.hut.radius));
+      return { surface: plank, stairs: false, enclosure: enc, canopy, gorge };
     }
   }
   {
@@ -433,6 +569,63 @@ export const TICK_MS = 1000 / 30;
  * A gorge is the other direction: eight metres of open air with rock either side, the one place in
  * the world where the forest should sound bigger than the village rather than smaller.
  */
+/**
+ * The solid things a player can put between himself and a sound: the thirteen giant boles and the
+ * three huts. Circles in xz — every one of them is a barrel, and none is short enough for height to
+ * matter (the boles stand 21–28 m and the huts' walls reach 6–14 m, against sources at head height
+ * or in a crown eight metres up).
+ */
+const OCCLUDERS: readonly { x: number; z: number; r: number }[] = (() => {
+  const all = [
+    ...LAYOUT.giantTrees.map((t) => ({ x: t.position[0], z: t.position[2], r: t.trunkRadius })),
+    { x: EXPANSION.westHouse.host[0], z: EXPANSION.westHouse.host[1], r: EXPANSION.westHouse.radius },
+    { x: EXPANSION_NORTH.stilt.host[0], z: EXPANSION_NORTH.stilt.host[1], r: EXPANSION_NORTH.stilt.radius },
+    { x: EXPANSION_NORTH.hut.host[0], z: EXPANSION_NORTH.hut.host[1], r: EXPANSION_NORTH.hut.radius },
+  ];
+  // A hut is built AROUND its host trunk — the west house and `southwest-giant` are at the same
+  // point to the centimetre — so the naive list counts one obstacle twice and hands the line 10.6 m
+  // of wood where the world has 6.8. Swallow anything whose centre lies inside something larger.
+  return all.filter((a) => !all.some((b) => b !== a && b.r > a.r && Math.hypot(b.x - a.x, b.z - a.z) <= b.r));
+})();
+
+/**
+ * Metres of wood that count as fully shadowed.
+ *
+ * An obstacle only shadows a source when it spans several wavelengths of it, which is why this is
+ * a distance and not a flag. Measured against the world's real geometry
+ * (`art/audio/2026-09-25-occlusion/`), the wood a player can actually get between himself and a
+ * source runs 2.2 m to 6.8 m with a median of 3.1 — so the scale is set at the top of that, and a
+ * bole's 3 m is a bit over half of it rather than all of it.
+ */
+export const OCCLUSION_FULL_M = 6;
+
+/**
+ * How much solid wood stands on the straight line from (ax, az) to (bx, bz), as 0 … 1.
+ *
+ * Only worth applying to sources with a top end. Through the median 3.1 m of wood the Fresnel
+ * number is 2.4 at the pod flame's husk and 5.8 at its body — it bends round — but 32 for a distant
+ * bird and 126 for a near one. The birds are what this is for; the wind and the leaves are diffuse
+ * and have no position to shadow at all.
+ */
+export function occlusionAt(ax: number, az: number, bx: number, bz: number): number {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const len = Math.hypot(dx, dz);
+  if (len < 1e-3) return 0;
+  const ux = dx / len;
+  const uz = dz / len;
+  let wood = 0;
+  for (const o of OCCLUDERS) {
+    // the nearest point of the LINE to the circle, clamped to the segment: a bole behind the
+    // listener or past the source blocks nothing
+    const t = Math.max(0, Math.min(len, (o.x - ax) * ux + (o.z - az) * uz));
+    const perp = Math.hypot(ax + ux * t - o.x, az + uz * t - o.z);
+    if (perp >= o.r) continue;
+    wood += 2 * Math.sqrt(o.r * o.r - perp * perp);
+  }
+  return Math.min(1, wood / OCCLUSION_FULL_M);
+}
+
 export function gorgeAt(x: number, z: number): number {
   const line = EXPANSION_SOUTH.ravine.line;
   let best = 0;
@@ -481,6 +674,16 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let gorge = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
   let peakAir = 0;
+  /**
+   * The flames' world positions, gathered once.
+   *
+   * `stats()` is a diagnostic a harness polls every frame, and this used to traverse the whole
+   * scene on every call — 0.33 ms against a 2.6 ms simulation frame, for an answer that cannot
+   * change: a pod lantern is a fixture. Cached on first ask.
+   */
+  let podSpotCache: [number, number, number][] | null = null;
+  const podSpots = (): [number, number, number][] => (podSpotCache ??= gatherPods(o.scene).map((p) => [Number(p.x.toFixed(2)), Number(p.y.toFixed(2)), Number(p.z.toFixed(2))] as [number, number, number]));
+
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
   emit();
 
@@ -532,7 +735,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       if (at) fairyBuf.push(at);
     }
     lastGust = o.wind?.uniforms.uGust.value ?? 0.4;
-    ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, falls, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, falls, occlude: (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -548,13 +751,13 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         if (air > 0.02) {
           // the rising edge is the shove: he is leaving the ground here, and until now that was
           // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
-          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed);
+          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure);
           peakAir = Math.max(peakAir, air);
         } else if (peakAir > 0.05) {
-          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir);
+          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir, s.enclosure);
           peakAir = 0;
         } else peakAir = 0;
-        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance });
+        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure });
       }
       lastPos.x = p.x;
       lastPos.z = p.z;
@@ -573,9 +776,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const ctx = new Ctor({ latencyHint: 'interactive' });
       const rng = createRng(seed);
       const buses = createBuses(ctx, rng.fork('buses'));
-      buses.master.gain.value = muted ? 0 : 1;
+      buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
       const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
-      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), ctx.currentTime);
+      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
@@ -618,7 +821,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const setMuted = (m: boolean) => {
     muted = m;
-    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : 1, live.ctx.currentTime, 0.03);
+    if (live) live.buses.master.gain.setTargetAtTime(m ? 0 : MASTER_LEVEL, live.ctx.currentTime, 0.03);
     emit();
   };
 
@@ -645,10 +848,14 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       canopy,
       gorge,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
+      // the flames' world positions, as the fairies' already were. A harness cannot ask "is there
+      // anything in this world you could stand behind" without knowing where the sources are, and
+      // `pods` was only ever a count.
+      podSpots: podSpots(),
       load,
       voices: liveVoices(),
-      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, fall: 0 }),
+      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0, scheduledAt: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0, fall: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
@@ -709,13 +916,16 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
   const buses = createBuses(ctx, rng.fork('buses'));
-  if (options.reverb === false) buses.reverbReturn.gain.value = 0;
+  if (options.reverb === false) {
+    buses.reverbReturn.gain.value = 0;
+    buses.roomReturn.gain.value = 0;
+  }
   // every fork is drawn whatever the stem, so one part's stream never depends on another's presence
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
   const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
-  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
+  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
@@ -728,11 +938,13 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     .filter((v): v is Vec3 => !!v);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
+    if (options.gust !== undefined) return options.gust;
     const g = 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3);
     const push = Math.max(0, Math.sin(t * 0.23 + 0.4)) ** 3;
     return Math.min(1, g * 0.8 + push * 0.6);
   };
-  const step = 1 / 20;
+  // the pass ticks at the game's rate because what it measures is a lag and half of one is the tick
+  const step = options.pass ? TICK_MS / 1000 : 1 / 20;
   let x = 0;
   let z = 2;
   const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
@@ -740,7 +952,32 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   // standing somewhere: the place's own space terms, and nothing underfoot
   const spot = options.at ? surfaceAt(options.at.x, options.at.z) : null;
   const facing = options.at?.facing ?? 0;
+  const pass = options.pass ?? null;
+  const passLen = pass ? Math.hypot(pass.to[0] - pass.from[0], pass.to[1] - pass.from[1]) : 0;
   for (let t = 0; t < seconds; t += step) {
+    if (pass) {
+      const u = Math.max(0, Math.min(1, ((t - (pass.lead ?? 0)) * pass.speed) / (passLen || 1)));
+      const px = pass.from[0] + (pass.to[0] - pass.from[0]) * u;
+      const pz = pass.from[1] + (pass.to[1] - pass.from[1]) * u;
+      const here = surfaceAt(px, pz);
+      const listener: Vec3 = { x: px, y: pass.y ?? 1.2, z: pz };
+      const forward = { x: (pass.to[0] - pass.from[0]) / (passLen || 1), z: (pass.to[1] - pass.from[1]) / (passLen || 1) };
+      ambience?.update(t, {
+        gust: gust(t),
+        listener,
+        forward,
+        pods,
+        fairies,
+        falls,
+        enclosure: options.enclosure ?? here.enclosure,
+        occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(px, pz, ox, oz),
+        canopy: options.canopy ?? here.canopy,
+        gorge: options.gorge ?? here.gorge,
+        windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
+      });
+      footsteps?.drive(t, step, { speed: u > 0 && u < 1 ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      continue;
+    }
     if (options.at && spot) {
       ambience?.update(t, {
         gust: gust(t),
@@ -748,7 +985,9 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         forward: { x: Math.sin(facing), z: Math.cos(facing) },
         pods,
         fairies,
-        enclosure: spot.enclosure,
+        falls,
+        enclosure: options.enclosure ?? spot.enclosure,
+        occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(options.at!.x, options.at!.z, ox, oz),
         canopy: options.canopy ?? spot.canopy,
         gorge: options.gorge ?? spot.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
@@ -762,8 +1001,8 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, falls, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
-    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, falls, enclosure: options.enclosure, occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure });
   }
   ambience?.scheduleUntil(seconds);
   music?.scheduleUntil(seconds);

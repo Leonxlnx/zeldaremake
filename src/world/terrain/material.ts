@@ -39,6 +39,7 @@ import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { LAYOUT } from '../layout';
 import { ARCH_TUNNEL_FLOOR } from './heightfield';
+import { groveLawn } from './north';
 import { hash2 } from '../util/prng';
 import { clamp, smoothstep } from '../util/noise';
 
@@ -144,10 +145,13 @@ const f = (v: number) => v.toFixed(4);
  * (z −90 … 10; ClampToEdge repeated its last row under the far forest). The box's z0 and depth
  * grow by whole texels of the round-46 lattice, so every texel south of −90 samples the exact
  * point it did and the six fixed frames' ground is byte-identical; the texture is 192 × 212.
+ * 2026-09-24 (expansion-north): 77 rows (to z −130.1, 192 × 269), so the grove above the ledge
+ * terrace and the woods behind it lie inside the patch — at 20 rows it ended at z −100.4, a
+ * straight line across the grove's shelf with litter south of it and the splat's bare grass north.
  */
 const FF_R46_BOX: readonly [number, number, number, number] = [-48, -90, 96, 100];
 const FOREST_FLOOR_RES = 192;
-const FF_FAR_ROWS = 20;
+const FF_FAR_ROWS = 77;
 const FF_TEXEL_Z = FF_R46_BOX[3] / FOREST_FLOOR_RES;
 const FOREST_FLOOR_RES_Z = FOREST_FLOOR_RES + FF_FAR_ROWS;
 const FOREST_FLOOR_BOX: readonly [number, number, number, number] = [FF_R46_BOX[0], FF_R46_BOX[1] - FF_FAR_ROWS * FF_TEXEL_Z, FF_R46_BOX[2], FF_R46_BOX[3] + FF_FAR_ROWS * FF_TEXEL_Z];
@@ -337,6 +341,8 @@ export function forestFloorAt(x: number, z: number): [number, number] {
     clear = clear + (clearFar - clear) * far;
     const [pad, bank] = clearingLawnShares(x, z);
     lawn = Math.max(pad, bank * (1 - FF_BANK_KEEP)) * far;
+    // 2026-09-24 (expansion-north): the grove's lawn round its flight, trail and shelf
+    lawn = Math.max(lawn, groveLawn(x, z));
   }
   const k = zone * clear * (1 - lawn);
   if (k <= 0) return [0, 0];

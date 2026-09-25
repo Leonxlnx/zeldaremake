@@ -19,7 +19,7 @@ export interface GridSurfaceOptions {
   cols: number;
   /** samples along v (along) */
   rows: number;
-  /** u wraps (cylinder/dome). The seam vertices are duplicated for clean UVs. */
+  /** u wraps (cylinder/dome). The seam vertices are duplicated for clean UVs (a custom uv that grows with u needs `seamUV`). */
   closedU?: boolean;
   /** cells whose centre satisfies this predicate are left open */
   hole?: (u: number, v: number) => boolean;
@@ -123,6 +123,24 @@ export function gridSurface(fn: (u: number, v: number, out: SurfaceSample) => vo
   if (colors) geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
   geo.setIndex(index);
   return geo;
+}
+
+/** whole repeats of a `tile`-metre map round a ring of radius `r` (at least one), so the map wraps onto itself */
+export function repeatsRound(r: number, tile = 1.6): number {
+  return Math.max(1, Math.round((TAU * r) / tile));
+}
+
+/**
+ * With `closedU`, gridSurface samples the seam column at u = 0 so the ring closes exactly; a custom
+ * uv that grows round the ring then falls back to its start across the last quad, and the map runs
+ * backwards, squeezed into that one quad. This extrapolates the seam column's u from the two
+ * columns before it; with a whole number of repeats round the ring (`u × repeatsRound(r)`) the map
+ * then meets itself at the seam.
+ */
+export function seamUV(g: BufferGeometry, cols: number): BufferGeometry {
+  const uv = g.attributes.uv;
+  for (let k = cols; k < uv.count; k += cols + 1) uv.setX(k, 2 * uv.getX(k - 1) - uv.getX(k - 2));
+  return g;
 }
 
 export interface SweepOptions {

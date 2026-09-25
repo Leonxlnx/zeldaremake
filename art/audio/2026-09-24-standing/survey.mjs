@@ -48,6 +48,12 @@ const PLACES = [
   { id: 'lookout', at: [21.6, 2.2], note: 'the plateau lookout dais, open sky' },
   { id: 'bridge-midspan', at: [3.9, 37.08], note: 'mid-span on the rope bridge, over the ravine' },
   { id: 'far-log', at: [4.31, 48.9], note: "two metres into the far bank's hollow log" },
+  // added 2026-09-25: the north grove landed after the first survey, and so did this lane's rooms.
+  // A hut is the only place in the world a player stands with walls round him and a door open.
+  { id: 'grove-trail', at: [-0.43, -90.11], note: "a set stone on the grove's trail, under the crowns" },
+  { id: 'grove-deck', at: [14.2, -91.5], note: "the stilt house's veranda, 11.6 m up" },
+  { id: 'grove-room', at: [12.0, -91.5], note: 'inside the stilt house, its door open' },
+  { id: 'west-room', at: [-23.0, 9.0], note: 'inside the west house, under open sky' },
 ];
 
 const server = await serveStatic(dist);

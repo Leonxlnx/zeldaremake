@@ -1,0 +1,830 @@
+{
+ "render": [
+  {
+   "stem": "bed",
+   "seconds": 30,
+   "wallMs": 2789,
+   "timesRealTime": 10.8
+  },
+  {
+   "stem": "bed",
+   "seconds": 120,
+   "wallMs": 33645,
+   "timesRealTime": 3.6
+  },
+  {
+   "stem": "steps",
+   "seconds": 30,
+   "wallMs": 24942,
+   "timesRealTime": 1.2
+  },
+  {
+   "stem": "steps",
+   "seconds": 120,
+   "wallMs": 344210,
+   "timesRealTime": 0.3
+  },
+  {
+   "stem": "music",
+   "seconds": 30,
+   "wallMs": 4263,
+   "timesRealTime": 7
+  },
+  {
+   "stem": "music",
+   "seconds": 120,
+   "wallMs": 23230,
+   "timesRealTime": 5.2
+  },
+  {
+   "stem": "mix",
+   "seconds": 30,
+   "wallMs": 33282,
+   "timesRealTime": 0.9
+  },
+  {
+   "stem": "mix",
+   "seconds": 120,
+   "wallMs": 425095,
+   "timesRealTime": 0.3
+  }
+ ],
+ "worst": {
+  "samples": [
+   {
+    "at": 4339,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 4850,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 5367,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 5884,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 6400,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 6900,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 7417,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 7917,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 8417,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 8933,
+    "voices": 14,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 9450,
+    "voices": 14,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 9950,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 10467,
+    "voices": 14,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 10984,
+    "voices": 15,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 11500,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 12017,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 12533,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 13034,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 13550,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 14050,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 14567,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 15083,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 15583,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 16100,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 16617,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 17133,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 17650,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 18167,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 18667,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 19183,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 19700,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 20217,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 20733,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 21249,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 21750,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 22266,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 22767,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 23283,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 23799,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 24316,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 24833,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 25349,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 25866,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 26366,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 26883,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 27383,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 27899,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 28416,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 28933,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 29449,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 29966,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 30466,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 30983,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 31499,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 32016,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 32532,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 33049,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 33549,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 34066,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 34566,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 35083,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 35599,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 36116,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 36632,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 37149,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 37666,
+    "voices": 15,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 38182,
+    "voices": 15,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 38699,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 39216,
+    "voices": 15,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 39732,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 40249,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 40766,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 41282,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 41799,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 42316,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 42832,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 43349,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 43866,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 44382,
+    "voices": 13,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 44899,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 45416,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 45932,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 46432,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 46932,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 47449,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 47965,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 48482,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 48998,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 49515,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 50032,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 50548,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 51065,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 51582,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 52098,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 52598,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 53115,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 53632,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 54148,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 54665,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 55182,
+    "voices": 4,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 55698,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 56215,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 56732,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 57248,
+    "voices": 5,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 57748,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 58265,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 58782,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 59298,
+    "voices": 7,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 59815,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 60331,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 60848,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 61365,
+    "voices": 6,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 61865,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 62381,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 62881,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 63398,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 63915,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 64431,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 64948,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 65464,
+    "voices": 11,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 65965,
+    "voices": 10,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 66481,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 66998,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 67514,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 68015,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 68531,
+    "voices": 9,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 69048,
+    "voices": 12,
+    "load": null,
+    "heap": null
+   },
+   {
+    "at": 69565,
+    "voices": 8,
+    "load": null,
+    "heap": null
+   }
+  ],
+  "steps": 169,
+  "landings": 47,
+  "pushOffs": 25,
+  "pods": 62,
+  "music": "procedural",
+  "seconds": 70
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "seconds": 70,
+ "steps": 177,
+ "landings": 51,
+ "pushOffs": 26,
+ "pods": 62,
+ "music": "procedural",
+ "measured": {
+  "lufs": -23.9,
+  "truePeakDb": -7.0,
+  "clipped": 0,
+  "at": "2026-09-25 09:36"
+ }
+}

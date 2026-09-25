@@ -1,0 +1,563 @@
+[
+ {
+  "view": "A_stairs",
+  "setViewpointMs": 28,
+  "msPerFrameFirst4": 7526,
+  "msPerFrameLast4": 14081,
+  "msPerFrameMax": 14136,
+  "totalS": 312.5,
+  "before": {
+   "label": "A_stairs",
+   "phase": "after-setViewpoint",
+   "mem": {
+    "usedMB": 1524,
+    "totalMB": 1528
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 77,
+    "wanted": 324,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 2,
+    "wanted": 16,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 77,
+   "shownTris": 646541,
+   "perf": {
+    "updateMs": 10.400000005960464,
+    "renderMs": 20085.79999998212
+   }
+  },
+  "after": {
+   "label": "A_stairs",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1526,
+    "totalMB": 1530
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 77,
+    "wanted": 324,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 2,
+    "wanted": 16,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 77,
+   "shownTris": 646541,
+   "perf": {
+    "updateMs": 1.699999988079071,
+    "renderMs": 4.200000017881393
+   }
+  }
+ },
+ {
+  "view": "B_house",
+  "setViewpointMs": 63,
+  "msPerFrameFirst4": 14530,
+  "msPerFrameLast4": 14711,
+  "msPerFrameMax": 14785,
+  "totalS": 352.9,
+  "before": {
+   "label": "B_house",
+   "phase": "after-setViewpoint",
+   "mem": {
+    "usedMB": 1528,
+    "totalMB": 1534
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 60,
+    "wanted": 360,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 19,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 60,
+   "shownTris": 507016,
+   "perf": {
+    "updateMs": 1.699999988079071,
+    "renderMs": 4.200000017881393
+   }
+  },
+  "after": {
+   "label": "B_house",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1529,
+    "totalMB": 1535
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 60,
+    "wanted": 360,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 19,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 60,
+   "shownTris": 507016,
+   "perf": {
+    "updateMs": 1.9000000059604645,
+    "renderMs": 7.300000011920929
+   }
+  }
+ },
+ {
+  "view": "C_lookback",
+  "setViewpointMs": 35,
+  "msPerFrameFirst4": 12545,
+  "msPerFrameLast4": 10377,
+  "msPerFrameMax": 12545,
+  "totalS": 257.8,
+  "before": {
+   "label": "C_lookback",
+   "phase": "after-setViewpoint",
+   "mem": {
+    "usedMB": 1530,
+    "totalMB": 1535
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 70,
+    "wanted": 393,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 1,
+    "wanted": 22,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 70,
+   "shownTris": 548670,
+   "perf": {
+    "updateMs": 1.9000000059604645,
+    "renderMs": 7.300000011920929
+   }
+  },
+  "after": {
+   "label": "C_lookback",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1530,
+    "totalMB": 1534
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 70,
+    "wanted": 393,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 1,
+    "wanted": 22,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 70,
+   "shownTris": 548670,
+   "perf": {
+    "updateMs": 1.9000000059604645,
+    "renderMs": 6.0999999940395355
+   }
+  }
+ },
+ {
+  "view": "D_log",
+  "setViewpointMs": 29,
+  "msPerFrameFirst4": 13220,
+  "msPerFrameLast4": 16032,
+  "msPerFrameMax": 16094,
+  "totalS": 374,
+  "before": {
+   "label": "D_log",
+   "phase": "after-setViewpoint",
+   "mem": {
+    "usedMB": 1530,
+    "totalMB": 1534
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 57,
+    "wanted": 381,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 20,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 57,
+   "shownTris": 477585,
+   "perf": {
+    "updateMs": 1.9000000059604645,
+    "renderMs": 6.0999999940395355
+   }
+  },
+  "after": {
+   "label": "D_log",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1533,
+    "totalMB": 1536
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 57,
+    "wanted": 381,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 20,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 57,
+   "shownTris": 477585,
+   "perf": {
+    "updateMs": 2,
+    "renderMs": 7.699999988079071
+   }
+  }
+ },
+ {
+  "view": "E_ground",
+  "setViewpointMs": 27,
+  "msPerFrameFirst4": 15347,
+  "msPerFrameLast4": 14877,
+  "msPerFrameMax": 15347,
+  "totalS": 357.1,
+  "before": {
+   "label": "E_ground",
+   "phase": "after-setViewpoint",
+   "mem": {
+    "usedMB": 1533,
+    "totalMB": 1536
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 60,
+    "wanted": 360,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 19,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 60,
+   "shownTris": 507016,
+   "perf": {
+    "updateMs": 2,
+    "renderMs": 7.699999988079071
+   }
+  },
+  "after": {
+   "label": "E_ground",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1533,
+    "totalMB": 1537
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 60,
+    "wanted": 360,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 19,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 60,
+   "shownTris": 507016,
+   "perf": {
+    "updateMs": 3.0999999940395355,
+    "renderMs": 4.699999988079071
+   }
+  }
+ },
+ {
+  "view": "F_canopy",
+  "setViewpointMs": 27,
+  "msPerFrameFirst4": 13534,
+  "msPerFrameLast4": 12115,
+  "msPerFrameMax": 13534,
+  "totalS": 296.7,
+  "before": {
+   "label": "F_canopy",
+   "phase": "after-setViewpoint",
+   "mem": {
+    "usedMB": 1533,
+    "totalMB": 1537
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 68,
+    "wanted": 347,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 17,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 68,
+   "shownTris": 575620,
+   "perf": {
+    "updateMs": 3.0999999940395355,
+    "renderMs": 4.699999988079071
+   }
+  },
+  "after": {
+   "label": "F_canopy",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1534,
+    "totalMB": 1538
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 68,
+    "wanted": 347,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 0,
+    "wanted": 17,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 68,
+   "shownTris": 575620,
+   "perf": {
+    "updateMs": 2,
+    "renderMs": 6.5
+   }
+  }
+ },
+ {
+  "view": "A_stairs-again",
+  "msPerFrameFirst4": 13135,
+  "msPerFrameLast4": 14029,
+  "totalS": 332.9,
+  "after": {
+   "label": "A_stairs-again",
+   "phase": "after-render",
+   "mem": {
+    "usedMB": 1534,
+    "totalMB": 1539
+   },
+   "glMem": null,
+   "canopyPool": {
+    "items": 426,
+    "resident": 426,
+    "pinned": 77,
+    "wanted": 324,
+    "poolMB": 223.9,
+    "capMB": 256,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "basePool": {
+    "items": 23,
+    "resident": 23,
+    "pinned": 2,
+    "wanted": 16,
+    "poolMB": 33.1,
+    "capMB": 48,
+    "built": 0,
+    "evicted": 0,
+    "syncBuilds": 0,
+    "buildMsP95": 0
+   },
+   "shown": 77,
+   "shownTris": 646541,
+   "perf": {
+    "updateMs": 1.7999999821186066,
+    "renderMs": 4.5
+   }
+  }
+ }
+]

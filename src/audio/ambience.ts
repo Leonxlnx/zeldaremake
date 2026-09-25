@@ -49,6 +49,12 @@ export interface AmbienceState {
   fairies?: readonly Vec3[];
   /** 0 out in the open, 1 with wood closed over the listener (inside the log tunnel's bore) */
   enclosure?: number;
+  /**
+   * How much solid wood stands between the listener and a world point, 0 … 1 (`occlusionAt` in
+   * index.ts). A callback rather than a number because it is asked per source, not per listener —
+   * the bird on his left may be behind a bole while the one ahead is not.
+   */
+  occlude?: (x: number, z: number) => number;
   /** 0 under open sky, 1 under a closed canopy (index.ts `surfaceAt`) */
   canopy?: number;
   /** the direction the wind travels (unit xz, `wind.direction`) — the canopy roll comes from upwind */
@@ -78,9 +84,79 @@ export interface AmbienceStats {
   fairiesNear: number;
   /** where the canopy roll is sitting: −1 hard left, +1 hard right (the wind's lean) */
   windLean: number;
+  /**
+   * Where the last few bird calls came from — `[kind, bearing, distance]`, newest last, bearing
+   * −1 hard left to +1 hard right and distance 0 overhead to 1 deep in the wood.
+   *
+   * Published for the same reason `fairySpots` is: it is the only way a harness can see what the
+   * scheduler decided, and "how many birds does this wood have in it" is not a question a
+   * recording can answer.
+   */
+  birdSpots: [BirdKind, number, number][];
+  /** how much wood stood between him and the last bird that called, 0 … 1 */
+  birdShadow: number;
   /** the nearest waterfall's attenuation at the listener: 1 at its plunge, 0 out of earshot */
   fall: number;
 }
+/** how many calls back `birdSpots` remembers */
+export const BIRD_SPOT_MEMORY = 24;
+/** the wood holds one bird of each kind within earshot; the weights decide who calls */
+/**
+ * How far the listener walks before the wood he is in is a different wood (m).
+ *
+ * Birds do not follow you, and they are not the same birds a hundred metres on. Holding the perches
+ * in world coordinates for ever would leave them all behind by the time he reached the ruins;
+ * re-seeding every step would be the random stream this replaces. Re-seeding once he has walked out
+ * of earshot of the last lot is both — consistent individuals while he is among them, new ones when
+ * he is somewhere else. `FALL_AUDIBLE_M` is 42 m for a waterfall; a bird carries less far than that.
+ */
+export const PERCH_RESEED_M = 25;
+
+/**
+ * How far away a perch at `distance` 1 is, in metres.
+ *
+ * A bird's `distance` is a 0–1 shorthand for "overhead" to "deep in the wood" and shapes its
+ * brightness and its share of the hall. Occlusion needs it as a place, because a bole only shadows
+ * what is behind it. Set just past `PERCH_RESEED_M`: the birds a listener has are the ones within
+ * the radius that walking re-seeds, so the furthest of them sits at about the edge of it.
+ */
+export const PERCH_FAR_M = 28;
+
+/**
+ * How long the one pink buffer the whole bed is tapped off runs before it comes round again, and
+ * how much slower the second tap plays it.
+ *
+ * It was nine seconds, and both wind layers played it — one from the start and one from a third of
+ * the way in, on the reasoning that an offset made them "not the same noise". An offset is the same
+ * noise delayed. Measured on five minutes of standing still (`art/audio/2026-09-25-loop/`), the
+ * bed's waveform correlated **+0.30 with itself at nine seconds, +0.32 at eighteen and +0.51 at
+ * twenty-seven** — half the forest, at twenty-seven second intervals, was a literal repeat.
+ *
+ * Nineteen seconds costs about 3.5 MB more of buffer and moves the repeat out past where an ear
+ * holds on to it. The rate is the other half: pink noise is self-similar under time-scaling, so a
+ * tap played at `LEAF_RATE` is still pink and is no longer the first tap at any lag. 0.84 is chosen
+ * to be well clear of any simple ratio — at 5/6 or 4/5 the two would re-align every few loops.
+ */
+export const PINK_SECONDS = 19;
+export const LEAF_RATE = 0.84;
+export const FLAME_RATE = 0.71;
+/** the waterfall's tap (the ruins' fall): ≥ 1.9 % off every simple ratio to 1, LEAF_RATE and FLAME_RATE */
+export const FALL_RATE = 1.37;
+/** how far the taps' rate wanders, and how slowly — enough to smear the loop, far too little to hear */
+export const PINK_DRIFT = 0.02;
+export const PINK_DRIFT_HZ = 0.03;
+
+/**
+ * What a full shadow does to a call: how much of its level it keeps, and how far its top comes down.
+ *
+ * Not symmetrical, because a shadow is not a fader. An obstacle wide enough to matter removes the
+ * high end far harder than the low — through the median 3.1 m of wood in this world the Fresnel
+ * number is 32 for a distant bird and 126 for a near one, but only 2.4 at the pod flame's husk,
+ * which bends round it (`art/audio/2026-09-25-occlusion/`). So the top falls by more than a factor
+ * of five and the level by six decibels, and the two together are what "behind a tree" sounds like.
+ */
+export const OCCLUSION_DUCK = 0.5;
+export const OCCLUSION_TOP = 0.18;
 
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
 export const LANTERN_REACH_M = 1.3;
@@ -160,10 +236,10 @@ export function fallAttenuation(d: number): number {
   return (1 - t * t * (3 - 2 * t)) / (1 + (d / FALL_REACH_M) ** 2);
 }
 /** the bed's top in the open, and with the log tunnel's wood closed over the listener */
-const ENCLOSURE_OPEN_HZ = 18000;
-const ENCLOSURE_CLOSED_HZ = 900;
+export const ENCLOSURE_OPEN_HZ = 18000;
+export const ENCLOSURE_CLOSED_HZ = 900;
 /** how much of the forest is left when he is right inside the bore */
-const ENCLOSURE_DUCK = 0.45;
+export const ENCLOSURE_DUCK = 0.45;
 /**
  * How far a closed canopy shuts the same filter (a share of the tunnel's travel, so a roof of
  * leaves is a hint of the tunnel's wood, not the same thing): at 1 the bed's top sits near 4 kHz.
@@ -185,8 +261,8 @@ const ENCLOSURE_DUCK = 0.45;
  * What the crowns actually do to this bed is `CANOPY_SHARE`, below. A filter cannot take away what
  * is not there.
  */
-const CANOPY_CLOSE = 0.5;
-const CANOPY_HALL = 0.8;
+export const CANOPY_CLOSE = 0.5;
+export const CANOPY_HALL = 0.8;
 const CANOPY_FLUTTER = 0.7;
 /**
  * The ravine. Every other space term CLOSES the bed — the tunnel's bore, the crowns overhead. A
@@ -199,8 +275,8 @@ const CANOPY_FLUTTER = 0.7;
  * returns the high end leaves absorb. It is gone: measured, it moved 4–8 kHz by +0.3 dB and
  * 8–16 kHz by −0.1, because this bed has almost nothing up there to return.
  */
-const GORGE_HALL = 2.0;
-const GORGE_WIND = 0.7;
+export const GORGE_HALL = 2.0;
+export const GORGE_WIND = 0.7;
 /**
  * How far the canopy roll leans toward upwind. Wind in a wood is not a point source, so this is a
  * lean and not a pan: turn to face into it and the weight of the air moves across you, but the bed
@@ -209,15 +285,69 @@ const GORGE_WIND = 0.7;
 export const WIND_LEAN = 0.35;
 
 /**
+ * How long a term takes to arrive when it changed **because the listener moved**.
+ *
+ * A smoothing time is a distance once the listener has a speed, and every one of these constants
+ * had been chosen for weather: 0.9 s on the leaf roll's level, 0.6 on the hall sends, 0.35 on the
+ * bed's top, 0.3 on the lantern flame and its pan, 0.12 on the bore's duck. At the run the player
+ * actually has (4.2 m/s) that is between half a metre and four metres of ground before the sound
+ * gets to where he is — measured along five real journeys in `art/audio/2026-09-25-lag/`: walking
+ * out of the village in under the crowns, the roll's level arrived **2.8 m** behind him and the
+ * hall 2.2 m; in through the log arch's mouth it was over four metres.
+ *
+ * Nothing before this could see it. Every `at` render stands still, so a space term is a constant;
+ * the scripted walk crosses surfaces but never a doorway, a bore mouth, a canopy edge or a lantern.
+ *
+ * 0.05 s is one and a half ticks of the 30 Hz update. Shorter and the glide finishes inside a tick,
+ * which turns a moving parameter into a staircase at the tick rate — audible on a gain as a buzz,
+ * and this lane exists because the owner heard a buzz. Longer buys nothing: the terms whose
+ * geometry is gentle are already right at 0.05 (the roll's worst error across the canopy edge falls
+ * from 2.0 dB to 0.23), and the ones that are not — the bore mouth and the hut doorway, both of
+ * which a runner crosses in under a fifth of a second — are limited by the tick and not by this.
+ *
+ * The weather's own terms are left alone. The gust is analytic (`wind.ts`: two sines at 0.37 and
+ * 0.11 rad/s) and its fastest component has a seventeen-second period, so their 0.55–0.9 s smooths
+ * nothing that was not already smooth, and moving a constant that no measurement objects to is
+ * churn. The wind's lean keeps its 1.2 s for the reason written beside it — that one answers
+ * turning your head, not walking.
+ */
+export const PLACE_TAU = 0.05;
+
+/**
+ * How far out a bird on its perch is allowed to sit, short of the speakers themselves.
+ *
+ * A call hard against one channel does not read as "over there", it reads as a fault in the mix —
+ * nothing in a wood is at ninety degrees and zero distance. The wind's lean is a tenth of this
+ * again, and deliberately: a bird is a point and the air is not.
+ */
+export const PERCH_PAN = 0.85;
+
+/**
+ * Where something lying in world direction `to` sits for a listener facing `forward` (both xz):
+ * −1 hard left … +1 hard right.
+ *
+ * The one place this convention is written down. It was duplicated — once for the wind's lean, once
+ * for the birds' perches — and a sign error in either would be invisible to every measurement this
+ * lane makes, because all of them are mono sums. It is also the whole of what makes the bed a place
+ * rather than a pair of speakers: turn ninety degrees and a bird that was on your left has to move
+ * to the front. `art/audio/2026-09-25-facing/` renders the same spot at four facings and shows the
+ * stereo image rotating under the listener.
+ *
+ * Right-handed xz with forward = (sin θ, cos θ), so the listener's right is (−forward.z, forward.x).
+ * Front and back both project to 0, which is what a stereo pan can say and no more.
+ */
+export function panFor(forward: { x: number; z: number }, to: { x: number; z: number }): number {
+  const len = Math.hypot(to.x, to.z) || 1;
+  return Math.max(-1, Math.min(1, (to.x * -forward.z + to.z * forward.x) / len));
+}
+
+/**
  * Where the canopy roll sits for a listener facing `forward` while the wind travels along `dir`
- * (both unit xz): −1 hard left … +1 hard right. The air arrives from where the wind comes FROM, so
- * the source is upwind — behind its direction of travel — projected onto the listener's right.
+ * (both unit xz). The air arrives from where the wind comes FROM, so the source is upwind — behind
+ * its direction of travel.
  */
 export function windLeanFor(forward: { x: number; z: number }, dir: { x: number; z: number }): number {
-  const rx = -forward.z;
-  const rz = forward.x;
-  const len = Math.hypot(dir.x, dir.z) || 1;
-  return Math.max(-1, Math.min(1, ((-dir.x * rx - dir.z * rz) / len) * WIND_LEAN));
+  return panFor(forward, { x: -dir.x, z: -dir.z }) * WIND_LEAN;
 }
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
@@ -268,7 +398,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const enclosureLp = filter(ctx, 'lowpass', ENCLOSURE_OPEN_HZ, 0.7);
   const out = gain(ctx, 1);
   out.connect(enclosureLp).connect(outBus);
-  const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), 9);
+  const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), PINK_SECONDS);
   const nodes: AudioScheduledSourceNode[] = [];
   /** one always-running pink source every layer taps (a per-layer source would cost a buffer each) */
   const bedSrc = ctx.createBufferSource();
@@ -276,12 +406,28 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   bedSrc.loop = true;
   bedSrc.start(startAt);
   nodes.push(bedSrc);
-  // a second tap started a third of the loop later, so the two wind layers are not the same noise
+  // The second wind layer plays the same buffer SLOWER rather than three seconds into it. An offset
+  // is the same noise delayed — which is what the old comment here claimed was "not the same noise"
+  // — and two taps of one loop put a hard repeat into everything downstream of them. Pink noise is
+  // self-similar under time-scaling (1/f stays 1/f, give or take a decibel of level), so this is
+  // still pink; what it is not is the other tap, at any lag.
   const leafSrc = ctx.createBufferSource();
   leafSrc.buffer = pink;
   leafSrc.loop = true;
+  leafSrc.playbackRate.value = LEAF_RATE;
   leafSrc.start(startAt, pink.duration / 3);
   nodes.push(leafSrc);
+  // Even one tap of one loop repeats itself, and lengthening the buffer only buys seconds per
+  // megabyte. Letting the rate wander a couple of per cent on a slow random walk means the loop
+  // never comes round to the same place twice: the phase drifts, and a repeat that never lines up
+  // is not a repeat. Inaudible in itself — noise has no pitch to shift — and it costs one envelope.
+  const drift = (src: AudioBufferSourceNode, seed: string) => {
+    const cs = controlSource(ctx, controlNoiseBuffer(ctx, rng.fork(seed), { hz: PINK_DRIFT_HZ, shape: 1, seconds: 53 }), PINK_DRIFT, 120, startAt);
+    cs.out.connect(src.playbackRate);
+    nodes.push(cs.src);
+  };
+  drift(bedSrc, 'beddrift');
+  drift(leafSrc, 'leafdrift');
 
   const wander = (hz: number, shape: number, seed: string) => controlNoiseBuffer(ctx, rng.fork(seed), { hz, shape, seconds: 47 });
   /** an irregular envelope added to a param's own value (its automation stays the floor) */
@@ -332,11 +478,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   flameGain.connect(flamePan).connect(out);
   const flameSend = gain(ctx, 0.45);
   flameGain.connect(flameSend).connect(reverbSend);
+  // the third tap of the same buffer, and the one that matters most for a repeat: standing a metre
+  // from a pod the flame is the loudest never-stopping thing in the world. Its own rate and its own
+  // wander, for the reason the other two have theirs.
   const flameSrc = ctx.createBufferSource();
   flameSrc.buffer = pink;
   flameSrc.loop = true;
+  flameSrc.playbackRate.value = FLAME_RATE;
   flameSrc.start(startAt, pink.duration * 0.66);
   nodes.push(flameSrc);
+  drift(flameSrc, 'flamedrift');
   const flameLp = filter(ctx, 'lowpass', 320, 0.8);
   const flameBody = gain(ctx, 0.35);
   flameSrc.connect(flameLp).connect(flameBody).connect(flameGain);
@@ -350,11 +501,14 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   rides(husk.frequency, 0.35, 1, 14, 'husk');
 
   // ---- waterfall: the plunge's roar and the sheet's wash, placed and coloured by distance -------
+  // the fourth tap of the buffer: its own rate and wander, like the other three (PINK_SECONDS)
   const fallSrc = ctx.createBufferSource();
   fallSrc.buffer = pink;
   fallSrc.loop = true;
+  fallSrc.playbackRate.value = FALL_RATE;
   fallSrc.start(startAt, pink.duration * 0.5);
   nodes.push(fallSrc);
+  drift(fallSrc, 'falldrift');
   const fallGain = gain(ctx, 0);
   const fallAir = filter(ctx, 'lowpass', FALL_NEAR_HZ, 0.6);
   const fallPan = ctx.createStereoPanner();
@@ -376,11 +530,15 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
-  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, fall: 0 };
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0, fall: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
   /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
   let canopyNow = 0;
+  /** which way he was facing, likewise: the perches keep a world bearing, not a stereo position */
+  let forwardNow = { x: 0, z: 1 };
+  /** the world's occluders as of the last update; null until one arrives, so the bed still runs headless */
+  let occludeNow: ((x: number, z: number) => number) | null = null;
 
   /**
    * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
@@ -434,11 +592,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * A bird heard from `distance` (0 = overhead, 1 = deep in the wood): the air takes its top off,
    * the level falls and more of it arrives through the hall. Every call is built on this.
    */
-  const birdVoice = (t: number, pan: number, distance: number, end: number) => {
+  const birdVoice = (t: number, pan: number, distance: number, end: number, occlusion = 0) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     const hp = filter(ctx, 'highpass', 320, 0.5);
-    const lp = filter(ctx, 'lowpass', 7000 - 5200 * distance, 0.6);
+    // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
+    const lp = filter(ctx, 'lowpass', (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion), 0.6);
     const g = gain(ctx, 0);
     g.connect(hp);
     hp.connect(lp).connect(panner).connect(out);
@@ -452,13 +611,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     return { voice: g, air: hp as AudioNode };
   };
 
-  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number) => {
+  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number, occlusion = 0) => {
     counts.birds++;
+    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3))]);
+    if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
+    counts.birdShadow = Number(occlusion.toFixed(3));
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
-    const lv = level * (1 - 0.66 * distance);
+    const lv = level * (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
     const soft = 1 + distance * 1.6;
     let end = t + 1.6;
-    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6);
+    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6, occlusion);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.connect(g);
@@ -607,13 +769,70 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   let nextGlint = startAt + 1;
 
-  const pickBird = () => {
-    let r = eventRng() * BIRD_WEIGHT;
+  const pickBird = (rnd: () => number) => {
+    let r = rnd() * BIRD_WEIGHT;
     for (const b of BIRDS) {
       r -= b.weight;
       if (r <= 0) return b;
     }
     return BIRDS[0];
+  };
+
+  /**
+   * The birds themselves. Until now there were none: the scheduler picked a kind and then drew a
+   * fresh bearing and a fresh distance for it, so 216 calls over twenty minutes came from 216
+   * places and a kind's calls scattered 0.47 across a ±0.85 field — indistinguishable from
+   * uniform. A wood does not do that. It holds a handful of individuals, each in its own tree,
+   * each calling from the same direction over and over, and that is most of what makes one sound
+   * inhabited rather than sprinkled.
+   *
+   * A perch keeps a world direction rather than a stereo position, so the bearing is worked out
+   * against the listener's facing when the call is scheduled — turn your head and the birds stay
+   * where they were, which a random pan can never do. They sit in slots round the compass so the
+   * wood is not all on one side, jittered inside the slot so it is not a ring.
+   */
+  const perchRng = rng.fork('perches');
+  let perches: { kind: BirdKind; weight: number; dirX: number; dirZ: number; distance: number }[] = [];
+  let perchWeight = 0;
+  let perchAnchor: { x: number; z: number } | null = null;
+  let lastPerch = -1;
+  const seedPerches = (at: Vec3) => {
+    perchAnchor = { x: at.x, z: at.z };
+    // One bird of each kind, not six drawn from the weighted list: drawing doubled kinds up and
+    // left a wood with three species in it. The weights belong on how often a bird calls, which is
+    // what they always meant — a wood has one of everything and you hear the common ones more.
+    const order = BIRDS.map((b, i) => ({ b, k: perchRng() + i * 1e-6 })).sort((p, q) => p.k - q.k);
+    perches = order.map(({ b }, i) => {
+      // a slot each round the compass, jittered inside it: spread, but not a ring
+      const a = ((i + 0.2 + perchRng() * 0.6) / order.length) * Math.PI * 2;
+      return { kind: b.kind, weight: b.weight, dirX: Math.sin(a), dirZ: Math.cos(a), distance: b.near + perchRng() * (b.far - b.near) };
+    });
+    perchWeight = perches.reduce((s, p) => s + p.weight, 0);
+    lastPerch = -1;
+  };
+  /** which bird calls next: the commoner kinds more often, and never the one that just called */
+  const pickPerch = (avoid: number) => {
+    let r = eventRng() * perchWeight;
+    for (let i = 0; i < perches.length; i++) {
+      r -= perches[i].weight;
+      if (r <= 0) return i === avoid ? (i + 1) % perches.length : i;
+    }
+    return perches.length - 1 === avoid ? 0 : perches.length - 1;
+  };
+  /** the bearing of a perch as the listener is facing now: −1 hard left, +1 hard right */
+  const perchPan = (p: { dirX: number; dirZ: number }) => panFor(forwardNow, { x: p.dirX, z: p.dirZ }) * PERCH_PAN;
+  /**
+   * How much wood stands between him and a perch, right now.
+   *
+   * The perch is a bearing and a distance from where the birds were last seeded, which makes it a
+   * place — so this is asked at the moment the call is scheduled rather than when the bird was put
+   * there. Walking behind a bole has to change what the bird on the other side of it sounds like,
+   * and the anchor does not move while he does (`PERCH_RESEED_M`).
+   */
+  const perchShadow = (p: { dirX: number; dirZ: number; distance: number }) => {
+    if (!occludeNow || !perchAnchor) return 0;
+    const m = p.distance * PERCH_FAR_M;
+    return occludeNow(perchAnchor.x + p.dirX * m, perchAnchor.z + p.dirZ * m);
   };
 
   // its own stream: the lull trigger is drawn from `update`, whose call rate differs between the
@@ -622,15 +841,18 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   let nextBird = startAt + 2 + eventRng() * 3;
   const scheduleBirds = (until: number) => {
     while (nextBird < until) {
-      const b = pickBird();
-      const distance = b.near + eventRng() * (b.far - b.near);
-      const pan = (eventRng() * 2 - 1) * 0.85;
+      if (!perches.length) seedPerches({ x: 0, y: 0, z: 0 });
+      const i = pickPerch(lastPerch);
+      const p = perches[i];
+      lastPerch = i;
       const level = 0.03 + eventRng() * 0.045;
-      birdCall(b.kind, nextBird, pan, level, distance);
-      // sometimes one answers from the other side, always further off
-      if (eventRng() < 0.3) {
-        const a = pickBird();
-        birdCall(a.kind, nextBird + 1.1 + eventRng() * 1.4, -pan * 0.8, level * 0.6, Math.min(1, distance + 0.2));
+      birdCall(p.kind, nextBird, perchPan(p), level, p.distance, perchShadow(p));
+      // and sometimes another answers — a different bird in its own tree, not this one mirrored
+      if (eventRng() < 0.3 && perches.length > 1) {
+        const j = pickPerch(i);
+        const q = perches[j];
+        lastPerch = j;
+        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchPan(q), level * 0.6, q.distance, perchShadow(q));
       }
       // Birds shelter and stop calling in a blow, and sing when it drops. Measured, the world's
       // wind falls under the gust knee about twice a minute for three seconds at a time
@@ -659,11 +881,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // read before anything uses it: the roll's own level is the first thing that does, and it used
     // to sit above this line and take the previous tick's roof
     canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
+    const fl = Math.hypot(s.forward.x, s.forward.z) || 1;
+    forwardNow = { x: s.forward.x / fl, z: s.forward.z / fl };
+    occludeNow = s.occlude ?? null;
+    // a different part of the wood holds different birds (PERCH_RESEED_M)
+    if (!perchAnchor || Math.hypot(s.listener.x - perchAnchor.x, s.listener.z - perchAnchor.z) > PERCH_RESEED_M) seedPerches(s.listener);
     const sw = swell(gust);
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
-    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, 0.9);
+    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
     canopyMod.gain.setTargetAtTime(sw, t, 0.9);
     hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
     hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
@@ -684,7 +911,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       pz += dz * a;
     }
     const level = Math.min(1, nearest + (sum - nearest) * LANTERN_CROWD_SHARE) * LANTERN_LEVEL;
-    flameGain.gain.setTargetAtTime(level, t, 0.3);
+    flameGain.gain.setTargetAtTime(level, t, PLACE_TAU);
     let pan = 0;
     if (sum > 1e-4) {
       // right = forward × up
@@ -693,7 +920,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const len = Math.hypot(px, pz) || 1;
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
-    flamePan.pan.setTargetAtTime(pan, t, 0.3);
+    flamePan.pan.setTargetAtTime(pan, t, PLACE_TAU);
     // the waterfall: the nearest plunge sets the level and the bearing, its distance the air
     let fa = 0;
     let fd = 0;
@@ -713,16 +940,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       }
     }
     counts.fall = fa;
-    fallGain.gain.setTargetAtTime(fa * FALL_LEVEL, t, 0.4);
+    fallGain.gain.setTargetAtTime(fa * FALL_LEVEL, t, PLACE_TAU);
     if (fa > 0) {
       const near = 1 - Math.max(0, Math.min(1, (fd - 4) / 30));
-      fallAir.frequency.setTargetAtTime(FALL_FAR_HZ * Math.pow(FALL_NEAR_HZ / FALL_FAR_HZ, near), t, 0.5);
-      fallSend.gain.setTargetAtTime(0.2 + 0.5 * (1 - near), t, 0.6);
+      fallAir.frequency.setTargetAtTime(FALL_FAR_HZ * Math.pow(FALL_NEAR_HZ / FALL_FAR_HZ, near), t, PLACE_TAU);
+      fallSend.gain.setTargetAtTime(0.2 + 0.5 * (1 - near), t, PLACE_TAU);
       // close in, a sheet three metres wide fills more of the field than a point: the pan narrows
       const rx = -s.forward.z;
       const rz = s.forward.x;
       const len = Math.hypot(fx, fz) || 1;
-      fallPan.pan.setTargetAtTime(Math.max(-1, Math.min(1, ((fx * rx + fz * rz) / len) * (0.85 - 0.35 * near))), t, 0.3);
+      fallPan.pan.setTargetAtTime(Math.max(-1, Math.min(1, ((fx * rx + fz * rz) / len) * (0.85 - 0.35 * near))), t, PLACE_TAU);
     }
     // the nearest fairy: a glint every second or three while one is within a couple of metres
     if (t >= nextGlint && s.fairies?.length) {
@@ -759,24 +986,24 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // the crowns close the same filter part of the way and hand more of the bed to the hall; only
     // the tunnel's wood ducks the level, because only the tunnel puts something between him and it
     const closed = Math.max(enc, canopyNow * CANOPY_CLOSE);
-    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, 0.35);
-    out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
+    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, PLACE_TAU);
+    out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, PLACE_TAU);
     // and more of the forest comes back as reflection off the walls
     const hall = (1 + canopyNow * CANOPY_HALL) * (1 + gorge * GORGE_HALL);
-    canopySend.gain.setTargetAtTime(0.3 * hall, t, 0.6);
+    canopySend.gain.setTargetAtTime(0.3 * hall, t, PLACE_TAU);
     // the roll leans upwind: the air arrives from where the wind comes FROM, which is behind its
     // direction of travel. Slow (1.2 s) — turning your head should move the weather, not flick it.
     if (s.windDir) {
       counts.windLean = windLeanFor(s.forward, s.windDir);
       canopyPan.pan.setTargetAtTime(counts.windLean, t, 1.2);
     }
-    hushSend.gain.setTargetAtTime(0.2 * hall, t, 0.6);
+    hushSend.gain.setTargetAtTime(0.2 * hall, t, PLACE_TAU);
   };
 
   return {
     scheduleUntil,
     update,
-    stats: () => ({ ...counts }),
+    stats: () => ({ ...counts, birdSpots: counts.birdSpots.map((s) => [...s] as [BirdKind, number, number]) }),
     dispose() {
       for (const n of nodes) {
         try {

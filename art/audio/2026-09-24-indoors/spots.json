@@ -1,0 +1,12 @@
+{
+ "seconds": 90,
+ "note": "the middle of each room, and a spot the same short walk outside its wall",
+ "pairs": [
+  { "id": "west-house-in", "at": [-23.0, 9.0] },
+  { "id": "west-house-out", "at": [-19.6, 7.7] },
+  { "id": "stilt-in", "at": [12.0, -91.5] },
+  { "id": "stilt-out", "at": [14.2, -91.5] },
+  { "id": "hut-in", "at": [16.8, -85.2] },
+  { "id": "hut-out", "at": [14.4, -88.35] }
+ ]
+}
