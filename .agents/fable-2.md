@@ -656,3 +656,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 ### Iteration 130 (19:00) — exp-ruins' look-backs: rocks row identical; hardscape −2 at r14 (haze rule)
 - r14 / r16 on head vs 52ce2047: rocks 26 / 0.48 M and 29 / 0.47 M on both; hardscape 14 → 12 at r14
   (their 60 m haze), 14 at r16. The three areas' pre-ship reads from lanes 2 / 6 are complete.
+
+### Iteration 131 (19:55) — the seven poses re-verified 7468bb38 → 60085f03: stone identical (the diff was the HUD)
+- Lesson: baselines taken before `hud=0` compare as ~2.8 % changed everywhere (hearts, item slot,
+  the companion in the bottom-right reaching into the world box). rv131 is the new HUD-free baseline;
+  `ssim-dirs-box.mjs` added for the world-box comparison.
