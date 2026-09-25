@@ -2171,7 +2171,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         record.vertices = 0;
       },
     };
-    return [item, firstBuilt ? wrap(first) : null];
+    // the pool's `add(item, built)` takes a first build as already installed (a mesh holds its own
+    // first geometry): a batched part installs it here
+    const built = firstBuilt ? wrap(first) : null;
+    if (built) item.install(built);
+    return [item, built];
   };
   /**
    * Near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): every eligible lobe of a giant
