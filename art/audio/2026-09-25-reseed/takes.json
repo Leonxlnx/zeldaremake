@@ -1,0 +1,9 @@
+{
+ "note": "a 60 m line through the village, paced for two minutes at a run — the journey the model says the old rule re-drew the whole wood on eleven times. `still` is the control: he does not move, so no rule can fire.",
+ "gust": 0.6,
+ "lead": 4,
+ "takes": [
+  { "id": "still", "from": [0.5, 2.0], "to": [4.0, -58.0], "speed": 0, "loop": false, "seconds": 124, "note": "standing on the plaza for two minutes — the control" },
+  { "id": "cross", "from": [0.5, 2.0], "to": [4.0, -58.0], "speed": 4.2, "loop": true, "seconds": 124, "note": "running the 60 m from the plaza to the log arch and back, for two minutes" }
+ ]
+}
