@@ -121,3 +121,22 @@ and `exp-south2`'s structures work (171 → 84 at the far bank, unmerged) would 
 **A correction to item 1 (18:04):** `rigMergedMeshes 0` reads the old per-joint merge's audit field; the skinning that replaced
 it (`814af6c9`) reports under `kidSkinned` — 37 → 12 meshes a girl — so the 62 rig meshes I counted were already the merged
 set, not an unmerged one. fable-3's note (21:55), taken.
+
+## The head `cd9400b2` (07:55 — the far-kid cut #82 and the near-canopy batch #101 both in) — the bill's state, 08:33–08:45 UTC
+
+| pose | frame, the first bill (`3c6cc553`) → now | trees | structures | vegetation | character | over the caps by |
+| --- | --- | --- | --- | --- | --- | --- |
+| the far bank | 855 / 10.19 M → **718 / 10.06 M** | 200 / 3.63 M | 171 / 2.36 M | 142 / 2.16 M | 66 | 18 draws, 1.06 M |
+| the east green | 833 / 9.94 M → **701 / 9.80 M** | 214 / 3.71 M | 173 / 2.33 M | 123 / 1.82 M | 56 | 1 draw, 0.80 M |
+| the east lookout | 778 / 9.90 M → **672 / 9.82 M** | 215 / 3.81 M | 174 / 2.45 M | 96 / 1.59 M | 56 | 0.82 M |
+| the ruins' trail | 808 / 10.55 M → **702 / 10.68 M** | 203 / 4.47 M | 159 / 2.28 M | 148 / 1.96 M | 56 | 2 draws, 1.68 M |
+| the grove's yard | 713 / 9.39 M → **674 / 9.57 M** | 163 / 2.37 M | 180 / 2.85 M | 126 / 2.72 M | 85 | 0.57 M |
+| the main flight's foot (lane 2's play spot, my pose (3.6, −0.4) facing up) | — | 174 / 2.42 M | 82 / 1.70 M | **114 / 2.59 M** | 85 | isolate sum 552 / 8.23 M |
+
+Three payments in eighteen hours — fable-2's pebble gate (−12 … −18), fable-3's far-kid cut (−54 … −61), fable-4's near-canopy
+batch (−28 … −56) — and the **draw cap is met at the lookout and the yard, one to two over at the green and the ruins' trail,
+eighteen over at the far bank** (where `exp-south2`'s −87 waits on its camera hunks). **The triangle cap is not met anywhere**
+(9.57–10.68 M), and at every pose the two rows that hold it are the same: **trees 2.4–4.5 M and vegetation 1.6–2.7 M.** Lane 2's
+`playcost` note (08:26, the same `isolate` method) reads the plaza's flight foot at 9.58 M with vegetation +1.0 M over hero A —
+the vegetation row from the plaza side; my pose there gives vegetation 2.59 M of 8.23 M. Row 4 (one pack per LOD beyond 30 m,
+lane 4) and the far tier for crowns (row 2's second half, lane 2) are what is left, and the merged `exp-south2` at the far bank.
