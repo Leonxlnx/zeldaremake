@@ -88,21 +88,30 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
  * and ref-01: the girls' deep forest-green tunic (display ≈ #2b4a2a), a brighter green headband,
  * near-black boots with khaki cuffs, maroon-red hair (display ≈ #5e2226), dark leather belt and
  * wristbands. Indexed by the girl look g (0 = kokiri-a, 1 = kokiri-b, 2 = the ledge girl, 3 = the
- * girl on the south bank — round 50, a slightly bluer tunic and a darker auburn bob); the boy keeps
- * the palette's kid colours. Lane 7 (2026-09-23): the skin is the pale peach of ref-01 / d_024 — the
- * tan of rounds 47–50 read orange against the footage at the follow camera's 5 m — and the hair the
- * footage's maroon (the 0x93412f brick, low in blue, rendered as an orange-brown).
+ * girl on the south bank); the boy keeps the palette's kid colours. Lane 7 (2026-09-23): the skin is
+ * the pale peach of ref-01 / d_024 — the tan of rounds 47–50 read orange against the footage at the
+ * follow camera's 5 m — and the hair the footage's maroon (the 0x93412f brick, low in blue, rendered
+ * as an orange-brown).
+ *
+ * Lane 7 (2026-09-25), the cast's variety: until now the four looks were four maroons over four
+ * near-identical greens, and at the follow camera's 4–7 m the five girls read as one girl five times.
+ * Look 0 — the girl by the signpost, the one the fixed frames A / C / F hold against the footage — keeps
+ * the footage's maroon and deep green. The three looks no fixed frame holds (kokiri-b stands at plaza
+ * west in the fixed views, the bank girl is outside all six, the ledge girl is 75 m off in A / B / D /
+ * E) take their own: 1 honey-blonde under a yellower, lighter green (kokiri-b on the stairs, and the
+ * grove girl who shares it); 2 chestnut under a deep blue-green (the ledge); 3 near-black brown under a
+ * mossy olive (the bank). Same materials, same canvases — only the colours under them change.
  */
 const KID = {
-  tunic: [0x375f35, 0x2f522f, 0x3a5a2e, 0x335a3a],
-  band: [0x4d7a3c, 0x44703a, 0x568a3e, 0x4a7c46],
+  tunic: [0x375f35, 0x4d7538, 0x2c5238, 0x546b36],
+  band: [0x4d7a3c, 0x5e8a44, 0x3f7a4a, 0x6a8a44],
   belt: 0x4a3322,
   buckle: 0xb8963f,
   boot: 0x352721,
   cuff: 0x8f7f5a,
-  hair: [0x7e2f33, 0x6e2a2e, 0x86343a, 0x74282d],
+  hair: [0x7e2f33, 0xc89c4c, 0x74492b, 0x3a2a1e],
   skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687],
-  iris: ['#4a2c1a', '#3d2818', '#3b4a24', '#46301c'],
+  iris: ['#4a2c1a', '#556a2e', '#4a3320', '#2a1a10'],
   lash: 0x1c120e,
 } as const;
 /** the boy's skin: round 47's tan brought to the girls' pale peach in step (lane 7 — the cast reads as one family) */

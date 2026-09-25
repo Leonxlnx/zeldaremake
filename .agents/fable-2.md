@@ -576,3 +576,15 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   once exp-south2's field has a landform. Checked the split-tread "slot" at x-stairs-3rd-tread: the
   joint gap (2–4 cm) and a 2 cm nose offset between halves — realistic, not a defect (topY / ts are
   per tread, both halves flush).
+
+### Iteration 116 (04:50) — the 02:55 merge round re-verified at the seven poses (all 1.0000)
+- VM reset at 03:35: /tmp gone (tools, baselines), node_modules gone; `npm ci`, tools rebuilt under
+  `/cursor/stores/self/tools` (pose.mjs over the gauntlet's browser lib, ssim-dirs.mjs, the pose files).
+- 5f8a6738 → 7468bb38 at rv79's seven poses: SSIM 1.0000 each; ≤ 235 px over 8. Sheet
+  `rocks116-reverify-0255-round.jpg`.
+
+### Iteration 117 (05:05) — the trailer's known issue "stair shading" is #61's fix; told opus-cinematic-b
+- `agent/opus-cinematic-b-sept25` (a 36 s trailer for X, recorded from b9993008) lists the risers'
+  harlequin facets as a known world issue; frame 660 confirms. The fix (f6fa109e) has been on the
+  head since 23:39 — asked for a re-record of the four shots that see the flight from the current
+  head. Sheet `hs117-cinematic-risers-before-61.jpg`.

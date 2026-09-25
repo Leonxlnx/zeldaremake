@@ -102,6 +102,11 @@ export interface OfflineOptions {
   /** force the ravine over the whole render (0 well back from it, 1 out over it) */
   gorge?: number;
   /**
+   * Switch off the world's occluders, so the same take can be rendered with and without the wood
+   * between him and the birds. `false` is the "before" this change is measured against.
+   */
+  occlusion?: boolean;
+  /**
    * Force the space over the whole render (0 outdoors, 0.7 inside a hut, 1 inside the log bore),
    * for the bed and for the boots both.
    *
@@ -487,6 +492,63 @@ export const TICK_MS = 1000 / 30;
  * A gorge is the other direction: eight metres of open air with rock either side, the one place in
  * the world where the forest should sound bigger than the village rather than smaller.
  */
+/**
+ * The solid things a player can put between himself and a sound: the thirteen giant boles and the
+ * three huts. Circles in xz — every one of them is a barrel, and none is short enough for height to
+ * matter (the boles stand 21–28 m and the huts' walls reach 6–14 m, against sources at head height
+ * or in a crown eight metres up).
+ */
+const OCCLUDERS: readonly { x: number; z: number; r: number }[] = (() => {
+  const all = [
+    ...LAYOUT.giantTrees.map((t) => ({ x: t.position[0], z: t.position[2], r: t.trunkRadius })),
+    { x: EXPANSION.westHouse.host[0], z: EXPANSION.westHouse.host[1], r: EXPANSION.westHouse.radius },
+    { x: EXPANSION_NORTH.stilt.host[0], z: EXPANSION_NORTH.stilt.host[1], r: EXPANSION_NORTH.stilt.radius },
+    { x: EXPANSION_NORTH.hut.host[0], z: EXPANSION_NORTH.hut.host[1], r: EXPANSION_NORTH.hut.radius },
+  ];
+  // A hut is built AROUND its host trunk — the west house and `southwest-giant` are at the same
+  // point to the centimetre — so the naive list counts one obstacle twice and hands the line 10.6 m
+  // of wood where the world has 6.8. Swallow anything whose centre lies inside something larger.
+  return all.filter((a) => !all.some((b) => b !== a && b.r > a.r && Math.hypot(b.x - a.x, b.z - a.z) <= b.r));
+})();
+
+/**
+ * Metres of wood that count as fully shadowed.
+ *
+ * An obstacle only shadows a source when it spans several wavelengths of it, which is why this is
+ * a distance and not a flag. Measured against the world's real geometry
+ * (`art/audio/2026-09-25-occlusion/`), the wood a player can actually get between himself and a
+ * source runs 2.2 m to 6.8 m with a median of 3.1 — so the scale is set at the top of that, and a
+ * bole's 3 m is a bit over half of it rather than all of it.
+ */
+export const OCCLUSION_FULL_M = 6;
+
+/**
+ * How much solid wood stands on the straight line from (ax, az) to (bx, bz), as 0 … 1.
+ *
+ * Only worth applying to sources with a top end. Through the median 3.1 m of wood the Fresnel
+ * number is 2.4 at the pod flame's husk and 5.8 at its body — it bends round — but 32 for a distant
+ * bird and 126 for a near one. The birds are what this is for; the wind and the leaves are diffuse
+ * and have no position to shadow at all.
+ */
+export function occlusionAt(ax: number, az: number, bx: number, bz: number): number {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const len = Math.hypot(dx, dz);
+  if (len < 1e-3) return 0;
+  const ux = dx / len;
+  const uz = dz / len;
+  let wood = 0;
+  for (const o of OCCLUDERS) {
+    // the nearest point of the LINE to the circle, clamped to the segment: a bole behind the
+    // listener or past the source blocks nothing
+    const t = Math.max(0, Math.min(len, (o.x - ax) * ux + (o.z - az) * uz));
+    const perp = Math.hypot(ax + ux * t - o.x, az + uz * t - o.z);
+    if (perp >= o.r) continue;
+    wood += 2 * Math.sqrt(o.r * o.r - perp * perp);
+  }
+  return Math.min(1, wood / OCCLUSION_FULL_M);
+}
+
 export function gorgeAt(x: number, z: number): number {
   const line = EXPANSION_SOUTH.ravine.line;
   let best = 0;
@@ -585,7 +647,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       if (at) fairyBuf.push(at);
     }
     lastGust = o.wind?.uniforms.uGust.value ?? 0.4;
-    ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, occlude: (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -696,10 +758,14 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       canopy,
       gorge,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
+      // the flames' world positions, as the fairies' already were. A harness cannot ask "is there
+      // anything in this world you could stand behind" without knowing where the sources are, and
+      // `pods` was only ever a count.
+      podSpots: gatherPods(o.scene).map((p) => [Number(p.x.toFixed(2)), Number(p.y.toFixed(2)), Number(p.z.toFixed(2))] as [number, number, number]),
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [] }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
@@ -802,6 +868,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         pods,
         fairies,
         enclosure: options.enclosure ?? spot.enclosure,
+        occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(options.at!.x, options.at!.z, ox, oz),
         canopy: options.canopy ?? spot.canopy,
         gorge: options.gorge ?? spot.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
@@ -815,7 +882,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, enclosure: options.enclosure, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, enclosure: options.enclosure, occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure });
   }
   ambience?.scheduleUntil(seconds);
