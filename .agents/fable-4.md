@@ -526,3 +526,5 @@ nearCanopy, materials, index otherwise) is edited.
   equal); small-tier walk 0 px at five poses with 228 evictions. Heap measured: 171 MB (large, A) / 107 MB (small, after the
   walk) = 1.6× the pool's bytes (72 wide parts keep colours/wind Float32). The trim (b0a05eb5) did not fire (live > half the
   reserve). Next: two batches by layout (narrow / wide) to reach the pool's own bytes.
+- 2026-09-25 11:30 — two-layout batch measured (169 vs 171 MB at A) and reverted; PR #117 = the trim + the wide-parts audit
+  count. The heap stands as inherent (~1.2–1.5× the giants' resident bytes); the flag is the lever. INBOX 11:30.

@@ -76,3 +76,10 @@ ranges, so one uniform layout cannot narrow them) and the reserve carries 1.25 �
 the parts that compact, a wide one for the 72 — would put the heap near the pool's own bytes at the cost of a second draw; that is
 the follow-up. A trim that compacts and gives the reserve back after evictions (commit `b0a05eb5`) did not fire on this walk (the
 live set stayed over half the reserve) and is kept for longer walks.
+
+## The two-layout split, measured and reverted (11:25)
+
+Two batches by attribute layout — a narrow one for the parts whose colours and wind compact, a wide one for the 72 that do
+not — at camera A on the large tier: narrow 249 parts / 1.85 M vertices / 134 MB + wide 37 / 285 K / 35 MB = **169 MB against
+171 MB with one batch**. The index (Uint32, a third of the bytes) and the reserve's slack are the weight, not the two Float32
+attributes. Reverted (`3eaa576b`); the trim stays (PR #117). The batch's heap is inherent: ~1.2–1.5 × the giants' resident bytes.
