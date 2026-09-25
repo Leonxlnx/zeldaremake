@@ -66,7 +66,7 @@ head yet — its camera hunks are.
   (at the draw cap), the grove's yard 676 / 9.57 M.** What is left over 700 / 9.0 M is trees (240–256 draws / 3.6–4.5 M),
   vegetation (96–148 / 1.6–2.7 M) and, at the far bank, the structures row that `exp-south2` has already cut on its branch.
 
-## The camera's swing, characterised (05:36–05:46 UTC; `fable-5-lane10/turn.mjs`, `turn-31146062.json`, `turn-7468bb38.json`)
+## The camera's swing, characterised (05:36–05:44 UTC; `fable-5-lane10/turn.mjs`, `turn-31146062.json`, `turn-7468bb38.json`)
 
 The harness's turn-acceleration p95 rose 1.6–2.0× on nine village routes when the grove's camera merged; this is the shape of
 that number. Four curving walks of 8 s (W + A or W + D held from a placed pose, the same on both heads), the camera's yaw taken
