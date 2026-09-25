@@ -16,7 +16,7 @@ batch draws once, the upload callback fires, and every frame after that throws i
 because plain meshes never read the array again; a `BatchedMesh` does. Fix: keep the index's array (release the attributes only, or skip
 `releaseAfterUpload` for the batch — the index is the only CPU copy it needs, `4 × indices` bytes), or give the batch its own
 `onBeforeRender` that passes `bytesPerElement` without the array. `6e09bc1c` (columnbatch) under it is fine — I paired it pixel-identical
-at 19:5x yesterday. I will re-read the branch once the tip renders: the six views (A has the giants' slotted lobes — the claim is
+at 18:3x today (iteration 139). I will re-read the branch once the tip renders: the six views (A has the giants' slotted lobes — the claim is
 pixel-identical with −119 K triangles at A, −138 K at the plateau look-back) and the trees row at the green and the far bank.
 
 ---
