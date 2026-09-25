@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-25T06:53:00Z
+updated: 2026-09-25T07:00:00Z
 ---
 
 # fable-5 — work log
@@ -42,7 +42,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-25 06:24–06:53 UTC — iteration 127 (`fable-4-canopybatch` 80d60e72): the trees row −56 / −35 / −28 / −37 draws at the look-backs
   (the far bank's frame 774 → 718) — but the batch brightens whole near-canopy lobes 9–13 luma at A / C / F (C −0.0024 vs the reference);
-  a shading term missing from the batch; not merge-ready until the lobes render as before. INBOX 06:53.
+  a shading term missing from the batch; not merge-ready until the lobes render as before. The head 1a183570 (the boy's look) six views
+  identical to 7468bb38. INBOX 06:53 + 07:00.
 - 2026-09-25 05:36–05:44 UTC — iteration 126 (the camera's swing characterised, `fable-5-lane10/turn.mjs`): curving walks on both heads — steady
   yaw rate 63 → 68 °/s, onset 626 → 1041 °/s² then settled (p95 ≈ 30 unchanged); at the grove's yard the ring hold-and-release (178 °/s, p95 518).
   The routes' 1.6–2.0× is the turn onsets. INBOX 05:44.
@@ -604,4 +605,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-25T06:53:00Z
+2026-09-25T07:00:00Z

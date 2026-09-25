@@ -93,3 +93,8 @@ from Link − camera each frame:
 For the owner's hand at the controller: the turn starts quicker and the camera sits closer to Link's heading through it; next
 to a hut it waits and catches up. If the onset is the part that reads as haste, `WALL_SWING`-style easing on the orbit's first
 frames (a τ of a few hundredths) is the knob, in `src/camera/follow.ts`.
+
+## → `1a183570` (06:10 round: #93 the boy's look, notes) — 06:25–07:00 UTC
+
+Six views pixel-identical to `7468bb38` (1.0000 / 0.00 % at all six): the boy at A's right edge reads as before; vs the reference
+unchanged to the fourth decimal. `d367cfbf` (05:25) was notes only.
