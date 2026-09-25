@@ -111,6 +111,37 @@ const groveFrames = () => {
     hutWalkDeg: (Math.atan2(G.rope.b[1] - G.hut.c[1], G.rope.b[0] - G.hut.c[0]) * 180) / Math.PI,
   };
 };
+/**
+ * layout.ts EXPANSION_EAST (the east lane): the tall house's trunk and door bearing with its side
+ * deck (`tallDeck`, in the trunk's frame as `eastDeckPlan` builds it), the lookout's three rope
+ * runs, the stumps and the bench, the three trunks, and walk spots on the lane, its spurs and the
+ * doorstep
+ */
+const EAST = {
+  tall: { c: [48.6, -1.6], facingDeg: -84 },
+  deck: { a: 1.5, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.4, railStop: 0.25, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
+  fence: [[45.3, 8.85], [46.6, 8.75], [47.9, 8.7], [49.2, 8.75], [50.3, 8.55]],
+  westRun: [[44.15, 8.95], [42.9, 9.0], [41.6, 9.0], [40.3, 8.85], [38.95, 8.45]],
+  eastRun: [[50.97, 7.8], [50.93, 6.72], [50.84, 5.86]],
+  anchors: [{ x: 44.72, z: 8.98, r: 0.5 }, { x: 50.88, z: 8.36, r: 0.5 }, { x: 50.78, z: 5.3, r: 0.45 }],
+  bench: [48.3, 7.55],
+  trunks: [{ id: 'shop', c: [40.0, -7.0], r: 3.0 }, { id: 'tall', c: [48.6, -1.6], r: 3.0 }, { id: 'small', c: [37.2, 6.0], r: 2.1 }],
+  walks: [[33.7, -4.45], [42.6, -0.3], [43.2, 4.6], [47.2, 7.25], [44.3, -1.1], [35.96, 2.14]],
+};
+const eastFrames = () => {
+  const D = EAST.deck;
+  const f = rad(EAST.tall.facingDeg);
+  const F = [Math.sin(f), Math.cos(f)];
+  const R = [F[1], -F[0]];
+  const d = [F[0] * Math.cos(D.a) + R[0] * Math.sin(D.a), F[1] * Math.cos(D.a) + R[1] * Math.sin(D.a)];
+  const t = [d[1], -d[0]];
+  return {
+    /** `out` m off the tall trunk's axis on the deck's side, `along` its tangent (+ = the ladder end) */
+    at: (out, along) => [EAST.tall.c[0] + d[0] * out + t[0] * along, EAST.tall.c[1] + d[1] * out + t[1] * along],
+    walkD: D.outer - 0.06 - D.railStop - D.walkHw,
+    stepD: (D.stepInner + D.stepOuter) / 2,
+  };
+};
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
   const dx = f.dir[0] / l;
@@ -778,6 +809,63 @@ async function walkScenario(page, results) {
     results.northProbes = await northProbes(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
+  if (!pickRoutes || ['stairs-to-east-lookout', 'east-tall-deck', 'east-small-door'].some((r) => pickRoutes.has(r))) {
+    results.eastProbes = await eastProbes(page);
+    fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  }
+}
+
+/**
+ * The east lane's built walks hold Link and its edges stop him: the tall house's deck strip (at the
+ * deck's height, well over the ground) and its plank steps; its outer and far railings and the rail
+ * beside the steps' head; the lookout's three rope runs on their line and a step short of it on the
+ * bench's side, open half a metre in; the stumps round their feet; where a run meets a stump or the
+ * small house's pad; the three trunks; and walk spots on the lane, its spurs and the doorstep.
+ */
+async function eastProbes(page) {
+  const E = EAST;
+  const D = E.deck;
+  const ef = eastFrames();
+  const probes = [];
+  for (const along of [-1.2, 0, 1.0]) probes.push({ where: 'deck', a: along, c: ef.walkD, at: ef.at(ef.walkD, along), expect: 'deck' });
+  for (const u of [0.25, 0.75]) probes.push({ where: 'deck-steps', a: -D.half - D.stepRun * u, c: ef.stepD, at: ef.at(ef.stepD, -D.half - D.stepRun * u), expect: 'walk' });
+  for (const along of [-1.0, 0, 1.0]) probes.push({ where: 'deck-outer-rail', a: along, c: D.outer - 0.06, at: ef.at(D.outer - 0.06, along), expect: 'blocked' });
+  for (const out of [2.9, 3.4, 3.9]) probes.push({ where: 'deck-far-rail', a: D.half, c: out, at: ef.at(out, D.half), expect: 'blocked' });
+  probes.push({ where: 'deck-step-rail', a: -D.half, c: 3.0, at: ef.at(3.0, -D.half), expect: 'blocked' });
+  for (const [name, run] of [['fence', E.fence], ['west-run', E.westRun], ['east-run', E.eastRun]]) {
+    for (let i = 0; i + 1 < run.length; i++) {
+      const [ax, az] = run[i];
+      const [bx, bz] = run[i + 1];
+      const l = Math.hypot(bx - ax, bz - az);
+      let nx = (bz - az) / l;
+      let nz = -(bx - ax) / l;
+      if ((E.bench[0] - ax) * nx + (E.bench[1] - az) * nz < 0) (nx = -nx), (nz = -nz);
+      const mx = (ax + bx) / 2;
+      const mz = (az + bz) / 2;
+      probes.push({ where: `${name}-rope`, a: i, c: 0, at: [mx, mz], expect: 'blocked' });
+      probes.push({ where: `${name}-step-short`, a: i, c: 0.2, at: [mx + nx * 0.2, mz + nz * 0.2], expect: 'blocked' });
+      probes.push({ where: `${name}-inside`, a: i, c: 0.6, at: [mx + nx * 0.6, mz + nz * 0.6], expect: 'walk' });
+    }
+  }
+  for (const s of E.anchors) for (const t of [0, 90, 180, 270]) probes.push({ where: 'stump', a: t, c: s.r + 0.2, at: [s.x + Math.cos(rad(t)) * (s.r + 0.2), s.z + Math.sin(rad(t)) * (s.r + 0.2)], expect: 'blocked' });
+  const mid = (p, q, u = 0.5) => [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
+  const [west, east, inland] = E.anchors.map((s) => [s.x, s.z]);
+  const small = E.trunks.find((t) => t.id === 'small');
+  probes.push({ where: 'fence-west-end', a: 0, c: 0, at: mid(E.fence[0], west), expect: 'blocked' });
+  probes.push({ where: 'fence-east-end', a: 0, c: 0, at: mid(E.fence[E.fence.length - 1], east), expect: 'blocked' });
+  probes.push({ where: 'west-run-stump-end', a: 0, c: 0, at: mid(E.westRun[0], west), expect: 'blocked' });
+  probes.push({ where: 'east-run-stump-end', a: 0, c: 0, at: mid(E.eastRun[0], east), expect: 'blocked' });
+  probes.push({ where: 'east-run-inland-end', a: 0, c: 0, at: mid(E.eastRun[E.eastRun.length - 1], inland), expect: 'blocked' });
+  probes.push({ where: 'west-run-house-end', a: 0, c: 0, at: mid(E.westRun[E.westRun.length - 1], small.c, 0.15), expect: 'blocked' });
+  for (const t of E.trunks) probes.push({ where: `trunk-${t.id}`, a: 0, c: t.r * 0.5, at: [t.c[0] + t.r * 0.5, t.c[1]], expect: 'blocked' });
+  for (const p of E.walks) probes.push({ where: 'lane', a: 0, c: 0, at: p, expect: 'walk' });
+  const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
+  const rows = probes.map((p, i) => {
+    const g = got[i];
+    const ok = p.expect === 'blocked' ? g.blocked === true : p.expect === 'deck' ? g.blocked === false && g.walk - g.terrain > 0.8 : g.blocked === false;
+    return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ok };
+  });
+  return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }
 
 /**
