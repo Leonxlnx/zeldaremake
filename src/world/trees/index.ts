@@ -2071,12 +2071,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     private vertices = 0;
     private indices = 0;
     private instances = 0;
-    constructor(material: Material, maxInstances = 96, maxVertices = 300_000, maxIndices = 900_000) {
+    constructor(material: Material, lane: string, maxInstances = 96, maxVertices = 300_000, maxIndices = 900_000) {
       this.maxInstances = maxInstances;
       this.maxVertices = maxVertices;
       this.maxIndices = maxIndices;
       this.mesh = new BatchedMesh(maxInstances, maxVertices, maxIndices, material);
-      this.mesh.name = 'giant-near-canopy-batch';
+      this.mesh.name = `giant-near-canopy-batch-${lane}`;
       this.mesh.castShadow = false;
       this.mesh.receiveShadow = true;
       this.mesh.frustumCulled = false;
@@ -2160,20 +2160,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
   const IDENTITY_M4 = new Matrix4();
-  const nearCanopyBatch = NEAR_CANOPY_BATCHED ? new NearCanopyBatch(mats.giantTreeNearCanopy) : null;
+  /**
+   * Two batches by attribute layout (round 54, the heap): a part whose colours and wind fit the
+   * compaction's ranges narrows fully (Uint8 colours, Uint16 wind, Int8 normals — the per-mesh
+   * layout it always had) and goes in the NARROW batch; the ~70 parts with values outside those
+   * ranges keep Float32 colours / wind in the WIDE batch. One batch had to keep every part Float32
+   * (1.6 × the pool's bytes on the heap: 171 MB at A on the large tier, 107 MB on the small after a
+   * walk); two put the heap at the pool's own bytes for one more draw.
+   */
+  const nearCanopyBatches = NEAR_CANOPY_BATCHED ? { narrow: new NearCanopyBatch(mats.giantTreeNearCanopy, 'narrow'), wide: new NearCanopyBatch(mats.giantTreeNearCanopy, 'wide') } : null;
+  type BatchLane = 'narrow' | 'wide';
   /** a pooled part that lives in `nearCanopyBatch`: the built copy goes in on install and its own arrays are dropped; on uninstall the part leaves the batch */
-  const batchPoolItem = (id: string, batch: NearCanopyBatch, record: { shown: boolean; batchIds: { geomId: number; instId: number } | null; vertices: number }, first: BufferGeometry, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void, firstBuilt = true, estimatedBytes = 0): [PoolItem<GeometryBuilt>, GeometryBuilt | null] => {
-    // one layout across every part (the batch's rule): normals compact to Int8 as every part's
-    // always did (they are always in range, so the shading matches the per-mesh parts to the bit);
-    // colours and wind stay Float32, whose compaction was per part. The pool counts the bytes the
-    // full compaction would have left, so its admission matches the per-mesh parts'.
+  const batchPoolItem = (id: string, batches: { narrow: NearCanopyBatch; wide: NearCanopyBatch }, record: { shown: boolean; batchIds: { lane: BatchLane; geomId: number; instId: number } | null; vertices: number }, first: BufferGeometry, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void, firstBuilt = true, estimatedBytes = 0): [PoolItem<GeometryBuilt>, GeometryBuilt | null] => {
+    // one layout per batch: a part whose colours and wind fit the compaction's ranges compacts
+    // fully (the layout every per-mesh part had) and goes in the narrow batch; one that does not
+    // compacts its normals only (always in range, so the shading matches to the bit) and goes in
+    // the wide one. The pool's bytes are the per-mesh compaction's either way.
+    const lanes = new WeakMap<BufferGeometry, BatchLane>();
     const wrap = (geometry: BufferGeometry): GeometryBuilt => {
       const bytes = compactedBytes(geometry);
-      if (bytes !== compactedBytes(geometry, true)) batch.wideParts++;
-      compactAttributes(geometry, 'normal');
+      const narrow = bytes === compactedBytes(geometry, true);
+      if (narrow) compactAttributes(geometry);
+      else {
+        compactAttributes(geometry, 'normal');
+        batches.wide.wideParts++;
+      }
+      lanes.set(geometry, narrow ? 'narrow' : 'wide');
       return { geometry, bytes, dispose: () => geometry.dispose() };
     };
-    let live: { ids: { geomId: number; instId: number }; vertices: number; indices: number } | null = null;
+    let live: { ids: { lane: BatchLane; geomId: number; instId: number }; vertices: number; indices: number } | null = null;
     const item: PoolItem<GeometryBuilt> = {
       id,
       bytes: estimatedBytes,
@@ -2185,18 +2200,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       install: (b) => {
         const vertices = b.geometry.getAttribute('position').count;
         const indices = b.geometry.index ? b.geometry.index.count : vertices;
-        const ids = batch.add(b.geometry);
+        const lane = lanes.get(b.geometry) ?? 'wide';
+        const ids = { lane, ...batches[lane].add(b.geometry) };
         live = { ids, vertices, indices };
         record.batchIds = ids;
         record.vertices = vertices;
-        batch.setVisible(ids.instId, record.shown);
+        batches[lane].setVisible(ids.instId, record.shown);
         // the batch holds the only copy that draws; the part's own arrays go now, not at eviction
         for (const name of Object.keys(b.geometry.attributes)) b.geometry.deleteAttribute(name);
         b.geometry.setIndex(null);
         b.geometry.dispose();
       },
       uninstall: () => {
-        if (live) batch.remove(live.ids, live.vertices, live.indices);
+        if (live) batches[live.ids.lane].remove(live.ids, live.vertices, live.indices);
         live = null;
         record.batchIds = null;
         record.vertices = 0;
@@ -2240,7 +2256,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** drawn this frame (the mesh's `visible`, or the batch instance's) */
     shown: boolean;
     /** the part's place in `nearCanopyBatch` while resident there */
-    batchIds: { geomId: number; instId: number } | null;
+    batchIds: { lane: 'narrow' | 'wide'; geomId: number; instId: number } | null;
     /** the resident buffers' vertex count (a batched part's; a mesh's is read from its geometry) */
     vertices: number;
     triangles: number;
@@ -2892,7 +2908,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ------------------------------------------------------------------ giants
   const giantGroup = new Group();
   giantGroup.name = 'giants';
-  if (nearCanopyBatch) giantGroup.add(nearCanopyBatch.mesh);
+  if (nearCanopyBatches) giantGroup.add(nearCanopyBatches.narrow.mesh, nearCanopyBatches.wide.mesh);
   const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
   /** the contacts of the giants seated on the live ground (`southSeat` below), for the base-gap audit */
@@ -2993,8 +3009,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         item: null as unknown as PoolItem<GeometryBuilt>,
       };
       let first: GeometryBuilt | null;
-      if (nearCanopyBatch) {
-        [nc.item, first] = batchPoolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, nearCanopyBatch, nc, part.geometry, part.build, finalize, !part.deferred, part.estimatedBytes);
+      if (nearCanopyBatches) {
+        [nc.item, first] = batchPoolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, nearCanopyBatches, nc, part.geometry, part.build, finalize, !part.deferred, part.estimatedBytes);
       } else {
         const mesh = new Mesh(part.geometry, mats.giantTreeNearCanopy);
         mesh.name = `giant-near-canopy-${g.def.id}-${part.kind}-${i}`;
@@ -4155,7 +4171,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const shown = shownPersistent.includes(nc) || shownLobes.includes(nc) || shownLimbs.includes(nc);
       nc.shown = shown;
       if (nc.mesh) nc.mesh.visible = shown;
-      else if (nc.batchIds && nearCanopyBatch) nearCanopyBatch.setVisible(nc.batchIds.instId, shown);
+      else if (nc.batchIds && nearCanopyBatches) nearCanopyBatches[nc.batchIds.lane].setVisible(nc.batchIds.instId, shown);
     }
     // the incumbents the next update ranks with NEAR_CANOPY_KEEP (see byRank)
     shownLastFrame.clear();
@@ -4256,7 +4272,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
     for (const nc of nearCanopies) if (nc.mesh) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
-    if (nearCanopyBatch) add(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
+    if (nearCanopyBatches) {
+      add(family('giant-near-canopy-batch'), nearCanopyBatches.narrow.mesh);
+      add(family('giant-near-canopy-batch'), nearCanopyBatches.wide.mesh);
+    }
     if (detachedGroup.visible) for (const m of detachedMeshes) add(family(m.userData.kind as string), m);
     const total = tally();
     for (const t of Object.values(byFamily)) {
@@ -4587,7 +4606,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         residentVertices: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? (nc.mesh ? nc.mesh.geometry.getAttribute('position').count : nc.vertices) : 0), 0),
         residentBytes: nearCanopyPool.poolBytes,
         /** round 54: the giants' parts' batch — its instances and the buffers it holds (reserved, in vertices / indices) with the heap those buffers take */
-        batch: nearCanopyBatch ? { ...nearCanopyBatch.stats, heapBytes: nearCanopyBatch.heapBytes } : null,
+        batch: nearCanopyBatches ? { narrow: { ...nearCanopyBatches.narrow.stats, heapBytes: nearCanopyBatches.narrow.heapBytes }, wide: { ...nearCanopyBatches.wide.stats, heapBytes: nearCanopyBatches.wide.heapBytes }, heapBytes: nearCanopyBatches.narrow.heapBytes + nearCanopyBatches.wide.heapBytes } : null,
         /** Measured bytes after a first build; deferred records retain conservative estimates. */
         builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
         estimatedUnbuiltBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? 0 : nc.item.bytes), 0),
@@ -4710,7 +4729,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // the many; the bases take what is left, at least a chunk's worth so they never starve)
       const t0 = performance.now();
       nearCanopyPool.work(NEAR_LOD_BUILD_BUDGET_MS);
-      nearCanopyBatch?.trim();
+      nearCanopyBatches?.narrow.trim();
+      nearCanopyBatches?.wide.trim();
       nearBasePool.work(Math.max(0.5, NEAR_LOD_BUILD_BUDGET_MS - (performance.now() - t0)));
     },
     onCameraMove(camera) {
