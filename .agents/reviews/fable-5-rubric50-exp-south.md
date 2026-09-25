@@ -216,3 +216,32 @@ The frame at the south sill **863 → 810 → 731 draws / 10.48 → 9.48 → 9.3
 caps by 31 draws / 0.32 M, all of it the head's trees and vegetation (`fable-5-lane10-lookback-costs.md` §86e9b380). The log's
 dead end looking back 695 / 9.75 M, the bridge's south end 719 / 9.03 M. **#46 ★ stays 2 by the letter, and the branch has done
 its share** — the rest of the bill is rows 2 and 4.
+
+## Re-read of `exp-south2` @ `205efbfe` / `30f90b6d` (16:53–16:56 — the head merged with the grove in it, the waystation's back wall to 1.65 m) — 17:35–18:05 UTC
+
+**The camera decision was taken on this branch: the grove's mechanism.** The merged `follow.ts` carries `ringGoal` / `RING_IN` and no
+`wallSwing`; `system.ts` has `CameraWall[]` and no `cameraCylinders`; the keeper's hut publishes `cameraWalls: CameraWall[]` ("one exact
+round wall, added to the camera solids' `walls`"). One type, one steering, as the 16:40 note asked. On the merged build
+(`walk-south2-30f90b6d.json`):
+
+| route | result | pops > 0.3 m | turn accel p95 |
+| --- | --- | --- | --- |
+| `south-dwellings` | 23 / 23, 0 stuck | **0.38 m** at (5.4, −0.3, 30.6) — the gallery's 3.86 m stays shut under the ring alone | 731 → **917** (the grove's swing, now at the keeper's hut) |
+| `north-grove` | 28 / 28 | 0.36 (the trunk house's door) — the head's | 909 |
+| `west-house-to-plaza` | 5 / 5 | 0.51 — the head's | 924 |
+| `south-bridge-to-log` | 21 / 21 | none | 893 |
+
+Probes 41 / 41, 36 / 36, 64 / 64. **The branch's own 16-spot camera check: 2 not ok** (16 / 16 at `066144ad`) — `waystation-floor`
+facing *out* and *south*, the camera 0.69 m from Link, Link off-screen. The frames (`it138-waystation-camera-ba.jpg`, `86e9b380` →
+`30f90b6d`): facing east the raise works — the camera stands outside the waystation and frames Link through its open front where at
+1.30 m it was pinned at 0.6 m against the boards; facing south and facing west the camera still stops 0.6–0.7 m behind him under the
+roof, Navi at the lens, Link out of frame — on both builds facing south. The waystation is a 2 × 2 m floor with a back wall and a roof;
+the ≈ 1.2 m pull-in floor is the fix here as at the veranda, the gallery (`gallery-back` still 0.6 m) and the ruins' stair.
+
+**Caps at the far bank: 618 draws / 9.26 M** — the head's three payments (−137) with this branch's structures cut (−87 → 171 → 84)
+on top: **under the draw cap by 82**, 0.26 M over the triangles. The look-back is paid on the draws; the triangles are the head's trees
+and vegetation.
+
+**Scores:** #44 3 (the gallery shut; the waystation's two headings and the standing cases keep it from 4), **#46 ★ 2 → 3** (the far
+bank under 700; the triangles the head's), the rest as before. **The camera hunks that blocked this merge are resolved on the branch;
+it is the first of the three to merge cleanly against the grove's camera.**
