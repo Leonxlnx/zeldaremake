@@ -31,3 +31,7 @@ the resting gaze). `before-after-stair-foot-play-frame.jpg` — the full play fr
 Unchanged by construction: `drive()` returns before the seat branch under capture (`if (view) return false`), and
 `noticeFor` returns without a player (capture passes none) — the six frames never run either path. A captured on
 the branch as a smoke test: see the line below.
+
+| view | branch `43b88869` vs the head capture | draws / tris |
+| --- | --- | --- |
+| A | byte-identical (`cmp`) to `7468bb38`'s A — so also across #89–#95, which sit between that head and this branch's base | 628 / 8.97 M |
