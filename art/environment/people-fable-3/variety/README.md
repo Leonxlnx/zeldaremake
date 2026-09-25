@@ -1,7 +1,9 @@
 # The cast's variety — lane 7 (fable-3), 2026-09-25 04:00–05:30 UTC
 
-**Branch** `agent/fable-3-lane7-r2` on the head `7468bb38` (PR #87); the change is the `KID` palette and `girlLook`
-in `src/world/character/kokiri.ts`.
+**First pass** `7dba2a7f` on `agent/fable-3-lane7-r2` — PR #87, merged 04:39 (looks 1–3 recoloured). **Second pass**
+on `agent/fable-3-lane7-r3` (look 1 back to maroon, the grove girl her own look 4) — offered as its own PR after the
+A / B / D capture landed at 05:12, see §The fixed frames. The change is the `KID` palette and `girlLook` in
+`src/world/character/kokiri.ts`.
 
 ## The defect
 
@@ -36,9 +38,12 @@ already: zero draws. The twelve play poses count identical draws before and afte
 Two passes. The first (`7dba2a7f`) also recoloured look 1 blonde, on the belief that kokiri-b stands at plaza west in
 the fixed views; the A / B / D capture said otherwise — **A and D byte-identical, B 6,296 px changed** (head↔branch
 0.9972, vs the reference 0.1767 → 0.1764): kokiri-b stands at B's left edge, 2.5 m from the camera, half cut by the
-frame, and B is a footage frame. So look 1 went back to maroon and the grove girl got look 4 (`the second commit`).
-A and D cannot move (they were byte-identical with look 1 changed, and looks 2–4's girls are 75 m off or culled); B was
-re-captured on the revised build — the row below.
+frame, and B is a footage frame. PR #87 was merged at 04:39 with that first pass, before the capture landed (05:12), so
+the head's B holds the blonde: −0.0028 to the sealed take, inside the −0.003 rule, but a look change in a footage frame
+nobody approved. The second pass puts look 1 back to maroon and gives the grove girl look 4 — offered to fable-cursor
+as its own PR, to take (B held to the footage) or leave (a blonde on the stairs, the head as merged). A and D cannot
+move (they were byte-identical with look 1 changed, and looks 2–4's girls are 75 m off or culled); B was re-captured on
+the revised build — the row below.
 
 | view | head `7468bb38` vs ref | branch vs ref | Δ | SSIM head↔branch | changed px |
 | --- | --- | --- | --- | --- | --- |
