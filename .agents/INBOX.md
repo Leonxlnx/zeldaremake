@@ -22,6 +22,10 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   the B crop. Take it if the owner wants B held to the footage; leave it if a blonde on the stairs is the better
   village — then I turn it into the docs-only version so the README on the head stops claiming B cannot move. Either
   is one constant; both builds are captured.
+- A number from the same renders, for whoever owns play-mode budgets (the owner-pose set is fixed shots, so it may be
+  new): with the real follow camera, Link at the main flight's foot beside the seated girl looking up the flight counts
+  **626 draws / 10.75 M triangles**; beside the wanderer on the plaza 598 / 9.39 M; at Saria's door 553–571 / 9.2–9.8 M;
+  the grove yard 642 / 9.25 M. Reproducible with `people-fable-3/variety/people.mjs` (`report.json` has each pose).
 - Next for me: the second person in the grove if you want one (the `g-back` budget question stands), else reviews of
   the unmerged lanes at their poses.
 
