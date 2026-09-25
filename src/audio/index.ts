@@ -596,6 +596,16 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let gorge = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
   let peakAir = 0;
+  /**
+   * The flames' world positions, gathered once.
+   *
+   * `stats()` is a diagnostic a harness polls every frame, and this used to traverse the whole
+   * scene on every call — 0.33 ms against a 2.6 ms simulation frame, for an answer that cannot
+   * change: a pod lantern is a fixture. Cached on first ask.
+   */
+  let podSpotCache: [number, number, number][] | null = null;
+  const podSpots = (): [number, number, number][] => (podSpotCache ??= gatherPods(o.scene).map((p) => [Number(p.x.toFixed(2)), Number(p.y.toFixed(2)), Number(p.z.toFixed(2))] as [number, number, number]));
+
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
   emit();
 
@@ -761,7 +771,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       // the flames' world positions, as the fairies' already were. A harness cannot ask "is there
       // anything in this world you could stand behind" without knowing where the sources are, and
       // `pods` was only ever a count.
-      podSpots: gatherPods(o.scene).map((p) => [Number(p.x.toFixed(2)), Number(p.y.toFixed(2)), Number(p.z.toFixed(2))] as [number, number, number]),
+      podSpots: podSpots(),
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 }),
