@@ -1,0 +1,221 @@
+{
+ "local": {
+  "parts": 0,
+  "withArrays": 0,
+  "minY": null,
+  "maxY": null,
+  "scales": []
+ },
+ "rows": [
+  {
+   "name": "A_stairs",
+   "draws": 614,
+   "trisM": 8.967,
+   "objects": 1,
+   "shownBefore": 1,
+   "drawsWithout": 614,
+   "trisMWithout": 8.967,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2643297,
+    "residentMB": 139.5,
+    "batch": {
+     "instances": 302,
+     "vertices": 2265452,
+     "indices": 7469979,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 306.1,
+    "cpuByChild": {
+     "white-bark": 30.6,
+     "understory": 0.5,
+     "columns": 61.1,
+     "giants": 213.3,
+     "giant-detached-boughs": 0.4,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "green-west",
+   "draws": 687,
+   "trisM": 9.923,
+   "objects": 1,
+   "shownBefore": 1,
+   "drawsWithout": 686,
+   "trisMWithout": 9.829,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2699656,
+    "residentMB": 142.4,
+    "batch": {
+     "instances": 310,
+     "vertices": 2321811,
+     "indices": 7646298,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 291.7,
+    "cpuByChild": {
+     "white-bark": 23.3,
+     "understory": 0.5,
+     "columns": 56.9,
+     "giants": 210.8,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "lookout-fence-west",
+   "draws": 684,
+   "trisM": 9.966,
+   "objects": 1,
+   "shownBefore": 1,
+   "drawsWithout": 683,
+   "trisMWithout": 9.902,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2735680,
+    "residentMB": 144.3,
+    "batch": {
+     "instances": 314,
+     "vertices": 2357835,
+     "indices": 7759158,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 279.8,
+    "cpuByChild": {
+     "white-bark": 13.6,
+     "understory": 0.2,
+     "columns": 56.2,
+     "giants": 209.6,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "plateau-lookback-south",
+   "draws": 576,
+   "trisM": 9.073,
+   "objects": 1,
+   "shownBefore": 1,
+   "drawsWithout": 576,
+   "trisMWithout": 9.073,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2789892,
+    "residentMB": 147.1,
+    "batch": {
+     "instances": 320,
+     "vertices": 2412047,
+     "indices": 7930230,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 271.3,
+    "cpuByChild": {
+     "white-bark": 13.6,
+     "understory": 0.2,
+     "columns": 47.7,
+     "giants": 209.6,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "owner-0650-north",
+   "draws": 497,
+   "trisM": 9.013,
+   "objects": 1,
+   "shownBefore": 1,
+   "drawsWithout": 496,
+   "trisMWithout": 9.008,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2843046,
+    "residentMB": 149.9,
+    "batch": {
+     "instances": 327,
+     "vertices": 2465201,
+     "indices": 8096376,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 264.5,
+    "cpuByChild": {
+     "white-bark": 13.1,
+     "columns": 44,
+     "giants": 207.3,
+     "distant": 0.1
+    }
+   }
+  }
+ ]
+}
