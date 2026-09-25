@@ -905,25 +905,7 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
     c.updateProjectionMatrix();
     assert.equal(L.frustumMeets(c, spheres), false, `${v.id}: the east lane (and its shadow) is outside the frustum`);
   }
-  // Beyond EAST_MID_M of the green the houses' feet draw only while `eastFootSeen`. F, on the plaza
-  // looking up the stair bank, sees over the plateau's lip to the doors' and windows' heads (the
-  // ground hides the small house to ≈ 1.4 m over its floor, the shop to ≈ 2.4 m, the tall house to
-  // ≈ 3.4 m), so the feet draw in F; the lip hides them all from the plain in its lee south of the
-  // plaza. From the plateau (the stairway's head, the lookout) and from high over the plaza they
-  // show. `eastFootSeen` only grows with the tops (the sightline to a higher point passes over the
-  // one to a lower point), so 2 m bounds every door's and window's head from below, 4 m from above.
   const at = (p) => ({ x: p[0], y: p[1], z: p[2] });
-  const footSeen = (p, top) => E.eastFootSeen(at(p), groundAt, EXPANSION_EAST.houses.map(() => top));
-  for (const v of LAYOUT.viewpoints.filter((w) => w.id.startsWith('F_'))) {
-    assert.ok(Math.hypot(v.position[0] - E.EAST_GREEN.x, v.position[2] - E.EAST_GREEN.z) > E.EAST_MID_M, `${v.id} is beyond EAST_MID_M of the green`);
-    assert.equal(footSeen(v.position, 2.0), true, `${v.id}: the houses' feet show over the plateau's lip`);
-  }
-  for (const [x, z] of [[2, -28], [0, -30], [4, -26], [0, -26], [4, -30]]) {
-    const p = [x, groundAt(x, z) + 1.6, z];
-    assert.ok(Math.hypot(x - E.EAST_GREEN.x, z - E.EAST_GREEN.z) > E.EAST_MID_M, `${fmt(x, z)} is beyond EAST_MID_M of the green`);
-    assert.equal(footSeen(p, 4.0), false, `the plateau's lip hides the houses' feet from ${fmt(x, z)} (eye height)`);
-  }
-  for (const p of [[17.4, 6.95, -7.5], [49.6, 7.25, 8.9], [-10, 30, 20]]) assert.equal(footSeen(p, 2.0), true, `the houses' feet show from ${fmt(p[0], p[2])} (${p[1]} m up)`);
   // Nothing of the lane draws beyond EAST_SEEN_M of every trunk with the eye under EAST_OVER_Y:
   // every fixed camera and the owner's poses (the plaza, the north path, the south bridge and far
   // bank, the north's rise 55 m off) are out of reach; the lane's own poses, the stairway's foot and

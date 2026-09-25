@@ -12,7 +12,6 @@
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
 import { EAST_BOX, EXPANSION_EAST, eastDeckPlan, eastSteppingStones, type EastHouse } from '../layout';
 import { casterSpheres, frustumMeets, type Caster } from './expansionLocality';
-import { groundHides } from './sight';
 
 /** beyond this distance from the lane's box nothing of it draws (haze) */
 export const EAST_VISIBLE_M = 70;
@@ -27,14 +26,6 @@ export const EAST_SEEN_M = 35;
 export const EAST_OVER_Y = 6.5;
 /** a house's detail (cap tufts and plants, trunk moss, lichen, the room) draws within this distance of its trunk */
 export const EAST_DETAIL_M = 34;
-/**
- * the houses' feet and the lane's built extras (the counter's woodwork, the sign, the deck, the
- * posts, the lookout) always draw within this distance of the green — everywhere on the plateau and
- * on the plain under its south lip — and beyond it while `eastFootSeen` (the ground alone lets the
- * plaza see over the lip to the doors' heads, but the plaza is out of EAST_SEEN_M; the lip's lee on
- * the plain south of the plaza sees none)
- */
-export const EAST_MID_M = 40;
 /** the green between the three houses, the centre the lane's distance rules measure from */
 export const EAST_GREEN = { x: 44.5, z: 3.5 };
 
@@ -162,39 +153,6 @@ export function eastPostCasters(groundAt: (x: number, z: number) => number): Cas
 
 export function eastSpheres(casters: Caster[], sunDir: Vector3): Sphere[] {
   return casters.flatMap((c) => casterSpheres(c, sunDir));
-}
-
-/** a house's floor: the ground at its door's step (structures/east.ts `siteOf`) */
-export function eastHouseFloor(h: EastHouse, heightAt: (x: number, z: number) => number): number {
-  const f = (h.facingDeg * Math.PI) / 180;
-  return heightAt(h.x + Math.sin(f) * h.radius * 1.15, h.z + Math.cos(f) * h.radius * 1.15);
-}
-
-/** per house: angle off the bearing to the camera, radius × R, at the base's top (else the roots' tips 0.5 m up) */
-const FOOT_SIGHT: [number, number, boolean][] = [
-  [0, 1.1, true],
-  [0.9, 1.1, true],
-  [-0.9, 1.1, true],
-  [0, 2.0, false],
-];
-
-/**
- * Whether the camera at `from` sees any house's foot past the ground: a ray to its bark toward the
- * camera and 0.9 rad either side at `tops[i]` m over its floor (the head of its door or window —
- * everything lower on that side is behind the same ground), or to its roots' tips on the ground
- * toward the camera. Only grows with `tops` (a higher point's sightline passes over a lower one's).
- * The plateau's lip hides them all from its lee on the plain south of the plaza (x −2…6, z −31…−24
- * at eye height); camera F, on the plaza, sees over it.
- */
-export function eastFootSeen(from: { x: number; y: number; z: number }, heightAt: (x: number, z: number) => number, tops: number[]): boolean {
-  return EXPANSION_EAST.houses.some((h, i) => {
-    const floor = eastHouseFloor(h, heightAt);
-    const toCam = Math.atan2(from.x - h.x, from.z - h.z);
-    return FOOT_SIGHT.some(([off, r, top]) => {
-      const a = toCam + off;
-      return !groundHides(from, h.x + Math.sin(a) * h.radius * r, floor + (top ? tops[i] : 0.5), h.z + Math.cos(a) * h.radius * r, heightAt);
-    });
-  });
 }
 
 const _m = new Matrix4();

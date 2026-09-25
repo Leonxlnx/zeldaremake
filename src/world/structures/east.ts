@@ -17,24 +17,21 @@
  * railing, the posts and the bench are walls in the live structure mask (heightfield.ts).
  *
  * Tiers (structures/index.ts consolidates each group on its own and calls `update`):
- *  - `core`: the houses' trunks and caps — one bucket per material across the lane, drawn when the
- *    lane is in reach (`eastInReach`: within EAST_VISIBLE_M of its box, and within EAST_SEEN_M of
- *    a trunk unless the eye is over EAST_OVER_Y — no fixed camera is) and the frustum meets its
- *    casters or their shadows;
- *  - `base`: the houses' roots, porches, thresholds, door and window frames and the counter's niche
- *    (everything that closes an opening in a trunk), with `core` while the camera is within
- *    EAST_MID_M of the green or the terrain lets it see a house's foot (`eastFootSeen`: the lip's
- *    lee on the plain sees none);
- *  - `rooms` (the room shells, with `base`) and `rooms-near` (their furniture, lamps, embers and
+ *  - `core`: everything but the moss tufts and the rooms — the houses' trunks, caps, roots, porches,
+ *    frames, pods and plants, the counter, sign, crates and goods, the deck, the posts, the lookout's
+ *    fence, stumps and bench, the light pools — one bucket per material across the lane, drawn when
+ *    the lane is in reach (`eastInReach`: within EAST_VISIBLE_M of its box, and within EAST_SEEN_M
+ *    of a trunk unless the eye is over EAST_OVER_Y — no fixed camera is) and the frustum meets its
+ *    casters or their shadows. Every pose that has the lane in reach under EAST_OVER_Y is on the
+ *    plateau or looking up at it from the stairway, where the houses' feet and the lane's built
+ *    things show, so they share the trunks' buckets (a tier of their own costs a draw per material
+ *    twice over, colour and shadow);
+ *  - `near`: the cap and trunk moss tufts and the foot moss round the stumps, bench and posts (a
+ *    third of the lane's triangles, casting nothing), with `core` within EAST_DETAIL_M of any
+ *    trunk or of the green;
+ *  - `rooms` (the room shells, with `core`) and `rooms-near` (their furniture, lamps, embers and
  *    plants, with `near`), only while the camera can see through a doorway: from the lookout and
- *    the green every door is turned away or seen too far off its axis;
- *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence, stumps
- *    and bench, with `core` when the frustum meets them, within EAST_MID_M of the green or while
- *    the terrain lets the camera see one of their own tops;
- *  - `near`: the close detail (the houses' cap tufts and plants, trunk moss and lichen, pods, goods,
- *    crates and flowers, the posts' pods and plants, the lookout's foot moss, the light pools) — one
- *    group across the lane, so one bucket per material — within EAST_DETAIL_M of any trunk or of
- *    the green, with `core`.
+ *    the green every door is turned away or seen too far off its axis.
  *
  * Own rng forks (structures / 'east' / …), after every existing stream: nothing built before moves.
  */
@@ -73,9 +70,8 @@ import {
 import { EXPANSION_EAST, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
 import { applyShadeFloor } from '../materials/shadeFloor';
 import type { WalkSurface, WorldContext } from '../system';
-import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_OVER_Y, EAST_SEEN_M, EAST_VISIBLE_M, eastFootSeen, eastHouseCasters, eastInReach, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
+import { EAST_DETAIL_M, EAST_GREEN, EAST_OVER_Y, EAST_SEEN_M, EAST_VISIBLE_M, eastHouseCasters, eastInReach, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
 import { frustumMeets, sunVector, type Caster } from '../util/expansionLocality';
-import { seesAny } from '../util/sight';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { buildFence, ropeTube, type FenceBuild } from './fence';
@@ -96,10 +92,8 @@ type RGB = [number, number, number];
 
 const UP = new Vector3(0, 1, 0);
 
-/** a house's parts that draw only near it (names from house.ts; foliage builders by prefix) */
-const HOUSE_NEAR = /^(roof-tufts|trunk-moss-tufts|trunk-lichen|lantern-peg|lantern-hanger)$|^house-.+-(tufts|flowers)$|^house(21|40|41)-.+$/;
-/** a house's parts at the foot of its trunk, no higher than its window's head (names from house.ts) */
-const HOUSE_BASE = /^(roots|roots-arch|porch|threshold|door-frame|window-frame|window-socket)$/;
+/** the moss tufts that draw only near the lane: the caps' and trunks' (house.ts) and the foot moss round the stumps, bench and posts */
+const EAST_TUFTS = /^(roof-tufts|trunk-moss-tufts)$|-foot-moss$/;
 /** a house's room and what stands in it — seen through the doorway alone (the round window is a closed glowing socket) */
 const HOUSE_ROOM = /^(interior|interior-props|interior-furnishing|interior-rug|door-lamp|door-lamp-cord|door-embers|door-ember-glow|room47-(leaves|vines|tufts|flowers))$/;
 /**
@@ -596,8 +590,6 @@ function buildLightPools(lights: PoolLight[], ctx: WorldContext, trunks: { x: nu
 export interface EastBuild {
   group: Group;
   core: Group;
-  base: Group;
-  mid: Group;
   near: Group;
   walk: WalkSurface[];
   bases: P3[];
@@ -615,13 +607,9 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   group.name = 'structures-east';
   const core = new Group();
   core.name = 'structures-east-core';
-  const base = new Group();
-  base.name = 'structures-east-base';
-  const mid = new Group();
-  mid.name = 'structures-east-mid';
-  // the posts' pods and plants and the lookout's foot moss, gathered here until `near` is assembled
+  // the posts' pods and plants and the lookout's foot moss, gathered here until the tiers are assembled
   const lane = new Group();
-  group.add(core, base, mid);
+  group.add(core);
   const lanterns: LanternRig[] = [];
   const walk: WalkSurface[] = [];
   const bases: P3[] = [];
@@ -636,10 +624,6 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const goods = applyShadeFloor(new MeshStandardMaterial({ vertexColors: true, roughness: 0.66 }), { lift: 4, texture: 1.0, canopy: 0.6, albedo: 0.12, chroma: 0.8 });
   goods.name = 'structures:east-goods';
   owned.push(goods);
-  // the counter's lit back wall: the window sockets' glow, vertex-tinted
-  const glow = mats.windowGlow.clone() as MeshBasicMaterial;
-  glow.vertexColors = true;
-  owned.push(glow);
 
   // ---- the three houses ----
   const sites = EXPANSION_EAST.houses.map((h) => siteOf(h, ctx));
@@ -837,7 +821,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const niche = new BoxGeometry(W + 0.04, H + 0.04, zF - zB);
     place(niche, 0, (y0 + y1) / 2, (zF + zB) / 2);
     const nicheMesh = meshOf('east-counter-niche', mats.interior, [niche], false);
-    if (nicheMesh) base.add(nicheMesh);
+    if (nicheMesh) core.add(nicheMesh);
     // its back wall lit by an unseen lamp (dim, warm, brightest low left behind the goods)
     const back = new PlaneGeometry(W * 0.96, H * 0.94, 16, 10);
     const bp = back.attributes.position;
@@ -848,8 +832,20 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       return [g, g * 0.93, g * 0.85];
     });
     place(back, 0, (y0 + y1) / 2, zB + 0.014);
+    // the window sockets' vertex-tinted glow: their lane material (`shareRooms`), so the wall rides
+    // in their bucket (an unlit material: receiving shadows is part of the merge key and nothing else)
+    let glow = roomShared.get(`window-glow|${mats.windowGlow.uuid}`);
+    if (!glow) {
+      const own = mats.windowGlow.clone() as MeshBasicMaterial;
+      own.vertexColors = true;
+      owned.push(own);
+      glow = own;
+    }
     const backMesh = meshOf('east-counter-glow', glow, [back], false);
-    if (backMesh) base.add(backMesh);
+    if (backMesh) {
+      backMesh.receiveShadow = false;
+      core.add(backMesh);
+    }
     // a shelf across the niche with jars dark against the glow
     wood.push(place(board(W - 0.02, 0.24, 0.03, rC.fork('shelf'), noise, [0.55, 0.48, 0.38]), 0, y0 + 0.4, zB + 0.13));
     const shelfGoods: BufferGeometry[] = [];
@@ -915,7 +911,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       wood.push(pole([foot, foot.clone().lerp(top, 0.5), top], 0.02, 0.018, noise, 7 + side));
     }
     const woodMesh = meshOf('window-frame', mats.fenceWood, wood);
-    if (woodMesh) mid.add(woodMesh);
+    if (woodMesh) core.add(woodMesh);
     // goods on the counter: two pots, a basket of fruit, a bundle of roots
     const onTop = y0 + 0.004;
     const zg = outMax + 0.2;
@@ -1156,11 +1152,11 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       cords.push(ring);
     }
     const bm = meshOf('signpost-wood', mats.fenceWood, wood);
-    if (bm) mid.add(bm);
+    if (bm) core.add(bm);
     const pm = meshOf('fence-east-sign', mats.bark, bark);
-    if (pm) mid.add(pm);
+    if (pm) core.add(pm);
     const cm = meshOf('fence-east-sign-rope', rope, cords);
-    if (cm) mid.add(cm);
+    if (cm) core.add(cm);
     bases.push([S.x, gy, S.z]);
     return { post: [S.x, +gy.toFixed(3), S.z] as P3, boardCentre: [+bc.x.toFixed(2), +bc.y.toFixed(2), +bc.z.toFixed(2)] as P3, strokes: strokes.length, carvedVertices: carved };
   })();
@@ -1297,11 +1293,11 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const lf = L(lb.x, lg, lb.z);
     bases.push([lf.x, lf.y, lf.z]);
     const wm = meshOf('fence-east-deck', mats.fenceWood, wood);
-    if (wm) mid.add(wm);
+    if (wm) core.add(wm);
     const bm = meshOf('fence-east-deck-posts', mats.bark, [...bark, ...rails]);
-    if (bm) mid.add(bm);
+    if (bm) core.add(bm);
     const rm = meshOf('fence-east-deck-rope', rope, ropeBits);
-    if (rm) mid.add(rm);
+    if (rm) core.add(rm);
     // the character's ground: the strip along the deck and the flight
     const deckY = s.floor + top;
     const bottomY = terrain.height(plan.steps.bottom[0], plan.steps.bottom[1]) + 0.03;
@@ -1409,7 +1405,8 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const near0 = near[smallI];
     const wm = meshOf('fence-east-flower-boxes', mats.fenceWood, wood);
     if (wm) near0.add(wm);
-    const sm = meshOf('east-flower-box-soil', goods, soil, false);
+    // (it casts, into its own box, so it rides in the goods' bucket)
+    const sm = meshOf('east-flower-box-soil', goods, soil);
     if (sm) near0.add(sm);
     for (const m of foliage.build(mats, 'east-flower-boxes')) near0.add(m);
     return built;
@@ -1427,7 +1424,9 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       lightsDropped++;
     }
     for (const child of [...pb.group.children]) {
-      if ((child as Mesh).isMesh && !/-(leaves|vines|tufts|flowers)$/.test(child.name)) mid.add(child);
+      // the lashing takes the sun like the lookout's ropes, whose bucket it joins
+      if (child.name === 'lantern-post-rope') child.receiveShadow = true;
+      if ((child as Mesh).isMesh && !/-(leaves|vines|tufts|flowers)$/.test(child.name)) core.add(child);
       else lane.add(child);
     }
     lanterns.push(...pb.lanterns);
@@ -1438,15 +1437,15 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   // ---- the lookout: the rope fence on the lip and a split-log bench facing back over the lane ----
   const lookout = EXPANSION_EAST.lookout;
   const fence: FenceBuild = buildFence({ id: 'east-lookout', style: 'rope', points: lookout.fence }, ctx, mats, rng.fork('lookout-fence'), rope);
-  for (const m of fence.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
+  for (const m of fence.meshes) (/-foot-moss$/.test(m.name) ? lane : core).add(m);
   bases.push(...fence.bases);
   // the rope run on from beside the west stump to the small house's back roots (layout `lookout.westRun`)
   const westRun: FenceBuild = buildFence({ id: 'east-lookout-west', style: 'rope', points: lookout.westRun }, ctx, mats, rng.fork('lookout-fence-west'), rope);
-  for (const m of westRun.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
+  for (const m of westRun.meshes) (/-foot-moss$/.test(m.name) ? lane : core).add(m);
   bases.push(...westRun.bases);
   // and the rope turned inland from the east stump to the third (layout `lookout.eastRun`)
   const eastRun: FenceBuild = buildFence({ id: 'east-lookout-east', style: 'rope', points: lookout.eastRun }, ctx, mats, rng.fork('lookout-fence-east'), rope);
-  for (const m of eastRun.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
+  for (const m of eastRun.meshes) (/-foot-moss$/.test(m.name) ? lane : core).add(m);
   bases.push(...eastRun.bases);
   // the ropes' anchors (layout `lookout.anchors`): felled trees' stumps beside the runs' end posts,
   // sawn off at waist height — a flared, buttressed foot with three surface roots, a checked top with
@@ -1675,13 +1674,13 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       };
     });
     const bm = meshOf('fence-east-lookout-stumps', mats.logBark, bark);
-    if (bm) mid.add(bm);
+    if (bm) core.add(bm);
     const cm = meshOf('fence-east-lookout-stump-tops', mats.endGrain, cuts, false);
-    if (cm) mid.add(cm);
+    if (cm) core.add(cm);
     const sm = meshOf('fence-east-lookout-stump-splinters', mats.fenceWood, splinters);
-    if (sm) mid.add(sm);
+    if (sm) core.add(sm);
     const rm = meshOf('fence-east-lookout-tie-rope', rope, cords);
-    if (rm) mid.add(rm);
+    if (rm) core.add(rm);
     const tb = buildMossTufts(tufts, new Noise3D(rng.fork('stump-tuft-noise')), { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
     if (tb.count > 0) {
       const tm = new Mesh(tb.geometry, mats.capMoss);
@@ -1778,11 +1777,11 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       tufts.push(...footMoss(ctx, new Vector3(p.x, g0, p.z), rB.fork(`moss/${side}`), { postRadius: 0.16, count: 18, size: [0.018, 0.04], color: [0.32, 0.44, 0.09], favour: [0.62, 0.78] }));
     }
     const bm = meshOf('fence-east-bench', mats.logBark, bark);
-    if (bm) mid.add(bm);
+    if (bm) core.add(bm);
     const fm = meshOf('fence-east-bench-seat', mats.fenceWood, face);
-    if (fm) mid.add(fm);
+    if (fm) core.add(fm);
     const em = meshOf('fence-east-bench-ends', mats.endGrain, ends, false);
-    if (em) mid.add(em);
+    if (em) core.add(em);
     const tb = buildMossTufts(tufts, new Noise3D(rB.fork('tuft-noise')), { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
     if (tb.count > 0) {
       const tm = new Mesh(tb.geometry, mats.capMoss);
@@ -1813,7 +1812,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     return built;
   })();
 
-  // ---- sort each house's parts into core, base, near and the rooms ----
+  // ---- sort each house's parts into core, near and the rooms ----
   /** the rooms' lamps: pods on the doorway-fogged clone, not the eaves' orange or lime */
   const roomPivots = new Set<Object3D>();
   for (const hb of houses) {
@@ -1826,28 +1825,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   rooms.name = 'structures-east-rooms';
   const roomsNear = new Group();
   roomsNear.name = 'structures-east-rooms-near';
-  let movedBase = 0;
   let movedRoom = 0;
-  houses.forEach((hb, i) => {
-    for (const child of [...hb.group.children]) {
-      const m = child as Mesh;
-      if (roomPivots.has(child) || (m.isMesh && HOUSE_ROOM.test(m.name))) {
-        (m.name === 'interior' ? rooms : roomsNear).add(child);
-        movedRoom++;
-      } else if (!m.isMesh || HOUSE_NEAR.test(m.name)) {
-        near[i].add(child);
-        movedNear++;
-      } else if (HOUSE_BASE.test(m.name)) {
-        base.add(child);
-        movedBase++;
-      }
-    }
-    for (const child of [...hb.group.children]) core.add(child);
-  });
-  group.add(rooms, roomsNear);
-  // the lane's close detail as one tier: the houses stand within 13 m of each other and of the green
-  // (every pose on the lane is within EAST_DETAIL_M of all three), and the shared-material buckets —
-  // cap and foot moss, pods, hangers, foliage, goods — merge across the lane
   const countTris = (root: Object3D) => {
     let n = 0;
     root.traverse((o) => {
@@ -1856,14 +1834,40 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     });
     return n;
   };
-  const nearTris = near.map(countTris);
+  // the moss tufts as one tier across the lane: the houses stand within 13 m of each other and of
+  // the green (every pose on the lane is within EAST_DETAIL_M of all three), so the caps', trunks'
+  // and feet's cushions merge into one bucket
   const detail = new Group();
   detail.name = 'structures-east-near';
+  const nearTris = houses.map(() => 0);
+  houses.forEach((hb, i) => {
+    for (const child of [...hb.group.children]) {
+      const m = child as Mesh;
+      if (roomPivots.has(child) || (m.isMesh && HOUSE_ROOM.test(m.name))) {
+        (m.name === 'interior' ? rooms : roomsNear).add(child);
+        movedRoom++;
+      } else if (m.isMesh && EAST_TUFTS.test(m.name)) {
+        // house.ts gives the trunks' tufts a bucket of their own (renderOrder is in the merge key)
+        // for the village's culling; the lane's three trunks stand in one bucket's sphere anyway
+        m.renderOrder = 0;
+        nearTris[i] += tri(m.geometry);
+        detail.add(child);
+        movedNear++;
+      } else if (m.isMesh) {
+        // the lichen lies flat on the bark and the threshold slab flat on the ground: their shadows
+        // are the width of their own relief, and each would cost the shadow pass a draw of its own;
+        // the pods' hangers take the sun like the window frames they share a bucket with
+        if (m.name === 'trunk-lichen' || m.name === 'threshold') m.castShadow = false;
+        if (m.name === 'lantern-hanger') m.receiveShadow = true;
+      }
+    }
+    for (const child of [...hb.group.children]) core.add(child);
+  });
   for (const g of [...near, lane]) {
-    for (const child of [...g.children]) detail.add(child);
+    for (const child of [...g.children]) (EAST_TUFTS.test(child.name) ? detail : core).add(child);
     g.removeFromParent();
   }
-  group.add(detail);
+  group.add(rooms, roomsNear, detail);
 
   // ---- visibility: casters (with their sun shadows) per tier ----
   const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
@@ -1871,51 +1875,9 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const groundAt = (x: number, z: number) => terrain.height(x, z);
   const laneCasters: Caster[] = [...eastLookoutCasters(groundAt), ...eastPostCasters(groundAt)];
   const coreSpheres: Sphere[] = eastSpheres([...houseCasters.flat(), ...laneCasters], sunToward);
-  const midSpheres: Sphere[] = eastSpheres([...laneCasters, ...houseCasters[tallI].slice(1), houseCasters[shopI][0]], sunToward);
-  /**
-   * The plateau's lip hides the lane's ground-level work from its lee on the plain south of the
-   * plaza. Beyond EAST_MID_M of the green, `base` draws only while the terrain lets the camera see a
-   * house's foot (eastLane.ts `eastFootSeen`, up to the head of its door or window); whatever the
-   * ground hides casts its shadow onto ground the camera cannot see either. Re-tested when the
-   * camera has moved 0.3 m.
-   */
-  const baseTops = houses.map((hb) => Math.max(hb.door.height + 0.3, hb.window.height + hb.window.radius + 0.25));
-  const heightAt = (x: number, z: number) => terrain.height(x, z);
-  /**
-   * `mid` (the deck, the lookout, the posts, the sign) spreads over the plateau away from the doors,
-   * so beyond EAST_MID_M it goes by its own tops: the highest vertex of its geometry in each
-   * MID_CELL-m plan square, tested at the square's point nearest the camera (a camera below the lip
-   * sees that one first). From F the lip hides them all.
-   */
-  const MID_CELL = 1.5;
-  const midCells: { x: number; z: number; y: number }[] = [];
-  {
-    const cells = new Map<string, { x: number; z: number; y: number }>();
-    const v = new Vector3();
-    mid.updateMatrixWorld(true);
-    mid.traverse((o) => {
-      const m = o as Mesh;
-      if (!m.isMesh) return;
-      const pos = m.geometry.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
-        const cx = Math.floor(v.x / MID_CELL);
-        const cz = Math.floor(v.z / MID_CELL);
-        const c = cells.get(`${cx},${cz}`);
-        if (!c) cells.set(`${cx},${cz}`, { x: cx * MID_CELL, z: cz * MID_CELL, y: v.y });
-        else if (v.y > c.y) c.y = v.y;
-      }
-    });
-    midCells.push(...cells.values());
-  }
-  const midPoints = midCells.map(() => new Vector3());
-  const midTopsFrom = (p: Vector3) => {
-    midCells.forEach((c, i) => midPoints[i].set(clamp(p.x, c.x, c.x + MID_CELL), c.y, clamp(p.z, c.z, c.z + MID_CELL)));
-    return midPoints;
-  };
   /**
    * The rooms show through their doorways alone (the round window is a closed glowing socket, the
-   * counter's niche a closed box): they draw, with `base` and `near`, while a sight line from the
+   * counter's niche a closed box): they draw, with `core` and `near`, while a sight line from the
    * camera through a door's opening clears its porch mouth (ROOM_MOUTH), in plan — or while the
    * camera is inside a trunk. From the lookout and the green every door is turned away or seen
    * past 80° off its axis, down a porch it cannot see into.
@@ -1947,28 +1909,15 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       return w0 * (1 - t) + w * t <= w1 + wide && w1 * (1 - t) + w * t >= w0 - wide;
     });
   let roomsFaced = true;
-  let seenFrom: Vector3 | null = null;
-  let seen = true;
-  let midSeen = true;
-  let sightTests = 0;
   const _p = new Vector3();
   const update = (camera: Camera) => {
     camera.getWorldPosition(_p);
     const on = eastInReach(_p) && frustumMeets(camera, coreSpheres);
     const toGreen = Math.hypot(_p.x - EAST_GREEN.x, _p.z - EAST_GREEN.z);
-    const close = toGreen < EAST_MID_M;
-    if (on && !close && (!seenFrom || seenFrom.distanceToSquared(_p) > 0.09)) {
-      seen = eastFootSeen(_p, heightAt, baseTops);
-      midSeen = seesAny(_p, midTopsFrom(_p), heightAt);
-      seenFrom = (seenFrom ?? new Vector3()).copy(_p);
-      sightTests++;
-    }
     core.visible = on;
-    base.visible = on && (close || seen);
-    mid.visible = on && (close || midSeen) && frustumMeets(camera, midSpheres);
     detail.visible = on && (toGreen < EAST_DETAIL_M || sites.some((s) => Math.hypot(_p.x - s.h.x, _p.z - s.h.z) < EAST_DETAIL_M));
     roomsFaced = doorFaces(_p);
-    rooms.visible = base.visible && roomsFaced;
+    rooms.visible = on && roomsFaced;
     roomsNear.visible = detail.visible && roomsFaced;
   };
 
@@ -1998,7 +1947,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       podMeshes.push(mesh);
     }
     const out = { before: 0, after: 0, merged: 0 };
-    for (const g of [core, base, mid, detail, rooms, roomsNear]) {
+    for (const g of [core, detail, rooms, roomsNear]) {
       const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern');
       out.before += r.before;
       out.after += r.after;
@@ -2018,22 +1967,20 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   /**
    * Shadow proxies (shadowProxy.ts) for the lane's big smooth casters, per tier and material (null =
    * the tier's baked pods). The caps' moss and pale branches cluster on 12 cm (the cap's relief is
-   * 0.4–3 m across: 99.9 % of its vertices lie within 1.7 cm of the proxy, none 3 cm out), the cap
-   * vines on 5 cm, the deck's, counter's, sign's and frames' wood, the ropes, the posts' bark, the
-   * crates and the goods on 8 cm, the pods on 4 cm (≤ 2.5 cm out). The trunks, roots, eave bands and
-   * leaves keep their own triangles in the shadow pass: at a cell that saves a third, their cords and
-   * blades stray past the bias.
+   * 0.4–3 m across: 99.9 % of its vertices lie within 1.7 cm of the proxy, none 3 cm out), the
+   * vines on 5 cm, the deck's, counter's, crates' and frames' wood, the ropes and the goods on 8 cm,
+   * the pods on 4 cm (≤ 2.5 cm out). The trunks, roots, eave bands and leaves keep their own
+   * triangles in the shadow pass: at a cell that saves a third, their cords and blades stray past
+   * the bias — and the sign's post and arm with them, in the trunks' bark bucket.
    */
   const PROXY_CELLS: [Object3D, Material | null, number][] = [
     [core, mats.capMoss, 0.12],
     [core, mats.barkPale, 0.12],
     [core, mats.vine, 0.05],
-    [mid, mats.fenceWood, 0.08],
-    [mid, rope, 0.08],
-    [mid, mats.bark, 0.08],
-    [detail, mats.fenceWood, 0.08],
-    [detail, goods, 0.08],
-    [detail, null, 0.04],
+    [core, mats.fenceWood, 0.08],
+    [core, rope, 0.08],
+    [core, goods, 0.08],
+    [core, null, 0.04],
   ];
   const proxies: { tier: string; name: string; fine: number; coarse: number; cell: number }[] = [];
 
@@ -2059,15 +2006,13 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       nearVisible: detail.visible,
     })),
     pointLightsDropped: lightsDropped,
-    /** the dropped eaves and post lights' ground pools (drawn with `near`) */
+    /** the dropped eaves and post lights' ground pools (drawn with `core`) */
     lightPools: { lights: pools.audit, triangles: pools.mesh ? tri(pools.mesh.geometry) : 0, gain: POOL.gain, maxLift: POOL.max, fade: POOL.fade },
     /** the rooms' per-house clones swapped for one lane material per kind (and how many kinds) */
     roomMaterialSwaps: roomSwaps,
     roomMaterials: roomShared.size,
     partsMovedNear: movedNear,
-    partsMovedBase: movedBase,
     partsMovedRoom: movedRoom,
-    baseTops: baseTops.map((t) => +t.toFixed(2)),
     counter: counterAudit,
     crates: crateAudit,
     sign: signAudit,
@@ -2083,8 +2028,6 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     /** the casters the shadow pass draws from a coarser triangle list (shadowProxy.ts), and the shadow triangles that saves when all of them cast */
     shadowProxies: { casters: proxies, saved: proxies.reduce((n, p) => n + p.fine - p.coarse, 0) },
     coreTriangles: countTris(core),
-    baseTriangles: countTris(base),
-    midTriangles: countTris(mid),
     nearTriangles: countTris(detail),
     roomTriangles: countTris(rooms),
     roomNearTriangles: countTris(roomsNear),
@@ -2093,19 +2036,13 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     /** and, with the eye under `overY`, within `withinM` of a trunk (util/eastLane.ts EAST_SEEN_M) */
     seen: { withinM: EAST_SEEN_M, overY: EAST_OVER_Y },
     detailWithinM: EAST_DETAIL_M,
-    midWithinM: EAST_MID_M,
     coreVisible: core.visible,
-    baseVisible: base.visible,
-    baseSeenByTerrain: seen,
-    midSeenByTerrain: midSeen,
-    midCells: midCells.length,
-    sightTests,
-    midVisible: mid.visible,
+    nearVisible: detail.visible,
     /** a doorway's plane faces the camera (or the camera is in a trunk), and the rooms' tiers */
     roomsFaced,
     roomsVisible: rooms.visible,
     roomsNearVisible: roomsNear.visible,
   });
 
-  return { group, core, base, mid, near: detail, walk, bases, owned, consolidate, update, audit };
+  return { group, core, near: detail, walk, bases, owned, consolidate, update, audit };
 }
