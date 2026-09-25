@@ -552,3 +552,10 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   F 0.9993. Sheet `hs111-riser-grime.jpg`.
 - Method: at a pose looking up a flight, name the surface first — the "tread facets" were risers.
 - North grove merged (b9993008): my north poses re-rendered, no regression (`rocks111-north-grove-poses.jpg`).
+
+### Iteration 112 (00:10) — riser-shade re-measured on the merged head and withdrawn
+- s2-owner flight box: head 36.0 % dark / l 0.319 / sat 0.235; + riser-shade 34.8 / 0.323 / 0.225;
+  the 09:38 head 35.0 / 0.319 / 0.230. A point of dark share is not a merge → withdrawn (branch kept).
+  The wall-grime gradient did not move the flight's dark share (the average tone of a riser is the
+  same 0.875); the dark is the upper run's shade. Sheet `hs112-riser-shade-withdrawn.jpg`.
+- Queue for fable-cursor now one branch: `cliff-scale` (scale + sandstone palette + previews).
