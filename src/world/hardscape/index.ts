@@ -3,7 +3,7 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, InstancedMesh, Matrix4, Mesh, type Camera } from 'three';
+import { Group, InstancedMesh, Matrix4, Mesh, type BufferAttribute, type Camera } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES, southRouteSurface, surfaceMask } from '../terrain/heightfield';
@@ -1393,6 +1393,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }));
 
   let disposed = false;
+  // The CPU copies of the shading attributes go once the GPU has them (three's `onUpload` fires
+  // after the buffer is created; the rocks and the trees do the same): a slab vertex carries
+  // 72 bytes of normal / colour / uv / moss / stain / wear / crack / mottle / rough / earth beside
+  // its 12 of position, and nothing reads those arrays after the build. `position` (and any
+  // index) stays: character/ground.ts learns its slab and stair grids from the `flagstones*` and
+  // `stairs-*` meshes' positions, and a raycast reads them too.
+  {
+    const done = new Set<string>();
+    group.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh || !m.geometry || done.has(m.geometry.uuid)) return;
+      done.add(m.geometry.uuid);
+      for (const [name, attr] of Object.entries(m.geometry.attributes)) {
+        if (name === 'position') continue;
+        (attr as BufferAttribute).onUpload(dropArray as unknown as () => void);
+      }
+    });
+  }
+
   return {
     name: 'hardscape',
     group,
@@ -1446,3 +1465,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 function round(v: number) {
   return Math.round(v * 1000) / 1000;
 }
+
+/** `BufferAttribute.onUpload` callback: the CPU array is released once the GPU buffer exists */
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
