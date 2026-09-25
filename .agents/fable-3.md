@@ -604,3 +604,14 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the frames (the swing's inward extreme at the hair edge). 10 fps strip: turn, hand up, nod, wave, down.
   209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
 - Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.
+
+## 2026-09-25 18:20 tick — lane 9's south props against exp-south2's tip (PR #152, evidence only)
+
+- #144 merged 17:30 (`14fda29d` head): every kid greets — turn, nod, wave. The builders are merging the head this
+  hour, so lane 9's toll pile met exp-south2's keeper's hut (7.1, 31.9) and waystation (5.12, 25.95) for the first
+  time. Rendered `f2f6e793` vs the head at the pile, the lean-to and the far-bank log mouth, same cameras both
+  builds: nothing intersects — the crate and pot ≈ 1 m off the hut's wall in front of its door (0.5 m outside the
+  gallery's end by their numbers), the lean-to's floor short of the marker's post, the log-mouth pots identical but
+  for their rim vines. Props tests 1/1 and the suite 227/227 on their tip. `props-fable-3/south2-check/`. INBOX 18:55.
+- Lesson: a camera at the exact prop is often inside somebody's new structure — two of five cameras this round stood
+  in the giant's root flare and in the lean-to's opening; aim from the walked line, not from the coordinates.
