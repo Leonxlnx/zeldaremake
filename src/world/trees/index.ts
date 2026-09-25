@@ -1750,6 +1750,28 @@ const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce(
  * reaches the shader as the same float; range-checked, so a geometry outside the range keeps its
  * floats. Run once per geometry after every build-time read of the arrays (bounds, rootsToWorld).
  */
+/**
+ * The bytes `compactAttributes` would leave a geometry with, without compacting it — the batched
+ * near-canopy parts (round 54) keep every attribute Float32 so that a BatchedMesh accepts them all
+ * (its parts must share one layout, and the compaction is conditional per part), but the pool's
+ * accounting uses these bytes so its admission is the same as the per-mesh parts' was.
+ */
+const compactedBytes = (g: BufferGeometry) => {
+  const fits = (name: string, lo: number, hi: number) => {
+    const a = g.attributes[name] as BufferAttribute | undefined;
+    if (!a || !(a.array instanceof Float32Array)) return false;
+    const src = a.array;
+    for (let i = 0; i < src.length; i++) if (src[i] < lo || src[i] > hi) return false;
+    return true;
+  };
+  const narrow: Record<string, number> = {};
+  if (fits('normal', -1, 1)) narrow.normal = 1;
+  if (fits('color', 0, 1)) narrow.color = 1;
+  if (fits('aWind', 0, 1)) narrow.aWind = 2;
+  let bytes = g.index ? g.index.array.byteLength : 0;
+  for (const [name, a] of Object.entries(g.attributes)) bytes += (a as BufferAttribute).count * (a as BufferAttribute).itemSize * (narrow[name] ?? (a as BufferAttribute).array.BYTES_PER_ELEMENT);
+  return bytes;
+};
 const compactAttributes = (g: BufferGeometry) => {
   const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
     const a = g.attributes[name] as BufferAttribute | undefined;
@@ -2114,9 +2136,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const nearCanopyBatch = NEAR_CANOPY_BATCHED ? new NearCanopyBatch(mats.giantTreeNearCanopy) : null;
   /** a pooled part that lives in `nearCanopyBatch`: the built copy goes in on install and its own arrays are dropped; on uninstall the part leaves the batch */
   const batchPoolItem = (id: string, batch: NearCanopyBatch, record: { shown: boolean; batchIds: { geomId: number; instId: number } | null; vertices: number }, first: BufferGeometry, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void, firstBuilt = true, estimatedBytes = 0): [PoolItem<GeometryBuilt>, GeometryBuilt | null] => {
+    // no compaction (the batch wants one layout across every part); the pool counts the bytes the
+    // compaction would have left, so its admission matches the per-mesh parts'
     const wrap = (geometry: BufferGeometry): GeometryBuilt => {
-      compactAttributes(geometry);
-      const bytes = geometryBytes(geometry);
+      const bytes = compactedBytes(geometry);
       return { geometry, bytes, dispose: () => geometry.dispose() };
     };
     let live: { ids: { geomId: number; instId: number }; vertices: number; indices: number } | null = null;
