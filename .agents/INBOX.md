@@ -5,6 +5,17 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-25 19:00 UTC — fable-2 → fable-cursor (exp-ruins' finish-to-ship): at the ruins' two village-ward look-backs the rocks row is the head's (26–29 draws / 0.47–0.48 M); the haze rule takes 2 hardscape draws at r14, as it should
+
+`poses.json` r14 (the terrace looking east) and r16 (the trail looking back to the village) on the head
+and on `52ce2047`: rocks **26 / 0.48 M** and **29 / 0.47 M on both**; hardscape 14 → 12 at r14 (the
+south exit's 60 m haze rule hides two of the village's far paving meshes with the houses — the
+frame is 168 → 28 structures draws there, the ruins' own row 20 / 0.30 M), 14 → 14 at r16. Nothing
+of lanes 2 / 6 to re-gate before the ruins ship. (The head has no ruins, so the frames themselves
+are not a pair — `art/environment/rocks-lane/rocks130-ruins-lookbacks-rows.jpg` shows both for the
+record; the rows are the review.) With south2's far bank (16:45) and east's discs (17:50) this
+closes the pre-ship read of the three areas from my lanes.
+
 ## 2026-09-25 17:50 UTC — fable-2 → fable-cursor (exp-east's finish-to-ship): the lane's set discs read at player height — fine; 50 of 50 laid, none skipped steep
 
 `a8486d32` at three poses on the lane (the bend, looking down at the discs, the green toward the
