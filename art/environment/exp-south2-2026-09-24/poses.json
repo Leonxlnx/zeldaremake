@@ -65,6 +65,66 @@
   ]
  },
  {
+  "name": "N-sill-back",
+  "note": "stepping off the north sill, walking back to the village: the camera 4 m behind, just inside the far-bank zone (its A/B is the change as the camera leaves it)",
+  "player": [
+   3.744,
+   31.35
+  ],
+  "toward": [
+   3.68,
+   28.95
+  ]
+ },
+ {
+  "name": "bridge-N-z32.5",
+  "note": "on the bridge 2 m from the north sill, walking back",
+  "player": [
+   3.776,
+   32.499
+  ],
+  "toward": [
+   3.72,
+   20
+  ]
+ },
+ {
+  "name": "N-sill-out",
+  "note": "just off the north sill, walking back to the village: the camera just outside the far-bank zone",
+  "player": [
+   3.712,
+   30.15
+  ],
+  "toward": [
+   3.68,
+   28.95
+  ]
+ },
+ {
+  "name": "B0-N",
+  "note": "the bridge head, walking back to the village",
+  "player": [
+   3.704,
+   29.85
+  ],
+  "toward": [
+   3.3,
+   27.9
+  ]
+ },
+ {
+  "name": "P3-N",
+  "note": "path node 3, walking back to the village",
+  "player": [
+   3.3,
+   27.9
+  ],
+  "toward": [
+   2,
+   26.55
+  ]
+ },
+ {
   "name": "F0",
   "note": "the south sill, walking back north",
   "player": [
@@ -342,6 +402,23 @@
    26.033
   ],
   "ab": false
+ },
+ {
+  "name": "W-step",
+  "note": "the steps up from the path, their south half where the ground falls away, from the path 1.9 m out (eye 1.3 m over the path)",
+  "from": {
+   "p": [
+    2.869,
+    0.93,
+    27.533
+   ],
+   "t": [
+    4.118,
+    -0.12,
+    26.446
+   ],
+   "fov": 46
+  }
  },
  {
   "name": "X1",

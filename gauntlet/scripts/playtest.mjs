@@ -907,7 +907,7 @@ async function southProbes(page) {
  * exp-south2: the dwellings hold Link where they are built — the keeper's gallery walks at its
  * boards' height all round the gorge side, its railing, the hut and the gorge past the railing
  * block, both steps walk; the waystation's floor walks at its boards' height, its back wall, the
- * bench in front of it, its north wall and the firewood outside block, its step walks.
+ * bench in front of it, its north wall and the firewood outside block, both its steps walk.
  */
 async function southDwellingProbes(page) {
   const K = DWELLINGS.keeper;
@@ -927,6 +927,7 @@ async function southDwellingProbes(page) {
   for (const [a, s] of [[0, -0.95], [0.4, -0.95]]) probes.push({ where: 'waystation-north-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
   probes.push({ where: 'waystation-firewood', a: 0, s: -1.28, at: waystationAt(0, -1.28), expect: 'blocked' });
   probes.push({ where: 'waystation-step', a: 0.915, s: 0, at: waystationAt(0.915, 0), expect: 'step' });
+  for (const s of [-0.3, 0.3, 0.7]) probes.push({ where: 'waystation-step-low', a: 1.215, s, at: waystationAt(1.215, s), expect: 'step' });
   const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
   const rows = probes.map((p, i) => {
     const g = got[i];

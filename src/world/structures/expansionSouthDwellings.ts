@@ -13,7 +13,7 @@
  * The waystation by the path: a lean-to open to the path, a moss roof on five rafters over a
  * plank floor on two bearer logs, a palisade back wall with a round window and a propped shutter,
  * a half-height palisade north end, a bench, a basket, a walking stick, firewood stacked outside, a
- * pod under the front plate, a split-log step up from the path.
+ * pod under the front plate, split-log steps up from the path (two where the ground falls away).
  *
  * Every part is built at the identity transform on the shared materials and named for the play
  * camera's solids (cameraSolids.ts); structures/index.ts moves them into the south group before
@@ -139,7 +139,7 @@ export interface SouthDwellingsBuild {
       posts: number;
       rafters: number;
       pods: [number, number, number][];
-      step: { top: number[]; floorRiser: number[]; groundRiser: number[]; stumps: number };
+      step: { top: number[]; floorRiser: number[]; groundRiser: number[]; low: { top: number[]; riser: number[]; groundRiser: number[] }; stumps: number };
       /** the trunk seat whose root is the front-north post (null: a sawn post), where it leaves the bole, its corner at the ground, length (m), radii along it */
       root: { seat: string | null; bole: [number, number, number] | null; corner: [number, number, number] | null; length: number; radii: number[] };
       triangles: number;
@@ -1629,62 +1629,90 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     wPods.push(staticPod(hook, 0.08, S, ir.fork('pod'), 1.0));
   }
 
-  /** audit: the step's top and its risers at either end (m), the stumps under it */
-  const waystationStep = { top: [0, 0], floorRiser: [0, 0], groundRiser: [0, 0], stumps: 0 };
-  // ---- the step up from the path: a split log along the front, its top halfway between the
-  // ground in front of it and the floor at either end (the ground falls 0.33 m along it: two even
-  // risers of 0.2 m at the north end, 0.37 m at the south), on stumps where it clears the ground ----
+  /** audit: the steps' tops and risers at either end (m) — the upper log's, and the lower log's in front of its south part — and the stumps under them */
+  const waystationStep = { top: [0, 0], floorRiser: [0, 0], groundRiser: [0, 0], low: { top: [0, 0], riser: [0, 0], groundRiser: [0, 0] }, stumps: 0 };
+  // ---- the step up from the path: split logs along the front. The ground in front falls from 0.36 m
+  // under the floor at the north end to 0.73 m at the south, so the upper log's top parts that into
+  // even risers, two at the north end (0.18 m) and three at the south (0.24 m); the lower log in front
+  // of its south part takes the third (Link's feet cannot bridge a 0.36 m riser into ground falling
+  // away: one shoe sank 0.17 m into the log and the other hung 0.59 m over the ground). Both lie on
+  // stumps where they clear the ground ----
   {
     const sr = wRng.fork('step');
-    const SA = HD + 0.24;
-    const p = at(SA, -0.78, 0);
-    const q = at(SA, 0.58, 0);
-    const frontY = (s: number) => {
-      const g = at(SA + 0.17, s, 0);
+    const frontY = (a: number, s: number) => {
+      const g = at(a + 0.17, s, 0);
       return terrain.height(g.x, g.z);
     };
-    const tp = (frontY(-0.78) + FT) / 2;
-    const tq = (frontY(0.58) + FT) / 2;
+    const splitLog = (SA: number, s0: number, s1: number, t0: number, t1: number, label: string, seed: number) => {
+      const p = at(SA, s0, 0);
+      const q = at(SA, s1, 0);
+      const ax = q.clone().sub(p).setY(0);
+      const len = ax.length();
+      ax.normalize();
+      put(
+        'waystation-floor',
+        mats.bark,
+        gridSurface(
+          (u, v, o) => {
+            const ang = Math.PI * (1 + u);
+            const along = lerp(-0.04, len + 0.04, v);
+            o.position.copy(p).addScaledVector(ax, along).addScaledVector(F, Math.cos(ang) * 0.15);
+            o.position.y = lerp(t0, t1, clamp(along / len, 0, 1)) - 0.005 + Math.sin(ang) * 0.15 * 0.85;
+            o.uv = [(ang * 0.15) / 0.7, along / 0.7];
+            const d = 0.5 * lerp(0.7, 1.1, noise.ridged(ang * 3 + 11 + seed, along * 2.5, 2));
+            o.color = [d, d * 0.92, d * 0.82];
+          },
+          { cols: 8, rows: 8 },
+        ),
+      );
+      put('waystation-floor', mats.fenceWood, board({ centre: p.clone().lerp(q, 0.5).setY((t0 + t1) / 2), along: q.clone().setY(t1).sub(p.clone().setY(t0)), across: F, L: len + 0.08, w0: 0.27, w1: 0.27, t: 0.02, tone: 0.85, age: 0.35, moss: 0.3, board: 5 + seed, seed: 33 + seed, trodden: [0.6, 0.6] }, noise));
+      tuftSpecs.push(...footMoss(ctx, p.clone().setY(terrain.height(p.x, p.z)), sr.fork(`${label}m0`), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
+      tuftSpecs.push(...footMoss(ctx, q.clone().setY(terrain.height(q.x, q.z)), sr.fork(`${label}m1`), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
+      // the round underside reaches 0.13 m under the top
+      for (const k of [0.4, 0.85]) {
+        const c = p.clone().lerp(q, k);
+        const gy = terrain.height(c.x, c.z);
+        const topY = lerp(t0, t1, k) - 0.15 * 0.85 + 0.01;
+        if (gy > topY - 0.05) continue;
+        waystationStep.stumps++;
+        const foot = new Vector3(c.x, gy - 0.2, c.z);
+        const head = new Vector3(c.x, topY, c.z);
+        put('waystation-floor', mats.bark, barkPole([foot, head], 0.085, 0.08, noise, 620 + k * 10 + seed * 40, { moss: 0.5, groundY: gy, ts: 2, rs: 10 }));
+        capPole('waystation-floor', [foot, head], 2, 0.08, false, sr.fork(`${label}stump/${k}`));
+        tuftSpecs.push(...footMoss(ctx, new Vector3(c.x, gy, c.z), sr.fork(`${label}stump-moss/${k}`), { postRadius: 0.085, count: 7, color: FOOT_MOSS, favour: SHADE_SIDE }));
+        bases.push([c.x, gy, c.z]);
+      }
+    };
+    const SA = HD + 0.24;
+    const [s0, s1] = [-0.78, 0.58];
+    const tp = FT - (FT - frontY(SA, s0)) / 2;
+    const tq = FT - (FT - frontY(SA, s1)) / 3;
+    const upperTop = (s: number) => lerp(tp, tq, clamp((s - s0) / (s1 - s0), 0, 1));
     waystationStep.top = [+tp.toFixed(2), +tq.toFixed(2)];
     waystationStep.floorRiser = [+(FT - tp).toFixed(2), +(FT - tq).toFixed(2)];
-    waystationStep.groundRiser = [+(tp - frontY(-0.78)).toFixed(2), +(tq - frontY(0.58)).toFixed(2)];
-    const ax = q.clone().sub(p).setY(0);
-    const len = ax.length();
-    ax.normalize();
-    put(
-      'waystation-floor',
-      mats.bark,
-      gridSurface(
-        (u, v, o) => {
-          const ang = Math.PI * (1 + u);
-          const along = lerp(-0.04, len + 0.04, v);
-          o.position.copy(p).addScaledVector(ax, along).addScaledVector(F, Math.cos(ang) * 0.15);
-          o.position.y = lerp(tp, tq, clamp(along / len, 0, 1)) - 0.005 + Math.sin(ang) * 0.15 * 0.85;
-          o.uv = [(ang * 0.15) / 0.7, along / 0.7];
-          const d = 0.5 * lerp(0.7, 1.1, noise.ridged(ang * 3 + 11, along * 2.5, 2));
-          o.color = [d, d * 0.92, d * 0.82];
-        },
-        { cols: 8, rows: 8 },
-      ),
-    );
-    put('waystation-floor', mats.fenceWood, board({ centre: p.clone().lerp(q, 0.5).setY((tp + tq) / 2), along: q.clone().setY(tq).sub(p.clone().setY(tp)), across: F, L: len + 0.08, w0: 0.27, w1: 0.27, t: 0.02, tone: 0.85, age: 0.35, moss: 0.3, board: 5, seed: 33, trodden: [0.6, 0.6] }, noise));
-    tuftSpecs.push(...footMoss(ctx, p.clone().setY(terrain.height(p.x, p.z)), sr.fork('m0'), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
-    tuftSpecs.push(...footMoss(ctx, q.clone().setY(terrain.height(q.x, q.z)), sr.fork('m1'), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
-    // the round underside reaches 0.13 m under the top
-    for (const k of [0.4, 0.85]) {
-      const c = p.clone().lerp(q, k);
-      const gy = terrain.height(c.x, c.z);
-      const topY = lerp(tp, tq, k) - 0.15 * 0.85 + 0.01;
-      if (gy > topY - 0.05) continue;
-      waystationStep.stumps++;
-      const foot = new Vector3(c.x, gy - 0.2, c.z);
-      const head = new Vector3(c.x, topY, c.z);
-      put('waystation-floor', mats.bark, barkPole([foot, head], 0.085, 0.08, noise, 620 + k * 10, { moss: 0.5, groundY: gy, ts: 2, rs: 10 }));
-      capPole('waystation-floor', [foot, head], 2, 0.08, false, sr.fork(`stump/${k}`));
-      tuftSpecs.push(...footMoss(ctx, new Vector3(c.x, gy, c.z), sr.fork(`stump-moss/${k}`), { postRadius: 0.085, count: 7, color: FOOT_MOSS, favour: SHADE_SIDE }));
-      bases.push([c.x, gy, c.z]);
+    waystationStep.groundRiser = [+(tp - frontY(SA, s0)).toFixed(2), +(tq - frontY(SA, s1)).toFixed(2)];
+    splitLog(SA, s0, s1, tp, tq, '', 0);
+    walkSurfaces.push(deckSurface('south-waystation-step', at(SA, s0 + 0.06, tp), at(SA, s1 - 0.06, tq), 0.13));
+    // the lower log from where the upper one stands 0.3 m over the ground to past its south end,
+    // where the walk off the floor's south half comes down; its top the straight line nearest the
+    // midpoints between the upper log and the ground along it (the ground dips in the middle)
+    const LA = SA + 0.3;
+    const [l0, l1] = [-0.5, 0.78];
+    let [n, ms, mt, mss, mst] = [0, 0, 0, 0, 0];
+    for (let i = 0; i <= 16; i++) {
+      const s = lerp(l0, l1, i / 16);
+      const t = (frontY(LA, s) + upperTop(s)) / 2;
+      [n, ms, mt, mss, mst] = [n + 1, ms + s, mt + t, mss + s * s, mst + s * t];
     }
-    walkSurfaces.push(deckSurface('south-waystation-step', at(SA, -0.72, tp), at(SA, 0.52, tq), 0.13));
+    const slope = (n * mst - ms * mt) / (n * mss - ms * ms);
+    const lineAt = (s: number) => (mt - slope * ms) / n + slope * s;
+    const lp = lineAt(l0);
+    const lq = lineAt(l1);
+    waystationStep.low.top = [+lp.toFixed(2), +lq.toFixed(2)];
+    waystationStep.low.riser = [+(upperTop(l0) - lp).toFixed(2), +(upperTop(l1) - lq).toFixed(2)];
+    waystationStep.low.groundRiser = [+(lp - frontY(LA, l0)).toFixed(2), +(lq - frontY(LA, l1)).toFixed(2)];
+    splitLog(LA, l0, l1, lp, lq, 'low-', 1);
+    walkSurfaces.push(deckSurface('south-waystation-step-low', at(LA, l0 + 0.06, lp), at(LA, l1 - 0.06, lq), 0.13));
   }
 
   // ---- the waystation's walk: the floor; the back wall with the bench and basket along it, the
