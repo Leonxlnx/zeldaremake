@@ -25,9 +25,10 @@ const BRIDGE_LEN = southBridgeFrame().len;
  * falls 5 m in 6 m: the character stops FENCE_STOP_M short of the rope. It is no structure pad, so
  * the grass under the rope stays. The stumps its ends wrap round stop him FENCE_STOP_M off their
  * feet, and each end post stands inside that ring: a push along the rope ends in the corner. The
- * west run carries the rope on from the west stump to the small house's pad.
+ * west run carries the rope on from the west stump to the small house's pad; the east run turns it
+ * inland from the east stump to a third.
  */
-const LOOKOUT_RUNS = [EXPANSION_EAST.lookout.fence, EXPANSION_EAST.lookout.westRun];
+const LOOKOUT_RUNS = [EXPANSION_EAST.lookout.fence, EXPANSION_EAST.lookout.westRun, EXPANSION_EAST.lookout.eastRun];
 const LOOKOUT_FENCE = LOOKOUT_RUNS.flatMap((run) =>
   run.slice(1).map((b, i) => {
     const a = run[i];

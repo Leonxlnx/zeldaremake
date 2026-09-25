@@ -6,7 +6,8 @@
  * railing, plank steps down toward its door and a short ladder at the far end) and a SMALL cosy
  * house (low dome, round window, two flower boxes) — two pod-lantern posts, and the lookout's rope
  * fence (its ends wrapped round two sawn stumps, a second run on from the west one to the small
- * house's back roots) and split-log bench on the south lip.
+ * house's back roots, a third turned inland from the east one to a smaller stump) and split-log
+ * bench on the south lip.
  *
  * The houses are `buildHouse` builds: the trunk, cap, roots, pods and room of Saria's and the upper
  * house. Their point lights are dropped: a light joining or leaving the scene recompiles every lit
@@ -1443,10 +1444,14 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const westRun: FenceBuild = buildFence({ id: 'east-lookout-west', style: 'rope', points: lookout.westRun }, ctx, mats, rng.fork('lookout-fence-west'), rope);
   for (const m of westRun.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
   bases.push(...westRun.bases);
-  // the rope's anchors (layout `lookout.anchors`): two felled trees' stumps just past the end posts,
+  // and the rope turned inland from the east stump to the third (layout `lookout.eastRun`)
+  const eastRun: FenceBuild = buildFence({ id: 'east-lookout-east', style: 'rope', points: lookout.eastRun }, ctx, mats, rng.fork('lookout-fence-east'), rope);
+  for (const m of eastRun.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
+  bases.push(...eastRun.bases);
+  // the ropes' anchors (layout `lookout.anchors`): felled trees' stumps beside the runs' end posts,
   // sawn off at waist height — a flared, buttressed foot with three surface roots, a checked top with
-  // the torn hinge's splinters standing on the fall side — and each rail run on from its end post and
-  // wrapped round the bole, its end tucked under the last turn
+  // the torn hinge's splinters standing on the fall side — and each rail run on from every end post
+  // in the stump's ring and wrapped round the bole, its end tucked under the last turn
   const anchorAudit = (() => {
     const sn = new Noise2D(`${ctx.config.seed}/structures/east/stumps`);
     const bark: BufferGeometry[] = [];
@@ -1458,7 +1463,11 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const ROWS = 18;
     const ROPE_R = 0.022;
     const FAVOUR: [number, number] = [0.62, 0.78];
-    const ends = [0, fence.bases.length - 1];
+    const runs: [string, FenceBuild][] = [
+      ['fence', fence],
+      ['west', westRun],
+      ['east', eastRun],
+    ];
     const built = lookout.anchors.map((A, k) => {
       const rA = rng.fork(`stump/${k}`);
       const seed = 7 + k * 13;
@@ -1600,37 +1609,45 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
           }),
         );
       }
-      // the rails' tie-offs: from the end post's axis at the rail's height to the bole's tangent point
-      // on the lookout's side, then 1½ turns down round the bole on its bark's peaks, the end tucked in
-      const end = ends.reduce((b, i) => (Math.hypot(fence.bases[i][0] - A.x, fence.bases[i][2] - A.z) < Math.hypot(fence.bases[b][0] - A.x, fence.bases[b][2] - A.z) ? i : b), ends[0]);
-      const b0 = new Vector3(...fence.bases[end]);
-      const t0 = new Vector3(...fence.tops[end]);
+      // the rails' tie-offs, from every run's end post in this stump's ring (the main fence's first):
+      // from the post's axis at the rail's height to the bole's tangent point on the bench's side,
+      // then 1½ turns down round the bole on its bark's peaks, the end tucked in; a second run's
+      // turns sit 0.125 m under the first's, clear of them
+      const ties: { run: string; post: number; build: FenceBuild }[] = [];
+      for (const [run, build] of runs) for (const post of [0, build.bases.length - 1]) if (Math.hypot(build.bases[post][0] - A.x, build.bases[post][2] - A.z) < A.r + 0.35) ties.push({ run, post, build });
       const lift = 0.015 + ROPE_R - 0.004;
-      const wraps = [0.42, 0.82].map((rh) => {
-        const P = b0.clone().lerp(t0, rh / 1.1);
-        const y0 = Math.min(P.y, yTop - 0.08);
-        const [cx, cz] = axis(y0);
-        const phi = Math.atan2(P.z - cz, P.x - cx);
-        const d = Math.hypot(P.x - cx, P.z - cz);
-        const alpha = Math.acos(clamp((radiusAt(phi, y0) + lift) / d, -0.99, 0.99));
-        const theta = Math.sin(phi + alpha) < Math.sin(phi - alpha) ? phi + alpha : phi - alpha;
-        const rT = radiusAt(theta, y0) + lift;
-        const T = new Vector3(cx + Math.cos(theta) * rT, y0, cz + Math.sin(theta) * rT);
-        const dir = Math.sign((T.x - P.x) * -Math.sin(theta) + (T.z - P.z) * Math.cos(theta)) || 1;
-        const turns = 1.5;
-        const n = Math.ceil(turns * 24);
-        const pts = [P, P.clone().lerp(T, 0.5), T];
-        for (let i = 1; i <= n; i++) {
-          const s = i / n;
-          const a = theta + dir * s * turns * TAU;
-          const y = y0 - 0.05 * s * turns;
-          const r = radiusAt(a, y) + lift - 0.045 * smoothstep(0.88, 1, s);
-          const [ax, az] = axis(y);
-          pts.push(new Vector3(ax + Math.cos(a) * r, y, az + Math.sin(a) * r));
-        }
-        const tint = 0.78 + rA() * 0.22;
-        cords.push(ropeTube(new CatmullRomCurve3(pts), ROPE_R, rA() * 10, [tint, tint * 0.95, tint * 0.88], sn, seed + rh * 10));
-        return { rh, y: +y0.toFixed(3), turns, span: +P.distanceTo(T).toFixed(3) };
+      const tieAudit = ties.map(({ run, post, build }, j) => {
+        const rT = j === 0 ? rA : rA.fork(`tie/${j}`);
+        const b0 = new Vector3(...build.bases[post]);
+        const t0 = new Vector3(...build.tops[post]);
+        const wraps = [0.42, 0.82].map((rh) => {
+          const P = b0.clone().lerp(t0, rh / 1.1);
+          const y0 = Math.min(P.y, yTop - 0.08) - 0.125 * j;
+          const [cx, cz] = axis(y0);
+          const phi = Math.atan2(P.z - cz, P.x - cx);
+          const d = Math.hypot(P.x - cx, P.z - cz);
+          const alpha = Math.acos(clamp((radiusAt(phi, y0) + lift) / d, -0.99, 0.99));
+          const benchD = (a: number) => Math.hypot(cx + Math.cos(a) - lookout.bench.x, cz + Math.sin(a) - lookout.bench.z);
+          const theta = benchD(phi + alpha) < benchD(phi - alpha) ? phi + alpha : phi - alpha;
+          const rTan = radiusAt(theta, y0) + lift;
+          const T = new Vector3(cx + Math.cos(theta) * rTan, y0, cz + Math.sin(theta) * rTan);
+          const dir = Math.sign((T.x - P.x) * -Math.sin(theta) + (T.z - P.z) * Math.cos(theta)) || 1;
+          const turns = 1.5;
+          const n = Math.ceil(turns * 24);
+          const pts = [P, P.clone().lerp(T, 0.5), T];
+          for (let i = 1; i <= n; i++) {
+            const s = i / n;
+            const a = theta + dir * s * turns * TAU;
+            const y = y0 - 0.05 * s * turns;
+            const r = radiusAt(a, y) + lift - 0.045 * smoothstep(0.88, 1, s);
+            const [ax, az] = axis(y);
+            pts.push(new Vector3(ax + Math.cos(a) * r, y, az + Math.sin(a) * r));
+          }
+          const tint = 0.78 + rT() * 0.22;
+          cords.push(ropeTube(new CatmullRomCurve3(pts), ROPE_R, rT() * 10, [tint, tint * 0.95, tint * 0.88], sn, seed + rh * 10 + j));
+          return { rh, y: +y0.toFixed(3), turns, span: +P.distanceTo(T).toFixed(3) };
+        });
+        return { run, post, postToCentre: +Math.hypot(b0.x - A.x, b0.z - A.z).toFixed(3), wraps };
       });
       // moss: cushions round the foot (the shaded quarter first) and along the top's shaded rim
       tufts.push(...footMoss(ctx, new Vector3(A.x, gC, A.z), rA.fork('foot-moss'), { postRadius: rTop * 1.3, count: 46, size: [0.022, 0.055], color: [0.32, 0.44, 0.09], favour: FAVOUR }));
@@ -1653,10 +1670,8 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
         footRadius: +footR.toFixed(3),
         roots: roots.length,
         splinters: splinterCount,
-        endPost: end,
-        endPostToCentre: +Math.hypot(b0.x - A.x, b0.z - A.z).toFixed(3),
         stopRing: A.r + 0.25,
-        wraps,
+        ties: tieAudit,
       };
     });
     const bm = meshOf('fence-east-lookout-stumps', mats.logBark, bark);
@@ -2059,7 +2074,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     deck: deckAudit,
     flowerBoxes: flowerAudit,
     lanternPosts: posts.map((p) => ({ base: p.base, pods: p.lanterns.length })),
-    lookout: { fencePosts: fence.posts, westRunPosts: westRun.posts, bench: benchAudit, anchors: anchorAudit },
+    lookout: { fencePosts: fence.posts, westRunPosts: westRun.posts, eastRunPosts: eastRun.posts, bench: benchAudit, anchors: anchorAudit },
     walkSurfaces: walk,
     pods: lanterns.length,
     /** the pods' meshes after the bake (one per tier and material) and how many of those cast */

@@ -602,32 +602,62 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
       }
     }
     assert.ok(open >= 30, `the lookout fence's inner side is open ground along most of it (${open} samples)`);
-    // the rope's ends wrap round two stumps: each is solid a step round its foot (and a wall in the
-    // live mask, so no grass grows through it), and each end post stands inside its stump's ring, so
-    // the rope and the stumps are one barrier with no gap at either end
-    assert.equal(anchors.length, 2, 'two stumps anchor the rope');
-    for (const [k, a] of anchors.entries()) {
-      const post = LF[k === 0 ? 0 : LF.length - 1];
+    // the ropes' ends wrap round three stumps: each is solid a step round its foot (and a wall in the
+    // live mask, so no grass grows through it), and every run end but the west run's last (on the
+    // small house's pad) stands inside a stump's ring, so ropes and stumps are one barrier with no
+    // gap at any end
+    const WR = EXPANSION_EAST.lookout.westRun;
+    const ER = EXPANSION_EAST.lookout.eastRun;
+    const small = EXPANSION_EAST.houses.find((h) => h.kind === 'small');
+    assert.equal(anchors.length, 3, 'three stumps anchor the ropes');
+    const stumpEnds = [LF[0], LF[LF.length - 1], WR[0], ER[0], ER[ER.length - 1]];
+    for (const post of stumpEnds) assert.ok(anchors.some((a) => Math.hypot(post[0] - a.x, post[2] - a.z) < a.r + 0.25 - 0.1), `run end ${fmt(post[0], post[2])} stands inside a stump's ring`);
+    for (const a of anchors) {
       for (let j = 0; j < 16; j++) {
         const t = (j / 16) * Math.PI * 2;
         assert.equal(ground.blocked(a.x + Math.cos(t) * (a.r + 0.2), a.z + Math.sin(t) * (a.r + 0.2)), true, `the stump at ${fmt(a.x, a.z)} is solid ${(a.r + 0.2).toFixed(2)} m round`);
         assert.equal(hf.surfaceMask(a.x + Math.cos(t) * (a.r - 0.05), a.z + Math.sin(t) * (a.r - 0.05), 'live').structure, 1, `the stump at ${fmt(a.x, a.z)} is a wall in the live mask`);
       }
-      const d = Math.hypot(post[0] - a.x, post[2] - a.z);
-      assert.ok(d < a.r + 0.25 - 0.1, `end post ${fmt(post[0], post[2])} stands ${d.toFixed(2)} m from its stump, inside the ${(a.r + 0.25).toFixed(2)} m ring`);
-      for (let u = 0; u <= 1.0001; u += 0.05) {
-        const x = post[0] + (a.x - post[0]) * u;
-        const z = post[2] + (a.z - post[2]) * u;
-        assert.equal(ground.blocked(x, z), true, `no gap between end post and stump at ${fmt(x, z)}`);
+      const mine = stumpEnds.filter((p) => Math.hypot(p[0] - a.x, p[2] - a.z) < a.r + 0.25 - 0.1);
+      assert.ok(mine.length > 0, `the stump at ${fmt(a.x, a.z)} anchors a run end`);
+      for (const post of mine) {
+        for (let u = 0; u <= 1.0001; u += 0.05) {
+          const x = post[0] + (a.x - post[0]) * u;
+          const z = post[2] + (a.z - post[2]) * u;
+          assert.equal(ground.blocked(x, z), true, `no gap between end post and stump at ${fmt(x, z)}`);
+        }
       }
       assert.equal(hf.surfaceMask(a.x, a.z, 'legacy').structure, 0, `the legacy mask has no stump at ${fmt(a.x, a.z)}`);
+    }
+    // the east run turns the rope inland from the east stump to the third: a wall along its line
+    // with the step short of it on the bench's side and open ground half a metre in
+    {
+      let openE = 0;
+      for (let i = 0; i + 1 < ER.length; i++) {
+        const [ax, , az] = ER[i];
+        const [bx, , bz] = ER[i + 1];
+        const l = Math.hypot(bx - ax, bz - az);
+        let nx = (bz - az) / l;
+        let nz = -(bx - ax) / l;
+        if ((B.x - ax) * nx + (B.z - az) * nz < 0) (nx = -nx), (nz = -nz);
+        for (let u = 0; u <= 1.0001; u += 0.1) {
+          const x = ax + (bx - ax) * u;
+          const z = az + (bz - az) * u;
+          assert.equal(ground.blocked(x, z), true, `the east run is a wall at ${fmt(x, z)}`);
+          assert.equal(ground.blocked(x + nx * 0.2, z + nz * 0.2), true, `the east run stops a step 0.2 m short at ${fmt(x, z)}`);
+          if (!inAnchor(x, z)) assert.equal(hf.surfaceMask(x, z, 'live').structure, 0, `the east run is no structure pad at ${fmt(x, z)}`);
+          const [ox, oz] = [x + nx * 0.5, z + nz * 0.5];
+          if (inAnchor(ox, oz) || inBench(ox, oz)) continue;
+          assert.equal(ground.blocked(ox, oz), false, `half a metre in from the east run is open at ${fmt(ox, oz)}`);
+          openE++;
+        }
+      }
+      assert.ok(openE >= 5, `the east run's inner side is open ground between its stumps (${openE} samples)`);
     }
     // the west run carries the rope on from the west stump to the small house's back roots: a wall
     // along its line with the same step short of it on the lane's side, open half a metre in (off
     // the house's pad), its first post inside the west stump's ring and its last on the house's pad,
     // and no gap at either end
-    const WR = EXPANSION_EAST.lookout.westRun;
-    const small = EXPANSION_EAST.houses.find((h) => h.kind === 'small');
     {
       const west = anchors[0].x < anchors[1].x ? anchors[0] : anchors[1];
       let openW = 0;

@@ -1140,21 +1140,23 @@ export const EXPANSION_EAST = {
     ] as [number, number, number][],
     bench: { x: 48.3, z: 7.55, yawDeg: -132, length: 1.9 },
     /**
-     * The rope's anchors: two felled trees' stumps just past its end posts, on the lip's edge
-     * (centre, foot radius `r`, sawn off `height` m up); the rope's ends wrap round them. The
-     * character stops a step off the foot as he does at the rope (character/ground.ts), and each end
-     * post stands inside that step, so the rope and its stumps are one barrier with no end to slide
-     * round. Their feet are walls in the live structure mask (no grass through them).
+     * The rope's anchors: felled trees' stumps (centre, foot radius `r`, sawn off `height` m up) —
+     * two just past its end posts on the lip's edge, a smaller one inland at the east run's end; the
+     * ropes' ends wrap round them. The character stops a step off the foot as he does at the rope
+     * (character/ground.ts), and every end post stands inside that step, so the ropes and their
+     * stumps are one barrier with no end to slide round. Their feet are walls in the live structure
+     * mask (no grass through them).
      */
     anchors: [
       { x: 44.72, z: 8.98, r: 0.5, height: 0.98 },
       { x: 50.88, z: 8.36, r: 0.5, height: 0.92 },
+      { x: 50.78, z: 5.3, r: 0.45, height: 0.8 },
     ] as { x: number; z: number; r: number; height: number }[],
     /**
      * The rope run on from the west stump along the lip to the small house's back roots: its first
      * post stands inside that stump's step, its last on the edge of the house's pad (the live mask
      * stops the character 3.0 m off the trunk's axis), so the lip from the house to the east stump
-     * has no gap to walk down. East of the east stump the bank is the plateau's own open edge.
+     * has no gap to walk down.
      */
     westRun: [
       [44.15, 0, 8.95],
@@ -1162,6 +1164,16 @@ export const EXPANSION_EAST = {
       [41.6, 0, 9.0],
       [40.3, 0, 8.85],
       [38.95, 0, 8.45],
+    ] as [number, number, number][],
+    /**
+     * The rope turned inland from the east stump to the third: a walker pressing along the rope at
+     * a slant is caught in the corner instead of sliding round the east stump and down the bank.
+     * East of it the lip is the plateau's own open edge, reached only by walking round this run.
+     */
+    eastRun: [
+      [50.97, 0, 7.8],
+      [50.93, 0, 6.72],
+      [50.84, 0, 5.86],
     ] as [number, number, number][],
   },
   /**
@@ -1295,7 +1307,7 @@ export const EAST_BOX = (() => {
     box.z0 = Math.min(box.z0, z - m);
     box.z1 = Math.max(box.z1, z + m);
   };
-  for (const p of [...EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs.flat(), ...EXPANSION_EAST.lookout.fence, ...EXPANSION_EAST.lookout.westRun]) add(p[0], p[2], 3.2);
+  for (const p of [...EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs.flat(), ...EXPANSION_EAST.lookout.fence, ...EXPANSION_EAST.lookout.westRun, ...EXPANSION_EAST.lookout.eastRun]) add(p[0], p[2], 3.2);
   for (const h of EXPANSION_EAST.houses) add(h.x, h.z, h.radius * 1.55 + 3.2);
   return box;
 })();
