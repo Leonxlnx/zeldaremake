@@ -152,19 +152,21 @@ test("the step is the animation's own, and still is", () => {
   // and the ground speeds the player controller drives at, from animation.ts
   const anim = readFileSync(path.join(here, '../world/character/animation.ts'), 'utf8');
   // anchored on the declaration: `PLAYER_SPEED` is also named inside GAIT_SPEED's comment, and an
-  // unanchored match reads GAIT_SPEED's run of 3.9 instead of the controller's 4.6
+  // unanchored match reads GAIT_SPEED's clip speeds instead of the controller's
   const decl = anim.match(/export const PLAYER_SPEED[\s\S]*?\};/);
   assert.ok(decl, 'PLAYER_SPEED should be readable from animation.ts');
   const speedOf = (gait) => Number(decl[0].match(new RegExp(`${gait}:\\s*([\\d.]+)`))[1]);
   assert.equal(WALK_SPEED, speedOf('walk'), 'the walk speed must be the controller\u2019s');
   assert.equal(RUN_GROUND_SPEED, speedOf('run'), 'the run speed must be the controller\u2019s');
 
-  // the rate then falls out, and a play-mode probe counted it off the character system's own stance
-  // edges to check the derivation is the right one: 3.56 and 3.71 walking, 4.85 and 4.99 running
-  // (art/audio/2026-09-24-cadence/; the run legs start from a standstill, so they read a little low)
-  assert.ok(Math.abs(cadence(1.6) - 3.64) < 0.02, `a walk should plant ${(1.6 / (strideOf('walk') / 2)).toFixed(2)}/s, the model says ${cadence(1.6).toFixed(2)}`);
-  assert.ok(Math.abs(cadence(4.6) - 5.05) < 0.02, `a run should plant ${(4.6 / (strideOf('run') / 2)).toFixed(2)}/s, the model says ${cadence(4.6).toFixed(2)}`);
-  assert.ok(Math.abs(strideFor(1.6, false) - 0.44) < 0.005 && Math.abs(strideFor(4.6, false) - 0.91) < 0.005, 'and the step lengths are the clips\u2019');
+  // the rate then falls out, and a play-mode strip of PR #59's run counted it off the character
+  // system's own stance flags to check the derivation is the right one: 3.6 steps a second at 0.60 m
+  // (art/environment/people-fable-3/pr59-apply/)
+  assert.ok(Math.abs(cadence(1.2) - 2.73) < 0.02, `a walk should plant ${(1.2 / (strideOf('walk') / 2)).toFixed(2)}/s, the model says ${cadence(1.2).toFixed(2)}`);
+  assert.ok(Math.abs(cadence(2.2) - 3.67) < 0.02, `a run should plant ${(2.2 / (strideOf('run') / 2)).toFixed(2)}/s, the model says ${cadence(2.2).toFixed(2)}`);
+  assert.ok(Math.abs(strideFor(1.2, false) - 0.44) < 0.005 && Math.abs(strideFor(2.2, false) - 0.6) < 0.005, 'and the step lengths are the clips\u2019');
+  // each design is heard: the run's above the threshold at the controller's run, the walk's below it at its walk
+  assert.ok(WALK_SPEED < RUN_SPEED && RUN_SPEED < RUN_GROUND_SPEED, `the run design starts at ${RUN_SPEED} m/s, outside the controller's ${WALK_SPEED}–${RUN_GROUND_SPEED}`);
 
   // cadence rises with speed and never falls, and the ends are clamped rather than extrapolated
   for (let v = 0.5; v < 8; v += 0.25) assert.ok(cadence(v) >= cadence(v - 0.25), 'cadence must not fall as the speed rises');
