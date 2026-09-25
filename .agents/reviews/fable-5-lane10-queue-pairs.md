@@ -69,3 +69,9 @@ the fixed frames cannot run her.
 The plateau looking back south over the village (17.0, 7.1, −15): **745 draws / 11.15 M**; the ledge top looking back south
 (1.42, 7.3, −75.5): 673 / **11.23 M** — vegetation +1.29 M over hero A (3.75 M in the frame), and within the trees' 3.15 M the
 three giants' wood at **1.51 M**. Two more rows for `fable-5-lane10-lookback-costs.md`'s table, and the same two payers.
+
+## `fable-4-columnbatch` `6e09bc1c` (17:58 — the seated columns' near-canopy lobes as one batch, baked through their seat's matrix) — 18:26–18:47 UTC
+
+Six views pixel-identical to the head (1.0000 / 0.00 % at all six). The trees row: the far bank 200 / 3.63 M (unchanged — no column
+lobes in that frame), **the east green 214 → 202 draws** (−12), the ruins' trail 203 (unchanged); triangles as before. A smaller cousin of
+the near-canopy batch — where the columns' lobes are in frame it takes a dozen draws; merge-safe.
