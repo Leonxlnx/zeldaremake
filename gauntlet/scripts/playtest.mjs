@@ -78,11 +78,12 @@ const southFrames = () => {
  * layout.ts EXPANSION_SOUTH_DWELLINGS as expansionSouthDwellings.ts walks it: the keeper's gallery
  * (deck top floorY + 0.01) between the closed hut (`hut`) and the railing's band (`railR` ± `railHalf`
  * over `from` … `railTo`), boarded `from` … `to` (wall angles, deg: 0 east, 90 south); the waystation's
- * floor (`facingDeg` compass, `a` toward the path, `s` toward the south end)
+ * floor (`facingDeg` compass, `a` toward the path, `s` toward the south end), `width` along `s` by
+ * `depth` along `a`, its back wall and north half wall `backHeight` / `northHeight` over the floor
  */
 const DWELLINGS = {
   keeper: { centre: [7.1, 31.9], deckY: -0.07, hut: 1.4, railR: 2.17, railHalf: 0.18, from: -14, to: 228, railTo: 193.4 },
-  waystation: { centre: [5.12, 25.95], facingDeg: -74, floorY: 0.22 },
+  waystation: { centre: [5.12, 25.95], facingDeg: -74, floorY: 0.22, width: 2.0, depth: 1.35, backHeight: 1.65, northHeight: 0.95 },
 };
 const keeperAt = (thetaDeg, r) => [DWELLINGS.keeper.centre[0] + Math.cos(rad(thetaDeg)) * r, DWELLINGS.keeper.centre[1] + Math.sin(rad(thetaDeg)) * r];
 const waystationLocal = ([x, , z]) => {
@@ -944,8 +945,10 @@ async function southDwellingProbes(page) {
  * its wall, under its eave) and whether it stands in one of the waystation's walls (the back wall
  * or the north half wall, below its top). Facing out of the waystation its back wall (0.92 m behind
  * him) stops the camera at its minimum distance (camera/follow.ts) under the roof, where Link's
- * chest drops below the frame: there (`squeeze`) the camera must stand in front of the wall's inner
- * face; everywhere else Link must be in view (facing south the camera looks over the half wall).
+ * chest drops below the frame; facing south so does plaza-south's bole 1.6 m past the half wall,
+ * with the root post and the roof's north eave (slim parts the camera may not stand in) before it.
+ * There (`squeeze`) the camera must stand in front of that wall's inner face or, at the half wall,
+ * over its top; everywhere else Link must be in view.
  */
 async function southDwellingCamera(page) {
   const K = DWELLINGS.keeper;
@@ -957,8 +960,8 @@ async function southDwellingCamera(page) {
     spots.push({ where: 'keeper-gallery', th, facing: 'back', at: keeperAt(th, 1.7), yaw: Math.atan2(-Math.sin(rad(th)), Math.cos(rad(th))) });
   }
   spots.push({ where: 'waystation-floor', facing: 'in', at: waystationAt(0.3, 0), yaw: f + Math.PI });
-  spots.push({ where: 'waystation-floor', facing: 'out', at: waystationAt(0.3, 0), yaw: f, squeeze: true });
-  spots.push({ where: 'waystation-floor', facing: 'south', at: waystationAt(0.3, -0.4), yaw: Math.atan2(Math.cos(f), -Math.sin(f)) });
+  spots.push({ where: 'waystation-floor', facing: 'out', at: waystationAt(0.3, 0), yaw: f, squeeze: 'back' });
+  spots.push({ where: 'waystation-floor', facing: 'south', at: waystationAt(0.3, -0.4), yaw: Math.atan2(Math.cos(f), -Math.sin(f)), squeeze: 'north' });
   spots.push({ where: 'waystation-floor', facing: 'north', at: waystationAt(0.3, 0.5), yaw: Math.atan2(-Math.cos(f), Math.sin(f)) });
   // the walls in the waystation's frame (a out of its open front, s toward its south end)
   const backA = -(W.depth / 2 - 0.055) - 0.005;
@@ -978,7 +981,8 @@ async function southDwellingCamera(page) {
     const inWall =
       (wl.a > backA - 0.09 && wl.a < backInner && Math.abs(wl.s) < W.width / 2 && c[1] < W.floorY + W.backHeight + 0.05) ||
       (wl.s > northS - 0.09 && wl.s < northS + 0.07 && Math.abs(wl.a) < W.depth / 2 && c[1] < W.floorY + W.northHeight + 0.05);
-    const ok = !inHut && !inWall && clear.nearShare < 0.01 && (s.squeeze ? wl.a > backInner : clear.linkHidden === false);
+    const squeezeOk = s.squeeze === 'back' ? wl.a > backInner : wl.s > northS + 0.07 || c[1] > W.floorY + W.northHeight + 0.05;
+    const ok = !inHut && !inWall && clear.nearShare < 0.01 && (s.squeeze ? squeezeOk : clear.linkHidden === false);
     const { at, yaw, ...rest } = s;
     rows.push({ ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), camera: c, cameraToLink: st.cameraToLink, cameraFromHutAxisM: +rHut.toFixed(3), inHut, waystation: { a: +wl.a.toFixed(3), s: +wl.s.toFixed(3) }, inWall, ...clear, ok });
   }
