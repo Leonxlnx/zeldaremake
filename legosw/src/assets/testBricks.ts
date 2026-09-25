@@ -20,5 +20,7 @@ export function testBricks(): Object3D {
   b.cyl('glowOrange', -2, 0.6, 3, 0.5, 1.2, { radial: 24 });
   b.cyl('trClear', -4.5, 0.6, 3, 0.8, 1.2, { radial: 24 });
   b.box('pearlGold', 4.5, 0.6, 3, 1.4, 1.2, 1.4);
+  b.shape('darkRed', [[-6, 6], [-2, 6], [-6, 4.5]], 0, 0.4);
+  b.studs('darkRed', -6, 1, 5, 1, 1);
   return b.build('test-bricks').group;
 }

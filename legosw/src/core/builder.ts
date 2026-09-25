@@ -255,6 +255,17 @@ export class Builder {
   }
 
   /**
+   * Plate / tile / brick with an arbitrary CONVEX footprint in the local XZ plane (wedge plates,
+   * cropped tiles, angled panels): footprint points are [x, z] in local units, bottom at y0, height h
+   * (both local units). Add studs separately with stud()/studs() where a real part would have them.
+   */
+  shape(key: ColorKey, footprint: number[][], y0: number, h: number, o: { c?: number; hideBottom?: boolean; tint?: number } = {}): this {
+    const poly = footprint.map(([x, z]) => [x, -z]);
+    const local = new Matrix4().makeTranslation(0, y0 + h / 2, 0).multiply(new Matrix4().makeRotationX(-Math.PI / 2));
+    return this.add(key, prism(poly, h, o.c ?? this.chamfer, { noBack: o.hideBottom ?? true }), local, { tint: o.tint });
+  }
+
+  /**
    * Slope brick. Footprint min corner (x, z) studs, bottom yP plates, `w` studs wide (along X), `d`
    * studs deep (along Z, sloping down toward -Z), `hP` plates tall with `flat` studs of flat top at
    * the back. The textured slope face gets `faceKey` (defaults to the slope variant if one exists).

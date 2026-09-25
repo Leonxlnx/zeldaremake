@@ -2,7 +2,7 @@
 /**
  * Render stills of the film or of single assets through the page's window.__LSW__ API.
  *
- *   node legosw/scripts/still.mjs --lab eta2-anakin [--bg space|studio] [--views "35,15;150,10"] [--dist 1] [--t 0]
+ *   node legosw/scripts/still.mjs --lab eta2-anakin [--bg space|studio] [--views "35,15;150,10"] [--zoom 1] [--t 0]
  *   node legosw/scripts/still.mjs --film --times 20,25.5,31
  *   common: [--size 1600x900] [--out /tmp/lsw-stills] [--url http://127.0.0.1:5174] [--dist <dir>] [--msaa 4] [--sheet]
  *
@@ -51,7 +51,10 @@ async function main() {
     const files = [];
     if (args.lab) {
       const views = String(args.views || '35,15;145,12;-100,8;20,70').split(';').map((v) => v.split(',').map(Number));
-      const canvas = await page.$('canvas');
+      const clip = await page.evaluate(() => {
+        const r = document.querySelector('canvas').getBoundingClientRect();
+        return { x: r.left, y: r.top, width: r.width, height: r.height };
+      });
       for (const [i, [yaw, pitch, dist]] of views.entries()) {
         const t = Number(args.t ?? 0);
         const ms = await page.evaluate(
@@ -61,10 +64,10 @@ async function main() {
             window.__LSW__.labRender(t);
             return performance.now() - a;
           },
-          [yaw, pitch, dist || Number(args.dist || 1), t],
+          [yaw, pitch, dist || Number(args.zoom || 1), t],
         );
         const f = path.join(out, `${args.lab}-${i}.png`);
-        await canvas.screenshot({ path: f });
+        await page.screenshot({ path: f, clip, captureBeyondViewport: false });
         const info = await page.evaluate(() => window.__LSW__.info());
         console.error(`${path.basename(f)}  yaw ${yaw} pitch ${pitch}  ${ms.toFixed(0)} ms  ${info.calls} calls  ${(info.triangles / 1000).toFixed(0)}k tris`);
         files.push(f);
@@ -74,7 +77,7 @@ async function main() {
       for (const t of times) {
         const r = await page.evaluate(([t, sf]) => window.__LSW__.renderAt(t, sf), [t, Number(args.subframes || 1)]);
         const f = path.join(out, `film-${t.toFixed(2).padStart(6, '0')}.png`);
-        await page.screenshot({ path: f });
+        await page.screenshot({ path: f, captureBeyondViewport: false });
         const info = await page.evaluate(() => window.__LSW__.info());
         console.error(`${path.basename(f)}  ${r.ms.toFixed(0)} ms  ${info.calls} calls  ${(info.triangles / 1000).toFixed(0)}k tris`);
         files.push(f);

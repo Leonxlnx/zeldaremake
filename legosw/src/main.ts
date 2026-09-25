@@ -24,7 +24,8 @@ function fit() {
   pipeline.setSize(L.width, L.height);
 }
 fit();
-addEventListener('resize', fit);
+// under capture the harness owns the viewport; screenshot tooling may emit transient resizes
+if (!capture) addEventListener('resize', fit);
 
 interface Api {
   ready: Promise<void>;
