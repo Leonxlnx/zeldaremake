@@ -1,0 +1,70 @@
+{
+ "ledge-look-south": {
+  "stats": {
+   "drawCalls": 509,
+   "triangles": 7868372
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 146,
+    "triangles": 1987653,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 104,
+    "triangles": 1684039,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 104,
+    "triangles": 2917165,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 51,
+    "triangles": 109772,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 41,
+    "triangles": 560740,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 23,
+    "triangles": 238326,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 349023,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 5,
+    "triangles": 8780,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 2,
+    "triangles": 4512,
+    "found": true
+   }
+  ]
+ }
+}

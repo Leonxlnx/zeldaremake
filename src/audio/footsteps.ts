@@ -116,8 +116,6 @@ export interface FootstepStats {
   scheduledAt: number;
 }
 
-/** above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind */
-export const RUN_SPEED = 2.4;
 /** the shortest gap between two steps — a guard against a noisy stance flag double-triggering */
 export const MIN_STEP_GAP = 0.16;
 
@@ -126,29 +124,36 @@ export const MIN_STEP_GAP = 0.16;
  * numbers, not this lane's**.
  *
  * `glbLink.ts` publishes the clip contract from Astra's pipeline as `CLIP_SPEC`: the walk clip
- * covers a 0.88 m stride in 0.55 s, the run clip 1.82 m in 28/60 s. A stride is two steps, so the
- * boot lands every **0.44 m** at a walk and every **0.91 m** at a run, and `animation.ts` gives the
- * ground speeds the player controller drives at — `PLAYER_SPEED` 1.6 and 4.6 m/s. The clips follow
- * the speed actually covered, so there is no foot slide and the step rate falls straight out:
- * 1.6 / 0.44 = 3.64 a second at a walk, 4.6 / 0.91 = 5.06 at a run.
+ * covers a 0.88 m stride in 0.55 s, the run clip 1.2 m in 28/60 s (PR #59's grounded run). A stride
+ * is two steps, so the boot lands every **0.44 m** at a walk and every **0.60 m** at a run, and
+ * `animation.ts` gives the ground speeds the player controller drives at — `PLAYER_SPEED` 1.2 and
+ * 2.2 m/s. The clips follow the speed actually covered, so there is no foot slide and the step rate
+ * falls straight out: 1.2 / 0.44 = 2.73 a second at a walk, 2.2 / 0.60 = 3.67 at a run.
  *
- * Those are exactly what a play-mode probe counted off the character system's stance edges — 3.56
- * and 3.71 walking, 4.85 and 4.99 running (`art/audio/2026-09-24-cadence/`) — which is the check
- * that the derivation is the right one rather than a coincidence.
+ * A play-mode strip of the run counted 3.6 steps a second at 0.60 m off the character system's
+ * stance flags (`art/environment/people-fable-3/pr59-apply/`), which is the check that the
+ * derivation is the right one rather than a coincidence; on the previous clips the same derivation
+ * gave 3.64 walking against a probe's 3.56 and 3.71 (`art/audio/2026-09-24-cadence/`).
  *
  * It matters because the model is consulted wherever the character system is **not** reporting boot
  * plants: never in play, always in an offline render. Before this it was an adult's guess (2.02 a
  * second, a 0.79 m step) and every evidence WAV this lane published stepped at 55 % of the rate the
  * owner hears. Fixed once by measuring, which left a copy of the animation's number sitting here to
- * go stale the moment anyone re-authors a clip — and PR #59 is re-authoring the walk. Deriving it
- * instead means there is nothing to go stale, and `footsteps.test.mjs` reads `CLIP_SPEC` out of
- * `glbLink.ts` and fails with the new numbers if it ever moves. (Read as source, not imported:
- * `glbLink.ts` is 2,700 lines and pulls in the GLTF loader, which has no business in the audio.)
+ * go stale the moment anyone re-authors a clip. Deriving it instead means there is nothing to go
+ * stale, and `footsteps.test.mjs` reads `CLIP_SPEC` out of `glbLink.ts` and fails with the new
+ * numbers if it ever moves. (Read as source, not imported: `glbLink.ts` is 2,700 lines and pulls in
+ * the GLTF loader, which has no business in the audio.)
  */
-export const WALK_SPEED = 1.6;
-export const RUN_GROUND_SPEED = 4.6;
+export const WALK_SPEED = 1.2;
+export const RUN_GROUND_SPEED = 2.2;
 export const WALK_STEP_M = 0.88 / 2;
-export const RUN_STEP_M = 1.82 / 2;
+export const RUN_STEP_M = 1.2 / 2;
+/**
+ * above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind. It
+ * has to sit between the controller's walk and run speeds or one of the two designs is never heard,
+ * so it is their midpoint rather than a number of its own.
+ */
+export const RUN_SPEED = (WALK_SPEED + RUN_GROUND_SPEED) / 2;
 /** on a flight, one step is one tread whatever the speed */
 export const STAIR_STEP_M = 0.54;
 

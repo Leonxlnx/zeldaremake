@@ -1,0 +1,872 @@
+# fable-5 — LANE 10 (walkthrough QA and performance): the play-head build against the owner's recording, 2026-09-23 07:52 UTC
+
+Build: the head `e4ca3241` / world `f56c5740` (the play-head republish). Owner's words (06:50): "the trees do not
+populate" — the middle distance is grey haze with bare trunks where his own recording `review46/r_020–r_028` shows
+small and medium trees with round leafy crowns and dense shrubs at every depth; thicker grass on the left of the paths;
+the steps log-risered; the path splitting into the forest; the people back. His marked screenshot: play mode on the north
+path looking north from the plaza's north end, Link ≈ (1.5, −14).
+
+## 1. The owner's pose against his recording
+
+Rendered on the head with the character on at the owner's bearing — camera (1.5, 3.2, −10.5) → (1.5, 1.6, −26), fov 50 —
+and two more along the same run (`fable-5-lane10/northpath-poses.json`); his frames `r_020–r_028` beside them
+(`fable-5-lane10/owner-0650-pose-vs-r024.jpg`, `review46-r020-r028.jpg`).
+
+| upper-middle band (rows 0.12–0.50) | bright mist (l > 0.5, s < 0.22) | bark / earth brown (h 15–50°, l < 0.45) | near-black |
+| --- | --- | --- | --- |
+| owner's r_021 / r_024 / r_026 | **15 / 23 / 23 %** | 11 / 1.3 / 1.9 % | 30 / 12 / 8 % |
+| ours at the owner's pose / r_020-like / r_026-like | **2.0 / 3.3 / 2.0 %** | **16.6 / 9.8 / 10.0 %** | 18 / 25 / 32 % |
+
+What the eye sees, in order of size: **(a)** the reference's middle distance is *trees in warm mist* — trunks with round
+leafy crowns at 10–40 m stacked in depth, bright mist between them (15–23 % of the band); ours is a **trench** — the path
+runs between two steep cut earth banks (brown, 10–17 % of the band) with column trunks rising from them and no crowns at
+10–40 m over the banks; the mist behind is dark grey (2–3 % bright); **(b)** the reference path is packed dirt with a few
+slabs and ferns / purple flowers at the verges; ours is continuous stone slabs with dark joints (V16) between two mown
+banks; **(c)** the reference bends the path past Saria's mound toward the house and into the woods; ours runs straight
+into the far haze. The owner's two red circles are (a): the smooth pale column trunk left of the path and the empty grey
+middle distance over it.
+
+## 2. Ranked issue list at player height, with positions
+
+| # | issue | where (position / bearing) | owning lane | measured |
+| --- | --- | --- | --- | --- |
+| 1 | **No crowns at 10–40 m over the north path**: the banks' tops carry no small / medium trees; the column trunks rise bare into grey; the reference stacks round leafy crowns at every depth | (1.5, −14) looking north; also (0.8, −4.5) and (1.8, −17.5) | 2 (trees in the distance) + 3 (column trunks) | bright mist 2 % vs 15–23 %; brown banks 10–17 % vs 1–2 % |
+| 2 | **The mist is dark grey, the reference's bright and warm** — the "grey washout": the light behind everything is cool (#777c7e-class) where the frames' is warm khaki (#858372) | every pose looking out or up | 1 (atmosphere) | `reference/ANALYSIS_CLARITY.md` §3, §5 |
+| 3 | **The path corridor is a cut trench**: steep bare earth banks either side of the spine north of the plaza, mown lawn on top; the reference's path sits in a shallow shrubby swale (ferns, purple flowers, low shrubs) with the ground rising gently into the trees | the spine (1.5, −4) → (1.5, −30) | 4 (vegetation: the verges) + 6 (paths) + 2 (trees on the banks) | the owner's "thicker grass on the left" is the left bank of this corridor |
+| 4 | **The path is stone slabs with continuous dark joints**; the reference's north run is packed dirt with occasional slabs | the spine north of the plaza | 6 (paths / hardscape) | V16: seam −0.29 below the slab vs −0.15; the joint read r55 §K.1 |
+| 5 | **The flight's treads are in shade, the logs dark**: the frame's flight is pale packed treads climbing into light; ours 52.8 % dark vs 15.9 (weathered logs on shaded treads) | A, `s2-owner` (4.4, 1.98, 0.27) → (9.53, 2, −3.77) | 6 (steps) + 1 (the light on the slope) | r55 §W; fable-4's flight-shade 0.376 shadowless vs 0.65 |
+| 6 | **The path does not fork into the woods**; the reference's run bends past Saria's mound and splits (house / woods) | north of Saria's mound, (6, −12) … (2, −30) | 6 (paths) with fable-cursor (layout) | r_024–r_028 |
+| 7 | **No people**: the demo's kids on the path and the bank, the girl by the signpost | the plaza, the north path | 7 (people) | hidden by `backgroundCast.visible = false` |
+| 8 | **The D boulder in the giants' shadow**; V16's seams; the giants' limbs at frame scale | D; the plaza; B | 3 / 6 | r55 §J/§L, §K.1 |
+
+## 3. Walkability and performance on the head (`playtest.mjs --only walk,climb,perf,pacing`, 960 × 540, quality high, SwiftShader)
+
+- **Walk routes:** `plaza-to-upper-house` (6/6 waypoints), `plaza-to-south-bank-top` (4/4), `saria-front-arc` (3/3),
+  `west-deck` (3/3) — **all reached, no stuck points.**
+- **Climbs:** the south-bank flight up and down clean (top reached, bottom reached, no stalls). The main flight up: no
+  stalls, max rise 0.27 m/frame, but **not at the top after 255 frames (y 4.32 of 5.40)** — the route's frame budget, not
+  a block, on the trace; the descent's camera comes within **0.38 m of the ground** (`minCameraAboveGroundM 0.383`, the
+  ascent's 1.77) — worth a look by the camera owner: on the way down the flight the follow camera nearly touches the treads.
+- **Frame cost at four play spots** (draws / triangles; SwiftShader wall time is CPU rasterisation, not a GPU):
+  plaza **521 / 7.43 M**, `stairs2-base` **522 / 9.53 M**, `saria-side` 519 / 8.59 M, `west-house` 442 / 5.03 M. **A walker
+  standing at the foot of the main flight renders 9.53 M triangles — over the 9.0 M W38 cap that camera A is held to**
+  (A itself is 8.7 M). The play view is the owner's view now; the cap should be read at the play spots, and the flight's
+  foot is the first place to cut (the blades to 26 m and the near giant's canopy are the likely mass).
+- JS step 18–32 ms per frame at these spots (render 13–30 ms of it) — fine on a real GPU box; the wall times here (19–33 s a
+  frame) are SwiftShader's.
+- **Pacing** (plaza → second staircase → upper house, 21 simulated s, 630 frames; JS step per frame, a drawn frame every
+  12): **JS step p50 4.2 ms, p95 8.7, p99 11.2, max 46.6 (frame 0)**; 39 frames over the harness's hitch rule (> 8 ms),
+  none above 12 ms after frame 0 — the worst at (10.7, 1.9, −1.9) on the flight, 11.9 ms; **no shader compiles during the
+  walk (programs 104 → 104)**; heap 1,325 → 1,227 MB (the `onUpload` releases as the walk uploads). Drawn frames 12.5–19.9 s
+  wall here (SwiftShader), 10–22 ms of it the renderer's own issue time. **Smooth by the JS side; on a GPU box the walk
+  should be hitch-free** — the load is the only wait (see the play-head boot: fable-cursor's pass-3 evidence puts ready at
+  81 s from githack).
+
+## 4. What this lane asks of the others (the owner's 24 h)
+
+1. Lane 2 with lane 3: trees *on the banks* of the north corridor at 10–40 m — round-crowned small and medium trees, not
+   only the far ring — and bark on the column trunks. This is the owner's circle 1 and 2 in one.
+2. Lane 1: the mist bright and warm (`ANALYSIS_CLARITY.md` §5's #858372 at the top of frame, the far bands back to
+   l 0.40–0.50), so the trees that lane 2 adds stand *in* light rather than against grey.
+3. Lane 4 / 6: the corridor's banks as shrubby swales with ferns and flowers at the verges; the north run as dirt with
+   occasional slabs; the fork past Saria's mound.
+4. Everyone: read the triangle cap at the play spots, not only at A — `stairs2-base` is at 9.53 M today.
+
+Verification poses for all of the above: `fable-5-lane10/northpath-poses.json` (`broll.mjs --shots … --character`), and
+the owner's own `art/environment/owner-2026-09-23/shots.json`.
+
+## 5. Re-read at the owner's pose after the 07:50–08:29 head (`f56c5740` → `9a1be295`: "clearer air between the shafts" ×2, the left bank's full turf)
+
+| upper-middle band (0.12–0.50) | bright mist | brown bank | near-black | mean l |
+| --- | --- | --- | --- | --- |
+| owner's r_024 | **22.6 %** | 1.3 % | 12.4 % | — |
+| ours `f56c5740` (07:00) | 2.0 % | 16.6 % | 17.6 % | 0.300 |
+| ours `9a1be295` (08:29) | **0.9 %** | 17.3 % | **24.6 %** | **0.263** |
+| the r_020-like / r_026-like poses | 3.4 → 0.9 % / 2.0 → 0.7 % | | 24.9 → 30.4 / 31.5 → 38.4 % | 0.302 → 0.263 / 0.275 → 0.239 |
+
+**"Clearer air" darkened the corridor at the owner's pose.** The base air was raised (6 / 16 m) to show trees instead
+of haze; at his bearing the far trunks became darker silhouettes in a darker grey — the band lost 0.04 of luminance and
+its bright mist fell by half — while nothing new populates it (no crowns arrived; that is lane 2's). The recording's
+"clear" is the opposite reading: **bright warm mist with trees standing in it** (22.6 % of the band bright, near-black
+12 %). This is the fog slice's failure mode again (`ANALYSIS_CLARITY.md` §3): thinning the veil removes the light with it.
+What the frames ask for at this pose is the mist *brighter and warmer* (§5's #858372) and the trees *in* it, not thinner
+darker air. **The left bank's turf** (`d19439cc`, D's hollow z −16…−26 at 88 % height, coverage fill on): at the owner's
+pose the left bank region (x < 0.33, y 0.45–0.90) is unchanged — mean l 0.195 → 0.193, blade texture 0.0292 → 0.0288 —
+the change is not in this framing (the bank he sees is the shaded slope beside the path, in view but not lit; the
+hollow's blades are behind the rise). Sheet `fable-5-lane10/owner-0650-pose-f56c5740-vs-9a1be295.jpg`.
+
+## 6. The squad branches at the owner's pose, one at a time (`squad1` `bca84c5a` haze, `squad2` `064a004b` mid canopy, `squad3` `06dd10c1` near bark — each against their merge-base `144453ef`)
+
+Same three poses (`northpath-poses.json`), same flags (`--character`, settle 8), rendered here 09:33–10:00 UTC. The band
+metrics from here on are `fable-5-lane10/bands.py` (HLS; mist l > 0.5 ∧ s < 0.22; brown h 15–50° ∧ l < 0.45 ∧ s > 0.10;
+near-black l < 0.20; leafy h 60–170° ∧ s > 0.15) — the same reads as §1/§5 within 1.5 points (base row 1.1 / 17.4 / 26.0 /
+0.263 against §5's 0.9 / 17.3 / 24.6 / 0.263). The far-centre box is x 0.30–0.70 × y 0.15–0.40 — the grey the owner circled.
+
+| owner's pose (1.5, 3.2, −10.5) → north | pixels moved > 6 / > 40 levels | bright mist | brown | near-black | leafy | mean l | far-centre box (hex · hue · sat · l · B/R) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| owner's r_024 | — | **23.1 %** | 1.2 % | 11.6 % | 3.4 % | 0.394 | #7f7c73 · 44° · 0.05 · **0.474** · 0.91 |
+| base `144453ef` | — | 1.1 % | 17.4 % | 26.0 % | 13.1 % | 0.263 | #4e514c · 89° · 0.03 · 0.308 · 0.97 |
+| squad1 haze | 39.6 / 0.0 % | 0.7 % | 28.8 % | 30.7 % | 16.3 % | 0.260 | **#57554a · 50° · 0.08 · 0.316 · 0.86** |
+| squad2 mid canopy | 16.6 / **5.1 %** | 1.0 % | 22.5 % | **35.3 %** | **16.7 %** | 0.248 | #515449 · 74° · 0.07 · 0.308 · 0.90 |
+| squad3 near bark | 6.2 / 0.0 % | 1.1 % | 17.9 % | 29.2 % | 13.4 % | 0.259 | #4e504b · 88° · 0.03 · 0.304 · 0.97 |
+
+The other two poses read the same way (r_020-like: squad1 44 % of pixels, box 93° → 51°, l 0.310 → 0.341; squad2 14 %,
+near-black 26 → 33 %; squad3 1.7 %. r_026-like: squad1 32 %, 64° → 47°, l 0.287 → 0.272; squad2 13 %, leafy 26 → 32 %;
+squad3 3.1 %).
+
+- **squad1 fixed the hue and not the light.** The far field turns from cool grey-green (89°, B/R 0.97) to the recording's
+  warm khaki (50° against r_024's 44°, B/R 0.86 against 0.91) over 40 % of the frame — but its luminance stays at
+  0.316 where the recording's far box is 0.474, so the warm grey reads as *dark khaki* (the "brown" bucket takes it:
+  17 → 29 %) and the bright-mist share falls (1.1 → 0.7 %). §5's lever was "#858372 **at the brightness kept**": the
+  hue half landed; the far bands still need +0.15 of l (see `ANALYSIS_CLARITY.md` §3 for how the 08-08 fog slice took it).
+- **squad2 populates the band and darkens it.** Round crowns and young trees stand in the 14–58 m band where the base had
+  bare trunks (5 % of pixels moved > 40 levels — new geometry, not tint; leafy 13 → 17 %). Against the base's dark air they
+  are silhouettes: near-black 26 → 35 %, mean l 0.263 → 0.248. This is the owner's "trees populate", and it is exactly why
+  lane 1's light has to arrive with it — the recording's crowns are lit shapes in bright mist, not dark shapes in grey.
+- **squad3 is local**: bark cords, moss and knees on the near columns (6 % of the frame at the owner's pose, 0.0 % > 40
+  levels); the band composition is unchanged within 3 points. Two readings of the owner's circle 1 are now on record:
+  fable-cursor's depth pick (09:15) names the far-trunk row `distant-5-near` at 37–48 m (`75622db9` darkens it); `squad3`
+  @ `68c24262` names the column at (−3.5, −24.7), 15 m, with the thin pale poles beside it as the distant family at
+  39–55 m — a metre past `DISTANT_BARK_M` = 38 m, where the near-bark treatment switches off. Both agree the pale poles
+  in the circle are the distant family beyond 38 m; whoever owns that constant should read the circle before closing it.
+
+Sheets: `fable-5-lane10/it83-ba-sq1.jpg`, `it83-ba-sq2.jpg`, `it83-ba-sq3.jpg` (base | branch, the owner's pose, crop
+x 0–0.50 × y 0–0.70).
+
+## 7. The merged head `6664f739` (squad 1 + 2 + 4 live, play-head `a44b4a19`) at the owner's pose — populated, warm, and darker than his recording
+
+Rendered 10:08–10:23 UTC, same poses / flags as §6; sheets `fable-5-lane10/it83-ba-head-owner.jpg` (base | head, full
+frame) and `it83-head-vs-r024.jpg` (head | the owner's r_024). Two befores: the squad merge-base `144453ef` (§6's; it
+carries the thinned air of 08:29 that `7244aab6` later backed out, so its band is the dark one of §5), and `f56c5740`
+(07:00, §1's frames — the same 3 / 6.5 m base air the head has now, so the fairer before for the squad batch itself).
+
+| pose | pixels moved > 6 / > 40 | bright mist | brown | near-black | leafy | mean l | far-centre box |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| owner's pose — r_024 | | **23.1 %** | 1.2 % | **11.6 %** | 3.4 % | **0.394** | #7f7c73 · 44° · s 0.05 · **l 0.474** · B/R 0.91 |
+| owner's pose — `f56c5740` | | 2.3 % | 16.7 % | 21.7 % | 10.9 % | 0.300 | #5d5e59 · 80° · 0.03 · 0.360 · 0.96 |
+| owner's pose — `144453ef` | | 1.1 % | 17.4 % | 26.0 % | 13.1 % | 0.263 | #4e514c · 89° · 0.03 · 0.308 · 0.97 |
+| owner's pose — head | 83.5 / 19.4 % (vs `f56c5740`) | 1.4 % | 30.4 % | **48.9 %** | 22.2 % | **0.230** | #5b5947 · 55° · s 0.12 · **l 0.318** · B/R 0.79 |
+| r_020-like — r_021 | | 15.5 % | 11.3 % | 39.1 % | 1.7 % | 0.298 | #6c675f · 36° · 0.07 · 0.398 · 0.87 |
+| r_020-like — `f56c5740` | | 3.7 % | 10.0 % | 21.5 % | 9.9 % | 0.302 | #5d5f5a · 83° · 0.03 · 0.362 · 0.96 |
+| r_020-like — head | 69.3 / 12.0 % | 1.9 % | 22.3 % | 30.8 % | 20.2 % | 0.261 | #605e4f · 53° · 0.10 · 0.343 · 0.82 |
+| r_026-like — r_026 | | 23.2 % | 1.9 % | 6.2 % | 1.6 % | 0.410 | #7f7c72 · 45° · 0.06 · 0.474 · 0.90 |
+| r_026-like — `f56c5740` | | 2.2 % | 11.0 % | 33.3 % | 25.0 % | 0.275 | #5d5d55 · 61° · 0.04 · 0.350 · 0.92 |
+| r_026-like — head | 73.7 / 14.9 % | 0.7 % | 20.5 % | 49.6 % | 36.3 % | 0.221 | #585645 · 53° · 0.12 · 0.307 · 0.78 |
+
+**What landed** (the sheet): round leafy crowns stand behind the path at several depths where the base had bare trunks
+in grey — the owner's "trees populate" is answered in kind; violets mass along both verges; the far air is the recording's
+warm hue (55° / B/R 0.79 against 44° / 0.91; the base's 89° / 0.97 cool grey is gone). Nothing in the band is haze any
+more: the middle distance is *trees*.
+
+**What is still wrong, and it is one thing: the light.** Against the same-air before (`f56c5740`) the band is now
+**darker by 0.07** — mean l 0.300 → 0.230, near-black 21.7 → **48.9 %** at the owner's pose (the two other poses
+0.302 → 0.261 and 0.275 → 0.221) — where the recording's band is 12 % near-black at l 0.394, and its bright mist is
+23 % of the band against our 1.4 % (2.3 % before). The far-centre box — the grey the owner circled — went from
+l 0.360 to **0.318** (the same-air before; 0.308 on the thin-air base): the warm veil arrived *darker* than the cool
+grey it replaced, and the recording's is 0.474 — the gap widened from 0.11 to 0.16. The crowns that populate the
+14–58 m band arrive in their **local colour**: in the far-centre box the head's green-hued pixels are 43 % of the box
+with mean saturation **0.15** and lightness **0.29**; in r_024 the same box's green-hued pixels (26 %) have saturation
+**0.05** and lightness **0.42** — the recording's distant crowns are 80 % of the way to the mist's colour (#7f7c73),
+pale warm silhouettes with light between them; ours are saturated green shapes against a dark warm grey. The far box is
+also more saturated than the frames (s 0.12 against 0.05): the warm tint is strong for the brightness it sits at.
+
+Where the light sits — mean HLS lightness on an 8 × 6 grid of the owner's pose (`f56c5740` → head, r_024 for the target):
+
+```
+f56c5740 (07:00)                                  head 6664f739                                     r_024 (the owner)
+0.38 0.42 0.40 0.35 0.32 0.32 0.26 0.24           0.15 0.21 0.33 0.28 0.30 0.23 0.17 0.18           0.43 0.40 0.55 0.53 0.47 0.39 0.29 0.32
+0.37 0.37 0.39 0.37 0.32 0.30 0.21 0.21           0.18 0.17 0.29 0.30 0.34 0.26 0.18 0.18           0.27 0.47 0.45 0.49 0.51 0.42 0.33 0.36
+0.25 0.25 0.30 0.40 0.39 0.23 0.19 0.18           0.19 0.15 0.25 0.33 0.34 0.19 0.17 0.17           0.12 0.22 0.32 0.49 0.56 0.50 0.39 0.32
+0.18 0.18 0.20 0.34 0.29 0.22 0.19 0.17           0.19 0.19 0.18 0.29 0.25 0.20 0.18 0.16           0.07 0.12 0.19 0.40 0.63 0.54 0.34 0.29
+0.17 0.17 0.19 0.29 0.30 0.21 0.21 0.17           0.15 0.21 0.21 0.26 0.25 0.19 0.18 0.15           0.07 0.13 0.15 0.23 0.38 0.32 0.20 0.12
+0.18 0.15 0.23 0.40 0.41 0.32 0.22 0.23           0.18 0.19 0.19 0.27 0.24 0.21 0.18 0.21           0.10 0.12 0.19 0.28 0.25 0.16 0.10 0.11
+```
+
+The recording's light is in the **middle rows** (the vanishing point 0.40–0.63, mist between lit crowns) and along the
+**top** (canopy gaps 0.40–0.55). The head's brightest cell is 0.34. The top band (rows 0–0.12) fell 0.335 → **0.232**
+(the recording 0.418): the new mid-canopy crowns **closed the gaps over the path** at this pose; the vanishing-point box
+(x 0.42–0.58, y 0.40–0.50) fell 0.401 → **0.337** (the recording 0.562). Lane 1's own note in `heightfog.ts` aimed the
+far veil at display 0.645 and his vanishing point at 0.545 — measured on the haze branch alone; with the crowns in front
+of the veil the pixel a walker sees is the crown, and the crown is dark.
+
+So the ranked list at the owner's pose after the squad's first batch:
+
+| # | issue | measured | owning lane |
+| --- | --- | --- | --- |
+| 1 | **The far air is warm but darker than the grey it replaced**: far-centre l 0.360 → 0.318 vs the recording's 0.474; bright-mist share 2.3 → 1.4 vs 23 % | §7 table | 1 |
+| 2 | **The mid-canopy crowns keep their local colour at 14–58 m and close the gaps overhead**: green s 0.15 / l 0.29 in the far box vs the recording's 0.05 / 0.42 — atmospheric perspective on the crowns (toward the far air's colour, by depth) is missing or too weak; the top band 0.335 → 0.232 (his 0.418) — the recording keeps bright gaps over the path between the crowns | §7 grid | 2 with 1 |
+| 3 | The path: continuous stone slabs with dark joints; the recording's north run is packed dirt with a few slabs | §2 #4 | 6 (open) |
+| 4 | The right bank is still a cut earth wall (brown 30 % of the band, the recording 1 %); the verges are dressed now, the bank face is not | §2 #3 | 4 / 6 |
+| 5 | The path does not fork past Saria's mound | §2 #6 | 6 (open) |
+| 6 | No people | §2 #7 | 7 (open) |
+
+The cheapest experiment for (1)+(2) is one number each: the far air's brightness (the fog / veil colour's l toward
+0.47 at the far bands, the hue kept) and the crowns' fog weight in the 14–58 m band — both measured at this pose with
+`bands.py` before and after, the six views inside −0.003. This lane will read whatever lands within the hour it lands.
+
+### 7a. The six fixed views on the head (`f56c5740` → `6664f739`, `broll --test --settle 8`, no character, same list) — the squad batch costs 0.008–0.033 on every view
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| SSIM vs reference, `f56c5740` | 0.1979 | 0.1820 | 0.1964 | 0.2504 | 0.2041 | 0.2091 |
+| SSIM vs reference, head `6664f739` | 0.1786 | 0.1636 | 0.1752 | 0.2185 | 0.1711 | 0.2009 |
+| **Δ** | **−0.0193** | **−0.0184** | **−0.0212** | **−0.0319** | **−0.0330** | **−0.0082** |
+| pixels moved > 6 levels | 36 % | 41 % | 39 % | 51 % | 40 % | 24 % |
+| mean luma: reference / before / head | 0.422 / 0.346 / 0.339 | 0.393 / 0.333 / 0.325 | 0.383 / 0.316 / 0.317 | 0.421 / 0.340 / **0.320** | 0.388 / 0.334 / 0.325 | 0.398 / 0.318 / 0.308 |
+
+This is ten times the −0.003 rule on five of the six views — an owner-directed look change (the 06:50 brief), so it is
+fable-cursor's call, not a fail to file; but the take will show it, and the direction against the frames is the same one
+as at the owner's pose: **every view is darker** (mean luma −0.007 to −0.020; the frames are 0.07–0.10 brighter than
+ours already) and the upper halves fill with saturated crowns where the frames have pale lit canopy and bright gaps.
+Expected take-0135 row on this head, chained from take-0134's seal (0.2181 / 0.1984 / 0.2130 / 0.2655 / 0.2189 / 0.2253)
+through fable-2's `47773f13` → `f56c5740` deltas: A ≈ 0.198, B ≈ 0.180, C ≈ 0.192, D ≈ 0.234, E ≈ 0.186, F ≈ 0.219
+(± 0.003). Sheets `fable-5-lane10/it83-ba-six-A.jpg`, `it83-ba-six-D.jpg`.
+
+### 7b. Split at the squad merge-base `144453ef` (its six views rendered 10:41–11:09, same harness)
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| `f56c5740` → `144453ef` (the 07:00–08:54 head: the thinned air, the far-trunk bark, the grass, the basket, the near skin) | −0.0036 | −0.0086 | −0.0006 | −0.0117 | −0.0015 | −0.0002 |
+| `144453ef` → `6664f739` (the squad batch + `7244aab6`'s air restore + `75622db9`) | −0.0157 | −0.0098 | −0.0206 | −0.0202 | −0.0315 | −0.0080 |
+
+The first row is the thinned air (`b7be503e` / `9a1be295`) that `7244aab6` backed out — fable-cursor's own hero reads
+of it were the same sign (top thirds A −6.2, B −8.5, D −8.9 levels). Since the head carries the restore, the two rows
+sum to 7a's numbers and **the squad batch is the whole of 7a**: roughly A −0.019, B −0.018, C −0.021, D −0.032,
+E −0.033, F −0.008 against the frames, with the 07:00 air on both sides.
+
+## 8. Walk QA and frame cost on the head `6664f739` (`playtest.mjs --only walk,climb,perf,pacing`, 10:25–11:06 UTC; the harness now runs nine routes with camera motion and the boots' contact)
+
+- **Routes: 9 / 9 reached, no stuck points** — the four of §3 plus `plaza-loop`, `south-approach`,
+  `house-west-to-saria-door`, `west-house-to-plaza`, `north-clearing-ledge` (82 m, 15 waypoints, the arch and the ledge).
+  The verge shrubs and the mid canopy block nothing on the routes. Climbs identical to §3 (the main flight's frame
+  budget still ends at y 4.32 of 5.40; the descent camera 0.383 m over the treads).
+- **Camera pops** (one-frame jumps of the follow camera, from the harness's spike list): **`west-house-to-plaza`: 1.26 m
+  in one frame** (1,128 m/s²) with Link at (−16.8, 2.9, 6.6), the camera pulling from (−18.5, 4.6, 7.1) to (−17.4, 4.4,
+  6.8) against a *solid* shell — the west house's wall behind the walker as he turns for the plaza — and **0.67 m** two
+  metres on at (−15.4, 2.6, 6.8), also solid → solid. `8ab27c48` eased the *slim* pushes (they read 0.19–0.42 m here:
+  the lantern limb at (0.8, −2.0), the house bough at (16.4, 5.4, −7.6), the south-bank post at (−13.7, 13.5)); the
+  solid shells still pull in at once by design — at the west house that is a 1.3 m pop a player sees every time he
+  leaves it. **`north-clearing-ledge`: 0.37 m** at (5.75, 4.48, −60.4) as the camera's *lowered* state (0.3) releases
+  into a solid hit — the ledge's edge, worth one look by the camera's owner. Everything else ≤ 0.3 m.
+- **Camera height**: `west-house-to-plaza` brings the camera to **0.365 m** over the ground, `plaza-loop` to 0.414 m,
+  `plaza-to-south-bank-top` 0.603 m (the flight's descent 0.383 m in §3) — with the look-up pitch range the camera skims
+  the ground on descents; a floor of ≈ 0.6 m would keep it out of the grass.
+- **The boots** (`footprintLowestM`: the boot's lowest point over the rendered surface, ≈ 0 standing, > 1 cm a whole
+  boot floating): **`saria-front-arc` p50 2.9 cm, p95 8.0 cm, max 10.8 cm** — Link floats over Saria's forecourt for
+  most of the arc; **`west-deck` p50 2.1 cm, max 4.1 cm** over the deck timber; `plaza-to-upper-house` max 13.5 cm float
+  and **−31 cm** at the other end (a boot corner 31 cm inside the surface — on the flight, the collision height against
+  the rendered treads); the plaza, the south approach and the north path are clean (p50 0, p95 ≤ 1.2 cm). Lane 8 (Link)
+  with the collision owner: the two surfaces (Saria's forecourt, the west deck) sit under the walk height.
+- **Frame cost at the four play spots**, `e4ca3241` (07:34) → `6664f739`: plaza **521 → 574 draws / 7.43 → 8.00 M**
+  triangles, `stairs2-base` **522 → 571 / 9.53 → 9.67 M** (the cap is 9.0 M at A; the flight's foot was over it before
+  the squad and is 0.67 M over now), `saria-side` 519 → 571 / 8.59 → 8.88 M, `west-house` 442 → 479 / 5.03 → 5.10 M.
+  Draws +37 … +53 (the mid canopy's near LOD to 40 m, the verge shrubs, the understory), all under 700; triangles
+  +0.06 … +0.57 M. Programs 104 → 107, still **no shader compiles on the walk**.
+- **Heap**: 1,341 MB at the walk's start, **1,349 at its end** (07:34: 1,325 → 1,227). The `onUpload` release that took
+  98 MB off during the 07:34 walk no longer shows — the batch's new geometry (`understory.ts`, `distant.ts`'s mid
+  canopy, the verge plants) either keeps its arrays or is uploaded before the walk; +122 MB retained at the walk's end
+  against the last read. The capture box's memory rule (r55 §E–§G) is the reason to look.
+- **Pacing** (`--only perf,pacing` re-run **alone** 11:11–11:29 — the 10:37 pass ran beside a second Chrome and is
+  discarded; the 07:34 run itself had a render beside it, so the comparison below flatters the head if anything):
+  plaza → second staircase → upper house, 630 frames — **JS step p50 4.2 → 6.2 ms, p95 8.7 → 13.5, p99 11.2 → 22.6**,
+  hitches 39 → 56; frames over 12 ms after frame 0: **0 → 20**, the worst 42.5 ms at frame 85, Link at (5.1, 0, 1.3)
+  on the plaza. By segment: **the plaza (frames 1–200) p50 4.1 → 10.4 ms, p95 8.6 → 18.9**; the flight 3.7 → 4.3; the
+  upper 5.0 → 5.6. Drawn frames' render issue p50 10.0 → 11.8 ms. No shader compiles (107 → 107). **Heap 1,208 →
+  1,307 MB across the walk** (+99 MB; 07:34: −98). The world update at the four spots (the step less its render):
+  plaza **4.8 → 7.3 ms**, `stairs2-base` **5.0 → 13.6**, `saria-side` 5.6 → 9.4, `west-house` 2.2 → 7.6 — the batch
+  added 2.5–8.6 ms of per-frame JS at player height by these two runs (the 07:34 spot numbers were taken beside a render,
+  so the true growth is smaller than that — see the split below); on a 60 Hz box `stairs2-base`'s 13.6 ms is most of the
+  frame before a draw is issued.
+- **Which system** (`__ZR__.perf().systems`, ms per step averaged over 60 steps at each spot after a 30-frame settle,
+  one Chrome, `fable-5-lane10/sysperf.mjs`; head | `f56c5740`): **trees 4.9 | 6.1** at the plaza, **5.9 | 2.3** at
+  `stairs2-base`, 6.0 | 5.9 at `saria-side`, 3.3 | 3.7 at `west-house`; character 0.5–2.0 | 0.6–2.4; every other system
+  (vegetation, atmosphere, rocks, structures, lighting, hardscape, wind) **< 0.1 ms** on both builds. The trees' time is
+  the near-LOD pools' geometry builds inside `NEAR_LOD_BUILD_BUDGET_MS` = 6 plus the re-bucket / cull — it reads as "up
+  to 6 ms for as long as builds are pending", on both builds. What the batch changed is *how long* they are pending:
+  the mid canopy's near LOD to 40 m and the understory put more parts inside the pre-fetch radius per metre walked. The
+  heap over the 60 measured steps says the same — head **+67 MB** at `stairs2-base` and **+69 MB** at `saria-side`
+  (`f56c5740` +28 / −10), the plaza +16 (+38) — and so does the walk (§8 pacing): the plaza segment's p50 4.1 → 10.4 ms
+  is the pools building through the first 200 frames, and the +99 MB across the walk is their output. The 42.5 ms frame
+  at (5.1, 0, 1.3) is the kind of frame that produces. Lane 2 / fable-cursor: the mid canopy's near LOD radius (40 m)
+  against the pool budget is the lever; the trees' `perf()` report (`nearCanopyPool`, builds / evictions / bytes within
+  the swap radii) names what is being built.
+- **Load**: world ready in 74.1 s alone here (07:00's `f56c5740`: 73.4 s; SwiftShader CPU time, not a GPU box); the
+  bundle 2.04 → 2.06 MB, textures and models unchanged (114.9 MB dist).
+
+## 9. Re-read on `0149f255` (11:20 — lanes 1–5's next pushes: lane 1's third mist tier and lit far wall, lane 2's steep crown fade by distance, lane 4's closed forest floor; play link `d49ecc9d`)
+
+Same poses / flags, before = `6664f739` (§7). Sheet `fable-5-lane10/it84-ba-owner.jpg`.
+
+| owner's pose | pixels > 6 / > 40 | bright mist | near-black | mean l | far-centre box (l · s) | vanishing box l | top band l |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| r_024 | | 23.1 % | 11.6 % | 0.394 | 0.474 · 0.05 | 0.562 | 0.418 |
+| `6664f739` | | 1.4 % | 48.9 % | 0.230 | 0.318 · 0.12 | 0.337 | 0.232 |
+| `0149f255` | 8.6 / 0.5 % | 2.8 % | 48.8 % | 0.237 | **0.342** · 0.10 | **0.362** | **0.230** |
+
+A step in the right direction and a small one: the far-centre box +0.024 (of the +0.156 to the recording), the
+vanishing point +0.025 (of +0.225), the saturation 0.12 → 0.10 (his 0.05); the two other poses the same (+0.022 /
++0.044 in the far box, mist 1.9 → 3.3 % / 0.7 → 2.3 %). **The near-black share did not move (48.9 → 48.8 %) and the top
+band did not move (0.232 → 0.230)** — the crowns still roof the path at his pose, and their colour at depth is the same
+(green-hued pixels of the far-centre box: s 0.15 → 0.15, l 0.29 → 0.30; his 0.05 / 0.42): lane 2's steep fade by
+distance does not reach the crowns this pose sees at 14–40 m, or is too shallow there. The asks of §7 stand at
+these sizes: +0.13 in the far air's l, the crowns toward the veil's colour, the sky over the path open.
+
+**Six views `6664f739` → `0149f255`** (same harness as 7a): A −0.0009, B −0.0007, C −0.0015, D +0.0019, E +0.0016,
+F +0.0004 — inside ±0.002, 0.3–6.6 % of pixels moved, mean luma +0.002 … +0.004 (the lit far wall, the treads' earth).
+Expected take-0135 row on this head: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 (± 0.003).
+
+## 10. The owner's own four 09-23 poses on `0149f255` (`art/environment/owner-2026-09-23/shots.json`; before = `a5dbf45f`, the last read of these poses, r55 §Y — `s2-owner` / `b-upper-2` / `h-west-front` were byte-identical from there to `f56c5740`; `u-open-up` carries `c526a5b8`'s card fix inside the delta)
+
+Rendered 12:31–12:43 UTC, no character, same list / order / flags as §Y. Sheets `fable-5-lane10/it85-ba-{s2,u-open-up,b-upper-2,h-west-front}.jpg`;
+numbers `fable-5-lane10/owner-poses-cmp.py`, the tree seats `fable-5-lane10/midseats.mjs` (the trees' audit `midCanopy.seats`).
+
+| pose | pixels > 6 / > 40 | mean luma | bright (> 0.6) | dark (< 0.25) | leafy |
+| --- | --- | --- | --- | --- | --- |
+| `s2-owner` (the flight, looking up it) | 34 / 10 % | 0.257 → 0.251 | 1.1 → 1.3 % | 55 → 60 % | 31 → 34 % |
+| `u-open-up` (the north hollow, straight up) | **99.9 / 81 %** | **0.550 → 0.303** | **50.5 → 13.6 %** | **0.5 → 53.5 %** | 1.0 → 31.7 % |
+| `b-upper-2` (the upper house's ladder) | **99.6 / 74 %** | **0.454 → 0.269** | 6.1 → 1.0 % | **0.5 → 54.6 %** | 3.0 → 19.6 % |
+| `h-west-front` (the west hut from the path, looking up-left) | **92 / 46 %** | **0.364 → 0.258** | 12.4 → 4.8 % | **30 → 59 %** | 9.5 → 35.6 % |
+
+**1. Mid-canopy crowns at arm's length (`u-open-up`, `h-west-front`) — the new top item at the owner's poses.** The
+mid layer was placed as a 14–58 m *radial* band from the clearing's centre (`midCanopy.band` 13.7–57.9 m, 277 trees),
+but the owner does not stand at the centre: along the north path the band's trees stand beside and over the walk line.
+The trees' audit puts an 11.6 m mid tree at (−3.9, −42.7), **6.0 m** from the `u-open-up` camera (crown radius 3.6 m,
+crown centre 6.6 m up — the camera at 5.19 m is inside the crown's height band, 2.4 m from its edge), two more at 7.4 /
+7.7 m; at `h-west-front` a 14.6 m mid tree stands at (−3.3, −19.6), **3.0 m** from the camera with a 4.2 m crown whose
+base is 4.4 m up — the camera (4.2 m) is under it, inside its radius. At that range the crown is what it is built of:
+the far layer's atlas on **crossed cards, lobe pairs and floor cards — flat, hard-edged olive quads a metre wide**
+(sheets). The look-up that the owner asked for on 09-23 (pass 1) now shows a wall of them where it showed sky and the
+giants' canopy: sky share 50.5 → 13.6 %, the frame 0.55 → 0.30. `h-west-front` loses the hut behind them (the owner's
+09-23 hut item), and the same tree is the crown that roofs the path in his 06:50 frame (§7's top band: it stands 3.3 m
+west of the spine at z −19.6, 5 m from the path's centre at z −18). Lane 2: (a) a clearance corridor for the mid seats
+along the walk lines — the spine (x ≈ 1.5, z −4 … −45) and the owner's poses — of ≈ 8–10 m, the way the verges and the
+sectors keep theirs; (b) the crowns need a *near* treatment or a fade under ≈ 10 m (the far atlas at 3 m is a card).
+Both are measurable here at these two poses.
+
+**2. `b-upper-2` went dark.** The bright veil in front of the upper house (0.454, 6 % over 0.6) is gone; the hut reads
+sharp — the bark, the lantern, the ladder — in deep shade (0.269, 55 % of the frame under 0.25). Lane 1's closed-roof
+grade / `hazeShadeVeil` is the likely lever (the hut sits under the giants' roof); the owner asked for the huts'
+*character* (04:09) and for bright warm air (06:50) — this pose has the first and lost the second. Lane 1 with the
+next brightness pass: read this pose too.
+
+**3. The flight (`s2-owner`) after lane 6's earth treads (`a0223c98`).** Earth between the logs shows on the near
+treads (the sheet's lower third) — the demo's kind — but at the owner's angle the flight box (x 0.50–0.95 × y 0.20–0.95)
+reads **60.9 → 60.8 % dark, 3.9 → 6.1 % pale, luma 0.236 → 0.242**; the demo's flights read **13–31 % dark / 7–8 %
+pale / 0.31–0.33** (`demo61/d_104` x 0.79–0.865 × y 0.03–0.28, `d_094` x 0–0.11 × y 0.24–0.58). At camera A the
+flight box is unchanged too (54.2 / 7.7 / 0.260 against 54.5 / 7.7 / 0.260 on `6664f739`). The weight is the log faces
+and the shaded tread fronts, which fill a low view; the demo's logs are thin and its treads lit. Lane 6 (fable-2) with
+lane 1: the treads' brightness on that slope is the remaining half (r55 §W), the earth is the right material for it.
+
+Six views on this head: §9 (inside ±0.002 of `6664f739`).
+
+### The ranked list at player height, as of `0149f255` (12:51 UTC)
+
+| # | issue | where | lane | measured |
+| --- | --- | --- | --- | --- |
+| 1 | **Mid-canopy crowns at 3–7 m from the walk line read as flat card piles**; they roof the path and hide the west hut | `u-open-up` (tree at (−3.9, −42.7), 6 m), `h-west-front` (tree at (−3.3, −19.6), 3 m), the 06:50 pose's top band | 2 | §10.1 |
+| 2 | **The far air is warm but not light** — far-centre l 0.342 vs the recording's 0.474; bright mist 2.8 vs 23 % | the north path, every pose looking out | 1 | §7, §9 |
+| 3 | **The mid crowns keep their local colour at 14–40 m** (s 0.15 / l 0.30 vs 0.05 / 0.42) | the 06:50 pose's far-centre box | 2 with 1 | §7, §9 |
+| 4 | **`b-upper-2` went from bright veil to deep shade** (0.454 → 0.269; 55 % of the frame under 0.25) | the upper house's ladder | 1 | §10.2 |
+| 5 | **The flight's weight** — 61 % dark / l 0.24 at the owner's angle vs the demo's 13–31 % / 0.31–0.33; the earth treads show, the light does not | `s2-owner`, camera A | 6 with 1 | §10.3 |
+| 6 | **A 1.26 m one-frame camera pop leaving the west house**; the camera at 0.37–0.41 m over the ground on descents | Link (−16.8, 2.9, 6.6); `west-house-to-plaza`, `plaza-loop` | camera (fable-cursor) | §8 |
+| 7 | **Link's boots float 3–11 cm over Saria's forecourt, 2–4 cm over the west deck**; a boot corner 31 cm inside the flight | `saria-front-arc`, `west-deck`, the main flight | 8 / collision | §8 |
+| 8 | **The plaza walk's JS step 4.1 → 10.4 ms p50** — the trees' near-LOD pool builds pending longer; heap +99 MB over the walk | the first 200 frames from the plaza | 2 / fable-cursor | §8 |
+| 9 | `stairs2-base` 9.67 M triangles (the 9.0 M cap read at A) | the flight's foot | all | §8 |
+| 10 | The path: stone slabs with dark joints where the recording's north run is packed dirt | the spine north of the plaza | 6 | §2 #4 |
+| 11 | The right bank a cut earth wall (brown 30 % of the band vs 1 %) | the spine's east side | 4 / 6 | §7 |
+| 12 | No fork past Saria's mound; no people | north of Saria's; the plaza | 6; 7 | §2 |
+
+## 11. W38 at camera A — who carries the +0.62 M since `f56c5740` (head `be123deb`, 13:23–13:42 UTC)
+
+fable-2 (11:35) flagged A at 9.15 M / 599 draws against the 9.0 M cap and guessed lane 2's layer. Measured on my box:
+`fable-5-lane10/submission.mjs` poses the six fixed views and reads the trees' per-family submission tally
+(`audit().systems.trees.submission.byFamily`, three's culling replayed) beside the renderer's total;
+`fable-5-lane10/bysystem.mjs` reads the scene's static triangles per top-level system (`audit().scene.bySystem`) and
+the vegetation audit. Three builds: `f56c5740` (07:00), `144453ef` (the squad merge-base, carries `d19439cc`'s
+D-hollow turf), `be123deb` (the head).
+
+| view | renderer triangles | the trees system (submitted) | of which the mid canopy | everything else |
+| --- | --- | --- | --- | --- |
+| A | 8.54 → 9.15 M (**+0.62**) | 3.04 → 3.08 M (+0.05) | 0.03 M | 5.50 → 6.07 M (**+0.57**) |
+| B | 7.70 → 8.30 M (**+0.60**) | 2.57 → 2.62 M (+0.04) | 0.03 M | 5.12 → 5.68 M (**+0.56**) |
+| C | 6.47 → 6.77 M (**+0.31**) | 2.34 → 2.39 M (+0.05) | 0.04 M | 4.13 → 4.39 M (**+0.25**) |
+| D | 7.74 → 8.53 M (**+0.78**) | 2.65 → 2.70 M (+0.04) | 0.03 M | 5.09 → 5.83 M (**+0.74**) |
+| E | 7.70 → 8.30 M (**+0.60**) | 2.57 → 2.62 M (+0.04) | 0.03 M | 5.12 → 5.68 M (**+0.56**) |
+| F | 7.79 → 7.99 M (**+0.20**) | 2.59 → 2.64 M (+0.05) | 0.04 M | 5.20 → 5.35 M (**+0.15**) |
+
+**At A the trees system grew 0.05 M (the mid canopy submits 0.03 M — `mid-near` +17 K, `mid-far` +13 K, +10 calls; the
+columns +15 K) and everything else grew 0.57 M.** The static split names it: **vegetation 2.45 → 3.02 M (+0.57 M;
+instances 504,659 → 635,865)**, trees 3.67 → 3.75 M (+0.08 M; +131 instances). Inside vegetation, between `144453ef`
+and the head: grass instances 512,554 → 619,457 (turf +95 K, meadow +11 K, sedge +10.6 K blades), ferns 2,366 → 2,834,
+flowers 274 → 774, bushes 125 → 167, weeds +678, clover +538 — lane 4's verges and the "corridor's forest floor closed".
+`d19439cc` (the D-hollow turf, fable-cursor) is +9 K at A (8.536 → 8.545 M; +23.7 K grass instances) — not the cause.
+Draws at A 545 → 597: +10 the trees', the rest vegetation.
+
+So **the 9.0 M cap at A is broken by lane 4's blades, not lane 2's crowns** — and the same split holds at B / D / E
+(+0.56 / +0.74 / +0.56 M outside the trees against +0.04). The first cut is the turf's density or reach where A does not
+resolve it (at A the corridor's floor is 20–40 m out); the crowns are 0.03 M and can stay. The play spots (§8) carry
+the same growth (`stairs2-base` 9.53 → 9.67 M is lane 4's too, by this split).
+
+## 12. The perf branches against the caps, measured together (15:33–15:55 UTC, `fable-5-lane10/submission.mjs`, capture mode = the take's condition, character group visible)
+
+The cast's return (`f6efd6e2`) put camera A over **both** caps: 597 → **723 draws**, 9.15 → **9.20 M**. Three branches answer
+W38 / the draw cap; each is measured here against *its own* base (the branches were cut from different heads), then
+projected together onto the head `56b54e15`. JSONs in `fable-5-lane10/perf88/`.
+
+| build | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| `be123deb` (the head before the cast) | 597 / 9.15 M | 589 / 8.30 M | 472 / 6.77 M | 557 / 8.53 M | 589 / 8.30 M | 547 / 7.99 M |
+| head `56b54e15` (cast back) | **723 / 9.20 M** | 692 / 8.33 M | 573 / 6.82 M | 562 / 8.53 M | 692 / 8.33 M | 650 / 8.03 M |
+| fable-2 `930ad3d9` flagstones stop casting (vs `be123deb`) | −1 / **−188 K** | −1 / −188 K | −1 / −188 K | −1 / −188 K | −1 / −188 K | −1 / −188 K |
+| fable-4 `852245f7` white-bark shadow proxy (vs the head) | +1 / **−134 K** | 0 / −90 K | +1 / −39 K | 0 / −90 K | 0 / −90 K | +1 / −166 K |
+| fable-3 `b1ebee6b` kids' shadows only in reach (vs `4b1759f9`) | **−25** / −12 K | −2 / −1 K | **−48** / −23 K | −5 / −7 K | −2 / −1 K | −2 / −1 K |
+| **projected head + all three** | **698 / 8.87 M** | 689 / 8.05 M | 525 / 6.57 M | 556 / 8.25 M | 689 / 8.05 M | 648 / 7.67 M |
+
+- fable-2's and fable-4's numbers reproduce here to the K (−188 K on every view; A −134 / F −166 / B, D, E −90 / C −39 K);
+  the frames are their measurement (A +0.0001 with 0.12 % of pixels ≤ 40 levels; five views pixel-identical, C −0.0005) —
+  shadow-only changes, so I take them without re-rendering.
+- **The cast costs draws, not triangles: +126 at A, +101–103 at B / C / E / F** for one or two kids in view (+34–45 K
+  triangles). fable-3's `b1ebee6b` takes back the *off-view* kids' shadow passes (A −25, C −48) and lands A at **698 —
+  under the 700 cap by two**, with B / E at 689. The rest is the visible kids' own meshes: a kid in view is ≈ 50 colour
+  draws plus her shadow pass (hair lobes, locks, fringe, band, tunic, belt, limbs, boots, face, eyes, the fairy). With
+  all three branches merged the head sits at 698 / 689 / 689 draws at A / B / E — no headroom for the next prop or plant.
+  **Lane 7's next perf item is the kid as one or two merged meshes (per material): 50 → ≈ 5 draws each.**
+- Triangles: the three together bring A to **8.87 M, under W38's 9.0 M with 130 K of room**; the lane-4 blades (§11) are
+  still the mass (+0.57 M at A), and the next plant lands A back over the cap.
+
+## 13. The head after the perf merges (`b510b152`, 16:20): the caps met with the cast visible; pacing with the cast (16:31–17:06 UTC, one Chrome)
+
+- **Six views** (`submission.mjs`, the take's condition): **A 692 / 8.86 M**, B 683 / 8.05 M, C 521 / 6.57 M, D 556 / 8.25 M,
+  E 683 / 8.05 M, F 642 / 7.67 M — against §12's projection 698 / 8.87 M (the girl's neck mesh and boot cuffs left the
+  passes since). Both caps met; **headroom at A: 8 draws, 140 K triangles.** `perf89/submission-…json`.
+- **Play spots with the cast** (`playtest --only perf`): plaza 626 / 7.66 M, **`stairs2-base` 685 / 9.31 M** (the flight's
+  foot is still over the 9.0 M read — the mass there is the blades and the near giant, §8), `saria-side` 616 / 8.72 M,
+  `west-house` 491 / 4.75 M. Draws +12 … +114 over the 11:14 run (the kids in view), triangles −0.15 … −0.41 M (the
+  three shadow give-backs).
+- **Per system with the cast** (`sysperf.mjs`): trees 3.2–6.0 ms, **character 0.7–2.1 ms** (0.5–2.0 with the cast hidden
+  — the kids' schedules ran either way; showing them adds ≈ 0.2 ms), everything else < 0.1 ms.
+- **Programs: 107 → 115** on the head with the cast (the kids' eight programs — hair sheen, drape, skin, the fairies).
+  They compile when a kid first enters the view: at `stairs2-base` (the sitter on the flight) my probe's first drawn
+  frames averaged **14.5 s of render** on SwiftShader against 7 ms once compiled — on a GPU box a one-time hitch of
+  hundreds of ms the first time a kid is seen, unless the warm pass covers the kids' materials (`warmup=0` in the
+  harness; the launch path has it on — fable-3 / fable-cursor: worth a look at what the warm pass renders).
+- **Pacing with the cast** (plaza → second staircase → upper house, alone): **JS step p50 5.8 / p95 12.6 / p99 16.7 /
+  max 22.6 ms** (11:14 cast hidden: 6.2 / 13.5 / 22.6 / 42.5), hitches 47 (56), frames over 12 ms after frame 0: 17 (20),
+  the worst 22.6 ms at (3.9, 0, 1.8) on the plaza; by segment the plaza p50 10.3 (10.4), the flight 4.0 (4.3), the upper
+  5.5 (5.6) — the plaza's cost is the trees' pool builds as in §8, not the kids. **No shader compiles during the walk
+  (115 → 115). Heap 1,274 → 1,276 MB across the walk (max 1,334)** — flat, where the 11:14 walk grew +99 MB; the
+  three shadow give-backs and the kids' shadow culling took the walk's build churn with them, or the pools were warm
+  from the perf spots — either way the walk no longer leaves memory behind. `perf89/playtest-b510b152.json`.
+
+## 14. Re-read on `79f44aa5` (17:20 — fable-2's earth under the timbers, fable-4's understory re-seat + finer leaves, the kids' brows): the flight closes; the card wall at the owner's look-up poses was the **understory**, not the mid canopy — §10.1's owner corrected
+
+Owner poses `art/environment/owner-2026-09-23/shots.json`, before = `0149f255` (§10), same flags. Sheets
+`fable-5-lane10/it90-ba-{s2,u-open-up,h-west-front}.jpg`.
+
+**The flight (`s2-owner`, lane 6 `da634660`, "the band under the timbers as earth").** My box (x 0.50–0.95 × y 0.20–0.95,
+luma): **dark 60.8 → 37.4 %, pale 6.1 → 9.2 %, mean 0.242 → 0.300, p10 0.118 → 0.190** — the demo's flights read 31 % /
+0.312 (`d_094`) and 13 % / 0.330 (`d_104`). The flight now sits *between* the demo's two frames on weight and 0.03 short of
+the lit one; the riser band under each timber is pale earth and the flight reads as earthen log steps (the sheet). What
+is left: the earth's saturation (0.46 in the box against the demo's 0.34–0.35 — fable-2 named it: a cooler earth toward
+the frame's grey-beige) and the light on the treads with lane 1. **§10.3 / §2 #5 closes on kind and weight.** The
+six-view price is fable-2's read (A −0.0131, F −0.0081) — the take's row moves by it; owner-directed.
+
+**`u-open-up`: the wall of cards is gone** — 82 % of pixels moved, luma 0.303 → **0.418**, dark 53.5 → **11.2 %**, sky
+13.6 → 23.8 %; the frame is the haze, the shafts and the giants' canopy again with a bole in the lower middle.
+**`h-west-front`: the cards are half the size and twice as many** (48 % of pixels moved, luma 0.258 → 0.260, dark 58.6 →
+56.5 %) — still a card cloud between the camera and the hut.
+
+**Correction to §10.1.** Nothing in lane 2 changed between the two heads; what changed was fable-4's understory — every
+stem re-seated on the rendered surface (`a2d3097b`), the laminae halved in size and doubled (`6ea3a21c`). The cards
+answered *that* change (vanished at one pose, halved at the other), so **the card wall at the owner's look-up poses was
+the understory's 0.45 m laminae, not squad2's mid canopy.** The mid seats I named (6.0 m and 3.0 m from the cameras) stand
+there, but their crowns were not the pixels. The mechanism is the same one I asked lane 2 to fix, in fable-4's constants:
+`UNDERSTORY_ZONES[0]` puts 26 stems on the north path's verges from z −12 to −50 with `UNDERSTORY_PATH_MIN_M` = **3.4 m**
+from the centreline (6.5 m only on the arch stretch, z < −28); a walker at eye height 1.6–5 m stands inside those crowns.
+`h-west-front` (z −21.5) is on the 3.4 m stretch — hence the cloud stays; `u-open-up` (z −40) is on the 6.5 m stretch —
+hence it cleared once the stems were re-seated and the leaves halved. **Ask, fable-4:** the plaza stretch's minimum toward
+the arch stretch's 6.5 m (or the crowns' base above the eye line on the walk lines), read at `h-west-front` and the 06:50
+pose. **Lane 2:** §10.1's ask about the mid crowns' *distance colour* (§7) stands; the clearance ask moves to the understory.
+`b-upper-2`: unchanged (1.8 % of pixels; dark 54.6 % — §10.2 stands for lane 1).
+
+## 15. Re-read on `0d66fa51` (17:45 — fable-cursor's mid grove off the walk lines, `d6681b92`: a crown's edge 3 m beyond the paving, never nearer than 9 m to a centreline) — his numbers confirmed; both layers stood in the frames
+
+Same poses / flags as §10 and §7, before = `79f44aa5` (§14) for the owner's four, `0149f255` (§9) for the 06:50 pose.
+Sheets `fable-5-lane10/it90b-ba-{u-open-up,h-west-front,owner}.jpg`.
+
+| pose | pixels > 6 / > 40 | luma | dark (< 0.25) | bright (> 0.6) | fable-cursor's read (17:45) |
+| --- | --- | --- | --- | --- | --- |
+| `u-open-up` | 57 / 21 % | 0.418 → **0.505** | 11.2 → **5.4 %** | 23.8 → **39.5 %** | 0.419 → 0.507, 10.4 → 5.1 %, 23.8 → 39.9 % ✓ |
+| `h-west-front` | 14 / 4 % | 0.260 → 0.265 | 56.5 → 52.5 % | 4.3 → 3.9 % | < 0.25 54.3 → 45.3 % (his threshold reads lower; the direction and the hut agree) |
+| `s2-owner`, `b-upper-2` | 0.3 / 0.8 % | = | = | = | — |
+| the 06:50 pose (vs `0149f255`, with the character) | 38 / 5 % | band 0.237 → 0.254 | near-black 48.8 → 43.7 % | mist 2.8 → 4.3 % | top band 0.275 → 0.300 (mine 0.230 → **0.275**, his 0.418) |
+
+At `u-open-up` the close mid tree's bole and card crown are gone and the sky and the rim are back (0.505 against the
+pre-squad 0.550); at `h-west-front` the second bole beside the column is gone and the hut stands in view, while the
+understory's laminae still hang over the column (§14's ask to fable-4 stands). At the 06:50 pose the far-centre box's
+green share fell 39 → 23 % (the near crowns left the box; l 0.342 → 0.367, his 0.474) and the top band opened 0.230 →
+0.275 (his 0.418) — the roof is thinner, still there.
+
+**So §10.1 / §14, settled:** two layers stood in the owner's look-up frames — squad2's mid grove (the bole and its card
+crown at 3–6 m, taken out by `d6681b92`) *and* fable-4's understory (the 0.45 m laminae at 3.4 m from the centreline,
+halved by `6ea3a21c`, still a cloud at `h-west-front`). §14 over-corrected in saying "not the mid canopy"; both were the
+pixels, and each lane has now moved its own. Remaining on these poses: the understory's plaza-stretch minimum (fable-4),
+`b-upper-2`'s dark (lane 1), the far air's brightness and the crowns' colour at depth at the 06:50 pose (lanes 1 / 2).
+
+**Six views `0149f255` → `79f44aa5`** (no character, same list): A −0.0113, B +0.0027, C −0.0011, D **+0.0074**,
+E **+0.0106**, F −0.0100 — the earth under the timbers at A / F (fable-2's −0.0131 / −0.0081), the understory's re-seat
+and finer leaves *toward* the frames at B / D / E. Expected take-0135 on `79f44aa5` with the cast: A ≈ 0.182, B ≈ 0.175,
+C ≈ 0.189, D ≈ 0.243, E ≈ 0.194, F ≈ 0.208 (± 0.004); `d6681b92` moves it again (not rendered).
+
+## 16. fable-2's cooler earth under the timbers (`agent/fable-2-earth-risers` tip `7f050305`, the cut `23464406`) at the owner's pose and A — the hue lever is too small to read; the flight's warmth is the logs and treads, not the band (18:29–18:41 UTC)
+
+Rendered A and `s2-owner` on the branch and on the head `0d66fa51` (the warm cut, live), same list / flags; the branch
+lacks the head's grove move, so only the flight boxes are compared (the frames differ elsewhere by 6–15 % of pixels).
+
+| flight box | dark | pale | mean luma | p10 | saturation | mean colour · B/R |
+| --- | --- | --- | --- | --- | --- | --- |
+| `s2-owner`, head (warm) | 37.2 % | 9.3 % | 0.300 | 0.190 | 0.46 | #584c2f · 0.54 |
+| `s2-owner`, cooler cut | 38.7 % | 8.6 % | 0.296 | 0.189 | **0.45** | #564b2f · **0.55** |
+| demo `d_094` / `d_104` | 31 / 13 % | 7.5 / 8.2 % | 0.312 / 0.330 | 0.212 / 0.238 | **0.35 / 0.34** | #584f39 / #5c533e · **0.65 / 0.67** |
+| A, head (warm) | 39.2 % | 8.8 % | 0.288 | 0.148 | 0.43 | #52492f · 0.57 |
+| A, cooler cut | 40.0 % | 8.4 % | 0.286 | 0.148 | 0.42 | #51492f · 0.58 |
+| reference A | 15.9 % | 13.9 % | 0.344 | 0.223 | **0.30** | #5e5843 · **0.72** |
+
+The cooler cut moves 6.9 % of the `s2-owner` box by more than 6 levels and nothing by more than 20: saturation
+0.46 → 0.45, B/R 0.54 → 0.55, against the demo's 0.35 / 0.65 and the frame's 0.30 / 0.72. The riser band is ≈ 15 % of
+the box; the box's warmth is the logs' bark and the tread earth together (and the veil's warmth on them). **Either cut
+carries the weight (the owner's ask, §14); neither moves the hue — merge on weight, and take the flight's warmth as a
+whole-flight (or the light's) question, not the band's.** Sheet `fable-5-lane10/it91-ba-s2-cooler.jpg`.
+
+## 17. fable-4's understory 6.5 m off the walk lines (`agent/fable-4-understory-walk` @ `f5cf6c26`, unmerged; base = the head `393fce60`) at the owner's poses — the look-up item closes on the second layer (19:32–20:02 UTC)
+
+Same poses / flags as §10 and §7, both builds rendered here in the same session; the branch differs from the head by
+`understory.ts` only (32 → 27 stems, a post-filter, no other stem moves).
+
+| pose | pixels > 6 / > 40 | luma | dark (< 0.25) | bright (> 0.6) | note |
+| --- | --- | --- | --- | --- | --- |
+| `h-west-front` | **30 / 5 %** | 0.289 → **0.309** | 43.7 → **39.1 %** | 4.5 → 7.1 % | the card cloud over the column is gone: the upper-left quadrant's leafy share **29.8 → 11.7 %**, its mean l 0.263 → 0.301; the column, the hut and the haze read clean |
+| `u-open-up` | 0.0 % | 0.509 = | 5.4 = | 40.3 = | already clear (§15) — the arch stretch had 6.5 m |
+| `s2-owner`, `b-upper-2` | 2.0 / 1.8 % | = | = | = | untouched |
+| the 06:50 pose (with the character) | 21 / 2 % | band 0.268 → **0.279** | near-black 35.5 → 33.5 % | mist 4.9 → 5.9 % | far-centre l 0.378 → **0.397** (his 0.474), the top band 0.288 → **0.311** (his 0.418), brown 21 → 26 % (more of the warm air and the bank show) |
+
+**§10.1 is closed on both layers once this merges**: the mid grove by `87bc2a64` (live), the understory by `f5cf6c26`.
+The 06:50 pose's corridor keeps opening — on the head `393fce60` the band already reads 0.268 (0.230 at 11:20, his
+0.394), the top band 0.288 (0.230, his 0.418), the far-centre box 0.378 (0.342, his 0.474); this branch adds 0.01–0.02
+more on each. What is left there is not the trees: the far air's brightness and the crowns' colour at depth (§7, lanes
+1 / 2 — no push since 11:08). Sheets `fable-5-lane10/it92-ba-h-west-front.jpg`, `it92-ba-owner.jpg`.
+
+## 18. The owner's 20:08 "why don't the trees immediately spawn instead of needing me to get close" — the head `39e63437` measured (20:38–21:18 UTC): the bases are answered, the crowns still build as he walks
+
+fable-cursor's `39e63437`: the large near-LOD tier for any browser reporting ≥ 4 GB (or nothing), every near-base band on
+it ≥ 40 / 44 m, the base pre-fetch 54 m. Measured here against `393fce60` / `b510b152` (`submission.mjs`, `playtest
+--only perf,pacing`, `sysperf.mjs` now printing the near-LOD pools' reports; JSONs `fable-5-lane10/perf93/`).
+
+- **Caps:** A **695 / 8.95 M** (b510b152: 692 / 8.86 M — `column-near-base` +86 K, `giant-near-base` +72 K: the boles
+  within 40 m now draw their near bark), B / E 685 / 8.19 M, C 527 / 6.77 M, D 561 / 8.49 M, F 648 / 7.89 M. **Both caps
+  met; A's headroom is now 5 draws and 50 K** — the next plant or prop at A breaks W38 again.
+- **Play spots:** plaza 633 / 7.84 M, `stairs2-base` **686 / 9.47 M** (over the 9.0 M read since the squad; +160 K here),
+  `saria-side` 615 / 8.81 M, `west-house` 492 / 4.79 M.
+- **Pacing (alone):** JS p50 5.8 / p95 12.9 / p99 18.5 / max 21.9 ms (16:51: 5.8 / 12.6 / 16.7 / 22.6); hitches 55 (47);
+  the plaza segment p50 10.2 (10.3); programs 115 → 115; heap 1,276 → 1,272 MB — **the base-band floor costs the walk
+  nothing measurable.**
+- **What "spawn" is, in the pools' own numbers.** The near-**base** pool holds all 23 bases resident from load on both
+  heads (26.7 / 48 MB, 0 runtime builds); what `39e63437` changed is how many are *wanted* at a spot — plaza 17 → 23 —
+  i.e. every bole within 40 m now uses its near base. The owner's circled root (the lantern tree at 15 m) is that. **The
+  near-canopy pool is the part that still builds as he walks:** at the plaza 374 crown parts wanted, 197 resident,
+  **192 pending** after the settle (built 87 so far); at the flight's foot 159 pending, beside Saria's 116, at the west
+  house 8 — the builds run inside the 6 ms/frame budget at **p50 6.8 ms each (p95 12, max 60 ms)**, so a crown coming
+  into its swap radius waits for its turn and pops in when built; 63 synchronous builds at load on both heads; the pool
+  at 68 → 137 MB across the four spots (cap 256). This is §8's plaza-segment 10 ms JS and the owner's "trees spawn"
+  in one mechanism. Lane 2 / fable-cursor: the levers are (a) the crowns pre-built for the plaza's first radius at load
+  the way the bases are, (b) a bigger build budget while the frame has room, (c) a cross-fade at the swap so a late build
+  does not pop. The single 60 ms builds are hitch frames on any box.
+
+## 19. Two unmerged branches read (21:26–21:43 UTC): lane 7's skinned kids give the draws back; lane 6's log joint closes the wedges at `s2-join-close`
+
+**fable-3 `814af6c9` (the kids skinned to their own joints — one SkinnedMesh per material per kid; base `e43ae92f`).**
+`submission.mjs` against `b510b152` (the same kids as meshes): **A 692 → 640, B / E 683 → 631, F 642 → 590, C 521 → 494,
+D 556 → 556** — −52 draws wherever a kid is in view (−27 at C, the two kids half out of frame), triangles +12…+45 K (the
+fairies' size). §12's ask (≈ 50 draws per visible kid → ≈ 5) delivered: a kid is now ≈ 11 colour + 5 shadow submissions.
+Projected onto the head `39e63437`: **A 643 / 8.95 M, B / E 633, F 596** — the draw cap has 57 of headroom again at A
+(the triangle cap still 50 K). `perf93/submission-lane7-skinned-814af6c9.json`.
+
+**fable-2 `78d18fe1` (lane 6: a log flight's split tread laid as one earth tread; the riser forward to 3 cm behind the nose;
+base `393fce60`).** fable-cursor's 18:10 ask was the angular dark recesses under successive log nosings at `s2-join-close`
+([8.194, 1.44, −0.417] → [8.973, 1.3, −1.532], fov 45, time 12.6), fixed by geometry rather than tone. Rendered here on
+the base and the branch: at his two wedge pixels (675, 245) and (660, 423) the 60 × 60 boxes read mean luma **0.275 →
+0.319** and **0.231 → 0.263**; the frame's < 0.25 share 40.6 → 37.7 %, 40 % of pixels moved (the joints along every
+tread), 7.6 % by more than 40 levels. On the sheet the notch where the upper log met the split tread's joint wall is
+gone — the earth runs under the log and the tread edge reads as one thin lit line; the riser under the lower log keeps
+its shade without a wedge. At `s2-owner` 10.5 % of pixels move (1.2 % > 40), luma 0.273 → 0.276, the flight box
+unchanged — the joints, not the weight. A same-pose pair with the source fix, as asked. Sheet
+`fable-5-lane10/it94-ba-join.jpg`.
+
+## 20. Lane 1's corridor light (`agent/squad1-corridor-light` @ `15b59529`, unmerged; base `6d145e90`) at the north-path poses against the head `61db16c8` — the far air's brightness arrives (22:32–23:0x UTC)
+
+Lane 1's first push since 11:08, on my §7 ask ("darker than before the squad"): veil density 0.008 → 0.013, the closed
+roof's far air and the lit far air +13 %, `farShadeMin` 0.52 → 0.65, `hazeShadeVeil` back to 1.0. Same poses / flags as
+§7 (character on), both builds in one session. Sheet `fable-5-lane10/it95-ba-owner-lane1.jpg`.
+
+| owner's 06:50 pose | pixels > 6 / > 40 | bright mist | near-black | mean l | far-centre box (l · hue · s · B/R) | vanishing l | top band l |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| r_024 | | **23.1 %** | **11.6 %** | **0.394** | **0.474** · 44° · 0.05 · 0.91 | 0.562 | 0.418 |
+| head `61db16c8` | | 5.9 % | 33.2 % | 0.280 | 0.400 · 48° · 0.07 · 0.87 | 0.379 | 0.312 |
+| lane 1 `15b59529` | 31 / 0 % | 7.9 % | **24.1 %** | **0.309** | **0.438 · 47° · 0.06 · 0.88** | 0.403 | **0.352** |
+
+The far-centre box — the grey the owner circled at 06:50 — is now **0.438 against his 0.474** (it was 0.318 at 10:00, 0.342 at
+11:20, 0.367 at 17:45, 0.400 at 22:00), on hue (47° / 44°), saturation (0.06 / 0.05) and B/R (0.88 / 0.91); the band's
+near-black share 33 → 24 % (his 12), its mean 0.280 → 0.309 (his 0.394), the top band 0.312 → 0.352 (his 0.418). A tint
+change — no pixel moves by more than 40 levels. The two other poses read the same way: r_020-like band 0.300 → **0.328**
+(r_021 0.298 — at the recording's level), bright mist 8.3 → 13.5 % (r_021 15.5), far box 0.428 → 0.461 (r_021 0.398);
+r_026-like 0.262 → 0.284 (r_026 0.410), far box 0.393 → 0.421 (0.474). `u-open-up` +0.002, `s2-owner` +0.007 (the flight's
+dark share 50.7 → 47.4 %).
+
+**What is left at his pose after this:** the bright-mist share (7.9 vs 23 %) and the vanishing point (0.40 vs 0.56) — the
+recording's *light between the crowns* along the corridor's axis, which is brighter than its mist; and the crowns' own
+colour at depth (§7, lane 2). Lane 1: merge-ready by these reads; the six views are yours to state (a veil tint moves them
+all a little, likely toward the frames' luminance).
+
+`b-upper-2` under the same push: 0.270 → 0.271, dark 54.2 → 53.8 % (1.1 % of pixels moved) — **§10.2 stays open**: the
+upper house's ladder sits under the closed roof, where `hazeShadeVeil` back at 1.0 keeps the veil shaded; the 04:30 frame
+read 0.454. Sheet `fable-5-lane10/it95-ba-b-upper-2.jpg`.
+
+## 21. fable-cursor's `94d96536` (§18's lever (a): the crowns' first radius built at load, `NEAR_LOD_PREBUILD_MS` 1500) re-measured on `61db16c8` (23:08–23:16 UTC)
+
+`sysperf.mjs` at the four spots, one Chrome: **near-crown pool pending 0 at every spot** (plaza: 374 wanted, 390 resident,
+280 built at load, work total 1.29 s — inside the 1.5 s allowance; the flight's foot 384 wanted / 397 resident / 0 pending;
+`39e63437` read 192 / 159 pending there), the near-base pool 23 / 23 as before, 63 synchronous builds at load unchanged,
+build p50 6.2 / p95 12–14 / max 31 ms (60 on `39e63437`). **The trees' per-step update falls from 2.6–6.0 ms to 0.30 ms**
+at the spots — the world update at the plaza is 1.2 ms now (character 0.7). The walk no longer builds crowns as the owner
+moves through the first radius; what remains of "spawn" is the swap itself at 26 / 30 m (lever (c), a cross-fade — lane 2 /
+fable-4) and any crown beyond the pre-fetch radius on a long walk (the west house read 8 pending before). Pacing on this
+head is the next pass (the 25-minute run did not fit this hour); by these pool numbers the plaza segment's p50 10 ms
+(§8) should fall to the flight's 4 ms.
+
+## 22. Three squad branches read (23:28–23:38 UTC): the stair shake measured off, lane 4's blade tier, lane 2's LOD rungs
+
+**The owner's 23:00 — "whenever I walk up or down the stairs, it glitches the frames up and forth every each step" —
+`agent/squad4-owner-2300-stairs` @ `e3475dd8` (the camera's aim eased against the staircase like the pivot; the orbit's
+height follows the eased aim).** `playtest --only walk,climb` on the head `61db16c8` and the branch, the same nine routes
+(deterministic, no drawing), the harness's per-frame camera motion:
+
+| route (climbs) | camera vertical accel p95 / max (m/s²) | turn rate p95 (°/s) | turn accel p95 (°/s²) |
+| --- | --- | --- | --- |
+| `plaza-to-upper-house` (the main flight) | 3.0 / **57.6 → 2.9 / 18.3** | 62 → 52 | **2370 → 506** |
+| `plaza-to-south-bank-top` (the south-bank flight) | **6.7 / 40.4 → 2.3 / 4.7** | 39 → 23 | **1035 → 439** |
+| `house-west-to-saria-door` (the house-west flight) | 3.5 / 23.2 → 2.4 / 4.6 | 64 → 59 | **1356 → 556** |
+| the six other routes | p95 down on every one (0.6–13 → 0.2–3.7) | ≈ | 440–660 → 440–560 |
+
+The per-tread pitch pulse is the turn-acceleration column: 2370 → 506 °/s² on the main flight, to the level of the flat
+routes (440–560). The west-house pull-in pop stays (1.26 → 1.28 m, the solid shell — not this fix), the ledge's solid hit
+too (vertical max 270). All routes reached, no stuck; the descents' camera minimum rises a little (0.383 → 0.391, 0.444 →
+0.535 m). **Measured off**, by the harness's own numbers, on the owner's exact complaint. `perf96/walk-*.json`.
+
+**`agent/squad4-verge-budget-2026-09-23` @ `6457b723` (the walked verge's blades a near tier past `VERGE_NEAR_M` = 14 m —
+on §11):** A **8.95 → 8.90 M** (−54 K), B / E −65 K, C −42 K, D −29 K, F 0; draws unchanged. A gets ≈ 100 K of room under
+W38. Small against the +0.57 M the verges brought, but the right direction and free at the frames' distance.
+
+**`agent/squad2-treepop` @ `5f25f401` (the white-barks' first LOD rung 20 → 28 m, paid by the distant layer's near gate
+120 → 72 m — the owner's "trees spawn"):** A 8.95 → 8.94 M (−15 K: `distant-near` −77 K, `column-lod0` +81 K), B / E
+**+155 K** (8.35 M), **C +460 K (6.77 → 7.23 M — `whitebark-lod0` +402 K)**, D +110 K, F +121 K; draws −4 … +4. Every
+view stays under 9.0 M; the near rungs arrive 8 m sooner for a walker. With the verge tier merged as well the head would
+read A ≈ 8.89 M, B / E 8.28, C 7.19, D 8.57, F 8.01 — all under both caps. `perf96/submission-*.json`.
+
+## 23. Pacing on the prebuild head `61db16c8` (`94d96536` + lanes 1 / 5 / 6 / 7; run 23:39–00:35 UTC, one Chrome) — the plaza's cost is gone; one shader compile appears on the flight
+
+`playtest --only perf,pacing`, the same route (plaza → second staircase → upper house, 630 frames), against `39e63437`:
+
+| | JS step p50 / p95 / p99 / max | plaza segment (frames 1–200) | the flight | the upper | hitches | > 12 ms | programs | heap |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `39e63437` (20:47) | 5.8 / 12.9 / 18.5 / 21.9 | **p50 10.2**, p95 15.5 | 4.2 / 11.3 | 5.5 / 10.0 | 55 | 16 | 115 → 115 | 1,276 → 1,272 |
+| `61db16c8` (23:44) | **4.8 / 11.0 / 16.4 / 41.4** | **p50 4.5**, p95 8.7 | 4.3 / 13.2 | 5.7 / 11.5 | 46 | 12 | **115 → 116** | 1,352 → 1,371 |
+
+**The plaza segment's p50 falls 10.2 → 4.5 ms** — §8's finding closed by `94d96536` exactly as §21's pool numbers said (the
+crowns built at load, nothing pending on the walk); the world update at the four spots 7.7 / 15.9 / 14.0 / 7.3 → 2.4 /
+4.2 / 4.4 / 1.9 ms. The heap starts 76 MB higher (the prebuilt crowns resident from load, §21's 144 MB pool) and stays
+flat. **New:** one shader compile *during* the walk — programs 115 → 116 at frame 360, Link at (13.2, 4.1, −5.3) near the
+top of the main flight, with the run's worst frames around it (41.4 ms at frame 349, 30.6 at 361; render issue max 71 ms,
+was 19.7). It was not there at 20:47; between the two heads the character system changed (the skinned kids, `814af6c9`)
+and lane 1's air — a skinned material variant drawn for the first time from the flight's top (the door boy / the bank
+girl / a shadow-pass depth variant) is the likely candidate, and one for the warm pass (fable-3 / fable-cursor). Otherwise
+the walk is the smoothest measured today. `perf96/playtest-61db16c8-prebuild.json`.
+
+**§22 addendum (00:37–00:39 UTC): squad4's `5bd1aeee` (the ceiling duck eased as well)** — the same nine routes: the three
+flights read exactly as `e3475dd8` (main 506 °/s², south-bank 439, house-west 556; vertical max 18.3 / 4.7 / 4.6), and the
+ledge route's vertical-acceleration max falls **270 → 46 m/s²** — the 0.15 m one-frame ceiling drops at the ledge were that
+spike (§8 named it as the *lowered* state releasing). Routes 9 / 9, no stuck. `perf96/walk-squad4-stairs-5bd1aeee.json`.
+
+## 24. The squad's integration candidate (`agent/squad4-integration-candidate` @ `4c30d4db`, 01:21 — the head `81430baf` + lane 1 round 2, lane 3's bark, lane 5's music rests, lane 2's treepop, `stairs-look`) read at the caps and the owner's poses (01:33–01:5x UTC)
+
+In the candidate (its report `pass5/INTEGRATION-CANDIDATE.md`, 01:45): squad4's stair-camera fix `5bd1aeee` (§22), `stairs-look`,
+treepop, music rests, lane 3's bark, lane 1's round 2 — its caps table reads exactly as mine below (A 638 / 8.914 M). Not in it:
+the verge blade tier (`6457b723`, §22, A −54 K) and fable-3's newest kokiri commits (left out over the INBOX hunk).
+
+**Caps** (`submission.mjs`, vs `39e63437` ≈ the head for counts): A **638 / 8.91 M**, B / E 627 / 8.32 M, C 501 / **7.20 M**
+(+431 K, treepop's white-bark rung), D 561 / 8.60 M, F 598 / 7.99 M — under both caps everywhere; A has 62 draws and 90 K
+of room. `perf98/submission-candidate-4c30d4db.json`.
+
+**The hero flight — the owner's 23:00 reference.** He sent the real game's main stairway (`stairs-look/owner-2300-reference-zoom.png`,
+the same climb as `demo61/d_010–d_016`): a long flight of many shallow *worn stone* treads whose thin wavy nosings catch the
+light over the treads, climbing into mist between grass banks — **pale stone**: the flight inside his circle reads dark
+(< 0.25) **7.0 %**, pale (> 0.45) 15.9 %, luma **0.363**, p10 0.264, saturation 0.27; `d_014`'s flight box 5.3 % / 23.1 % /
+0.384 / 0.267 / 0.24. So §10.3 / §14 / §16 measured the main flight against the wrong kind — the log-risered `d_094` /
+`d_104` steps are the *ledge* flight's (he never circled them for the main flight); the earth-and-timber main flight
+was an answer to my read of the 06:50 brief, and his 23:00 reference retires it. `stairs-look` (`f5015962`) does exactly
+that: the main flight leaves `LOG_FLIGHTS`, 20 × 0.27 × 0.54 → 26 × 0.208 × 0.415 (the run, rise and foot unchanged).
+
+| `s2-owner` flight box (x 0.50–0.95 × y 0.20–0.95) | dark < 0.25 | pale > 0.45 | luma | p10 | saturation | bright rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| head `81430baf` (earth treads, timbers) | 35.8 % | 10.9 % | 0.308 | 0.192 | 0.47 | 20 % |
+| candidate (`stairs-look`: stone, 26 treads) | **51.5 %** | 13.1 % | **0.278** | **0.125** | 0.39 | 24 % |
+| the owner's 23:00 reference | **7.0 %** | 15.9 % | **0.363** | **0.264** | 0.27 | 13 % |
+| `d_014` | 5.3 % | 23.1 % | 0.384 | 0.267 | 0.24 | 22 % |
+
+**Kind: right** — many thin treads, wavy lit nosings, stone (the sheet `fable-5-lane10/it98-ba-s2.jpg`). **Weight: the
+wrong way** — the new flight is darker than the earth one it replaces (dark 35.8 → 51.5 %, luma 0.308 → 0.278, p10 0.192 →
+0.125) where the reference is pale worn stone with only thin shadow lines (dark 7 %, p10 0.264). The risers and tread faces
+carry near-black; the reference's whole flight sits between 0.26 and 0.49. Saturation 0.39 is still warm against 0.27.
+Ask, `stairs-look`'s author: the stone's value up to the reference's band (tread tops *and* risers ≈ 0.3–0.45), the nosings
+as the brightest line, the light on the slope kept — the same box measures it. 44 % of the `s2-owner` frame moved (13 %
+by more than 40 levels): the take's A / F rows will move again with this (the flight is 3 % of A and F).
+
+**The other owner poses:** `u-open-up` 0.509 → 0.512 (treepop / lane 3 — nothing visible), **`b-upper-2` 0.270 → 0.274,
+dark 54.2 → 52.7 %** — lane 1's round 2 and lane 3's bark do not bring the upper house's light back (§10.2 stays; the
+04:30 frame read 0.454), `h-west-front` 0.309 → 0.324 (lane 1's air on the column). Sheet `it98-ba-b-upper-2.jpg`.
+
+The 06:50 pose on the candidate (character on) reads as lane 1's round 1: far-centre 0.438, band 0.308, near-black 23.6 %,
+the top band 0.352 — round 2 and treepop move 7.6 % of pixels there by more than 6 levels and 0.2 % by more than 40. The
+six views of the candidate are rendering (§25 when they land).
+
+## 25. The candidate's six views (`79f44aa5` 17:20 → `4c30d4db`, no character, same list; 01:35–02:22 UTC) — every view moves toward the frames
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| Δ SSIM vs reference | **+0.0176** | **+0.0137** | **+0.0093** | **+0.0148** | **+0.0164** | +0.0005 |
+| pixels moved > 6 levels | 36 % | 36 % | 30 % | 45 % | 36 % | 21 % |
+
+Between the two builds: lane 1's corridor light (rounds 1 + 2), the log joint, the skinned kids, the crowns' prebuild,
+lane 3's bark, treepop, `stairs-look`, the understory's 6.5 m, lane 5. The air's brightness is the bulk of it — the frames
+are 0.07–0.10 brighter than ours and lane 1 moved the veil toward them (§20) — with the stone flight at A. This recovers
+most of the squad batch's cost (§7a: −0.019 … −0.033 at A / B / C / D / E). Expected take row on the candidate with the
+cast, chained from §15: **A ≈ 0.200, B ≈ 0.189, C ≈ 0.198, D ≈ 0.258, E ≈ 0.210, F ≈ 0.209** (± 0.005) against take-0134's
+0.218 / 0.198 / 0.213 / 0.266 / 0.219 / 0.225 — the head's own six views (`81430baf`) are rendering for the clean split
+(candidate − head) next hour. Sheet `fable-5-lane10/it98-ba-six-A.jpg`.
+
+## 26. The clean split (head `81430baf` rendered) and fable-2's stone-value pass on the new flight (03:27–03:38 UTC)
+
+**Six views, three legs, one harness (no character):**
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| `79f44aa5` → head `81430baf` (lane 1 round 1, the log joint, the skinned kids, the prebuild, lane 5) | +0.0105 | +0.0135 | +0.0155 | +0.0181 | +0.0159 | +0.0084 |
+| head → candidate `4c30d4db` (`stairs-look`, treepop, lane 3's bark, lane 1 round 2, the stair camera, music) | **+0.0071** | +0.0002 | **−0.0062** | **−0.0033** | +0.0005 | **−0.0079** |
+| candidate → fable-2 `f90821e8` (the stone flight's value), A only | −0.0042 | | | | | |
+
+Lane 1's air is the whole of the first row (every view +0.008 … +0.018 toward the frames). The candidate's own row is
+mixed: the stone flight pays at A (+0.007); C −0.006 and F −0.008 cross the −0.003 rule — the white-bark rung at 28 m
+(treepop, C +431 K of near LOD) and the flight / rungs at F are the likely owners; a per-branch split would need two more
+renders. Owner-directed (his 23:00 asks), so fable-cursor's call; the numbers are what the take will show. Expected
+take row on the candidate with the cast, chained from take-0134 through every measured leg: **A 0.200, B 0.189, C 0.199,
+D 0.258, E 0.210, F 0.209** (take-0134: 0.218 / 0.198 / 0.213 / 0.266 / 0.219 / 0.225).
+
+**fable-2's `agent/fable-2-stone-value` @ `f90821e8`** (on `stairs-look`, 03:26 — §24's ask: the stone's value up into the
+reference's band; tread fronts at the tops' value, risers × 2 and cooler, tops × 1.15 and cooler, nosings the brightest):
+
+| `s2-owner` flight box | dark < 0.25 | pale > 0.45 | luma | p10 | p90 | saturation |
+| --- | --- | --- | --- | --- | --- | --- |
+| candidate (`stairs-look`) | 51.5 % | 13.1 % | 0.278 | 0.125 | 0.474 | 0.39 |
+| **fable-2 stone-value** | **29.2 %** | **21.0 %** | **0.342** | **0.198** | 0.512 | 0.36 |
+| the owner's 23:00 reference | 7.0 % | 15.9 % | 0.363 | 0.264 | 0.485 | 0.27 |
+| `d_014` | 5.3 % | 23.1 % | 0.384 | 0.267 | 0.545 | 0.24 |
+
+The flight is pale worn stone now — the risers no longer near-black, the nosings still the brightest line, the flight a
+pale band climbing into the mist (sheet `fable-5-lane10/it100-ba-s2.jpg`): luma within 0.02 of the reference, the pale
+share at its level, the dark share halved (the remainder is the risers' shade and the grass at the box's edges — p10 0.198
+against 0.264 is the last of it), saturation 0.36 against 0.27 still a touch warm. At A the flight box 45.5 → 31.4 % dark,
+0.286 → 0.317 (the frame 0.344) — and the SSIM at A −0.0042 despite that: the frame's flight is the darker worn stone of the
+09-16 capture, the metric is structural. **Kind and weight both toward the owner's reference now; merge-ready by these
+reads, with the A cost named.**
+
+## 27. The head `fb7d313a` (04:25 — the owner's 23:00 merges, the verge tier, **the south expansion**) walked and counted (04:28–04:40 UTC)
+
+**Caps** (`submission.mjs`, vs `39e63437`): **A 643 / 8.89 M**, B / E 633 / 8.12 M, **C 559 / 7.25 M** (+32 draws / +482 K — the
+south expansion sits in C's view, fable-cursor's own +59 / +0.52 M), D 561 / 8.45 M, F 596 / 7.89 M. Under both caps everywhere;
+A has 57 draws and 110 K of room. `perf101/submission-fb7d313a.json`.
+
+**Walk QA — the nine routes on the head's harness:** 9 / 9 reached, 0 stuck, the flights' camera as §22 (main 506 °/s²),
+the west-house pull-in still 1.28 m. **The new `south-bridge-to-log` route** (51.7 m: plaza → the south approach → between
+the giants' roots → over the rope bridge → into the hollow log): **21 / 21 waypoints, 0 stuck, 975 frames**; the camera
+never below 1.38 m over the ground, vertical acceleration p95 0.5 / max 12.6 m/s² (the flat routes' level), one 0.30 m
+step at the plaza start; the boots on the deck p50 0 / max 2.8 cm — the deck carries Link. **The deck probes 41 / 41**
+(walkable to ±0.45 m of the axis, blocked from ±0.7 m, the rims and the ravine as expected; the deck at its quarter points
+0.62 m below grade over a floor 7.1 m down). `perf101/walk-south-fb7d313a.json`. (My first run used my own checkout's
+harness, which predates the route — the head's `gauntlet/scripts/playtest.mjs` is the one that knows it.)
+
+**At player height** (`spot.mjs`, the follow camera behind Link, sheet `fable-5-lane10/it101-south-sheet.jpg`, `it101-bridge-mid.jpg`):
+from the north sill, mid-bridge and the south sill the scene reads as one piece — the rope-and-plank bridge over the ravine,
+pod lanterns on its posts, the hollow log's warm mouth ahead between the banks' shrubs, the giants behind; nothing floats,
+nothing pops. **fable-cursor's open item confirmed:** Link at (3.5, 27.6) facing south puts the follow camera inside
+`plaza-south`'s root flare — the frame is the flare's bark, 90 % of it under 0.15 (`south-flare` on the sheet). A placed
+pose, off the walked line, but the first thing a player who turns south at the path's east edge will see; the camera
+lane's solid-shell pull-in should treat the flare as a shell.
+
+## 28. The head `5cbe6ac8` (05:35 — the 23:00 jobs' second wave: near veil, treepop, the stone flight, music, kids) at the caps and the owner's poses (05:31–05:56 UTC) — the roofed poses went dark
+
+**Caps** (`submission.mjs`, vs `fb7d313a`): A **638 / 8.86 M**, B / E 627 / 8.25 M, C 560 / **7.68 M** (treepop +436 K), D 561 /
+8.57 M, F 598 / 7.99 M — under both caps; A 62 draws / 140 K of room. `perf102/submission-5cbe6ac8.json`.
+
+**The flight (`s2-owner`), merged:** dark 27.1 %, pale 21.8 %, luma 0.347, p10 0.204, sat 0.36 — fable-2's stone value as read
+on his branch (§26), against the owner's reference 7.0 / 15.9 / 0.363 / 0.264 / 0.27. **The 06:50 pose:** the candidate's
+numbers (far-centre 0.435, band 0.305; 0.8 % of pixels moved) — the near veil's 4–16 m ramp does not reach the far band.
+
+**The roofed poses — a regression.** Same poses and flags as §10, before = the last head each pose was read on:
+
+| pose | before | `5cbe6ac8` | pixels > 6 / > 40 |
+| --- | --- | --- | --- |
+| `u-open-up` (before = the candidate `4c30d4db`, 01:21) | luma 0.512, dark 3.9 %, bright 40.6 % | **0.415, dark 36.3 %**, bright 35.2 % | 65 / 33 % |
+| `b-upper-2` (before = `81430baf`, 23:05) | 0.270, dark 54.2 % | **0.166, dark 79.1 %** | 99 / 23 % |
+| `h-west-front` (before = the candidate) | 0.324, dark 36.5 % | 0.292, dark 47.6 % | 42 / 1.5 % |
+
+At `u-open-up` the canopy masses (rows 0.45–1.0) go 0.444 → **0.310** (dark 7 → 53 %) and the shafts' third 0.522 → **0.369**
+(bright 25 → 10 %) — the veil under the roof and the rays' in-scatter are gone from the look-up; the sky rows 0.589 → 0.537.
+At `b-upper-2` the mist in front of the upper house is gone and the hut sits in deep shade (0.166; the 04:30 frame yesterday
+read 0.454, the squad head 0.27). fable-cursor's own lookup note reads `u-open-up` at 0.417 on `08b206cd` and rejects
+squad2's `lookup` (0.417 → 0.500 as pale flat cards) — right on the cards, but the 0.417 itself is the second wave's
+regression from 0.51, and it needs its own fix: the candidates are the **near veil** (`02eca9aa` + `258ed42f`: the
+ambient base air on a 4–16 m distance ramp, "the veil mixes toward the air's own colour"), measured by squad4 at the owner's
+23:00 bough pose (job 5, a 12 m bough) and not at these three. The trade is job 5's bough against the owner's look-up and
+his upper-house pose; the way through is the veil's ramp *and* the roof's air (§10.2's `hazeShadeVeil` / closed-roof grade)
+read together at the four poses. Sheets `fable-5-lane10/it102-ba-u-open-up.jpg`, `it102-ba-b-upper-2.jpg`.
+
+## 29. fable-2's riser shade on the stone flight (`agent/fable-2-riser-shade` @ `7649f308`, on §26's residual; 10:37–10:49 UTC)
+
+`s2-owner` flight box: dark 27.1 → **25.8 %**, pale 21.8 → 23.0 %, luma 0.347 → 0.351, p10 0.204 → 0.207, saturation
+0.36 → **0.34** (the owner's reference 7.0 / 15.9 / 0.363 / 0.264 / 0.27); at A the box 31.4 → 29.0 % dark, 0.317 → 0.324
+(the frame 0.344), SSIM −0.001. Small and in the right direction on every number; the box's remaining dark quarter is the
+banks' shade at its edges and the flight's own shadow side more than the risers now. Merge-neutral by the frames.
+Sheet `fable-5-lane10/it107-ba-s2.jpg`.
+
+## 30. The hero flight's tread count — W02 (16–20) against the 26 of `stairs-look`; fable-2's `36d722fa` (20 × 0.27 × 0.54) at the owner's pose and A (11:24–11:34 UTC)
+
+fable-cursor (11:05): CI's gauntlet reads W02 "Hero stairway: 18 worn stone steps" at 26 since `f5015962` → fail; the owner
+liked the stone ("the stones are good", 06:07). fable-2's answer: back to 20 treads in the same envelope (0.27 m rise —
+under the 0.28 m step guard; 18 × 0.30 is not), the stone's value, wear and nosing kept.
+
+**Counting nosings in the frames** (bright rows over a 15-row baseline in the flight box; visible treads only): the owner's
+23:00 reference **15** with its top lost in mist; `d_014` 20; the reference frame A 12 (a partial view); ours at `s2-owner`
+25 (the 26-tread head) and 26 (the 20-tread branch — the peaks count texture rows too; the count is not a clean tread
+counter, quoted as it reads). W02's 16–20 and the owner's 15+ agree with each other and both sit under 26.
+
+| `s2-owner` flight box | dark < 0.25 | pale > 0.45 | luma | p10 | sat |
+| --- | --- | --- | --- | --- | --- |
+| head `5cbe6ac8` (26 × 0.208) | 27.1 % | 21.8 % | 0.347 | 0.204 | 0.36 |
+| fable-2 `36d722fa` (20 × 0.27) | 28.1 % | 22.1 % | 0.345 | 0.203 | 0.37 |
+| the owner's reference | 7.0 % | 15.9 % | 0.363 | 0.264 | 0.27 |
+
+**The value holds to a point on every number** (the stone's weight is the material and the light, not the tread count);
+the treads read chunkier and fewer at the owner's pose (`it108-ba-s2.jpg`), still "many worn stone treads climbing into
+the mist". At A the box 31.4 → 30.4 % dark, 0.317 → 0.320; **SSIM at A −0.0078** (the frame's nosing rhythm — 12 visible
+in the reference's box against our 16–17 — is structural; the 26-tread flight was closer to it than 20 by that metric,
+which says the metric and W02's count pull in opposite directions here). W02 passes at 20; the owner's stone is kept;
+the step guard holds. Merge-ready by the reads, the A cost named.

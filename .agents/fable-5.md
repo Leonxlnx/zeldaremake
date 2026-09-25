@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T07:46:00Z
+updated: 2026-09-25T18:47:00Z
 ---
 
 # fable-5 — work log
@@ -17,8 +17,14 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the atlas recovery measured (see Completed). Next: take-0130's re-verdict when it seals,
-fable-2's log weight, Astra's warmth import, the video file.
+LANE 10 (squad brief 2026-09-23): walkthrough QA and performance on the play-head build — ranked issue lists with positions,
+load / pacing / hitches; fixes go to the owning lanes.
+Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
+warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
+numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8); the owner's four poses
+(§10): the crowns at arm's length are the new #1 at his poses (fable-4's understory, corrected in §14); W38 at A is lane 4's blades (§11); lane 7's girl reviewed (14:24–). Next: re-read the poses as lanes 1 / 2 push; the head's next sealed take (take-0135 was `main`'s checkpoint — expected on the
+head with the cast A ≈ 0.18, B ≈ 0.175, C ≈ 0.19, D ≈ 0.24, E ≈ 0.19, F ≈ 0.21; W02 pass on kind and weight per §14); the
+video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +40,372 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-25 19:30–21:55 UTC — iteration 140: the head e438c6e5 pixel-identical to 78f530a2 at A–F (the 18:01 and 18:46 rounds). `exp-east`
+  a3f57348 (72cbd118 the far colour LOD, x > 40 m): the green 708 → 646 / 9.31 M, the lookout 616 / 9.21 M, structures 173 → 133 / 2.33 →
+  1.84 M, 0.01 % of pixels frozen-frame, six views identical to its own tip; a black frame in my toggle probe traced to its zero-dt redraw —
+  in the play loop's drawn steps the first swap is clean. `exp-south2` ec0b776b: the far bank 563 / 8.23 M (the head 718 / 10.06 M) — the first
+  over-cap look-back under both caps; the rows sum 54 over the frame (the shadow reach in the depth pass); C 0.9998, the rest identical;
+  the waystation facing west still 0.6 m. #46 ★ east 3, south2 4. Reviews + the costs sheet; INBOX 21:55; the head merged into the branch
+  and draft PR #168 opened for it.
+- 2026-09-25 18:25–18:35 UTC — iteration 139 (`exp-ruins` e37b1777): the water stair's pops gone with the head's camera (0.30 m max), every
+  ruins look-back under both caps with the village hidden from the zone (490 / 6.84 M, 604 / 8.58 M), probes 80 / 80; #44 → 3, #46 ★ → 4,
+  176 / 200 with no check under 3. The push unblocked at 18:24 (the token refreshed). `fable-4-columnbatch` 6e09bc1c pixel-identical, −12 draws
+  at the green. INBOX 18:35 + 18:47.
+- 2026-09-25 17:35–18:05 UTC — iteration 138 (`exp-south2` 30f90b6d, the head merged): the camera decision taken on the branch — the grove's
+  ring for both huts, wallSwing gone, one CameraWall type; the gallery stays shut (0.38 m), the grove / village routes as the head's; the far
+  bank 618 / 9.26 M (under the draw cap); the waystation's raised wall fixes facing east, not south / west (2 of 16 rows). #44 3, #46 ★ 3.
+  `exp-east` a8486d32 (tiers folded) six views identical to f84ff318, the lane's frames −15 … −62 draws. INBOX 18:05 + 18:06. The push is
+  blocked since 18:03 by an expired repository token (reads work; commits held locally, retried each iteration).
+- 2026-09-25 16:28–16:50 UTC — iteration 137 (`exp-east` f84ff318, the relaunched builder on the current head): every route pop gone with the
+  grove camera (#44 1 → 3); eastProbes 69 / 69, the fence closed (#42 L 2 → 4); the six views repeat the A / B / E top-edge cluster removal
+  (A 0.9905, +0.0033 toward the reference) — the open question; the small house's door and the lane's crown camera stand. INBOX 16:50.
+- 2026-09-25 15:23–15:24 UTC — iteration 136 (reconciling the two depth-pass splits): the totals and vegetation agree; trees differ by 0.87 M
+  (isolate 1.43 M vs `?nocast=trees` 0.56 M) — the batch and the columns as the likely unmatched casters; isolate's cull caveat ≤ 0.18 M;
+  the question posted to lane 2 before "nothing left to cut" stands. INBOX 15:24.
+- 2026-09-25 14:34–15:00 UTC — iteration 135 (the depth pass split by system, `.agents/reviews/fable-5-lane10-shadow-split.md`, `shadowsplit.mjs`):
+  isolate on minus isolate with ?shadow=0 at hero A / the plateau's / the ledge's look-backs — trees 1.2–1.4 M (37–49 %), structures 0.7–1.0 M
+  (23–26 %), vegetation 0.3–0.85 M, terrain 10–12 %; lane 2's ground-cover guess refuted, their frames reproduced to the draw. The head
+  78f530a2 (crease normals) six views pixel-identical to 72532ca9. INBOX 15:00 + 15:16.
+- 2026-09-25 13:28–13:45 UTC — iteration 134: the head 72532ca9 six views pixel-identical to 905d55ea; `fable-3-stand-greet` e1d7831e — four routes
+  frame-identical to the head (merge-safe); lane 2's lookbacks note read as two more bill rows (the plateau 745 / 11.15 M, the ledge 673 / 11.23 M). INBOX 13:45.
+- 2026-09-25 12:29–12:40 UTC — iteration 133 (`fable-3-veranda-boy` f65e258e): the grove route frame-identical to the head, probes 64 / 64;
+  +21 … +25 draws where the boy is in frame (the yard 674 → 695). Merge-safe. INBOX 12:40.
+- 2026-09-25 11:33–12:00 UTC — iteration 132 (the head 905d55ea): six views pixel-identical to 8e20e128; hardscape-heap's freed arrays lose
+  nothing at the tread poses; the look-back frames unchanged; the flight's foot 586 / 9.62 M. INBOX 12:00.
+- 2026-09-25 10:27–10:48 UTC — iteration 131: `fable-4-canopybatch` b0a05eb5 (the trim) pixel-identical to the head, the draw cut intact;
+  `fable-3-greet` 7016ca6d — the five plaza routes frame-identical to the head (the wanderer's stop blocks nothing). Both merge-safe. INBOX 10:48.
+- 2026-09-25 09:36–10:26 UTC — iteration 130 (the head 8e20e128, roofsky): six views 1.0000 / 0.9999 (0.00 % over 8 levels); the look-ups'
+  leaf masses brighten with the sky gaps unchanged — the grove's yard 0.143 → 0.180 (the 00:03 lid reads as leaves), the veranda 0.199 → 0.230,
+  the far bank 0.344 → 0.362, u-open-up 0.286 → 0.303. INBOX 10:26.
+- 2026-09-25 08:33–08:45 UTC — iteration 129 (the bill on the head cd9400b2 with the batch in): the draw cap met at the lookout (672) and the
+  yard (674), 701 / 702 at the green / ruins trail, 718 at the far bank; the triangle cap over everywhere (9.57–10.68 M) — trees and vegetation
+  the rows left; lane 2's playcost note aligns (the flight foot 9.58 M, vegetation +1.0 M). INBOX 08:45.
+- 2026-09-25 07:28–08:04 UTC — iteration 128: `fable-4-canopybatch` e82cef73 merge-ready — six views pixel-identical to the head, the draws hold
+  (far bank 774 → 718, green 736 → 701); the 06:53 brightening explained as first builds never installed (the −0.15 M triangles), fixed at 06:55.
+  The head 24dc489f identical to 1a183570 at all six. INBOX 08:04.
+- 2026-09-25 06:24–06:53 UTC — iteration 127 (`fable-4-canopybatch` 80d60e72): the trees row −56 / −35 / −28 / −37 draws at the look-backs
+  (the far bank's frame 774 → 718) — but the batch brightens whole near-canopy lobes 9–13 luma at A / C / F (C −0.0024 vs the reference);
+  a shading term missing from the batch; not merge-ready until the lobes render as before. The head 1a183570 (the boy's look) six views
+  identical to 7468bb38. INBOX 06:53 + 07:00.
+- 2026-09-25 05:36–05:44 UTC — iteration 126 (the camera's swing characterised, `fable-5-lane10/turn.mjs`): curving walks on both heads — steady
+  yaw rate 63 → 68 °/s, onset 626 → 1041 °/s² then settled (p95 ≈ 30 unchanged); at the grove's yard the ring hold-and-release (178 °/s, p95 518).
+  The routes' 1.6–2.0× is the turn onsets. INBOX 05:44.
+- 2026-09-25 04:31–04:53 UTC — iteration 125 (`fable-3-lane7-r2` cb9d38ae): six views pixel-identical to the head; the grove girl honey-blonde
+  and the ledge girl chestnut at play distance (0.17 % / 0.01 % of those frames). Merge-safe. `squad2-brownwood` names only. INBOX 04:53.
+- 2026-09-25 03:27–03:52 UTC — iteration 124 (the head 7468bb38): six views identical to 2225a111 (C 0.02 %), the walk 96 / 96 with every route's
+  camera unchanged; the far-kid cut on the head — the character row 66 / 56 / 56 / 56 / 85; the frames far bank 774, green 736, lookout 700,
+  the grove's yard 676. INBOX 03:52.
+- 2026-09-25 02:33–02:57 UTC — iteration 123 (`fable-3-south-props` f2cecdb5, the far-kid cut): the character row 127 → 66 at the far bank and
+  110 → 56 at the other three look-backs; the frames 846 → 774, 797 → 731, the grove's yard 713 → 676 (under the draw cap); six views identical
+  to the head; row 1 of the bill paid; the rigMergedMeshes reading corrected (kidSkinned 37 → 12). INBOX 02:57.
+- 2026-09-25 01:28–02:00 UTC — iteration 122 (the waiting queue's pairs, `.agents/reviews/fable-5-lane10-queue-pairs.md`): `fable-2-cliff-scale`
+  fbb4a3ee pixel-identical at all six views; `fable-4-wbmed` 2896a08a identical at five, C 0.02 %. Both merge-safe. The head since 00:32 is
+  audio only; the expansions idle since 22:09. INBOX 02:00.
+- 2026-09-25 00:04–00:32 UTC — iteration 121 (the head 31146062 → 2225a111 / 2f6c8ae2; `.agents/reviews/fable-5-head-2225a111.md`): six views
+  inside the budget (Δ −0.0004 … +0.0017, the reads' sum); the walk 96 / 96, three of four village pops gone, turn accel p95 1.6–2.0× on nine
+  routes; the bill: lodcheck's gate +0.07–0.22 M at three look-backs, the far bank unchanged; the arc's 77 cm boot a harness settle artefact
+  (9 cm alone on both heads); exp-east 6d1c92e2 — the deck's stringers fixed at the deck-steps pose, the routes' pops unchanged. INBOX 00:32 + 00:38.
+- 2026-09-24 23:32–00:03 UTC — iteration 120: `fable-2-tread-tone` f6fa109e — the risers' grime split fixed, the after visible (w23 7.5 % of
+  pixels; six views A 0.9994 … F 0.9993, Δ ≤ 0.0002; merge-safe); `squad2-roofhole` c012ca34 — the grove's look-up closes (haze 39.5 → 3.8 %),
+  the hamlet at eye level identical to the third decimal, the yard's ceiling dark and flat (0.143, 92 % under 0.25) vs the north's 0.286. INBOX 00:03.
+- 2026-09-24 22:27–22:55 UTC — iteration 119 (the head 31146062 → b9993008, the grove merged; `.agents/reviews/fable-5-head-b9993008.md`): six
+  views 0.9997 … 1.0000 (the grove out of A–F); the play camera changed village-wide — the west house's pops 1.28 / 0.66 → 0.51 m, turn accel
+  p95 556 → 924 and 540 → 893 °/s²; the grove's doors / veranda cases and the yard look-back (713 / 9.39 M) are head items; 8 programs on
+  first sight (15.9 s frame); the merge map re-run head × branch (south2 9 / ruins 8 / east 8 files); exp-ruins f29ad20e's six views vs its
+  base — A/B/D/E/F identical, C 0.9998 / −0.0004 (the butterflies fixed, the card residual at C's edge). INBOX 22:55 + 23:03.
+- 2026-09-24 21:33–21:43 UTC — iteration 118 (re-read of `exp-ruins` fdb4d338): the terrace look-back under the caps (731 → 660 / 8.52 M);
+  routes 26 / 26, 10 / 10 (wading), 15 / 15 (the new water stair); probes 80 / 80; the sweep 360 never inside — but the water stair's own
+  route pops the camera 3.90 / 3.26 / 2.67 m (117 m/s) and its quay / platform / mid-flight spots sit at 0.6 m on 13–17 of 24 headings
+  (Link behind the wall's lip; the platform's look-up is the wall's slabs); four shaders compile on first sight (3.85 s at the stair head).
+  #46 ★ → 4, #44 → 2, 175 / 200 with one 2; the rubble seating confirmed at the wall's foot (#22 = 4). INBOX 21:43 + 21:48.
+- 2026-09-24 20:25–20:58 UTC — iteration 117 (`fable-2-tread-tone` 2365b63b): six views untouched (1.0000 / 0.9999); at the survey tread poses
+  the per-vertex tone is measurable (the nearest tread's quads as gradients, |Δ| p95 12 levels, 1.3 % of w23's pixels over 8) and not visible —
+  the facets on the upper treads are in both frames; an after that looks like its before, reported. INBOX 20:58.
+- 2026-09-24 19:59–20:23 UTC — iteration 116b (`squad2-lodcheck` 43c48259): six views head 31146062 ↔ branch A 0.9994 … F 1.0000, Δ vs reference
+  −0.0002 … −0.0008 (merge-safe; D 1.9 % where its trees change tier); the look-backs' trees row untouched at the far bank (256 / 3.60 M) and
+  heavier at the green (+0.07 M) and the ruins' trail (+0.20 M) — row 2 of the bill still open. INBOX 20:23.
+- 2026-09-24 19:34–19:59 UTC — iteration 116 (`exp-south2` 86e9b380, the far bank): the frame 863 → 810 → 731 / 9.32 M across the three
+  pushes, structures 171 → 84 (isolate), the small-caster rule takes 34 casters inside the zone (the kids' shadows) — 31 draws / 0.32 M over,
+  all the head's trees + vegetation; `cull-audit.mjs` (the composer's counts, drawn frames only — a stale-read lesson recorded). INBOX 19:59.
+- 2026-09-24 19:04–19:11 UTC — iteration 115c (re-read of `exp-ruins` abc597f9): routes 26 / 26 + the new shore route 8 / 8, no camera step
+  over 0.1 m; probes 61 / 61 (the notch row out of the set); the sweep 264 headings never inside (the parapet case closed); the fall's
+  corner still pulls to 0.6 m on 15–16 of 24 headings; the cliff top's moss fringe reads; the look-back east 731 / 9.04 M. #44 2 → 3,
+  175 / 200. INBOX 19:11.
+- 2026-09-24 18:43–19:03 UTC — iteration 115b (the play-mode walk on the head 3c6cc553 → 31146062, same full run both): 68 / 68, 0 stuck,
+  probes 41 / 41 on both; the camera's pops identical (west house 1.28 / 0.66 m); the hero flight's boots improve with the 20 treads
+  (boot-lowest max 17.1 → 9.4 cm); the rest identical to the fourth decimal; soleGapAbsM's large p95s are route-order phase, not floating.
+- 2026-09-24 18:31–18:42 UTC — iteration 115 (re-read of `exp-south2` c2d8546d): the far-bank row structures 171 → 126 draws / 2.36 → 1.65 M
+  (his part 1 to the draw), the frame 863 → 810 / 10.48 → 9.48 M — still over, the rest the head's trees + vegetation (398 of 796 draws);
+  the keeper's doorway dims a fifth (luma 0.385 → 0.303), #27 = 3 (depth is what is left). INBOX 18:42.
+- 2026-09-24 18:10–18:31 UTC — iteration 114c (the six views on the head 3c6cc553 → 31146062, `.agents/reviews/fable-5-head-31146062-six.md`):
+  A −0.0035 vs the reference (the flight back to 20 treads −0.0043 — the owner's W02 call; the crown tone +0.0014), C +0.0035, F +0.0075
+  (crowntone, toward the reference), B / D / E −0.0010 … −0.0026; the roofhole tip 7ed72079 has no source change vs 9af8f36d (the #54 hold
+  answered); the look-back bill re-measured on 31146062 (pebbles −12…−18, belts +3…+4). INBOX 18:10 + 18:31.
+- 2026-09-24 17:59–18:04 UTC — iteration 114b (the look-backs' cost by system on the head, `.agents/reviews/fable-5-lane10-lookback-costs.md`,
+  `fable-5-lane10/isolate.mjs`): the far bank / east green / east lookout / ruins trail at 770–841 draws / 9.8–10.4 M itemised with
+  `__ZR__.isolate` — trees 238–256 / 3.6–4.2 M, structures 159–174 / 2.3–2.5 M, vegetation 96–148, **character 107–123 draws** (26 in the
+  plaza; ≈ 11 draws a kid at 40–60 m — the cheapest cut, −80…−100). Posted to fable-cursor cc lanes 2 / 4 / 7 with each lane's lever. INBOX 18:04.
+- 2026-09-24 17:33–17:56 UTC — iteration 114 (`squad2-roofhole` tip 9af8f36d — the south bands): six views head ↔ tip A 1.0000 … F 0.9846,
+  Δ vs reference 0 … +0.0015 (C, closer); against 70b46592 only C changes (0.54 %, top ninth, −22 luma — lane 2's number to the decimal);
+  the far bank's look-up at player height closes (pale haze 65.9 → 20.3 %, luma 0.573 → 0.340), the look-back and the bridge unmoved.
+  Merge-safe. INBOX 17:56.
+- 2026-09-24 16:42–17:14 UTC — iteration 113b (non-author read of `squad2-roofhole` 70b46592, `.agents/reviews/fable-5-lane10-roofhole.md`): six views
+  head ↔ branch A 1.0000 … F 0.9846, Δ vs reference 0 … −0.0006 — B / D / E change only their top ninth (the canopy closing); lane 2's 10.58 % at A
+  was wind phase (deterministic: 0.04 %); `u-open-up` 0.424 → 0.286 with pale haze 35 → 7 % — inside the reference look-ups' family (r_020–r_028
+  0.17–0.39 / 3.5–8.5 %); `b-upper-2` unmoved, `h-west-front` −0.017. Merge-safe; the near-veil thread at the roofed poses closed. INBOX 17:14.
+- 2026-09-24 16:37–16:40 UTC — iteration 113 (pre-merge check `exp-north` × `exp-south2`, `.agents/reviews/fable-5-lane10-merge-north-south2.md`):
+  a scratch merge (aborted) conflicts in 9 files — the two branches fix the same hut-camera pop with two mechanisms (`ringGoal` / `RING_IN`
+  + `CameraWall[]` vs `wallSwing` + `cameraCylinders`) in the same `following` block of follow.ts, plus cameraSolids.ts (6 hunks), system.ts,
+  structures/index.ts (`south.visible` vs `southShown`), distantHouse.ts, layout.ts, audio/index.ts, playtest.mjs. Posted with the shape of a
+  resolution; 16:42 the whole matrix — every pair conflicts, three branches edit the same collision.ts sweep with three shared fields
+  (walls / cylinders / grids); a merge order that takes the camera first proposed. INBOX 16:40 + 16:42.
+- 2026-09-24 16:28–16:36 UTC — iteration 112b (the east lane's 50 checks at player height on b3e10c09): his three routes 33 / 33; 21 checks
+  scored S 71 / T 73 / L 66 of 84; #44 = 1 (1.28 / 1.58 / 1.90 m pops at the deck's far end and the small house's doorstep; the camera inside
+  an understory crown at Link (26, −6) facing 110°), #46 ★ = 2, #42 L = 2 (the open lip). INBOX 16:36.
+- 2026-09-24 16:11–16:27 UTC — iteration 112 (re-read of `exp-south2` 066144ad, `.agents/reviews/fable-5-rubric50-exp-south.md`): the
+  gallery pop closed (3.863 m → no jump over 0.32 m; max accel 3,436 → 240; his 16-spot check 7 not ok → 16 / 16; probes 32 / 32);
+  the village's `saria-front-arc` / `west-house-to-plaza` trace-identical head ↔ branch (the swing reaches only exact walls; the
+  grove's huts become exact on the merge — flagged); the standing back-to-hut pose still pulls to 0.6 m; caps unchanged (far bank
+  863 / 10.48 M, waystation path 718). #44 1 → 3, #46 ★ 2. INBOX 16:27.
+- 2026-09-24 16:04–16:10 UTC — iteration 111c (re-read of `exp-ruins` 6bd9b870 at the six 15:04 poses): the cliff fix lands at the
+  fall's corner (l 0.324 → 0.399, under-0.25 45 → 19 %, 67 % of pixels) and the arch passage (+0.010); the reference pose +0.005 —
+  the flight + terrace front 0.238 vs r_038's 0.581, fail 2 is the light (the pillar's shadow), not the stone's colour (sat 0.24 → 0.21). INBOX 16:10.
+- 2026-09-24 15:35–16:03 UTC — iteration 111b (pre-merge six-view + caps pair of `exp-east` b3e10c09, `.agents/reviews/fable-5-rubric50-exp-east.md`):
+  head ↔ branch A 0.9915 … D 1.0000, Δ vs reference +0.0026 … −0.0010 — inside the budget, **but A / B / E lose the leaf cluster at their
+  top edge** (0.5–0.83 % of pixels, +38 luma; `162f1a6e`'s 11 m crown rule at A's right edge) — a look change to three hero views
+  without an owner's yes. The lane's look-backs 760–816 / 10.0–10.3 M where the head is 778–833 / 9.9 M already; the small house's
+  door pulls the camera to 0.6 m. `sixpair.mjs` (the gauntlet's SSIM on a head ↔ branch pair) added to `fable-5-lane10/`. INBOX 16:03.
+- 2026-09-24 15:07–15:33 UTC — iteration 111 (re-read of `exp-north` 571acd21, `.agents/reviews/fable-5-rubric50-exp-north.md`):
+  **correction** — my "tree hut's platform" pose (16.2, −86) was 1.0 m from the hut's host, inside its 1.45 m barrel (`place()`
+  teleports through walls); struck from the 10:50 read. The route is frame-identical to e156566f (28 / 28, 64 / 64, one 0.36 m
+  camera step at the trunk house's door). The real camera case found at real poses: Link at either hut's door **facing out** —
+  the camera drops 0.6 m behind him into the doorway, 0.27–0.29 m inside the wall's radius, and the room's flat tan floor plane
+  fills 31 % of the frame; Link out of frame, Navi 25–32 % of the frame's height at the veranda, the stub and both doors (the
+  round camera solids stop at the walls, not the doors; a ≈ 1.2 m pull-in floor wanted). The yard's look-back down the trail
+  728 / 9.44 M and 722 / 9.22 M against the head's 607 / 7.6 M at the same poses (+121 draws / +1.8 M: +84 vegetation meshes,
+  +47 structures meshes in the scene). #44 = 2, #46 ★ = 2 → not shippable by the letter until both are fixed; the rest 3–4.
+  Sheets `it111-*.jpg`, `walk-north-grove-571acd21.json`. INBOX 15:33.
+- 2026-09-24 13:31–15:04 UTC — iteration 110 (rubric pre-merge read of `exp-ruins` 744a3b1e, `.agents/reviews/fable-5-rubric50-exp-ruins.md`):
+  the reference's place in one glance, the flight the best stone on the branch; route 26 / 26, probes 60 / 60, camera max 0.14 m,
+  the ruins +44–55 draws at their own poses, six views untouched by them. 43 checks 144 / 172 → 167 / 200 (three under the gate);
+  the distance from the reference is the bare "ivy rock" and the stone at half the reference's value with the flight in shadow;
+  camera cases at the fall's viewing corner (Link out of frame) and the east shore (in a crown, the head's tree); the look-backs
+  east 832 / 10.27 M and 744 / 8.97 M are the village's cost (head 808 / 700 there already). `spot.mjs` gained a pitch option
+  (the follow camera's own 60° / −35°) and a warm-up switch; `feet.mjs` (directed walks with per-frame feet). Six-view pair
+  head ↔ branch inside the budget (Δ +0.0009 … −0.0008; F's 2 % is wind phase); the −1 draw per hero frame is a bole the trunk
+  cull drops that no frame showed; 204 programs constant with the default warm-up. Re-read on `7c4fb16f` (the author's own
+  pass): fails 1 and 4 closed (leafy 5 → 60 %, the shore's crown gone), 150 / 172 → 174 / 200; his probes 60 / 61 (the notch's
+  edge blocked by the rebuilt rock). INBOX 14:30 + 14:55 + 15:04.
+- 2026-09-24 12:28–12:41 UTC — iteration 109 (rubric pre-merge read of `exp-south2` 8299271c): the dwellings read in kind, routes
+  and probes clean; blockers — a 3.86 m camera pop on the keeper's gallery (his own check 7 / 16 not ok) and the far-bank
+  look-back at 860 draws / 10.46 M (path-to-waystation 714). INBOX 12:41.
+- 2026-09-24 11:24–11:34 UTC — iteration 108 (lane-10 §30): fable-2's 20-tread flight (`36d722fa`, W02 16–20) at the owner's pose
+  and A — the stone's weight holds to a point (dark 27.1 → 28.1 %, l 0.347 → 0.345); A −0.0078 (structural); nosing counts in
+  the references (owner 15+ in mist, d_014 20, frame A 12) — merge-ready. INBOX 11:34.
+- 2026-09-24 10:35–10:50 UTC — iteration 107 (north rubric re-read, lane-10 §29): fable-cursor's cameraWalls verified on the grove
+  route (pops 3.89 → 0.36 m, accel max 3,564 → 125); the hut platform and the veranda's near plane (Navi) remain; fable-2's riser
+  shade small and right (dark 27.1 → 25.8 %, sat 0.36 → 0.34). INBOX 10:50.
+- 2026-09-24 09:32–09:45 UTC — iteration 106 (`fable-5-rubric50-exp-north.md`): pre-merge read of the north grove (exp-north
+  943d10b4) — the hamlet reads, route 28 / 28, probes 64 / 64, yard lived-in; the follow camera pops 3.89 / 3.57 / 2.38 m against
+  the huts' shells and sits inside the tree hut's column (#44 = 1); 17 checks 57 / 68. INBOX 09:45.
+- 2026-09-24 08:35–08:45 UTC — iteration 105 (rubric-50 pre-merge read of `exp-south2` bc757dfa): the white disc gone at all three
+  distances (exit box 0.80 → 0.34, > 0.85 share 50 → 0.7 %); #27 / #38 2 → 4, #50 3 → 4, #19 1 → 2 — the item at 138 / 176
+  (≈ 157 / 200) with it; route / probes / caps hold — merge-ready. INBOX 08:45.
+- 2026-09-24 07:29–07:40 UTC — iteration 104 (rubric-50 re-score on `b306d6a9`): 129 / 176 (≈ 147 / 200), ★16 2 → 3, #18 2 → 3,
+  #49 3 → 4, #45 scored; wear and damage still under 2; the white disc waits on `exp-south2`; caps A 638 / 8.87 M, C 7.93 M;
+  the south route and probes unchanged. INBOX 07:40.
+- 2026-09-24 06:35–06:43 UTC — iteration 103 (`fable-5-rubric50-exp-south.md`): the owner's 06:07 rubric as a non-author read of
+  the south expansion — 43 / 50 checks scored with evidence, 125 / 172 (≈ 145 / 200; under 2: wear, damage; ★ all 3–4);
+  pacing on `5cbe6ac8` unchanged (p50 5.0, the flight-top compile persists). INBOX 06:43.
+- 2026-09-24 05:30–05:58 UTC — iteration 102 (lane-10 §28, `perf102/`): the head `5cbe6ac8` — caps A 638 / 8.86 M; the flight as
+  fable-2's branch; the 06:50 pose unchanged; **the roofed poses went dark** (`u-open-up` 0.512 → 0.415, `b-upper-2` 0.270 → 0.166,
+  `h-west-front` 0.324 → 0.292) — the near-veil wave, flagged to fable-cursor / squad4 / lane 1. INBOX 05:58.
+- 2026-09-24 04:28–04:40 UTC — iteration 101 (lane-10 §27, `perf101/`, `spot.mjs`): the head `fb7d313a` with the south expansion —
+  caps A 643 / 8.89 M, C 559 / 7.25 M; the south route 21 / 21, deck probes 41 / 41, the camera ≥ 1.38 m, boots on the deck;
+  the `plaza-south` flare pose confirmed (the frame is bark). INBOX 04:40.
+- 2026-09-24 03:27–03:39 UTC — iteration 100 (lane-10 §26): the clean six-view split (lane 1's air +0.008 … +0.018 every view; the
+  candidate's own row A +0.007, C −0.006, D −0.003, F −0.008; expected take A 0.200 … F 0.209); fable-2's stone-value pass takes
+  the flight to the owner's 23:00 reference (dark 51.5 → 29.2 %, l 0.278 → 0.342 vs 7 % / 0.363) — merge-ready. INBOX 03:39.
+- 2026-09-24 02:22–02:25 UTC — iteration 99 (lane-10 §25): the candidate's six views vs 79f44aa5 — A +0.0176, B +0.0137, C +0.0093,
+  D +0.0148, E +0.0164, F +0.0005 (every view toward the frames); §24 corrected (the stair-camera fix is in the candidate);
+  the head 81430baf's six views rendering for the clean split. INBOX 02:25.
+- 2026-09-24 01:33–01:56 UTC — iteration 98 (lane-10 §24, `perf98/`): the squad's integration candidate `4c30d4db` — caps A 638 /
+  8.91 M, C 7.20 M; the owner's 23:00 stair reference is pale worn stone (dark 7 %, l 0.363): `stairs-look` has the kind but goes
+  darker (dark 35.8 → 51.5 %, l 0.308 → 0.278) — the log-step target retired for the main flight; `b-upper-2` still dark. INBOX 01:56.
+- 2026-09-24 00:28–00:36 UTC — iteration 97 (lane-10 §23): pacing on the prebuild head `61db16c8` — the plaza segment p50 10.2 → 4.5 ms
+  (§8 closed), overall 5.8 → 4.8; one new shader compile on the walk at the flight's top (115 → 116; 41 ms frame) flagged to
+  fable-3 / fable-cursor; squad4's `5bd1aeee` re-run — the ledge's vertical max 270 → 46 m/s². INBOX 00:36, 00:39.
+- 2026-09-23 23:28–23:40 UTC — iteration 96 (lane-10 §22, `perf96/`): the owner's 23:00 stair shake measured off on squad4's branch
+  (main flight turn-accel p95 2370 → 506 °/s², vertical max 58 → 18); lane 4's blade tier A −54 K; lane 2's LOD rungs C +460 K,
+  all views under 9.0 M. INBOX 23:40.
+- 2026-09-23 22:32–23:07 UTC — iteration 95 (lane-10 §20, `fable-5-take0135.md`): lane 1's corridor light at the north-path poses —
+  the far-centre box 0.400 → 0.438 (his 0.474), near-black 33 → 24 %, the r_020-like pose at the recording's level; `b-upper-2`
+  unchanged (§10.2 open). take-0135 read: it is `main`'s frozen checkpoint (67b801db), not the head — no verdicts filed. §21: the
+  crowns' prebuild (`94d96536`) — pending 0 at every spot, the trees' update 2.6–6.0 → 0.30 ms. INBOX 23:07, 23:17.
+- 2026-09-23 21:26–21:43 UTC — iteration 94 (lane-10 §19): lane 7's skinned kids −52 draws at A / B / E / F (projected head A 643 /
+  8.95 M); lane 6's log joint closes the wedges at `s2-join-close` (0.275 → 0.319, 0.231 → 0.263) with `s2-owner`'s weight
+  unchanged. INBOX 21:43.
+- 2026-09-23 20:36–21:19 UTC — iteration 93 (lane-10 §18, `perf93/`): the owner's 20:08 "trees spawn" on `39e63437` — caps A 695 /
+  8.95 M (5 draws / 50 K left), pacing unchanged, the near-base pool all resident (wanted 17 → 23 at the plaza), the near-crown
+  pool the spawn that is left (374 wanted / 192 pending at the plaza, builds p50 6.8 ms, max 60). INBOX 21:19.
+- 2026-09-23 19:31–20:03 UTC — iteration 92 (lane-10 §17): fable-4's understory 6.5 m off the walk lines (`f5cf6c26`) at the owner's
+  poses vs the head `393fce60` — `h-west-front` clears (upper-left leafy 29.8 → 11.7 %), the 06:50 pose's top band 0.288 → 0.311,
+  far-centre 0.378 → 0.397; §10.1 closes on both layers (merged 19:50). The fairies at the follow camera (lane-7 review §5).
+  INBOX 20:03, 20:15.
+- 2026-09-23 18:28–18:52 UTC — iteration 91 (lane-10 §16, lane-7 review §4): fable-2's cooler earth at the owner's pose and A —
+  saturation 0.46 → 0.45, B/R 0.54 → 0.55 vs the demo's 0.35 / 0.65: the band is 15 % of the box, the warmth is the logs and
+  treads (merge either cut on weight); fable-3's boy at the door on `e7a01c7e` reads as the girls' pass (`people-play.mjs`
+  now guards uniform frames). INBOX 18:52.
+- 2026-09-23 17:34–17:56 UTC — iteration 90 (lane-10 report §14): re-read on `79f44aa5` — the flight closes on kind and weight
+  (dark 60.8 → 37.4 %, l 0.242 → 0.300); the card wall at the owner's look-up poses was fable-4's understory (path minimum
+  3.4 m) and squad2's mid grove both — §14 / §15; fable-cursor's `d6681b92` (the grove off the walk lines) confirmed at the
+  poses (u-open-up 0.418 → 0.505); six views 0149f255 → 79f44aa5 A −0.0113, D +0.0074, E +0.0106, F −0.0100. INBOX 17:56, 18:22.
+- 2026-09-23 16:31–17:07 UTC — iteration 89 (lane-10 report §13, `perf89/`): the merged head `b510b152` — A 692 / 8.86 M with the
+  cast (both caps met; §12's projection 698 / 8.87 M); `stairs2-base` 685 / 9.31 M; pacing with the cast p50 5.8 / p99 16.7,
+  no compiles on the walk, heap flat; the kids' eight programs compile on first sight (14.5 s render at the flight's foot).
+- 2026-09-23 15:31–15:56 UTC — iteration 88 (lane-10 report §12, `perf88/`): the three perf branches measured against their bases
+  and projected together — the cast put A at 723 draws / 9.20 M; fable-2 −188 K every view, fable-4 A −134 K / F −166 K,
+  fable-3 A −25 draws; head + all three A 698 / 8.87 M, B / E 689 (2 draws of headroom; a kid in view ≈ 50 draws). INBOX 15:56.
+- 2026-09-23 14:24–15:31 UTC — iteration 87 (`fable-5-review-lane7-kokiri-4b1759f9.md`, `fable-5-lane7-review/`): non-author
+  read of lane 7's first landing — six views with the character A −0.0034, B −0.0069, C −0.0001, D 0, E −0.0050, F −0.0014
+  (expected take-0135 A ≈ 0.194 … F ≈ 0.219); play-mode before / after at the follow camera (`people-play.mjs`, the head with
+  the cast forced visible as the before): helmet hair → maroon lobed bob, paler skin; the face / fairy / hem next; routes 9 / 9.
+- 2026-09-23 13:22–13:44 UTC — iteration 86 (lane-10 report §11, `submission.mjs` / `bysystem.mjs`): W38 at A attributed on
+  `be123deb` — of the +0.62 M since `f56c5740`, vegetation +0.57 M (grass instances 512 K → 619 K, ferns / flowers / bushes:
+  lane 4), the trees +0.05 M (the mid canopy 0.03 M); same split at B / D / E. INBOX 13:43 to fable-cursor / lane 4.
+- 2026-09-23 12:30–12:52 UTC — iteration 85 (lane-10 report §10 + ranked list): the owner's four 09-23 poses on `0149f255` —
+  mid-canopy crowns 3–7 m from the walk line read as flat card piles (`u-open-up` 0.55 → 0.30, sky 50 → 14 %; `h-west-front`
+  hides the hut; seats named from the trees' audit, `midseats.mjs`), `b-upper-2` dark (0.454 → 0.269), the earth treads show
+  but the flight's weight is unchanged (61 % dark vs the demo's 13–31 %). INBOX 12:52 to lane 2 / fable-cursor, cc 1 / 6.
+- 2026-09-23 09:31–10:30 UTC — iteration 83 (lane-10 report §6–§7, `bands.py`): the squad branches one at a time at the owner's
+  pose (squad1 hue 89° → 50° but l 0.316 vs the recording's 0.474; squad2 crowns populate and darken, near-black 26 → 35 %;
+  squad3 local, 6 %); the merged head `6664f739`: populated, warm, and darker than before the squad (near-black 49 %, l 0.230 vs
+  his 12 % / 0.394); the crowns keep their local colour at depth (green s 0.15 / l 0.29 vs 0.05 / 0.42); the far air darker
+  (0.360 → 0.318 vs 0.474); the top band 0.335 → 0.232 (the mid canopy roofs the path). Six views `f56c5740` → `6664f739`:
+  A −0.0193, B −0.0184, C −0.0212, D −0.0319, E −0.0330, F −0.0082 (§7a/§7b). Walk QA §8: 9/9 routes; a 1.26 m one-frame
+  camera pop leaving the west house; Link's boots 3–11 cm over Saria's forecourt; play spots +37…+53 draws, `stairs2-base`
+  9.67 M; pacing alone JS p50 4.2 → 6.2 ms (the plaza segment 4.1 → 10.4), heap +99 MB over the walk; the trees' near-LOD
+  pool builds are the world update on both builds (`sysperf.mjs`), pending longer after the batch. INBOX threads 10:28 (the
+  light, lanes 1 / 2) and 11:11 (walk QA, camera / lane 8 / lane 2). Re-read on `0149f255` (§9, 12:21): the far air +0.024
+  of +0.156, near-black and the top band unmoved; six views inside ±0.002.
+- 2026-09-23 08:30–08:40 UTC — iteration 82 (lane-10 report §3 pacing, §5): the 07:50–08:29 air changes at the owner's pose darken
+  the corridor (mist 2.0 → 0.9 %, l 0.300 → 0.263 vs the recording's 22.6 % bright); the left-bank turf invisible at his pose;
+  pacing along the walk smooth (JS p50 4.2 ms, no compiles).
+- 2026-09-23 07:29–07:52 UTC — iteration 81 (LANE 10 taken, `fable-5-lane10-walk-2026-09-23.md`): the owner's 06:50 pose against
+  his recording (bright mist 2 % vs 15–23 %, earth banks 17 % vs 1–2 % — a trench with no crowns at 10–40 m); an eight-item
+  ranked list with positions and lanes; harness on `e4ca3241`: walks clean, the descent camera at 0.38 m, `stairs2-base` 9.53 M
+  triangles over the cap.
+- 2026-09-23 06:28–06:46 UTC — iteration 80 (r55 §Z): `c526a5b8` at the owner's `u-open-up` — the flat pale card is a dark
+  round leaf roof (card l 0.627 → 0.524), #26/28 closed at the owner's example; six views byte-identical; the walk list updated.
+- 2026-09-23 05:27–05:28 UTC — iteration 79: the ranked open list refreshed after the owner's 09-23 items (walk doc, refresh
+  section) — clarity items lead; the flight's weight the new #4; the `u-open-up` card open at ≈ 71°.
+- 2026-09-23 04:34–05:14 UTC — iteration 78 (r55 §Y): the 04:09 owner items at the six views (neutral, ≤ ±0.0002) and at the
+  owner's own poses — `b-upper-2`'s shaft veil gone (0.454 → 0.271, #38 closed there); `u-open-up`'s pale flat card unchanged
+  (l 0.627 vs sky 0.653; ≈ 71° elevation, above the 20–44° gate) — #26/28 not closed at the owner's example.
+- 2026-09-23 03:31–03:52 UTC — iteration 77 (r55 §X): the polish head `3b37b8b7` at the six views (A/F −0.0002, rest 0; cumulative
+  since take-0134's build A −0.0010 … F +0.0027) and the A/B/F re-verdict fable-cursor asked for — W02 pass on kind (weight noted),
+  W14 pass, W26 pass reinforced (crafted lanterns still Deku-nut pods), W10 fail; to file on take-0135.
+- 2026-09-23 02:35–03:05 UTC — iteration 76 (r55 §W): the owner's 09-23 items on the head (`f04fbf5a`) — six views A −0.0008,
+  B −0.0001, C 0, D +0.0002, E +0.0003, F +0.0029; the weathered logs fix the pattern and give back half the tint's weight
+  (flight box 45.8 → 52.8 % dark) — the two asks meet at pale treads; the crafted lanterns and the west-house light measured
+  at the harness spots (23.8 % / 13.6 % of the frame); the distant floor cards not reproduced at my look-up framing.
+- 2026-09-23 01:31–01:33 UTC — iteration 75 (`fable-5-take0134.md`, r55 §V): take-0134 (the clarity set) read — every view down
+  as booked (D −0.0110), all six within ±0.002 of the expected row; 41/50, nothing filed; the owner-region read from §4's
+  fog-slice rows (edge target met, lightness/saturation moved away, sky still blue); take-0135's expected row posted.
+- 2026-09-23 00:27–00:30 UTC — iteration 74: the k3/k4 camera-to-crown distances added to ANALYSIS_CLARITY §4 (cards at
+  18–28 m render at 16 px — softer than the frames' 50 m crowns); the Link caveat on take-0134's expected row.
+- 2026-09-22 23:36–00:11 UTC — iteration 73 (r55 §U): fable-4's colour-pass culling `220fff43` — byte-identical at the six
+  views and at three edge-heavy walk poses (max |Δ| 0.0); mergeable as merged.
+- 2026-09-22 22:32–23:04 UTC — iteration 72 (`fable-5-walk-r55-head.md`, r55 §T): a 17-pose player-height walk of the head
+  `8f07e181` — V19 closed (tunnel 0.142 vs 0.141), V17's inversion gone (0.27 → 0.29, gap 0.42 vs 0.69), the ledge / flight /
+  backside / flares landed; a nine-item ranked open list led by the clarity items.
+- 2026-09-22 21:35–21:38 UTC — iteration 71 (ANALYSIS_CLARITY §5, r55 §S): the hue lever in numbers — the frames' background
+  behind high crowns #858372-class warm grey-khaki (h 52–57°, s 0.06–0.08, l 0.48) vs our #777c7e-class cool neutral grey
+  (s 0.02); target and a check on the pending palette pair posted to Astra; `clarity-poses.json` published.
+- 2026-09-22 20:31–20:58 UTC — iteration 70 (r55 §R): owner-fable's stand roof at the six views (A +0.0003, B +0.0015, C 0,
+  D +0.0022, E +0.0007, F 0 — claims reproduced) and Astra's packs + upper-canopy admission (C −0.0050, F −0.0014 — not
+  byte-identical at the fixed views as the lane note assumed; lit leaves admitted at C's left); expected rows for take-0134
+  and take-0135 refined.
+- 2026-09-22 19:35–19:53 UTC — iteration 69 (`fable-5-take0133.md`, r55 §Q): take-0133 read — the expected row held to
+  ±0.0003, 41/50, nothing filed; the fog pair re-rendered with matching flags after fable-2's catch (my after frames had
+  `--character` on): A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040 — the slice costs on all six;
+  ANALYSIS_CLARITY §3 corrected; take-0134's expected row posted.
+- 2026-09-22 18:28–18:46 UTC — iteration 68 (ANALYSIS_CLARITY §4, r55 §P): fable-4's k3/k4 attribution taken (distant cards;
+  §2 corrected); the painter on the sky-facing cards edge 4.9 → 4.0 px, fine 1.4 → 2.9 % (frames 10–14 %); the hazed cards
+  unchanged (16 px); the fog slice lightens/saturates the card the wrong way; sky 207° on every build.
+- 2026-09-22 17:23–18:00 UTC — iteration 67 (ANALYSIS_CLARITY §3, r55 §O): Astra's fog slice `ae880cf2` at the six views —
+  A +0.0102, B −0.0021, C −0.0118, D −0.0148, E +0.0021, F −0.0002; every far band 0.05–0.12 below the frames' (it clears by
+  darkening), hue unchanged (65–74° vs 50–64°); at five crown poses the sky behind the crowns stays 200–207°. Reconsideration
+  asked before take-0134 seals; the frames' target given (bright warm haze at the old weight, crisp crowns inside).
+- 2026-09-22 16:34–17:02 UTC — iteration 66 (`reference/ANALYSIS_CLARITY.md`, r55 §N): the owner's circled crowns measured
+  against the reference — the gap is the frames', the hue is not (background 165° vs 44–60°), the crown is hazed like a 50 m
+  crown at 15–25 m, 2.7 % leaf-scale silhouette vs 11–14 %; targets posted; Astra's atlas painter changes nothing at five
+  crown poses (the circled lobes are the giants' canopy at the near→far swap, not the far cards); owner's pose requested.
+- 2026-09-22 15:29–15:24 UTC — iteration 65 (`fable-5-take0132.md`, r55 §M): the take sealed as take-0132 (`4f22e7ec`) — six
+  views on §D's expected row to ±0.0004 (C +0.0012), pipeline healthy, deltas = the source chain; W02 re-filed pass (flight
+  box 61 → 40 % dark), C01 re-filed fail (Link pixel-identical to take-0131); 41/50; take-0134's expected row posted.
+- 2026-09-22 14:22–14:38 UTC — iteration 64 (r55 §L): whose shadow is on the D boulder — a `?nocast=<group>` diagnostic:
+  trees' casters off gives 93 % of the shadow-off gain (macro σ 0.109 / p90 0.52), structures and vegetation 0; the item is
+  a sun corridor in `trees/index.ts` (trees / giants lane).
+- 2026-09-22 13:33–14:03 UTC — iteration 63 (r55 §K): V16's fill half specified after fable-2's flush stretches moved
+  nothing — the seam sits −0.28 below the slab vs the frame's −0.15 (twice the depth on 1.6× the length): soil at ≈ 0.40
+  where the line shows, slab value over ≈ 40 % of each run, acceptance numbers for `seam-lines.py`; the owner's grass item
+  (blades 16 → 26 m) at the six views: inside budget, F −0.0022, faint in stills.
+- 2026-09-22 12:25–12:47 UTC — iteration 62 (r55 §J): the D boulder's flatness proven to be the canopy's shadow — shadow
+  map off, the loaf alone reaches the frame's macro σ (0.117 vs 0.124) and p90 (0.51 vs 0.49); fable-2's planes add
+  nothing even in sun. Round-50 #1 / #12 re-owned: a sun corridor onto the boulder (canopy), not rockgen.
+- 2026-09-22 11:34–12:02 UTC — iteration 61 (r55 §I): the two memory steps after `e188ac2f` at the six views — rock-bytes /
+  rock-upload / propmem (D 0.17 % > 8 levels on the hero boulder, none > 40) and vertexbytes (≤ 0.013 %, five F edge pixels);
+  SSIM vs reference 0 / +0.0001 / 0 / −0.0001 / 0 / +0.0001 — frame-neutral; §D's row stands.
+- 2026-09-22 10:27–10:45 UTC — iteration 60 (r55 §H): tick 226's late-compile hypothesis tested — A's 90 frames on the
+  tick-226 source flat to ± 2 %, `programs` 101 / `geometries` 302 from frame 1 to 90, heap flat, GPU process +0.5 MB/frame;
+  the stall is the box (pressure, a GPU-process restart, or contention), not the frames; B the same (frames 51–55 in
+  76.1 s, programs/geometries constant).
+- 2026-09-22 09:36–10:18 UTC — iteration 59 (r55 §G): the merged head `e188ac2f` (trees `onUpload` + pebble-bytes) — six
+  views byte-identical; Chrome −568 MB on the capture path (renderer 2,110 → 1,835 at ready); `?warmup=1` measured: renderer
+  −172 but GPU process +640, total +721 — do not turn it on for takes; the heap-objects figure corrected (0.50 GB).
+- 2026-09-22 08:29–08:47 UTC — iteration 58 (r55 §F): fable-2's pebble-bytes cut — six views SSIM identical, 0.07–0.28 %
+  of pixels by 2–3 levels, mergeable; the two memory reads reconciled (773 MB geometry inside 1,021 MB ArrayBuffers);
+  Link's GLB decoded: two 4,096² maps + a 2,048² eye = 218 MB, −190 MB at the honest size (Astra's export).
+- 2026-09-22 07:33–08:20 UTC — iteration 57 (r55 §E): fable-cursor's OOM root cause reproduced on this idle box — Chrome
+  4.27 GB at `ready` (JS 1,522 / renderer 2,110 / GPU 1,682 MB), +95 MB over six views, no leak; `pool=small` identical;
+  the heap is 1,021 MB of live ArrayBuffers (a forced GC frees nothing) — geometry held twice; `BufferAttribute.onUpload`
+  named as the trim, textures (43 × 2k) as the GPU process's. Scripts + logs under `fable-5-r55/`.
+- 2026-09-22 06:30–06:35 UTC — iteration 56 (r55 §D): take-0133 pre-read — the expected six views from take-0131 plus
+  every measured step (A 0.2213, B 0.1987, C 0.2186, D 0.2764, E 0.2191 ± Link, F 0.2316) with a reading rule that
+  separates a browser-per-view warm-state shift from source changes before verdicts are re-filed.
+- 2026-09-22 05:35–06:28 UTC — iteration 55 (r55 §C): the head's dressing fade (fable-2, `82b94525`) at 12 poses
+  with a dressing-only attribution build — six views exactly shadowlod's numbers; V20's pair at `x-southbank-toe`
+  fine σ +27 % (attributed), 4 m unchanged, 11 m +5 % from the fade; clearing poses ≤ 0.43 %. IMPROVED, six views
+  untouched; the 13–20 m half of the owner's range is still the far skin by design. `seam-lines.py` published.
+- 2026-09-22 04:34–04:48 UTC — iteration 54 (r55 §B): fable-2's V16 correction accepted (#3 is not a value; §F
+  fixed in place); the seam excess decomposed — width equal, depth ~equal, visible length 1.4–1.7× and the
+  hard-groove share 1.1–2×; the reference's seams do not close slabs (E 5 regions vs our 12); a diagnostic build
+  (slabs `castShadow` off) leaves every joint number unchanged — the outline is the continuous recess's own
+  shading. Brief re-scoped to the module: the fill flush/lapping in seeded stretches + the proud height, together.
+- 2026-09-22 03:30–04:28 UTC — iteration 53 (r55 §A): fable-4's shadowlod (the white-barks' mid LOD stops
+  casting) on the head at 12 positions (10 valid; two blind probes struck) — six views A/B/E/F identical, C −0.0009, D −0.0002 (fable-4's table
+  reproduced); the cost is on the trees 20–44 m out: crown-on-trunk band and ground patch gone (grove
+  poses 2.4–5.6 % of pixels, all brighter), the near ground untouched everywhere. Mergeable; a shadow-only
+  low-mesh proxy offered as an option.
+- 2026-09-22 02:35–02:50 UTC — iteration 52 (r54 §G): Astra's bank-backing study read — confirms §D, rejects
+  the backing (opaque ovals); the head keeps F −0.0104 — revert #29 asked of fable-cursor.
+- 2026-09-22 01:38–02:00 UTC — iteration 51 (r54 §F): the round-52 ranked list re-cut by the owner's order
+  (41/50 with my verdicts; PR #29's revert first, then the near canopy's hue, V16's seams, the flight's light).
+- 2026-09-22 00:28–01:05 UTC — iteration 50 (r54 §E): fable-4's lodthin on the head — A/B/D/E identical,
+  C −0.0004, F −0.0001, grove 3.5 % — harmless W38 give-back; PR #29's regression still on the head.
+- 2026-09-21 23:25–23:50 UTC — iteration 49 (r54 §D): the head's tick-215 imports measured — the warmth
+  landed (C-top 72°, D-top 63.8°) at no cost; PR #29's bank-core recession costs A −0.0027, C −0.0040,
+  F −0.0104 (haze through the receded cores) — flagged before the seal.
+- 2026-09-21 22:54–23:05 UTC — take-0131 read: predates the timber tint (flight box 60.9 % dark); nothing
+  filed, 41/50 (`fable-5-take0131.md`).
+- 2026-09-21 22:26–23:00 UTC — iteration 48 (r54 §C): Astra's leaf-warmth branch — six views budget-free,
+  far crowns C-top 84.5 → 72.9°, D-top onto the frame's 63.8°; the near canopy (69°) untouched. Merge.
+- 2026-09-21 21:30–21:55 UTC — iteration 47 (r54 §B): fable-3's arch rim — the right cheek's seam step
+  −60 % at x-arch-approach, tunnel-n identical (floor nit stands); round-50 #12 mostly closed.
+- 2026-09-21 20:29–20:50 UTC — iteration 46 (r54 §A): fable-2's timber tint on the head — A +0.0087, F +0.0040;
+  flight box 61.5/7.3 → 40.7/13.1 % dark/pale (frame 15.8/14.0); take-0130 carries (identical frames).
+  New branch `agent/fable-5-r54-review`.
 - 2026-09-21 19:30–19:50 UTC — iteration 45 (r53 §C): the atlas sRGB recovery on the head — invisible at
   the six views, canopy hue unchanged (69–84° vs 60–69°); the warmth term is the lever (r49 §K).
 - 2026-09-21 18:23–19:00 UTC — iteration 44 (r53 §B): Astra's #25/#26 on the head — moss colonies right and
@@ -123,7 +495,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - 2026-09-20 16:20–16:55 UTC — goal-mode iteration 18: the round-49 walk of `97c8322` at 15 player-height
   poses (12 paired with the round-48 walk + 3 backside looks); the round-50 list re-cut by the owner's
   order (`fable-5-walk-r49-head.md`, five sheets). Sky overhead still 20.5 %.
-- 2026-09-20 16:00–16:15 UTC — take-0123 (97c8322, 37/50) read: C +0.0046 recovered, nothing outside
+- 2026-09-20 16:00–16:10 UTC — take-0123 (97c8322, 37/50) read: C +0.0046 recovered, nothing outside
   budget; W08 re-filed fail (lean + bough in, taper missing), W36/W03 re-checked pass
   (`fable-5-take0123.md`).
 - 2026-09-20 15:20–16:10 UTC — goal-mode iteration 17: reference §7 — the owner's re-priority measured
@@ -249,6 +621,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   reviewers should not silently pass a criterion the frame contradicts.
 - Video-2 frames stay ≤ 640 px, comparison only; every file under `reference/frames-video2/` is
   hashed into `reference/phash.json` before it is committed.
+- A before/after pair must match on every render flag (`--character`, `--hud`, shot list, settle), not only the
+  shot list — iteration 67's fog pair did not, and its A "+0.0102" was Link (caught by fable-2, corrected in 69).
 
 ## Known issues
 - The Cursor PR tool cannot open a PR for `agent/fable-5-demo-walk` (GitHub validation "must be a
@@ -274,4 +648,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T07:46:00Z
+2026-09-25T21:55:00Z
