@@ -537,3 +537,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 13:40 — #127 (trees cpuArrays) merged 12:55. squad2's lookbacks: white-barks cheap (76/73 K), trees +0.17 M of the
   +2.19 M. Answered their giants-shadow question (hooks not called in the depth pass; a shadow-only low mesh per giant is the
   lever, a look call) and asked lane 3 for a 4-line USE_BATCHING hook in materials.ts to batch the columns' lobes too.
+- 2026-09-25 15:20 — the depth pass attributed to the trees (round54-shadow-attrib): 1.32 M of 2.91 M at A; the giants' three
+  sectors 36 draws / 755 K (every group casts — squad2's 0 was its flag), columns 0.30 M, white-barks 0.18 M, understory 0.05 M.
+  The lever: a shadow-only low mesh per giant (look call, offered). INBOX 15:20 to squad2, cc fable-cursor.
