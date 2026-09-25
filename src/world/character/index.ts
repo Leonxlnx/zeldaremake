@@ -22,10 +22,10 @@ import type { WorldContext, WorldSystem } from '../system';
 import { GAIT_SPEED, GAITS, HERO_PHASE, PLAYER_ACCEL, PLAYER_DECEL, PLAYER_SPEED, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
-import { createNpcs, LEDGE_SLOT } from './npc';
+import { createNpcs, GROVE_SLOT, LEDGE_SLOT, VERANDA_SLOT } from './npc';
 import { createLink } from './link';
 import { createNavi, naviHoverAnchor, TRAIL_COUNT } from './navi';
-import { headingOf, marchToGround, matchViewpoint, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
+import { headingOf, marchToGround, matchViewpoint, NPC_GROVE_VERANDA, NPC_GROVE_YARD, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
 import { consolidateRigParts } from './consolidate';
@@ -64,10 +64,22 @@ interface Actor extends GaitChain {
   shadowRadius: number;
 }
 
-/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank) */
-const KID_COUNT = 5;
+/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank), the grove girl (lane 7: the north yard's washing line), the veranda boy (lane 7: the stilt house's rail) */
+const KID_COUNT = 7;
+/** the grove's kids (GROVE_SLOT, VERANDA_SLOT) are drawn only within this distance — the grove itself hides at 60 m (util/groveLocality.ts) */
+const GROVE_KID_VISIBLE_M = 60;
+const GROVE_KIDS = new Set([GROVE_SLOT, VERANDA_SLOT]);
 /** how far a kid's sun shadow can lie from them (1.12 m tall under the 38° sun → 1.43 m on level ground; margin for a slope and a frame of camera lag) */
 const KID_SHADOW_REACH_M = 2.6;
+/**
+ * Beyond this distance a kid casts no sun shadow (fable-5, 18:04: at the look-backs five kids at
+ * 30–45 m and 20–30 px tall drew 123 submissions, half of them the shadow pass) — a shadow a metre
+ * long at 25 m is a few pixels of the ground's own shade.
+ */
+const KID_SHADOW_FAR_M = 25;
+/** beyond this distance a kid's small parts (belt, buckle, lashes, eyes, boot soles and cuffs, the pouch, the stick) are not drawn */
+const KID_DETAIL_FAR_M = 25;
+const KID_DETAIL_PARTS = new Set(['kid-belt', 'kid-buckle', 'lashes', 'eyeballs', 'boot-sole', 'boot-cuff', 'kid-rope-belt', 'kid-pouch', 'brow', 'mouth', 'eye-white', 'iris', 'pupil', 'deku-stick']);
 /** the ledge girl stands 4 m over the north clearing: her shadow can fall down the ledge face onto its floor */
 const LEDGE_SHADOW_REACH_M = 7;
 
@@ -130,7 +142,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const fx = house.facing[0] / fl;
   const fz = house.facing[1] / fl;
   const doorKid: V3 = [house.position[0] + fx * (house.trunkRadius + 1.0) + fz * 1.3, 0, house.position[2] + fz * (house.trunkRadius + 1.0) - fx * 1.3];
-  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z]];
+  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z], [NPC_GROVE_YARD.x, 0, NPC_GROVE_YARD.z], [NPC_GROVE_VERANDA.x, 0, NPC_GROVE_VERANDA.z]];
   const kids: Actor[] = [];
   const kidChars: ReturnType<typeof createKokiri>[] = [];
   /** each kid with its decal, hidden whole where the ground hides them (`scopeKidSight`) */
@@ -180,6 +192,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return meshes;
   });
   const kidCasting: boolean[] = kids.map(() => true);
+  // the small parts a kid loses beyond KID_DETAIL_FAR_M (the skinned meshes are named after their first part)
+  const kidDetail: Mesh[][] = kids.map((k) => {
+    const meshes: Mesh[] = [];
+    k.puppet.group.traverse((o) => {
+      if ((o as Mesh).isMesh && KID_DETAIL_PARTS.has(o.name.replace(/^skinned:/, ''))) meshes.push(o as Mesh);
+    });
+    return meshes;
+  });
+  const kidDetailed: boolean[] = kids.map(() => true);
   const shadowFrustum = new Frustum();
   const shadowPV = new Matrix4();
   const shadowSphere = new Sphere();
@@ -191,11 +212,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const k = kids[i];
       k.puppet.group.getWorldPosition(shadowSphere.center);
       shadowSphere.center.y += 0.7;
+      const dist = shadowSphere.center.distanceTo(camera.position);
       shadowSphere.radius = i === LEDGE_SLOT ? LEDGE_SHADOW_REACH_M : KID_SHADOW_REACH_M;
-      const on = shadowFrustum.intersectsSphere(shadowSphere);
-      if (on === kidCasting[i]) continue;
-      kidCasting[i] = on;
-      for (const m of kidCasters[i]) m.castShadow = on;
+      const on = dist < KID_SHADOW_FAR_M && shadowFrustum.intersectsSphere(shadowSphere);
+      if (on !== kidCasting[i]) {
+        kidCasting[i] = on;
+        for (const m of kidCasters[i]) m.castShadow = on;
+      }
+      // `visible` is no program key either: the far kid keeps its skull, hair, band, tunic, skin and boots
+      const detailed = dist < KID_DETAIL_FAR_M;
+      if (detailed !== kidDetailed[i]) {
+        kidDetailed[i] = detailed;
+        for (const m of kidDetail[i]) m.visible = detailed;
+      }
+      if (GROVE_KIDS.has(i)) {
+        const shown = dist < GROVE_KID_VISIBLE_M;
+        if (k.puppet.group.visible !== shown) {
+          k.puppet.group.visible = shown;
+          k.shadow.visible = shown;
+        }
+      }
     }
   };
 
@@ -584,6 +620,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** lane 7: which kids cast a sun shadow this frame (their shadow reach meets the view) and the shadow-pass meshes each holds */
       kidShadowCasting: kidCasting.slice(),
       kidShadowMeshes: kidCasters.map((m) => m.length),
+      kidDetailed: kidDetailed.slice(),
+      kidDetailMeshes: kidDetail.map((m) => m.length),
+      kidFarM: { shadow: KID_SHADOW_FAR_M, detail: KID_DETAIL_FAR_M },
       /** exp-east: which kids the ground leaves in sight of the camera (soles, skull top or shadow) — the rest draw nothing — and the tests run */
       kidTerrainSeen: kidSeen.slice(),
       kidSightTests,

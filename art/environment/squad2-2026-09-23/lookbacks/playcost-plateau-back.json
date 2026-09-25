@@ -1,0 +1,72 @@
+[
+ {
+  "name": "plateau-back",
+  "pose": {
+   "p": [
+    17,
+    7.1,
+    -15
+   ],
+   "t": [
+    0,
+    2,
+    6
+   ],
+   "fov": 50
+  },
+  "drawn": {
+   "draws": 745,
+   "triangles": 11152698
+  },
+  "parts": [
+   {
+    "system": "vegetation",
+    "drawCalls": 164,
+    "triangles": 3748683,
+    "found": true
+   },
+   {
+    "system": "trees",
+    "drawCalls": 186,
+    "triangles": 3146256,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 169,
+    "triangles": 2291399,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 39,
+    "triangles": 776882,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 21,
+    "triangles": 529191,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 36,
+    "triangles": 502600,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 95,
+    "triangles": 211060,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 20,
+    "triangles": 109658,
+    "found": true
+   }
+  ]
+ }
+]

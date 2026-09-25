@@ -4,7 +4,10 @@
  *    keeps CLEARANCE above it and is lifted where a ridge or a flight would cut the line;
  *  - SOLID shells (the structures' voxelised trunks, roofs, eaves, porches, the log arch, the huts —
  *    structures/cameraSolids.ts) and the big boles (the giants' and columns' seats as built): the
- *    camera stays in front of the first one on the line, so Link is never behind a wall or a bole;
+ *    camera stays in front of the first one on the line, so Link is never behind a wall or a bole,
+ *    and out of the cell grown round each; a line that only grazes that cell, or clips the corner
+ *    of a surface's own cell, is not blocked; round walls given exactly (the grove's huts) are
+ *    solid to their surface, with CAMERA_RADIUS as their grown shell;
  *    under a low ceiling (the log arch's passage, a hut's cap) it first tries standing lower;
  *  - SLIM parts (posts, pods, boughs, the white-barks' boles, the village props): the camera only
  *    refuses to stand inside one and moves in along the line until clear — a post may pass between.
@@ -21,6 +24,10 @@ export const MIN_DISTANCE = 0.6;
 /** a low ceiling may drop the camera by up to LOWER_STEPS × LOWER_STEP m before it is pulled in */
 const LOWER_STEPS = 4;
 const LOWER_STEP = 0.15;
+/** consecutive surface samples (a fifth of a cell each) a line must run through to be blocked */
+const SURFACE_RUN = 4;
+/** the sweep's cell (m) when there are only exact walls (structures/cameraSolids.ts CAMERA_SOLID_CELL) */
+const SWEEP_CELL = 0.25;
 
 export interface Cylinder {
   x: number;
@@ -43,6 +50,8 @@ export interface CameraCollider {
   lift(pivot: Vector3, desired: Vector3): number;
   /** the solid sweep: how much of the line pivot → desired is free (tries lower candidates under a ceiling) */
   resolve(pivot: Vector3, desired: Vector3): Resolved;
+  /** the same sweep along the line as given (no lower candidates) */
+  sweep(pivot: Vector3, desired: Vector3): { t: number; hit: Resolved['hit'] };
   /** move `cam` toward `pivot` until it is outside every slim part; returns the distance moved (m) */
   slimPush(pivot: Vector3, cam: Vector3): number;
   /** the walked ground under (x, z) */
@@ -68,6 +77,21 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     ...(shared.propBlockers ?? []).map((b) => ({ x: b.x, z: b.z, r: b.r + CAMERA_RADIUS, y0: -Infinity, y1: b.top + CAMERA_RADIUS })),
   ];
 
+  const walls = shared.cameraSolids?.walls ?? [];
+  /** inside a round wall, or within `pad` m of it (over its height band, ± pad) */
+  const insideWall = (x: number, y: number, z: number, pad: number): boolean => {
+    for (const w of walls) {
+      if (y < w.y0 - pad || y > w.y1 + pad) continue;
+      const dx = x - w.x;
+      const dz = z - w.z;
+      const d2 = dx * dx + dz * dz;
+      const rm = w.rMax + pad;
+      if (d2 >= rm * rm) continue;
+      if (Math.sqrt(d2) < w.radiusAt(Math.atan2(dz, dx), Math.min(Math.max(y, w.y0), w.y1)) + pad) return true;
+    }
+    return false;
+  };
+
   const insideSlim = (x: number, y: number, z: number): boolean => {
     if (slim?.hasPoint(x, y, z)) return true;
     for (const c of slimCylinders) {
@@ -84,22 +108,55 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     if (len < 1e-6) return { t: 1, hit: null };
     let t = 1;
     let hit: Resolved['hit'] = null;
-    if (solid) {
-      const step = solid.cell * 0.4;
-      // Link may stand inside the grown shell (against a wall): an occupied run at the start is
-      // skipped if it ends within half a metre, otherwise the camera has nowhere behind him
+    if (solid || walls.length) {
+      const step = (solid?.cell ?? SWEEP_CELL) * 0.2;
+      const grown = (s: number) => {
+        const x = a.x + (_d.x * s) / len;
+        const y = a.y + (_d.y * s) / len;
+        const z = a.z + (_d.z * s) / len;
+        return !!solid?.hasPoint(x, y, z) || insideWall(x, y, z, CAMERA_RADIUS);
+      };
+      const core = (s: number) => {
+        const x = a.x + (_d.x * s) / len;
+        const y = a.y + (_d.y * s) / len;
+        const z = a.z + (_d.z * s) / len;
+        return !!solid?.hasCorePoint(x, y, z) || insideWall(x, y, z, 0);
+      };
+      // The line is blocked where it runs through a surface (the grid's core) for SURFACE_RUN
+      // samples; the grown cell round it only keeps the camera itself off the surface. A line
+      // through a wall crosses a whole cell of it (five samples or more); one that clips a cell's
+      // corner for a sample or three passes beside the surface — a door's edge, a round wall it
+      // runs along. Link may stand in the grown shell (his head under an eave, beside a root arch,
+      // against a wall): an occupied run at the start is skipped, unless it goes through a surface
+      // and runs on past half a metre — then the camera has nowhere behind him.
       let s = 0;
       let run = 0;
-      while (s <= len && solid.hasPoint(a.x + (_d.x * s) / len, a.y + (_d.y * s) / len, a.z + (_d.z * s) / len)) {
+      let through = 0;
+      let met = false;
+      while (s <= len && grown(s)) {
+        through = core(s) ? through + 1 : 0;
+        met ||= through >= SURFACE_RUN;
         run += step;
         s += step;
-        if (run > 0.5) return { t: 0, hit: 'solid' };
+        if (met && run > 0.5) return { t: 0, hit: 'solid' };
       }
-      for (; s <= len; s += step) {
-        if (solid.hasPoint(a.x + (_d.x * s) / len, a.y + (_d.y * s) / len, a.z + (_d.z * s) / len)) {
-          t = Math.max(0, s - step) / len;
+      // (a line that never leaves the grown shell and never goes through a surface keeps its length)
+      const clear = s;
+      if (clear <= len) {
+        let end = len;
+        through = 0;
+        for (; s <= len; s += step) {
+          through = core(s) ? through + 1 : 0;
+          if (through >= SURFACE_RUN) {
+            end = s - through * step;
+            break;
+          }
+        }
+        if (end < len || grown(len)) {
+          // the farthest point before the surface (or the line's end) that is clear of the grown shell
+          while (end > clear && grown(end)) end -= step;
+          t = end / len;
           hit = 'solid';
-          break;
         }
       }
     }
@@ -126,6 +183,7 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
 
   return {
     ground,
+    sweep,
     lift(pivot, desired) {
       const y0 = desired.y;
       const floor = Math.max(ground(desired.x, desired.z), ground(desired.x + 0.25, desired.z), ground(desired.x - 0.25, desired.z), ground(desired.x, desired.z + 0.25), ground(desired.x, desired.z - 0.25)) + CLEARANCE;

@@ -12,7 +12,9 @@
  */
 import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
 import { EXPANSION_EAST, EXPANSION_STAIRS, southBridgeFrame, type Layout } from '../layout';
+import { NORTH_STAIRS } from '../layout';
 import type { SharedGeometry, WalkSpan, WalkSurface } from '../system';
+import type { WalkEdge } from '../system';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
 import { bridgeLocal, inFarCorridor, ravineCut, southOfRavine } from '../terrain/south';
 
@@ -194,7 +196,8 @@ function buildSurfaceGrid(geometry: BufferGeometry, CELL: number, timberTriangle
  */
 export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGeometry): Ground {
   // round 49: the expansion's flights (layout EXPANSION_STAIRS) climb like the layout's
-  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS];
+  // (2026-09-24: and the grove's, layout NORTH_STAIRS)
+  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS, ...NORTH_STAIRS];
   const frames: StairFrame[] = allStairs.map((s) => {
     const l = Math.hypot(s.dir[0], s.dir[1]);
     return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, tread: s.tread, rise: s.rise, steps: s.steps, halfWidth: s.width / 2, baseY: s.base[1] };
@@ -238,6 +241,33 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       if (bd <= s.hw) best = Math.max(best ?? -Infinity, by);
     }
     return best;
+  };
+  // 2026-09-24: the grove's railings and deck edges (polylines with a half width), each with its XZ box
+  const walkEdges = (shared?.walkEdges ?? []).map((e: WalkEdge) => {
+    const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+    for (const p of e.pts) {
+      b.x0 = Math.min(b.x0, p[0] - e.hw);
+      b.x1 = Math.max(b.x1, p[0] + e.hw);
+      b.z0 = Math.min(b.z0, p[2] - e.hw);
+      b.z1 = Math.max(b.z1, p[2] + e.hw);
+    }
+    return { ...e, box: b };
+  });
+  /** true within an edge's half width of its line */
+  const edgeBlocked = (x: number, z: number): boolean => {
+    for (const e of walkEdges) {
+      if (x < e.box.x0 || x > e.box.x1 || z < e.box.z0 || z > e.box.z1) continue;
+      for (let i = 0; i + 1 < e.pts.length; i++) {
+        const a = e.pts[i];
+        const b = e.pts[i + 1];
+        const dx = b[0] - a[0];
+        const dz = b[2] - a[2];
+        const len2 = dx * dx + dz * dz;
+        const t = len2 < 1e-12 ? 0 : Math.min(1, Math.max(0, ((x - a[0]) * dx + (z - a[2]) * dz) / len2));
+        if (Math.hypot(x - a[0] - dx * t, z - a[2] - dz * t) < e.hw) return true;
+      }
+    }
+    return false;
   };
   /**
    * the built surface (platform / deck top) under (x, z), or null off every walk surface;
@@ -294,6 +324,8 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
   };
 
   let grid: SurfaceGrid | null = null;
+  /** 2026-09-24: the grove trail's discs, 90 m north of the plaza grid's box, in a grid of their own */
+  let groveGrid: SurfaceGrid | null = null;
   /** the rendered stair stones (one grid per `stairs-*` mesh) */
   const stairGrids: SurfaceGrid[] = [];
   /** rendered stair stone top under (x, z), or null off the stairs meshes */
@@ -309,15 +341,17 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
   };
   /** max slab top within `radius` of (x, z), or null where no slab was rasterised */
   const slabTop = (x: number, z: number, radius: number): number | null => {
-    if (!grid) return null;
-    const cx = Math.floor((x - grid.x0) / grid.cell);
-    const cz = Math.floor((z - grid.z0) / grid.cell);
-    const r = Math.max(0, Math.round(radius / grid.cell));
     let best = -Infinity;
-    for (let gz = Math.max(0, cz - r); gz <= Math.min(grid.nz - 1, cz + r); gz++) {
-      for (let gx = Math.max(0, cx - r); gx <= Math.min(grid.nx - 1, cx + r); gx++) {
-        const v = grid.top[gz * grid.nx + gx];
-        if (v > best) best = v;
+    for (const g of [grid, groveGrid]) {
+      if (!g) continue;
+      const cx = Math.floor((x - g.x0) / g.cell);
+      const cz = Math.floor((z - g.z0) / g.cell);
+      const r = Math.max(0, Math.round(radius / g.cell));
+      for (let gz = Math.max(0, cz - r); gz <= Math.min(g.nz - 1, cz + r); gz++) {
+        for (let gx = Math.max(0, cx - r); gx <= Math.min(g.nx - 1, cx + r); gx++) {
+          const v = g.top[gz * g.nx + gx];
+          if (v > best) best = v;
+        }
       }
     }
     return best > -Infinity ? best : null;
@@ -369,6 +403,7 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       for (const b of propBlockers) {
         if ((x - b.x) ** 2 + (z - b.z) ** 2 < (b.r + 0.12) ** 2) return true;
       }
+      if (edgeBlocked(x, z)) return true;
       // round 49: the hut's wall ring blocks (its doorway is the gap); on its platform / deck the
       // ground's structure pad (the bole under the floor) does not
       if (wallBlocked(x, z)) return true;
@@ -411,6 +446,8 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
           if (g) stairGrids.push(g);
         }
       }
+      const grove = hardscape?.getObjectByName('flagstones-grove') as Mesh | undefined;
+      if (!groveGrid && worldSpace(grove)) groveGrid = buildSurfaceGrid(grove.geometry, CELL);
       const slabs = hardscape?.getObjectByName('flagstones') as Mesh | undefined;
       if (!worldSpace(slabs)) return false;
       // the north paving + lookout dais are a second mesh (hidden by distance for rendering);

@@ -1,0 +1,78 @@
+diff --git a/src/world/trees/index.ts b/src/world/trees/index.ts
+index 29bce656..7807866f 100644
+--- a/src/world/trees/index.ts
++++ b/src/world/trees/index.ts
+@@ -21,7 +21,7 @@
+  * instances that can reach the image (see "submission culling" below). Everything is seated via
+  * ctx.terrain.height; randomness only via ctx.rng.
+  */
+-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
++import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+ import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
+ import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+ import type { ShadeFloor } from '../materials/shadeFloor';
+@@ -30,6 +30,7 @@ import { createUnderstoryTree, understoryParams, type UnderstoryParams } from '.
+ import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
+ import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
+ import { expansionCull, getTerrain, ruinsTrunkCull, southFooting, southRouteSurface, westExpansionCull, type Terrain, type TerrainView } from '../terrain/heightfield';
++import { eastCardCrowds, eastTreeCrowds, eastUnderstoryCull } from '../util/eastLane';
+ import { smoothstep } from '../util/noise';
+ import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
+ import { EXPANSION, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH, inExpansionSouth, ruinsTrailLine, southPathLine } from '../layout';
+@@ -2219,7 +2220,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+   // buried, which left the bank bald). `drawnWhites` is the set as drawn before round 56: the
+   // streams after this one (the understory, the columns and their swap draws, the mid grove, the
+   // root toes) stand off IT, so a dropped south stem re-rolls none of them.
+-  const drawnWhites = whitePlaced.placements.filter((p) => !westExpansionCull(p.x, p.z));
++  const drawnWhites = whitePlaced.placements.filter((p) => !westExpansionCull(p.x, p.z, 0.3, false));
+   const southFootings = new Map(drawnWhites.map((p) => [p, southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, whites[p.variant].params.trunkRadius * p.scale + SOUTH_LIP_MARGIN_M)]));
+   const sampledWhites = drawnWhites.filter((p) => southFootings.get(p) !== 'cull' && !ruinsTrunkCull(p.x, p.z, whites[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M));
+   const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
+@@ -2464,8 +2465,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+    * post-filter over the sampled list, so no other stem moves (a rule inside the loop shifts every
+    * later draw).
+    */
++  // (the east lane's discs, trunks and lookout clear the same way — util/eastLane.ts; the ruins
++  // trail and site through the heightfield's `ruinsTrunkCull`)
+   const understoryKept = understoryPlacements.filter(
+-    (p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M && !ruinsTrunkCull(p.x, p.z, understory[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M),
++    (p) =>
++      understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M &&
++      !eastUnderstoryCull(p.x, p.z) &&
++      !ruinsTrunkCull(p.x, p.z, understory[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M),
+   );
+   understoryPlacements.length = 0;
+   understoryPlacements.push(...understoryKept);
+@@ -3382,12 +3388,31 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+   // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
+   // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
+   const midSpec0 = distantVariants.length - MID_SPECS.length;
++  // the east lane's houses and discs clear the crowns that would crowd them (util/eastLane.ts)
++  const midSpec = (p: DistantPlacement) => MID_SPECS[Math.max(0, Math.min(MID_SPECS.length - 1, p.variant - midSpec0))];
++  // the east lane is a walk line like the three above (eastCardCrowds): its card crowns keep
++  // MID_WALK_MIN_M off it too, except the ones cameras A–E frame. F is not spared: it looks up the
++  // stair bank at the whole plateau grove, so sparing it would keep every crown over the lane.
++  const heroCameras = ctx.layout.viewpoints
++    .filter((v) => /^[A-E]_/.test(v.id))
++    .map((v) => {
++      const c = new PerspectiveCamera(v.fov, 1280 / 716, 0.1, 400);
++      c.position.set(v.position[0], v.position[1], v.position[2]);
++      c.lookAt(v.target[0], v.target[1], v.target[2]);
++      c.updateMatrixWorld(true);
++      return c;
++    });
++  const eastCrowded = (p: DistantPlacement) => {
++    const s = midSpec(p);
++    const h = s.height * p.scale;
++    return eastTreeCrowds(p.x, p.z, h, s.crownR, s.crownY, MID_TRUNK_R) || eastCardCrowds(p.x, p.z, h, s.crownR, s.crownY, p.y, MID_WALK_MIN_M, sunDir, heroCameras);
++  };
+   /** round 57: the card trees kept off the ruins' walk (`ruinsCardCull`) */
+   const ruinsCards = { mid: 0, distant: 0, trailM: MID_WALK_MIN_M, siteM: RUINS_CARD_CLEAR_M };
+   /** the mid boles standing on the south exit's live ground, for the base-gap audit */
+   const midLive = new Set<(typeof midSampled)[number]>();
+   const midPlacements = midSampled.filter((p) => {
+-    if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M) return false;
++    if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M || eastCrowded(p)) return false;
+     if (ruinsCardCull(p.x, p.z, MID_WALK_MIN_M)) {
+       ruinsCards.mid++;
+       return false;

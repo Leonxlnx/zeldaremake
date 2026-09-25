@@ -42,7 +42,7 @@ function loadTs(file) {
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const { surfaceAt } = loadTs(path.join(here, 'index.ts'));
-const { LAYOUT, EXPANSION, EXPANSION_SOUTH, EXPANSION_EAST, eastDeckPlan } = loadTs(path.join(here, '../world/layout.ts'));
+const { LAYOUT, EXPANSION, EXPANSION_SOUTH, EXPANSION_NORTH, northGangway, EXPANSION_EAST, eastDeckPlan } = loadTs(path.join(here, '../world/layout.ts'));
 
 /** rotate (u along, v across) in a thing's own frame into the world */
 const inFrame = (x, z, yaw, u, v) => [x + Math.cos(yaw) * u - Math.sin(yaw) * v, z + Math.sin(yaw) * u + Math.cos(yaw) * v];
@@ -77,6 +77,20 @@ function standingPlaces() {
   for (const [u, v] of [[lk.halfLength * 0.7, 0], [-lk.halfLength * 0.7, 0], [0, lk.halfDepth * 0.7]]) {
     const [x, z] = inFrame(lk.x, lk.z, lkYaw, u, v);
     p.push([`the dais at (${u.toFixed(1)}, ${v.toFixed(1)}) in its own frame`, x, z, 'stone']);
+  }
+
+  // The north grove, 11 m up two trees. Its decks are timber on joists; the walkway between them
+  // hangs with a 0.12 m sag over nothing at all, which is the object the `bridge` surface exists
+  // for — this lane split the two apart for the ravine and the reason is stronger here.
+  const N = EXPANSION_NORTH;
+  const g = northGangway();
+  p.push(["the stilt house's veranda", N.stilt.host[0], N.stilt.host[1], 'wood']);
+  p.push(["the tree hut's platform", N.hut.host[0], N.hut.host[1], 'wood']);
+  p.push(['the gangway up to the door', (g.foot[0] + g.head[0]) / 2, (g.foot[2] + g.head[2]) / 2, 'wood']);
+  {
+    const dx = N.hut.host[0] - N.stilt.host[0];
+    const dz = N.hut.host[1] - N.stilt.host[1];
+    for (const t of [0.4, 0.5, 0.6]) p.push([`the rope walk at ${(t * 100).toFixed(0)} % of its span`, N.stilt.host[0] + dx * t, N.stilt.host[1] + dz * t, 'bridge']);
   }
 
   // the east lane's tall house: a plank deck round the trunk's side and the plank flight down to the

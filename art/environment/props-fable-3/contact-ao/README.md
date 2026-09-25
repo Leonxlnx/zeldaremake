@@ -31,3 +31,11 @@ against the reference.
 | F | 0.2100 → 0.2105 | +0.0005 | 0.9872 | 599 / 8.01 M |
 
 C and D hold no village prop; C's own south props are 12–30 m off, their decals a few pixels.
+
+### In play mode (owner "check everything", 13:10)
+
+`playtest.mjs --only video` at Saria's side on the merged head (`3c6cc553` + this branch): the follow camera's look
+sweep drawn every frame (33 frames, `play-saria-side-look-down.jpg` is the look-down end). The bucket's and the door pots'
+decals hold still under the moving camera — no z-fight, no crawl (polygon offset −2 / −2, 1.2 cm up, depth test on,
+depth write off). Both walk routes past the props (`plaza-to-upper-house` 6 / 6, `saria-front-arc` 3 / 3) complete with
+nothing stuck: the decals are not blockers and the cull change moves no blocker.

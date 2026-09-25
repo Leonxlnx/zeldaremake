@@ -1,0 +1,52 @@
+[
+ {
+  "pose": "A_stairs",
+  "drawCalls": 641,
+  "triangles": 8875327
+ },
+ {
+  "pose": "B_house",
+  "drawCalls": 630,
+  "triangles": 8292216
+ },
+ {
+  "pose": "C_lookback",
+  "drawCalls": 565,
+  "triangles": 7912157
+ },
+ {
+  "pose": "D_log",
+  "drawCalls": 563,
+  "triangles": 8634168
+ },
+ {
+  "pose": "E_ground",
+  "drawCalls": 630,
+  "triangles": 8292216
+ },
+ {
+  "pose": "F_canopy",
+  "drawCalls": 601,
+  "triangles": 8011861
+ },
+ {
+  "pose": "owner-0650-north",
+  "drawCalls": 534,
+  "triangles": 8832655
+ },
+ {
+  "pose": "rec-r024-plaza-fork",
+  "drawCalls": 641,
+  "triangles": 8043819
+ },
+ {
+  "pose": "owner-0650-west",
+  "drawCalls": 492,
+  "triangles": 6750925
+ },
+ {
+  "pose": "south-farbank-lookback-approx",
+  "drawCalls": 842,
+  "triangles": 10093238
+ }
+]

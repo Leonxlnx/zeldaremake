@@ -132,7 +132,7 @@ export function attachShadowProxy(mesh: Mesh, cell: number, minSaving = 0.3, far
 }
 
 /**
- * A shadow LOD over every mesh under `roots` (not below `skip`) that casts, is opaque and not
+ * A shadow LOD over every mesh under `roots` (not below any of `skip`) that casts, is opaque and not
  * alpha-tested, and for which `cellOf` names a cell: each switches to its proxy only while the
  * camera is farther from its bounding sphere than every one of `keep` is (+ `marginM`, and never
  * nearer than `nearM`), so the frames taken from `keep` draw every shadow triangle.
@@ -141,12 +141,13 @@ export function attachShadowLod(
   roots: Object3D[],
   cellOf: (m: Mesh) => number | null,
   keep: Vector3[],
-  options: { skip?: Object3D; nearM?: number; marginM?: number; minTriangles?: number } = {},
+  options: { skip?: Object3D | Object3D[]; nearM?: number; marginM?: number; minTriangles?: number } = {},
 ): (ShadowProxy & { name: string })[] {
-  const { skip, nearM = 20, marginM = 2, minTriangles = 1000 } = options;
+  const { nearM = 20, marginM = 2, minTriangles = 1000 } = options;
+  const skip = new Set(options.skip === undefined ? [] : Array.isArray(options.skip) ? options.skip : [options.skip]);
   const out: (ShadowProxy & { name: string })[] = [];
   const visit = (o: Object3D) => {
-    if (o === skip) return;
+    if (skip.has(o)) return;
     const m = o as Mesh;
     if (m.isMesh && m.castShadow && !Array.isArray(m.material) && !m.material.transparent && !m.material.alphaTest && rangedTriangles(m.geometry) >= minTriangles) {
       const cell = cellOf(m);
