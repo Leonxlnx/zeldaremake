@@ -1,0 +1,1354 @@
+{
+ "meshesDrawn": 131,
+ "drawsEst": 614,
+ "byTop": {
+  "giants": {
+   "meshes": 60,
+   "drawsEst": 489,
+   "trisK": 1588.3000000000002,
+   "casting": 438
+  },
+  "distant": {
+   "meshes": 18,
+   "drawsEst": 72,
+   "trisK": 64.9,
+   "casting": 0
+  },
+  "white-bark": {
+   "meshes": 13,
+   "drawsEst": 13,
+   "trisK": 224.89999999999998,
+   "casting": 3
+  },
+  "giant-detached-boughs": {
+   "meshes": 3,
+   "drawsEst": 3,
+   "trisK": 6.699999999999999,
+   "casting": 2
+  },
+  "understory": {
+   "meshes": 6,
+   "drawsEst": 6,
+   "trisK": 12.200000000000001,
+   "casting": 2
+  },
+  "columns": {
+   "meshes": 31,
+   "drawsEst": 31,
+   "trisK": 361.3,
+   "casting": 8
+  }
+ },
+ "rows": [
+  {
+   "name": "giants-sector-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 12,
+   "drawsEst": 144,
+   "trisK": 235.6,
+   "castShadow": true
+  },
+  {
+   "name": "giants-sector-0-lantern-tree+north-west-near+north-west+north-east",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 12,
+   "drawsEst": 144,
+   "trisK": 274.7,
+   "castShadow": true
+  },
+  {
+   "name": "giants-sector-2-south-giant+plaza-south+south-centre+southwest-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 12,
+   "drawsEst": 144,
+   "trisK": 244.1,
+   "castShadow": true
+  },
+  {
+   "name": "distant-2-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 1,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 1.5,
+   "castShadow": false
+  },
+  {
+   "name": "mid-10-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 10,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 5.3,
+   "castShadow": false
+  },
+  {
+   "name": "mid-6-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 11,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 5.9,
+   "castShadow": false
+  },
+  {
+   "name": "mid-7-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 11,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 5.4,
+   "castShadow": false
+  },
+  {
+   "name": "mid-8-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 9,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 4.8,
+   "castShadow": false
+  },
+  {
+   "name": "mid-9-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 10,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 5.3,
+   "castShadow": false
+  },
+  {
+   "name": "distant-5-near",
+   "top": "distant",
+   "instanced": true,
+   "instances": 1,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 0.7,
+   "castShadow": false
+  },
+  {
+   "name": "mid-6-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 41,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 8.2,
+   "castShadow": false
+  },
+  {
+   "name": "mid-10-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 35,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 7,
+   "castShadow": false
+  },
+  {
+   "name": "distant-5-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 10,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 0.2,
+   "castShadow": false
+  },
+  {
+   "name": "mid-9-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 27,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 5.4,
+   "castShadow": false
+  },
+  {
+   "name": "mid-7-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 32,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 5.8,
+   "castShadow": false
+  },
+  {
+   "name": "mid-8-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 24,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 4.8,
+   "castShadow": false
+  },
+  {
+   "name": "distant-1-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 43,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 1,
+   "castShadow": false
+  },
+  {
+   "name": "distant-2-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 48,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 1.2,
+   "castShadow": false
+  },
+  {
+   "name": "distant-0-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 45,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 1.1,
+   "castShadow": false
+  },
+  {
+   "name": "distant-4-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 33,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 0.8,
+   "castShadow": false
+  },
+  {
+   "name": "distant-3-far",
+   "top": "distant",
+   "instanced": true,
+   "instances": 21,
+   "groups": 2,
+   "drawsEst": 4,
+   "trisK": 0.5,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-roots",
+   "top": "white-bark",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.7,
+   "castShadow": true
+  },
+  {
+   "name": "whitebark-wb-4-967349105-high",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 52.9,
+   "castShadow": true
+  },
+  {
+   "name": "whitebark-wb-2-462283019-high",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 49.9,
+   "castShadow": true
+  },
+  {
+   "name": "whitebark-wb-6-226724416-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 5,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 16.2,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-4-967349105-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 4,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 11,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-7-312981887-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 6,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 25.6,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-2-462283019-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 4,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.2,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-8-319176205-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 4,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 14.3,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-9-494208142-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 3,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.8,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-3-508012666-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 2,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-1-813437645-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 5,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 3.7,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-0-969193859-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 2,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 1.4,
+   "castShadow": false
+  },
+  {
+   "name": "whitebark-wb-5-541590326-low",
+   "top": "white-bark",
+   "instanced": true,
+   "instances": 5,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 17.2,
+   "castShadow": false
+  },
+  {
+   "name": "giants-authored-leaves-east-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 16.2,
+   "castShadow": false
+  },
+  {
+   "name": "giants-authored-leaves-stair-bank-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 13.5,
+   "castShadow": false
+  },
+  {
+   "name": "giants-authored-leaves-plateau-oak",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 257,
+   "castShadow": false
+  },
+  {
+   "name": "giants-authored-leaves-lantern-tree",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 28.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-detached-wood-southwest-giant",
+   "top": "giant-detached-boughs",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 2.4,
+   "castShadow": false
+  },
+  {
+   "name": "giant-detached-leaves-southwest-giant",
+   "top": "giant-detached-boughs",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.2,
+   "castShadow": true
+  },
+  {
+   "name": "understory-us4-727289251-high",
+   "top": "understory",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 7.5,
+   "castShadow": true
+  },
+  {
+   "name": "understory-us1-404692179-medium",
+   "top": "understory",
+   "instanced": true,
+   "instances": 2,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 1.8,
+   "castShadow": true
+  },
+  {
+   "name": "understory-us4-727289251-low",
+   "top": "understory",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 0.6,
+   "castShadow": false
+  },
+  {
+   "name": "understory-us1-404692179-low",
+   "top": "understory",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 0.4,
+   "castShadow": false
+  },
+  {
+   "name": "understory-us3-603774473-low",
+   "top": "understory",
+   "instanced": true,
+   "instances": 2,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 1.1,
+   "castShadow": false
+  },
+  {
+   "name": "understory-us0-542438786-low",
+   "top": "understory",
+   "instanced": true,
+   "instances": 2,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 0.8,
+   "castShadow": false
+  },
+  {
+   "name": "column-col-emergent-294552360-low@-3.100,-7.900",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 6.7,
+   "castShadow": false
+  },
+  {
+   "name": "column-col-2-328830636-high@24.200,11.000",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 40.3,
+   "castShadow": true
+  },
+  {
+   "name": "column-col-0-619356256-high@21.200,6.800",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 29.1,
+   "castShadow": true
+  },
+  {
+   "name": "column-col-3-37923781-high@15.700,5.200",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 44.7,
+   "castShadow": true
+  },
+  {
+   "name": "column-col-2-328830636-medium@11.097,-25.000",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 12.3,
+   "castShadow": true
+  },
+  {
+   "name": "column-col-3-37923781-medium@8.800,-26.900",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 12.9,
+   "castShadow": true
+  },
+  {
+   "name": "column-col-2-328830636-low@-1.000,-35.500",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 7.3,
+   "castShadow": false
+  },
+  {
+   "name": "column-col-3-37923781-low@-3.500,-24.700",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 7.7,
+   "castShadow": false
+  },
+  {
+   "name": "column-col-1-678757811-low@-5.700,-31.900",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 6.2,
+   "castShadow": false
+  },
+  {
+   "name": "column-col-hut-host-494351206-low@-41.000,35.700",
+   "top": "columns",
+   "instanced": true,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 6.5,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-base-east-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 30.9,
+   "castShadow": true
+  },
+  {
+   "name": "column-near-base-seat-5",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 31.1,
+   "castShadow": true
+  },
+  {
+   "name": "column-near-base-seat-4",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 29.3,
+   "castShadow": true
+  },
+  {
+   "name": "giant-near-base-plateau-oak",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 39,
+   "castShadow": true
+  },
+  {
+   "name": "column-near-base-seat-6",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 32.8,
+   "castShadow": true
+  },
+  {
+   "name": "giant-near-base-stair-bank-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 32.5,
+   "castShadow": true
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-12",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-15",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-1",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-4",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.3,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-7",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-2",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.8,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-0",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.4,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-limb-32",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-13",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-7",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-1",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.6,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-6",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-25",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.4,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-2",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-24",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.5,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-31",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.9,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-4-lobe-3",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.4,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-4-lobe-1",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.3,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-3",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.8,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-9",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.5,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-0",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.1,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-5-lobe-5",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-limb-34",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 10.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-6",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.8,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-18",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-26",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-limb-33",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 10.5,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-4-lobe-5",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-3",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-plateau-oak-lobe-28",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-limb-35",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 12.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-16",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.8,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-4-lobe-0",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.6,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-4-lobe-2",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-south-giant-lobe-14",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.2,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-4-lobe-4",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-21",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.5,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-6-lobe-6",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-plateau-oak-lobe-25",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-19",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.6,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-6-lobe-3",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 5.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-4",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-27",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.3,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-6-lobe-0",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.8,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-south-giant-lobe-13",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.3,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-22",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.2,
+   "castShadow": false
+  },
+  {
+   "name": "column-near-canopy-seat-6-lobe-5",
+   "top": "columns",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.8,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-20",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-5",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 3.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-lobe-5",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 9.1,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-28",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.6,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-30",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-lobe-8",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-lobe-7",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.8,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-plateau-oak-lobe-6",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-plateau-oak-limb-32",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 15.9,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-east-giant-lobe-23",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.3,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-south-giant-limb-26",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.7,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-limb-27",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 8.5,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-plateau-oak-limb-31",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 14.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-lobe-26",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 20.2,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-lobe-25",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 19.4,
+   "castShadow": false
+  },
+  {
+   "name": "giant-near-canopy-stair-bank-giant-lobe-24",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 25.8,
+   "castShadow": false
+  },
+  {
+   "name": "giants-authored-cards-east-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 0.9,
+   "castShadow": false
+  },
+  {
+   "name": "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4.1,
+   "castShadow": true
+  },
+  {
+   "name": "giants-authored-cards-stair-bank-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 1.1,
+   "castShadow": false
+  },
+  {
+   "name": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 4,
+   "castShadow": true
+  },
+  {
+   "name": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+   "top": "giants",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 3.6,
+   "castShadow": true
+  },
+  {
+   "name": "giant-detached-cards-southwest-giant",
+   "top": "giant-detached-boughs",
+   "instanced": false,
+   "instances": 1,
+   "groups": 1,
+   "drawsEst": 1,
+   "trisK": 0.1,
+   "castShadow": true
+  }
+ ]
+}

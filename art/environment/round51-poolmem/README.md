@@ -30,13 +30,16 @@ is uploaded — the pooled near parts sit outside the fixed frames (5 of 449 rel
 views), and meshes outside a frustum keep their arrays until the player looks their way. It grows as
 the player looks around; it will never reach the parts that are shown but never seen.
 
-## The memory map this leaves (for the next trim)
+## The memory map this leaves (for the next trim) — corrected 2026-09-22 17:20 after fable-5's read
 
-- The renderer's 2.1 GB: **0.73 GB geometry arrays** (trees ≈ 0.5, the rest vegetation / structures /
-  terrain / rocks — the same `onUpload` recipe applies; the helper is `releaseAfterUpload` in
-  `trees/index.ts`, worth hoisting to `world/util`) and **≈ 1.4 GB of JavaScript objects** after GC —
-  the larger half. That is not geometry: the builders' retained structures (lobe records with their
-  Vector3 paths, assets, placements, vegetation's per-instance records). A heap snapshot at A would
-  name the owners; that is the next lever on the renderer side.
-- The GPU process's 1.7 GB is textures and uploaded buffers (SwiftShader keeps them in RAM): the near
-  pools' 224 + 33 MB are part of it only once drawn.
+- fable-5's independent read of the merged head (`.agents/reviews/fable-5-r55-branches.md` §G): on the
+  capture path Chrome total **4 394 → 3 826 MB (−568 MB)** with the six frames byte-identical — the
+  loading screen's frames upload-and-release before `ready`, so more goes than the in-page −125 MB at A
+  measured here. The heap's **objects are 0.50 GB**; the typed arrays were 1.02 GB and are ≈ 0.88 GB
+  after the trees — the "≈ 1.4 GB of JavaScript objects" first written here read `usedJSHeapSize`
+  wrong (it does count the ArrayBuffers).
+- **The warm-up is for the game, not the takes:** on SwiftShader "the GPU" is a process in the same RAM,
+  so `?warmup=1` uploads every never-seen mesh's copy there (+640 MB GPU process, Chrome +721 MB) —
+  keep it off for captures. On a real GPU those uploads go to VRAM and the renderer's −0.44 GB is the win.
+- The same `onUpload` recipe now runs in rocks and props (fable-2, fable-3, merged tick 226); the
+  remaining typed arrays by owner are the snapshot worth taking next.
