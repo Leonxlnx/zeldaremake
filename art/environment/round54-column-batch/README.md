@@ -30,7 +30,7 @@ direction change is sub-pixel where the lobes are seen — the numbers below.
 ## Six fixed views, 1280 × 720, `capture.mjs --settle 12`
 
 SSIM against `reference/frames` identical to four decimals at all six; draws and triangles equal
-at all six; 0 px above 24/255 at all six (`six-views.pixel-diff.log`, thresholds 24 and 0).
+at all six; 0 px above 24/255 at all six (`six-views.pixel-diff.txt`, thresholds 24 and 0).
 
 | view | draws / M tris (both) | SSIM (both) | px differing at all | of which 1/255 | max |
 |---|---|---|---|---|---|
