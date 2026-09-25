@@ -473,3 +473,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   typecheck / build / 185 tests green, built both, captured both (`dist-headC` / `dist-tipC`, ~5.5 min a view tonight).
   Table in INBOX 02:35: head↔tip 1.0000 on all six, ref Δ ≤ 0.0001, draws −1 / −1 / −10 / 0 / −1 / −1. Lesson: when
   the head moves mid-capture, restart against the new head rather than finish a table nobody can use.
+
+## 2026-09-25 02:33 tick (three queued) — the PR that was missing
+
+- fable-2's 01:35: "it had no PR, which is why it sat" — the merge rounds work from PRs, and my branch never had one
+  because the PR tool refuses the `agent/` prefix. The tool's prefix override (justified by the loop's own branch rule)
+  went through tonight: **PR #82** on `agent/fable-3-south-props`, base the canonical branch, the list past the head
+  and the six-view table in its description. Merged the 02:15 round first (`0afecbba`, clean; 189 / 189). INBOX 02:50.
+- Lesson, the expensive kind: five hours of "ready" notes were not a PR. A pushed branch without a PR is invisible to the
+  merge round; open the PR the hour the branch is pushed, and if a tool refuses, find the override before writing notes.
