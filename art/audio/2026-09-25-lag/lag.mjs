@@ -74,7 +74,7 @@ const GAITS = [
   ['run', 4.2],
 ];
 /** the gust is held still: what moves along a path then moves because the listener did */
-const GUST = 0.6;
+const GUST = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8')).gust;
 
 /**
  * The bed's smoothed parameters, in the order `update()` sets them. `tau` is what ships today;
@@ -205,6 +205,45 @@ function lagOf(rows, name, unit, map = (v) => v) {
   return { lagM: best * CM, miss, span: apart(unit, hi, lo) };
 }
 
+/**
+ * Where, in seconds from the start of a take, the WORLD passes the halfway point of the change —
+ * the mark the rendered audio is checked against. A bump (the lantern) is marked at its peak.
+ */
+function marksFor(take) {
+  const len = Math.hypot(take.to[0] - take.from[0], take.to[1] - take.from[1]);
+  const fx = (take.to[0] - take.from[0]) / len;
+  const fz = (take.to[1] - take.from[1]) / len;
+  const out = {};
+  for (const q of PARAMS) {
+    const v = [];
+    for (let d = 0; d <= len; d += CM) v.push((q.map ?? ((z) => z))(targets(take.from[0] + fx * d, take.from[1] + fz * d, fx, fz)[q.id]));
+    const lo = Math.min(...v);
+    const hi = Math.max(...v);
+    if (apart(q.unit, hi, lo) < 0.05) continue;
+    const first = v[0];
+    const last = v[v.length - 1];
+    let d;
+    if (Math.abs(last - first) < Math.abs(hi - lo) * 0.5) {
+      // a bump: the take goes in and comes out again, so the mark is the extreme in the middle —
+      // whichever way it went, which for the bore's duck and its top is downward
+      const ends = (first + last) / 2;
+      let far = 0;
+      for (let i = 1; i < v.length; i++) if (Math.abs(v[i] - ends) > Math.abs(v[far] - ends)) far = i;
+      d = far * CM;
+    } else {
+      const mid = (first + last) / 2;
+      d = v.length * CM;
+      for (let i = 1; i < v.length; i++)
+        if ((v[i - 1] - mid) * (v[i] - mid) <= 0) {
+          d = i * CM;
+          break;
+        }
+    }
+    out[q.id] = { atM: Number(d.toFixed(3)), atS: Number((d / take.speed).toFixed(3)), span: Number(apart(q.unit, hi, lo).toFixed(3)), unit: q.unit };
+  }
+  return out;
+}
+
 /** five real journeys, each one crossing something the bed is supposed to notice */
 const PATHS = [
   { id: 'bore', note: 'the north path in through the log arch\u2019s mouth', from: [5.1, -48.0], to: [4.3, -56.0] },
@@ -243,5 +282,27 @@ for (const p of PATHS) {
   console.log('');
   report.paths.push(row);
 }
+/**
+ * The world's own value of the take's watched term, every `HOP` seconds along it — what the
+ * rendered audio is lined up against. In the term's own ear unit, so the trace and the band the
+ * analysis pulls out of the WAV are the same shape and a correlation between them means something.
+ */
+const HOP = 0.01;
+function traceFor(take) {
+  const len = Math.hypot(take.to[0] - take.from[0], take.to[1] - take.from[1]);
+  const fx = (take.to[0] - take.from[0]) / len;
+  const fz = (take.to[1] - take.from[1]) / len;
+  const q = PARAMS.find((p) => p.id === take.watch);
+  const world = [];
+  for (let s = 0; s * take.speed <= len; s += HOP) {
+    const d = s * take.speed;
+    const v = (q.map ?? ((z) => z))(targets(take.from[0] + fx * d, take.from[1] + fz * d, fx, fz)[q.id]);
+    world.push(Number((q.unit === 'dB' ? 20 * Math.log10(Math.max(v, 1e-9)) : q.unit === 'oct' ? Math.log2(Math.max(v, 1)) : v).toFixed(4)));
+  }
+  return { hopS: HOP, watch: take.watch, unit: q.unit, world };
+}
+
+// and the marks and traces the rendered takes are checked against, for the journeys `passby.mjs` walks
+report.takes = JSON.parse(fs.readFileSync(path.join(here, 'takes.json'), 'utf8')).takes.map((t) => ({ ...t, marks: marksFor(t), trace: traceFor(t) }));
 fs.writeFileSync(path.join(out, 'lag.json'), JSON.stringify(report, null, 1));
 console.log(`wrote ${path.join(out, 'lag.json')}`);

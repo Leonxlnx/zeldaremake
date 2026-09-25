@@ -149,6 +149,15 @@ export interface OfflineOptions {
    * enough to cover the line (`|to − from| / speed`) and the walk stops at `to`.
    */
   pass?: { from: [number, number]; to: [number, number]; speed: number; y?: number };
+  /**
+   * Hold the wind at one gust for the whole render instead of running the weather.
+   *
+   * The render's gust is a function of the clock that swings the bed through its whole range in
+   * about ten seconds, which is right for a fifty-second walk and wrong for a four-second pass: at
+   * a run the weather moves 18 dB under the thing being measured and buries it. Holding it makes
+   * the take a controlled experiment — what moves then moved because the listener did.
+   */
+  gust?: number;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -874,6 +883,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     .filter((v): v is Vec3 => !!v);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
+    if (options.gust !== undefined) return options.gust;
     const g = 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3);
     const push = Math.max(0, Math.sin(t * 0.23 + 0.4)) ** 3;
     return Math.min(1, g * 0.8 + push * 0.6);

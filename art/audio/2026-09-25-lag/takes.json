@@ -1,0 +1,76 @@
+{
+ "note": "the journeys both scripts use, so the model and the renders cannot drift apart. speeds are the player's own (footsteps.ts WALK_SPEED / RUN_GROUND_SPEED).",
+ "gust": 0.6,
+ "takes": [
+  {
+   "id": "lantern-run",
+   "from": [
+    -11.0,
+    -4.09
+   ],
+   "to": [
+    7.0,
+    -4.09
+   ],
+   "speed": 4.2,
+   "stems": [
+    "bed",
+    "mix"
+   ],
+   "watch": "flame level",
+   "note": "running past the village lantern at (−2.5, −5.1), a metre off it"
+  },
+  {
+   "id": "lantern-walk",
+   "from": [
+    -11.0,
+    -4.09
+   ],
+   "to": [
+    7.0,
+    -4.09
+   ],
+   "speed": 1.5,
+   "stems": [
+    "bed",
+    "mix"
+   ],
+   "watch": "flame level",
+   "note": "the same lantern at a walk"
+  },
+  {
+   "id": "bore-run",
+   "from": [
+    5.6,
+    -44.0
+   ],
+   "to": [
+    4.0,
+    -60.0
+   ],
+   "speed": 4.2,
+   "stems": [
+    "bed"
+   ],
+   "watch": "bed top",
+   "note": "running the north path in through the log arch and out the far side"
+  },
+  {
+   "id": "canopy-run",
+   "from": [
+    6.4,
+    -35.0
+   ],
+   "to": [
+    4.9,
+    -51.0
+   ],
+   "speed": 4.2,
+   "stems": [
+    "bed"
+   ],
+   "watch": "roll level",
+   "note": "running out of the open village in under the crowns"
+  }
+ ]
+}

@@ -15,6 +15,10 @@
  *
  * `bed` stems, because footsteps at a run would sit on top of the very thing being measured — and
  * one `mix` of the lantern pass, which is what a player would actually hear going by it.
+ *
+ * The gust is held at `GUST` for every take, the same value `lag.mjs` holds it at. The render's own
+ * weather swings the bed 18 dB in the four seconds a run takes to cross any of these, which buries
+ * what the take is for; with it held, everything that moves moved because the listener did.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -32,34 +36,28 @@ const tag = String(args.tag || 'after');
 const log = (...m) => console.error('[passby]', ...m);
 fs.mkdirSync(out, { recursive: true });
 
-/** the run is the player's own (footsteps.ts RUN_GROUND_SPEED); the walk is WALK_SPEED */
-const RUN = 4.2;
-const WALK = 1.5;
-
 /**
- * Three journeys, each long enough either side of the thing being crossed that the bed has settled
- * before it and after it. The marks are where the world's own term passes its halfway point, from
- * `surfaceAt` — the analysis needs to know where the answer should be.
+ * The journeys, from `takes.json` — shared with `lag.mjs`, which computes where the world's own
+ * term passes its halfway point on each of them, so the model and the renders cannot drift apart.
+ * Each is long enough either side of the thing being crossed that the bed has settled before it
+ * and after it.
  */
-const TAKES = [
-  { id: 'lantern-run', from: [-11.0, -4.09], to: [7.0, -4.09], speed: RUN, note: 'running past the village lantern at (\u22122.5, \u22125.1), a metre off it' },
-  { id: 'lantern-walk', from: [-11.0, -4.09], to: [7.0, -4.09], speed: WALK, note: 'the same lantern at a walk' },
-  { id: 'bore-run', from: [5.6, -44.0], to: [4.0, -60.0], speed: RUN, note: 'running the north path in through the log arch and out the far side' },
-  { id: 'canopy-run', from: [6.4, -35.0], to: [4.9, -51.0], speed: RUN, note: 'running out of the open village in under the crowns' },
-];
+const TAKES = JSON.parse(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), 'takes.json'), 'utf8'));
+/** the one gust every take is held at, shared with `lag.mjs` through takes.json */
+const GUST = TAKES.gust;
 
 const server = await serveStatic(dist);
 const browser = await launchBrowser({ width: 640, height: 360 });
 try {
   const { page } = await openWorld(browser, server.url, { quality: 'high' });
   const manifest = [];
-  for (const t of TAKES) {
+  for (const t of TAKES.takes) {
     const len = Math.hypot(t.to[0] - t.from[0], t.to[1] - t.from[1]);
     const seconds = Math.ceil((len / t.speed) * 10) / 10;
-    for (const stem of t.id.startsWith('lantern') ? ['bed', 'mix'] : ['bed']) {
+    for (const stem of t.stems) {
       const b64 = await page.evaluate(
-        async (from, to, speed, secs, st) => {
-          const r = await window.__ZR_AUDIO__.renderOffline(secs, 44100, { stem: st, pass: { from, to, speed } });
+        async (from, to, speed, secs, st, g) => {
+          const r = await window.__ZR_AUDIO__.renderOffline(secs, 44100, { stem: st, gust: g, pass: { from, to, speed } });
           let o = '';
           for (let i = 0; i < r.wav.length; i += 0x8000) o += String.fromCharCode(...r.wav.subarray(i, i + 0x8000));
           return btoa(o);
@@ -69,13 +67,14 @@ try {
         t.speed,
         seconds,
         stem,
+        GUST,
       );
       fs.writeFileSync(path.join(out, `${t.id}-${stem}-${tag}.wav`), Buffer.from(b64, 'base64'));
     }
     manifest.push({ ...t, len, seconds });
     log(`${t.id} — ${t.note} (${len.toFixed(1)} m at ${t.speed} m/s, ${seconds} s)`);
   }
-  fs.writeFileSync(path.join(out, `takes-${tag}.json`), JSON.stringify({ tag, takes: manifest }, null, 1));
+  fs.writeFileSync(path.join(out, `takes-${tag}.json`), JSON.stringify({ tag, gust: GUST, takes: manifest }, null, 1));
 } finally {
   await browser.close();
   await server.close();
