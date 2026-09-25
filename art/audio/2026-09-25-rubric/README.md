@@ -13,20 +13,26 @@ in lane; move it if the squad would rather it sat beside the structures one).
 
 ## The verdict
 
-**173 / 200.** Its own rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. It
-clears the total and **fails the rest**: three checks score below 2 and one ★ scores 2. So: good
-where it has been worked, with four named holes.
+**173 / 200 when first scored on 2026-09-25. Re-scored the same day at 180 / 200.**
+
+Its own rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. On the first pass
+it cleared the total and failed the rest — three checks below 2 and one ★ at 2. Since then #88 built
+occlusion (45: 0 → 3), #91 tested the hidden tab (48: 1 → 3), and checks 9 and 15 were **re-scored
+because I had judged them on the wrong axis** — level rather than colour, see `2026-09-25-places`.
+
+It now fails on **one check**: 27, nothing a player touches makes a sound. That is a real hole and
+not a mis-score.
 
 | | section | score | |
 | --- | --- | ---: | --- |
 | A | the background bed | **30 / 32** | the owner's complaint, answered |
-| B | place | 22 / 28 | ★9 fails — everywhere is nearly everywhere |
+| B | place | 24 / 28 | was 22; ★9 and 15 re-scored on colour rather than level |
 | C | footsteps | **30 / 32** | |
-| D | contact and events | 15 / 20 | #27 scores 0 |
+| D | contact and events | 15 / 20 | **#27 scores 0 — the only check still under 2** |
 | E | music | **24 / 24** | |
 | F | mix and level | 23 / 24 | |
-| G | space and direction | 15 / 20 | #45 scores 0 |
-| H | runtime | 14 / 20 | #48 scores 1 |
+| G | space and direction | 18 / 20 | was 15; #88 built occlusion |
+| H | runtime | 16 / 20 | was 14; #91 tested the hidden tab |
 
 ## The four holes, in the order I would take them
 
@@ -116,13 +122,13 @@ score is a judgement and is marked as such.
 | 6 | birds are individuals | **4** | perches; `ambience.test.mjs` "a kind comes from its own tree" |
 | 7 | the wood answers weather | **4** | gusts bring leaves and lulls bring calls, both tested (#56) |
 | 8 | deterministic | **4** | tested; two identical renders differ only at −115 dB (`room`) |
-| 9 | ★ two places differ, right way round | **2** | plaza vs forest floor 2.5 dB apart the right way — but six named places sit inside 2.5 dB |
+| 9 | ★ two places differ, right way round | **3** | re-scored 2026-09-25: 78 pairs, median **4.3 dB apart in colour** once loudness is divided out, and 16 pairs inside 2.5 dB of level still differ by over 3 dB in shape (`2026-09-25-places`). The 2 was scored on level, which is the wrong axis for the question |
 | 10 | a roof is measurable | 3 | +2.9 dB between gusts, reproduced at a second spot (`facing`) |
 | 11 | indoors is not outdoors | **4** | −4.7 dB and the top off, plus the room answering (#70, #73) |
 | 12 | three spaces, not three labels | 3 | canopy, gorge and enclosure each measured in isolation (`term.mjs`) |
 | 13 | fades, not switches | **4** | the doorway fade monotone, no step > 0.25; the clearing's roof cut across its rim |
 | 14 | nowhere silent, nowhere loud without cause | **4** | 13 places; the loudest is a flame at arm's length (`floor.py`) |
-| 15 | the world spans a useful range | **2** | 11.7 dB total, and the outdoor places inside 2.5 dB |
+| 15 | the world spans a useful range | **3** | colour spans 0.2 to 10.2 dB across the pairs. The real weakness is narrower than the old score said: the enclosed places are each a place, and the open outdoors is one place (`2026-09-25-places`) |
 | 16 | ★ the surface is the surface | **4** | `surfaces.test.mjs` covers every built standing place by name |
 | 17 | ★ a step is a sequence | **4** | `footsteps.test.mjs`: ≥ 5 parts, heel / roll / grains / toe |
 | 18 | every surface reachable and classified | **4** | `surfaces.test.mjs`, both directions |
@@ -152,10 +158,10 @@ score is a judgement and is marked as such.
 | 42 | distance is more than level | 3 | a far bird is dulled (7 kHz → 1.8 kHz) and wetter. **Pods and fairies are level-only** |
 | 43 | the field is used, never collapses | **4** | side 3–4.6 dB under mid; `PERCH_PAN` caps at 0.85 |
 | 44 | reflection belongs to the space | **4** | the wood's hall and the hut's room are separate convolvers |
-| 45 | walking behind something changes it | **0** | there is no occlusion of any kind |
+| 45 | walking behind something changes it | **3** | #88: a bird behind the west house loses 9.3 dB of its own band and the level between calls does not move. Still level-only for the fairy glints and the flames |
 | 46 | ★ starts when the game does | **4** | fixed; it used to be silent for its first six seconds |
 | 47 | survives a long session | **4** | 13 min, voices 5–13 and ending where they started, heap flat |
-| 48 | hidden tab, suspend, device change | **1** | untested, and named as untested in two earlier reports |
+| 48 | hidden tab, suspend, device change | **3** | #91: six minutes hidden with rAF stopped and four with every timer clamped to 1 Hz — no leak, no errors, audio at full speed. Suspend / resume and a device change still untested |
 | 49 | it costs what it should | **2** | voices counted; `renderCapacity` is plumbed but unsupported in this Chrome, so the audio thread's load has never been read |
 | 50 | every claim reproducible | 3 | twelve scripts now; the first standing survey's numbers were produced by hand and are not |
 
