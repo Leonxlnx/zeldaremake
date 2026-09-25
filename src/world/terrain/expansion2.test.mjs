@@ -933,6 +933,33 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
   globalThis.__KF_EAST_ZONE_OFF__ = true;
   for (const p of plateau) assert.equal(E.inEastZone(at(p)), false, `__KF_EAST_ZONE_OFF__ switches the zone off at ${fmt(p[0], p[2])}`);
   delete globalThis.__KF_EAST_ZONE_OFF__;
+  // the tufts' fine and coarse windows (structures/east.ts): every run in view draws once, the coarse
+  // window never takes a near run, and the two windows never overlap
+  const W = (visible, far) => E.eastTuftWindows(visible, far);
+  assert.deepEqual(W([true, true, true], [false, false, false]), { fine: [true, true, true], far: [false, false, false] });
+  assert.deepEqual(W([true, true, true], [true, true, true]), { fine: [false, false, false], far: [true, true, true] });
+  assert.deepEqual(W([true, true, true], [false, true, true]), { fine: [true, false, false], far: [false, true, true] }, 'the deck: the tall house fine, the others coarse');
+  assert.deepEqual(W([true, true, true], [false, true, false]), { fine: [true, true, true], far: [false, false, false] }, 'a far run between two near ones joins them');
+  assert.deepEqual(W([true, true, true], [true, false, true]), { fine: [true, true, false], far: [false, false, true] }, 'far runs on both sides: the left one joins the fine window');
+  assert.deepEqual(W([false, false, true], [false, false, true]), { fine: [false, false, false], far: [false, false, true] }, 'the lookout\'s west run');
+  const runEnds = [30, 70, 96];
+  const within = (range, k) => range[1] > 0 && (k === 0 ? 0 : runEnds[k - 1]) >= range[0] && runEnds[k] <= range[0] + range[1];
+  for (let a = 0; a < 8; a++) {
+    for (let b = 0; b < 8; b++) {
+      const visible = [0, 1, 2].map((k) => ((a >> k) & 1) === 1);
+      const far = [0, 1, 2].map((k) => ((b >> k) & 1) === 1);
+      const w = W(visible, far);
+      const fineRange = E.eastRunRange(w.fine, runEnds);
+      const farRange = E.eastRunRange(w.far, runEnds);
+      for (let k = 0; k < 3; k++) {
+        const inFine = within(fineRange, k);
+        const inFar = within(farRange, k);
+        assert.ok(!(inFine && inFar), `visible ${visible} far ${far}: run ${k} is drawn twice`);
+        if (visible[k]) assert.ok(inFine || inFar, `visible ${visible} far ${far}: run ${k} in view is not drawn`);
+        if (inFar) assert.ok(far[k] || !visible[k], `visible ${visible} far ${far}: near run ${k} drawn coarse`);
+      }
+    }
+  }
 }
 
 console.log('expansion2.test.mjs: ok');

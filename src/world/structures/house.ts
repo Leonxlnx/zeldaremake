@@ -280,7 +280,20 @@ export interface HouseSiteOptions {
    * landing steeply like the left one instead of round 20's long leg down Saria's ledge
    */
   rightFoot?: readonly [number, number];
+  /**
+   * also build the cap's and the trunk's moss tufts a second time from the same specs with
+   * FAR_TUFTS' coarser lumps — `roof-tufts-far` / `trunk-moss-tufts-far` beside the fine meshes, for
+   * a caller that draws one or the other by distance (east.ts). No rng is drawn for them.
+   */
+  farTufts?: boolean;
 }
+
+/**
+ * The far tufts' lumps (HouseSiteOptions.farTufts): five / four segments round one ring — 15 / 12
+ * triangles against the cap's 40 / 30 and the trunk's 63 / 30. The outline noise, the lit crown and
+ * the dark rim are the fine lump's; 4–12 cm across, a lump spans 7 px or less from 10 m.
+ */
+export const FAR_TUFTS = { segments: [5, 4] as [number, number], rings: [1, 1] as [number, number] };
 
 /** Local frame: F = out of the door, Rt = viewer's right when facing the door. */
 class Frame {
@@ -4464,6 +4477,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   tuftMesh.castShadow = false;
   tuftMesh.receiveShadow = true;
   group.add(tuftMesh);
+  if (site.farTufts) {
+    const farMesh = new Mesh(buildMossTufts(tuftSpecs, n3, FAR_TUFTS).geometry, mats.capMoss);
+    farMesh.name = 'roof-tufts-far';
+    farMesh.castShadow = false;
+    farMesh.receiveShadow = true;
+    group.add(farMesh);
+  }
   /** round 40 audit: the tufts and the torn edge, as built */
   const mossDetail = (() => {
     const radii = tuftSpecs.map((t) => (t.rx + t.rz) * 0.5);
@@ -5832,7 +5852,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   }
   // rounder than the roof's (a 3 m camera sees these): 9 / 6 segments, 3 / 2 rings; the crown gain
   // is held down so the tufts do not glow against the floor-shaded bark
-  const tufts41 = buildMossTufts(tuft41, n3, { segments: [9, 6], rings: [3, 2], topGain: 1.3, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] });
+  const tuft41Options = { segments: [9, 6] as [number, number], rings: [3, 2] as [number, number], topGain: 1.3, rimGain: 0.45, topTint: [1.0, 1.04, 0.84] as [number, number, number] };
+  const tufts41 = buildMossTufts(tuft41, n3, tuft41Options);
+  const farFilm = site.farTufts && doormatFilm ? doormatFilm.clone() : null;
   const tuft41Mesh = new Mesh(doormatFilm ? merge([tufts41.geometry, doormatFilm]) : tufts41.geometry, mats.capMoss);
   tuft41Mesh.name = 'trunk-moss-tufts';
   tuft41Mesh.castShadow = false;
@@ -5842,6 +5864,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // view that looks away from the houses (C) does not draw them
   tuft41Mesh.renderOrder = 2;
   group.add(tuft41Mesh);
+  if (site.farTufts) {
+    const far41 = buildMossTufts(tuft41, n3, { ...tuft41Options, ...FAR_TUFTS }).geometry;
+    const farMesh = new Mesh(farFilm ? merge([far41, farFilm]) : far41, mats.capMoss);
+    farMesh.name = 'trunk-moss-tufts-far';
+    farMesh.castShadow = false;
+    farMesh.receiveShadow = true;
+    farMesh.renderOrder = 2;
+    group.add(farMesh);
+  }
   if (lichenParts.length) {
     const lichenMesh = new Mesh(merge(lichenParts), mats.moss);
     lichenMesh.name = 'trunk-lichen';

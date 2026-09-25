@@ -44,6 +44,9 @@ declare global {
    */
   // eslint-disable-next-line no-var
   var __KF_EAST_ZONE_OFF__: boolean | undefined;
+  /** the same for the east houses' coarse tufts (EAST_TUFT_FAR_M): `true` draws every run fine */
+  // eslint-disable-next-line no-var
+  var __KF_EAST_FAR_TUFTS_OFF__: boolean | undefined;
 }
 
 /** true while a camera at `p` is inside EAST_ZONE (and `__KF_EAST_ZONE_OFF__` is not set) */
@@ -191,6 +194,36 @@ export function eastRunRange(on: readonly boolean[], ends: readonly number[]): [
   const last = on.lastIndexOf(true);
   const start = first === 0 ? 0 : ends[first - 1];
   return [start, ends[last] - start];
+}
+
+/**
+ * A house's cap and trunk tufts draw their coarse copy (house.ts FAR_TUFTS) while the camera is
+ * farther than this from its trunk's surface, in plan: the trunk's tufts, 3–8 cm across, then span
+ * 8 px or less of a 540-row frame at fov 46, and the cap's, 4–12 cm, stand over the eave where a
+ * walking eye sees only the shoulder's rim of them.
+ */
+export const EAST_TUFT_FAR_M = 6;
+
+/**
+ * Which of the runs in view (`visible`) the tufts' fine bucket draws and which its coarse copy
+ * draws (the same runs in the same order), for runs flagged `far`: each set is drawn as one window
+ * (eastRunRange, the runs between included), so a far run inside the fine window is drawn fine,
+ * and when far runs lie on both sides of the fine window the left ones join it — no run draws twice.
+ */
+export function eastTuftWindows(visible: readonly boolean[], far: readonly boolean[]): { fine: boolean[]; far: boolean[] } {
+  const fine = visible.map((v, k) => v && !far[k]);
+  const coarse = visible.map((v, k) => v && far[k]);
+  const lo = fine.indexOf(true);
+  if (lo < 0) return { fine, far: coarse };
+  const hi = fine.lastIndexOf(true);
+  const join = (k: number) => {
+    if (!coarse[k]) return;
+    coarse[k] = false;
+    fine[k] = true;
+  };
+  for (let k = lo; k <= hi; k++) join(k);
+  if (coarse.slice(0, lo).includes(true) && coarse.slice(hi + 1).includes(true)) for (let k = 0; k < lo; k++) join(k);
+  return { fine, far: coarse };
 }
 
 const _m = new Matrix4();
