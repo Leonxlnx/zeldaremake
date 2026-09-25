@@ -82,13 +82,18 @@ def pan_of(l, r):
     return 4 / math.pi * math.atan(math.sqrt(r / l)) - 1
 
 
-def sweep(lp, rp, t0, length=1.1, back=(0.75, 0.2), over_db=10.0):
+def sweep(lp, rp, t0, length=1.1, back=(0.75, 0.2), over_db=12.0):
     """
     Where the call sits in the field, frame by frame, for as long as it stands over the bed.
 
     Returns (times, pans) with times relative to the call's onset. The background is the median of
     the second before it, subtracted in power -- the bed does not stop while a bird sings, and it is
     panned itself, so a raw L/R of the mixture is the bed's pan as much as the bird's.
+
+    The run is CONTIGUOUS from the first frame that qualifies and stops at the first that does not.
+    Skipping past failing frames instead stitched a leaf flutter arriving halfway through a call
+    onto the same straight line as the call, which produced slopes of 1.3 pan/s in the standing
+    control -- a listener who is not turning, where the true answer is exactly zero.
     """
     i0 = int(round(t0 / HOP))
     b0, b1 = i0 - int(back[0] / HOP), i0 - int(back[1] / HOP)
@@ -96,16 +101,29 @@ def sweep(lp, rp, t0, length=1.1, back=(0.75, 0.2), over_db=10.0):
         return np.array([]), np.array([])
     bl = float(np.median(lp[b0:b1]))
     br = float(np.median(rp[b0:b1]))
+    thr = (bl + br) * (10 ** (over_db / 10) - 1)
     ts, ps = [], []
     for k in range(int(length / HOP)):
         i = i0 + k
         dl = lp[i] - bl
         dr = rp[i] - br
-        if dl + dr <= (bl + br) * (10 ** (over_db / 10) - 1):
+        if dl <= 0 or dr <= 0 or dl + dr <= thr:
+            if ts:
+                break
             continue
+        p = pan_of(dl, dr)
+        # A pan cannot move faster than the turn does: at the fastest rate here that is 0.018 pan
+        # units between frames, so a jump of MAX_JUMP is ten times anything real and means the
+        # estimate has lost the bird -- a trill's own 30 Hz envelope beating against the frame rate,
+        # or a leaf turning over on one side of him. The run ends there.
+        if ps and abs(p - ps[-1]) > MAX_JUMP:
+            break
         ts.append(k * HOP)
-        ps.append(pan_of(max(dl, 1e-20), max(dr, 1e-20)))
+        ps.append(p)
     return np.array(ts), np.array(ps)
+
+
+MAX_JUMP = 0.2
 
 
 ap = argparse.ArgumentParser()
@@ -136,7 +154,10 @@ for tag in ('before', 'after'):
             calls.append({'kind': kind, 'at': at, 'booked': pan, 't': ts.tolist(), 'p': ps.tolist()})
         if not spans:
             continue
-        # the sweep the turn rate demands: d(pan)/dt = PERCH_PAN * omega * cos(bearing - facing)
+        # What the turn rate asks of a call: d(pan)/dt = PERCH_PAN * omega * cos(bearing - facing).
+        # The MEDIAN of that over calls caught at unrelated facings is 0.707 of its maximum, since
+        # the median of |cos| is 1/sqrt(2) — so that, and not the maximum, is what the median of the
+        # measurements has to be compared with.
         want = PERCH_PAN * math.radians(take['turn'])
         rows.append(
             {
@@ -146,29 +167,31 @@ for tag in ('before', 'after'):
                 'span': float(np.median(spans)),
                 'slope': float(np.median(np.abs(slopes))),
                 'want': want,
+                'wantMedian': want / math.sqrt(2),
                 'calls': calls,
             }
         )
 
-print(f"{'take':18} {'calls':>5} {'median sweep':>13} {'median |slope|':>15} {'the turn asks for':>18}")
+print(f"{'take':18} {'calls':>5} {'median sweep':>13} {'median |slope|':>15} {'the turn asks of the median':>28}")
 for r in rows:
-    print(f"{r['tag'] + ' @ ' + str(r['turn']) + ' deg/s':18} {r['n']:>5} {r['span']:>12.3f}  {r['slope']:>13.3f}    {r['want']:>14.3f} pan/s")
+    print(f"{r['tag'] + ' @ ' + str(r['turn']) + ' deg/s':18} {r['n']:>5} {r['span']:>12.3f}  {r['slope']:>13.3f}    {r['wantMedian']:>24.3f} pan/s")
 
 if not a.out:
     raise SystemExit(0)
 
 # ---- the figure: every call's path across the field, before against after ----------------------
 turns = sorted({r['turn'] for r in rows})
-W, H = 260 * len(turns) + 120, 720
+W, H = 260 * len(turns) + 120, 740
 BG, INK, DIM = (17, 19, 22), (238, 240, 243), (120, 128, 138)
 BEFORE, AFTER = (226, 106, 106), (120, 214, 150)
 im = Image.new('RGB', (W, H), BG)
 d = ImageDraw.Draw(im)
 f13, f16, f22 = font(13), font(16), font(22)
 d.text((28, 20), 'One bird, one call: where it sits in the stereo field while he turns', font=f22, fill=INK)
-d.text((28, 48), 'each line is one call, 1.1 s of it; up is right, down is left. A call that follows him leans; a call booked once is flat.', font=f13, fill=DIM)
+d.text((28, 48), 'each line is one call, up to 1.1 s of it; up is right, down is left. A call that follows him leans; a call booked once is flat.', font=f13, fill=DIM)
+d.text((28, 66), 'the two grey guides in each panel are the steepest lean that turn rate allows \u2014 a bird dead ahead of him, or dead behind', font=f13, fill=DIM)
 for row_i, tag in enumerate(('before', 'after')):
-    y0 = 92 + row_i * 300
+    y0 = 112 + row_i * 300
     colour = BEFORE if tag == 'before' else AFTER
     d.text((28, y0 - 24), f"{tag} \u2014 the pan decided once, on a 4 s lookahead" if tag == 'before' else f'{tag} \u2014 the pan follows his facing', font=f16, fill=colour)
     for col, turn in enumerate(turns):
@@ -181,13 +204,17 @@ for row_i, tag in enumerate(('before', 'after')):
         row = next((q for q in rows if q['tag'] == tag and q['turn'] == turn), None)
         if not row:
             continue
+        # the steepest a call may lean at this rate: PERCH_PAN * omega, for a bird dead ahead
+        if row['want'] > 0:
+            dy = ((y1 - y0) / 2) * min(1, row['want'] * 1.1)
+            for s in (-1, 1):
+                d.line([(x0, (y0 + y1) / 2), (x1, (y0 + y1) / 2 - s * dy)], fill=(74, 80, 88), width=1)
         for c in row['calls']:
             pts = [(x0 + (x1 - x0) * min(1, t / 1.1), (y0 + y1) / 2 - ((y1 - y0) / 2) * max(-1, min(1, p))) for t, p in zip(c['t'], c['p'])]
             if len(pts) > 1:
                 d.line(pts, fill=colour, width=2)
-        d.text((x0 + 6, y0 + 6), f"sweep {row['span']:.2f}", font=f13, fill=INK)
-    if rows:
-        d.text((28, y0 + 120), 'right', font=f13, fill=DIM)
-        d.text((28, y0 + 150), 'left', font=f13, fill=DIM)
+        d.text((x0 + 6, y1 - 20), f"median lean {row['slope']:.2f} of {row['wantMedian']:.2f} pan/s", font=f13, fill=INK)
+    d.text((24, y0 + 118), 'right', font=f13, fill=DIM)
+    d.text((24, y0 + 148), 'left', font=f13, fill=DIM)
 im.save(a.out, quality=92)
 print(f'wrote {a.out}')

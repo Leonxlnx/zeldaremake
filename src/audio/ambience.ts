@@ -538,12 +538,34 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   };
 
   /**
+   * Calls that have not finished yet, so their bearing can keep up with him.
+   *
+   * A bird's pan is `sin(bearing − facing)`, and it used to be worked out once, in `scheduleBirds`,
+   * which runs on a **four-second lookahead** — and the answering call is booked from the same tick
+   * and sounds up to 2.5 s after that. So every bird in the wood was panned to the way he was
+   * facing up to four seconds earlier, and an answer to up to six and a half.
+   *
+   * Walking is not the problem: a perch is stored as a bearing and a distance from the anchor, so
+   * crossing the clearing does not move a bird in the field at all, which is deliberate
+   * (`PERCH_RESEED_M`). Turning is. Measured standing on the plaza and turning at 0, 10, 30 and 60
+   * degrees a second (`art/audio/2026-09-25-turning/`), a call swept **0.11 to 0.17 pan units
+   * whatever the rate** — the same at a standstill as at sixty degrees a second, which is to say
+   * turning did nothing at all, while sixty degrees a second asks for 0.89 pan units a second.
+   *
+   * Two or three entries live at a time (a call lasts under 2.6 s and the wood calls eleven times a
+   * minute), and each costs one `setTargetAtTime` a tick while it is alive.
+   */
+  const turning: { pan: AudioParam; dirX: number; dirZ: number; until: number }[] = [];
+
+  /**
    * A bird heard from `distance` (0 = overhead, 1 = deep in the wood): the air takes its top off,
    * the level falls and more of it arrives through the hall. Every call is built on this.
    */
-  const birdVoice = (t: number, pan: number, distance: number, end: number, occlusion = 0) => {
+  const birdVoice = (t: number, dir: { x: number; z: number }, distance: number, end: number, occlusion = 0) => {
     const panner = ctx.createStereoPanner();
-    panner.pan.value = pan;
+    panner.pan.value = panFor(forwardNow, dir) * PERCH_PAN;
+    // and it keeps following him until the call is over (see `turning`)
+    turning.push({ pan: panner.pan, dirX: dir.x, dirZ: dir.z, until: end });
     const hp = filter(ctx, 'highpass', 320, 0.5);
     // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
     const lp = filter(ctx, 'lowpass', (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion), 0.6);
@@ -560,8 +582,9 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     return { voice: g, air: hp as AudioNode };
   };
 
-  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number, occlusion = 0) => {
+  const birdCall = (kind: BirdKind, t: number, dir: { x: number; z: number }, level: number, distance: number, occlusion = 0) => {
     counts.birds++;
+    const pan = panFor(forwardNow, dir) * PERCH_PAN;
     counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3)), Number(t.toFixed(3))]);
     if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
     counts.birdShadow = Number(occlusion.toFixed(3));
@@ -569,7 +592,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const lv = level * (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
     const soft = 1 + distance * 1.6;
     let end = t + 1.6;
-    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6, occlusion);
+    const { voice: g, air } = birdVoice(t, dir, distance, t + 2.6, occlusion);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.connect(g);
@@ -768,8 +791,8 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     }
     return perches.length - 1 === avoid ? 0 : perches.length - 1;
   };
-  /** the bearing of a perch as the listener is facing now: −1 hard left, +1 hard right */
-  const perchPan = (p: { dirX: number; dirZ: number }) => panFor(forwardNow, { x: p.dirX, z: p.dirZ }) * PERCH_PAN;
+  /** a perch's world bearing, which is what a voice follows him by (`turning`) */
+  const perchDir = (p: { dirX: number; dirZ: number }) => ({ x: p.dirX, z: p.dirZ });
   /**
    * How much wood stands between him and a perch, right now.
    *
@@ -795,13 +818,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const p = perches[i];
       lastPerch = i;
       const level = 0.03 + eventRng() * 0.045;
-      birdCall(p.kind, nextBird, perchPan(p), level, p.distance, perchShadow(p));
+      birdCall(p.kind, nextBird, perchDir(p), level, p.distance, perchShadow(p));
       // and sometimes another answers — a different bird in its own tree, not this one mirrored
       if (eventRng() < 0.3 && perches.length > 1) {
         const j = pickPerch(i);
         const q = perches[j];
         lastPerch = j;
-        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchPan(q), level * 0.6, q.distance, perchShadow(q));
+        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchDir(q), level * 0.6, q.distance, perchShadow(q));
       }
       // Birds shelter and stop calling in a blow, and sing when it drops. Measured, the world's
       // wind falls under the gust knee about twice a minute for three seconds at a time
@@ -833,6 +856,15 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const fl = Math.hypot(s.forward.x, s.forward.z) || 1;
     forwardNow = { x: s.forward.x / fl, z: s.forward.z / fl };
     occludeNow = s.occlude ?? null;
+    // the birds that are mid-call keep their trees while he turns under them
+    for (let i = turning.length - 1; i >= 0; i--) {
+      const v = turning[i];
+      if (v.until < t) {
+        turning.splice(i, 1);
+        continue;
+      }
+      v.pan.setTargetAtTime(panFor(forwardNow, { x: v.dirX, z: v.dirZ }) * PERCH_PAN, t, PLACE_TAU);
+    }
     // a different part of the wood holds different birds (PERCH_RESEED_M)
     if (!perchAnchor || Math.hypot(s.listener.x - perchAnchor.x, s.listener.z - perchAnchor.z) > PERCH_RESEED_M) seedPerches(s.listener);
     const sw = swell(gust);

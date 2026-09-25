@@ -529,3 +529,44 @@ test('a term that moved because HE did arrives at his pace, not the weather\u201
   const weatherTaus = new Set(held.map(({ p }) => [...p.events].reverse().find((e) => e[0] === 'tgt')?.[3]).filter((v) => v !== A.PLACE_TAU && v !== undefined));
   assert.ok(weatherTaus.size > 0, 'nothing is left on a weather time — either the split is gone or the fake no longer records it');
 });
+
+test('a call booked four seconds ago comes from the tree, not from where he was looking', () => {
+  // `scheduleBirds` runs on a four-second lookahead, so a call's bearing used to be decided up to
+  // four seconds before it was heard — and an answering call up to six and a half. Walking does not
+  // matter (a perch is a bearing from the anchor, deliberately), but turning does, and turning is
+  // what a player does most. Measured, a call swept the same 0.1 pan units standing still as it did
+  // at sixty degrees a second (`art/audio/2026-09-25-turning/`).
+  //
+  // `windDir` is left out on purpose: then the ONLY panner in the bed that answers a change of
+  // facing is a bird's, so the live voices identify themselves and the test does not have to know
+  // the graph's shape.
+  const { ctx, amb } = bed({ seed: 'turn/guard' });
+  const N = { x: 0, z: -1 };
+  const S = { x: 0, z: 1 };
+  const base = { gust: 0.5, listener: LISTENER, pods: [], canopy: 1 };
+  let t = 0;
+  let pending = [];
+  // run until the wood has booked a call that has not sounded yet — that is the one this is about
+  for (; t < 600; t += 1 / 30) {
+    amb.update(t, { ...base, forward: N });
+    amb.scheduleUntil(t + 4);
+    pending = amb.stats().birdSpots.filter(([, , , at]) => at > t + 0.5);
+    if (pending.length > 0 && amb.stats().birds > 6) break;
+  }
+  assert.ok(pending.length > 0, 'nothing is booked ahead of the clock, so there is nothing to keep up');
+  // one more tick facing north, so a voice created by the tick that broke the loop has been aimed
+  // once before the snapshot — otherwise its target is still whatever the node was built with
+  t += 1 / 30;
+  amb.update(t, { ...base, forward: N });
+  const before = ctx.made.panner.map((p) => p.pan.target);
+  amb.update(t, { ...base, forward: S });
+  const moved = ctx.made.panner.map((p, i) => ({ i, before: before[i], after: p.pan.target })).filter((r) => Math.abs(r.after - r.before) > 1e-9);
+  assert.ok(moved.length > 0, `he turned right round and not one of ${ctx.made.panner.length} panners noticed`);
+  for (const r of moved) {
+    assert.ok(Math.abs(r.after + r.before) < 1e-9, `a bird sat at ${r.before.toFixed(3)} facing north and ${r.after.toFixed(3)} facing south — turning round must mirror it`);
+  }
+  // …and only the calls that are still going: the register has to let a finished voice go, or every
+  // bird the wood has ever sung stays on the books and follows him about for the rest of the session
+  assert.ok(moved.length <= 4, `${moved.length} voices are still being re-aimed out of ${ctx.made.panner.length} panners — finished calls are not being dropped`);
+  assert.ok(ctx.made.panner.length > moved.length * 3, 'the wood should have sung many more calls than are alive at once');
+});
