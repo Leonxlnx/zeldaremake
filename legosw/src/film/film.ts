@@ -14,6 +14,7 @@ export interface Film {
 
 export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> {
   const w = new World(pipeline);
+  if (new URLSearchParams(location.search).get('debug') === '1') (window as unknown as { __LSW_WORLD__: World }).__LSW_WORLD__ = w;
   // schedule every shot's time-pure effects, plus the background slugfest
   scheduleBattle(w, 19, SHOTS.find((s) => s.name === 'hangar-approach')!.start! + 4);
   for (const s of SHOTS) s.schedule?.(w, s.start!);

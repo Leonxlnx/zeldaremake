@@ -484,7 +484,7 @@ function poseHand(w: World): void {
   const h = w.hand.group;
   h.visible = true;
   h.position.copy(HAND_POS);
-  h.rotation.set(0, Math.PI / 2, 0);
+  h.rotation.set(0, Math.PI / 2 + 0.45, 0);
 }
 
 function crawlerPoses(w: World, T: number): void {
@@ -519,15 +519,19 @@ const handReveal: Shot = {
     poseHand(w);
     crawlerPoses(w, T);
     const T0 = T - t;
-    const start = HAND_POS.clone().add(v3(700, 300, -4200));
-    const path = (tt: number) => start.clone().add(v3(-(tt - T0) * 40, -(tt - T0) * 20, (tt - T0) * 380));
+    const start = HAND_POS.clone().add(v3(-1250, 560, -2350));
+    const dir = v3(0.28, -0.07, 1).normalize();
+    const path = (tt: number) => start.clone().add(dir.clone().multiplyScalar((tt - T0) * 210));
     const a = flight(path, T, { bank: 1 });
-    const o = flight((tt) => path(tt).add(v3(-36, 10, -48)), T, { bank: 1 });
+    const o = flight((tt) => path(tt).add(v3(-30, 8, -26)), T, { bank: 1 });
     fly(w, w.anakinShip, a, 1);
     fly(w, w.obiwanShip, o, 1);
-    const cam = local({ pos: a.pos, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, 18, 22, -90).add(shake(t, 0.6, 1, 14));
-    w.aimShadow(a.pos, 60);
-    return { pos: cam, target: HAND_POS.clone().add(v3(300, 250, -300)).lerp(a.pos, 0.35), fov: 30, lens: { exposure: 1.05 } };
+    face(w.anakin, { mouth: 'smirk', brows: -0.3 }, t, 1);
+    const mid = a.pos.clone().lerp(o.pos, 0.5);
+    const cam = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, 24, 30, -78).add(shake(t, 0.5, 1, 14));
+    const look = HAND_POS.clone().add(v3(-150, 120, -350)).lerp(mid, 0.3);
+    w.aimShadow(mid, 60);
+    return { pos: cam, target: look, fov: 32, roll: 0.05, lens: { exposure: 1.05 } };
   },
 };
 
@@ -793,21 +797,30 @@ const hangarApproach: Shot = {
     const mouthA = w.hand.anchors['hangar'];
     const mouth = mouthA ? anchorWorld(mouthA) : HAND_POS.clone().add(v3(0, 0, -300));
     const out = mouthA ? v3(0, 0, 1).applyQuaternion(mouthA.getWorldQuaternion(new Quaternion())) : v3(0, 0, -1);
-    const shield = t < 1.9 ? 1 : t < 2.3 ? (Math.sin(t * 90) > 0 ? 0.7 : 0.15) : 0;
+    const side = v3(0, 1, 0).cross(out).normalize();
+    const shield = t < 2.0 ? 1 : t < 2.45 ? (Math.sin(t * 90) > 0 ? 0.7 : 0.12) : 0;
     w.hand.setShield(shield);
     const T0 = T - t;
     const path = (tt: number) => {
-      const u = (tt - T0) / 4;
-      return mouth.clone().add(out.clone().multiplyScalar(lerp(1500, -60, smoother(0, 1, u)))).add(v3(0, lerp(120, 0, smoother(0, 0.8, u)), 0));
+      const u = clamp((tt - T0) / 4, -0.2, 1.2);
+      return mouth
+        .clone()
+        .add(out.clone().multiplyScalar(lerp(950, -70, smoother(0, 1, u))))
+        .add(side.clone().multiplyScalar(lerp(60, 0, smoother(0, 0.85, u))))
+        .add(v3(0, lerp(90, -2, smoother(0, 0.85, u)), 0));
     };
     const a = flight(path, T, { bank: 0.8 });
-    const o = flight((tt) => path(tt - 0.35).add(v3(0, 6, 0)), T, { bank: 0.8 });
+    const o = flight((tt) => path(tt - 0.3).add(side.clone().multiplyScalar(-16)).add(v3(0, 5, 0)), T, { bank: 0.8 });
     fly(w, w.anakinShip, a, 0.3);
     fly(w, w.obiwanShip, o, 0.3);
     w.r4.head.visible = false;
-    const camPos = path(T - 0.9).add(v3(18, 26, 0)).add(shake(t, 0.4, 1.2, 23));
-    w.aimShadow(a.pos, 60);
-    return { pos: camPos, target: mouth.clone().lerp(a.pos, 0.5), fov: 32, lens: { exposure: 1.05 } };
+    // chase at a fixed distance, but stop at the mouth: the fighters fly on into the bay
+    const outDist = a.pos.clone().sub(mouth).dot(out);
+    const camOut = Math.max(outDist + 58, 26);
+    const camPos = mouth.clone().add(out.clone().multiplyScalar(camOut)).add(side.clone().multiplyScalar(lerp(60, 0, smoother(0, 0.85, t / 4)) - 10)).add(v3(0, a.pos.y - mouth.y + 15, 0)).add(shake(t, 0.35, 1.2, 23));
+    const look = a.pos.clone().add(out.clone().multiplyScalar(-160)).add(v3(0, 4, 0));
+    w.aimShadow(a.pos, 50);
+    return { pos: camPos, target: look, fov: 36, lens: { exposure: 1.05 } };
   },
 };
 
