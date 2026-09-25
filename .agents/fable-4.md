@@ -510,3 +510,8 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 05:25 — the near-canopy draw fold designed and posted (third ask, silence = veto by 06:30): one BatchedMesh for all
   lobes (one shared material), install/uninstall on poolItem's seam, setVisibleAt for show/hide, ~13 nc.mesh sites; heap caveat
   (+35 MB typical). Expected A 629 → ~570 draws, look-backs −45…−60. Start next tick unless vetoed.
+- 2026-09-25 07:45 — the near-canopy batch built and measured (round54-canopy-batch, PR #101 `agent/fable-4-canopybatch`
+  3a339a0a): one BatchedMesh for the giants' lobes; A 606 → 594, F 522 → 496, the green look-back 701 → 657 draws; triangles
+  equal; 0 px vs the exact base. Three seam fixes (first build installs itself; one layout — normals Int8, colours/wind Float32,
+  compacted bytes for the pool; the end-of-build compaction skips the batch). Found: PR #47 (notes) sat as a draft from 09-24 12:14 and was
+  merged at 06:06 today (after I marked it ready) — my INBOX threads reached the head 20 h late. 1280 pair running.
