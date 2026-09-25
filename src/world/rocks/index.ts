@@ -295,6 +295,14 @@ export const PEBBLE_TILE_M = 10;
  */
 export const PEBBLE_LOD_M = 10;
 export const PEBBLE_LOD_BAND_M = 1;
+/**
+ * The pebble tiles' far gate (m, camera to the tile's nearest point): beyond it a tile draws nothing
+ * at all — a 3 cm pebble at 34 m is a pixel of ground colour, and the look-backs over the village
+ * from the expansions (the east plateau's green at 40–65 m, the south's far bank, the ruins' trail)
+ * were paying 20 draws for them. The same ± band; 0 → no far gate. 34 m is the moss tufts' rule
+ * (structures, `09110730`), so the village's small dressing fades at one distance.
+ */
+export const PEBBLE_FAR_M = 34;
 /** icosahedron subdivision of the far looks: 20·(detail+1)² triangles → 20 */
 export const PEBBLE_LOW_DETAIL = 0;
 
@@ -304,6 +312,8 @@ interface PebbleTile {
   centre: Vector3;
   radius: number;
   low: boolean;
+  /** past PEBBLE_FAR_M: neither look draws */
+  far: boolean;
 }
 
 /** one tile's instances merged into a static mesh (looks baked in), or null when none */
@@ -399,7 +409,7 @@ function buildTiled(list: Instance[], geos: BufferGeometry[], material: Mesh['ma
       lo.userData.mergedInstances = 0;
     }
     const sphere = hi.geometry.boundingSphere!;
-    out.push({ hi, lo, centre: sphere.center.clone(), radius: sphere.radius, low: false });
+    out.push({ hi, lo, centre: sphere.center.clone(), radius: sphere.radius, low: false, far: false });
   }
   return out;
 }
@@ -1383,13 +1393,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the pebble tiles' LOD: a tile shows its far looks once its nearest point is beyond PEBBLE_LOD_M
     // (+ the band), its near looks again inside PEBBLE_LOD_M (− the band); the hidden mesh costs nothing
     for (const t of pebbleTiles) {
-      if (!t.lo) continue;
       const d = t.centre.distanceTo(_cam) - t.radius;
-      if (reset) t.low = d > PEBBLE_LOD_M;
-      else if (t.low) t.low = d > PEBBLE_LOD_M - PEBBLE_LOD_BAND_M;
-      else t.low = d > PEBBLE_LOD_M + PEBBLE_LOD_BAND_M;
-      t.hi.visible = !t.low;
-      t.lo.visible = t.low;
+      // the far gate (PEBBLE_FAR_M): past it neither look draws
+      if (PEBBLE_FAR_M > 0) {
+        if (reset) t.far = d > PEBBLE_FAR_M;
+        else if (t.far) t.far = d > PEBBLE_FAR_M - PEBBLE_LOD_BAND_M;
+        else t.far = d > PEBBLE_FAR_M + PEBBLE_LOD_BAND_M;
+      }
+      if (t.lo) {
+        if (reset) t.low = d > PEBBLE_LOD_M;
+        else if (t.low) t.low = d > PEBBLE_LOD_M - PEBBLE_LOD_BAND_M;
+        else t.low = d > PEBBLE_LOD_M + PEBBLE_LOD_BAND_M;
+      }
+      t.hi.visible = !t.far && !t.low;
+      if (t.lo) t.lo.visible = !t.far && t.low;
     }
     for (const nr of nearRocks) {
       nr.dist = nr.centre.distanceTo(_cam);
@@ -1478,7 +1495,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** the path pebbles' merged ground tiles (PEBBLE_TILE_M), each culled by its own bounds */
     pebbleTiles: pebbleTiles.length,
     /** the tiles' distance LOD (PEBBLE_LOD_M): the far-look tiles for the current camera */
-    pebbleLod: { m: PEBBLE_LOD_M, bandM: PEBBLE_LOD_BAND_M, lowDetail: PEBBLE_LOW_DETAIL, lowTiles: pebbleTiles.filter((t) => t.low).length },
+    pebbleLod: { m: PEBBLE_LOD_M, bandM: PEBBLE_LOD_BAND_M, lowDetail: PEBBLE_LOW_DETAIL, lowTiles: pebbleTiles.filter((t) => t.low).length, farM: PEBBLE_FAR_M, farTiles: pebbleTiles.filter((t) => t.far).length },
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),

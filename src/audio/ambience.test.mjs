@@ -176,7 +176,9 @@ test('below the gust knee the wind layers are silent, not faint', () => {
 
 test('a full gust is louder than the constant bed it replaced', () => {
   const { ctx, amb } = bed();
-  amb.update(1, { gust: 1, listener: LISTENER, forward: NORTH, pods: [] });
+  // under the crowns: the whole gust term. The roll is the leaves OVERHEAD, so its level is the
+  // canopy's share of them (CANOPY_SHARE) — see the open-sky half of this in the next test.
+  amb.update(1, { gust: 1, listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
   const full = gains(ctx);
   assert.ok(full.some((v) => Math.abs(v - (A.CANOPY_FLOOR + A.CANOPY_GUST)) < 1e-9), 'the canopy roll should reach its floor plus the whole gust term');
   assert.ok(full.some((v) => Math.abs(v - (A.HUSH_FLOOR + A.HUSH_GUST)) < 1e-9), 'so should the leaf hush');
@@ -187,6 +189,28 @@ test('a full gust is louder than the constant bed it replaced', () => {
     assert.ok(v >= last, 'the swell must not fall as the wind rises');
     last = v;
   }
+});
+
+test('the leaf roll knows whether there is a roof over it', () => {
+  // The crowns used to change only a filter and a reverb send. Measured standing still at one spot
+  // with the same seed and the canopy forced to 0, 0.5 and 1, that moved the bed 0.8 dB rms across
+  // the whole range of the term — so the roll was the same level in the middle of a paved clearing
+  // as under a closed roof of leaves, and walking out of the north corridor into the clearing
+  // sounded identical at both ends. A filter cannot take away what is not there.
+  const roll = (canopy) => {
+    const { ctx, amb } = bed();
+    amb.update(1, { gust: 1, listener: LISTENER, forward: NORTH, pods: [], canopy });
+    return Math.max(...gains(ctx).filter((v) => v <= A.CANOPY_FLOOR + A.CANOPY_GUST + 1e-9));
+  };
+  const under = roll(1);
+  const open = roll(0);
+  assert.ok(open < under, 'fewer leaves overhead must be less leaf sound');
+  const dB = 20 * Math.log10(under / open);
+  assert.ok(dB > 3.5, `stepping into the open drops the roll ${dB.toFixed(1)} dB — under four is not an arrival`);
+  assert.ok(dB < 9, `${dB.toFixed(1)} dB is a gate, not a share: an open place is still ringed by trees you can hear`);
+  assert.ok(Math.abs(roll(1) - (A.CANOPY_FLOOR + A.CANOPY_GUST)) < 1e-9, 'under a full roof the roll is unchanged from before this term existed');
+  // and it only ever removes
+  for (const c of [0, 0.25, 0.5, 0.75, 1]) assert.ok(roll(c) <= A.CANOPY_FLOOR + A.CANOPY_GUST + 1e-9, `an open sky must not make the forest louder (canopy ${c})`);
 });
 
 test('no oscillator holds a tone under the bed', () => {
@@ -281,4 +305,107 @@ test('the forest is events: birds and leaves are scheduled, and gusts bring more
   assert.ok(w.flutters > c.flutters * 1.5, `a gust should bring more leaves (${c.flutters} calm, ${w.flutters} windy)`);
   // and even in dead calm the wood is never left silent for long
   assert.ok(c.flutters >= 120 / A.QUIET_GAP_MAX - 1, `${c.flutters} flutters in 120 s of still air leaves gaps over ${A.QUIET_GAP_MAX} s`);
+  // birds go the other way to the leaves: they shelter in a blow and sing when it drops
+  assert.ok(c.birds > w.birds, `still air should bring MORE birds, not fewer (${c.birds} calm, ${w.birds} windy)`);
+});
+
+test('a bird answers when the wind drops', () => {
+  // The bed is gated below GUST_KNEE on purpose — that silence is this lane's answer to "LOWER THE
+  // WHITE NOISE". Measured on the world's own wind it happens about twice a minute for three
+  // seconds (art/audio/2026-09-24-wind/), and at the old flat 3.5–11.5 s gap roughly half of those
+  // lulls had nothing in them: the one moment the forest is deliberately quiet was the one moment
+  // it had nothing to say.
+  // Enough cycles that the answer is not two small numbers being compared: one drop gives three or
+  // four calls either way, and which is larger is then a coin toss on the seeded stream.
+  const CYCLES = 30;
+  const at = (gustOf) => {
+    const b = bed({ seed: 'lull' });
+    let t = 0;
+    for (let i = 0; i < CYCLES * 24; i++) {
+      b.amb.update(t, { gust: gustOf(i), listener: LISTENER, forward: NORTH, pods: [] });
+      t += 0.5;
+    }
+    b.amb.scheduleUntil(t + 2);
+    return b.amb.stats().birds;
+  };
+  const blowing = at(() => 0.8);
+  const drops = at((i) => (i % 24 < 12 ? 0.8 : 0.1));
+  assert.ok(drops > blowing * 1.05, `over ${CYCLES} lulls the drops must bring calls forward (${blowing} while it blew, ${drops} with the drops)`);
+  // the trigger is the EDGE, not the level: still air throughout already calls at the still rate,
+  // and the edge must not stack a second helping on top of it
+  const stillThroughout = at(() => 0.1);
+  assert.ok(drops <= stillThroughout * 1.1, `the edge stacked on the still-air rate (${drops} with drops, ${stillThroughout} in still air throughout)`);
+  assert.ok(A.BIRD_ANSWERS_LULL[0] > 0.2, 'answering inside a fifth of a second is a reflex, not a bird');
+  assert.ok(A.BIRD_ANSWERS_LULL[1] < 3, 'a lull is about three seconds — an answer after it is not an answer');
+  assert.ok(A.BIRD_LULL_GAP > 0.3 && A.BIRD_LULL_GAP < 1, 'the still-air gap is a share of the usual one, not a gate');
+});
+
+test('the wood has birds in it, not a stream of calls', () => {
+  // Before this, the scheduler picked a kind and then drew a fresh bearing and a fresh distance for
+  // it: 216 calls over twenty minutes came from 216 places, and a kind's calls scattered 0.47 across
+  // a ±0.85 field — indistinguishable from uniform (art/audio/2026-09-24-perches/).
+  const { amb } = bed({ seed: 'perch' });
+  for (let t = 0; t < 900; t += 0.5) {
+    amb.update(t, { gust: 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3), listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+    amb.scheduleUntil(t + 4);
+  }
+  const spots = amb.stats().birdSpots;
+  assert.ok(spots.length > 8, `only ${spots.length} calls remembered`);
+  // every call of a kind comes from that bird's own tree
+  const byKind = new Map();
+  for (const [kind, pan, distance] of spots) (byKind.get(kind) ?? byKind.set(kind, []).get(kind)).push([pan, distance]);
+  for (const [kind, cs] of byKind) {
+    const pans = new Set(cs.map((c) => c[0]));
+    const dists = new Set(cs.map((c) => c[1]));
+    assert.equal(pans.size, 1, `${kind} called from ${pans.size} directions — a bird sits somewhere`);
+    assert.equal(dists.size, 1, `${kind} called from ${dists.size} distances`);
+  }
+  // and the wood is not all on one side of him
+  const places = [...byKind.values()].map((cs) => cs[0][0]);
+  assert.ok(Math.max(...places) > 0.25 && Math.min(...places) < -0.25, `every bird is between ${Math.min(...places).toFixed(2)} and ${Math.max(...places).toFixed(2)} — they must be round him, not in a clump`);
+});
+
+test('walking far enough puts him among different birds', () => {
+  const heard = (moveM) => {
+    const { amb } = bed({ seed: 'perch/move' });
+    const seen = new Set();
+    for (let t = 0; t < 600; t += 0.5) {
+      const at = { x: (t / 600) * moveM, y: 1.2, z: 0 };
+      amb.update(t, { gust: 0.5, listener: at, forward: NORTH, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+      for (const [kind, pan] of amb.stats().birdSpots) seen.add(`${kind}|${pan}`);
+    }
+    return seen.size;
+  };
+  const still = heard(0);
+  const walked = heard(A.PERCH_RESEED_M * 6);
+  assert.ok(walked > still, `standing still heard ${still} birds and walking ${(A.PERCH_RESEED_M * 6).toFixed(0)} m heard ${walked} — the wood must change as he crosses it`);
+  assert.ok(still <= 6, `standing in one place heard ${still} birds; there are six kinds and one of each`);
+  assert.ok(A.PERCH_RESEED_M > 10, 'birds must not be re-seeded from under him as he walks');
+});
+
+test('moving the birds about does not add any', () => {
+  // The claim is "the same number of birds, in different places", and the first attempt at it did
+  // not hold: measured over 1800 s the total went 10.5 → 13.3 a minute. Two things push it up once
+  // the gap follows the wind — a rate is one over a gap, so a gap that swings either side of its
+  // old value yields MORE calls per minute rather than the same; and the lull trigger pulls the
+  // next call forward, which brings every call after it forward too. BIRD_GAP_TRIM puts it back,
+  // and this is the guard, because the failure mode is an aviary and it creeps.
+  const run = (gustOf) => {
+    const { amb } = bed({ seed: 'rate/trim' });
+    const T = 1200;
+    for (let t = 0; t < T; t += 0.25) {
+      amb.update(t, { gust: gustOf(t), listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+    }
+    return amb.stats().birds / (T / 60);
+  };
+  // Under a wind that swings right through the knee — the world's own behaviour — the total is the
+  // number to hold, and against the same wind the flat gap gave 10.3 a minute
+  // (art/audio/2026-09-24-wind/schedule.mjs, 7200 s, 240 lulls). A ratio against a steady wind is
+  // the wrong test: the trim deliberately lengthens a steady mid-wind's gaps, so that comparison
+  // reads 143 % and means nothing.
+  const swinging = run((t) => 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3));
+  assert.ok(swinging > 7 && swinging < 13, `${swinging.toFixed(1)} birds a minute — the flat gap this replaced gave 10.3, and one every four seconds is an aviary`);
+  assert.ok(A.BIRD_GAP_TRIM > 1, 'the trim only ever lengthens the gap; without it the rate climbs');
 });

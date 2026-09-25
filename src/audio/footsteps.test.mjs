@@ -30,7 +30,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { designStep, designLanding, landingStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
+const { designStep, designLanding, landingStrength, designPushOff, pushOffStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP, WALK_SPEED, RUN_GROUND_SPEED, WALK_STEP_M, RUN_STEP_M } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge'];
@@ -128,14 +128,49 @@ test('the surfaces balance: no step is more than 6 dB louder than another at the
   assert.ok(hi.db - lo.db <= 6, `${hi.s} is ${(hi.db - lo.db).toFixed(1)} dB(A) over ${lo.s} — surfaces should differ in colour, not in level: ${levels.map((l) => `${l.s} ${l.db.toFixed(1)}`).join(', ')}`);
 });
 
-test('a cadence a person could walk, and a run that is not a drum roll', () => {
-  // a walk at 1.5 m/s is about two steps a second; the old stride fired 4.4 a second at a run
-  assert.ok(Math.abs(cadence(1.5) - 2.0) < 0.15, `walk cadence ${cadence(1.5).toFixed(2)} steps/s`);
-  assert.ok(cadence(4.2) > 2.6 && cadence(4.2) < 3.2, `run cadence ${cadence(4.2).toFixed(2)} steps/s`);
-  // cadence rises with speed and the stride with it, and the walk / run change is not a cliff
-  for (let v = 0.5; v < 6; v += 0.25) assert.ok(cadence(v) >= cadence(v - 0.25), 'cadence must not fall as the speed rises');
-  // the walk / run change is a real gait change (a runner takes slightly quicker, shorter steps at
-  // the transition speed and lengthens from there), but it must be a step, not a cliff
+test("the step is the animation's own, and still is", () => {
+  // The model is only consulted where the character system is NOT reporting boot plants: never in
+  // play, always in an offline render. So its job is to make the evidence WAVs step like the game
+  // does, and the right source for that is not a measurement of this lane's own but the clip
+  // contract the animation is authored against. glbLink.ts publishes it; this reads it out of the
+  // source rather than importing it, because glbLink is 2,700 lines and pulls in the GLTF loader.
+  //
+  // If Astra re-authors a clip, this fails with her new numbers in the message. That is the whole
+  // point: the last version of this test asserted a measurement, which would have gone stale in
+  // silence the moment a stride changed.
+  const glb = readFileSync(path.join(here, '../world/character/glbLink.ts'), 'utf8');
+  const spec = glb.match(/export const CLIP_SPEC[\s\S]*?\n\};/);
+  assert.ok(spec, 'CLIP_SPEC should be readable from glbLink.ts — has it moved or been renamed?');
+  const strideOf = (gait) => {
+    const m = spec[0].match(new RegExp(`${gait}:\\s*\\{[^}]*strideM:\\s*([\\d.]+)`));
+    assert.ok(m, `no strideM for ${gait} in CLIP_SPEC`);
+    return Number(m[1]);
+  };
+  // a stride is two steps
+  assert.ok(Math.abs(WALK_STEP_M - strideOf('walk') / 2) < 1e-9, `the walk clip's stride is ${strideOf('walk')} m, so a step is ${(strideOf('walk') / 2).toFixed(3)} — this file says ${WALK_STEP_M}`);
+  assert.ok(Math.abs(RUN_STEP_M - strideOf('run') / 2) < 1e-9, `the run clip's stride is ${strideOf('run')} m, so a step is ${(strideOf('run') / 2).toFixed(3)} — this file says ${RUN_STEP_M}`);
+  // and the ground speeds the player controller drives at, from animation.ts
+  const anim = readFileSync(path.join(here, '../world/character/animation.ts'), 'utf8');
+  // anchored on the declaration: `PLAYER_SPEED` is also named inside GAIT_SPEED's comment, and an
+  // unanchored match reads GAIT_SPEED's run of 3.9 instead of the controller's 4.6
+  const decl = anim.match(/export const PLAYER_SPEED[\s\S]*?\};/);
+  assert.ok(decl, 'PLAYER_SPEED should be readable from animation.ts');
+  const speedOf = (gait) => Number(decl[0].match(new RegExp(`${gait}:\\s*([\\d.]+)`))[1]);
+  assert.equal(WALK_SPEED, speedOf('walk'), 'the walk speed must be the controller\u2019s');
+  assert.equal(RUN_GROUND_SPEED, speedOf('run'), 'the run speed must be the controller\u2019s');
+
+  // the rate then falls out, and a play-mode probe counted it off the character system's own stance
+  // edges to check the derivation is the right one: 3.56 and 3.71 walking, 4.85 and 4.99 running
+  // (art/audio/2026-09-24-cadence/; the run legs start from a standstill, so they read a little low)
+  assert.ok(Math.abs(cadence(1.6) - 3.64) < 0.02, `a walk should plant ${(1.6 / (strideOf('walk') / 2)).toFixed(2)}/s, the model says ${cadence(1.6).toFixed(2)}`);
+  assert.ok(Math.abs(cadence(4.6) - 5.05) < 0.02, `a run should plant ${(4.6 / (strideOf('run') / 2)).toFixed(2)}/s, the model says ${cadence(4.6).toFixed(2)}`);
+  assert.ok(Math.abs(strideFor(1.6, false) - 0.44) < 0.005 && Math.abs(strideFor(4.6, false) - 0.91) < 0.005, 'and the step lengths are the clips\u2019');
+
+  // cadence rises with speed and never falls, and the ends are clamped rather than extrapolated
+  for (let v = 0.5; v < 8; v += 0.25) assert.ok(cadence(v) >= cadence(v - 0.25), 'cadence must not fall as the speed rises');
+  assert.ok(cadence(0) > 0 && cadence(0) < 2, `a standstill extrapolates to ${cadence(0).toFixed(2)} steps/s`);
+  assert.ok(cadence(20) <= 6, `an impossible speed extrapolates to ${cadence(20).toFixed(2)} steps/s`);
+  // the walk / run design change is a real gait change, but it must be a step and not a cliff
   assert.ok(Math.abs(strideFor(RUN_SPEED + 0.01, false) - strideFor(RUN_SPEED - 0.01, false)) < 0.15, 'the walk / run stride change must not jump');
   assert.equal(strideFor(1.5, true), 0.54, 'on stairs one step is one tread');
   // the refractory guard is shorter than the shortest real gap, so it never eats a real step
@@ -178,6 +213,51 @@ test('a landing is both boots at once, deeper and longer than a step', () => {
   // how hard it lands follows the drop, and saturates
   assert.ok(landingStrength(0) < landingStrength(1) && landingStrength(1) < landingStrength(2), 'a longer fall lands harder');
   assert.ok(landingStrength(0) >= 0.45 && landingStrength(99) <= 1, 'landing strength stays inside 0.45 … 1');
+});
+
+test('a push-off is a scrape, not a quiet knock', () => {
+  // Measured before this existed: four jumps off the flagstones came off the ground at -34 dB
+  // against a bed at -30 and landed at -26, so a jump was silence up and a thump down
+  // (art/audio/2026-09-24-jump/). What makes a shove a shove is its shape, not its level — a boot
+  // arriving is a transient, a boot leaving presses and peels.
+  for (const surface of SURFACES) {
+    const energy = (d) => d.parts.reduce((s, p) => s + p.peak * p.peak * p.decay, 0);
+    const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    const shoves = Array.from({ length: 40 }, (_, i) => designPushOff(surface, 0.7, rng(`push/${surface}/${i}`)));
+    const lands = Array.from({ length: 40 }, (_, i) => designLanding(surface, 0.7, rng(`land/${surface}/${i}`)));
+    for (const d of shoves) {
+      const noise = d.parts.filter((p) => p.kind === 'noise');
+      assert.ok(noise.length, `${surface}: a shove with no surface noise in it is not a shove`);
+      // the peel: the surface's own band lasts, and sweeps UP as the sole rolls off it
+      const rising = noise.filter((p) => p.decay >= 0.12 && p.freqTo > p.freq * 1.2);
+      assert.ok(rising.length, `${surface}: no band that lasts and rises — this is a knock, not a peel`);
+      const peel = rising.reduce((a, b) => (a.decay > b.decay ? a : b));
+      const base = designStep(surface, 0.7, false, rng(`step/${surface}/0`));
+      const step = base.parts.filter((p) => p.kind === 'noise').reduce((a, b) => (a.decay > b.decay ? a : b));
+      assert.ok(peel.decay > step.decay * 2, `${surface}: the peel (${peel.decay.toFixed(3)} s) must outlast the step's own noise (${step.decay.toFixed(3)} s)`);
+      // What separates a shove from an arrival is its onset, not its level: he presses rather than
+      // hits. Holding it BELOW a walking step instead put the take-off at -31 dB against a bed at
+      // -32 in the live recording, where a walking step peaks at -25 — it fired and could not be
+      // heard. A standing jump drives about twice body weight into the ground; a walk, 1.2.
+      const heel = base.parts.filter((p) => p.kind === 'body' && p.at <= 0.004 && p.f0 < 400)[0];
+      if (heel) {
+        const weight = d.parts.filter((p) => p.kind === 'body').reduce((a, b) => (a.peak > b.peak ? a : b));
+        assert.ok(weight.peak > heel.peak, `${surface}: the shove (${weight.peak.toFixed(4)}) must carry more weight than a walking step's heel (${heel.peak.toFixed(4)})`);
+        assert.ok(weight.attack > heel.attack * 3, `${surface}: the shove arrives in ${weight.attack.toFixed(4)} s — that is a knock, not a press (the step's heel is ${heel.attack.toFixed(4)})`);
+      }
+    }
+    // A drop drives the surface deeper than a push does, and it cracks where a push scrapes, so
+    // the hall answers it more. Not total energy: a shove is deliberately the longer of the two,
+    // so summing peak² × decay compares their durations rather than their impacts.
+    const lowest = (d) => Math.min(...d.parts.filter((p) => p.kind === 'body').map((p) => p.f0));
+    assert.ok(mean(lands.map(lowest)) < mean(shoves.map(lowest)), `${surface}: a landing must reach lower than a shove (${mean(lands.map(lowest)).toFixed(0)} Hz vs ${mean(shoves.map(lowest)).toFixed(0)})`);
+    assert.ok(mean(shoves.map((d) => d.reverb)) < mean(lands.map((d) => d.reverb)), `${surface}: a shove must send less to the hall than a landing`);
+    assert.ok(mean(shoves.map(energy)) > mean(designs(surface, false, 0.7).map(energy)), `${surface}: a shove must carry more than a walking step`);
+  }
+  assert.ok(pushOffStrength(0) < pushOffStrength(2) && pushOffStrength(2) < pushOffStrength(4), 'a running jump shoves harder than a standing one');
+  assert.ok(pushOffStrength(0) >= 0.5 && pushOffStrength(99) <= 1, 'push-off strength stays inside 0.5 … 1');
+  const a = JSON.stringify(designPushOff('leaf', 0.7, rng('same')));
+  assert.equal(a, JSON.stringify(designPushOff('leaf', 0.7, rng('same'))), 'two shoves from the same seed must be byte-identical');
 });
 
 test('the wind bed is a swell, not a floor: still air is silent', () => {

@@ -33,6 +33,9 @@ import { expansionCull, getTerrain, southFooting, southRouteSurface, westExpansi
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
+import { inExpansionNorth } from '../layout';
+import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
+import { groveNearXZ } from '../util/groveLocality';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -1614,7 +1617,20 @@ const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier
  * extra tree promoted is expensive, and camera A sits 0.05 M under W38's 9 M gate. The 8 m is paid
  * for out of `DISTANT_NEAR_M` below, which was buying nothing.
  */
-const TREE_LOD_NEAR_M = 28;
+/**
+ * The high→medium rung (m). 20 m through round 53, 28 after the treepop round, and 32 after the 18:20
+ * health check attributed the whole of the residual pop to this rung: with every tree forced high
+ * (`?treelod=10`) the owner's walking poses differ from the shipped rungs by 2.06 % and 2.24 % of the
+ * frame, and opening THIS gate to 40.6 m takes that to 0.10 % while opening the medium→low rung or the
+ * distant gate changes nothing. A tree between the rung and ≈ 41 m is on its medium LOD and fills out
+ * as he closes, which is his "the trees … only get detailed when I come up close".
+ *
+ * 40.6 m is not affordable: `pose-counts.mjs` puts camera A at 9.17 M triangles, 171 k OVER the 9 M cap
+ * (D left with 41 k). 32 m with the distant gate below pulled in to pay for it fits with room and takes
+ * draws DOWN — A 8.91 M / 620 draws (89 k headroom, −19 draws), B and E −49 k, C −20 k, D 8.69 M (+52 k),
+ * F +14 k — the same trade the treepop round made when it moved this rung from 20 to 28.
+ */
+const TREE_LOD_NEAR_M = 32;
 /**
  * The distant / mid layers' near→far gate (m, × `ctx.quality.distance`). 120 m through round 51; the
  * same measurement shows the near LOD's bent trunk, cords and root toes at 72–120 m — behind 60–86 %
@@ -1622,7 +1638,16 @@ const TREE_LOD_NEAR_M = 28;
  * rung above needs. The mid grove's own 40 m gate and the north stand's 50 m gate are both under this
  * and unchanged.
  */
-const DISTANT_NEAR_M = 72;
+const DISTANT_NEAR_M = 45;
+/**
+ * The medium→low rung (m). 59 m was tried at 19:00 and backed out: it cost the owner's walking poses
+ * +0.51 % and +0.75 % of their triangles (+45 k, +51 k) and the hero views up to +54 k, and the frame
+ * did not change — with every tree forced high (`?treelod=10`) those poses differ from the shipped
+ * rungs by 2.06 % and 2.24 % at 44 m and by 2.06 % and 2.24 % at 59 m, to the second decimal. The
+ * medium and high LODs of a tree at 44-60 m read the same at that range; the close-only detail those
+ * two per cent measure belongs to another gate, and finding which is the open question (the candidates
+ * are `DISTANT_NEAR_M` and the giants' near-canopy swap band, both reachable with `?treelod=`).
+ */
 const TREE_LOD_MID_M = 44;
 /**
  * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
@@ -1802,6 +1827,8 @@ interface UnderstoryPlacement {
   yaw: number;
   scale: number;
   variant: number;
+  /** a grove zone's stem: drawn only within GROVE_VISIBLE_M of the grove (util/groveLocality.ts) */
+  grove?: boolean;
 }
 type UnderstoryVariant = FamilyVariant<UnderstoryParams, UnderstoryPlacement>;
 const UNDERSTORY_VARIANTS = 5;
@@ -1810,7 +1837,7 @@ const UNDERSTORY_VARIANTS = 5;
  * Strips along the walkable paths (both verges, `min`–`max` m from the centreline) and the clearing's
  * lawn between the plaza and the tall trees. Seeded from its own stream, so nothing else re-rolls.
  */
-const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number; live?: boolean; spacing?: number; south?: boolean }[] = [
+const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number; live?: boolean; spacing?: number; south?: boolean; grove?: boolean }[] = [
   // the north path's verges, from the plaza's north end to the log arch
   { xMin: -14, xMax: 14, zMin: -50, zMax: -12, count: 26 },
   // the north clearing beyond the arch, up to the stand
@@ -1826,7 +1853,24 @@ const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number
   // log and the gorge) and UNDERSTORY_WALK_CLEAR_M off the south route's line. LAST: the zones
   // share one stream, so a zone appended here re-rolls none before it.
   { xMin: -8, xMax: 17, zMin: 46, zMax: 57, count: 4, live: true, spacing: 4.5, south: true },
+  // 2026-09-24 (expansion-north): the grove above the ledge terrace (terrain/north.ts) — leafy trees
+  // beside its trail and round its shelf and decks, the band the card crowns leave
+  // (GROVE_CARD_WALK_M); `grove` zones keep each crown GROVE_UNDERSTORY_GROUND_M off the walkable
+  // ground and the trunk house, GROVE_UNDERSTORY_DECK_M off the raised decks and huts, and each stem
+  // within GROVE_UNDERSTORY_MAX_M of the walks
+  { xMin: -14, xMax: 23, zMin: -111, zMax: -80, count: 16, live: true, spacing: 3.4, grove: true },
 ];
+/**
+ * The grove understory's crowns hang from 1.5–3 m (4.5–9 m trees, 1.8–4 m crowns): 1 m off the
+ * decks put their laminae across the play camera trailing Link on the veranda, so the raised decks
+ * and huts keep the crowns GROVE_UNDERSTORY_DECK_M off (the camera's trail); the ground walks
+ * GROVE_UNDERSTORY_GROUND_M, where a crown frames the trail without closing over it.
+ */
+const GROVE_UNDERSTORY_GROUND_M = 2.2;
+const GROVE_UNDERSTORY_DECK_M = 4.5;
+const GROVE_UNDERSTORY_MAX_M = 10;
+/** the 60–215 m layer's card crowns keep at least this far (m) off the grove's walks and decks — the mid grove's MID_WALK_MIN_M, where the cards hold */
+const GROVE_CARD_WALK_M = 11;
 const UNDERSTORY_PATH_MIN_M = 3.4;
 const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
 const UNDERSTORY_ARCH_STRETCH_Z = -28;
@@ -2425,9 +2469,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         if (tooClose(x, z, spacing)) continue;
         const variant = placeRng.int(0, UNDERSTORY_VARIANTS);
         const scale = placeRng.range(0.85, 1.15);
+        if (zone.grove) {
+          const cr = understory[variant].params.crownRadius * scale;
+          if (groveWalkDistance(x, z) > GROVE_UNDERSTORY_MAX_M) continue;
+          if (groveGroundDistance(x, z) < cr + GROVE_UNDERSTORY_GROUND_M || groveDeckDistance(x, z) < cr + GROVE_UNDERSTORY_DECK_M) continue;
+          if (northGroveClear(x, z, understory[variant].params.trunkRadius * scale + 0.2)) continue;
+          if (northGroveHuts().some((h) => Math.hypot(x - h.x, z - h.z) < h.r + cr + (h.id === 'house' ? GROVE_UNDERSTORY_GROUND_M : GROVE_UNDERSTORY_DECK_M))) continue;
+        }
         const y = liveTerrain.height(x, z);
         if (coversWindow(x, y, z, variant, scale)) continue;
-        understoryPlacements.push({ x, y, z, yaw: placeRng() * TAU, scale, variant });
+        understoryPlacements.push({ x, y, z, yaw: placeRng() * TAU, scale, variant, grove: zone.grove });
         placed++;
       }
     }
@@ -3370,6 +3421,54 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return true;
   });
   distantPlacements.push(...midPlacements);
+  // 2026-09-24 (expansion-north): the grove (terrain/north.ts) keeps every bole off its flight,
+  // trail, shelf and walkways and out from under its huts (`northGroveClear` with the bole's own
+  // foot radius), and every crown whose base hangs below a hut's top clear of it; a tree left in the
+  // grove's box stands on the live ground the grove shaped. Only the 60–215 m layer reaches the box
+  // (76.9 m+ from the plaza); a filter after every sampler, so nothing else re-rolls. The card
+  // crowns read as flat piles from under them (the mid grove's finding, MID_WALK_MIN_M), so no card
+  // crown comes within GROVE_CARD_WALK_M of the grove's walks and decks, in the box or beside it,
+  // and a bole gives way to a grove understory stem it would crowd (the understory is seated first).
+  const groveUnderstory = understoryPlacements
+    .filter((p) => p.z < -76 && inExpansionNorth(p.x, p.z))
+    .map((p) => ({ x: p.x, z: p.z, cr: understory[p.variant].params.crownRadius * p.scale }));
+  const northGrove = { culled: [] as [number, number][], reseated: 0, understory: groveUnderstory.length, cardWalkM: GROVE_CARD_WALK_M, understoryGroundM: GROVE_UNDERSTORY_GROUND_M, understoryDeckM: GROVE_UNDERSTORY_DECK_M };
+  {
+    const reach = distantVariants.map((v) => {
+      const pos = v.near.attributes.position;
+      let bole = 0;
+      let crown = 0;
+      for (let i = 0; i < pos.count; i++) {
+        const r = Math.hypot(pos.getX(i), pos.getZ(i));
+        if (pos.getY(i) < 1.2) bole = Math.max(bole, r);
+        crown = Math.max(crown, r);
+      }
+      let base = v.height;
+      for (let i = 0; i < pos.count; i++) if (Math.hypot(pos.getX(i), pos.getZ(i)) > bole * 1.6 + 0.4) base = Math.min(base, pos.getY(i));
+      return { bole, crown, base };
+    });
+    const huts = northGroveHuts();
+    for (let i = distantPlacements.length - 1; i >= 0; i--) {
+      const p = distantPlacements[i];
+      if (p.z > -76) continue;
+      const inBox = inExpansionNorth(p.x, p.z);
+      const gw = groveWalkDistance(p.x, p.z);
+      if (!inBox && gw === Infinity) continue;
+      const f = reach[p.variant];
+      const cards = gw < Math.max(GROVE_CARD_WALK_M, f.crown * p.scale * 0.85 + 1);
+      const crownHits = huts.some((h) => Math.hypot(p.x - h.x, p.z - h.z) < f.crown * p.scale * 0.85 + h.r && liveTerrain.height(p.x, p.z) + f.base * p.scale < h.top);
+      const crowds = groveUnderstory.some((u) => Math.hypot(p.x - u.x, p.z - u.z) < f.bole * p.scale + u.cr * 0.9);
+      if (cards || crownHits || crowds || (inBox && northGroveClear(p.x, p.z, f.bole * p.scale + 0.3))) {
+        northGrove.culled.push([Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10]);
+        distantPlacements.splice(i, 1);
+        continue;
+      }
+      if (!inBox) continue;
+      p.y = liveTerrain.height(p.x, p.z);
+      midLive.add(p);
+      northGrove.reseated++;
+    }
+  }
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
   // the mid-canopy crowns share that atlas and turn off the treatments the far layer applies inside
@@ -3413,11 +3512,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const white = new Color(1, 1, 1);
 
   // LOD buckets: every placement lands in exactly one bucket by camera distance
-  const bucketFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], cam: Vector3) => {
+  const bucketFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], cam: Vector3, hidden?: (p: T) => boolean) => {
     for (const w of variants) {
       const buckets: number[][] = [[], [], []];
       for (let i = 0; i < w.placements.length; i++) {
         const p = w.placements[i];
+        if (hidden?.(p)) continue;
         const d = Math.hypot(p.x - cam.x, p.z - cam.z) - w.lods[0].radius * p.scale * 0.5;
         const l = d < lodDist[0] ? 0 : d < lodDist[1] ? 1 : 2;
         buckets[l].push(i);
@@ -3431,7 +3531,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const bucketWhite = (cam: Vector3) => {
     bucketFamily(whites, cam);
     bucketFamily(seatedColumns, cam);
-    bucketFamily(understory, cam);
+    bucketFamily(understory, cam, groveNearXZ(cam.x, cam.z) ? undefined : (p) => p.grove === true);
   };
 
   /**
@@ -4151,6 +4251,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         farLodM: MID_FAR_LOD_M,
         material: midCrown.name,
       },
+      /**
+       * 2026-09-24 (expansion-north): the 60–215 m layer's trees the grove dropped ([x, z] dm), how many
+       * of its box it re-seated on the live ground, its understory stems and how many of them are in
+       * the LOD buckets at the audit's pose (none unless the camera is near the grove)
+       */
+      northGrove: { ...northGrove, understoryBucketed: understory.reduce((n, u) => n + u.lists.reduce((m, list) => m + list.filter((i) => u.placements[i].grove).length, 0), 0) },
       /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
       distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
       /** round 46: the near LOD bole's geometric cords [furrows around a broad / a slender, depth share], sides [broad, slender], the furrow floor's vertex shade, the root buttresses' arc sides (distant.ts) */

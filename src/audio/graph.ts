@@ -22,12 +22,81 @@ export interface Buses {
   /** shared reverb send (ambience + sfx) */
   reverb: ConvolverNode;
   reverbReturn: GainNode;
+  /** the small plank room a hut's interior is (see `ROOM_*` in footsteps.ts) */
+  room: ConvolverNode;
+  roomReturn: GainNode;
 }
+
+/**
+ * The hut interior: 0.32 s, dense, dark, with its early reflections in the first 6–28 ms.
+ *
+ * Not the hall with more send on it. The hall is a 1.5 s wood — trunks scattering four to twelve
+ * metres off — and pushing a footstep further into that makes a hut sound like a *larger* forest,
+ * which is the opposite of walking indoors. A plank box two or three metres across answers sooner,
+ * denser and shorter, and dies before the next step.
+ *
+ * Nor is it three discrete echoes, which was the first attempt here and measured like its before:
+ * a wooden step already rings for 100 ms, so first-order reflections arriving 11 dB under it (the
+ * spreading loss over a 5.7 m path off a plank wall) disappeared into the step's own tail — the
+ * reflected-to-direct ratio in the 5–35 ms window went *down* 2.5 dB, because the only thing three
+ * quiet taps changed was how hard the step compressor pulled. A real small room is not a handful of
+ * first-order reflections; it is those reflecting again off six surfaces until they are a field.
+ */
+export const ROOM_SECONDS = 0.32;
+export const ROOM_EARLY_AT = 0.006;
+export const ROOM_EARLY_SPREAD = 0.022;
+/** the top a plank wall gives back, the same 3 kHz the wood's own return is held to */
+export const ROOM_TOP_HZ = 3000;
+/**
+ * The room's return, which is a calibration and not a taste.
+ *
+ * `ConvolverNode.normalize` rescales an impulse by an internal rule that has nothing to do with the
+ * room being modelled, so the level a send of 1.0 produces is arbitrary and the only way to know it
+ * is to render and subtract. At 1.0 the room answered a footstep **18.6 dB under it** — present in
+ * the file, not present in the room. This puts it at about −11 dB, which is a live plank box a
+ * player can hear he is inside of without every step growing a cellar.
+ *
+ * For reference the physics of the real thing is louder still: a 2 m hut with α ≈ 0.15 has a room
+ * constant near 9 m², which puts the reverberant field about 9 dB *over* the direct sound of a boot
+ * 1.7 m below the ear. A footstep in a small wooden room really is mostly reflection. Modelling
+ * that honestly would be exhausting to walk around in, so this sits well below it and says so.
+ */
+export const ROOM_RETURN = 2.4;
+
+/**
+ * The master's output trim (dB), and the gain it becomes.
+ *
+ * Everything in this file was built from the bed upward and nothing ever gain-staged the result, so
+ * the mix shipped at **−32.6 LUFS** — ten to fifteen decibels under what every other application on
+ * the owner's machine is normalised to. He has to run his system that much hotter for this game
+ * than for anything else, which raises his own hardware's noise floor under all of it.
+ *
+ * Held back twice, on the grounds that level is the axis he has asked to lower ("the background
+ * sound is too buzzy", "LOWER THE WHITE NOISE"). That reasoning does not survive being written
+ * down: **a master gain changes no ratio in the mix.** He sets his volume by ear, so every relative
+ * level he hears — the bed against the tune, a footstep against a gust, the floor against the
+ * events — is identical either way. The percept he complained about lives in a ratio, and this
+ * cannot touch it. What it buys is only that he stops cranking the system.
+ *
+ * Sized against the worst case rather than an average, because an average is all this lane had ever
+ * measured. Two takes agree on the ceiling to a tenth of a decibel: thirteen minutes of ordinary
+ * play peaked at −16.7 dBFS true, and a deliberately constructed worst case — running *and* jumping
+ * on the flagstones under the lantern bough, 168 steps, 51 landings and 30 shoves in seventy
+ * seconds with the score playing — also peaked at **−16.7**. It is stable because the sfx bus has a
+ * compressor on it, so no amount of stacking gets past it.
+ *
+ * +9 dB leaves the true peak at −7.7 dBFS and puts the mix at −23.6 LUFS: inside the normal band,
+ * at the conservative end of it, with nearly eight decibels still unused for sources nobody has
+ * measured yet (the ruins' waterfall close to, whatever the expansions add). It is one number —
+ * move it if the owner wants the game louder or quieter, and nothing else in the mix moves with it.
+ */
+export const MASTER_TRIM_DB = 9;
+export const MASTER_LEVEL = dB(MASTER_TRIM_DB);
 
 /** master ← music (−12 dB under the ambience) / ambience / sfx; a shared hall on a send. */
 export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   const master = ctx.createGain();
-  master.gain.value = 1;
+  master.gain.value = MASTER_LEVEL;
   master.connect(ctx.destination);
   const music = ctx.createGain();
   music.gain.value = dB(-12);
@@ -80,7 +149,16 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   const reverbTop = filter(ctx, 'lowpass', 3000, 0.6);
   reverb.connect(reverbTop).connect(reverbReturn);
   reverbReturn.connect(master);
-  return { master, music, ambience, sfx, reverb, reverbReturn };
+  const room = ctx.createConvolver();
+  room.buffer = impulseResponse(ctx, rng.fork('roomir'), ROOM_SECONDS, 0.9, ROOM_EARLY_AT, ROOM_EARLY_SPREAD, ROOM_EARLY_AT);
+  const roomReturn = ctx.createGain();
+  roomReturn.gain.value = ROOM_RETURN;
+  // the return joins the master rather than the sfx bus, so the room answering a step is not itself
+  // squeezed by the step compressor — the same place the hall's return goes, for the same reason
+  const roomTop = filter(ctx, 'lowpass', ROOM_TOP_HZ, 0.6);
+  room.connect(roomTop).connect(roomReturn);
+  roomReturn.connect(master);
+  return { master, music, ambience, sfx, reverb, reverbReturn, room, roomReturn };
 }
 
 /** Looping seeded white noise (seconds long). */
@@ -240,17 +318,32 @@ export const voices = (): number => liveVoices;
 /**
  * Generated hall: stereo-decorrelated exponentially decaying noise with the highs rolling off
  * over time (a soft, leafy space rather than a stone room).
+ *
+ * `earlyAt` / `earlySpread` are when the discrete early reflections land, which is the only thing
+ * that distinguishes one size of space from another before the tail takes over: a surface `d`
+ * metres away answers `2d / 343` seconds later, so the wood's defaults (12–72 ms) are trunks four
+ * to twelve metres off, and a hut's walls are a quarter of that.
+ *
+ * `preDelay` is when the space starts answering at all. It defaults to 0, which is what the wood
+ * has always used and is wrong in a way that only shows up in a small space: with the diffuse tail
+ * starting at sample 0, a send adds a copy of the source to the source, thickening the attack
+ * rather than reflecting it. Measured, that is not a subtlety — it pushed the room's own energy
+ * into the 0–5 ms direct window and made a step in a hut read as *less* reflective than one in the
+ * open. Nothing reaches a listener before the direct sound, and in a hut the first thing that does
+ * is 6 ms behind it.
  */
-export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number, damp: number): AudioBuffer {
+export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number, damp: number, earlyAt = 0.012, earlySpread = 0.06, preDelay = 0): AudioBuffer {
   const n = Math.floor(ctx.sampleRate * seconds);
+  const pre = Math.floor(ctx.sampleRate * preDelay);
   const buf = ctx.createBuffer(2, n, ctx.sampleRate);
   for (let c = 0; c < 2; c++) {
     const d = buf.getChannelData(c);
     const r = rng.fork(`ir${c}`);
     let lp = 0;
-    for (let i = 0; i < n; i++) {
-      const t = i / n;
-      const env = Math.exp(-t * 6.5) * (i < 400 ? i / 400 : 1);
+    for (let i = pre; i < n; i++) {
+      const j = i - pre;
+      const t = j / (n - pre);
+      const env = Math.exp(-t * 6.5) * (j < 400 ? j / 400 : 1);
       // one-pole low-pass whose cutoff falls as the tail decays
       const k = 0.15 + damp * 0.8 * t;
       lp += (r() * 2 - 1 - lp) * (1 - k);
@@ -258,7 +351,7 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
     }
     // early reflections
     for (let e = 0; e < 8; e++) {
-      const at = Math.floor(ctx.sampleRate * (0.012 + r() * 0.06));
+      const at = Math.floor(ctx.sampleRate * (earlyAt + r() * earlySpread));
       const g = 0.35 * (1 - e / 8);
       if (at < n) d[at] += (r() * 2 - 1) * g;
     }

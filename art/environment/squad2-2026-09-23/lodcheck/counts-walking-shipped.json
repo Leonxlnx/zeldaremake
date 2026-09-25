@@ -1,0 +1,12 @@
+[
+ {
+  "pose": "owner-0650-north",
+  "drawCalls": 533,
+  "triangles": 8831595
+ },
+ {
+  "pose": "owner-0650-west",
+  "drawCalls": 491,
+  "triangles": 6749865
+ }
+]

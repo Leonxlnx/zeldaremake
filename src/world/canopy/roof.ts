@@ -57,6 +57,20 @@ export const ROOF_CARDS_PER_CLUMP: [number, number] = [3, 5];
 export const HERO_DROP_M = 120;
 /** frame margin (share of the frame) added around the hero frames for the exclusion */
 export const HERO_MARGIN = 0.03;
+/**
+ * …except across the frames' top edge, which a roof is the only thing that can reach. The exclusion
+ * as written drops every clump projecting anywhere inside a hero frame within 120 m, and since a roof
+ * hangs 20–37 m up, "anywhere" is in practice the top band — so the airspace over the plaza's northern
+ * approach (z ≈ −20…−52) had no roof at all, while the stand pass that would have covered it starts at
+ * z ≤ −52 (ROOF_STAND_BOUNDS). Looking up from the open north therefore showed haze where the canopy
+ * should close (lane 2's diagnosis, `art/environment/squad2-2026-09-23/upring`).
+ *
+ * A clump whose projected disc stays inside this share of a frame's height from its top edge is kept.
+ * The hero frames already carry canopy along that edge — hero A's top third is foliage — and so does
+ * the reference (r_025, r_026, d_108 all close over the top of the image), so this is the band where a
+ * roof belongs rather than one it must be kept out of. Everything below it still drops.
+ */
+export const HERO_TOP_KEEP = 0.18;
 
 /**
  * The north stand (round 52, GOAL_MODE owner-fable #3; opus-review #01 "no canopy over them",
@@ -93,6 +107,24 @@ export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
   { xMin: 12, xMax: 34, zMin: -82, zMax: -64, crownAbove: 22, feather: 20 },
   { xMin: -12, xMax: 12, zMin: -90, zMax: -81, crownAbove: 22, feather: 20 },
   { xMin: -34, xMax: 48, zMin: -61, zMax: -55, crownAbove: 21, feather: 10 },
+  // 2026-09-24, the south exit (lane 5's expansion, the owner's "more of the video's world"): a
+  // walker who crosses the rope bridge and looks up at the log's mouth sees the forest's crowns end
+  // in a line with bare sky over it — the plaza grid stops at z 40 (ROOF_BOUNDS) and no giant reaches
+  // there, so nothing closes over the far bank. Two bands: the far bank either side of the path, and
+  // the mouth itself, both hanging at the height the south trees' crowns carry.
+  { xMin: -16, xMax: 26, zMin: 41, zMax: 54, crownAbove: 22, feather: 16 },
+  { xMin: -6, xMax: 16, zMin: 54, zMax: 62, crownAbove: 21, feather: 12 },
+  // the north grove (expansion-north, merged 22:20; the owner's "more structures along the path further
+  // down"): its shelf hamlet stands 94-112 m north at 10-12 m of elevation, and BOTH grids ended before
+  // it — the plaza's at z -70, the stand's at -96 — so a walker at the shelf lip looking up saw bare sky
+  // with a few crowns at the frame's edges (rendered first, `northgrove/` in this lane's evidence). The
+  // trail below the shelf is already under the flanks, so this is one band over the shelf and its houses.
+  { xMin: -16, xMax: 14, zMin: -112, zMax: -94, crownAbove: 20, feather: 18 },
+  // and the ravine's own airspace: the first two bands closed the far bank and the mouth but left a
+  // pale field over the gorge (z 28-41), which the plaza grid reaches (zMax 40) but no giant supports
+  // — the nearest is 14 m north of the sill. The trees on both lips already carry the lower canopy
+  // there, so this band only closes the top of it.
+  { xMin: -16, xMax: 26, zMin: 28, zMax: 41, crownAbove: 23, feather: 14 },
 ];
 /**
  * the stand pass's own grid bounds (world x / z): from the back stand to 3 m south of the rows
@@ -103,6 +135,20 @@ export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
  * never sampled and the roof stopped in a straight seam across the clearing (found by review).
  */
 export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -52 } as const;
+/**
+ * …and the south bank's own grid, sampled AFTER the north's so every north clump draws exactly what it
+ * drew before this existed. It covers the far side of the ravine and the log's mouth, the airspace the
+ * south bands above support; the plaza grid ends at z 40 and the giants do not reach, so without this
+ * the canopy simply stopped in a line over the new exit.
+ */
+export const ROOF_SOUTH_BOUNDS = { xMin: -20, xMax: 30, zMin: 27, zMax: 64 } as const;
+/**
+ * …and the grove's, sampled last so the north's and the south's clumps draw exactly what they drew
+ * before it existed. It reaches past the shelf's houses (z -101) to the hillside above them.
+ */
+export const ROOF_GROVE_BOUNDS = { xMin: -26, xMax: 26, zMin: -120, zMax: -94 } as const;
+/** the stand pass's grids, in the order it samples them */
+export const ROOF_STAND_GRIDS = [ROOF_STAND_BOUNDS, ROOF_SOUTH_BOUNDS, ROOF_GROVE_BOUNDS] as const;
 /** a stand cell whose giant support exceeds this is the plaza pass's (skipped here) */
 export const ROOF_STAND_GIANT_SKIP = 0.5;
 /**
@@ -250,6 +296,9 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       const th = Math.tan((cam.fov * Math.PI) / 360);
       const dy = halfSize / (s[2] * 2 * th);
       const dx = dy / (16 / 9);
+      // s[1] = 0 is the frame's top edge (see projector): a clump whose whole disc sits within
+      // HERO_TOP_KEEP of it is the canopy closing over the frame, not an object in it
+      if (s[1] + dy <= HERO_TOP_KEEP) continue;
       if (s[0] + dx >= -HERO_MARGIN && s[0] - dx <= 1 + HERO_MARGIN && s[1] + dy >= -HERO_MARGIN && s[1] - dy <= 1 + HERO_MARGIN) return true;
     }
     return false;
@@ -339,8 +388,6 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
   // ---- the north-stand pass (ROOF_STAND_BANDS): own stream, own grid, own sector ----
   const standDropped = { field: 0, heroFrame: 0, shaft: 0, opening: 0 };
   let standMinAbove = Infinity;
-  const snx = Math.floor((ROOF_STAND_BOUNDS.xMax - ROOF_STAND_BOUNDS.xMin) / ROOF_GRID_M);
-  const snz = Math.floor((ROOF_STAND_BOUNDS.zMax - ROOF_STAND_BOUNDS.zMin) / ROOF_GRID_M);
   if (o.stand ?? true) {
     const rs = rng.fork('roof-build-stand');
     /** support of a band at (x, z): 1 inside its rectangle, fading to 0 `feather` m outside it */
@@ -349,16 +396,21 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       const dz = Math.max(b.zMin - z, 0, z - b.zMax);
       return 1 - smoothstep(0, b.feather, Math.hypot(dx, dz));
     };
-    for (let iz = 0; iz < snz; iz++) {
-      for (let ix = 0; ix < snx; ix++) {
+    // ROOF_STAND_GRIDS: the north's rectangle first, then the south bank's, so every north clump draws
+    // exactly what it drew before the south existed
+    for (const B of ROOF_STAND_GRIDS) {
+      const snx = Math.floor((B.xMax - B.xMin) / ROOF_GRID_M);
+      const snz = Math.floor((B.zMax - B.zMin) / ROOF_GRID_M);
+      for (let iz = 0; iz < snz; iz++) {
+        for (let ix = 0; ix < snx; ix++) {
         // the same draws per cell as the plaza pass, from the stand's own stream
         const jx = rs.range(-0.45, 0.45) * ROOF_GRID_M;
         const jz = rs.range(-0.45, 0.45) * ROOF_GRID_M;
         const fieldDraw = rs();
         const cards = rs.int(ROOF_CARDS_PER_CLUMP[0], ROOF_CARDS_PER_CLUMP[1] + 1);
         const yJitter = rs.range(ROOF_BAND_M[0], ROOF_BAND_M[1]);
-        const x = ROOF_STAND_BOUNDS.xMin + (ix + 0.5) * ROOF_GRID_M + jx;
-        const z = ROOF_STAND_BOUNDS.zMin + (iz + 0.5) * ROOF_GRID_M + jz;
+        const x = B.xMin + (ix + 0.5) * ROOF_GRID_M + jx;
+        const z = B.zMin + (iz + 0.5) * ROOF_GRID_M + jz;
         const ground = ctx.terrain.height(x, z);
         // support: the stand bands only; a cell a giant covers (the north-east giant reaches the
         // rows band's east end) belongs to the plaza pass and is skipped, so the passes never stack
@@ -424,6 +476,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
         standMinAbove = Math.min(standMinAbove, y - ground);
         noteHeroDepth(p, halfSize);
         clumps.push({ x, y, z, cards, stand: true });
+        }
       }
     }
   }
@@ -529,7 +582,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
     stand: {
       clumps: standClumps,
       cards: standCards,
-      cells: o.stand ?? true ? snx * snz : 0,
+      cells: o.stand ?? true ? ROOF_STAND_GRIDS.reduce((n, B) => n + Math.floor((B.xMax - B.xMin) / ROOF_GRID_M) * Math.floor((B.zMax - B.zMin) / ROOF_GRID_M), 0) : 0,
       dropped: standDropped,
       minAboveGround: Number.isFinite(standMinAbove) ? standMinAbove : 0,
       nearestHeroM: nearestHero,
