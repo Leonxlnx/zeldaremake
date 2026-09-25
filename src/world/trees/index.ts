@@ -2132,6 +2132,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     get stats() {
       return { instances: this.instances, vertices: this.vertices, indices: this.indices, maxVertices: this.maxVertices, maxIndices: this.maxIndices };
     }
+    /** the bytes of the batch's CPU copy (every attribute's reserved array and the index) */
+    get heapBytes() {
+      const g = this.mesh.geometry;
+      return Object.values(g.attributes).reduce((b, a) => b + (a as BufferAttribute).array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
+    }
   }
   const IDENTITY_M4 = new Matrix4();
   const nearCanopyBatch = NEAR_CANOPY_BATCHED ? new NearCanopyBatch(mats.giantTreeNearCanopy) : null;
@@ -4559,6 +4564,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         /** vertices and buffer bytes (position, colour, uv, wind, root, normal + the index) of the parts in the pool now */
         residentVertices: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? (nc.mesh ? nc.mesh.geometry.getAttribute('position').count : nc.vertices) : 0), 0),
         residentBytes: nearCanopyPool.poolBytes,
+        /** round 54: the giants' parts' batch — its instances and the buffers it holds (reserved, in vertices / indices) with the heap those buffers take */
+        batch: nearCanopyBatch ? { ...nearCanopyBatch.stats, heapBytes: nearCanopyBatch.heapBytes } : null,
         /** Measured bytes after a first build; deferred records retain conservative estimates. */
         builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
         estimatedUnbuiltBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? 0 : nc.item.bytes), 0),
