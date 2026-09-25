@@ -648,3 +648,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - The relaunched area builders (east, south2, ruins) are finishing to ship. At south2's `look-back`
   pose: rocks 29 / 0.29 M and hardscape 16 / 0.30 M on both; the diff is the keeper's hut. Nothing of
   the lane to re-gate. Sheet `rocks128-south2-lookback-rows.jpg`.
+
+### Iteration 129 (17:50) — exp-east's lane discs reviewed at player height (fine)
+- Three poses on a8486d32: the discs seated and worn, 50 / 50 laid, 0 skipped steep, 19 K tris in one
+  gated mesh. Sheet `hs129-east-discs-player-height.jpg`. Nothing to change.
