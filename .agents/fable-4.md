@@ -534,3 +534,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 12:55 — trees `cpuArrays` audit line (9e7b1a78): batch off 219 MB of arrays at A (giants 134, columns 52,
   white-barks 32 — never-drawn meshes), on 312 MB. fable-2's warm-up pass would free ~200 MB in the trees; against a warmed
   head the batch costs its whole copy (~200 / ~100 MB). Recommendation posted: keep the batch while draws are the binding cap.
+- 2026-09-25 13:40 — #127 (trees cpuArrays) merged 12:55. squad2's lookbacks: white-barks cheap (76/73 K), trees +0.17 M of the
+  +2.19 M. Answered their giants-shadow question (hooks not called in the depth pass; a shadow-only low mesh per giant is the
+  lever, a look call) and asked lane 3 for a 4-line USE_BATCHING hook in materials.ts to batch the columns' lobes too.
