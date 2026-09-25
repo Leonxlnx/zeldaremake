@@ -10,10 +10,14 @@
 //  - rock: inside the cliff, the ivy rock or the slab bridge (a ray east crosses the built surface an
 //    odd number of times), or nearer that surface than the near plane (0.08 m);
 //  - masonry: in a solid cell of cameraSolid.ts's grid as written (its core — the terrace's faces, the
-//    wall, the parapets, the arch's ring, the lintel, the piers, the gate boulders);
+//    wall, the parapets, the arch's ring, the lintel, the piers, the gate boulders); the cells are
+//    0.25 m, so each such camera is also measured against the masonry as built (the stone, tile and
+//    carving triangles): its distance to the nearest face and which side of that face it is on —
+//    `insideMasonry` behind it, `nearMasonry` in front of it but nearer than the near plane;
 //  - ground: under the character ground (the walked tops included) or the terrain;
 //  - water: under the pool's surface where the ground is under it;
-//  - sight: the line from the camera to Link's chest crosses the rock or a masonry cell (he is hidden).
+//  - sight: the line from the camera to Link's chest crosses the rock or a masonry cell (he is hidden),
+//    not counting its first and last 0.3 m (the camera's own clearance is the tests above).
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -123,8 +127,43 @@ const rockClearance = (p) => {
   }
   return best;
 };
+// the masonry as built, in 0.5 m cells, for the flagged cameras' true clearance
+const built = new Map();
+for (const g of [masonry.stone.build(), masonry.tiles.build(), masonry.carving.build()]) {
+  const pos = g.getAttribute('position');
+  const idx = g.getIndex();
+  const n = idx ? idx.count : pos.count;
+  for (let i = 0; i < n; i += 3) {
+    const t = [0, 1, 2].map((j) => new THREE.Vector3().fromBufferAttribute(pos, idx ? idx.getX(i + j) : i + j));
+    const lo = t[0].clone().min(t[1]).min(t[2]);
+    const hi = t[0].clone().max(t[1]).max(t[2]);
+    for (let x = cell(lo.x); x <= cell(hi.x); x++) for (let y = cell(lo.y); y <= cell(hi.y); y++) for (let z = cell(lo.z); z <= cell(hi.z); z++) put(built, `${x},${y},${z}`, t);
+  }
+}
+const faceN = new THREE.Vector3();
+/** the distance to the nearest built masonry face within a cell (C) and whether the point is in front of it */
+const masonryClearance = (p) => {
+  let best = C;
+  let front = true;
+  for (let x = cell(p.x) - 1; x <= cell(p.x) + 1; x++) {
+    for (let y = cell(p.y) - 1; y <= cell(p.y) + 1; y++) {
+      for (let z = cell(p.z) - 1; z <= cell(p.z) + 1; z++) {
+        for (const t of built.get(`${x},${y},${z}`) ?? []) {
+          tri.set(t[0], t[1], t[2]);
+          const d = tri.closestPointToPoint(p, near).distanceTo(p);
+          if (d < best) {
+            best = d;
+            front = tri.getNormal(faceN).dot(p.clone().sub(near)) >= 0;
+          }
+        }
+      }
+    }
+  }
+  return { d: best, front };
+};
 const NEAR = 0.08;
 const AIM = 1.5;
+const SIGHT_SKIP = 0.3;
 
 /** [camera, link] pairs: the routes' frames in the ruins' boxes (west of the village's edge) and the swung views */
 const sources = [];
@@ -136,9 +175,10 @@ if (play.ruinsCamera) sources.push({ name: 'ruinsCamera (swung views)', samples:
 
 const report = [];
 for (const s of sources) {
-  const bad = { insideRock: [], nearRock: [], masonry: [], underGround: [], underWater: [], hidden: [] };
+  const bad = { insideRock: [], nearRock: [], masonry: [], insideMasonry: [], nearMasonry: [], underGround: [], underWater: [], hidden: [] };
   let minRock = Infinity;
   let minGround = Infinity;
+  let minMasonry = Infinity;
   for (const smp of s.samples) {
     const p = new THREE.Vector3(...smp.cam);
     const where = smp.spot ?? `cam (${smp.cam.map((v) => v.toFixed(2)).join(', ')})`;
@@ -147,28 +187,34 @@ for (const s of sources) {
     if (inside) bad.insideRock.push(where);
     else if (clear < NEAR) bad.nearRock.push(`${where} ${clear.toFixed(3)} m`);
     if (!inside) minRock = Math.min(minRock, clear);
-    if (grid.hasCorePoint(p.x, p.y, p.z)) bad.masonry.push(where);
+    if (grid.hasCorePoint(p.x, p.y, p.z)) {
+      const m = masonryClearance(p);
+      bad.masonry.push(`${where} ${m.front ? '' : 'behind '}${m.d.toFixed(3)} m`);
+      if (!m.front) bad.insideMasonry.push(`${where} ${m.d.toFixed(3)} m`);
+      else if (m.d < NEAR) bad.nearMasonry.push(`${where} ${m.d.toFixed(3)} m`);
+      if (m.front) minMasonry = Math.min(minMasonry, m.d);
+    }
     const g = Math.max(walker.height(p.x, p.z), terrain.height(p.x, p.z));
     minGround = Math.min(minGround, p.y - g);
     if (p.y < g + NEAR) bad.underGround.push(`${where} ${(p.y - g).toFixed(3)} m`);
     if (terrain.height(p.x, p.z) < R.pool.water && p.y < R.pool.water + 0.02) bad.underWater.push(where);
-    // the sight line to his chest, every 5 cm, not counting the last 0.3 m round him
+    // the sight line to his chest, every 5 cm, not counting the first and last 0.3 m
     const aim = new THREE.Vector3(smp.link[0], smp.link[1] + AIM, smp.link[2]);
     const len = p.distanceTo(aim);
     let blocked = false;
-    for (let d = 0.05; d < len - 0.3 && !blocked; d += 0.05) {
+    for (let d = SIGHT_SKIP; d < len - SIGHT_SKIP && !blocked; d += 0.05) {
       const q = p.clone().lerp(aim, d / len);
       if (grid.hasCorePoint(q.x, q.y, q.z) || insideRock(q)) blocked = true;
     }
     if (blocked) bad.hidden.push(where);
   }
-  const row = { source: s.name, samples: s.samples.length, minRockClearanceM: +minRock.toFixed(3), minOverGroundM: +minGround.toFixed(3) };
+  const row = { source: s.name, samples: s.samples.length, minRockClearanceM: +minRock.toFixed(3), minOverGroundM: +minGround.toFixed(3), flaggedMinMasonryClearanceM: Number.isFinite(minMasonry) ? +minMasonry.toFixed(3) : null };
   for (const [k, v] of Object.entries(bad)) row[k] = { n: v.length, first: v.slice(0, 4) };
   report.push(row);
 }
 for (const r of play.walk ?? []) {
   const c = r.camera;
-  report.push({ route: r.name, reached: r.reached, waypoints: `${r.waypointsReached}/${r.of}`, stuck: r.stuck.length, lengthM: r.lengthM, minCameraAboveGroundM: r.minCameraAboveGroundM, accelP95: c?.accelMps2.p95, accelMax: c?.accelMps2.max, worstJumpM: c?.spikes?.[0]?.jumpM ?? 0, spikesOver100: c?.spikes?.length ?? 0 });
+  report.push({ route: r.name, reached: r.reached, waypoints: `${r.waypointsReached}/${r.of}`, stuck: r.stuck.length, lengthM: r.lengthM, minCameraAboveGroundM: r.minCameraAboveGroundM, accelP95: c?.accelMps2.p95, accelMax: c?.accelMps2.max, worstJumpM: Math.max(0, ...(c?.spikes ?? []).map((s) => s.jumpM)), spikesOver100: c?.spikes?.length ?? 0 });
 }
 if (play.ruinsProbes) report.push({ probes: `${play.ruinsProbes.rows.length - play.ruinsProbes.failed}/${play.ruinsProbes.rows.length}`, failed: play.ruinsProbes.rows.filter((r) => !r.ok), wade: play.ruinsProbes.wade });
 console.log(JSON.stringify(report, null, 1));
