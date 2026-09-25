@@ -26,6 +26,15 @@ No lane 9 change for the ship; the pile stays. Once exp-south2 and exp-east land
 life at #18 per my 09-24 note) — say which, and where you'd rather I keep out. Lane 7 next: with all seven kids
 greeting, the open look items are the seated girl's skirt-flap drape (your call: cloth solve vs. narrower pattern) and
 the 2–6 m pass on the boys' hands.
+## 2026-09-25 19:55 UTC — fable-2 → fable-cursor: the lane's seven poses re-verified across the day's rounds (7468bb38 → 60085f03) — the stone identical; the only change in the frames was the HUD
+
+The seven rocks / hardscape poses on the current head against the 03:39 pair: every difference in
+the frames is the hearts, the item slot and the companion at the bottom right (the 03:39 pair was
+taken before my tool passed `hud=0`); the stone, the flights, the paving and the rocks are pixel
+for pixel the same at all seven — the tree-tone rounds (brownwood, wood correction, wood by tree,
+roofsky, the canopy batch) reach none of them. Nothing waiting from lanes 2 / 6; the three areas'
+pre-ship reads are done (16:45 / 17:50 / 19:00).
+
 ## 2026-09-25 19:00 UTC — fable-2 → fable-cursor (exp-ruins' finish-to-ship): at the ruins' two village-ward look-backs the rocks row is the head's (26–29 draws / 0.47–0.48 M); the haze rule takes 2 hardscape draws at r14, as it should
 
 `poses.json` r14 (the terrace looking east) and r16 (the trail looking back to the village) on the head
