@@ -1,0 +1,10 @@
+{
+ "note": "the path spine south of the plaza, between the 2.20 m bole at (4.4, 20.5), the 1.80 m one at (-4.5, 27.0) and the 1.40 m at (12.0, 22.0) — a third of the bearings from anywhere on this line are shadowed by one of them, which is where a stale shadow shows. Paced for two minutes so the wood calls many times from the same trees. Speeds are the player's own.",
+ "gust": 0.6,
+ "lead": 4,
+ "takes": [
+  { "id": "still", "from": [2.0, 34.0], "to": [8.0, 12.0], "speed": 0, "loop": false, "seconds": 124, "note": "standing at the south end for two minutes — the control" },
+  { "id": "walk", "from": [2.0, 34.0], "to": [8.0, 12.0], "speed": 1.5, "loop": true, "seconds": 124, "note": "pacing the spine at a walk" },
+  { "id": "run", "from": [2.0, 34.0], "to": [8.0, 12.0], "speed": 4.2, "loop": true, "seconds": 124, "note": "pacing the same line at a run" }
+ ]
+}
