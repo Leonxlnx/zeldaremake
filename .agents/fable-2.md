@@ -576,3 +576,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   once exp-south2's field has a landform. Checked the split-tread "slot" at x-stairs-3rd-tread: the
   joint gap (2–4 cm) and a 2 cm nose offset between halves — realistic, not a defect (topY / ts are
   per tread, both halves flush).
+
+### Iteration 116 (04:50) — the 02:55 merge round re-verified at the seven poses (all 1.0000)
+- VM reset at 03:35: /tmp gone (tools, baselines), node_modules gone; `npm ci`, tools rebuilt under
+  `/cursor/stores/self/tools` (pose.mjs over the gauntlet's browser lib, ssim-dirs.mjs, the pose files).
+- 5f8a6738 → 7468bb38 at rv79's seven poses: SSIM 1.0000 each; ≤ 235 px over 8. Sheet
+  `rocks116-reverify-0255-round.jpg`.
