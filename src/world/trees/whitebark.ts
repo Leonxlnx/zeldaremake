@@ -418,9 +418,17 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way.
     // Round 51 (W38 again, A at 8.80 M with 200 K under the ceiling): one in 8 / 16 at 2.53 / 3.67 ×
     // (the same 0.8) — a quarter fewer distance laminae, 5–13 px at 20–44 m; the low boughs keep
-    // their 2 / 4 (they are the part of the tree in frame C)
-    mediumEvery: boughSpray ? 2 : 8,
-    mediumScale: boughSpray ? 1.3 : 2.53,
+    // their 2 / 4 (they are the part of the tree in frame C).
+    // Round 54 (fable-4, after squad2's lodcheck and the understory's medium): the MEDIUM crown back
+    // to one in 4 at 1.8 × — at 28–44 m the 1-in-8 crown read as a few big laminae that quadrupled
+    // and shrank as a walker crossed the 28 m rung (the owner's "trees only get detailed up close",
+    // measured at a north-path pose with a white-bark 30 m ahead: the medium→high gap halves, from
+    // 1.05 to 0.72 blurred levels in the crown box against 0.66 for 1 in 2). Priced on the six views
+    // A +16 K, B / E +20 K, C +55 K, D +25 K, F +39 K, draws unchanged, against A's 130 K of room;
+    // 1 in 2 at 1.3 × cost three times that for a third more. The LOW mesh keeps 1 in 16 at 3.67 ×
+    // (art/environment/round54-whitebark-medium).
+    mediumEvery: boughSpray ? 2 : 4,
+    mediumScale: boughSpray ? 1.3 : 1.8,
     lowEvery: boughSpray ? 4 : 16,
     lowScale: boughSpray ? 2.0 : 3.67,
   });
