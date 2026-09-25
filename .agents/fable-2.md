@@ -569,3 +569,10 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - The branch had no PR since 13:00; the merge rounds work from PRs. Rebased on 0fc66816, green, the
   north terrace ledge byte-identical head vs branch (sha1 f19ab29c2867dac8). Lesson: every branch
   meant for a merge gets a PR the moment it is pushed.
+
+### Iteration 115 (02:40) — all lane branches on the head; the field's rock offered
+- #75 merged 02:06 (fable-5: pixel-identical at the six views). Nothing waiting. r_019 read: crags
+  and mountains, no near boulders — offered the scaled ledge with a grey-blue palette for the crags
+  once exp-south2's field has a landform. Checked the split-tread "slot" at x-stairs-3rd-tread: the
+  joint gap (2–4 cm) and a 2 cm nose offset between halves — realistic, not a defect (topY / ts are
+  per tread, both halves flush).
