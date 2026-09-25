@@ -32,8 +32,9 @@
  * (kokiri-b, darker tunic and hair), 2 = the boy at Saria's door (round 1's build on the lane-7
  * canvases, bob and band — `buildBoy`), 3 = the
  * girl on the raised ledge (kokiri-ledge, ref-04), 4 = the girl on the south bank (round 50,
- * `NPC_SOUTH_BANK`). Every material is cached per look so the per-joint merge (consolidate.ts)
- * keeps a kid at ~23 meshes.
+ * `NPC_SOUTH_BANK`), 5 = the girl at the north grove's washing line (lane 7, her own look 4), 6 = the
+ * boy at the stilt house's veranda rail (lane 7; the door boy's look and materials, his own hem seed).
+ * Every material is cached per look so the per-joint merge (consolidate.ts) keeps a kid at ~23 meshes.
  */
 import {
   BoxGeometry,
@@ -121,7 +122,9 @@ const BOY_TUNIC = 0x2f3320;
 /** the boy's hair: the palette's kid brown, a shade deeper under the lock canvas's lighter cores */
 const BOY_HAIR = 0x6b4630;
 
-/** the girl look index for a variant (the boy, variant 2, has none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl, 4 the grove girl */
+/** the variants built as the boy (`buildBoy`): the door boy and the veranda boy */
+const BOY_VARIANTS = new Set([2, 6]);
+/** the girl look index for a variant (the boys, variants 2 and 6, have none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl, 4 the grove girl */
 const girlLook = (variant: number) => (variant === 3 ? 2 : variant === 4 ? 3 : variant === 5 ? 4 : variant % 2);
 
 const mats = new Map<string, MeshStandardMaterial>();
@@ -982,7 +985,7 @@ function beltMaterial(): MeshStandardMaterial {
  */
 function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   const p = rig.props;
-  const tunic = clothMaterial(`boy-${variant}`, BOY_TUNIC);
+  const tunic = clothMaterial('boy', BOY_TUNIC);
   buildArms(rig, { skin, sleeve: null });
   buildThumbs(rig, skin);
   const hl = (y: number) => y - p.hipY;
@@ -1039,8 +1042,8 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   ]);
   part(rig.hips, rope, ropeMaterial(), 'kid-rope-belt', false);
   buildFace(rig, { skin, iris: matte('irisKid', { roughness: 0.3 }), earLength: 0.07 });
-  buildGirlHair(rig, hairMaterial(`boy-${variant}`, BOY_HAIR), false);
-  buildGirlHeadband(rig, kidMat(`band-boy-${variant}`, CHAR_COLORS.kidHeadband));
+  buildGirlHair(rig, hairMaterial('boy', BOY_HAIR), false);
+  buildGirlHeadband(rig, kidMat('band-boy', CHAR_COLORS.kidHeadband));
   part(rig.hips, place(new BoxGeometry(0.05, 0.05, 0.03), -0.09, hl(0.52), 0.04, [0, 0.4, 0]), matte('leatherDark'), 'kid-pouch', false);
   // a Deku Stick held in the right hand like a staff (butt near the ground)
   const handY = -p.forearm - 0.02;
@@ -1062,7 +1065,7 @@ export function createKokiri(variant: number): Character {
   const rig = buildRig(KOKIRI_CHILD_PROPORTIONS, `kokiri-${variant}`);
   rig.head.scale.setScalar(HEAD_SCALE);
   const p = rig.props;
-  const girl = variant !== 2;
+  const girl = !BOY_VARIANTS.has(variant);
   const look = girlLook(variant);
   const skin = girl ? girlSkin(look) : rampedSkin('boy', BOY_SKIN);
   const boot = kidMat('boot', girl ? KID.boot : CHAR_COLORS.kidBoot);

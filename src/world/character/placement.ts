@@ -264,3 +264,11 @@ export const NPC_SOUTH_BANK: NpcStand = { id: 'kokiri-south-bank', x: -18.721, z
  * chopping block and the woodpile. Lane 7's first person in the hamlet.
  */
 export const NPC_GROVE_YARD: NpcStand = { id: 'kokiri-grove-yard', x: 2.6, z: -101.5, lookAt: [2.0, -102.6] };
+/**
+ * The stilt house's veranda (exp-north): a boy at the rail, 0.32 m inside the deck's rim (`VERANDA_R` 2.65 about the
+ * host (12, −91.5)) at azimuth −95° — on the arc the play route never walks (it goes door −118.6° → ±180° → the rope
+ * walk at 37°), clear of the door, the ladder head (−18°) and the rope stub. He stands turned along the rail toward the
+ * yard, watching the girl at the washing line 12 m below and away. The deck is a published walk surface, so
+ * `ground.height` puts his soles on the boards (11.6 m up), not the slope under them. Lane 7's second person in the hamlet.
+ */
+export const NPC_GROVE_VERANDA: NpcStand = { id: 'kokiri-grove-veranda', x: 9.68, z: -91.7, lookAt: [2.6, -101.5] };
