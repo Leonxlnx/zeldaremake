@@ -158,7 +158,8 @@
   "toward": [
    5.12,
    25.95
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "D2",
@@ -170,7 +171,8 @@
   "toward": [
    3.197,
    26.501
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "D3",
@@ -182,7 +184,8 @@
   "toward": [
    5.426,
    32.195
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "D4",
@@ -194,7 +197,8 @@
   "toward": [
    7.95,
    33.372
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "D5",
@@ -206,7 +210,8 @@
   "toward": [
    3.9,
    36
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "D6",
@@ -218,7 +223,125 @@
   "toward": [
    8.402,
    32.993
-  ]
+  ],
+  "ab": false
+ },
+ {
+  "name": "K-across",
+  "note": "the keeper's hut across the gorge from the far bank, 12.5 m",
+  "eye": [
+   5.3,
+   44.3,
+   1.6
+  ],
+  "look": [
+   7.1,
+   31.9,
+   1.25,
+   5.591,
+   30.588
+  ],
+  "ab": false
+ },
+ {
+  "name": "K-gallery",
+  "note": "on the gallery at 155 deg, along the boards over the gorge",
+  "eye": [
+   5.514,
+   32.64,
+   1.6
+  ],
+  "look": [
+   6.939,
+   33.743,
+   0.35,
+   5.514,
+   32.64
+  ],
+  "ab": false
+ },
+ {
+  "name": "K-up",
+  "note": "on the gallery at 200 deg, looking up 58 deg at the mast and the beacon",
+  "eye": [
+   5.456,
+   31.301,
+   1.5
+  ],
+  "look": [
+   7.01,
+   32.73,
+   4.87,
+   5.456,
+   31.301
+  ],
+  "ab": false
+ },
+ {
+  "name": "K-down",
+  "note": "from the path at the bridge head, looking down 25 deg onto the gallery",
+  "eye": [
+   3.3,
+   29.2,
+   1.7
+  ],
+  "look": [
+   5.455,
+   32.85,
+   0.1
+  ],
+  "ab": false
+ },
+ {
+  "name": "W-front",
+  "note": "the waystation from 3.2 m in front",
+  "eye": [
+   2.044,
+   26.832,
+   1.6
+  ],
+  "look": [
+   5.12,
+   25.95,
+   1,
+   4.832,
+   26.033
+  ],
+  "ab": false
+ },
+ {
+  "name": "W-root",
+  "note": "the root post and the plate's lashing at its elbow, 1.5 m",
+  "eye": [
+   2.756,
+   24.963,
+   1.6
+  ],
+  "look": [
+   4.3,
+   25.3,
+   1.7,
+   4.832,
+   26.033
+  ],
+  "ab": false
+ },
+ {
+  "name": "W-roof",
+  "note": "the roof's front rim from the path, looking up",
+  "eye": [
+   3.033,
+   27.381,
+   1.3
+  ],
+  "look": [
+   4.791,
+   26.253,
+   1.9,
+   4.832,
+   26.033
+  ],
+  "ab": false
  },
  {
   "name": "X1",

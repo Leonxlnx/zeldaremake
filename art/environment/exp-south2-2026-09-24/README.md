@@ -80,9 +80,15 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   4.9 m over the deck, lights nothing).
 - By the north wall: 15 split logs in three rows between two stakes under the eave, and a chopping block (a log round
   with a checked, dished top) with a billet leaning on it, moss at its foot on the shaded side.
-- The follow camera: the wall is an exact camera cylinder (radius 1.29 m, `5b8dde39`; grown by one voxel it had
-  reached 1.93 m on the diagonals, over the gallery, and pinned the camera), and walking round the gallery the camera
-  swings off the wall instead of snapping in (`066144ad`, `collision.ts` `wallSwing`).
+- The follow camera: the hut's wall is one of canonical's camera walls (`ctx.shared.cameraSolids.walls`, a
+  `CameraWall` of radius 1.29 m from the gallery's boards to the wall's top). The voxel grid leaves the wall out
+  (grown by one voxel it had reached 1.93 m on the diagonals, over the gallery, and pinned the camera), and
+  canonical's round-wall collision and ring trailing (`camera/follow.ts`) carry the camera round the gallery. Since
+  the merge `77ed21f9` the lane's own camera cylinders and `wallSwing` (`5b8dde39`, `066144ad`) are gone and
+  canonical's camera code is untouched. `follow.test.mjs` walks Link round the gallery as the play-test steers him,
+  both ways: at 1.6 and 3 m/s the camera stays 4.37–4.51 m from him with pops of 0.085–0.103 m; running at 4.6 m/s
+  it eases in to 1.40–1.65 m ahead of the wall (pops 0.135–0.168 m). In all six walks every waypoint is reached,
+  the camera stays 2.02 m or more from the hut's axis, and the wall is never between it and Link.
 - 59,446 triangles (its rope work 21,152 of them).
 
 ### The waystation: centre (5.12, 25.95), facing −74° (open to the path), floor y 0.22

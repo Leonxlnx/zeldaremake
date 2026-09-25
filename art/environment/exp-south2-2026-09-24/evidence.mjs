@@ -7,7 +7,7 @@
  *   node art/environment/exp-south2-2026-09-24/evidence.mjs --sheet /tmp/e/png --names a,b,c --cols 3 --sheet-out sheet.jpg [--labels "x|y|z"]
  *
  * --play     play mode (`?test=1`). Poses with a `player` placement ([x, z] facing `toward`): Link
- *            placed at rest, 45 frames simulated, 4 drawn, then the renderer's counts (Link drawn,
+ *            placed at rest, 45 frames simulated, 3 drawn, then the renderer's counts (Link drawn,
  *            shadow pass included) with the far-bank LOD on, and with `--ab` off and on again
  *            (`globalThis.__KF_FARBANK_OFF__`, util/farBankLocality.ts); the follow camera's pose is
  *            written back as the pose's `from` (`out/poses.resolved.json`). Poses with `eye` / `look`
@@ -37,8 +37,8 @@ const args = Object.fromEntries(
   process.argv.slice(2).map((a, i, all) => (a.startsWith('--') ? [a.slice(2), all[i + 1]?.startsWith('--') || all[i + 1] === undefined ? true : all[i + 1]] : [])).filter((e) => e.length),
 );
 const [W, H] = String(args.size ?? '960x540').split('x').map(Number);
-const SETTLE = Number(args.settle ?? 8);
-const DRAW_EVERY = Number(args['draw-every'] ?? 15);
+const SETTLE = Number(args.settle ?? 6);
+const DRAW_EVERY = Number(args['draw-every'] ?? 24);
 const DT = 1 / 30;
 const log = (...m) => console.error(`[south2 ${new Date().toISOString().slice(11, 19)}]`, ...m);
 
@@ -157,7 +157,7 @@ async function openPlay(browser, url) {
 const ground = (page, x, z) => page.evaluate(([x, z]) => window.__ZR_PLAY__.ground(x, z), [x, z]);
 const counts = (st) => ({ draws: st.render.calls, triangles: st.render.triangles });
 
-async function playPoses(page, poses, result) {
+async function playPoses(page, poses, result, out) {
   const resolved = [];
   for (const p of poses) {
     const r = { ...p };
@@ -176,13 +176,14 @@ async function playPoses(page, poses, result) {
       await page.evaluate(([n, dt]) => window.__ZR_PLAY__.step(n, dt, false), [45, DT]);
       const read = async (off) => {
         await page.evaluate((off) => (globalThis.__KF_FARBANK_OFF__ = off ? true : undefined), off);
-        await page.evaluate(([n, dt]) => window.__ZR_PLAY__.step(n, dt, true), [4, DT]);
+        await page.evaluate(([n, dt]) => window.__ZR_PLAY__.step(n, dt, true), [3, DT]);
         return page.evaluate(() => window.__ZR_PLAY__.state());
       };
       const on = await read(false);
+      fs.writeFileSync(path.join(out, 'png', `play-${p.name}.png`), await page.screenshot({ type: 'png' }));
       const c = on.camera;
       const row = { name: p.name, link: on.link.map((v) => +v.toFixed(3)), air: on.air, camera: c.position.map((v) => +v.toFixed(3)), cameraInZone: inFarBankZone(...c.position), on: counts(on) };
-      if (args.ab) {
+      if (args.ab && p.ab !== false) {
         row.off = counts(await read(true));
         row.again = counts(await read(false));
       }
@@ -254,7 +255,7 @@ async function walk(page, name, points, maxFrames) {
             const drawn = drawFirst && i === 0;
             P.step(1, dt, drawn);
             const s = P.state();
-            out.push({ link: s.link, air: s.air, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, drawn, calls: drawn ? s.render.calls : null, triangles: drawn ? s.render.triangles : null });
+            out.push({ link: s.link, air: s.air, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet, slimPush: s.follow?.slimPush ?? 0, drawn, calls: drawn ? s.render.calls : null, triangles: drawn ? s.render.triangles : null });
           }
           return out;
         },
@@ -282,6 +283,30 @@ async function walks(page, result) {
       if (hit) (inside[hit] ??= []).push({ cam: r.cam.map((v) => +v.toFixed(2)), link: r.link.map((v) => +v.toFixed(2)) });
       minAbove = Math.min(minAbove, r.cam[1] - r.camGround);
     }
+    // the camera's pop (the change of its per-frame step, as walls.test.mjs measures it) and its largest
+    // one-frame move, after the first 15 frames' snap; the boots' largest gap over the surface in stance
+    const r2 = (v) => v.map((x) => +x.toFixed(2));
+    let pop = { m: 0 };
+    let jump = { m: 0 };
+    for (let i = 15; i < w.rows.length; i++) {
+      const [a, b, c] = [w.rows[i - 2].cam, w.rows[i - 1].cam, w.rows[i].cam];
+      const p = Math.hypot(c[0] - 2 * b[0] + a[0], c[1] - 2 * b[1] + a[1], c[2] - 2 * b[2] + a[2]);
+      const j = Math.hypot(c[0] - b[0], c[1] - b[1], c[2] - b[2]);
+      if (p > pop.m) pop = { m: +p.toFixed(3), link: r2(w.rows[i].link), cam: r2(c), slimPush: +w.rows[i].slimPush.toFixed(3) };
+      if (j > jump.m) jump = { m: +j.toFixed(3), link: r2(w.rows[i].link), cam: r2(c), slimPush: +w.rows[i].slimPush.toFixed(3) };
+    }
+    let foot = { gapM: 0 };
+    const gaps = [];
+    for (const r of w.rows) for (const f of r.feet ?? []) {
+      if (!f.stance) continue;
+      gaps.push(Math.abs(f.gapM));
+      if (Math.abs(f.gapM) > foot.gapM) foot = { gapM: +Math.abs(f.gapM).toFixed(3), link: r2(r.link), air: +r.air.toFixed(3) };
+    }
+    gaps.sort((p, q) => p - q);
+    const footOver = (t) => {
+      const at = w.rows.filter((r) => (r.feet ?? []).some((f) => f.stance && Math.abs(f.gapM) > t)).map((r) => r2(r.link));
+      return { frames: at.length, first: at.slice(0, 12) };
+    };
     // Link's height and the footsteps: every third frame's position, the character's ground there
     const trace = w.rows.filter((_, i) => i % 3 === 0).map((r) => r.link);
     const grounds = await page.evaluate((pts) => pts.map(([x, , z]) => window.__ZR_PLAY__.ground(x, z)), trace);
@@ -317,6 +342,9 @@ async function walks(page, result) {
       lowestGroundY: +lowest.toFixed(2),
       maxAirM: +Math.max(...w.rows.map((r) => r.air)).toFixed(3),
       minCameraAboveGroundM: +minAbove.toFixed(3),
+      cameraPop: pop,
+      cameraJump: jump,
+      soleGap: gaps.length ? { p50: +gaps[Math.floor(gaps.length / 2)].toFixed(4), p95: +gaps[Math.floor(gaps.length * 0.95)].toFixed(4), worst: foot, framesOver10cm: footOver(0.1) } : null,
       cameraInside: Object.fromEntries(Object.entries(inside).map(([k, v]) => [k, { frames: v.length, first: v.slice(0, 3) }])),
       drawnFrames: drawn.length,
       maxDraws: worst ? { draws: worst.calls, triangles: worst.triangles, link: worst.link.map((v) => +v.toFixed(2)), cam: worst.cam.map((v) => +v.toFixed(2)), inZone: inFarBankZone(...worst.cam) } : null,
@@ -379,6 +407,11 @@ async function exitStats(png, from) {
 async function capture(browser, url, poses, result, out) {
   const { page } = await openWorld(browser, url, { width: W, height: H, log });
   const canvas = await page.$('canvas');
+  result.audit = await page.evaluate(() => {
+    const a = window.__ZR__.audit();
+    const s = a.systems.structures ?? {};
+    return { south: s.south, southDwellings: s.southDwellings, farBank: s.farBank, systemFailures: a.systemFailures };
+  });
   const heroes = args.heroes ? await page.evaluate(() => window.__ZR__.viewpoints().filter((v) => !v.diagnostic).map((v) => v.id)) : [];
   const only = typeof args.only === 'string' ? new Set(args.only.split(',')) : null;
   const shots = [...heroes.map((id) => ({ name: id, viewpoint: id })), ...poses.filter((p) => p.from && (!only || only.has(p.name)))];
@@ -398,7 +431,7 @@ async function capture(browser, url, poses, result, out) {
     fs.writeFileSync(path.join(out, 'png', `${s.name}.png`), on.png);
     const pose = s.viewpoint ?? s.from;
     const row = { name: s.name, pose, cameraInZone: s.viewpoint ? false : inFarBankZone(...s.from.p), on: { draws: on.draws, triangles: on.triangles } };
-    if (args.ab && !s.viewpoint) {
+    if (args.ab && !s.viewpoint && s.ab !== false) {
       const off = await read(true);
       const again = await read(false);
       row.off = { draws: off.draws, triangles: off.triangles };
@@ -502,7 +535,7 @@ else {
     if (args.play || args.walks) {
       const page = await openPlay(browser, server.url);
       if (args.play) {
-        poses = await playPoses(page, poses, result);
+        poses = await playPoses(page, poses, result, out);
         fs.writeFileSync(path.join(out, 'poses.resolved.json'), JSON.stringify(poses, null, 1));
       }
       fs.writeFileSync(path.join(out, 'evidence.json'), JSON.stringify(result, null, 1));
