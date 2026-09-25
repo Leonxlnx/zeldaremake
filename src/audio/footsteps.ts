@@ -76,6 +76,8 @@ export interface StepDrive {
   onStairs: boolean;
   /** the gait's stance flag per boot when the character system publishes it (`feetContact`) */
   stance?: readonly boolean[];
+  /** how enclosed the space is (`surfaceAt`): 0 outdoors, 0.7 in a hut, 1 in the log bore */
+  enclosure?: number;
 }
 
 export interface Footsteps {
@@ -84,9 +86,9 @@ export interface Footsteps {
   /** integrate the player's motion; `t` is the context time the step would sound at */
   drive(t: number, dt: number, d: StepDrive): void;
   /** both boots shoving off as he leaves the ground at `speed` m/s */
-  pushOff(t: number, surface: Surface, speed: number): void;
+  pushOff(t: number, surface: Surface, speed: number, enclosure?: number): void;
   /** both boots arriving at once after a fall of `fallM` metres */
-  land(t: number, surface: Surface, fallM: number): void;
+  land(t: number, surface: Surface, fallM: number, enclosure?: number): void;
   /** what has been heard so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
   stats(): FootstepStats;
   dispose(): void;
@@ -396,7 +398,26 @@ export function designPushOff(surface: Surface, strength: number, rnd: () => num
   return { parts, reverb: base.reverb * 0.75, end: Math.max(base.end, 0.4) };
 }
 
-export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Footsteps {
+/**
+ * How much of a step the room gets back, at full enclosure.
+ *
+ * `surfaceAt` knows he is indoors — the huts are walkable rooms, and inside one the bed is filtered
+ * and ducked (`art/audio/2026-09-24-indoors/`). His boots were not told. Rendering the steps stem
+ * with the space term forced to 0, to a hut's 0.7 and to the bore's 1 gave three files that differ
+ * only at the renderer's own least-significant bit, about 115 dB under the signal: **a step indoors
+ * was the same sound as a step in the open**, on the one surface — planks — a player is most likely
+ * to be standing on inside a small wooden box.
+ *
+ * The space itself is `buses.room` (see `graph.ts` for why it is not the hall, and for what the
+ * first attempt at it got wrong). This is only the send, and it scales with `enclosure`, so a hut's
+ * 0.7 gets 0.7 of it and the doorway fades the room out as he walks through it rather than
+ * switching it off at the wall line.
+ */
+export const ROOM_SEND = 0.85;
+/** below this there is no room worth building a send for, and a step outdoors costs what it did */
+export const ROOM_MIN = 0.02;
+
+export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence
   const noise = noiseBuffer(ctx, rng.fork('steps'), 5.3);
@@ -404,13 +425,19 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   const stepRng = rng.fork('stepjitter');
 
   /** render one designed step at context time `t`, panned toward the boot that landed */
-  const play = (design: StepDesign, t: number, pan: number) => {
+  const play = (design: StepDesign, t: number, pan: number, enclosure = 0) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     panner.connect(out);
     const send = gain(ctx, design.reverb);
     panner.connect(send).connect(reverbSend);
     const nodes: AudioNode[] = [panner, send];
+    // the walls answering. Nothing is built in the open, so a step outdoors costs exactly what it did.
+    if (roomSend && enclosure > ROOM_MIN) {
+      const r = gain(ctx, ROOM_SEND * enclosure);
+      panner.connect(r).connect(roomSend);
+      nodes.push(r);
+    }
     const taps: BiquadFilterNode[] = [];
     for (const p of design.parts) {
       const at = t + p.at;
@@ -469,7 +496,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   let wasStance: boolean[] = [];
   const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0 };
 
-  const pushOff = (t: number, surface: Surface, speed: number) => {
+  const pushOff = (t: number, surface: Surface, speed: number, enclosure = 0) => {
     // the shove takes the place of the step he would have taken, so the stride integrator restarts
     // from here and no boot plant lands on top of it
     if (t - lastStepAt < MIN_STEP_GAP) return;
@@ -477,18 +504,18 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     counts.lastSurface = surface;
     lastStepAt = t;
     travelled = 0;
-    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0);
+    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0, enclosure);
   };
 
-  const land = (t: number, surface: Surface, fallM: number) => {
+  const land = (t: number, surface: Surface, fallM: number, enclosure = 0) => {
     counts.landings++;
     counts.lastSurface = surface;
     lastStepAt = t;
     travelled = 0;
-    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0);
+    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0, enclosure);
   };
 
-  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false) => {
+  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false, enclosure = 0) => {
     if (t - lastStepAt < MIN_STEP_GAP) return false;
     lastStepAt = t;
     travelled = 0;
@@ -498,12 +525,13 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     counts.lastSurface = surface;
     // the two boots never land identically: one is a little heavier than the other
     const asymmetry = pan > 0 ? 1.06 : 0.94;
-    step(surface, t, Math.min(1, strengthFor(speed) * asymmetry * (1 + (stepRng() * 2 - 1) * 0.1)), pan, speed > RUN_SPEED);
+    const strength = Math.min(1, strengthFor(speed) * asymmetry * (1 + (stepRng() * 2 - 1) * 0.1));
+    play(designStep(surface, strength, speed > RUN_SPEED, stepRng), t, pan, enclosure);
     return true;
   };
 
   const drive = (t: number, dt: number, d: StepDrive) => {
-    const { speed, onStairs } = d;
+    const { speed, onStairs, enclosure = 0 } = d;
     if (speed < 0.25) {
       travelled = 0;
       moving = false;
@@ -516,21 +544,21 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // 1. the gait's own plant, when the character system reports it: the sound lands with the boot
     if (d.stance) {
       for (let i = 0; i < d.stance.length; i++) {
-        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true)) gaitUntil = t + 1.2;
+        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true, enclosure)) gaitUntil = t + 1.2;
       }
       wasStance = d.stance.slice();
       if (t < gaitUntil) return;
     }
     // 2. otherwise (or if the flags went quiet) the distance the boot has travelled
     if (first) {
-      if (fire(t, speed, surface, side * 0.12)) side = -side;
+      if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
       return;
     }
     travelled += speed * dt;
     const stride = strideFor(speed, onStairs) * (1 + (stepRng() * 2 - 1) * 0.04);
     if (travelled >= stride) {
       travelled -= stride;
-      if (fire(t, speed, surface, side * 0.12)) side = -side;
+      if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
     }
   };
 
