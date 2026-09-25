@@ -415,6 +415,15 @@ function buildTiled(list: Instance[], geos: BufferGeometry[], material: Mesh['ma
 }
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
+  // build-time by phase (ms), for the audit: the rocks are the second-longest system build at load
+  // (9.5 s of a ~50 s world on the capture VM); this says which piece
+  const buildPhaseMs: Record<string, number> = {};
+  let phaseT0 = performance.now();
+  const mark = (name: string) => {
+    const now = performance.now();
+    buildPhaseMs[name] = Math.round((buildPhaseMs[name] ?? 0) + (now - phaseT0));
+    phaseT0 = now;
+  };
   const group = new Group();
   group.name = 'rocks';
   const T = ctx.terrain;
@@ -470,6 +479,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return m.path < 0.02 && m.stairs < 0.5 && m.structure < 0.5;
   };
 
+  mark('materials');
   // --- embankment strata on steep faces ----------------------------------------------------
   // (fable-2: built before the hero boulders so a near kit can adopt the slabs standing against
   // its rock — own fork `strata`, so the scatter is what it was)
@@ -528,6 +538,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const culled = { pebbles: 0, rubble: 0, strata: 0 };
   for (const it of strata) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.strata++;
 
+  mark('strata+scree+rubble-placement');
   // --- hero boulders -----------------------------------------------------------------------
   const contact: [number, number, number][] = [];
   const boulderInfo: { id: string; radius: number; triangles: number; sink: number; contacts: number; baseGap: number; crackShare: number; mossShare: number; facetShare: number; topAboveGround: number }[] = [];
@@ -1217,6 +1228,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.progress('rocks', 0.4);
 
+  mark('hero-boulders+near-kits');
   // --- shared small-rock geometry variants -------------------------------------------------
   // (round 24: the strata and pebble variants take cracks 0 - before rockgen normalised its ridged
   // noise their 0.2-0.5 never reached the crack threshold, so the 2 730 pebbles and 159 scree had
@@ -1250,6 +1262,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.progress('rocks', 0.6);
 
+  mark('small-rock-looks');
   // --- pebbles: path edges, stair feet, scatter (pebbles.ts) ----------------------------------
   // fable-2 (GOAL_MODE #4): every candidate is a lattice cell with stateless per-cell draws, so a
   // paving edit moves only the pebbles whose cell it touched (the old sequential stream re-rolled
@@ -1269,6 +1282,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const it of rubble) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.rubble++;
   ctx.progress('rocks', 0.8);
 
+  mark('pebbles');
   // --- rock ledge faces (ledge.ts) — positions from the layout hook, or the dev preview -------
   const ledgeDefs: RockLedgeDef[] = (() => {
     const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges ?? [];
@@ -1305,6 +1319,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
 
+  mark('ledges');
   // --- the north clearing's rock dressing (clearing.ts): the west-bank boulder pair, scree at the
   // ledge flight's flanks, half-buried strata along the terrace face east of the flight — one
   // merged mesh under the hero (near) material; positions from the layout's northClearing /
@@ -1323,6 +1338,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ledgeMeshes.push(clearingMesh);
   }
 
+  mark('clearing');
   // --- the plaza's backside (backside.ts, round 49 / V20): the pale boulder pair, the low stone step
   // and the flight's scree at the fence-topped south bank — seated on the LIVE terrain (the bank is
   // not in this system's legacy view), one mesh under the hero material, toggled with expansion-2's
@@ -1341,6 +1357,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backsideSpheres = backside.spheres(sunDir);
   }
 
+  mark('backside');
   // --- the south ravine's rock (ravine.ts, the owner's 06:07 rubric for the new area): bedded
   // outcrops half-sunk into both walls and moss-capped boulders on the floor — seated on the LIVE
   // terrain (the gorge exists only there), one mesh under the near material, toggled with the same
@@ -1359,6 +1376,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ravineSpheres = ravine.spheres(sunDir);
   }
 
+  mark('ravine');
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
@@ -1375,6 +1393,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // tufts, ferns and moss pads are packed into one InstancedMesh (one draw for all the cap and
   // crevice plants). The crevice spots go last so the cap / base plants keep their jitter draws.
   boulderPlants.push(...crevicePlants);
+  mark('instanced+tiles');
   const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config, ROCK_PLANT_PACKS);
   for (const m of plants.meshes) {
     m.name = `boulder-plants-${m.name}`;
@@ -1442,6 +1461,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.audit('rocks', () => ({
     /** the CPU arrays the group still holds (bytes) — what compactRockGeometry's onUpload left */
     cpuArrays: cpuArrayBytes(group),
+    /** the build's CPU time by phase (ms) */
+    buildPhaseMs,
     heroBoulders: boulderInfo.length,
     boulders: boulderInfo,
     /** the highest any hero boulder's underside stands above the terrain (m); 0 = fully seated */
@@ -1511,6 +1532,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }));
 
   // the rock meshes' vertex storage compacted last, after every build-time read of their attributes
+  mark('boulder-plants');
   // (compactRockGeometry): the hero kits and far LODs, the ledge, the dressing, the strata / rubble
   // looks; the pebble tiles came through mergeTile already and are left as they are
   {
@@ -1525,6 +1547,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     });
   }
 
+  mark('compact');
   return {
     name: 'rocks',
     group,

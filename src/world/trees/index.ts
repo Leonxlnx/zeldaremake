@@ -1773,6 +1773,36 @@ const compactedBytes = (g: BufferGeometry, everyNarrowable = false) => {
   for (const [name, a] of Object.entries(g.attributes)) bytes += (a as BufferAttribute).count * (a as BufferAttribute).itemSize * (narrow[name] ?? (a as BufferAttribute).array.BYTES_PER_ELEMENT);
   return bytes;
 };
+/**
+ * The CPU arrays a group still holds (bytes), by the group's direct children — fable-2's
+ * `cpuArrays` audit line (rocks / hardscape, #119) for the trees: every unique geometry's attributes
+ * and index whose `array` is not null. After a mesh's first draw only what `onUpload` left; a mesh no
+ * camera has drawn yet still holds all of it, and so does the near-canopy batch by design (round 54).
+ */
+const cpuArrayBytes = (root: Group) => {
+  const seen = new Set<string>();
+  const byChild: Record<string, number> = {};
+  let bytes = 0;
+  let geometries = 0;
+  for (const child of root.children) {
+    let sub = 0;
+    child.traverse((o) => {
+      const g = (o as Mesh).geometry;
+      if (!g || seen.has(g.uuid)) return;
+      seen.add(g.uuid);
+      geometries++;
+      for (const attr of Object.values(g.attributes)) {
+        const arr = (attr as BufferAttribute).array as ArrayBufferView | null;
+        if (arr) sub += arr.byteLength;
+      }
+      const idx = g.index?.array as ArrayBufferView | null | undefined;
+      if (idx) sub += idx.byteLength;
+    });
+    if (sub > 0) byChild[child.name || child.type] = sub;
+    bytes += sub;
+  }
+  return { bytes, geometries, byChild };
+};
 const compactAttributes = (g: BufferGeometry, only?: string) => {
   const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
     if (only && name !== only) return;
@@ -4441,6 +4471,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45: instances slid off the path's sight line / dropped from the arch's footprint, and the spine clearance (m) */
       distantClearance: { ...distantCleared, spine: DISTANT_SPINE_CLEARANCE, minSpineDistance: Math.round(Math.min(...distantPlacements.map((p) => spineDistance(spineXZ, p.x, p.z))) * 100) / 100 },
       distantLod: [distantNearCount, distantFarCount],
+      /** the CPU arrays the trees still hold (bytes; by the system's groups) — see cpuArrayBytes */
+      cpuArrays: cpuArrayBytes(group),
       /**
        * 2026-09-23 (lane 2, the owner's "the trees do not populate"): the mid-canopy grove in the
        * 14–58 m band — how many were placed (and how many the expansion's ground culled), the

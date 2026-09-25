@@ -49,7 +49,7 @@ import { plantFeet } from './animation';
 import type { Ground } from './ground';
 import type { Character } from './link';
 import { createFairy, type Fairy } from './navi';
-import { NPC_GROVE_YARD, NPC_LOOP, NPC_SEAT, NPC_SOUTH_BANK, type NpcSeat, type NpcWaypoint } from './placement';
+import { NPC_GROVE_VERANDA, NPC_GROVE_YARD, NPC_LOOP, NPC_SEAT, NPC_SOUTH_BANK, type NpcSeat, type NpcWaypoint } from './placement';
 import { resetRig, type Rig } from './rig';
 
 /** what npc.ts needs of the character system's actor */
@@ -76,6 +76,8 @@ export const LEDGE_SLOT = 3;
 export const BANK_SLOT = 4;
 /** the kid slot that stands in the north grove's yard (lane 7, `NPC_GROVE_YARD`) — no fairy: a sixth light would recompile every lit program */
 export const GROVE_SLOT = 5;
+/** the kid slot at the stilt house's veranda rail (lane 7, `NPC_GROVE_VERANDA`) — the second person in the grove, no fairy for the same reason */
+export const VERANDA_SLOT = 6;
 
 export interface Npcs {
   /** the fairies (added to the character group) */
@@ -798,6 +800,29 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const groveSt: WanderState = { ...wander };
   const groveGreet = newGreet();
 
+  // -- kokiri-grove-veranda: the boy at the stilt house's rail (lane 7, the grove's second person). His rng
+  // is a fork of its own (`veranda`), drawn after the grove's: nothing above moves. He stands turned along the
+  // rail toward the yard 12 m below, watching the girl at the line: the resting look is down a little (her),
+  // the look-around lifts along the trail's arrival, out over the shelf, and once back toward the door.
+  const verandaChar = chars[VERANDA_SLOT] ?? null;
+  const veranda = { x: NPC_GROVE_VERANDA.x, z: NPC_GROVE_VERANDA.z, yaw: Math.atan2(NPC_GROVE_VERANDA.lookAt[0] - NPC_GROVE_VERANDA.x, NPC_GROVE_VERANDA.lookAt[1] - NPC_GROVE_VERANDA.z), y: ground.height(NPC_GROVE_VERANDA.x, NPC_GROVE_VERANDA.z) };
+  const verandaRng = rng.fork('veranda');
+  const VERANDA_DOWN = -0.16;
+  const verandaKeys: [number, number, number][] = [
+    [0, 0, VERANDA_DOWN],
+    [0.18, 0, VERANDA_DOWN],
+    [0.3, verandaRng.range(0.35, 0.6), verandaRng.range(-0.02, 0.06)],
+    [0.45, verandaRng.range(0.2, 0.4), -verandaRng.range(0.02, 0.08)],
+    [0.58, -verandaRng.range(0.25, 0.5), verandaRng.range(0.0, 0.08)],
+    [0.72, -verandaRng.range(0.8, 1.1), verandaRng.range(-0.02, 0.04)],
+    [0.84, -verandaRng.range(0.15, 0.35), VERANDA_DOWN * 0.5],
+    [0.93, 0, VERANDA_DOWN],
+    [1, 0, VERANDA_DOWN],
+  ];
+  const verandaLookPeriod = 19;
+  const verandaPhase = verandaRng.range(0, verandaLookPeriod);
+  const verandaSt: WanderState = { ...wander };
+
   // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
   // (lane 7): a light that leaves or joins the scene changes the light count every lit program
   // is keyed on and recompiles them all (the free camera parking on a viewpoint hid the ledge
@@ -905,6 +930,19 @@ export function createNpcs(opts: NpcOptions): Npcs {
         driven.add(GROVE_SLOT);
         return true;
       }
+      if (slot === VERANDA_SLOT && verandaChar) {
+        // at the rail in every mode, 11.6 m up on the published deck (`ground.height` reads the walk
+        // surface); no fairy, so nothing to dim
+        actor.pos.set(veranda.x, 0, veranda.z);
+        actor.yaw = veranda.yaw;
+        const [hy, hp] = seatedLook(t, verandaPhase, verandaKeys, verandaLookPeriod);
+        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, veranda.yaw, t, 6.1, hy, hp, verandaSt);
+        plantFeet(verandaChar.rig, ground.height, actor.contact);
+        noticeFor(verandaChar.rig, actor, player);
+        actor.shadow.position.set(veranda.x, ground.decalHeight(veranda.x, veranda.z, actor.shadowRadius), veranda.z);
+        driven.add(VERANDA_SLOT);
+        return true;
+      }
       if (view) return false;
       if (slot === 0) {
         // her schedule runs on the held clock; while she greets, on the instant she stopped
@@ -1004,7 +1042,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         npcGirls: chars.filter((c) => c.rig.root.name !== 'kokiri-2').length,
         npcWaypoints: NPC_LOOP.length,
         npcSitting: 1,
-        npcStanding: (ledgeChar ? 1 : 0) + (bankChar ? 1 : 0) + (groveChar ? 1 : 0),
+        npcStanding: (ledgeChar ? 1 : 0) + (bankChar ? 1 : 0) + (groveChar ? 1 : 0) + (verandaChar ? 1 : 0),
         npc: {
           loop: { periodS: Number(sched.period.toFixed(3)), lengthM: Number(sched.length.toFixed(3)), segments: sched.segments.length, offLimits, strideM: Number((4 * legLength * Math.sin(AMP)).toFixed(4)), speedRange: [1.0, 1.15] },
           walker: { segment: _st.segment, segmentIndex: _st.segmentIndex, x: Number(_st.x.toFixed(3)), z: Number(_st.z.toFixed(3)), yaw: Number(_st.yaw.toFixed(3)), speed: Number(_st.speed.toFixed(3)), phi: Number(_st.phi.toFixed(3)) },
