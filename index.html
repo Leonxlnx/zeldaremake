@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>LEGO Star Wars: Revenge of the Sith — Battle over Coruscant (work in progress)</title>
+  <meta name="description" content="A brick-built Three.js short: the opening of Revenge of the Sith, LEGO Star Wars style. Work in progress." />
+  <meta property="og:title" content="LEGO Star Wars: Battle over Coruscant — work in progress" />
+  <meta property="og:description" content="The Revenge of the Sith opening, built brick by brick in Three.js." />
+  <meta property="og:image" content="stills/01-farfar.jpg" />
+  <meta name="theme-color" content="#05060a" />
+  <style>
+    :root { --bg: #05060a; --panel: #0d1018; --line: #1d2330; --text: #e9ecf3; --dim: #9aa3b5; --gold: #ffd43b; --red: #e3000b; --blue: #3fa9ff; }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body { margin: 0; color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 70% -10%, #16213d 0%, transparent 60%), radial-gradient(900px 500px at -10% 30%, #1d1030 0%, transparent 55%), var(--bg); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 16px 64px; }
+    header { padding: 12px 0 18px; }
+    .studs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .studs i { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe680, var(--gold) 55%, #c79a00); box-shadow: 0 2px 0 #8a6a00; }
+    .studs i:nth-child(2) { background: radial-gradient(circle at 35% 30%, #ff6b6b, var(--red) 55%, #9a0008); box-shadow: 0 2px 0 #6a0006; }
+    .studs i:nth-child(3) { background: radial-gradient(circle at 35% 30%, #9fd4ff, var(--blue) 55%, #1567b0); box-shadow: 0 2px 0 #0d4577; }
+    .kicker { color: var(--gold); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 12px; }
+    h1 { font-size: clamp(26px, 6vw, 44px); line-height: 1.1; margin: 6px 0 10px; letter-spacing: -.01em; }
+    .lede { color: var(--dim); margin: 0 0 14px; max-width: 760px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { font-size: 12px; color: var(--dim); border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 10px; }
+    .pill b { color: var(--text); font-weight: 600; }
+    .player { margin: 8px 0 14px; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+    .player video, .player img { display: block; width: 100%; height: auto; }
+    .note { color: var(--dim); font-size: 13px; margin: 0 0 18px; }
+    .btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 28px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #111; background: var(--gold); font-weight: 700; padding: 11px 16px; border-radius: 10px; }
+    .btn.alt { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 600; }
+    h2 { font-size: 20px; margin: 34px 0 12px; }
+    h2 small { color: var(--dim); font-weight: 500; font-size: 13px; margin-left: 6px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .card img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+    .card .body { padding: 10px 12px 12px; }
+    .card .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .card h3 { font-size: 15px; margin: 0; }
+    .card .t { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .card p { color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+    .card .line { color: var(--text); font-size: 13px; margin: 6px 0 0; }
+    .card .line b { color: var(--gold); font-weight: 600; }
+    .card a.go { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--blue); text-decoration: none; }
+    .assets .card img { aspect-ratio: 4 / 3; }
+    .ph { display: grid; place-items: center; aspect-ratio: 4 / 3; background: repeating-linear-gradient(45deg, #0f131c, #0f131c 10px, #121826 10px, #121826 20px); color: var(--dim); font-size: 13px; }
+    ul.status { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    ul.status li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px 9px 38px; position: relative; font-size: 14px; }
+    ul.status li::before { position: absolute; left: 12px; top: 9px; font-weight: 800; }
+    li.done::before { content: "✓"; color: #46d37e; }
+    li.doing::before { content: "◐"; color: var(--gold); }
+    li.next::before { content: "○"; color: var(--dim); }
+    footer { margin-top: 40px; color: var(--dim); font-size: 12px; }
+    footer a { color: var(--dim); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="studs"><i></i><i></i><i></i></div>
+      <div class="kicker">Work in progress</div>
+      <h1>LEGO Star Wars: Revenge of the Sith<br />Battle over Coruscant</h1>
+      <p class="lede">The opening of Episode III, from the crawl to the hangar of the <em>Invisible Hand</em>, built brick by brick in Three.js. Every ship, minifigure, planet and sound is procedural: no downloaded models, textures or samples.</p>
+      <div class="meta">
+        <span class="pill">Length <b>1:33</b></span>
+        <span class="pill">Shots <b>17</b></span>
+        <span class="pill">Updated <b>2026-09-25 22:34 UTC</b></span>
+        <span class="pill">Build <b>529025cb</b></span>
+      </div>
+    </header>
+
+    <div class="player">
+      <img src="stills/01-farfar.jpg" alt="Current cut" />
+    </div>
+    <p class="note">The work-in-progress video is still rendering. Shot stills are below.</p>
+    <div class="btns">
+      <a class="btn" href="film/index.html">Play in real time</a>
+      <a class="btn alt" href="film/index.html?t=19.5">Jump to the long take</a>
+      <a class="btn alt" href="film/index.html?t=79.19999999999999">Jump to the hangar</a>
+    </div>
+    <p class="note">The real-time version renders live in your browser; it is heavy, so a desktop GPU is best. Tap or press space to pause.</p>
+
+    <h2>Shot list <small>tap a shot to watch it live</small></h2>
+    <div class="grid">
+      <div class="card">
+        <a href="film/index.html?t=0.00"><img loading="lazy" src="stills/01-farfar.jpg" alt="A long time ago…" /></a>
+        <div class="body">
+          <div class="row"><h3>1. A long time ago…</h3><span class="t">0:00–0:04</span></div>
+          
+          
+        </div>
+      </div>
+      <div class="card">
+        <a href="film/index.html?t=4.50"><img loading="lazy" src="stills/02-crawl.jpg" alt="Opening crawl" /></a>
+        <div class="body">
+          <div class="row"><h3>2. Opening crawl</h3><span class="t">0:04–0:19</span></div>
+          <p>The crawl recedes into a baked nebula and 11,000 live stars.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>3. The long take</h3><span class="t">0:19–0:35</span></div>
+          <p>Tilt down to Coruscant, then the two Jedi interceptors dive over a Venator, thread its bridge towers, skim the deck and drop off the port edge into the battle.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>4. Through the fleet</h3><span class="t">0:35–0:40</span></div>
+          <p>Tracking shot through the battle; a Munificent frigate comes apart in bricks.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>5. Anakin</h3><span class="t">0:40–0:44</span></div>
+          
+          <p class="line"><b>Anakin Skywalker:</b> This is where the fun begins.</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>6. Vulture droids</h3><span class="t">0:44–0:49</span></div>
+          <p>Vultures and tri-fighters dive on the Jedi and the ARC-170 escort.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>7. The Invisible Hand</h3><span class="t">0:49–0:54</span></div>
+          <p>Grievous's flagship, with vulture droids crawling over the hull.</p>
+          <p class="line"><b>Anakin Skywalker:</b> The General's command ship is dead ahead — the one crawling with vulture droids.</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>8. Obi-Wan</h3><span class="t">0:54–0:57</span></div>
+          
+          <p class="line"><b>Obi-Wan Kenobi:</b> Oh, I have a bad feeling about this.</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>9. Discord missiles</h3><span class="t">0:57–1:01</span></div>
+          <p>The missiles split open and release buzz droids.</p>
+          <p class="line"><b>Obi-Wan Kenobi:</b> Buzz droids!</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>10. Buzz droids</h3><span class="t">1:01–1:06</span></div>
+          <p>Buzz droids saw into Obi-Wan's fighter and slice R4-P17's dome off.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>11. Obi-Wan</h3><span class="t">1:06–1:08</span></div>
+          
+          <p class="line"><b>Obi-Wan Kenobi:</b> Get out of here, Anakin! There's nothing more you can do.</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>12. Anakin</h3><span class="t">1:08–1:11</span></div>
+          
+          <p class="line"><b>Anakin Skywalker:</b> I'm not leaving without you, Master.</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>13. The rescue</h3><span class="t">1:11–1:15</span></div>
+          <p>Anakin blasts a buzz droid off Obi-Wan's wing; R2-D2 zaps the one that hopped onto Anakin's fighter.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>14. Into the hangar</h3><span class="t">1:15–1:19</span></div>
+          <p>Straight at the hangar mouth as the ray shield flickers off.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>15. Crash landing</h3><span class="t">1:19–1:24</span></div>
+          <p>Obi-Wan's fighter skids in and sheds its wings in bricks.</p>
+          
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>16. Flying is for droids</h3><span class="t">1:24–1:29</span></div>
+          <p>Sabers ignite; the battle droids reconsider.</p>
+          <p class="line"><b>Obi-Wan Kenobi:</b> Flying is for droids.</p><p class="line"><b>Battle Droid:</b> Uh oh.</p>
+        </div>
+      </div>
+      <div class="card">
+        
+        <div class="body">
+          <div class="row"><h3>17. End card</h3><span class="t">1:29–1:33</span></div>
+          
+          
+        </div>
+      </div>
+    </div>
+
+    <h2>Assets <small>tap to open a live 3D turntable</small></h2>
+    <div class="grid assets">
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=eta2-anakin&bg=space">
+        <img loading="lazy" src="assets/eta2-anakin.jpg" alt="Anakin's Eta-2 interceptor" />
+        <div class="body"><div class="row"><h3>Anakin's Eta-2 interceptor</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=eta2-obiwan&bg=space">
+        <img loading="lazy" src="assets/eta2-obiwan.jpg" alt="Obi-Wan's Eta-2 interceptor" />
+        <div class="body"><div class="row"><h3>Obi-Wan's Eta-2 interceptor</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=eta2-anakin-cockpit&bg=space">
+        <img loading="lazy" src="assets/eta2-anakin-cockpit.jpg" alt="Cockpit: Anakin + R2-D2" />
+        <div class="body"><div class="row"><h3>Cockpit: Anakin + R2-D2</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=venator&bg=space">
+        <img loading="lazy" src="assets/venator.jpg" alt="Venator Star Destroyer" />
+        <div class="body"><div class="row"><h3>Venator Star Destroyer</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=arc170&bg=space">
+        <img loading="lazy" src="assets/arc170.jpg" alt="ARC-170" />
+        <div class="body"><div class="row"><h3>ARC-170</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=invisible-hand&bg=space">
+        <img loading="lazy" src="assets/invisible-hand.jpg" alt="The Invisible Hand" />
+        <div class="body"><div class="row"><h3>The Invisible Hand</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=munificent&bg=space">
+        <img loading="lazy" src="assets/munificent.jpg" alt="Munificent frigate" />
+        <div class="body"><div class="row"><h3>Munificent frigate</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=hangar&bg=space">
+        <img loading="lazy" src="assets/hangar.jpg" alt="Hangar interior" />
+        <div class="body"><div class="row"><h3>Hangar interior</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=vulture&bg=space">
+        <img loading="lazy" src="assets/vulture.jpg" alt="Vulture droid" />
+        <div class="body"><div class="row"><h3>Vulture droid</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=trifighter&bg=space">
+        <img loading="lazy" src="assets/trifighter.jpg" alt="Droid tri-fighter" />
+        <div class="body"><div class="row"><h3>Droid tri-fighter</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=missile&bg=space">
+        <img loading="lazy" src="assets/missile.jpg" alt="Discord missile" />
+        <div class="body"><div class="row"><h3>Discord missile</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=buzzdroid&bg=studio">
+        <div class="ph">live turntable</div>
+        <div class="body"><div class="row"><h3>Buzz droid</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=battledroid&bg=studio">
+        <div class="ph">live turntable</div>
+        <div class="body"><div class="row"><h3>B1 battle droid</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=anakin&bg=studio">
+        <div class="ph">live turntable</div>
+        <div class="body"><div class="row"><h3>Anakin minifigure</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=obiwan&bg=studio">
+        <div class="ph">live turntable</div>
+        <div class="body"><div class="row"><h3>Obi-Wan minifigure</h3></div></div>
+      </a>
+      <a class="card" style="text-decoration:none;color:inherit" href="film/index.html?lab=astromechs-pair&bg=studio">
+        <img loading="lazy" src="assets/astromechs-pair.jpg" alt="R2-D2 and R4-P17" />
+        <div class="body"><div class="row"><h3>R2-D2 and R4-P17</h3></div></div>
+      </a>
+    </div>
+
+    <h2>Progress</h2>
+    <ul class="status">
+          <li class="done">Brick engine: bevelled bricks, plates, tiles, slopes and studs with real seams; ABS plastic shader (clearcoat, scratches, smudges)</li>
+          <li class="done">Renderer: HDR, bloom, depth of field, motion blur, ACES tonemapping, film grain; reversed-Z depth so a cockpit and the planet share one pass</li>
+          <li class="done">Anakin and Obi-Wan minifigures: rigged, sculpted hair, printed faces with live expressions and lip flaps</li>
+          <li class="done">Ships: both Eta-2 interceptors with R2-D2 and R4-P17, Venator, ARC-170, Munificent frigate, the Invisible Hand and its hangar</li>
+          <li class="done">Coruscant city-planet shader (street grids, night-side lights, atmosphere), nebula sky, opening crawl</li>
+          <li class="done">All 17 shots blocked and animated, synthesised sound design and LEGO mumble voices, Skywalker Saga-style subtitles</li>
+          <li class="doing">Droid squad final pass (vulture, tri-fighter, buzz droid, battle droid)</li>
+          <li class="doing">Shot-by-shot polish: framing, lighting, effects density</li>
+          <li class="next">Final 1080p render with multi-sample motion blur</li>
+          <li class="next">Final sound mix</li>
+    </ul>
+
+    <footer>
+      Fan-made, non-commercial. LEGO and Star Wars are trademarks of their owners; this project uses no official assets.
+    </footer>
+  </div>
+</body>
+</html>
