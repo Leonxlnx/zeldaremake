@@ -595,3 +595,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   small-caster distance rule at the plateau look-backs (≈ −0.2 M, no pixel) instead of a far tier
   (≈ −30 K). Trailer frames of the flagstone close-up and the wides checked: the stone reads well;
   only the risers (fixed) were wrong.
+
+### Iteration 119 (06:45) — the grove flight reviewed at player height (fine)
+- exp-north's `grove` flight (9 × 0.27 × 0.42, log-nosed) at three poses on 41939301: reads as the
+  ledge flight; no change. Sheet `hs119-grove-flight-player-height.jpg`. Tool: `hud=0` now default in
+  pose.mjs (the HUD's corners are a known part of captures — capture.mjs excludes them).
