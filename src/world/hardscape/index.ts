@@ -3,7 +3,7 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, InstancedMesh, Matrix4, Mesh, type Camera } from 'three';
+import { Group, InstancedMesh, Matrix4, Mesh, StaticDrawUsage, type BufferAttribute, type Camera } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES, southRouteSurface, surfaceMask } from '../terrain/heightfield';
@@ -24,6 +24,8 @@ import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { STANDING_STONE_SKIRT, buildStandingStone } from './standing-stones';
 import { Noise2D, smoothstep } from '../util/noise';
 import { EXPANSION, EXPANSION_SOUTH, EXPANSION_STAIRS, expansionSteppingStones, houseSteppingStones, southPathLine } from '../layout';
+import { EXPANSION_NORTH, NORTH_STAIRS, northSteppingStones } from '../layout';
+import { GROVE_VISIBLE_M, groveSpheres, groveVisible } from '../util/groveLocality';
 
 /** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
 const JOINT_TUFT_TINT: Record<string, number> = {
@@ -201,6 +203,48 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const pcS: PavingContext = { terrain: T, frames, rng: rng.fork('paving-south'), seed: ctx.config.seed, bbox: sbbox, density: ctx.quality.density, steppingStones: [], region: 'south' };
   const pavingS = placeFlagstones(pcS, stoneMat);
   ctx.progress('hardscape', 0.74);
+
+  // --- 2026-09-24 (expansion-north): the grove's flight and its trail's stepping discs ----------
+  // layout `NORTH_STAIRS` / `EXPANSION_NORTH`: the flight up the bank from the ledge terrace's north
+  // edge takes the ledge flight's log nosings and earth treads (the same bank, one step further),
+  // and every disc of the trail above it gets a set stone (flagstones.ts region 'grove': the discs
+  // alone, like the expansion's pass). One group, drawn by the grove's rule (util/groveLocality.ts).
+  const groveGroup = new Group();
+  groveGroup.name = 'hardscape-grove';
+  group.add(groveGroup);
+  const groveFrames: StairFrame[] = NORTH_STAIRS.map((s) => stairFrame(s));
+  const groveStairInfo: { id: string; steps: number; width: number; treadSlabs: number; triangles: number; logs: number; stakes: number }[] = [];
+  for (const def of NORTH_STAIRS) {
+    const b = buildStairway(def, T, rng.fork(`stairs-grove/${def.id}`), ctx.config.seed, { logNosed: !!timberMat });
+    const mesh = new Mesh(b.geometry, stoneMat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.name = `stairs-${def.id}`;
+    groveGroup.add(mesh);
+    const info = { id: def.id, steps: def.steps, width: def.width, treadSlabs: b.treadSlabs, triangles: b.triangles, logs: 0, stakes: 0 };
+    if (timberMat) {
+      const logs = buildLogNosings(def, ctx.config.seed);
+      const logMesh = new Mesh(logs.geometry, timberMat);
+      logMesh.castShadow = true;
+      logMesh.receiveShadow = true;
+      logMesh.name = `stairs-${def.id}-logs`;
+      groveGroup.add(logMesh);
+      info.logs = logs.logs;
+      info.stakes = logs.stakes;
+      info.triangles += logs.triangles;
+    }
+    groveStairInfo.push(info);
+  }
+  const gbbox = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  for (const p of EXPANSION_NORTH.trail) {
+    gbbox.x0 = Math.min(gbbox.x0, p[0] - 2.0);
+    gbbox.x1 = Math.max(gbbox.x1, p[0] + 2.0);
+    gbbox.z0 = Math.min(gbbox.z0, p[2] - 2.0);
+    gbbox.z1 = Math.max(gbbox.z1, p[2] + 2.0);
+  }
+  const pcG: PavingContext = { terrain: T, frames: [...frames, ...groveFrames], rng: rng.fork('paving-grove'), seed: ctx.config.seed, bbox: gbbox, density: ctx.quality.density, steppingStones: northSteppingStones(), region: 'grove', setDiscs: true };
+  const pavingG = placeFlagstones(pcG, stoneMat);
+  ctx.progress('hardscape', 0.75);
 
   // --- joint fill --------------------------------------------------------------------------
   // the stepping stones on Saria's grassy ramp are paved discs with no joints: grass and clover
@@ -936,6 +980,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const southSpheres = southPathSpheres((x, z) => T.height(x, z));
   const southPavingVisible = (camera: Camera) => southVisible(camera, southSpheres);
   southGroup.visible = southPavingVisible(ctx.camera);
+  // 2026-09-24: the grove's discs, a fifth mesh (`flagstones-grove`; character/ground.ts reads it with the others)
+  const groveMesh = new Mesh(pavingG.mesh.geometry, stoneMat);
+  groveMesh.name = 'flagstones-grove';
+  groveMesh.castShadow = paving.mesh.castShadow;
+  groveMesh.receiveShadow = paving.mesh.receiveShadow;
+  groveMesh.frustumCulled = paving.mesh.frustumCulled;
+  groveGroup.add(groveMesh);
+  const groveSpheresH = groveSpheres((x, z) => T.height(x, z), sunToward);
+  const grovePavingVisible = (camera: Camera) => groveVisible(camera, groveSpheresH);
+  groveGroup.visible = grovePavingVisible(ctx.camera);
   const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
@@ -1082,6 +1136,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   let jointMeasured: ReturnType<typeof quantiles> | null = null;
   ctx.audit('hardscape', () => ({
+    /** the CPU arrays the group still holds (bytes) — position + index after the first draw (#115) */
+    cpuArrays: cpuArrayBytes(group),
     stairways: stairInfo.map((s) => ({ id: s.id, steps: s.steps, width: s.width, treadSlabs: s.treadSlabs })),
     // round 50 (fable-5 V17, the tone half): the main flight's tread tint by step — the mean of
     // the first and the last four; the demo's treads go l 0.37 (foot) → 0.65 (top)
@@ -1223,6 +1279,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       visible: southGroup.visible,
       tops: pavingS.stones.filter((_, i) => i % 6 === 0).map((s) => [round(s.x), round(s.topY), round(s.z)]),
     },
+    /** 2026-09-24 (expansion-north): the grove's log-nosed flight and the trail's set discs (hardscape-grove group) */
+    grove: {
+      stairs: groveStairInfo,
+      discs: pavingG.steppingStones.length,
+      discsLaid: pavingG.stats.steppingStones,
+      discsSkippedSteep: pavingG.stats.skippedSteep,
+      seeds: pavingG.stats.seeds,
+      stones: pavingG.stones.length,
+      triangles: pavingG.triangles,
+      visibleWithinM: GROVE_VISIBLE_M,
+      spheres: groveSpheresH.length,
+      visible: groveGroup.visible,
+      discTops: pavingG.stones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
+      discGroundGap: pavingG.stones.length ? round(Math.max(...pavingG.stones.map((s) => Math.abs(s.bottomY - T.height(s.x, s.z))))) : 0,
+    },
     northPaving: {
       flagstones: pavingN.stones.length,
       seeds: pavingN.stats.seeds,
@@ -1324,6 +1395,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }));
 
   let disposed = false;
+  // The CPU copies of the shading attributes go once the GPU has them (three's `onUpload` fires
+  // after the buffer is created; the rocks and the trees do the same): a slab vertex carries
+  // 72 bytes of normal / colour / uv / moss / stain / wear / crack / mottle / rough / earth beside
+  // its 12 of position, and nothing reads those arrays after the build. `position` (and any
+  // index) stays: character/ground.ts learns its slab and stair grids from the `flagstones*` and
+  // `stairs-*` meshes' positions, and a raycast reads them too.
+  {
+    const done = new Set<string>();
+    group.traverse((o) => {
+      const m = o as Mesh;
+      // the instanced sprouts (joint tufts, flower heads) rewrite their per-instance attributes on
+      // every camera move (materials/sprouts.ts `cull`): their arrays stay
+      if (!m.isMesh || (m as InstancedMesh).isInstancedMesh || !m.geometry || done.has(m.geometry.uuid)) return;
+      done.add(m.geometry.uuid);
+      for (const [name, attr] of Object.entries(m.geometry.attributes)) {
+        const a = attr as BufferAttribute & { isInstancedBufferAttribute?: boolean };
+        if (name === 'position' || a.isInstancedBufferAttribute || a.usage !== StaticDrawUsage) continue;
+        a.onUpload(dropArray as unknown as () => void);
+      }
+    });
+  }
+
   return {
     name: 'hardscape',
     group,
@@ -1340,6 +1433,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       sprouts.cull(c.camera);
       expansionGroup.visible = expansionVisible(c.camera);
       southGroup.visible = southPavingVisible(c.camera);
+      groveGroup.visible = grovePavingVisible(c.camera);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
@@ -1349,6 +1443,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       sprouts.cull(camera, true);
       expansionGroup.visible = expansionVisible(camera);
       southGroup.visible = southPavingVisible(camera);
+      groveGroup.visible = grovePavingVisible(camera);
     },
     dispose() {
       if (disposed) return;
@@ -1374,4 +1469,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
 function round(v: number) {
   return Math.round(v * 1000) / 1000;
+}
+
+/** `BufferAttribute.onUpload` callback: the CPU array is released once the GPU buffer exists */
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
+
+/**
+ * The CPU arrays a group still holds (bytes): every unique geometry's attributes and index whose
+ * `array` is not null — after the first draw only what `onUpload` left (position, the index, the
+ * instanced sprouts' per-instance data). A memory audit line, cheap enough for every call.
+ */
+function cpuArrayBytes(root: Group): { bytes: number; geometries: number; positionBytes: number } {
+  const seen = new Set<string>();
+  let bytes = 0;
+  let positionBytes = 0;
+  root.traverse((o) => {
+    const g = (o as Mesh).geometry;
+    if (!g || seen.has(g.uuid)) return;
+    seen.add(g.uuid);
+    for (const [name, attr] of Object.entries(g.attributes)) {
+      const arr = (attr as BufferAttribute).array as ArrayBufferView | null;
+      if (!arr) continue;
+      bytes += arr.byteLength;
+      if (name === 'position') positionBytes += arr.byteLength;
+    }
+    const idx = g.index?.array as ArrayBufferView | null | undefined;
+    if (idx) bytes += idx.byteLength;
+  });
+  return { bytes, geometries: seen.size, positionBytes };
 }

@@ -1669,6 +1669,16 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   };
   distant.customProgramCacheKey = () => 'trees-distant-biased-v10';
 
+  // Names so a probe can mark them: probe-look.mjs matches materials by name, and until now only
+  // `giant-canopy` carried one, which left "the trees show the brown" (owner, job 3) impossible to
+  // attribute from a frame — the boles could be the giants', the white-barks' or the distant layer's.
+  whiteTree.name = 'tree-white-bark';
+  giantTree.name = 'tree-giant-bark';
+  giantTreeNear.name = 'tree-giant-bark-near';
+  columnTree.name = 'tree-column-bark';
+  giantTreeNearBase.name = 'tree-giant-near-base';
+  distant.name = 'tree-distant-wood';
+
   return {
     whiteTree,
     whiteTreeDepth,

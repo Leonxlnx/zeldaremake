@@ -49,7 +49,7 @@ import { plantFeet } from './animation';
 import type { Ground } from './ground';
 import type { Character } from './link';
 import { createFairy, type Fairy } from './navi';
-import { NPC_LOOP, NPC_SEAT, NPC_SOUTH_BANK, type NpcSeat, type NpcWaypoint } from './placement';
+import { NPC_GROVE_VERANDA, NPC_GROVE_YARD, NPC_LOOP, NPC_SEAT, NPC_SOUTH_BANK, type NpcSeat, type NpcWaypoint } from './placement';
 import { resetRig, type Rig } from './rig';
 
 /** what npc.ts needs of the character system's actor */
@@ -74,6 +74,10 @@ export interface NpcOptions {
 export const LEDGE_SLOT = 3;
 /** the kid slot that stands on the south bank's terrace (round 50, `NPC_SOUTH_BANK`) */
 export const BANK_SLOT = 4;
+/** the kid slot that stands in the north grove's yard (lane 7, `NPC_GROVE_YARD`) — no fairy: a sixth light would recompile every lit program */
+export const GROVE_SLOT = 5;
+/** the kid slot at the stilt house's veranda rail (lane 7, `NPC_GROVE_VERANDA`) — the second person in the grove, no fairy for the same reason */
+export const VERANDA_SLOT = 6;
 
 export interface Npcs {
   /** the fairies (added to the character group) */
@@ -390,6 +394,14 @@ const HIP_LIFT = 0.065;
 const SEAT_BACK = 0.06;
 /** the ankle targets ahead of the hips joint (m, L / R): the heels just clear the riser face */
 const SEAT_REACH: [number, number] = [0.15, 0.17];
+/**
+ * the sitter's chin up (rad, relative to her curled chest): the back rounds 0.30 rad forward over the
+ * tipped pelvis, and the head used to take only 0.08 of it back, so her resting gaze sat 0.22 rad
+ * below level — from the follow camera's 1.5 m eye at 5–6 m her fringe covered her eyes and she read
+ * hunched, face hidden (lane 7's play-distance review, 2026-09-25). 0.25 leaves the head a hair
+ * below level: the back stays rounded, the face reads.
+ */
+const SEAT_CHIN_UP = 0.25;
 
 /**
  * Seated (round 48): root under the hips so the hips joint sits `HIP_LIFT` above the seat; each
@@ -455,7 +467,7 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
     elbow.rotation.x = -flex;
   }
   r.neck.rotation.y = headYaw;
-  r.neck.rotation.x = -headPitch - 0.08 + 0.02 * breath;
+  r.neck.rotation.x = -headPitch - SEAT_CHIN_UP + 0.02 * breath;
   if (r.cap) r.cap.rotation.x = 0.02 * Math.sin(t * 0.7 + phase);
   const b = blink(t + phase * 0.3);
   for (const e of r.eyes) e.scale.y = 1 - 0.92 * b;
@@ -465,15 +477,15 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
  * The ledge girl's idle (round 48): standing on her spot facing `yaw`, weight shifting, breathing,
  * the dwell-style look-around from the seeded head keys — the wander pose with the walk weight 0.
  */
-function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState): void {
+function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState, shuffle = 0, shufflePhi = 0): void {
   st.x = x;
   st.z = z;
   st.yaw = yaw;
   st.speed = 0;
   st.walk = 0;
   st.phi = 0;
-  st.shuffle = 0;
-  st.shufflePhi = 0;
+  st.shuffle = shuffle;
+  st.shufflePhi = shufflePhi;
   st.headYaw = headYaw;
   st.headPitch = headPitch;
   st.segment = 'dwell';
@@ -504,6 +516,114 @@ function seatedLook(t: number, phase: number, keys: [number, number, number][], 
 /** Link within this of a kid: her head starts turning to him; fully on him by NOTICE_NEAR_M */
 const NOTICE_FAR_M = 5.0;
 const NOTICE_NEAR_M = 2.8;
+/** the wanderer stops and turns to Link inside this (m) … */
+const GREET_NEAR_M = 1.7;
+/** … and walks on once he has stayed beyond this (m) for GREET_RELEASE_S — hysteresis, so a player idling at the edge does not make her stutter */
+const GREET_FAR_M = 2.6;
+const GREET_RELEASE_S = 0.6;
+/** the stop-and-turn and the turn-back each blend over this (s) */
+const GREET_BLEND_S = 0.5;
+/** a standing kid's body turn toward Link runs at most this fast (rad/s): a 180° turn takes 1.26 s, not the blend's 0.5 */
+const GREET_TURN_RATE = 2.5;
+/** the nod of acknowledgement as a kid turns to Link: one dip of the head, this long (s) and this deep (rad) */
+const NOD_S = 0.8;
+const NOD_RAD = 0.22;
+/**
+ * the greeting's nod: a single sine dip of the neck over the first NOD_S of a greeting, added AFTER the
+ * notice (which sets the neck's pitch to his eyes with full weight up close and would erase a nod folded
+ * into the pose). Positive = down in the neck's frame.
+ */
+const greetNod = (gr: { active: boolean; since: number }, t: number): number => {
+  if (!gr.active) return 0;
+  const u = (t - gr.since) / NOD_S;
+  return u > 0 && u < 1 ? NOD_RAD * Math.sin(Math.PI * u) : 0;
+};
+/** the greeting's wave: starts this long after the greeting (s), lasts this long, ramps in / out over these */
+const WAVE_DELAY_S = 0.2;
+const WAVE_S = 1.4;
+const WAVE_RAMP_S = 0.25;
+const WAVE_HZ = 2.4;
+/**
+ * the greeting's wave: the right hand raised beside the head — the upper arm up and a little out
+ * (shoulder x −2.6, z −0.65 puts the hand 0.24 m above the shoulder and 0.15 m clear of the head, the
+ * swing's inward extreme still 0.1 m clear of the hair bob), the
+ * forearm half bent — and waved side to side at WAVE_HZ, blended over the pose's own arm by a ramp
+ * in / out. Applied after the pose (the arms are the pose's; the notice never touches them).
+ */
+function greetWave(rig: Rig, gr: { active: boolean; since: number }, t: number): void {
+  if (!gr.active) return;
+  const u = t - gr.since - WAVE_DELAY_S;
+  if (u <= 0 || u >= WAVE_S) return;
+  const w = smooth(Math.min(u, WAVE_S - u) / WAVE_RAMP_S);
+  if (w <= 0) return;
+  const ph = Math.PI * 2 * WAVE_HZ * u;
+  const sw = Math.sin(ph);
+  const sh = rig.shoulderR.rotation;
+  const el = rig.elbowR.rotation;
+  sh.x += (-2.6 + 0.12 * sw - sh.x) * w;
+  sh.y += (0 - sh.y) * w;
+  sh.z += (-0.65 - 0.25 * sw - sh.z) * w;
+  el.x += (-0.7 + 0.35 * Math.sin(ph + 1.0) - el.x) * w;
+  el.y += (0 - el.y) * w;
+  el.z += (0 - el.z) * w;
+}
+
+/**
+ * A standing kid's greeting (lane 7, after the wanderer's): within GREET_NEAR_M she turns her body to
+ * face Link and holds it — the head's notice then has him straight ahead; once he has stayed beyond
+ * GREET_FAR_M for GREET_RELEASE_S she turns back to her stand's yaw. Each turn blends over the longer
+ * of GREET_BLEND_S and the turn at GREET_TURN_RATE, with the schedule's turn-shuffle under the feet.
+ * State per kid (the ledge, bank, grove and veranda stands); capture passes no player, so the six frames never see a turn.
+ */
+interface Greet {
+  active: boolean;
+  since: number;
+  until: number;
+  dur: number;
+  farSince: number;
+  yaw: number;
+  g: number;
+  lastT: number;
+}
+const newGreet = (): Greet => ({ active: false, since: 0, until: -1e9, dur: GREET_BLEND_S, farSince: -1, yaw: 0, g: 0, lastT: -1 });
+function standGreet(gr: Greet, t: number, x: number, z: number, standYaw: number, player: Vector3 | null | undefined): { yaw: number; shuffle: number; shufflePhi: number } {
+  const dt = gr.lastT < 0 ? 0 : Math.min(0.1, Math.max(0, t - gr.lastT));
+  gr.lastT = t;
+  if (player) {
+    const d = Math.hypot(player.x - x, player.z - z);
+    if (!gr.active) {
+      if (d < GREET_NEAR_M && t - gr.until > gr.dur) {
+        gr.active = true;
+        gr.since = t;
+        gr.farSince = -1;
+        gr.yaw = Math.atan2(player.x - x, player.z - z);
+        gr.dur = Math.max(GREET_BLEND_S, Math.abs(angleTo(standYaw, gr.yaw)) / GREET_TURN_RATE);
+      }
+    } else if (d > GREET_FAR_M) {
+      if (gr.farSince < 0) gr.farSince = t;
+      if (t - gr.farSince > GREET_RELEASE_S) {
+        gr.active = false;
+        gr.until = t;
+        gr.dur = Math.max(GREET_BLEND_S, Math.abs(angleTo(standYaw, gr.yaw)) / GREET_TURN_RATE);
+      }
+    } else gr.farSince = -1;
+    // while he stays, the body follows him round at the turn rate (the yaw target eases, the blend is at 1)
+    if (gr.active && t - gr.since > gr.dur) gr.yaw += MathUtils.clamp(angleTo(gr.yaw, Math.atan2(player.x - x, player.z - z)), -GREET_TURN_RATE * dt, GREET_TURN_RATE * dt);
+  } else if (gr.active) {
+    gr.active = false;
+    gr.until = t;
+  }
+  const g = gr.active ? smooth((t - gr.since) / gr.dur) : 1 - smooth((t - gr.until) / gr.dur);
+  gr.g = g;
+  if (g <= 0) return { yaw: standYaw, shuffle: 0, shufflePhi: 0 };
+  const turn = angleTo(standYaw, gr.yaw);
+  const bell = 4 * g * (1 - g);
+  return {
+    yaw: standYaw + turn * g,
+    shuffle: Math.min(1, Math.abs(turn) / 1.2) * bell,
+    shufflePhi: Math.PI * 2 * 2.4 * (t - (gr.active ? gr.since : gr.until)) * Math.sign(turn || 1),
+  };
+}
 /** how far the neck turns (rad); past it the turn fades out over 0.7 rad rather than pinning to the shoulder */
 const NOTICE_YAW_MAX = 1.05;
 /** Link's eyes over his root (the GLB's 1.25 m to the cap) */
@@ -529,9 +649,12 @@ function noticePlayer(rig: Rig, kidX: number, kidZ: number, kidYaw: number, head
   const pitch = Math.atan2(playerY + PLAYER_EYE_M - headY, dist);
   // the neck turns relative to the chest: take the pose's own hips / chest yaw (the idle turn, the walk's counter-rotation) out of the target
   const body = rig.hips.rotation.y + rig.chest.rotation.y;
+  // and its pitch — the sitter's torso curls 0.3 rad forward, a standing kid's leans a few hundredths — so the
+  // world pitch to his eyes is what the clamp sees, and the neck's own angle carries the torso back out
+  const torso = rig.hips.rotation.x + rig.chest.rotation.x;
   const n = rig.neck.rotation;
   n.y += (MathUtils.clamp(rel - body, -NOTICE_YAW_MAX, NOTICE_YAW_MAX) - n.y) * w;
-  n.x += (MathUtils.clamp(-pitch, -0.35, 0.5) - n.x) * w;
+  n.x += (MathUtils.clamp(-pitch, -0.35, 0.5) - torso - n.x) * w;
 }
 
 // ---- the system ----
@@ -571,6 +694,13 @@ export function createNpcs(opts: NpcOptions): Npcs {
   // phase so the loop starts mid-dwell at her verge spot at t = 0
   const phase0 = -0.6 * sched.segments[0].dur;
   const wander: WanderState = { x: 0, z: 0, yaw: 0, speed: 0, walk: 0, phi: 0, shuffle: 0, shufflePhi: 0, headYaw: 0, headPitch: 0, segment: 'dwell', segmentIndex: 0 };
+  // The wanderer greets Link (lane 7, 2026-09-25): within GREET_NEAR_M she stops where she is, turns
+  // to face him and stands — the head's notice does the rest; once he has been beyond GREET_FAR_M for
+  // GREET_RELEASE_S she turns back and walks on from exactly where she stopped. The loop's clock is
+  // held for the pause (`paused`), so her schedule stays a function of (t − paused): no pop on either
+  // side. Capture never drives her (`view` returns above the wander branch), so the six frames cannot
+  // see any of this; the play routes only meet her if they pass within arm's reach.
+  const greet = { active: false, since: 0, until: -1e9, paused: 0, frozen: 0, farSince: -1, yaw: 0, g: 0 };
   // off-limits check of the authored loop (waypoints and 0.25 m samples along every leg)
   const offLimits: string[] = [];
   for (let i = 0; i < NPC_LOOP.length; i++) {
@@ -633,6 +763,8 @@ export function createNpcs(opts: NpcOptions): Npcs {
   ];
   const seatLookPeriod = 14;
   const seatPhase = rng.range(0, seatLookPeriod);
+  /** the sitter's greeting (lane 7): she cannot turn on her tread, so the state only times her nod and wave */
+  const seatGreet = newGreet();
   const feetMid = new Vector3().addVectors(seat.ankleL, seat.ankleR).multiplyScalar(0.5);
 
   // -- kokiri-ledge: the stand on the raised ledge (round 48; ref-04), facing south over the clearing --
@@ -653,6 +785,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const ledgeLookPeriod = 17;
   const ledgePhase = ledgeRng.range(0, ledgeLookPeriod);
   const ledgeSt: WanderState = { ...wander };
+  const ledgeGreet = newGreet();
   let ledgeShown = true;
   const showLedge = (on: boolean) => {
     if (!ledgeChar || ledgeShown === on) return;
@@ -685,6 +818,79 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const bankLookPeriod = 15;
   const bankPhase = bankRng.range(0, bankLookPeriod);
   const bankSt: WanderState = { ...wander };
+  const bankGreet = newGreet();
+
+  // -- kokiri-grove-yard: the stand by the north grove's washing line (lane 7, after exp-north landed).
+  // Its rng is a fork of its own (`grove`), drawn after the bank's: nothing above moves. She faces the
+  // line at arm's length: the resting look is level with a little down (the pegs), the look-around
+  // glances along the line both ways and once back over her shoulder toward the trail.
+  const groveChar = chars[GROVE_SLOT] ?? null;
+  const grove = { x: NPC_GROVE_YARD.x, z: NPC_GROVE_YARD.z, yaw: Math.atan2(NPC_GROVE_YARD.lookAt[0] - NPC_GROVE_YARD.x, NPC_GROVE_YARD.lookAt[1] - NPC_GROVE_YARD.z), y: ground.height(NPC_GROVE_YARD.x, NPC_GROVE_YARD.z) };
+  const groveRng = rng.fork('grove');
+  const GROVE_DOWN = -0.06;
+  const groveKeys: [number, number, number][] = [
+    [0, 0, GROVE_DOWN],
+    [0.15, 0, GROVE_DOWN],
+    [0.28, groveRng.range(0.3, 0.55), GROVE_DOWN + groveRng.range(-0.03, 0.03)],
+    [0.42, groveRng.range(0.15, 0.35), GROVE_DOWN],
+    [0.55, -groveRng.range(0.3, 0.5), GROVE_DOWN + groveRng.range(-0.02, 0.04)],
+    [0.7, -groveRng.range(0.9, 1.2), groveRng.range(0.02, 0.08)],
+    [0.82, -groveRng.range(0.2, 0.4), GROVE_DOWN],
+    [0.92, 0, GROVE_DOWN * 0.5],
+    [1, 0, GROVE_DOWN],
+  ];
+  const groveLookPeriod = 17;
+  const grovePhase = groveRng.range(0, groveLookPeriod);
+  const groveSt: WanderState = { ...wander };
+  const groveGreet = newGreet();
+
+  // -- kokiri-grove-veranda: the boy at the stilt house's rail (lane 7, the grove's second person). His rng
+  // is a fork of its own (`veranda`), drawn after the grove's: nothing above moves. He stands turned along the
+  // rail toward the yard 12 m below, watching the girl at the line: the resting look is down a little (her),
+  // the look-around lifts along the trail's arrival, out over the shelf, and once back toward the door.
+  const verandaChar = chars[VERANDA_SLOT] ?? null;
+  const veranda = { x: NPC_GROVE_VERANDA.x, z: NPC_GROVE_VERANDA.z, yaw: Math.atan2(NPC_GROVE_VERANDA.lookAt[0] - NPC_GROVE_VERANDA.x, NPC_GROVE_VERANDA.lookAt[1] - NPC_GROVE_VERANDA.z), y: ground.height(NPC_GROVE_VERANDA.x, NPC_GROVE_VERANDA.z) };
+  const verandaRng = rng.fork('veranda');
+  const VERANDA_DOWN = -0.16;
+  const verandaKeys: [number, number, number][] = [
+    [0, 0, VERANDA_DOWN],
+    [0.18, 0, VERANDA_DOWN],
+    [0.3, verandaRng.range(0.35, 0.6), verandaRng.range(-0.02, 0.06)],
+    [0.45, verandaRng.range(0.2, 0.4), -verandaRng.range(0.02, 0.08)],
+    [0.58, -verandaRng.range(0.25, 0.5), verandaRng.range(0.0, 0.08)],
+    [0.72, -verandaRng.range(0.8, 1.1), verandaRng.range(-0.02, 0.04)],
+    [0.84, -verandaRng.range(0.15, 0.35), VERANDA_DOWN * 0.5],
+    [0.93, 0, VERANDA_DOWN],
+    [1, 0, VERANDA_DOWN],
+  ];
+  const verandaLookPeriod = 19;
+  const verandaPhase = verandaRng.range(0, verandaLookPeriod);
+  const verandaSt: WanderState = { ...wander };
+  const verandaGreet = newGreet();
+
+  // -- kokiri-c: the boy at Saria's door (lane 7). Under capture the caller's idle poses him (the frames A / B /
+  // E / F hold him, `drive` returns false above the play branches); in play he takes the stands' idle here — weight
+  // shift, breath, his own look-around — and so the greet and the nod like the other four. His stand yaw is the
+  // caller's (toward the spawn, `placeFree`), read on his first play frame; his rng a fork drawn last.
+  const doorChar = chars[2] ?? null;
+  const doorRng = rng.fork('door');
+  const DOOR_DOWN = -0.03;
+  const doorKeys: [number, number, number][] = [
+    [0, 0, DOOR_DOWN],
+    [0.16, 0, DOOR_DOWN],
+    [0.3, -doorRng.range(0.35, 0.6), doorRng.range(0.0, 0.06)],
+    [0.44, -doorRng.range(0.15, 0.35), DOOR_DOWN],
+    [0.58, doorRng.range(0.3, 0.55), doorRng.range(-0.04, 0.02)],
+    [0.72, doorRng.range(0.9, 1.15), doorRng.range(-0.02, 0.05)],
+    [0.84, doorRng.range(0.2, 0.4), DOOR_DOWN],
+    [0.93, 0, DOOR_DOWN * 0.5],
+    [1, 0, DOOR_DOWN],
+  ];
+  const doorLookPeriod = 15;
+  const doorPhase = doorRng.range(0, doorLookPeriod);
+  const doorSt: WanderState = { ...wander };
+  const doorGreet = newGreet();
+  let doorStandYaw: number | null = null;
 
   // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
   // (lane 7): a light that leaves or joins the scene changes the light count every lit program
@@ -715,8 +921,15 @@ export function createNpcs(opts: NpcOptions): Npcs {
     return out.set(hx + fx * FAIRY_AHEAD + fz * FAIRY_LEFT, hy + FAIRY_UP, hz + fz * FAIRY_AHEAD - fx * FAIRY_LEFT);
   };
   /** the walker's hover point at time τ from the closed-form state (no rig needed) */
+  /**
+   * the schedule's clock at wall time `tau` under the greeting's hold: frozen from the stop on while she
+   * greets; after the release, frozen for taps that fall inside the pause and running again past it
+   * (the taps reach 0.26 s back, so a tap from before a pause began is off by at most that)
+   */
+  const schedTime = (tau: number) => (greet.active ? Math.min(tau - greet.paused, greet.frozen) : Math.max(tau - greet.paused, greet.frozen));
   const walkerFaceAt = (tau: number, out: Vector3) => {
-    wanderStateAt(sched, phase0, tau, _st);
+    wanderStateAt(sched, phase0, schedTime(tau), _st);
+    if (greet.g > 0) _st.yaw += angleTo(_st.yaw, greet.yaw) * greet.g;
     const h = ground.height(_st.x, _st.z);
     return hoverAt(_st.x, h + walker.rig.props.headCentreY, _st.z, _st.yaw, out);
   };
@@ -743,11 +956,14 @@ export function createNpcs(opts: NpcOptions): Npcs {
       if (slot === LEDGE_SLOT && ledgeChar) {
         // posed on her spot in every mode (the audit's contact stays true); shown only off the fixed views
         actor.pos.set(ledge.x, 0, ledge.z);
-        actor.yaw = ledge.yaw;
+        const lg = standGreet(ledgeGreet, t, ledge.x, ledge.z, ledge.yaw, view ? null : player);
+        actor.yaw = lg.yaw;
         const [hy, hp] = seatedLook(t, ledgePhase, ledgeKeys, ledgeLookPeriod);
-        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, ledge.yaw, t, 5.1, hy, hp, ledgeSt);
+        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, lg.yaw, t, 5.1, hy * (1 - ledgeGreet.g), hp, ledgeSt, lg.shuffle, lg.shufflePhi);
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
         noticeFor(ledgeChar.rig, actor, player);
+        ledgeChar.rig.neck.rotation.x += greetNod(ledgeGreet, t);
+        greetWave(ledgeChar.rig, ledgeGreet, t);
         actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
         showLedge(!view);
         actor.shadow.visible = !view;
@@ -757,11 +973,14 @@ export function createNpcs(opts: NpcOptions): Npcs {
       if (slot === BANK_SLOT && bankChar) {
         // on her terrace spot in every mode, shown in every mode (outside the six fixed frustums)
         actor.pos.set(bank.x, 0, bank.z);
-        actor.yaw = bank.yaw;
+        const bg = standGreet(bankGreet, t, bank.x, bank.z, bank.yaw, view ? null : player);
+        actor.yaw = bg.yaw;
         const [hy, hp] = seatedLook(t, bankPhase, bankKeys, bankLookPeriod);
-        poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bank.yaw, t, 7.9, hy, hp, bankSt);
+        poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bg.yaw, t, 7.9, hy * (1 - bankGreet.g), hp, bankSt, bg.shuffle, bg.shufflePhi);
         plantFeet(bankChar.rig, ground.height, actor.contact);
         noticeFor(bankChar.rig, actor, player);
+        bankChar.rig.neck.rotation.x += greetNod(bankGreet, t);
+        greetWave(bankChar.rig, bankGreet, t);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
         // her fairy's light is dimmed to nothing under capture (round 50 kept it out of the six
         // frames' light loop; the light itself stays in the scene — see the fairies above); the
@@ -770,9 +989,95 @@ export function createNpcs(opts: NpcOptions): Npcs {
         driven.add(BANK_SLOT);
         return true;
       }
+      if (slot === GROVE_SLOT && groveChar) {
+        // in the grove's yard in every mode (80–112 m north of the plaza, outside the six fixed
+        // frustums); no fairy, so nothing to dim
+        actor.pos.set(grove.x, 0, grove.z);
+        const gg = standGreet(groveGreet, t, grove.x, grove.z, grove.yaw, view ? null : player);
+        actor.yaw = gg.yaw;
+        const [hy, hp] = seatedLook(t, grovePhase, groveKeys, groveLookPeriod);
+        poseLedgeIdle(groveChar.rig, grove.x, grove.z, grove.y, gg.yaw, t, 8.3, hy * (1 - groveGreet.g), hp, groveSt, gg.shuffle, gg.shufflePhi);
+        plantFeet(groveChar.rig, ground.height, actor.contact);
+        noticeFor(groveChar.rig, actor, player);
+        groveChar.rig.neck.rotation.x += greetNod(groveGreet, t);
+        greetWave(groveChar.rig, groveGreet, t);
+        actor.shadow.position.set(grove.x, ground.decalHeight(grove.x, grove.z, actor.shadowRadius), grove.z);
+        driven.add(GROVE_SLOT);
+        return true;
+      }
+      if (slot === VERANDA_SLOT && verandaChar) {
+        // at the rail in every mode, 11.6 m up on the published deck (`ground.height` reads the walk
+        // surface); no fairy, so nothing to dim
+        actor.pos.set(veranda.x, 0, veranda.z);
+        const vg = standGreet(verandaGreet, t, veranda.x, veranda.z, veranda.yaw, view ? null : player);
+        actor.yaw = vg.yaw;
+        const [hy, hp] = seatedLook(t, verandaPhase, verandaKeys, verandaLookPeriod);
+        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, vg.yaw, t, 6.1, hy * (1 - verandaGreet.g), hp, verandaSt, vg.shuffle, vg.shufflePhi);
+        plantFeet(verandaChar.rig, ground.height, actor.contact);
+        noticeFor(verandaChar.rig, actor, player);
+        verandaChar.rig.neck.rotation.x += greetNod(verandaGreet, t);
+        greetWave(verandaChar.rig, verandaGreet, t);
+        actor.shadow.position.set(veranda.x, ground.decalHeight(veranda.x, veranda.z, actor.shadowRadius), veranda.z);
+        driven.add(VERANDA_SLOT);
+        return true;
+      }
       if (view) return false;
+      if (slot === 2 && doorChar) {
+        if (doorStandYaw === null) doorStandYaw = actor.yaw;
+        const dg = standGreet(doorGreet, t, actor.pos.x, actor.pos.z, doorStandYaw, player);
+        actor.yaw = dg.yaw;
+        const [hy, hp] = seatedLook(t, doorPhase, doorKeys, doorLookPeriod);
+        const dy = ground.height(actor.pos.x, actor.pos.z);
+        poseLedgeIdle(doorChar.rig, actor.pos.x, actor.pos.z, dy, dg.yaw, t, 4.7, hy * (1 - doorGreet.g), hp, doorSt, dg.shuffle, dg.shufflePhi);
+        plantFeet(doorChar.rig, ground.height, actor.contact);
+        noticeFor(doorChar.rig, actor, player);
+        doorChar.rig.neck.rotation.x += greetNod(doorGreet, t);
+        greetWave(doorChar.rig, doorGreet, t);
+        actor.shadow.position.set(actor.pos.x, ground.decalHeight(actor.pos.x, actor.pos.z, actor.shadowRadius), actor.pos.z);
+        driven.add(2);
+        return true;
+      }
       if (slot === 0) {
-        wanderStateAt(sched, phase0, t, wander);
+        // her schedule runs on the held clock; while she greets, on the instant she stopped
+        wanderStateAt(sched, phase0, schedTime(t), wander);
+        if (player) {
+          const d = Math.hypot(player.x - wander.x, player.z - wander.z);
+          if (!greet.active) {
+            if (d < GREET_NEAR_M && t - greet.until > GREET_BLEND_S) {
+              greet.active = true;
+              greet.since = t;
+              greet.frozen = t - greet.paused;
+              greet.farSince = -1;
+            }
+          } else if (d > GREET_FAR_M) {
+            if (greet.farSince < 0) greet.farSince = t;
+            if (t - greet.farSince > GREET_RELEASE_S) {
+              greet.active = false;
+              greet.until = t;
+              greet.paused += t - greet.since;
+            }
+          } else greet.farSince = -1;
+          if (greet.active) greet.yaw = Math.atan2(player.x - wander.x, player.z - wander.z);
+        } else if (greet.active) {
+          greet.active = false;
+          greet.until = t;
+          greet.paused += t - greet.since;
+        }
+        // the greeting's weight: up over the blend as she stops, down over it as she walks on
+        const g = greet.active ? smooth((t - greet.since) / GREET_BLEND_S) : 1 - smooth((t - greet.until) / GREET_BLEND_S);
+        greet.g = g;
+        if (g > 0) {
+          const turn = angleTo(wander.yaw, greet.yaw);
+          wander.yaw += turn * g;
+          wander.walk *= 1 - g;
+          wander.speed *= 1 - g;
+          wander.headYaw *= 1 - g;
+          wander.headPitch *= 1 - g;
+          // the feet shuffle round under the turn, a bell over the blend like the schedule's own turns
+          const bell = 4 * g * (1 - g);
+          wander.shuffle = Math.max(wander.shuffle, Math.min(1, Math.abs(turn) / 1.2) * bell);
+          if (bell > 0) wander.shufflePhi = Math.PI * 2 * 2.4 * (t - (greet.active ? greet.since : greet.until)) * Math.sign(turn || 1);
+        }
         actor.pos.set(wander.x, 0, wander.z);
         actor.yaw = wander.yaw;
         const rig = walker.rig;
@@ -781,6 +1086,8 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseWander(rig, wander, t, 1.3);
         plantFeet(rig, ground.height, actor.contact);
         noticeFor(rig, actor, player, wander.walk);
+        rig.neck.rotation.x += greetNod(greet, t);
+        greetWave(rig, greet, t);
         actor.shadow.position.set(wander.x, ground.decalHeight(wander.x, wander.z, actor.shadowRadius), wander.z);
         driven.add(0);
         return true;
@@ -789,13 +1096,17 @@ export function createNpcs(opts: NpcOptions): Npcs {
         actor.pos.set(seat.hips.x, 0, seat.hips.z);
         actor.yaw = seat.yaw;
         const [hy, hp] = seatedLook(t, seatPhase, seatKeys, seatLookPeriod);
-        poseSeated(sitter.rig, seat, t, 3.4, hy, hp);
+        poseSeated(sitter.rig, seat, t, 3.4, hy * (1 - seatGreet.g), hp);
         // contact: the lower sole (both rest on the tread below)
         sitter.rig.root.updateMatrixWorld(true);
         sitter.rig.ankleL.localToWorld(_tmp.copy(sitter.rig.sole));
         sitter.rig.ankleR.localToWorld(_tmp2.copy(sitter.rig.sole));
         actor.contact.copy(_tmp.y <= _tmp2.y ? _tmp : _tmp2);
         noticeFor(sitter.rig, actor, player);
+        // seated, she greets with the head and the hand: the yaw the greeter returns is not used
+        standGreet(seatGreet, t, seat.hips.x, seat.hips.z, seat.yaw, player);
+        sitter.rig.neck.rotation.x += greetNod(seatGreet, t);
+        greetWave(sitter.rig, seatGreet, t);
         actor.shadow.position.set(feetMid.x, ground.decalHeight(feetMid.x, feetMid.z, actor.shadowRadius), feetMid.z);
         driven.add(1);
         return true;
@@ -830,7 +1141,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         npcGirls: chars.filter((c) => c.rig.root.name !== 'kokiri-2').length,
         npcWaypoints: NPC_LOOP.length,
         npcSitting: 1,
-        npcStanding: (ledgeChar ? 1 : 0) + (bankChar ? 1 : 0),
+        npcStanding: (ledgeChar ? 1 : 0) + (bankChar ? 1 : 0) + (groveChar ? 1 : 0) + (verandaChar ? 1 : 0),
         npc: {
           loop: { periodS: Number(sched.period.toFixed(3)), lengthM: Number(sched.length.toFixed(3)), segments: sched.segments.length, offLimits, strideM: Number((4 * legLength * Math.sin(AMP)).toFixed(4)), speedRange: [1.0, 1.15] },
           walker: { segment: _st.segment, segmentIndex: _st.segmentIndex, x: Number(_st.x.toFixed(3)), z: Number(_st.z.toFixed(3)), yaw: Number(_st.yaw.toFixed(3)), speed: Number(_st.speed.toFixed(3)), phi: Number(_st.phi.toFixed(3)) },

@@ -27,7 +27,7 @@ function load(file) {
   return module.exports;
 }
 
-const { buildRoof, HERO_DROP_M, HERO_DROP_STAND_M, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
+const { buildRoof, HERO_DROP_M, HERO_DROP_STAND_M, HERO_TOP_KEEP, ROOF_MIN_ABOVE_GROUND_M, ROOF_STAND_BANDS, ROOF_STAND_GRIDS } = load(path.join(here, 'roof.ts'));
 const { createRng } = load(path.join(here, '../util/prng.ts'));
 const { LAYOUT } = load(path.join(here, '../layout.ts'));
 const { SHAFT_COLUMNS } = load(path.join(here, '../trees/corridors.ts'));
@@ -70,10 +70,36 @@ for (let i = 0; i < plazaSectors.length; i++) {
 assert.ok(a.stand.clumps > 40, `the stand pass builds a roof over the north stand (${a.stand.clumps} clumps)`);
 assert.equal(a.sectors.filter((s) => s.stand).length, 1, 'the stand draws in exactly one sector of its own');
 
+// Per-area coverage. The aggregate above passes on the north stand alone, so it would not notice the
+// south exit's or the grove's grid going away — and each of those was a place where the canopy visibly
+// stopped and a walker looking up met bare sky (2026-09-24, art/environment/squad2-2026-09-23/roofhole
+// and northgrove). Every band gets its own floor, and the count is the clumps standing over its own
+// rectangle: a band whose grid is removed, whose bounds stop short of it, or whose support is broken
+// drops to zero here instead of hiding inside the total.
+const heroXZ = LAYOUT.viewpoints.map((v) => [v.position[0], v.position[2]]);
+for (const b of ROOF_STAND_BANDS) {
+  const box = `(${b.xMin}…${b.xMax}, ${b.zMin}…${b.zMax})`;
+  // A band can only build where a grid samples it, and the containment has to be of the band's own
+  // rectangle: allowing the feather as slack let the grove band "match" the north grid 40 m away, which
+  // would have passed with the grove grid deleted — the exact mistake this is here to catch.
+  const covered = ROOF_STAND_GRIDS.some((g) => b.xMin >= g.xMin && b.xMax <= g.xMax && b.zMin >= g.zMin && b.zMax <= g.zMax);
+  assert.ok(covered, `band ${box} lies inside one of the stand pass's grids`);
+  const over = a.clumps.filter((c) => c.stand && c.x >= b.xMin && c.x <= b.xMax && c.z >= b.zMin && c.z <= b.zMax).length;
+  // Bands past the stand's hero drop carry a roof outright; a band nearer than that keeps only the
+  // clumps that fall in a frame's top band (HERO_TOP_KEEP), so its floor is one. The ravine band over
+  // the gorge (z 28…41, 26 m from the nearest fixed camera) is that case and builds 2 here: in the real
+  // terrain it moved the log-mouth look-up's top third by 5 levels, in this flat test world it is nearly
+  // all dropped. Either way, zero means its grid or its support has gone.
+  const nearestHero = Math.min(...heroXZ.map(([x, z]) => Math.hypot(x - (b.xMin + b.xMax) / 2, z - (b.zMin + b.zMax) / 2)));
+  const floor = nearestHero > HERO_DROP_STAND_M ? 8 : 1;
+  assert.ok(over >= floor, `the roof closes over band ${box}, ${nearestHero.toFixed(0)} m from the nearest fixed camera: ${over} clumps (floor ${floor})`);
+}
+
 // height: never inside a walker's reach, on the plateau included
 for (const c of a.clumps) assert.ok(c.y - terrain.height(c.x, c.z) >= ROOF_MIN_ABOVE_GROUND_M - 1e-6, `clump at (${c.x.toFixed(1)}, ${c.z.toFixed(1)}) is ${(c.y - terrain.height(c.x, c.z)).toFixed(1)} m up`);
 
-// hero frames: an independent pinhole projection finds no clump centre inside any frame within HERO_DROP_M
+// hero frames: an independent pinhole projection finds no clump centre inside any frame within
+// HERO_DROP_M, below the top band the canopy is allowed to close over (HERO_TOP_KEEP)
 const cams = LAYOUT.viewpoints.map((v) => {
   const pos = new THREE.Vector3(...v.position);
   const cam = new THREE.PerspectiveCamera(v.fov, 16 / 9, 0.1, 500);
@@ -92,13 +118,18 @@ for (const c of a.clumps) {
     if (d > (c.stand ? HERO_DROP_STAND_M : HERO_DROP_M)) continue;
     ndc.set(c.x, c.y, c.z).project(cam);
     const behind = ndc.z > 1 || new THREE.Vector3(c.x, c.y, c.z).sub(pos).dot(cam.getWorldDirection(new THREE.Vector3())) <= 0;
-    if (!behind && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1) {
+    // HERO_TOP_KEEP: the canopy is allowed to close over a frame's top edge — that band is the only
+    // part of a hero frame a 20-37 m roof can reach, our frames already carry foliage along it and so
+    // does the reference, and excluding it left the airspace over the northern approach unroofed.
+    // Below the band the exclusion is as it was: nothing of the roof may stand in the frame's body.
+    const fromTop = (1 - ndc.y) / 2;
+    if (!behind && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1 && fromTop > HERO_TOP_KEEP) {
       inside++;
-      console.error(`clump (${c.x.toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)}) projects into ${id} at ${d.toFixed(0)} m`);
+      console.error(`clump (${c.x.toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)}) projects into ${id} at ${d.toFixed(0)} m, ${(100 * fromTop).toFixed(0)} % down the frame`);
     }
   }
 }
-assert.equal(inside, 0, 'no clump centre inside a hero frame within the drop distance');
+assert.equal(inside, 0, 'no clump centre below the kept top band inside a hero frame within the drop distance');
 
 // god-ray columns: no clump centre within a column's carve radius of its sun line
 const tmp = new THREE.Vector3();

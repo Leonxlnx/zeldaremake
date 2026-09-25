@@ -1,0 +1,25 @@
+{
+ "at": [
+  12,
+  -38
+ ],
+ "seconds": 75,
+ "facings": [
+  {
+   "deg": 0,
+   "stats": null
+  },
+  {
+   "deg": 90,
+   "stats": null
+  },
+  {
+   "deg": 180,
+   "stats": null
+  },
+  {
+   "deg": 270,
+   "stats": null
+  }
+ ]
+}

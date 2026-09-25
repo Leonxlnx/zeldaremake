@@ -28,6 +28,21 @@ export const ROOF_MIP_BIAS = -0.6;
 export const ROOF_SUN_THROUGH = 0.42;
 /** ambient lift of the underside (× the leaf albedo), so a mass in shade never reads black */
 export const ROOF_UNDER_LIFT = 0.16;
+/**
+ * Sky light through the layer (× the leaf albedo × the air's own colour, unit-scaled): the lift
+ * above is one number for every texel, so under a mass the atlas' leaf detail is multiplied by 0.16
+ * and lands inside one or two display levels — measured looking up 60° from the open north
+ * (art/environment/squad2-2026-09-23/roofsky), the roof's own pixels there were 98.5 % under
+ * display level 30 and the frame's neighbour-to-neighbour luminance difference was 1.75 against
+ * 5.0–5.3 in the leafy parts of the same frame: a dark slab, which is what the owner's backlog
+ * item 4 calls "a dark flat disc overhead".
+ *
+ * This term is the diffuse sky the canopy transmits, so it scales with the atlas' overlap-depth
+ * channel (`thin`, linear — the sun-through term above uses `thin²` and needs the sun behind the
+ * card, so a mass in shade gets nothing from it). Thin fringes lift, deep masses stay dark, and the
+ * variation between them is the structure the flat lift cannot give.
+ */
+export const ROOF_SKY_THROUGH = 0.6;
 /** the roof cards' wind: heightAboveGround share and stiffness of the shared `windBranch` */
 export const ROOF_WIND: [number, number] = [0.35, 0.86];
 /** sector meshes the roof is split into for frustum culling */
@@ -62,6 +77,8 @@ uniform vec3 uRoofSunDir;
 uniform vec3 uRoofSunColor;
 uniform float uRoofThrough;
 uniform float uRoofUnderLift;
+uniform vec3 uRoofSkyColor;
+uniform float uRoofSkyThrough;
 uniform vec2 uRoofEdgeFade;
 varying vec3 vRoofNormal;
 varying vec3 vRoofWorld;
@@ -76,6 +93,7 @@ const ROOF_FRAGMENT_BODY = /* glsl */ `
     float back = max(0.0, dot(-normal, uRoofSunDir));
     reflectedLight.directDiffuse += uRoofSunColor * uRoofThrough * thin * thin * back * diffuseColor.rgb;
     reflectedLight.indirectDiffuse += uRoofUnderLift * diffuseColor.rgb;
+    reflectedLight.indirectDiffuse += uRoofSkyThrough * thin * uRoofSkyColor * diffuseColor.rgb;
   }
 `;
 
@@ -90,12 +108,18 @@ function createRoofMaterial(ctx: WorldContext, atlas: RoofAtlas, sunDir: Vector3
   });
   mat.name = 'canopy-roof';
   const sunColor = ctx.sun ? ctx.sun.color.clone().multiplyScalar(Math.min(1, ctx.sun.intensity * 0.3)) : new Color(1, 0.96, 0.85);
+  // the air's own colour at unit scale, so ROOF_SKY_THROUGH is the whole strength of the term and
+  // the sky the layer transmits keeps the haze's warm grey rather than going neutral
+  const skyTint = new Color(ctx.config.fog.color);
+  skyTint.multiplyScalar(1 / Math.max(1e-3, Math.max(skyTint.r, skyTint.g, skyTint.b)));
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uRoofDepth = { value: atlas.depth };
     shader.uniforms.uRoofSunDir = { value: sunDir.clone().normalize() };
     shader.uniforms.uRoofSunColor = { value: sunColor };
     shader.uniforms.uRoofThrough = { value: ROOF_SUN_THROUGH };
     shader.uniforms.uRoofUnderLift = { value: ROOF_UNDER_LIFT };
+    shader.uniforms.uRoofSkyColor = { value: skyTint };
+    shader.uniforms.uRoofSkyThrough = { value: ROOF_SKY_THROUGH };
     shader.uniforms.uRoofEdgeFade = { value: new Vector2(ROOF_EDGE_FADE[0], ROOF_EDGE_FADE[1]) };
     shader.vertexShader = `#define ROOF_WIND_HEIGHT ${ROOF_WIND[0].toFixed(3)}\n#define ROOF_WIND_STIFF ${ROOF_WIND[1].toFixed(3)}\n${WIND_GLSL}\n${ROOF_VERTEX_PARS}\nvarying vec3 vRoofNormal;\nvarying vec3 vRoofWorld;\n${shader.vertexShader}`.replace('#include <begin_vertex>', ROOF_VERTEX_BODY);
     shader.fragmentShader = `${ROOF_FRAGMENT_PARS}\n${shader.fragmentShader}`
@@ -117,7 +141,7 @@ function createRoofMaterial(ctx: WorldContext, atlas: RoofAtlas, sunDir: Vector3
       )
       .replace('#include <lights_fragment_end>', ROOF_FRAGMENT_BODY);
   };
-  mat.customProgramCacheKey = () => 'canopy-roof-v1';
+  mat.customProgramCacheKey = () => 'canopy-roof-v2';
   ctx.wind.bind(mat);
   return mat;
 }

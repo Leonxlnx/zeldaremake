@@ -32,7 +32,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { create, placementAllowed, EMBED, footprintRadius } = loadTs(path.join(here, 'index.ts'));
+const { create, placementAllowed, EMBED, AO_LIFT, footprintRadius } = loadTs(path.join(here, 'index.ts'));
 const { chamferedBox, potGeometry, crateGeometry, barrelGeometry } = loadTs(path.join(here, 'geometry.ts'));
 const { buildClayMaps, buildRopeMaps } = loadTs(path.join(here, 'materials.ts'));
 const { PROP_LAYOUT } = loadTs(path.join(here, 'layout.ts'));
@@ -169,7 +169,31 @@ assert.equal(audit.meshes, one.group.children.reduce((n, g) => n + g.children.le
 assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'every authored cluster placed');
 assert.equal(audit.localities, 4, 'four merge localities: the village, the clearing, the backside and the south exit');
 assert.equal(one.group.children.length, 4, 'one group per locality');
-assert.ok(audit.meshes <= 17, `≤ 17 meshes for the whole system (${audit.meshes}; round 56: the south exit's locality adds three, drawn only within its cull distance)`);
+assert.ok(audit.meshes <= 21, `≤ 21 meshes for the whole system (${audit.meshes}; round 56: the south exit's locality adds three, drawn only within its cull distance; the contact-AO decal adds one per locality)`);
+// round 56 (rubric #23): one contact-AO decal mesh per locality — unlit, no shadow either way, every
+// vertex AO_LIFT above its own ground (the village's on the legacy view, the south's on the live one)
+{
+  const liveForAo = createTerrain('live');
+  let decals = 0;
+  for (const g of one.group.children) {
+    const ao = g.children.filter((m) => m.name.endsWith('-ao'));
+    assert.equal(ao.length, 1, `${g.name}: one contact-AO mesh`);
+    const m = ao[0];
+    assert.equal(m.castShadow, false);
+    assert.equal(m.receiveShadow, false);
+    assert.equal(m.material.transparent, true);
+    assert.equal(m.material.depthWrite, false);
+    const groundOf = g.name === 'south' ? liveForAo : ctx.terrain;
+    const p = m.geometry.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const gap = p.getY(i) - groundOf.height(p.getX(i), p.getZ(i));
+      assert.ok(Math.abs(gap - AO_LIFT) < 1e-6, `${g.name}-ao vertex ${i} sits AO_LIFT above the ground (${gap.toFixed(4)})`);
+    }
+    decals += p.count / 54;
+  }
+  const seated = PROP_LAYOUT.filter((d) => ['pot', 'crate', 'barrel', 'bucket', 'marker'].includes(d.kind)).length;
+  assert.equal(decals, seated, `one decal per ground-seated prop (${decals} of ${seated})`);
+}
 // small props never tip more than 9° off level; the marker post stands vertical
 for (const p of audit.placed) if (['pot', 'crate', 'barrel', 'bucket'].includes(p.kind)) assert.ok(p.tiltDeg <= 9.01, `${p.id} tilt ${p.tiltDeg}°`);
 for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0, `${p.id} vertical`);
@@ -212,11 +236,11 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   const def = PROP_LAYOUT.find((d) => d.id === marker.id);
   assert.ok(Math.abs(((def.yaw - dir + Math.PI) % (2 * Math.PI)) - Math.PI) < 0.15, `the marker's long board points into the circle (yaw ${def.yaw} vs ${dir.toFixed(2)})`);
   const g = one.group.children.find((c) => c.name === 'clearing');
-  assert.ok(g && g.children.length <= 4, 'the clearing locality is ≤ 4 meshes');
+  assert.ok(g && g.children.length <= 5, 'the clearing locality is ≤ 5 meshes (four materials and its contact-AO decal)');
   for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
 }
 
-// culling: from every fixed camera the clearing (45 m rule) and the backside (expansionLocality:
+// culling: from every fixed camera the clearing (the CLUSTER_VISIBLE_M rule) and the backside (expansionLocality:
 // frustum + shadow footprints) are hidden and the village drawn; from the deck landing the
 // backside draws; far north of the clearing everything is culled
 {

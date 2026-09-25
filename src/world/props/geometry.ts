@@ -313,6 +313,8 @@ export function potGeometry(rng: Rng, size: number, variant: number, style?: Par
   const g = flat(lathe);
   const flash = rng.range(0.94, 1.08);
   const flashAngle = rng.range(0, TAU);
+  const wearAngle = rng.range(0, TAU);
+  const worn = new Color(body.r * 1.3, body.g * 1.28, body.b * 1.22);
   const radial = new Vector3();
   paint(g, (p, n) => {
     const h = p.y / size;
@@ -329,6 +331,10 @@ export function potGeometry(rng: Rng, size: number, variant: number, style?: Par
     c.lerp(band, Math.max(bandK, inside * 0.7));
     // foot ring: unglazed, a shade lighter and rougher
     c.lerp(new Color(0.55, 0.42, 0.3), smooth(0.06, 0.0, h) * 0.35);
+    // round 56 (the owner's rubric, #17 wear follows use): the lip's outer top is handled every day —
+    // the slip rubbed through to pale, polished clay, most at the two spots where hands take it
+    const grip = 0.55 + 0.45 * Math.cos(2 * (a - wearAngle));
+    c.lerp(worn, smooth(0.955, 0.995, h) * (1 - inside) * grip * 0.55);
     return c;
   });
   return [{ geometry: g, material: 'clay' }];
@@ -379,13 +385,29 @@ export function crateGeometry(rng: Rng, size: number): Part[] {
       }
     }
   }
-  // lid: boards across, grain along x, one gap left a little wide
+  // lid: boards across, grain along x, one gap left a little wide. Round 56 (the owner's rubric,
+  // #4 siblings with purpose / #19 sparse damage): about a third of the crates have lost one lid
+  // board — never the two outermost, so the box still reads closed from 20 m — and the box shows
+  // its floor through the gap; on another third one lid board has been knocked askew and lies
+  // tilted on its neighbours.
   const lidBoards = 4;
   const lw = (d - (lidBoards - 1) * gap) / lidBoards;
   const wideGap = rng.int(0, lidBoards);
+  const lost = rng.chance(0.35) ? rng.int(1, lidBoards - 1) : -1;
+  const knocked = lost < 0 && rng.chance(0.5) ? rng.int(0, lidBoards) : -1;
+  if (lost >= 0) {
+    // the gloom inside: a dark board just under the lid, so the slot reads as an opening at 2–5 m
+    // and not as one darker lid board (the lit floor boards alone read flat)
+    const gloom = board(w - 2 * t - 0.004, t * 0.5, d - 2 * t - 0.004, { grain: 'x', rng, shade: shade * 0.1 });
+    place(gloom, new Vector3(0, h - 2.5 * t, 0));
+    wood.push(gloom);
+  }
   for (let i = 0; i < lidBoards; i++) {
+    if (i === lost) continue;
     const b = board(w - 0.002, t, lw * (i === wideGap ? 0.9 : 0.985), { grain: 'x', rng, shade: shade * 1.04 });
-    place(b, new Vector3(0, h + t / 2, -d / 2 + lw / 2 + i * (lw + gap)));
+    const tilt = i === knocked ? rng.pick([-1, 1]) * rng.range(0.1, 0.16) : 0;
+    const q = tilt ? new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), tilt) : undefined;
+    place(b, new Vector3(0, h + t / 2 + (tilt ? Math.abs(Math.sin(tilt)) * lw * 0.5 : 0), -d / 2 + lw / 2 + i * (lw + gap) + (tilt ? Math.sign(tilt) * lw * 0.12 : 0)), q);
     wood.push(b);
   }
   // floor boards (seen through no gap, but they close the box from any low angle)
@@ -394,6 +416,8 @@ export function crateGeometry(rng: Rng, size: number): Part[] {
     place(b, new Vector3(0, t / 2, -(d - 2 * t) / 2 + (d - 2 * t) / 6 + i * ((d - 2 * t) / 3)));
     wood.push(b);
   }
+  // what the seed decided, for the audit and the tests (the merge drops it)
+  wood[0].userData.crate = { lost, knocked };
   return [...wood.map((g) => ({ geometry: g, material: 'wood' as MaterialKey })), ...iron.map((g) => ({ geometry: g, material: 'iron' as MaterialKey }))];
 }
 
@@ -518,6 +542,23 @@ export function markerGeometry(rng: Rng, size: number): Part[] {
     const tip = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -b.dir * 0.04);
     place(g, centre, q.clone().multiply(tip));
     push(g, 'wood');
+    // round 56 (the owner's rubric, #1 / #10): a chevron carved into both side faces near the tip,
+    // pointing the way the board does — dark stained strips a hair proud of the face, two arms
+    // meeting at the apex; a waymarker's boards were blank wood before
+    const bw = w * 0.85;
+    const armLen = 0.075 * (size / 1.7);
+    const spread = 0.62;
+    const apexZ = b.dir * (b.len / 2 - w * 0.5);
+    const boardQ = q.clone().multiply(tip);
+    for (const fx of [1, -1] as const) {
+      for (const s of [1, -1] as const) {
+        const arm = board(0.0035, 0.009 * (size / 1.7), armLen, { grain: 'z', rng, chamfer: 0.0006, shade: 0.26 });
+        const local = new Vector3(fx * (bw / 2 + 0.0014), s * (armLen / 2) * Math.sin(spread) - 0.003, apexZ - b.dir * (armLen / 2) * Math.cos(spread));
+        const rot = boardQ.clone().multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), s * b.dir * spread));
+        place(arm, local.applyQuaternion(boardQ).add(centre), rot);
+        push(arm, 'wood');
+      }
+    }
     // lashing around the post at the board's height, and a nail through the board's root
     for (const t of lashing(new Vector3(0, b.y, 0), up, w * 0.78, 3, 0.011)) push(t, 'rope');
     const nAt = new Vector3(w * 0.43, b.y + w * 0.1, b.dir * (w / 2 + w * 0.25)).applyQuaternion(q);

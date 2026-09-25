@@ -1,0 +1,22 @@
+[
+ {
+  "id": "north-path",
+  "lateSharePct": 0.02,
+  "strongSharePct": 0.01,
+  "meanAbs": 0.01,
+  "arrivingDraws": 496,
+  "settledDraws": 496,
+  "arrivingTriangles": 9179533,
+  "settledTriangles": 9179533
+ },
+ {
+  "id": "clearing",
+  "lateSharePct": 0,
+  "strongSharePct": 0,
+  "meanAbs": 0,
+  "arrivingDraws": 409,
+  "settledDraws": 409,
+  "arrivingTriangles": 5268442,
+  "settledTriangles": 5268442
+ }
+]

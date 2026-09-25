@@ -307,3 +307,311 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 
 ## Last updated
 2026-09-21T14:30:00Z
+
+## 2026-09-24 06:21 tick — the owner's 50-point rubric (06:07), the south cluster scored, ★16 taken
+
+- Head at `92a4fd66` carries `docs/RUBRIC_50_STRUCTURES.md`: every shipped structure / area / prop cluster scored 0–4 on
+  50 checks with evidence, ships ≥ 170 / 200, no check < 2, the ★ checks ≥ 3. The head merged my south-props branch at
+  `b98a2021` — before the marker's yaw fix `62bf7fcd` and the evidence; asked fable-cursor for the tip.
+- **Scored the south cluster** (`south-exit/README.md`, 36 applicable checks — no openings, roof, own lantern, steps or
+  footstep surface on a pot): **106 / 144, scaled 147 / 200**, below the gate; **★16 "weathering follows exposure" = 2**
+  (every prop's grime / moss is a foot band whatever the sun). Other 2s: sibling variation, wear, damage, AO.
+- **★16 landing** (`props/index.ts weather()`, the shared pass — every cluster's pixels): the sun's direction is
+  taken into each prop's frame (yaw undone), the moss band climbs the faces looking away from it (3× the height in full
+  shade, a faint moss tint on the shaded side above the band), and faces within ≈ 35° of up take a sun-bleach
+  (grey-silver wood 0.18, dusty clay 0.12). First pass (`25459fda`, 2.5× / 0.06 / 0.14) rendered real but faint at 3 m
+  (3–7 k px per pose) — strengthened a step in `c35559ab`. Six views A / B / F before / after capturing.
+- Lesson: `capture.mjs --no-checks` still runs the determinism pass (`A_stairs.det`) and a warm-up repeat — 3 views take
+  ≈ 20 min, not 7. Budget the tick around it.
+- **#23 landing** (`abc8a490`, `1549688c`): contact-AO decals under every seated prop, one unlit transparent mesh per
+  locality (+1 draw each: A 639, B 628, F 599). The first alpha profile spent itself under the prop (454 px at the bridge
+  head); the shipped one fades over the outer 40 % (704 px; 2.5 k at the stair pots). Evidence `props-fable-3/contact-ao/`.
+  A / B / F vs the reference +0.0003 / +0.0000 / +0.0005. Lesson: between two *builds* the capture's animation clock lands
+  a frame apart (the girl's idle phase, the grass) — 27 k px in A that are not mine; within a build A = A.det to 0 px.
+  The gated number is the SSIM vs the reference; say so in the evidence rather than quoting the px.
+- South scorecard now 108 / 144 (150 / 200 scaled); the 2s left are #4 sibling variation, #17 wear, #19 damage.
+- **#4 / #19 landing** (`7adeee2f` … `c6a2e74d`, `props/geometry.ts crateGeometry`): seeded per crate, a third lose an
+  inner lid board (a gloom board under the lid makes the slot read as an opening — the lit floor alone read as a darker
+  board, first render), half of the rest have a lid board knocked askew. With the world seed: Saria's knocked, the
+  bridge's and the west landing's open, the plateau's whole. A / B / F to before 1.0000 (28–40 px). Evidence
+  `props-fable-3/crates/`. Lesson: a fresh `createRng(seed)` in a probe is not the runtime's state — the placement
+  draws first (size jitter); mirror them, or better record the decision in `userData` as the builder now does.
+- South scorecard 110 / 144 (153 / 200); #17 wear is the last 2.
+- **#17 landing** (`ca05e910`, `potGeometry`): the pots' lips rubbed pale where hands take them (seeded angle, top 4 %,
+  never inside). Stair pots at 2 m and the bridge's squat pot at 3.5 m before/after in `props-fable-3/wear/`; A / B / F
+  to before 1.0000 (16–179 px), vs the reference −0.0001 / 0 / 0. South scorecard 111 / 144 (154 / 200), no check
+  below 3 — the rest is 3 → 4, a look call (the reference's pots are plainer).
+
+## 2026-09-24 10:23 tick (three queued) — JOB 7's belt
+
+- Head unchanged since 07:05; no replies. Lane 9's list is landed; took lane 7's open item, the belt (owner 23:00).
+- `0a36c3e3` (`buildGirlTunic`): a flat stitched strap (four-point lathe + strap canvas), a buckle frame with its
+  tongue, the tail hanging — for the torus and plate. Before/after at 2.6 m in `people-fable-3/kokiri-girl/
+  before-after-belt-2.6m.jpg`; A / B / F 0.9999–1.0000 to before, vs the reference −0.0001 / 0 / 0; +1 draw per girl in
+  frame (the strap's own mapped material). Hem left as round 48 made it — it reads.
+- Lesson (an hour lost): `broll.mjs` hides the character group unless `--character` is passed. Every kid render needs it.
+- Posted exp-east's #18 plan against its README table (six props on an `east` locality after the merge).
+- **12:40 — the far-bank look-back (owner "check everything"):** fable-cursor's full check had it at 818 / 9.30 M,
+  "lanes welcome". The props' share: the village locality drawn from 33 m at the old 45 m cull. `b143fab8` sets
+  `CLUSTER_VISIBLE_M` 45 → 30: −11 draws / −90 k tris there, −9 at C (its south props hidden behind the trunk anyway),
+  A / B / D / E / F unchanged — `pose-counts.mjs` on the same merged head, both builds (`props-fable-3/cull-30/`).
+  Lesson: my first comparison put the belt build (pre-#40–#46) against a merged-head build and read +1 at A and a
+  changed canopy — the head's butterflies and veil, not the cull. Compare on one head, always.
+
+## 2026-09-24 12:39 tick (three queued) — "check everything" on my own landings
+
+- Head unchanged since 11:20; no replies; tip unmerged beyond `c35559ab`.
+- Checked: could a contact-AO decal (terrain + 1.2 cm) be buried under flagstones (tops 1.5–2.5 cm proud)? Probed the
+  mask under every prop: no prop stands on the flagstone mask — the stair-foot pots (`paving: true`) are on earth at the
+  paving's edge (path 0 / 0.01), the door pots on the house pad (structure mask), the plaza pots on the plateau mask.
+  A stone lift was written, tested and reverted as dead code; if a future prop stands on stone, lift its decal by
+  `AO_STONE_LIFT ≈ 2 cm` (the slabs' proud height) keyed on `T.mask(x, z).path > 0.18`.
+- Play-mode check: `playtest.mjs --only video` at Saria's side on the merged head — the look sweep drawn every frame:
+  the decals under the bucket, pots and crate hold still (no z-fight, no crawl); walks `plaza-to-upper-house` 6 / 6 and
+  `saria-front-arc` 3 / 3, nothing stuck. Filed in `props-fable-3/contact-ao/`. Note: `--only walk` steps without
+  drawing (no frames); `--only video --video` is the drawn sequence.
+
+## 2026-09-24 13:31 tick — exp-south2 reviewed with the props tip merged
+
+- Head still at 11:20; exp-south2 and a new exp-ruins moving on fable-cursor's side. Built exp-south2 in a worktree,
+  merged my tip into it (clean), rendered three poses on both: the dwellings and the south props clear each other; the
+  toll pile reads as the keeper's stock. Filed `props-fable-3/reviews/`; offered wall-hugging (their pad) and `aoDecal`
+  for their posts. Correction: `62bf7fcd` (marker yaw) has been on the head since 07:20 — I mis-tracked it in two notes.
+- Stopped my own playtest video run (PID 197427, the staircase climb at 25 s/frame) once the Saria-side sweep was in.
+
+## 2026-09-24 14:34 tick — JOB 7's belt, the boy
+
+- Head still at 11:20; exp-south2's README grew its dwellings section (their own firewood, basket, chopping block —
+  #18 done on their side; they name my toll pile as cleared). Nothing addressed to me.
+- `f27b247f` (`buildBoy`): the rope belt is laid rope on a rope canvas (36 turns per wrap), knotted at the front, the
+  ends hanging and fraying — for two flat tori. Before/after at 2.5 m in `people-fable-3/kokiri-girl/`; B to before
+  1.0000 (30 px), vs the reference −0.0001, 630 draws both.
+- Note for the six-view tables from here on: B's reference SSIM is 0.1780 on this head (0.1862 before PRs #40–#46).
+
+## 2026-09-24 15:28 tick — the tip checked against the pure head
+
+- Head still at 11:20 (6 h). exp-north pushed with its own 50-check scores (170–174) and its own dressing; south2 the
+  same — #18 on the new areas is fable-cursor's own. Nothing addressed to me.
+- Ran the pre-merge check of the tip for fable-cursor (slot-starved): counts at A–F + owner poses + far bank (all under
+  budget but the far bank, as before), the six-view capture with checks, then a pure-head worktree build and capture for
+  the head's own frames. Tip vs head: A −0.0002, C −0.0001, else 0; head ↔ tip 0.9998–1.0000. `props-fable-3/tip-check/`.
+- Lesson: for a tip-vs-head SSIM table the head must be captured on the same machine in the same hour — the ledger's
+  last sealed take is two days and 190 draws old, and other agents' numbers come from other boxes.
+
+## 2026-09-24 16:27 tick (queued) — rust on the iron: a FAIL, reverted
+
+- Head still at 11:20 (6 h); nothing addressed to me. `codex/walk-arms-sept24` is a GLB-Link branch off a Sep 22
+  head; it does not touch `link.ts`, so the kids' shared arms / idle are untouched.
+- Tried #20 (nothing brand-new): rust on the hoops and nails via the weathering pass. 4 px, then 10 px at the plateau
+  barrel — the iron material is too dark in shade for a multiplier to lift. Reverted (`10f74475`), documented in
+  `props-fable-3/tried/`, offered the material change to fable-cursor as a look call. Lesson: check the *rendered*
+  value of a surface before planning a vertex-colour pass on it — a multiplier cannot brighten near-black.
+
+## 2026-09-24 17:30 tick — water in the buckets: not committed
+
+- Head still at 11:20; fable-5's re-score notes credit ★16; their merge matrix says every pair of the expansions
+  conflicts (fable-cursor's integration problem). Nothing addressed to me.
+- Tried water in the two pails on the iron material: invisible at both poses (dark on dark, as the rust). Not committed;
+  documented in `props-fable-3/tried/`. Two dark-on-dark misses in a row: the next lane-9 item must start from the
+  rendered value of its surface, not the vertex colour.
+- Integration check: the tip merges clean into exp-north and exp-south2, suites 148 / 148 and 149 / 149 with their
+  terrain. Asked fable-cursor for the next ranked item (or "hold"), the n/a rule and the merge, in one line each.
+- 17:45: fable-cursor's box had been paused 12:35–17:30; at 17:45 they merged this branch to the girls' belt (AO,
+  crates, wear, the belt on the head). Still waiting: the 30 m cull (`b143fab8`), the boy's rope belt (`f27b247f`), the
+  checks. Merged `f37ee307` into the branch (clean; typecheck, build, 145 / 145) — `a8d236eb`.
+
+## 2026-09-24 18:32 tick — the cuffs on the strap canvas
+
+- Head 18:05 (audio, pebbles); merged in clean. fable-cursor reads the INBOX from the head, so my notes since 11:45
+  travel only with this branch — listed them in reading order in the 18:55 note.
+- `f2873e6d`-1 (`buildWristbands`): stitched cuffs on the strap canvas sharing `beltMaterial()` — the belt's own draw
+  given back (A 637 → 636, B 628 → 627 on one head), the cuffs matching the belt at 2.6 m. 160 / 160.
+
+## 2026-09-24 19:24 tick — the seated girl's skirt
+
+- Head 19:10 (squad log); merged. Looked at the sitter at 2 m for the first time since round 48: bare thighs, the
+  flaps a shelf at hip height (red-material diagnostic + Node probes of the skinned mesh via `applyBoneTransform` —
+  remember to load the vertex into the vector first). `83cffdcc`: `SkinBlend` in skin.ts, flaps hips 0.85 / 0.5.
+  Result: the front hangs as an apron; thighs still bare (the flare). Filed honestly; asked fable-cursor for the look call.
+- Lessons: `broll --character` again; a Node probe with a canvas-stub `document` builds a kid in 0.7 s — use it before
+  rendering; the seated pose's thigh pitch is ~45°, not 90° — check the pose's actual numbers before designing for it.
+
+## 2026-09-24 20:31 tick — the seated table, the markers' chevrons
+
+- Head still 19:10. Seated flaps' A / C: 1.0000, draws unchanged. `2b40b289`: chevrons carved into the waymarkers'
+  boards (both faces, pointing their way); readable at 3 m; D 0 px, no other fixed view holds a marker.
+
+## 2026-09-24 21:25 tick — fable-5's look-back item for lane 7
+
+- Head still 19:10. fable-5's 18:04 isolate (their review branch; not on the head yet) ranked the kids' cost at the
+  look-backs: 107–123 draws for five kids at 20–30 px. `0fcc4293`: beyond 25 m no kid shadow and no small parts. Far
+  bank 822 → 765 on my pose, A / B / C unchanged, the frame 0 px. Their `rigMergedMeshes 0` is the old field; explained.
+
+## 2026-09-24 22:28 tick — exp-north on the head; the grove's first person
+
+- exp-north merged at 22:10 (`b9993008`); this branch merged clean, 167 / 167. The hamlet had no people: `664c1bcf`
+  puts a girl at the yard's washing line (GROVE_SLOT 5) on the bank girl's pattern — no fairy (light count), a shared
+  look, 60 m cull, her own rng fork last. +19 draws at the grove's poses, D unchanged; asked fable-cursor to confirm
+  `g-back` at their pose (675 → ≈ 694) and offered the no-shadow flag. Evidence `people-fable-3/grove-girl/`.
+- Lesson: never `&` a build while stashing for the before — check the built JS for the change's string before trusting
+  a before/after pair (I did; the stash build won).
+
+## 2026-09-24 23:31 tick — the grove girl under fable-cursor's play route
+
+- Head unchanged (`b9993008`), nothing to me. Checked the thing my landing could break: their `north-grove` walk with her
+  standing — 28 / 28, 0 stuck, Link 4.0 m from her at the closest. The route's camera spike at the door swings the follow
+  camera over her head at 0.5 m; rendered that orbit at five points (broll, `--character`) — she is never in frame and
+  kids are not camera colliders. Frames from the door and the arrival added to `grove-girl/`; INBOX addendum under 23:05.
+- Method note: `playtest.json` walks carry `camera.spikes[]` with `before/after {link, cam, hit}` — enough to rebuild a
+  spike as a broll shot and look at it, no video needed.
+- Review of the unmerged lanes, the mergeability half: scratch merges show exp-east / exp-south2 / exp-ruins each conflict
+  with the head since exp-north (8 / 9 / 8 files, all changed by the north merge; none mine). My tip adds one trivial
+  hunk on exp-east (`character/index.ts` audit fields, keep both). INBOX 23:55 to fable-cursor cc fable-5. Six views of
+  the tip against the post-grove head running (`dist-headB` / `dist-grove`).
+- 00:22 — the head moved under the capture (the 23:45 merge round, `2f6c8ae2`: canopy closing, per-vertex tread tops,
+  understory LOD — visual). Stopped my tip capture, merged the head (INBOX threads only; rebuilt by heading and sorted),
+  typecheck / build / 185 tests green, built both, captured both (`dist-headC` / `dist-tipC`, ~5.5 min a view tonight).
+  Table in INBOX 02:35: head↔tip 1.0000 on all six, ref Δ ≤ 0.0001, draws −1 / −1 / −10 / 0 / −1 / −1. Lesson: when
+  the head moves mid-capture, restart against the new head rather than finish a table nobody can use.
+
+## 2026-09-25 02:33 tick (three queued) — the PR that was missing
+
+- fable-2's 01:35: "it had no PR, which is why it sat" — the merge rounds work from PRs, and my branch never had one
+  because the PR tool refuses the `agent/` prefix. The tool's prefix override (justified by the loop's own branch rule)
+  went through tonight: **PR #82** on `agent/fable-3-south-props`, base the canonical branch, the list past the head
+  and the six-view table in its description. Merged the 02:15 round first (`0afecbba`, clean; 189 / 189). INBOX 02:50.
+- Lesson, the expensive kind: five hours of "ready" notes were not a PR. A pushed branch without a PR is invisible to the
+  merge round; open the PR the hour the branch is pushed, and if a tool refuses, find the override before writing notes.
+- Review of another lane's PR while my list is empty: fable-cursor's own plan for Astra's PR #59 (apply the four paired
+  files to the head, tests, a play run), done in a scratch worktree. Applies clean (GLB byte-identical, one right
+  three-way hunk), typecheck green, 188 / 189 — squad5's stride guard fails because the PR re-authors the run clip
+  (1.82 → 1.2 m) *and* the controller's speeds (walk 1.6 → 1.2, run 4.6 → 2.2 — the owner's round-47 "faster" reversed;
+  the PR compared to main's 3.3). Walk routes complete, +14 % / +26 % frames; the deepest boot corner on the stairs route
+  −0.046 → −0.122 m. INBOX 02:55 to fable-cursor cc Astra, squad5. Nothing pushed from the worktree.
+
+## 2026-09-25 03:28 tick — #82 merged; a new branch; the cast's variety (PR #87)
+
+- #82 merged at 02:56 in the 02:55 round, the grove girl with it (no veto). New branch `agent/fable-3-lane7-r2` off
+  `7468bb38`; PR #87 opened the hour it was pushed.
+- With no item named for lanes 7 / 9, a self-review of the people at the owner's distances with the real follow camera
+  (`people.mjs`: Link beside each kid, 45 settle frames, one frame, the kid's screen projection for the crop). Three
+  framing mistakes on the way — Link in front of the kid occludes her; Link *facing* the kid puts her exactly behind
+  him for the camera; the camera in a crown at the stair foot — the fix is Link beside her heading her way.
+- The finding: five maroon girls in one green. `7dba2a7f` recoloured looks 1–3; the A / B / D capture caught kokiri-b
+  at B's left edge (2.5 m, 6,296 px) — my offline projection had used a wrong fixed-mode position for her. `60798801`:
+  look 1 back to maroon (B is a footage frame), the grove girl her own look 4. A / D byte-identical, B 1.0000 / 0 px,
+  draws identical at twelve play poses, 191 / 191. INBOX 05:35.
+- Lessons: (1) project kids into the fixed frames from a capture's audit, not from a stale audit.json of another state;
+  (2) `--no-checks` does not skip the determinism / motion passes — budget ~8 min per capture for them; (3) a look change
+  in a footage frame is the owner's constant to turn, so build the version that leaves the frame alone and offer the
+  other as one number.
+
+## 2026-09-25 05:33 tick — #87 merged early; the second pass as PR #93
+
+- #87 was merged at 04:39 with the first pass (`7dba2a7f`), 33 minutes before my A / B / D capture showed B moved
+  (kokiri-b at its left edge, 6,296 px, −0.0028). My second pass then landed on a branch whose PR was already closed —
+  invisible again. New branch `agent/fable-3-lane7-r3` off `d367cfbf`, the two commits cherry-picked (INBOX resolved by
+  heading-sort), the README and the 05:35 note rewritten to the real state, PR #93 opened as optional: take (B held to
+  the footage) or leave (the blonde on the stairs), docs-only version on request. 196 / 196.
+- Lesson: a PR can be merged the minute it opens — never write "table appended when the capture lands" in a PR body
+  again. Either hold the PR as a draft until the table exists, or say in the title what is unverified. And after a merge,
+  never push to the merged branch: branch afresh from the head first.
+
+## 2026-09-25 06:34 tick — #93 merged; the seated girl's gaze (PR #99)
+
+- #93 merged at 06:07 (B held to the footage; the grove girl her own look). New branch `agent/fable-3-sitter-gaze` off
+  `1a183570`, PR #99 opened the hour it was pushed.
+- The item came from the twelve play-distance frames: the sitter's face hidden under her fringe. Cause in the pose —
+  the rounded back's 0.30 rad forward with only 0.08 taken back at the neck — and in `noticePlayer`, which applied the
+  pitch to Link's eyes chest-relative (the sitter noticed him and still looked under his face). `SEAT_CHIN_UP` 0.25 and
+  the torso pitch taken out of the notice angle; before / after at three camera distances, draws unchanged, 196 / 196.
+  The fixed frames cannot run either path (the seat branch is behind `if (view) return false`; capture passes no player).
+- The review script now takes `PEOPLE_ONLY` / `PEOPLE_DISTS` (6 m = past the notice range, for the resting gaze).
+
+## 2026-09-25 07:35 tick — #99 merged; the wanderer's walk reviewed, nothing to change
+
+- #99 merged at 07:07. The twelve stills had not covered the one kid who moves: three watches of kokiri-a's loop with
+  Link standing (9 s blind, 40 s coarse to find her window, 11 s dense at 4 fps over it). Legs, arms, planting, the
+  dwell look-around all read at 3–8 m — a review result (`people-fable-3/wanderer-walk/`), no PR of its own; it rides
+  with the next item. Lesson: find the window with a 1 fps pass first; a blind 9 s watch at 5 fps cost 10 minutes
+  for nothing.
+
+## 2026-09-25 08:28 tick — the post-merge check; the wanderer greets Link (PR #109, held)
+
+- The twelve play frames on the head `24dc489f`: today's three merges compose, draws identical to the branch renders.
+- The next item from the play distance: when Link walks up to the wanderer she only turns her head and walks on. Built
+  the greeting in `npc.ts` — a held clock (`paused` / `frozen`) so the schedule stays a function of (t − paused), a 0.5 s
+  blend with the schedule's own turn-shuffle, hysteresis 1.7 / 2.6 m + 0.6 s, the fairy's taps mapped through
+  `schedTime`. The first harness run framed her behind Link (the camera sits on the Link–girl line — the same mistake
+  as this morning's people.mjs); the numbers still showed the hold and the body tracking him. Second harness: Link
+  approaches 1 m off her axis heading parallel to her facing, backs off for the release; before / after pair rendering.
+- PR #109 opened with "[evidence in progress — hold]" in the title — the #87 lesson applied. INBOX 09:00.
+
+## 2026-09-25 09:30 + 10:35 ticks — the greeting's evidence lands; #109's hold lifted
+
+- Three harness passes (the box ran at 20–25 s a frame): before (she walks past him), after side-on (she turns 44° and
+  holds), after with the walk-past release (her body follows him round, 0.6 s past 2.6 m she turns back and walks on
+  from her spot). The S back-off got blocked behind Link at both spots — the walk-past + `setView` look-back is the
+  release harness that works. A 14° settle in the turn-back where the schedule's own turn ran under the blend: noted,
+  not visible. fable-cursor read the hold in the title (squad log 09:40) — the lesson paid.
+- Merged the head `eb3687cb` (INBOX only), 206 / 206; the hold lifted in the title, the INBOX and the README.
+
+## 2026-09-25 11:25 tick — #109 merged; the grove's second person (PR #122)
+
+- #109 (the greeting) merged 11:19; #101 (fable-4's canopy batch) landed in the same round and took the `g-back` budget
+  question off the table. Built the boy at the stilt house's veranda rail: `VERANDA_SLOT` 6, the deck's published walk
+  surface giving his height for free, the boys' materials shared (variant-free keys), the grove cull generalised.
+  Counts +21 per grove pose (D unchanged); frames along the rail, from the yard, over her shoulder, a look-back.
+- Two harness notes: (1) a camera placed by coordinates can have a trunk in the way — diff the before/after frame
+  before trusting an empty rail (88 changed px told me he was there, hidden); (2) `__ZR__.audit()` through puppeteer
+  hung past 9 minutes — the kids' positions are cheaper to read from the scene graph, as `people.mjs` does.
+- PR #122 opened held, the hold lifted with the frames. INBOX 12:30.
+
+## 2026-09-25 12:29 tick — #122 kept clean; the standing kids greet (PR #130)
+
+- Merged the head into #122's branch (INBOX only) so it stays clean in the queue. Then the greeting generalised to the
+  standing kids (`standGreet`, a rate-limited turn, shuffle parameters on `poseLedgeIdle`): from behind, the grove girl
+  comes round 137° in ~1 s and faces Link; released 0.6 s after he is beyond 2.6 m, back to the line in 1.2 s.
+- The box's push token expired at ~12:40 (`Invalid username or token`; fetch still worked, the repo being public) and
+  came back by 13:13 — four backoff retries failed, the fifth went. Nothing lost: commits waited locally.
+- Harness notes: S and D both ran Link into the yard's furniture short of 2.6 m — the yard is small; the release was
+  taken by placing Link beyond 2.6 m (`GREET_RELEASE=teleport`). Locating a kid in a frame: diff the before/after frame
+  for the bbox rather than guessing from a contact sheet (three wrong crops before I did).
+- PR #130 opened held, the hold lifted with the frames. INBOX 13:30.
+
+## 2026-09-25 14:20 tick — #130 merged; the post-merge route check; the nod (PR #135)
+
+- #130 merged 13:48. The grove's two people under fable-cursor's `north-grove` route on the head: 28 / 28, identical
+  numbers to last night — the greetings (his fires on their route, 0.9 m from the door) change nothing for the walk.
+- The nod: 15 lines, after the notice (which would erase it — the same lesson as the seated gaze: whoever writes the
+  neck last wins). 10 fps before / after head strip: the dip at t 1.9–2.1 as she comes round. PR #135 opened held,
+  the hold lifted with the frames. INBOX 14:45.
+
+## 2026-09-25 15:20 tick — #135 merged; the door boy greets (PR #140)
+
+- #135 merged 15:17. The last kid outside the greeting: the door boy, posed by index.ts's generic path. A play-mode
+  branch in `drive()` (below the view check, so capture is untouched) gives him the stands' idle, the greet and the
+  nod; his stand yaw read from the caller on the first play frame. Before / after: the torso squaring to Link, the nod.
+  209 / 209. PR #140 opened held, the hold lifted with the frames. INBOX 15:55.
+- The greeting set is now complete for every kid who can turn; the seated girl looks up. Lane 7's play-mode life:
+  variety, gaze, greet, follow, release, nod — six PRs today, each one behaviour, each verified with the harness.
+
+## 2026-09-25 16:20 tick — the greeting's wave (PR #144)
+
+- #140 still in the queue (no round since 15:15); the three trailer-place builders relaunched (on fable-cursor's box —
+  no slot to share here). The greeting's capstone: the wave. Joint numbers computed in node from `rig.ts`'s chain
+  before rendering (shoulder x −2.6, z −0.65 → hand 0.24 m above the shoulder, 0.15 m clear of the head), one tune on
+  the frames (the swing's inward extreme at the hair edge). 10 fps strip: turn, hand up, nod, wave, down.
+  209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
+- Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.
+
+## 2026-09-25 18:20 tick — lane 9's south props against exp-south2's tip (PR #154, evidence only)
+
+- #144 merged 17:30 (`14fda29d` head): every kid greets — turn, nod, wave. The builders are merging the head this
+  hour, so lane 9's toll pile met exp-south2's keeper's hut (7.1, 31.9) and waystation (5.12, 25.95) for the first
+  time. Rendered `f2f6e793` vs the head at the pile, the lean-to and the far-bank log mouth, same cameras both
+  builds: nothing intersects — the crate and pot ≈ 1 m off the hut's wall in front of its door (0.5 m outside the
+  gallery's end by their numbers), the lean-to's floor short of the marker's post, the log-mouth pots identical but
+  for their rim vines. Props tests 1/1 and the suite 227/227 on their tip. `props-fable-3/south2-check/`. INBOX 18:55.
+- Lesson: a camera at the exact prop is often inside somebody's new structure — two of five cameras this round stood
+  in the giant's root flare and in the lean-to's opening; aim from the walked line, not from the coordinates.

@@ -313,6 +313,22 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `agent/fable-2-cliff-scale` (PROPOSED): `RockLedgeDef.scale` for the ruins' cliffs (opt-in; terrace byte-identical),
+  `?rockLedgePreview=cliff` 9 m sample. README §103.
+- `36d722fa` (`agent/fable-2-w02-treads`, PROPOSED on fable-cursor's 11:05 ask): the hero flight 20 × 0.27 × 0.54
+  again (W02 16–20; 18 × 0.30 breaks the 0.28 m step guard), stone kept; stairs/climb clean; A −0.0069 / F +0.0063
+  vs the 26-step head. README §102.
+- `7649f308` (`agent/fable-2-riser-shade`, PROPOSED): lane 6 — the hero flight's risers' shade / warmth (fable-5
+  §26): s2-owner sat 0.333 → 0.310, dark 29.9 → 27.8 %; A −0.0003, F +0.0002; the remaining dark is the upper
+  flight's shade, not stone. README §100.
+- `7bd4df13` review: the head `b306d6a9` at the six views and A by system (shadow a third; vegetation +0.5 M;
+  characters 63 draws). `.agents/reviews/fable-2-triangle-budget-b306d6a9.md`.
+- `02586843` (`agent/fable-2-ravine-rock`, PROPOSED): lane 2 for the south area — `rocks/ravine.ts`, bedded
+  shelves half-sunk into the gorge's walls + floor boulders, one mesh gated to 26 m of the gorge; C pixel-identical.
+  README §98; ravine.test (5).
+- `f90821e8` (`agent/fable-2-stone-value`, on `agent/stairs-look`; PROPOSED with squad4's candidate): lane 6 —
+  the hero stone flight's value up into the owner's 23:00 reference band (fable-5 §24): s2-owner box dark
+  59 → 33 %, mean l 0.25 → 0.32; A −0.0043 vs stairs-look, F +0.0014. README §96.
 - `78d18fe1` (`agent/fable-2-log-joint`): lane 6 — the log flight's angular dark joins closed by geometry
   (fable-cursor 18:10 / Astra's `s2-join-close`): split treads laid as one earth tread (outlines joined,
   draws kept), the riser 3 cm behind the nose (was 7.5–10.5), no rolled lip and no `LOG_SHADED_LIP` on
@@ -462,7 +478,181 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T13:00:00Z
+2026-09-24T12:10:00Z
+2026-09-24T10:20:00Z
+2026-09-24T07:35:00Z
+2026-09-24T05:45:00Z
 2026-09-23T22:30:00Z
 2026-09-23T17:45:00Z
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z
+
+### Iteration 105 (15:57) — the ruins' cliff: bedded relief tried on fable-cursor's surface — negative result
+- Branch `agent/fable-2-ruins-cliffbeds` (3fd08256) off exp-ruins 2c47fc66: `rocks/cliffBeds.ts`
+  (bed stack profile, pure) + hooks in `terrain/ruins.ts` / `ruins/rock.ts` (their files — proposal
+  only, not for merge). Typecheck + ruins.test.mjs green.
+- At the fall pose the face barely changes (σ 0.031 → 0.026); the face is in its own shade under the
+  WNW sun, in the fall's air, at ≈ 50/255 — relief cannot shade and ±20 % albedo is ±10 levels.
+  Sheet: `art/environment/rocks-lane/rocks105-ruins-cliffbeds-negative.jpg`. Reported to fable-cursor
+  with what would read (hard-edged shelves + moss/lichen, or a paler set); offer closed.
+
+### Iteration 106 (18:15) — the pebble tiles' far gate (#57, merged eb8b727e) and the look-back isolate table
+- fable-5: the head is over both caps at the east plateau's look-backs (833 / 9.94 M at the green).
+  Per-system isolate on 3c6cc553 at that pose: trees 250 / structures 175 / vegetation 124 /
+  character 107 / terrain 50 / rocks 45 / props 26 / hardscape 16 draws.
+- `PEBBLE_FAR_M = 34` (rocks/index.ts, 551878ae): a pebble tile past 34 m (nearest point) draws
+  neither look; rocks 45 → 27 / 26 at the two look-backs for 0 changed pixels; six views SSIM
+  1.0000, A 576 → 572 draws. Sheet `art/environment/rocks-lane/rocks106-pebble-far.jpg`.
+- Tooling: `/tmp/f2/pose.mjs` gained `"viewpoint"` (setViewpoint) and `"isolate": true` (per-system
+  draws / triangles via `__ZR__.isolate`) — the six views in ~26 min a run at quality high.
+
+### Iteration 107 (20:25) — the flight's tops shade per vertex (#61) and the lane re-verified on 31146062
+- Re-verify: seven poses on the new head vs the 10:00 head — SSIM 0.965–0.982, all from the merges
+  around them (20 treads, crown tone, south props); `rocks107-head-reverify.jpg`.
+- Found at `x-stairs-3rd-tread`: the tread tops as a patchwork of per-quad tones (CPU probe: 8,224 /
+  14,717 coincident top vertices differ in colour, none in normal). `geometry.ts buildSlab
+  vertexTone` (+ `MeshBuilder.tri` with three colours), on for the flights in `stairs.ts`. Six views
+  vs head A/B/C/E/F 1.0000, D 0.9999; draws unchanged; tests 13 green. PR #61, sheet
+  `hs107-tread-tone.jpg`.
+- Method note: A must be the first pose of a run to compare across dists — a later pose sits at a
+  later sim time (wind, lanterns, Navi) and reads 0.979 against itself.
+
+### Iteration 108 (20:40) — exp-ruins re-read at 4469755c; the desert / red-rock question
+- Head unchanged but a squad log; #61 unmerged; no note to me. Re-rendered the ruins' cliff and
+  hero poses on 4469755c: the cliff l 0.204 → 0.235, σ 0.029 (tone, not relief — right for a face in
+  shade); closed the cliff item from my side. Asked whether to prepare the desert's sandstone canyon
+  walls (scaled ledge builder + sandstone palette + preview flag).
+
+### Iteration 109 (21:20) — the sandstone palette (groundwork for the desert / red-rock town)
+- `ledge.ts` `palette: 'sandstone'` (bed ramp by bed index, varnish streaks, sand drift, bleached
+  brow; no moss / damp / roots) + `?rockLedgePreview=canyon` (16 m scale-4 wall at x 61) on
+  `agent/fable-2-cliff-scale` (ba41514c). Ledges outside the north locality left to the frustum
+  (the gate hid the preview). Forest palette byte-identical by probe. Tests 33 green.
+- First look in forest shade only (`rocks109-sandstone-first-look.jpg`) — colour tuning waits for
+  the desert's sky. Two preview poses landed inside canopies; the village has no open sunlit spot
+  for a 16 m wall.
+
+### Iteration 110 (22:20) — the tread facets: fable-5's challenge holds; the elimination so far
+- Not the vertex colour (#61), not the shadow map (`?shadow=0`), not the normal map (build without
+  it), not the vertex normals (rim / wall directions smoothed along the outline + top noise at
+  1.6 c/m — 19,649 normals changed, render unchanged; reverted, not committed). Sheet
+  `hs110-facets-elimination.jpg`. Left: the texture side (near / detail tiles, AO, roughness, the
+  per-triangle mip level). Next: a `?stoneDebug=` switch in `material.ts` to isolate per render.
+- PR #66 opened for this notes branch — 21 INBOX notes were not on the head (no PR existed).
+- Method: a `map: null` diagnostic build does not compile (the fine-grain sample reads `map` outside
+  its `#ifdef USE_MAP`), so the debug switch must keep the map bound and neutralise it in GLSL.
+
+### Iteration 111 (23:55) — the facets found: the slab walls' grime, one dark triangle per quad → a gradient (in #61, merged 23:39)
+- `?stoneDebug=` switch in `material.ts` (flat / noao / norough / nofine / nonear / uvgrid / vcolor /
+  texonly / moss): `flat` removed the facets (albedo), `nofine` / `nonear` / `noao` did not, `texonly`
+  continuous, `vcolor` the patchwork → the vertex colour of the WALLS (the risers fill the tread
+  poses). `buildSlab` side walls: tri 1 shaded × sideGrime, tri 2 clean → now foot → shoulder
+  gradient (`f6fa109e`). Six views vs head: A 0.9994 / B 1.0000 / C 0.9999 / D 0.9999 / E 1.0000 /
+  F 0.9993. Sheet `hs111-riser-grime.jpg`.
+- Method: at a pose looking up a flight, name the surface first — the "tread facets" were risers.
+- North grove merged (b9993008): my north poses re-rendered, no regression (`rocks111-north-grove-poses.jpg`).
+
+### Iteration 112 (00:10) — riser-shade re-measured on the merged head and withdrawn
+- s2-owner flight box: head 36.0 % dark / l 0.319 / sat 0.235; + riser-shade 34.8 / 0.323 / 0.225;
+  the 09:38 head 35.0 / 0.319 / 0.230. A point of dark share is not a merge → withdrawn (branch kept).
+  The wall-grime gradient did not move the flight's dark share (the average tone of a riser is the
+  same 0.875); the dark is the upper run's shade. Sheet `hs112-riser-shade-withdrawn.jpg`.
+- Queue for fable-cursor now one branch: `cliff-scale` (scale + sandstone palette + previews).
+
+### Iteration 113 (00:50) — D's move across the 23:45 merges attributed (canopy / understory, not mine)
+- D_log 31146062 → 2f6c8ae2, both first-pose renders: SSIM 0.9855, 2.78 % pixels; the diff is the
+  trees over the path and the house's side; paving / pebbles / log stones unchanged.
+  `rocks113-D-move-canopy.jpg`. Notes #69 merged (4d9f766e); a fresh PR for the branch follows.
+
+### Iteration 114 (01:35) — cliff-scale gets its PR (#75)
+- The branch had no PR since 13:00; the merge rounds work from PRs. Rebased on 0fc66816, green, the
+  north terrace ledge byte-identical head vs branch (sha1 f19ab29c2867dac8). Lesson: every branch
+  meant for a merge gets a PR the moment it is pushed.
+
+### Iteration 115 (02:40) — all lane branches on the head; the field's rock offered
+- #75 merged 02:06 (fable-5: pixel-identical at the six views). Nothing waiting. r_019 read: crags
+  and mountains, no near boulders — offered the scaled ledge with a grey-blue palette for the crags
+  once exp-south2's field has a landform. Checked the split-tread "slot" at x-stairs-3rd-tread: the
+  joint gap (2–4 cm) and a 2 cm nose offset between halves — realistic, not a defect (topY / ts are
+  per tread, both halves flush).
+
+### Iteration 116 (04:50) — the 02:55 merge round re-verified at the seven poses (all 1.0000)
+- VM reset at 03:35: /tmp gone (tools, baselines), node_modules gone; `npm ci`, tools rebuilt under
+  `/cursor/stores/self/tools` (pose.mjs over the gauntlet's browser lib, ssim-dirs.mjs, the pose files).
+- 5f8a6738 → 7468bb38 at rv79's seven poses: SSIM 1.0000 each; ≤ 235 px over 8. Sheet
+  `rocks116-reverify-0255-round.jpg`.
+
+### Iteration 117 (05:05) — the trailer's known issue "stair shading" is #61's fix; told opus-cinematic-b
+- `agent/opus-cinematic-b-sept25` (a 36 s trailer for X, recorded from b9993008) lists the risers'
+  harlequin facets as a known world issue; frame 660 confirms. The fix (f6fa109e) has been on the
+  head since 23:39 — asked for a re-record of the four shots that see the flight from the current
+  head. Sheet `hs117-cinematic-risers-before-61.jpg`.
+
+### Iteration 118 (05:45) — the rocks row at the look-backs decomposed: half shadow pass
+- Head cfeefd11 at the east green: rocks 27 / 0.477 M = hero far 46 K + dressing 48 K + clearing 48.6 K
+  + backside 49.7 K + ledge 1.4 K ≈ 0.24 M, doubled by the shadow pass. Suggested the composer's
+  small-caster distance rule at the plateau look-backs (≈ −0.2 M, no pixel) instead of a far tier
+  (≈ −30 K). Trailer frames of the flagstone close-up and the wides checked: the stone reads well;
+  only the risers (fixed) were wrong.
+
+### Iteration 119 (06:45) — the grove flight reviewed at player height (fine)
+- exp-north's `grove` flight (9 × 0.27 × 0.42, log-nosed) at three poses on 41939301: reads as the
+  ledge flight; no change. Sheet `hs119-grove-flight-player-height.jpg`. Tool: `hud=0` now default in
+  pose.mjs (the HUD's corners are a known part of captures — capture.mjs excludes them).
+
+### Iteration 120 (08:00) — the ravine rock from the bridge deck reviewed (fine)
+- Three deck poses on 3556b945: floor boulders seated, moss caps read, wall shelves subtle under the
+  roots and mist; no change. Sheet `rocks120-gorge-from-deck.jpg`. Note: `groundEye` at the bridge
+  lands on the gorge floor — use absolute y for deck poses.
+
+### Iteration 121 (08:45) — the canopy-batch round re-verified at three lane poses (0 pixels)
+- 24dc489f → cd9400b2: x-clearing-n / x-southbank-toe / w23-stairs-f SSIM 1.0000, 0 px over 8.
+
+### Iteration 122 (11:15) — #115: the hardscape's shading arrays released after upload (≈ −46 MB)
+- `onUpload → array = null` on every static hardscape mesh's non-position attributes (the rocks / trees
+  pattern); position + index kept for ground.ts grids and raycasts; instanced sprouts and dynamic
+  attributes excluded (the first cut nulled the sprouts' per-instance arrays → `setViewpoint` crash
+  on the second view; fixed in 97d78408). performance.memory −43…−49 MB at the six views; six views
+  0 pixels; tests green. Tool: `--heap` in pose.mjs (CDP GC + page.metrics + performance.memory).
+
+### Iteration 123 (11:50) — #119 cpuArrays audit; the gated meshes' arrays and a warm-up suggestion
+- #115 merged 11:19. Added `cpuArrays` to both audits: at A hardscape 29.7 MB (10.6 position), rocks
+  39.9 MB (20.4 position) — the rest is meshes never drawn at a fixed camera (upload happens on first
+  draw). Suggested a one-frame warm-up at load to fable-cursor (≈ 50 MB and the first-appearance hitch).
+
+### Iteration 124 (12:50) — the warm-up correction; #126 the rocks' build time by phase
+- `?warmup=1` (play's path): rocks cpuArrays 0.0 MB, performance.memory 1271 MB (vs 1415 headless) —
+  my 11:50 warm-up suggestion was already implemented; corrected in the INBOX.
+- `buildPhaseMs`: rocks 9.3 s = hero kits 4.9 / ravine 1.7 / clearing 0.8 / backside 0.7 / pebbles
+  0.5 s. Offered to defer the three gated groups (3.2 s) if the world supports post-ready builds.
+- Tool: `--perf` in pose.mjs (buildMs per system).
+
+### Iteration 125 (14:35) — #132: rockgen welds on integer keys, the rocks' build 9.3 → 6.6 s
+- CPU profile: `computeCreaseNormals` 91 % self time (string keys × 3–5 passes). `positionGroups`
+  shared by displacement / swell / crease passes. Small rocks hash-identical; hero rocks differ by the
+  welds across the axis planes (the old '-0.0000' vs '0.0000' seam) — 4 of 6,626 welds. Six views
+  0 pixels. Tool: `rockgen-hash.mjs` in the store.
+
+### Iteration 126 (14:45) — the hardscape's build profiled: flat, left alone
+- #132 merged (14:2x). Node profile of buildStairway + placeFlagstones: tri 14 %, smoothGroup 5 %,
+  buildSlab 3 % — no hotspot; ≈ 0.5 s available at the cost of touching the slab builder's core;
+  declined. Build-time thread closed for the lane.
+
+### Iteration 127 (15:45) — squad2's depth split, per system (isolate on/off shadows)
+- Upper bounds (isolate bypasses the composer's shadow cull): structures 0.72 / 0.94 M, terrain
+  0.35 / 0.44, rocks 0.09 / 0.24, hardscape 0.01 / 0.04 (A / look-back). Rocks' lever is the
+  composer's small-caster rule at look-backs; a near-kit cast proxy would save ≈ 0.06 M — declined.
+
+### Iteration 128 (16:45) — exp-south2's far-bank look-back: rocks / hardscape rows identical head ↔ branch
+- The relaunched area builders (east, south2, ruins) are finishing to ship. At south2's `look-back`
+  pose: rocks 29 / 0.29 M and hardscape 16 / 0.30 M on both; the diff is the keeper's hut. Nothing of
+  the lane to re-gate. Sheet `rocks128-south2-lookback-rows.jpg`.
+
+### Iteration 129 (17:50) — exp-east's lane discs reviewed at player height (fine)
+- Three poses on a8486d32: the discs seated and worn, 50 / 50 laid, 0 skipped steep, 19 K tris in one
+  gated mesh. Sheet `hs129-east-discs-player-height.jpg`. Nothing to change.
+
+### Iteration 130 (19:00) — exp-ruins' look-backs: rocks row identical; hardscape −2 at r14 (haze rule)
+- r14 / r16 on head vs 52ce2047: rocks 26 / 0.48 M and 29 / 0.47 M on both; hardscape 14 → 12 at r14
+  (their 60 m haze), 14 at r16. The three areas' pre-ship reads from lanes 2 / 6 are complete.

@@ -32,8 +32,9 @@
  * (kokiri-b, darker tunic and hair), 2 = the boy at Saria's door (round 1's build on the lane-7
  * canvases, bob and band — `buildBoy`), 3 = the
  * girl on the raised ledge (kokiri-ledge, ref-04), 4 = the girl on the south bank (round 50,
- * `NPC_SOUTH_BANK`). Every material is cached per look so the per-joint merge (consolidate.ts)
- * keeps a kid at ~23 meshes.
+ * `NPC_SOUTH_BANK`), 5 = the girl at the north grove's washing line (lane 7, her own look 4), 6 = the
+ * boy at the stilt house's veranda rail (lane 7; the door boy's look and materials, his own hem seed).
+ * Every material is cached per look so the per-joint merge (consolidate.ts) keeps a kid at ~23 meshes.
  */
 import {
   BoxGeometry,
@@ -88,21 +89,30 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
  * and ref-01: the girls' deep forest-green tunic (display ≈ #2b4a2a), a brighter green headband,
  * near-black boots with khaki cuffs, maroon-red hair (display ≈ #5e2226), dark leather belt and
  * wristbands. Indexed by the girl look g (0 = kokiri-a, 1 = kokiri-b, 2 = the ledge girl, 3 = the
- * girl on the south bank — round 50, a slightly bluer tunic and a darker auburn bob); the boy keeps
- * the palette's kid colours. Lane 7 (2026-09-23): the skin is the pale peach of ref-01 / d_024 — the
- * tan of rounds 47–50 read orange against the footage at the follow camera's 5 m — and the hair the
- * footage's maroon (the 0x93412f brick, low in blue, rendered as an orange-brown).
+ * girl on the south bank); the boy keeps the palette's kid colours. Lane 7 (2026-09-23): the skin is
+ * the pale peach of ref-01 / d_024 — the tan of rounds 47–50 read orange against the footage at the
+ * follow camera's 5 m — and the hair the footage's maroon (the 0x93412f brick, low in blue, rendered
+ * as an orange-brown).
+ *
+ * Lane 7 (2026-09-25), the cast's variety: until now the four looks were four maroons over four
+ * near-identical greens, and at the follow camera's 4–7 m the five girls read as one girl five times.
+ * The two girls the fixed frames hold against the footage keep the footage's maroon and deep green:
+ * look 0, the girl by the signpost (A / C / F), and look 1, kokiri-b at the left edge of B / E. The
+ * girls no fixed frame holds take their own colour under the same lock and cloth canvases: 2 chestnut
+ * under a deep blue-green (the ledge girl, 75 m off in A / B / D / E); 3 near-black brown under a mossy
+ * olive (the bank girl, outside all six); 4 honey-blonde under a yellower, lighter green (the grove
+ * girl, beyond the 60 m cull in every frame — her own look now instead of kokiri-b's).
  */
 const KID = {
-  tunic: [0x375f35, 0x2f522f, 0x3a5a2e, 0x335a3a],
-  band: [0x4d7a3c, 0x44703a, 0x568a3e, 0x4a7c46],
+  tunic: [0x375f35, 0x2f522f, 0x2c5238, 0x546b36, 0x4d7538],
+  band: [0x4d7a3c, 0x44703a, 0x3f7a4a, 0x6a8a44, 0x5e8a44],
   belt: 0x4a3322,
   buckle: 0xb8963f,
   boot: 0x352721,
   cuff: 0x8f7f5a,
-  hair: [0x7e2f33, 0x6e2a2e, 0x86343a, 0x74282d],
-  skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687],
-  iris: ['#4a2c1a', '#3d2818', '#3b4a24', '#46301c'],
+  hair: [0x7e2f33, 0x6e2a2e, 0x74492b, 0x3a2a1e, 0xc89c4c],
+  skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687, 0xd3a98a],
+  iris: ['#4a2c1a', '#3d2818', '#4a3320', '#2a1a10', '#556a2e'],
   lash: 0x1c120e,
 } as const;
 /** the boy's skin: round 47's tan brought to the girls' pale peach in step (lane 7 — the cast reads as one family) */
@@ -112,8 +122,10 @@ const BOY_TUNIC = 0x2f3320;
 /** the boy's hair: the palette's kid brown, a shade deeper under the lock canvas's lighter cores */
 const BOY_HAIR = 0x6b4630;
 
-/** the girl look index for a variant (the boy, variant 2, has none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl */
-const girlLook = (variant: number) => (variant === 3 ? 2 : variant === 4 ? 3 : variant % 2);
+/** the variants built as the boy (`buildBoy`): the door boy and the veranda boy */
+const BOY_VARIANTS = new Set([2, 6]);
+/** the girl look index for a variant (the boys, variants 2 and 6, have none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl, 4 the grove girl */
+const girlLook = (variant: number) => (variant === 3 ? 2 : variant === 4 ? 3 : variant === 5 ? 4 : variant % 2);
 
 const mats = new Map<string, MeshStandardMaterial>();
 function kidMat(key: string, color: number, roughness = 0.9): MeshStandardMaterial {
@@ -742,10 +754,21 @@ function buildGirlHeadband(rig: Rig, bandMat: MeshStandardMaterial): void {
   part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband', false);
 }
 
-/** dark leather wristbands on the bare forearms (both wrists, like the demo girl) */
+/**
+ * Dark leather wristbands on the bare forearms (both wrists, like the demo girl). Lane 7: cuffs on
+ * the belt's strap canvas — an open tube whose v is folded onto the canvas's leather face (its
+ * stitch rows a few millimetres inside each edge) and whose u carries two repeats (twelve stitches
+ * round a 23 cm cuff) — so the cuffs and the strap share one material, and the girls' skinned
+ * meshes count one fewer per material.
+ */
 function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
   const p = rig.props;
-  for (const elbow of [rig.elbowL, rig.elbowR]) part(elbow, place(new CylinderGeometry(0.037, 0.036, 0.024, 10), 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+  for (const elbow of [rig.elbowL, rig.elbowR]) {
+    const cuff = new CylinderGeometry(0.037, 0.036, 0.024, 12, 1, true);
+    const uv = cuff.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 3, uv.getY(i) * 0.33);
+    part(elbow, place(cuff, 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+  }
 }
 
 /**
@@ -867,12 +890,91 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
     const flap = skirtPanel([profile[0], profile[1], profile[2], [0.107, 0.012]], a0, a1, 10, { ...opts, radiusScale: side > 0 ? 1 : 0.985 });
     // hips space → thigh space (the thigh joint sits at ± hipHalfWidth on the hips)
     flap.applyMatrix4(_m4.makeTranslation(-side * p.hipHalfWidth, 0, 0));
-    part(thigh, flap, tunic, 'kid-tunic-flap');
+    const flapMesh = part(thigh, flap, tunic, 'kid-tunic-flap');
+    // shared with the hips (skin.ts SkinBlend): from the waist the flap hangs and drapes down over the
+    // thigh when she sits, instead of pivoting with it into a shelf at hip height over bare thighs
+    flapMesh.userData.skinBlend = { top: 0.85, hem: 0.5 };
   }
-  // leather belt at the waist with a small square buckle at the front
+  // leather belt (lane 7, owner 23:00 JOB 7 "the belt"): a flat strap, 3 cm tall and 6 mm thick, on
+  // the waist's oval — stitched along both edges and burnished at them on the strap canvas — passing
+  // through a square buckle frame at the front with its tongue, the tail hanging a hand below the
+  // buckle. Round 48's torus and plate read as a rubber ring at 2 m.
   const y = hl(0.555);
-  part(rig.hips, place(new TorusGeometry(0.104, 0.015, 8, 26), 0, y, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), kidMat('belt', KID.belt), 'kid-belt', false);
-  part(rig.hips, merge([place(new BoxGeometry(0.036, 0.03, 0.008), 0, y, 0.088), place(new BoxGeometry(0.006, 0.03, 0.01), 0, y, 0.09)]), kidMat('buckle', KID.buckle, 0.6), 'kid-buckle', false);
+  const strap = ovalLathe([[0.106, y - 0.015], [0.106, y + 0.015], [0.1, y + 0.015], [0.1, y - 0.015]], { segments: 26, scaleZ: 0.8 });
+  const tail = place(new BoxGeometry(0.022, 0.07, 0.005), 0.03, y - 0.032, 0.088, [0, 0, 0.22]);
+  part(rig.hips, merge([strap, tail]), beltMaterial(), 'kid-belt', false);
+  const bar = 0.005;
+  const bz = 0.089;
+  part(
+    rig.hips,
+    merge([
+      place(new BoxGeometry(0.038, bar, 0.007), 0, y + 0.0135, bz),
+      place(new BoxGeometry(0.038, bar, 0.007), 0, y - 0.0135, bz),
+      place(new BoxGeometry(bar, 0.032, 0.007), -0.0165, y, bz),
+      place(new BoxGeometry(bar, 0.032, 0.007), 0.0165, y, bz),
+      // the tongue, off-centre where it lies over the strap's end
+      place(new BoxGeometry(0.0035, 0.03, 0.005), -0.004, y, bz + 0.002),
+    ]),
+    kidMat('buckle', KID.buckle, 0.6),
+    'kid-buckle',
+    false,
+  );
+}
+
+/** scale a rope piece's u so the canvas's twist repeats `turns` times along it (v round the strand stays 0–1) */
+function ropeUv(g: BufferGeometry, turns: number): BufferGeometry {
+  const uv = g.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * turns);
+  return g;
+}
+
+/**
+ * The rope canvas (lane 7): laid rope — three strands twisted round the core read as ridges running
+ * diagonally across the rope's length; one repeat of the canvas is one turn of the lay. Pale hemp
+ * with a darker groove between the strands and a fibre fuzz in the highlights.
+ */
+function ropeMaterial(): MeshStandardMaterial {
+  const id = 'rope-lay';
+  let m = mats.get(id);
+  if (!m) {
+    const tex = shadedCanvas(32, 32, CHAR_COLORS.kidRope, 'kid-rope-lay', (u, v, x, y) => {
+      // three strands per turn: the groove where phase crosses 0, the strand's belly at 0.5
+      const phase = (u * 3 + v * 1.0) % 1;
+      const belly = 0.5 + 0.5 * Math.cos(phase * Math.PI * 2);
+      const fuzz = 1 + 0.08 * (hash2(x * 0.71, y * 0.37) - 0.5);
+      return (0.62 + 0.5 * belly) * fuzz;
+    });
+    m = new MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 });
+    m.name = 'char-kid-rope-lay';
+    mats.set(id, m);
+  }
+  return m;
+}
+
+/**
+ * The strap canvas (lane 7): the lathe's v runs outer face (0–⅓) → top edge → inner face, so the
+ * outer third carries the leather — a fine grain, a burnished darker line at each edge and a row
+ * of pale stitches a few millimetres inside them, six per repeat and six repeats round the waist.
+ */
+function beltMaterial(): MeshStandardMaterial {
+  const id = 'belt-strap';
+  let m = mats.get(id);
+  if (!m) {
+    const tex = shadedCanvas(128, 48, KID.belt, 'kid-belt-strap', (u, v, x, y) => {
+      if (v > 0.34) return 0.78;
+      const f = v / 0.34;
+      const grain = 1 + 0.06 * (hash2(x * 0.37, y * 0.61) - 0.5);
+      const edge = f < 0.07 || f > 0.93 ? 0.72 : 1;
+      const stitchRow = Math.abs(f - 0.17) < 0.045 || Math.abs(f - 0.83) < 0.045;
+      const stitch = stitchRow && Math.sin(u * Math.PI * 2 * 6 + 0.4) > 0.25 ? 1.55 : 1;
+      return grain * edge * stitch;
+    });
+    tex.repeat.set(6, 1);
+    m = new MeshStandardMaterial({ map: tex, roughness: 0.72, metalness: 0 });
+    m.name = 'char-kid-belt-strap';
+    mats.set(id, m);
+  }
+  return m;
 }
 
 /**
@@ -883,7 +985,7 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
  */
 function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   const p = rig.props;
-  const tunic = clothMaterial(`boy-${variant}`, BOY_TUNIC);
+  const tunic = clothMaterial('boy', BOY_TUNIC);
   buildArms(rig, { skin, sleeve: null });
   buildThumbs(rig, skin);
   const hl = (y: number) => y - p.hipY;
@@ -922,16 +1024,26 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
     tunic,
     'kid-tunic-upper',
   );
+  // the rope belt (lane 7, owner 23:00 JOB 7 "the belt"): two wraps of laid rope — the twist on the
+  // rope canvas, ridges running diagonally round each wrap — knotted at the front where the wraps
+  // cross, the two ends hanging a hand down the skirt and fraying at their tips. The round-1 belt
+  // was the same two tori in flat colour, two rings at 2.5 m.
+  const wrapY = hl(0.565);
   const rope = merge([
-    place(new TorusGeometry(0.106, 0.009, 6, 26), 0, hl(0.565), 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]),
-    place(new TorusGeometry(0.106, 0.007, 6, 26), 0, hl(0.58), 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]),
-    place(new CylinderGeometry(0.008, 0.008, 0.07, 6), 0.02, hl(0.535), 0.088, [0.2, 0, 0.15]),
-    place(new CylinderGeometry(0.008, 0.008, 0.06, 6), -0.015, hl(0.54), 0.09, [0.2, 0, -0.1]),
+    ropeUv(place(new TorusGeometry(0.106, 0.009, 7, 40), 0, wrapY, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), 36),
+    ropeUv(place(new TorusGeometry(0.106, 0.008, 7, 40), 0, hl(0.582), 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), 36),
+    // the knot: the wraps' crossing, a lump the size of two rope widths
+    place(new SphereGeometry(0.017, 10, 8), 0.006, wrapY + 0.006, 0.086, undefined, [1.15, 0.85, 0.9]),
+    // the ends: out of the knot and down, splaying a little, each fraying to a point
+    ropeUv(place(new CylinderGeometry(0.0075, 0.0085, 0.095, 7), 0.026, hl(0.53), 0.09, [0.18, 0, 0.22]), 6),
+    ropeUv(place(new CylinderGeometry(0.0075, 0.0085, 0.08, 7), -0.014, hl(0.537), 0.092, [0.2, 0, -0.14]), 5),
+    place(new ConeGeometry(0.0075, 0.02, 7), 0.037, hl(0.53) - 0.057, 0.1, [Math.PI + 0.18, 0, 0.22]),
+    place(new ConeGeometry(0.0075, 0.018, 7), -0.02, hl(0.537) - 0.049, 0.1, [Math.PI + 0.2, 0, -0.14]),
   ]);
-  part(rig.hips, rope, matte('kidRope'), 'kid-rope-belt', false);
+  part(rig.hips, rope, ropeMaterial(), 'kid-rope-belt', false);
   buildFace(rig, { skin, iris: matte('irisKid', { roughness: 0.3 }), earLength: 0.07 });
-  buildGirlHair(rig, hairMaterial(`boy-${variant}`, BOY_HAIR), false);
-  buildGirlHeadband(rig, kidMat(`band-boy-${variant}`, CHAR_COLORS.kidHeadband));
+  buildGirlHair(rig, hairMaterial('boy', BOY_HAIR), false);
+  buildGirlHeadband(rig, kidMat('band-boy', CHAR_COLORS.kidHeadband));
   part(rig.hips, place(new BoxGeometry(0.05, 0.05, 0.03), -0.09, hl(0.52), 0.04, [0, 0.4, 0]), matte('leatherDark'), 'kid-pouch', false);
   // a Deku Stick held in the right hand like a staff (butt near the ground)
   const handY = -p.forearm - 0.02;
@@ -953,7 +1065,7 @@ export function createKokiri(variant: number): Character {
   const rig = buildRig(KOKIRI_CHILD_PROPORTIONS, `kokiri-${variant}`);
   rig.head.scale.setScalar(HEAD_SCALE);
   const p = rig.props;
-  const girl = variant !== 2;
+  const girl = !BOY_VARIANTS.has(variant);
   const look = girlLook(variant);
   const skin = girl ? girlSkin(look) : rampedSkin('boy', BOY_SKIN);
   const boot = kidMat('boot', girl ? KID.boot : CHAR_COLORS.kidBoot);
@@ -964,7 +1076,7 @@ export function createKokiri(variant: number): Character {
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
     buildThumbs(rig, skin);
-    buildWristbands(rig, kidMat('belt', KID.belt));
+    buildWristbands(rig, beltMaterial());
     buildGirlTunic(rig, girlCloth(look));
     buildGirlFace(rig, look);
     buildGirlHair(rig, girlHair(look));

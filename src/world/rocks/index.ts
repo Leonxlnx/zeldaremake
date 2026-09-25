@@ -106,6 +106,26 @@ export const SHRUNK_STAIR_FOOT_R = 0.35;
 export const LEDGE_PREVIEW: RockLedgeDef[] = [
   { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
 ];
+/**
+ * `?rockLedgePreview=cliff` (look-dev only, never in a capture): the ledge builder at CLIFF scale for the
+ * trailer's waterfall ruins (`docs/SQUAD_2026-09-23.md` §Places, `review46/r_036–r_043`: 6–12 m grey rock
+ * walls in thick beds with ivy, terraces and pools) — a free-standing 9 m face on the north clearing's
+ * west slope, facing the clearing, `scale` 3. Where such cliffs stand is the ruins builder's layout;
+ * this is the rocks lane's sample of what `RockLedgeDef.scale` gives it.
+ */
+export const CLIFF_PREVIEW: RockLedgeDef[] = [
+  { id: 'cliff-preview', foot: [[-12.5, -61], [-12.2, -66], [-12.6, -71], [-12.1, -76], [-12.4, -81]], side: 'right', inset: 3.5, height: 9, lean: 0.6, taper: 2.5, roots: 0.3, scale: 3 },
+];
+/**
+ * `?rockLedgePreview=canyon` (look-dev only): the same builder as a desert canyon wall for the trailer's
+ * desert and red-rock town (`docs/SQUAD_2026-09-23.md` §Places, `review46/r_009–r_010`, `r_044–r_046`:
+ * 15–30 m sandstone walls in thick warm beds, cream to red-brown, varnish streaks) — `palette`
+ * 'sandstone', `scale` 4, a 16 m face east of the plateau facing the village. Where the desert's walls
+ * stand is that place's layout; this is the rocks lane's sample of the palette.
+ */
+export const CANYON_PREVIEW: RockLedgeDef[] = [
+  { id: 'canyon-preview', foot: [[61, -16], [60.6, -8], [61.2, 0], [60.5, 8], [61, 16]], side: 'right', inset: 6, height: 16, lean: 0.8, taper: 4, roots: 0, scale: 4, palette: 'sandstone' },
+];
 /** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
 export const LEDGE_FADE_M: [number, number] = [7, 14];
 /** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
@@ -275,6 +295,14 @@ export const PEBBLE_TILE_M = 10;
  */
 export const PEBBLE_LOD_M = 10;
 export const PEBBLE_LOD_BAND_M = 1;
+/**
+ * The pebble tiles' far gate (m, camera to the tile's nearest point): beyond it a tile draws nothing
+ * at all — a 3 cm pebble at 34 m is a pixel of ground colour, and the look-backs over the village
+ * from the expansions (the east plateau's green at 40–65 m, the south's far bank, the ruins' trail)
+ * were paying 20 draws for them. The same ± band; 0 → no far gate. 34 m is the moss tufts' rule
+ * (structures, `09110730`), so the village's small dressing fades at one distance.
+ */
+export const PEBBLE_FAR_M = 34;
 /** icosahedron subdivision of the far looks: 20·(detail+1)² triangles → 20 */
 export const PEBBLE_LOW_DETAIL = 0;
 
@@ -284,6 +312,8 @@ interface PebbleTile {
   centre: Vector3;
   radius: number;
   low: boolean;
+  /** past PEBBLE_FAR_M: neither look draws */
+  far: boolean;
 }
 
 /** one tile's instances merged into a static mesh (looks baked in), or null when none */
@@ -379,12 +409,21 @@ function buildTiled(list: Instance[], geos: BufferGeometry[], material: Mesh['ma
       lo.userData.mergedInstances = 0;
     }
     const sphere = hi.geometry.boundingSphere!;
-    out.push({ hi, lo, centre: sphere.center.clone(), radius: sphere.radius, low: false });
+    out.push({ hi, lo, centre: sphere.center.clone(), radius: sphere.radius, low: false, far: false });
   }
   return out;
 }
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
+  // build-time by phase (ms), for the audit: the rocks are the second-longest system build at load
+  // (9.5 s of a ~50 s world on the capture VM); this says which piece
+  const buildPhaseMs: Record<string, number> = {};
+  let phaseT0 = performance.now();
+  const mark = (name: string) => {
+    const now = performance.now();
+    buildPhaseMs[name] = Math.round((buildPhaseMs[name] ?? 0) + (now - phaseT0));
+    phaseT0 = now;
+  };
   const group = new Group();
   group.name = 'rocks';
   const T = ctx.terrain;
@@ -440,6 +479,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return m.path < 0.02 && m.stairs < 0.5 && m.structure < 0.5;
   };
 
+  mark('materials');
   // --- embankment strata on steep faces ----------------------------------------------------
   // (fable-2: built before the hero boulders so a near kit can adopt the slabs standing against
   // its rock — own fork `strata`, so the scatter is what it was)
@@ -498,6 +538,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const culled = { pebbles: 0, rubble: 0, strata: 0 };
   for (const it of strata) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.strata++;
 
+  mark('strata+scree+rubble-placement');
   // --- hero boulders -----------------------------------------------------------------------
   const contact: [number, number, number][] = [];
   const boulderInfo: { id: string; radius: number; triangles: number; sink: number; contacts: number; baseGap: number; crackShare: number; mossShare: number; facetShare: number; topAboveGround: number }[] = [];
@@ -1187,6 +1228,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.progress('rocks', 0.4);
 
+  mark('hero-boulders+near-kits');
   // --- shared small-rock geometry variants -------------------------------------------------
   // (round 24: the strata and pebble variants take cracks 0 - before rockgen normalised its ridged
   // noise their 0.2-0.5 never reached the crack threshold, so the 2 730 pebbles and 159 scree had
@@ -1220,6 +1262,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.progress('rocks', 0.6);
 
+  mark('small-rock-looks');
   // --- pebbles: path edges, stair feet, scatter (pebbles.ts) ----------------------------------
   // fable-2 (GOAL_MODE #4): every candidate is a lattice cell with stateless per-cell draws, so a
   // paving edit moves only the pebbles whose cell it touched (the old sequential stream re-rolled
@@ -1239,12 +1282,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const it of rubble) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.rubble++;
   ctx.progress('rocks', 0.8);
 
+  mark('pebbles');
   // --- rock ledge faces (ledge.ts) — positions from the layout hook, or the dev preview -------
   const ledgeDefs: RockLedgeDef[] = (() => {
-    const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges;
-    if (fromLayout?.length) return fromLayout;
-    const preview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('rockLedgePreview') === '1';
-    return preview ? LEDGE_PREVIEW : [];
+    const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges ?? [];
+    const flag = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('rockLedgePreview') : null;
+    if (flag === 'cliff') return [...fromLayout, ...CLIFF_PREVIEW];
+    if (flag === 'canyon') return [...fromLayout, ...CANYON_PREVIEW];
+    if (fromLayout.length) return fromLayout;
+    return flag === '1' ? LEDGE_PREVIEW : [];
   })();
   const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
   const ledgeContacts: [number, number, number][] = [];
@@ -1262,7 +1308,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.receiveShadow = true;
       mesh.name = `ledge-${def.id}`;
       group.add(mesh);
-      ledgeMeshes.push(mesh);
+      // the north locality's gate applies to faces standing in it; a face elsewhere (the canyon
+      // preview, a future place's walls) is left to the frustum
+      const [fx, fz] = def.foot[Math.floor(def.foot.length / 2)];
+      if (northVisible(nBox, fx, fz)) ledgeMeshes.push(mesh);
       let maxFootGap = 0;
       for (const c of built.contacts) maxFootGap = Math.max(maxFootGap, Math.abs(c[1] - T.height(c[0], c[2])));
       ledgeContacts.push(...built.contacts);
@@ -1270,6 +1319,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
 
+  mark('ledges');
   // --- the north clearing's rock dressing (clearing.ts): the west-bank boulder pair, scree at the
   // ledge flight's flanks, half-buried strata along the terrace face east of the flight — one
   // merged mesh under the hero (near) material; positions from the layout's northClearing /
@@ -1288,6 +1338,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ledgeMeshes.push(clearingMesh);
   }
 
+  mark('clearing');
   // --- the plaza's backside (backside.ts, round 49 / V20): the pale boulder pair, the low stone step
   // and the flight's scree at the fence-topped south bank — seated on the LIVE terrain (the bank is
   // not in this system's legacy view), one mesh under the hero material, toggled with expansion-2's
@@ -1306,6 +1357,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backsideSpheres = backside.spheres(sunDir);
   }
 
+  mark('backside');
   // --- the south ravine's rock (ravine.ts, the owner's 06:07 rubric for the new area): bedded
   // outcrops half-sunk into both walls and moss-capped boulders on the floor — seated on the LIVE
   // terrain (the gorge exists only there), one mesh under the near material, toggled with the same
@@ -1324,6 +1376,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ravineSpheres = ravine.spheres(sunDir);
   }
 
+  mark('ravine');
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
@@ -1340,6 +1393,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // tufts, ferns and moss pads are packed into one InstancedMesh (one draw for all the cap and
   // crevice plants). The crevice spots go last so the cap / base plants keep their jitter draws.
   boulderPlants.push(...crevicePlants);
+  mark('instanced+tiles');
   const plants = buildSproutMeshes(boulderPlants, rng.fork('boulder-plants'), createSproutMaterial(ctx.wind, ctx.config), ctx.config, ROCK_PLANT_PACKS);
   for (const m of plants.meshes) {
     m.name = `boulder-plants-${m.name}`;
@@ -1358,13 +1412,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the pebble tiles' LOD: a tile shows its far looks once its nearest point is beyond PEBBLE_LOD_M
     // (+ the band), its near looks again inside PEBBLE_LOD_M (− the band); the hidden mesh costs nothing
     for (const t of pebbleTiles) {
-      if (!t.lo) continue;
       const d = t.centre.distanceTo(_cam) - t.radius;
-      if (reset) t.low = d > PEBBLE_LOD_M;
-      else if (t.low) t.low = d > PEBBLE_LOD_M - PEBBLE_LOD_BAND_M;
-      else t.low = d > PEBBLE_LOD_M + PEBBLE_LOD_BAND_M;
-      t.hi.visible = !t.low;
-      t.lo.visible = t.low;
+      // the far gate (PEBBLE_FAR_M): past it neither look draws
+      if (PEBBLE_FAR_M > 0) {
+        if (reset) t.far = d > PEBBLE_FAR_M;
+        else if (t.far) t.far = d > PEBBLE_FAR_M - PEBBLE_LOD_BAND_M;
+        else t.far = d > PEBBLE_FAR_M + PEBBLE_LOD_BAND_M;
+      }
+      if (t.lo) {
+        if (reset) t.low = d > PEBBLE_LOD_M;
+        else if (t.low) t.low = d > PEBBLE_LOD_M - PEBBLE_LOD_BAND_M;
+        else t.low = d > PEBBLE_LOD_M + PEBBLE_LOD_BAND_M;
+      }
+      t.hi.visible = !t.far && !t.low;
+      if (t.lo) t.lo.visible = !t.far && t.low;
     }
     for (const nr of nearRocks) {
       nr.dist = nr.centre.distanceTo(_cam);
@@ -1398,6 +1459,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const samplePebbles = pebbles.filter((_, i) => i % Math.max(1, Math.ceil(pebbles.length / 200)) === 0).slice(0, 200);
   const rnd = (v: number) => Math.round(v * 1000) / 1000;
   ctx.audit('rocks', () => ({
+    /** the CPU arrays the group still holds (bytes) — what compactRockGeometry's onUpload left */
+    cpuArrays: cpuArrayBytes(group),
+    /** the build's CPU time by phase (ms) */
+    buildPhaseMs,
     heroBoulders: boulderInfo.length,
     boulders: boulderInfo,
     /** the highest any hero boulder's underside stands above the terrain (m); 0 = fully seated */
@@ -1453,7 +1518,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** the path pebbles' merged ground tiles (PEBBLE_TILE_M), each culled by its own bounds */
     pebbleTiles: pebbleTiles.length,
     /** the tiles' distance LOD (PEBBLE_LOD_M): the far-look tiles for the current camera */
-    pebbleLod: { m: PEBBLE_LOD_M, bandM: PEBBLE_LOD_BAND_M, lowDetail: PEBBLE_LOW_DETAIL, lowTiles: pebbleTiles.filter((t) => t.low).length },
+    pebbleLod: { m: PEBBLE_LOD_M, bandM: PEBBLE_LOD_BAND_M, lowDetail: PEBBLE_LOW_DETAIL, lowTiles: pebbleTiles.filter((t) => t.low).length, farM: PEBBLE_FAR_M, farTiles: pebbleTiles.filter((t) => t.far).length },
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
@@ -1467,6 +1532,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }));
 
   // the rock meshes' vertex storage compacted last, after every build-time read of their attributes
+  mark('boulder-plants');
   // (compactRockGeometry): the hero kits and far LODs, the ledge, the dressing, the strata / rubble
   // looks; the pebble tiles came through mergeTile already and are left as they are
   {
@@ -1481,6 +1547,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     });
   }
 
+  mark('compact');
   return {
     name: 'rocks',
     group,
@@ -1505,4 +1572,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (const nr of nearRocks) nr.near.geometry.dispose();
     },
   };
+}
+
+/**
+ * The CPU arrays a group still holds (bytes): every unique geometry's attributes and index whose
+ * `array` is not null — after the first draw only what `onUpload` left (position, the index, the
+ * instanced sprouts' per-instance data). A memory audit line, cheap enough for every call.
+ */
+function cpuArrayBytes(root: Group): { bytes: number; geometries: number; positionBytes: number } {
+  const seen = new Set<string>();
+  let bytes = 0;
+  let positionBytes = 0;
+  root.traverse((o) => {
+    const g = (o as Mesh).geometry;
+    if (!g || seen.has(g.uuid)) return;
+    seen.add(g.uuid);
+    for (const [name, attr] of Object.entries(g.attributes)) {
+      const arr = (attr as BufferAttribute).array as ArrayBufferView | null;
+      if (!arr) continue;
+      bytes += arr.byteLength;
+      if (name === 'position') positionBytes += arr.byteLength;
+    }
+    const idx = g.index?.array as ArrayBufferView | null | undefined;
+    if (idx) bytes += idx.byteLength;
+  });
+  return { bytes, geometries: seen.size, positionBytes };
 }

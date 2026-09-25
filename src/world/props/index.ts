@@ -8,7 +8,7 @@
  * a bank), weathered at the base, and merged per locality (`localityOf(cluster)`) and material
  * into one mesh each; each locality is distance-culled as one.
  */
-import { Box3, type BufferAttribute, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
+import { Box3, type BufferAttribute, BufferGeometry, type Camera, Color, DataTexture, Float32BufferAttribute, Group, LinearFilter, Mesh, MeshBasicMaterial, Quaternion, RGBAFormat, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { expansionCull, getTerrain, type TerrainMask } from '../terrain/heightfield';
@@ -25,13 +25,80 @@ const MAX_TILT = (9 * Math.PI) / 180;
 /** vertices below this local height are pulled onto the sampled ground (m) */
 const CONTACT_BAND = 0.08;
 export const EMBED = 0.008;
+
+/**
+ * Round 56 (the owner's rubric, #23 "contact shadow / AO where it meets the ground"): a soft dark
+ * decal under every ground-seated prop — pots, crates, barrels, buckets, the markers' posts. One
+ * unlit transparent mesh per locality (the village's is a single draw); it neither casts nor
+ * receives shadow, sits `AO_LIFT` above the sampled ground with a polygon offset, and fades from
+ * `AO_STRENGTH` at the foot's centre to nothing at `AO_REACH` × the footprint radius.
+ */
+export const AO_REACH = 1.45;
+export const AO_LIFT = 0.012;
+export const AO_STRENGTH = 0.62;
+const AO_SEGMENTS = 18;
+
+/** the decal's radial alpha: 64 × 64 — full under the foot, fading over the outer 40 %, gone at the rim */
+function aoAlphaMap(): DataTexture {
+  const size = 64;
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = (x + 0.5) / size - 0.5;
+      const v = (y + 0.5) / size - 0.5;
+      const r = Math.min(1, Math.hypot(u, v) * 2);
+      // full under the foot (r < 0.6), fading over the outer 40 % — the ring past the footprint's
+      // edge (r ≈ 1 / AO_REACH) is what the eye sees; a plain (1 − r)^k spent itself under the prop
+      const a = Math.round(255 * Math.pow(Math.min(1, (1 - r) / 0.4), 1.2));
+      const i = (y * size + x) * 4;
+      data[i] = data[i + 1] = data[i + 2] = a;
+      data[i + 3] = 255;
+    }
+  }
+  const tex = new DataTexture(data, size, size, RGBAFormat);
+  tex.minFilter = LinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.generateMipmaps = false;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** a ground-hugging fan of `AO_SEGMENTS` triangles about (x, z), each vertex on the sampled ground */
+function aoDecal(x: number, z: number, radius: number, height: (x: number, z: number) => number): BufferGeometry {
+  const pos: number[] = [];
+  const uv: number[] = [];
+  const nrm: number[] = [];
+  const cy = height(x, z) + AO_LIFT;
+  for (let i = 0; i < AO_SEGMENTS; i++) {
+    const a0 = (i / AO_SEGMENTS) * Math.PI * 2;
+    const a1 = ((i + 1) / AO_SEGMENTS) * Math.PI * 2;
+    const x0 = x + Math.cos(a0) * radius;
+    const z0 = z + Math.sin(a0) * radius;
+    const x1 = x + Math.cos(a1) * radius;
+    const z1 = z + Math.sin(a1) * radius;
+    pos.push(x, cy, z, x1, height(x1, z1) + AO_LIFT, z1, x0, height(x0, z0) + AO_LIFT, z0);
+    uv.push(0.5, 0.5, 0.5 + 0.5 * Math.cos(a1), 0.5 + 0.5 * Math.sin(a1), 0.5 + 0.5 * Math.cos(a0), 0.5 + 0.5 * Math.sin(a0));
+    nrm.push(0, 1, 0, 0, 1, 0, 0, 1, 0);
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  // the same attribute set as every prop mesh (the merge and the tests expect a colour)
+  g.setAttribute('color', new Float32BufferAttribute(new Array(pos.length).fill(1), 3));
+  return g;
+}
 /**
  * A cluster draws only while the camera is within this distance of its bounding sphere (m). A
- * 0.6 m pot is a dozen pixels lost in the haze at 45 m; the north clearing's dressing (60–75 m
- * from every fixed camera, occluded by the log's root mass) would otherwise ride into the shadow
- * and colour passes of frames it cannot appear in.
+ * 0.6 m pot is a dozen pixels lost in the haze at 45 m and a handful at 30; the north clearing's
+ * dressing (60–75 m from every fixed camera, occluded by the log's root mass) would otherwise
+ * ride into the shadow and colour passes of frames it cannot appear in. 45 → 30 in round 56
+ * (the owner's "check everything", the south far-bank look-back at 818 draws): the village
+ * sphere's near edge is 33 m from that camera and ≤ 25 m from every fixed view and owner pose,
+ * so the change costs those nothing and drops the village's 11 draws from the look-back, and the
+ * south exit's 9 from camera C (35 m, hidden behind the plaza-south trunk there anyway).
  */
-export const CLUSTER_VISIBLE_M = 45;
+export const CLUSTER_VISIBLE_M = 30;
 
 export interface PlacementOptions {
   paving?: boolean;
@@ -263,6 +330,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * lookout's rope railing is, as discs every 0.25 m along its three courses.
    */
   const blockers: { x: number; z: number; r: number; top: number }[] = [];
+  const aoBatches = new Map<string, BufferGeometry[]>();
+  const aoMaterial = new MeshBasicMaterial({ color: 0x14100a, alphaMap: aoAlphaMap(), transparent: true, opacity: AO_STRENGTH, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  aoMaterial.name = 'prop-contact-ao';
   const tmp = new Vector3();
   /** toward the sun (world), for the exposure weathering and the backside's shadow footprints */
   const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
@@ -502,6 +572,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     else if (def.kind === 'crate') solidTop = def.size * 0.9;
     else if (def.kind === 'bucket') solidTop = def.size * 0.66;
     if (solidTop > 0) blockers.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footprintRadius(def).toFixed(3), top: +(groundY + solidTop).toFixed(3) });
+    if (solidTop > 0 && def.kind !== 'ladder') {
+      // the contact AO: the pot's belly overhangs its foot, so the decal reaches a little past the
+      // footprint; a marker's is its post's, not its boards'; a ladder's two feet get none (a disc
+      // between its rails would darken bare ground)
+      const aoR = def.kind === 'marker' ? 0.17 * def.size : footR * AO_REACH;
+      const list = aoBatches.get(localityOf(def.cluster));
+      const decal = aoDecal(x, z, aoR, (px, pz) => T.height(px, pz));
+      if (list) list.push(decal);
+      else aoBatches.set(localityOf(def.cluster), [decal]);
+    }
     if (localityOf(def.cluster) === 'backside') backsideCasters.push({ x, z, r: footR + 0.25, y0: groundY - 0.1, y1: groundY + (def.kind === 'marker' ? def.size + 0.15 : def.size * 1.1), shadow: true });
     clusterNames.add(def.cluster);
     const batches = batchesFor(localityOf(def.cluster));
@@ -613,6 +693,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       group.add(mesh);
       meshes++;
     }
+    const decals = aoBatches.get(locality);
+    if (decals && decals.length) {
+      const merged = mergeGeometries(decals, false);
+      decals.forEach((g) => g.dispose());
+      if (!merged) throw new Error(`props: cannot merge ${locality}/ao`);
+      merged.computeBoundingBox();
+      merged.computeBoundingSphere();
+      if (merged.boundingSphere) {
+        if (first) sphere.copy(merged.boundingSphere);
+        else sphere.union(merged.boundingSphere);
+        first = false;
+      }
+      releaseAfterUpload(merged);
+      ownedGeometry.push(merged);
+      const mesh = new Mesh(merged, aoMaterial);
+      mesh.name = `${locality}-ao`;
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      group.add(mesh);
+      meshes++;
+    }
     root.add(group);
     if (!first) localityBounds.push({ group, sphere });
   }
@@ -668,6 +769,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     dispose() {
       ownedGeometry.forEach((g) => g.dispose());
+      aoMaterial.alphaMap?.dispose();
+      aoMaterial.dispose();
       materials.dispose();
       root.clear();
     },

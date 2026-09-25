@@ -1,0 +1,110 @@
+{
+ "stem": "bed",
+ "seconds": 90,
+ "places": [
+  {
+   "id": "plaza",
+   "at": [
+    1.5,
+    -6
+   ],
+   "note": "the village plaza, under the lantern bough"
+  },
+  {
+   "id": "pod-1m",
+   "at": [
+    -0.2,
+    -1.2
+   ],
+   "note": "a metre from a pod lantern at the path fork"
+  },
+  {
+   "id": "lawn",
+   "at": [
+    -6.5,
+    2
+   ],
+   "note": "the lawn west of the spine, away from everything"
+  },
+  {
+   "id": "forest-floor",
+   "at": [
+    12,
+    -38
+   ],
+   "note": "the north forest floor, crowns closed overhead"
+  },
+  {
+   "id": "log-bore",
+   "at": [
+    4.84,
+    -55.4
+   ],
+   "note": "inside the log arch's bore"
+  },
+  {
+   "id": "north-clearing",
+   "at": [
+    -1.5,
+    -69.8
+   ],
+   "note": "the stone circle's paving in the north clearing"
+  },
+  {
+   "id": "lookout",
+   "at": [
+    21.6,
+    2.2
+   ],
+   "note": "the plateau lookout dais, open sky"
+  },
+  {
+   "id": "bridge-midspan",
+   "at": [
+    3.9,
+    37.08
+   ],
+   "note": "mid-span on the rope bridge, over the ravine"
+  },
+  {
+   "id": "far-log",
+   "at": [
+    4.31,
+    48.9
+   ],
+   "note": "two metres into the far bank's hollow log"
+  },
+  {
+   "id": "grove-trail",
+   "at": [
+    -0.43,
+    -90.11
+   ],
+   "note": "a set stone on the grove's trail, under the crowns"
+  },
+  {
+   "id": "grove-deck",
+   "at": [
+    14.2,
+    -91.5
+   ],
+   "note": "the stilt house's veranda, 11.6 m up"
+  },
+  {
+   "id": "grove-room",
+   "at": [
+    12,
+    -91.5
+   ],
+   "note": "inside the stilt house, its door open"
+  },
+  {
+   "id": "west-room",
+   "at": [
+    -23,
+    9
+   ],
+   "note": "inside the west house, under open sky"
+  }
+ ]
+}
