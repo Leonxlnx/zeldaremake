@@ -3,3 +3,5 @@ audio/stems/
 audio/generated/
 audio/analysis/
 
+# the CRF-14 master (210 MB) is over GitHub's 100 MB file limit; the X file is the committed delivery
+final/Kokiri-Forest-Opus-1080p.mp4

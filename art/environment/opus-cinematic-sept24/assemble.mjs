@@ -13,7 +13,7 @@ import {fileURLToPath} from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');
 const args = Object.fromEntries(process.argv.slice(2).reduce((a, v, i, all) => (v.startsWith('--') ? a.push([v.slice(2), all[i + 1] && !all[i + 1].startsWith('--') ? all[i + 1] : true]) : 0, a), []));
-const FPS = 30, FRAMES = 900, W = 3840, H = 2160;
+const FPS = 30;
 const framesDir = path.resolve(args.frames ?? '');
 const audio = path.resolve(args.audio ?? '');
 const out = path.resolve(args.out ?? HERE);
@@ -30,9 +30,12 @@ const GRADE = args.grade === 'off' ? 'null' : [
 
 // 1. inputs
 const names = (await fs.readdir(framesDir)).filter(f => /^f\d{4}\.png$/.test(f)).sort();
-if (names.length !== FRAMES || names[0] !== 'f0000.png' || names.at(-1) !== `f${String(FRAMES - 1).padStart(4, '0')}.png`) throw new Error(`need f0000..f0899.png in ${framesDir}, found ${names.length}`);
+const FRAMES = names.length;
+if (!FRAMES || names.some((n, i) => n !== `f${String(i).padStart(4, '0')}.png`)) throw new Error(`frames in ${framesDir} are not a contiguous f0000.. sequence`);
 const probe0 = JSON.parse(run('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'json', path.join(framesDir, names[0])]).stdout).streams[0];
-if (probe0.width !== W || probe0.height !== H) throw new Error(`frames are ${probe0.width}x${probe0.height}, expected ${W}x${H}`);
+const W = probe0.width, H = probe0.height;
+if (W * 9 !== H * 16 || W < 1920) throw new Error(`frames are ${W}x${H}; need 16:9 at 1920x1080 or more`);
+const SECONDS = FRAMES / FPS;
 const aprobe = JSON.parse(run('ffprobe', ['-v', 'error', '-show_entries', 'stream=sample_rate,channels,duration_ts', '-of', 'json', audio]).stdout).streams[0];
 if (Number(aprobe.sample_rate) !== 48000 || aprobe.channels !== 2) throw new Error('audio must be 48 kHz stereo');
 const frameHashes = [];
@@ -41,15 +44,16 @@ const sequenceSha256 = crypto.createHash('sha256').update(frameHashes.join('\n')
 await fs.mkdir(path.join(out, 'verification'), {recursive: true});
 
 // 2. encodes (single pass from the PNGs each; the audio is already mastered — no gain at mux)
-const master = path.join(out, 'Kokiri-Forest-Opus-4K.mp4');
+const master = path.join(out, `Kokiri-Forest-Opus-${H >= 2160 ? '4K' : H + 'p'}.mp4`);
 const xfile = path.join(out, 'Kokiri-Forest-Opus-X-1080p.mp4');
 const common = ['-hide_banner', '-y', '-framerate', String(FPS), '-start_number', '0', '-i', path.join(framesDir, 'f%04d.png'), '-i', audio, '-map', '0:v:0', '-map', '1:a:0'];
 const masterArgs = [...common, '-vf', `${GRADE},format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-profile:v', 'high', '-level:v', '5.2', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-g', '60',
-  '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-ac', '2', '-t', '30', '-movflags', '+faststart', master];
-const xArgs = [...common, '-vf', `${GRADE},scale=1920:1080:flags=lanczos+accurate_rnd,unsharp=5:5:0.35:5:5:0,format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-maxrate', '25M', '-bufsize', '50M',
-  '-profile:v', 'high', '-level:v', '4.2', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-g', '60', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-ac', '2', '-t', '30', '-movflags', '+faststart', xfile];
+  '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-ac', '2', '-t', String(SECONDS), '-movflags', '+faststart', master];
+const xArgs = [...common, '-vf', `${GRADE},scale=1920:1080:flags=lanczos+accurate_rnd,unsharp=5:5:0.35:5:5:0,format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '16M', '-bufsize', '32M',
+  '-profile:v', 'high', '-level:v', '4.2', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-g', '60', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-ac', '2', '-t', String(SECONDS), '-movflags', '+faststart', xfile];
 if (!args['skip-encode']) {
-  console.log('encoding 4K master…'); run('ffmpeg', masterArgs, {stdio: ['ignore', 'ignore', 'pipe']});
+  // --x-only: re-encode just the X upload file (the master is kept)
+  if (!args['x-only']) { console.log('encoding master…'); run('ffmpeg', masterArgs, {stdio: ['ignore', 'ignore', 'pipe']}); }
   console.log('encoding X 1080p…'); run('ffmpeg', xArgs, {stdio: ['ignore', 'ignore', 'pipe']});
 }
 
@@ -77,16 +81,16 @@ for (const f of [master, xfile]) {
     sha256: await sha(f), bytes: (await fs.stat(f)).size, ffprobe: p, decodeOk: decode.status === 0 && !decode.stderr.trim(), decodeStderr: decode.stderr.trim().slice(0, 2000),
     loudness: {integratedLufs: num(/I:\s+(-?[\d.]+) LUFS/), lraLu: num(/LRA:\s+(-?[\d.]+) LU/), truePeakDbtp: num(/Peak:\s+(-?[\d.]+) dBFS/)},
     checks: {frames: Number(v.nb_read_frames) === FRAMES, fps: v.r_frame_rate === '30/1', pixFmt: v.pix_fmt === 'yuv420p', codec: v.codec_name === 'h264', audio: a?.codec_name === 'aac' && Number(a.sample_rate) === 48000 && a.channels === 2,
-      duration: Math.abs(Number(p.format.duration) - 30) < 0.05, faststart: moovFirst},
+      duration: Math.abs(Number(p.format.duration) - SECONDS) < 0.05, faststart: moovFirst},
   };
 }
 await fs.writeFile(path.join(out, 'verification', 'verification.json'), JSON.stringify(verification, null, 2) + '\n');
 const git = c => execFileSync('git', c, {cwd: ROOT, encoding: 'utf8'}).trim();
 const delivery = {
   createdAt: new Date().toISOString(), sourceCommit: git(['rev-parse', 'HEAD']), framesDir: path.relative(ROOT, framesDir).replaceAll('\\', '/'), frameSequenceSha256: sequenceSha256,
-  frames: FRAMES, fps: FPS, seconds: FRAMES / FPS, nativeSize: `${W}x${H}`, audio: {file: path.relative(ROOT, audio).replaceAll('\\', '/'), sha256: await sha(audio)},
+  frames: FRAMES, fps: FPS, seconds: SECONDS, nativeSize: `${W}x${H}`, audio: {file: path.relative(ROOT, audio).replaceAll('\\', '/'), sha256: await sha(audio)},
   grade: GRADE, files: Object.fromEntries(Object.entries(verification).map(([k, v]) => [k, {sha256: v.sha256, bytes: v.bytes, checks: v.checks, loudness: v.loudness}])),
-  poster: {file: 'poster.png', sha256: await sha(path.join(out, 'poster.png')), from: 'frame 0 of Kokiri-Forest-Opus-4K.mp4 (decoded)'},
+  poster: {file: 'poster.png', sha256: await sha(path.join(out, 'poster.png')), from: `frame 0 of ${path.basename(master)} (decoded)`},
   ffmpeg: {master: masterArgs, x: xArgs}, contactSheetFrames: marks,
 };
 await fs.writeFile(path.join(out, 'delivery.json'), JSON.stringify(delivery, null, 2) + '\n');

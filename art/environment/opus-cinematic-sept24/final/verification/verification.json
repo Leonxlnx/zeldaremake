@@ -1,0 +1,120 @@
+{
+  "Kokiri-Forest-Opus-1080p.mp4": {
+    "sha256": "ae74f10017fdeb22576f135c977c3a1416979321309a5a9bc1d313c54fa12448",
+    "bytes": 210682718,
+    "ffprobe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1",
+          "duration": "40.000000",
+          "nb_frames": "1200",
+          "nb_read_frames": "1200"
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "duration": "40.000000",
+          "nb_frames": "1876",
+          "nb_read_frames": "1875"
+        }
+      ],
+      "format": {
+        "duration": "40.000000",
+        "size": "210682718",
+        "bit_rate": "42136543"
+      }
+    },
+    "decodeOk": true,
+    "decodeStderr": "",
+    "loudness": {
+      "integratedLufs": -14.3,
+      "lraLu": 9.5,
+      "truePeakDbtp": -1.8
+    },
+    "checks": {
+      "frames": true,
+      "fps": true,
+      "pixFmt": true,
+      "codec": true,
+      "audio": true,
+      "duration": true,
+      "faststart": true
+    }
+  },
+  "Kokiri-Forest-Opus-X-1080p.mp4": {
+    "sha256": "18ef632a644d99767641ea31b4e70bbb25747c3289fdb449431c1c0544919201",
+    "bytes": 81540173,
+    "ffprobe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1",
+          "duration": "40.000000",
+          "nb_frames": "1200",
+          "nb_read_frames": "1200"
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "duration": "40.000000",
+          "nb_frames": "1876",
+          "nb_read_frames": "1875"
+        }
+      ],
+      "format": {
+        "duration": "40.000000",
+        "size": "81540173",
+        "bit_rate": "16308034"
+      }
+    },
+    "decodeOk": true,
+    "decodeStderr": "",
+    "loudness": {
+      "integratedLufs": -14.3,
+      "lraLu": 9.5,
+      "truePeakDbtp": -1.7
+    },
+    "checks": {
+      "frames": true,
+      "fps": true,
+      "pixFmt": true,
+      "codec": true,
+      "audio": true,
+      "duration": true,
+      "faststart": true
+    }
+  }
+}

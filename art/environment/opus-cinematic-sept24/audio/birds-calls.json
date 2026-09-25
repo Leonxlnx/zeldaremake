@@ -38,7 +38,7 @@
  {
   "tag": "placed",
   "sp": "robin",
-  "at": 4.32,
+  "at": 7.32,
   "dur": 1.85,
   "d": 0.16,
   "pan": 0.36,
@@ -47,7 +47,7 @@
  {
   "tag": "placed",
   "sp": "greattit",
-  "at": 7.15,
+  "at": 10.35,
   "dur": 1.02,
   "d": 0.62,
   "pan": -0.38,
@@ -56,7 +56,7 @@
  {
   "tag": "placed",
   "sp": "goldcrest",
-  "at": 8.05,
+  "at": 11.25,
   "dur": 1.08,
   "d": 0.55,
   "pan": 0.22,
@@ -65,7 +65,7 @@
  {
   "tag": "placed",
   "sp": "wren",
-  "at": 8.75,
+  "at": 11.95,
   "dur": 1.04,
   "d": 0.68,
   "pan": 0.56,
@@ -74,7 +74,7 @@
  {
   "tag": "placed",
   "sp": "blackbird",
-  "at": 10.7,
+  "at": 17.7,
   "dur": 1.42,
   "d": 0.5,
   "pan": 0.52,
@@ -83,7 +83,7 @@
  {
   "tag": "placed",
   "sp": "chiffchaff",
-  "at": 12.6,
+  "at": 19.6,
   "dur": 3.27,
   "d": 0.7,
   "pan": -0.6,
@@ -92,7 +92,7 @@
  {
   "tag": "placed",
   "sp": "chaffinch",
-  "at": 15.4,
+  "at": 25.2,
   "dur": 1.44,
   "d": 0.62,
   "pan": 0.6,
@@ -101,7 +101,7 @@
  {
   "tag": "placed",
   "sp": "woodpecker",
-  "at": 17.1,
+  "at": 26.9,
   "dur": 1.08,
   "d": 0.86,
   "pan": -0.66,
@@ -110,7 +110,7 @@
  {
   "tag": "placed",
   "sp": "woodpigeon",
-  "at": 19.25,
+  "at": 29.45,
   "dur": 2.46,
   "d": 0.95,
   "pan": -0.5,
@@ -119,7 +119,7 @@
  {
   "tag": "placed",
   "sp": "woodpecker",
-  "at": 20.5,
+  "at": 30.7,
   "dur": 1.14,
   "d": 0.9,
   "pan": 0.55,
@@ -128,7 +128,7 @@
  {
   "tag": "placed",
   "sp": "thrush",
-  "at": 21.7,
+  "at": 31.9,
   "dur": 0.84,
   "d": 0.7,
   "pan": 0.35,
@@ -137,7 +137,7 @@
  {
   "tag": "placed",
   "sp": "woodpecker",
-  "at": 22.85,
+  "at": 33.05,
   "dur": 0.81,
   "d": 0.9,
   "pan": 0.52,
@@ -146,7 +146,7 @@
  {
   "tag": "placed",
   "sp": "blackbird",
-  "at": 24.22,
+  "at": 36.22,
   "dur": 1.73,
   "d": 0.45,
   "pan": -0.45,
@@ -155,7 +155,7 @@
  {
   "tag": "placed",
   "sp": "wren",
-  "at": 25.05,
+  "at": 37.05,
   "dur": 1.69,
   "d": 0.55,
   "pan": 0.5,
@@ -164,7 +164,7 @@
  {
   "tag": "placed",
   "sp": "chiffchaff",
-  "at": 25.9,
+  "at": 37.9,
   "dur": 3,
   "d": 0.72,
   "pan": -0.2,
@@ -173,7 +173,7 @@
  {
   "tag": "placed",
   "sp": "greattit",
-  "at": 26.6,
+  "at": 38.6,
   "dur": 0.87,
   "d": 0.6,
   "pan": 0.3,
@@ -182,7 +182,7 @@
  {
   "tag": "placed",
   "sp": "woodpigeon",
-  "at": 27.15,
+  "at": 39.15,
   "dur": 2.46,
   "d": 0.9,
   "pan": 0.62,
@@ -191,7 +191,7 @@
  {
   "tag": "placed",
   "sp": "robin",
-  "at": 28.15,
+  "at": 40.15,
   "dur": 2.09,
   "d": 0.58,
   "pan": -0.5,
@@ -200,7 +200,7 @@
  {
   "tag": "placed",
   "sp": "chaffinch",
-  "at": 28.85,
+  "at": 40.85,
   "dur": 1.31,
   "d": 0.72,
   "pan": 0.15,
@@ -303,30 +303,30 @@
   "dur": 0.89,
   "d": 0.82,
   "pan": 0.76,
-  "level": 0.495
+  "level": 0.514
  },
  {
   "tag": "chorus",
   "sp": "blackbird",
-  "at": 4.528,
+  "at": 4.495,
   "dur": 2.02,
   "d": 0.94,
   "pan": 0.55,
-  "level": 0.223
+  "level": 0.406
  },
  {
   "tag": "chorus",
   "sp": "wren",
-  "at": 6.358,
+  "at": 5.136,
   "dur": 1.36,
   "d": 0.93,
   "pan": 0.44,
-  "level": 0.266
+  "level": 0.533
  },
  {
   "tag": "chorus",
   "sp": "chip",
-  "at": 8.199,
+  "at": 5.688,
   "dur": 0.4,
   "d": 0.98,
   "pan": 0.24,
@@ -335,7 +335,7 @@
  {
   "tag": "chorus",
   "sp": "thrush",
-  "at": 8.656,
+  "at": 6.077,
   "dur": 2.57,
   "d": 0.79,
   "pan": 0.4,
@@ -344,7 +344,7 @@
  {
   "tag": "chorus",
   "sp": "robin",
-  "at": 9.263,
+  "at": 6.593,
   "dur": 1.34,
   "d": 0.78,
   "pan": -0.67,
@@ -353,70 +353,70 @@
  {
   "tag": "chorus",
   "sp": "wren",
-  "at": 10.96,
+  "at": 8.035,
   "dur": 1.73,
   "d": 0.96,
   "pan": 0.94,
-  "level": 0.468
+  "level": 0.286
  },
  {
   "tag": "chorus",
   "sp": "robin",
-  "at": 12.067,
+  "at": 10.407,
   "dur": 1.81,
   "d": 0.87,
   "pan": 0.17,
-  "level": 0.473
+  "level": 0.526
  },
  {
   "tag": "chorus",
   "sp": "chaffinch",
-  "at": 12.766,
+  "at": 11.024,
   "dur": 1.3,
   "d": 0.96,
   "pan": -0.57,
-  "level": 0.527
+  "level": 0.585
  },
  {
   "tag": "chorus",
   "sp": "wren",
-  "at": 14.8,
+  "at": 12.819,
   "dur": 1.73,
   "d": 0.96,
   "pan": 0.51,
-  "level": 0.299
+  "level": 0.352
  },
  {
   "tag": "chorus",
   "sp": "greattit",
-  "at": 16.425,
+  "at": 14.062,
   "dur": 1.55,
   "d": 0.92,
   "pan": -0.69,
-  "level": 0.433
+  "level": 0.509
  },
  {
   "tag": "chorus",
   "sp": "thrush",
-  "at": 18.109,
+  "at": 15.349,
   "dur": 2.66,
   "d": 0.88,
   "pan": -0.62,
-  "level": 0.432
+  "level": 0.508
  },
  {
   "tag": "chorus",
   "sp": "goldcrest",
-  "at": 19.825,
+  "at": 16.661,
   "dur": 1.17,
   "d": 0.86,
   "pan": 0.52,
-  "level": 0.478
+  "level": 0.531
  },
  {
   "tag": "chorus",
   "sp": "robin",
-  "at": 21.059,
+  "at": 17.75,
   "dur": 1.54,
   "d": 0.99,
   "pan": -0.29,
@@ -425,7 +425,7 @@
  {
   "tag": "chorus",
   "sp": "greattit",
-  "at": 21.555,
+  "at": 18.246,
   "dur": 1.37,
   "d": 0.93,
   "pan": -0.83,
@@ -434,73 +434,145 @@
  {
   "tag": "chorus",
   "sp": "chip",
-  "at": 24.277,
+  "at": 20.968,
   "dur": 0.09,
   "d": 0.92,
   "pan": -0.2,
-  "level": 0.585
+  "level": 0.479
  },
  {
   "tag": "chorus",
   "sp": "chiffchaff",
-  "at": 24.629,
+  "at": 21.671,
   "dur": 2.15,
   "d": 0.84,
   "pan": 0.56,
-  "level": 0.407
+  "level": 0.333
  },
  {
   "tag": "chorus",
   "sp": "blackbird",
-  "at": 25.096,
+  "at": 22.593,
   "dur": 1.62,
   "d": 0.99,
   "pan": -0.56,
-  "level": 0.385
+  "level": 0.315
  },
  {
   "tag": "chorus",
   "sp": "thrush",
-  "at": 25.64,
+  "at": 23.632,
   "dur": 3.33,
   "d": 0.93,
   "pan": 0.24,
-  "level": 0.437
+  "level": 0.357
  },
  {
   "tag": "chorus",
   "sp": "chip",
-  "at": 25.95,
+  "at": 24.184,
   "dur": 0.49,
   "d": 0.92,
   "pan": 0.24,
-  "level": 0.373
+  "level": 0.305
  },
  {
   "tag": "chorus",
   "sp": "greattit",
-  "at": 26.233,
+  "at": 24.665,
   "dur": 0.99,
   "d": 0.96,
   "pan": -0.27,
-  "level": 0.473
+  "level": 0.366
  },
  {
   "tag": "chorus",
   "sp": "chaffinch",
-  "at": 26.578,
+  "at": 25.306,
   "dur": 1.14,
   "d": 0.95,
   "pan": -0.51,
-  "level": 0.617
+  "level": 0.476
  },
  {
   "tag": "chorus",
   "sp": "thrush",
-  "at": 28.704,
+  "at": 28.988,
   "dur": 0.53,
   "d": 1,
   "pan": -0.76,
-  "level": 0.632
+  "level": 0.501
+ },
+ {
+  "tag": "chorus",
+  "sp": "robin",
+  "at": 30.643,
+  "dur": 1.67,
+  "d": 0.9,
+  "pan": -0.54,
+  "level": 0.282
+ },
+ {
+  "tag": "chorus",
+  "sp": "chip",
+  "at": 33.469,
+  "dur": 0.09,
+  "d": 0.79,
+  "pan": 0.58,
+  "level": 0.279
+ },
+ {
+  "tag": "chorus",
+  "sp": "goldcrest",
+  "at": 34.85,
+  "dur": 1,
+  "d": 0.8,
+  "pan": 0.94,
+  "level": 0.428
+ },
+ {
+  "tag": "chorus",
+  "sp": "wren",
+  "at": 35.826,
+  "dur": 1.91,
+  "d": 0.95,
+  "pan": 0.46,
+  "level": 0.47
+ },
+ {
+  "tag": "chorus",
+  "sp": "greattit",
+  "at": 37.237,
+  "dur": 0.93,
+  "d": 0.8,
+  "pan": -0.71,
+  "level": 0.59
+ },
+ {
+  "tag": "chorus",
+  "sp": "chaffinch",
+  "at": 37.671,
+  "dur": 1.47,
+  "d": 0.93,
+  "pan": 0.12,
+  "level": 0.524
+ },
+ {
+  "tag": "chorus",
+  "sp": "greattit",
+  "at": 38.396,
+  "dur": 0.91,
+  "d": 0.82,
+  "pan": -0.06,
+  "level": 0.602
+ },
+ {
+  "tag": "chorus",
+  "sp": "thrush",
+  "at": 38.933,
+  "dur": 2.5,
+  "d": 0.82,
+  "pan": -0.32,
+  "level": 0.402
  }
 ]

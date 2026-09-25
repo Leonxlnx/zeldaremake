@@ -1,0 +1,107 @@
+{
+  "schema": "opus-cinematic-audio-cues/1",
+  "note": "Edit-second section boundaries of the 40.000 s reference-angle cut (reference-shots.json).",
+  "durationSeconds": 40,
+  "sampleRate": 48000,
+  "seed": "kokiri-opus-cinematic-s24",
+  "preRollSeconds": 4,
+  "sections": [
+    {
+      "end": 7.0,
+      "start": 0.0,
+      "id": "hero"
+    },
+    {
+      "end": 8.5,
+      "start": 7.0,
+      "id": "lantern"
+    },
+    {
+      "end": 10.0,
+      "start": 8.5,
+      "id": "macro"
+    },
+    {
+      "end": 17.0,
+      "start": 10.0,
+      "id": "canopy"
+    },
+    {
+      "end": 24.4,
+      "start": 17.0,
+      "id": "walk"
+    },
+    {
+      "end": 29.0,
+      "start": 24.4,
+      "id": "run"
+    },
+    {
+      "end": 36.0,
+      "start": 29.0,
+      "id": "stairs"
+    },
+    {
+      "end": 40.0,
+      "start": 36.0,
+      "id": "reveal"
+    }
+  ],
+  "musicHit": 24.4,
+  "fadeIn": 0.05,
+  "fadeOut": {
+    "duration": 2.5,
+    "start": 37.5
+  },
+  "placeholderSteps": {
+    "walk": 0.366,
+    "run": 0.273,
+    "stairs": 0.4
+  },
+  "steps": {
+    "surface": {
+      "walk": "stone",
+      "run": "stone",
+      "stairs": "stair"
+    },
+    "strength": {
+      "walk": 0.47,
+      "run": 0.85,
+      "stairs": 0.45,
+      "idle": 0.3
+    },
+    "pan": {
+      "L": -0.15,
+      "R": 0.15
+    },
+    "gainDb": {
+      "walk": 0,
+      "run": 0,
+      "stairs": 0
+    },
+    "minGap": 0.16
+  },
+  "levels": {
+    "gameBed": 1.0,
+    "roomTone": 0.03,
+    "lantern": 1.0,
+    "ticks": 1.0,
+    "birdWet": 0.8,
+    "ornaments": 1.0,
+    "swell": 1.0,
+    "bloom": 1.0
+  },
+  "mixDb": {
+    "bed": 0,
+    "birds": 0,
+    "detail": 0,
+    "steps": 0,
+    "music": 0
+  },
+  "master": {
+    "targetLufs": -14,
+    "truePeakDb": -1.5,
+    "limiterCeilingDb": -2.3,
+    "loudnormLra": 11
+  }
+}

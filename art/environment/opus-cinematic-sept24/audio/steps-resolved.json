@@ -1,317 +1,482 @@
 {
- "source": "placeholder (cues.json placeholderSteps)",
- "count": 41,
+ "source": "art/environment/opus-cinematic-sept24/audio/steps-ref.json",
+ "count": 75,
  "steps": [
   {
-   "t": 10,
+   "t": 3.43333,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.4764,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 10.366,
+   "t": 3.9,
    "foot": "R",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.4926,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 10.732,
+   "t": 4.4,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.3996,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 11.098,
+   "t": 4.88333,
    "foot": "R",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.526,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 11.464,
+   "t": 5.38333,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.4701,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 11.83,
+   "t": 5.86667,
    "foot": "R",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.4521,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 12.196,
+   "t": 6.36667,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.4214,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 12.562,
+   "t": 6.83333,
    "foot": "R",
    "gait": "walk",
-   "section": "walk",
+   "section": "hero",
    "surface": "stone",
    "strength": 0.5255,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 12.928,
+   "t": 7.21667,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "lantern",
    "surface": "stone",
    "strength": 0.4492,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 13.294,
+   "t": 7.66667,
    "foot": "R",
    "gait": "walk",
-   "section": "walk",
+   "section": "lantern",
    "surface": "stone",
    "strength": 0.4723,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 13.66,
+   "t": 8.13333,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "lantern",
    "surface": "stone",
    "strength": 0.4174,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 14.026,
+   "t": 8.58333,
    "foot": "R",
    "gait": "walk",
-   "section": "walk",
+   "section": "macro",
    "surface": "stone",
    "strength": 0.4901,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 14.392,
+   "t": 9.05,
    "foot": "L",
    "gait": "walk",
-   "section": "walk",
+   "section": "macro",
    "surface": "stone",
    "strength": 0.4198,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 14.6,
+   "t": 9.5,
    "foot": "R",
-   "gait": "run",
-   "section": "run",
+   "gait": "walk",
+   "section": "macro",
    "surface": "stone",
-   "strength": 0.9682,
-   "running": true,
+   "strength": 0.5354,
+   "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 14.873,
+   "t": 9.96667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "macro",
+   "surface": "stone",
+   "strength": 0.4822,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 10.35,
+   "foot": "R",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.5125,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 10.73333,
+   "foot": "L",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.407,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 11.08333,
+   "foot": "R",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.5262,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 11.46667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.4279,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 11.81667,
+   "foot": "R",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.4936,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 12.2,
+   "foot": "L",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.4323,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 12.55,
+   "foot": "R",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.5389,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 12.93333,
+   "foot": "L",
+   "gait": "walk",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.4567,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 13.1,
+   "foot": "R",
+   "gait": "idle",
+   "section": "canopy",
+   "surface": "stone",
+   "strength": 0.3016,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 17.35,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4862,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 17.73333,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4086,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 18.08333,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.456,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 18.46667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4099,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 18.81667,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5419,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 19.2,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4137,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 19.55,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5129,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 21.15,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4583,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 21.56667,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5143,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 22.01667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4218,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 22.43333,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4513,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 22.86667,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4385,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 23.3,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4709,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 23.73333,
+   "foot": "L",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.4172,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 24.15,
+   "foot": "R",
+   "gait": "walk",
+   "section": "walk",
+   "surface": "stone",
+   "strength": 0.5062,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 24.56667,
    "foot": "L",
    "gait": "run",
    "section": "run",
    "surface": "stone",
-   "strength": 0.872,
+   "strength": 0.7727,
    "running": true,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 15.146,
+   "t": 24.83333,
    "foot": "R",
    "gait": "run",
    "section": "run",
    "surface": "stone",
-   "strength": 0.9269,
+   "strength": 0.8764,
    "running": true,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 15.419,
+   "t": 25.11667,
    "foot": "L",
    "gait": "run",
    "section": "run",
    "surface": "stone",
-   "strength": 0.7361,
+   "strength": 0.7317,
    "running": true,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 15.692,
+   "t": 25.38333,
    "foot": "R",
    "gait": "run",
    "section": "run",
    "surface": "stone",
-   "strength": 0.9517,
+   "strength": 0.8392,
    "running": true,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 15.965,
-   "foot": "L",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.7738,
-   "running": true,
-   "pan": -0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 16.238,
-   "foot": "R",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.8927,
-   "running": true,
-   "pan": 0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 16.511,
-   "foot": "L",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.7817,
-   "running": true,
-   "pan": -0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 16.784,
-   "foot": "R",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.9746,
-   "running": true,
-   "pan": 0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 17.057,
-   "foot": "L",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.826,
-   "running": true,
-   "pan": -0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 17.33,
-   "foot": "R",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.8545,
-   "running": true,
-   "pan": 0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 17.603,
-   "foot": "L",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.7798,
-   "running": true,
-   "pan": -0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 17.876,
-   "foot": "R",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.8333,
-   "running": true,
-   "pan": 0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 18.149,
-   "foot": "L",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.7314,
-   "running": true,
-   "pan": -0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 18.422,
-   "foot": "R",
-   "gait": "run",
-   "section": "run",
-   "surface": "stone",
-   "strength": 0.836,
-   "running": true,
-   "pan": 0.15,
-   "source": "placeholder"
-  },
-  {
-   "t": 18.695,
+   "t": 25.66667,
    "foot": "L",
    "gait": "run",
    "section": "run",
@@ -319,139 +484,348 @@
    "strength": 0.8691,
    "running": true,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 19.2,
+   "t": 25.93333,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.9053,
+   "running": true,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 26.2,
    "foot": "L",
-   "gait": "stairs",
-   "section": "stairs",
-   "surface": "stair",
-   "strength": 0.3961,
-   "running": false,
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.7867,
+   "running": true,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 19.6,
+   "t": 26.48333,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.8502,
+   "running": true,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 26.75,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.7527,
+   "running": true,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 27.01667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.899,
+   "running": true,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 27.3,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.7486,
+   "running": true,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 27.56667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.8482,
+   "running": true,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 27.83333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.806,
+   "running": true,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 28.11667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.8431,
+   "running": true,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 28.38333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.8277,
+   "running": true,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 28.66667,
+   "foot": "R",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.9274,
+   "running": true,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 28.93333,
+   "foot": "L",
+   "gait": "run",
+   "section": "run",
+   "surface": "stone",
+   "strength": 0.8425,
+   "running": true,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 29.35,
    "foot": "R",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.491,
+   "strength": 0.4801,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 20,
+   "t": 29.71667,
    "foot": "L",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4388,
+   "strength": 0.4512,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 20.4,
+   "t": 30.08333,
    "foot": "R",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4924,
+   "strength": 0.4723,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 20.8,
+   "t": 30.45,
    "foot": "L",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4038,
+   "strength": 0.3859,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 21.2,
+   "t": 30.81667,
    "foot": "R",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4321,
+   "strength": 0.5081,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 21.6,
+   "t": 31.18333,
    "foot": "L",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4198,
+   "strength": 0.3931,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 22,
+   "t": 31.55,
    "foot": "R",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4509,
+   "strength": 0.5205,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 22.4,
+   "t": 31.91667,
    "foot": "L",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.3995,
+   "strength": 0.4339,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 22.8,
+   "t": 32.28333,
    "foot": "R",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4847,
+   "strength": 0.4683,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 23.2,
+   "t": 32.65,
    "foot": "L",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.4091,
+   "strength": 0.4247,
    "running": false,
    "pan": -0.15,
-   "source": "placeholder"
+   "source": "log"
   },
   {
-   "t": 23.6,
+   "t": 33.01667,
    "foot": "R",
    "gait": "stairs",
    "section": "stairs",
    "surface": "stair",
-   "strength": 0.464,
+   "strength": 0.4489,
    "running": false,
    "pan": 0.15,
-   "source": "placeholder"
+   "source": "log"
+  },
+  {
+   "t": 33.38333,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.3829,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 33.75,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4359,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 34.11667,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.3814,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 34.48333,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4961,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 34.85,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4237,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 35.21667,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4857,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
+  },
+  {
+   "t": 35.58333,
+   "foot": "L",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4092,
+   "running": false,
+   "pan": -0.15,
+   "source": "log"
+  },
+  {
+   "t": 35.95,
+   "foot": "R",
+   "gait": "stairs",
+   "section": "stairs",
+   "surface": "stair",
+   "strength": 0.4691,
+   "running": false,
+   "pan": 0.15,
+   "source": "log"
   }
  ]
 }
