@@ -1,0 +1,72 @@
+[
+ {
+  "name": "stairs2-base-follow",
+  "pose": {
+   "p": [
+    2.648,
+    1.85,
+    3.529
+   ],
+   "t": [
+    6.038,
+    1.6,
+    0.884
+   ],
+   "fov": 46
+  },
+  "drawn": {
+   "draws": 610,
+   "triangles": 9580979
+  },
+  "parts": [
+   {
+    "system": "vegetation",
+    "drawCalls": 121,
+    "triangles": 3471241,
+    "found": true
+   },
+   {
+    "system": "trees",
+    "drawCalls": 211,
+    "triangles": 2764948,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 102,
+    "triangles": 1879237,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 32,
+    "triangles": 599474,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 14,
+    "triangles": 341286,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 26,
+    "triangles": 326410,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 71,
+    "triangles": 129234,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 15,
+    "triangles": 97752,
+    "found": true
+   }
+  ]
+ }
+]

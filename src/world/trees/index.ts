@@ -2054,8 +2054,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * WEBGL_multi_draw the batch is one draw; without it three draws the visible parts one by one,
    * as before. The batch keeps a CPU copy of its buffers (three needs it to copy new parts in),
    * where the pooled parts dropped theirs after upload — the geometry is reserved in steps and
-   * grown when the pool wants more, so the heap cost is the resident set's bytes, ~35 MB at the
-   * plaza on the large tier. The columns' parts stay meshes of their own: they carry a yaw and a
+   * grown when the pool wants more, so the heap cost is the RESIDENT set's bytes, not the shown
+   * set's: measured at camera A on the large tier, 258 giant parts / 1.91 M vertices in the batch,
+   * 171 MB of typed arrays (the pool holds 379 parts within its 42 m prefetch there); on the small
+   * tier the pool's 32 MB cap bounds it near 45 MB. The columns' parts stay meshes of their own: they carry a yaw and a
    * scale in their matrix, which the tree shader reads through modelMatrix, not batchingMatrix.
    * `NEAR_CANOPY_BATCHED` false restores the per-part meshes.
    */
@@ -2122,7 +2124,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         this.maxInstances = Math.ceil(this.maxInstances * 1.5);
         this.mesh.setInstanceCount(this.maxInstances);
       }
-      if (this.vertices + v > this.maxVertices || this.indices + i > this.maxIndices) this.grow(Math.max(this.maxVertices * 1.5, this.vertices + v), Math.max(this.maxIndices * 1.5, this.indices + i));
+      if (this.vertices + v > this.maxVertices || this.indices + i > this.maxIndices) this.grow(Math.max(this.maxVertices * 1.25, this.vertices + v), Math.max(this.maxIndices * 1.25, this.indices + i));
     }
     private grow(v: number, i: number) {
       this.maxVertices = Math.ceil(v);
