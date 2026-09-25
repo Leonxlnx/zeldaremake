@@ -578,3 +578,11 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   taken by placing Link beyond 2.6 m (`GREET_RELEASE=teleport`). Locating a kid in a frame: diff the before/after frame
   for the bbox rather than guessing from a contact sheet (three wrong crops before I did).
 - PR #130 opened held, the hold lifted with the frames. INBOX 13:30.
+
+## 2026-09-25 14:20 tick — #130 merged; the post-merge route check; the nod (PR #135)
+
+- #130 merged 13:48. The grove's two people under fable-cursor's `north-grove` route on the head: 28 / 28, identical
+  numbers to last night — the greetings (his fires on their route, 0.9 m from the door) change nothing for the walk.
+- The nod: 15 lines, after the notice (which would erase it — the same lesson as the seated gaze: whoever writes the
+  neck last wins). 10 fps before / after head strip: the dip at t 1.9–2.1 as she comes round. PR #135 opened held,
+  the hold lifted with the frames. INBOX 14:45.

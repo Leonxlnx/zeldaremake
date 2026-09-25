@@ -525,6 +525,19 @@ const GREET_RELEASE_S = 0.6;
 const GREET_BLEND_S = 0.5;
 /** a standing kid's body turn toward Link runs at most this fast (rad/s): a 180° turn takes 1.26 s, not the blend's 0.5 */
 const GREET_TURN_RATE = 2.5;
+/** the nod of acknowledgement as a kid turns to Link: one dip of the head, this long (s) and this deep (rad) */
+const NOD_S = 0.8;
+const NOD_RAD = 0.22;
+/**
+ * the greeting's nod: a single sine dip of the neck over the first NOD_S of a greeting, added AFTER the
+ * notice (which sets the neck's pitch to his eyes with full weight up close and would erase a nod folded
+ * into the pose). Positive = down in the neck's frame.
+ */
+const greetNod = (gr: { active: boolean; since: number }, t: number): number => {
+  if (!gr.active) return 0;
+  const u = (t - gr.since) / NOD_S;
+  return u > 0 && u < 1 ? NOD_RAD * Math.sin(Math.PI * u) : 0;
+};
 
 /**
  * A standing kid's greeting (lane 7, after the wanderer's): within GREET_NEAR_M she turns her body to
@@ -894,6 +907,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, lg.yaw, t, 5.1, hy * (1 - ledgeGreet.g), hp, ledgeSt, lg.shuffle, lg.shufflePhi);
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
         noticeFor(ledgeChar.rig, actor, player);
+        ledgeChar.rig.neck.rotation.x += greetNod(ledgeGreet, t);
         actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
         showLedge(!view);
         actor.shadow.visible = !view;
@@ -909,6 +923,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bg.yaw, t, 7.9, hy * (1 - bankGreet.g), hp, bankSt, bg.shuffle, bg.shufflePhi);
         plantFeet(bankChar.rig, ground.height, actor.contact);
         noticeFor(bankChar.rig, actor, player);
+        bankChar.rig.neck.rotation.x += greetNod(bankGreet, t);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
         // her fairy's light is dimmed to nothing under capture (round 50 kept it out of the six
         // frames' light loop; the light itself stays in the scene — see the fairies above); the
@@ -927,6 +942,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseLedgeIdle(groveChar.rig, grove.x, grove.z, grove.y, gg.yaw, t, 8.3, hy * (1 - groveGreet.g), hp, groveSt, gg.shuffle, gg.shufflePhi);
         plantFeet(groveChar.rig, ground.height, actor.contact);
         noticeFor(groveChar.rig, actor, player);
+        groveChar.rig.neck.rotation.x += greetNod(groveGreet, t);
         actor.shadow.position.set(grove.x, ground.decalHeight(grove.x, grove.z, actor.shadowRadius), grove.z);
         driven.add(GROVE_SLOT);
         return true;
@@ -941,6 +957,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, vg.yaw, t, 6.1, hy * (1 - verandaGreet.g), hp, verandaSt, vg.shuffle, vg.shufflePhi);
         plantFeet(verandaChar.rig, ground.height, actor.contact);
         noticeFor(verandaChar.rig, actor, player);
+        verandaChar.rig.neck.rotation.x += greetNod(verandaGreet, t);
         actor.shadow.position.set(veranda.x, ground.decalHeight(veranda.x, veranda.z, actor.shadowRadius), veranda.z);
         driven.add(VERANDA_SLOT);
         return true;
@@ -995,6 +1012,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseWander(rig, wander, t, 1.3);
         plantFeet(rig, ground.height, actor.contact);
         noticeFor(rig, actor, player, wander.walk);
+        rig.neck.rotation.x += greetNod(greet, t);
         actor.shadow.position.set(wander.x, ground.decalHeight(wander.x, wander.z, actor.shadowRadius), wander.z);
         driven.add(0);
         return true;
