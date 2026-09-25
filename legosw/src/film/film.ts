@@ -41,6 +41,9 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
     w.space();
     const { shot, t } = shotAt(T);
     const cam = shot.pose(w, t, T);
+    // animated ray shields (scanlines / flicker)
+    if (w.hand.group.visible) (w.hand.group.userData.animate as ((t: number) => void) | undefined)?.(T);
+    if (w.hangar.group.visible) (w.hangar.group.userData.animate as ((t: number) => void) | undefined)?.(T);
     w.fx.update(T, pipeline.height / 804);
     return { cam, card: !!shot.card };
   }

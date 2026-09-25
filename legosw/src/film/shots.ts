@@ -490,18 +490,20 @@ function poseHand(w: World): void {
 function crawlerPoses(w: World, T: number): void {
   const h = w.hand.group;
   h.updateMatrixWorld(true);
-  const box = new Box3().setFromObject(h);
-  const size = box.getSize(v3(0, 0, 0));
-  const anchors = Object.entries(w.hand.anchors).filter(([k]) => k.startsWith('crawl')).map(([, a]) => a);
+  const anchors = Object.entries(w.hand.anchors)
+    .filter(([k]) => k.startsWith('crawl'))
+    .map(([, a]) => a);
+  const q = new Quaternion();
   w.crawlers.forEach((c, i) => {
+    const a = anchors[i % Math.max(1, anchors.length)];
+    if (!a) return;
     c.group.visible = true;
-    let p: Vector3;
-    if (anchors[i]) p = anchorWorld(anchors[i]);
-    else p = v3(box.min.x + size.x * (0.2 + 0.07 * i), box.max.y - 2, HAND_POS.z + size.z * 0.5 * (i % 2 ? 1 : 0.9));
-    c.group.position.copy(p);
-    c.group.quaternion.copy(h.quaternion);
-    c.group.rotateY(i * 0.7);
-    c.group.scale.setScalar(1);
+    a.getWorldQuaternion(q);
+    // second lap of anchors: offset along the hull so two droids never overlap
+    const extra = i >= anchors.length ? v3(70, 0, -55).applyQuaternion(q) : v3(0, 0, 0);
+    c.group.position.copy(anchorWorld(a)).add(extra);
+    c.group.quaternion.copy(q).multiply(new Quaternion().setFromAxisAngle(v3(0, 1, 0), (i * 2.39) % (Math.PI * 2)));
+    c.group.scale.setScalar(2);
     c.setMode(1);
     c.setGait(T * 5 + i);
   });

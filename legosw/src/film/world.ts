@@ -168,7 +168,9 @@ export class World {
     ];
     for (const [kind, x, y, z, yaw] of fleetSpec) {
       const far = Math.hypot(x, z) > 14000;
-      const ship = kind === 'venator' ? venator({ lod: far ? 2 : 1, seed: Math.floor(x) }) : munificent({ lod: far ? 2 : 1, seed: Math.floor(z) });
+      // the first frigate is the one destroyed on camera in the tracking shot: keep its detail
+      const lod = kind === 'muni' && this.munis.length === 0 ? 1 : far ? 2 : 1;
+      const ship = kind === 'venator' ? venator({ lod, seed: Math.floor(x) }) : munificent({ lod, seed: Math.floor(z) });
       ship.group.position.set(x, y, z);
       ship.group.rotation.y = yaw;
       s.add(ship.group);
