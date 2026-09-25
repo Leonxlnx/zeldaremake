@@ -94,3 +94,22 @@ with a god ray and a few small holes, against the north's closed look-up at 0.28
 shelf than the north's over the approach, and reads as a lid; a thinner or higher band over the hamlet — or the north's
 gap share — is the note. The six views cannot see the grove (the stand pass's 50 m hero drop; the grove is out of A–F on the
 head at 0.9997 … 1.0000), so no re-pair here.
+
+## The head `8e20e128` (09:32 — `squad2-roofsky`: the roof's underside takes sky light through the layer) — 09:36–10:27 UTC
+
+The answer to the 00:03 note (the grove's ceiling "one flat dark sheet"). Play-mode look-ups on the head before (`cd9400b2`) and after
+(`it130-lookups-roofsky-ba.jpg`), and the owner's `u-open-up` against the roofhole build that first closed it:
+
+| look-up (+60°) | luma before → after | top third | under 0.25 | pale haze |
+| --- | --- | --- | --- | --- |
+| the grove's yard | 0.143 → **0.180** | 0.143 → 0.170 | 92 → 88 % | 3.8 → 3.8 % |
+| the grove's veranda | 0.199 → 0.230 | 0.158 → 0.193 | 79 → 74 % | 8.6 → 8.6 % |
+| the far bank | 0.344 → 0.362 | 0.432 → 0.451 | 50 → 41 % | 20.8 → 20.8 % |
+| the open north (play pose) | 0.321 → 0.337 | 0.365 → 0.382 | 41 → 33 % | 10.4 → 10.5 % |
+| `u-open-up` (the owner's fixed pose), `70b46592` → head | 0.286 → 0.303 | 0.296 → 0.320 | 53 → 45 % | 7.0 → 7.1 % |
+
+The sky gaps do not change (the haze share is the same to the decimal); what changes is the leaf mass between them — the
+undersides carry light through the layer now and read as leaves with depth where they read as a slab. The grove's ceiling is
+still the darkest of the four (0.180, 88 % under 0.25 — the reference's darkest look-up is 0.170), but it is a canopy now, not a
+lid. **The six views: A / B / C / E / F 1.0000, D 0.9999, 0.00 % of pixels over 8 levels at all six** — the roof's undersides in the
+hero frames' top bands move by under 8 levels. Merge-safe as merged.
