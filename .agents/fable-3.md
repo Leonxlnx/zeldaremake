@@ -586,3 +586,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - The nod: 15 lines, after the notice (which would erase it — the same lesson as the seated gaze: whoever writes the
   neck last wins). 10 fps before / after head strip: the dip at t 1.9–2.1 as she comes round. PR #135 opened held,
   the hold lifted with the frames. INBOX 14:45.
+
+## 2026-09-25 15:20 tick — #135 merged; the door boy greets (PR #140)
+
+- #135 merged 15:17. The last kid outside the greeting: the door boy, posed by index.ts's generic path. A play-mode
+  branch in `drive()` (below the view check, so capture is untouched) gives him the stands' idle, the greet and the
+  nod; his stand yaw read from the caller on the first play frame. Before / after: the torso squaring to Link, the nod.
+  209 / 209. PR #140 opened held, the hold lifted with the frames. INBOX 15:55.
+- The greeting set is now complete for every kid who can turn; the seated girl looks up. Lane 7's play-mode life:
+  variety, gaze, greet, follow, release, nod — six PRs today, each one behaviour, each verified with the harness.

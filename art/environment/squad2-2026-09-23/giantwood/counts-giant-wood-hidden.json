@@ -1,0 +1,12 @@
+[
+ {
+  "pose": "hero-A",
+  "drawCalls": 542,
+  "triangles": 7606568
+ },
+ {
+  "pose": "plateau-back",
+  "drawCalls": 673,
+  "triangles": 9800180
+ }
+]
