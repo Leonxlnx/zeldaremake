@@ -1,0 +1,17 @@
+[
+ {
+  "pose": "plateau-north",
+  "drawCalls": 484,
+  "triangles": 6616652
+ },
+ {
+  "pose": "plateau-back",
+  "drawCalls": 745,
+  "triangles": 11152698
+ },
+ {
+  "pose": "ledge-look-south",
+  "drawCalls": 673,
+  "triangles": 11233029
+ }
+]
