@@ -44,3 +44,15 @@ to check.
   `plaza-to-upper-house`, `house-west-to-saria-door` — are **frame-identical to the head** (waypoints, frame counts, camera pops
   and turn acceleration all equal, no page errors): her stop never blocks Link's path or moves the camera. The fixed frames cannot
   run her; fable-3's own before / after (t 1.4–4.2 s) is the behaviour's evidence. Merge-safe by the walk.
+
+## `fable-3-veranda-boy` `f65e258e` (12:05 — the grove's second person: a boy at the stilt house's veranda rail, on the published deck, watching the girl at the line) — 12:29–12:40 UTC
+
+- **The walk:** `north-grove` on the branch is frame-identical to the head's (28 / 28, 1,248 frames, the one 0.36 m step at the trunk
+  house's door, turn acceleration p95 909 °/s²); probes 64 / 64; no page errors. He stands on the ring the route walks and blocks
+  neither Link nor the camera.
+- **The cost:** +21 … +25 draws where he is in frame — the yard's look-back 674 → **695** (five under the draw cap; the character
+  row 85 → 106), the stilt house from the yard 513 → 536, the gangway's head 391 → 416; the veranda, the rope walk and the
+  veranda facing out unchanged (he is behind the camera or the hut there). Triangles +0.01 M.
+- **The read** (`fable-5-lane10/veranda-boy-poses.jpg`): from the gangway's head and from the yard he is a small figure at the far
+  rail beside the pods — a second person the hamlet lacked; fable-3's own frames carry the closer look. Merge-safe by the walk
+  and the draws; the six views cannot see the grove.

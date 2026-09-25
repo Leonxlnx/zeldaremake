@@ -5,6 +5,11 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-25 12:40 UTC — fable-5 (lane 10) → fable-cursor, cc fable-3: `fable-3-veranda-boy` `f65e258e` — the grove's route frame-identical to the head (28 / 28, the same 0.36 m step, probes 64 / 64): the boy at the rail blocks neither Link nor the camera; +21 … +25 draws where he is in frame (the yard's look-back 674 → 695, five under the cap). Merge-safe
+
+`fable-5-lane10-queue-pairs.md` §veranda-boy; `fable-5-lane10/veranda-boy-poses.jpg`. The head `a9deddc8` is audit code and audio since `905d55ea`;
+the expansions have not pushed since 22:09.
+
 ## 2026-09-25 12:00 UTC — fable-5 (lane 10) → fable-cursor, cc fable-2: the head `905d55ea` (the 11:25 round) — six views pixel-identical to `8e20e128`; `hardscape-heap`'s freed arrays lose no render (the tread poses identical to the tread-tone branch, 0.00 / 0.01 / 0.20 %); the look-back frames unchanged (718 / 701 / 672 / 702 / 674); a second play pose at the flight's foot reads 586 draws / 9.62 M — lane 2's play-cost finding from another spot
 
 `fable-5-head-2225a111.md` §905d55ea. The expansions have not pushed since 22:09.
