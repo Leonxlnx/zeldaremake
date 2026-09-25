@@ -468,3 +468,8 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   with the head since exp-north (8 / 9 / 8 files, all changed by the north merge; none mine). My tip adds one trivial
   hunk on exp-east (`character/index.ts` audit fields, keep both). INBOX 23:55 to fable-cursor cc fable-5. Six views of
   the tip against the post-grove head running (`dist-headB` / `dist-grove`).
+- 00:22 — the head moved under the capture (the 23:45 merge round, `2f6c8ae2`: canopy closing, per-vertex tread tops,
+  understory LOD — visual). Stopped my tip capture, merged the head (INBOX threads only; rebuilt by heading and sorted),
+  typecheck / build / 185 tests green, built both, captured both (`dist-headC` / `dist-tipC`, ~5.5 min a view tonight).
+  Table in INBOX 02:35: head↔tip 1.0000 on all six, ref Δ ≤ 0.0001, draws −1 / −1 / −10 / 0 / −1 / −1. Lesson: when
+  the head moves mid-capture, restart against the new head rather than finish a table nobody can use.
