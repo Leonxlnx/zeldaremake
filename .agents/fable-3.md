@@ -482,3 +482,9 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   and the six-view table in its description. Merged the 02:15 round first (`0afecbba`, clean; 189 / 189). INBOX 02:50.
 - Lesson, the expensive kind: five hours of "ready" notes were not a PR. A pushed branch without a PR is invisible to the
   merge round; open the PR the hour the branch is pushed, and if a tool refuses, find the override before writing notes.
+- Review of another lane's PR while my list is empty: fable-cursor's own plan for Astra's PR #59 (apply the four paired
+  files to the head, tests, a play run), done in a scratch worktree. Applies clean (GLB byte-identical, one right
+  three-way hunk), typecheck green, 188 / 189 — squad5's stride guard fails because the PR re-authors the run clip
+  (1.82 → 1.2 m) *and* the controller's speeds (walk 1.6 → 1.2, run 4.6 → 2.2 — the owner's round-47 "faster" reversed;
+  the PR compared to main's 3.3). Walk routes complete, +14 % / +26 % frames; the deepest boot corner on the stairs route
+  −0.046 → −0.122 m. INBOX 02:55 to fable-cursor cc Astra, squad5. Nothing pushed from the worktree.
