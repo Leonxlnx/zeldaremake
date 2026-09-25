@@ -9,7 +9,7 @@
  * Every tree these rules clear stands where none of the fixed cameras A–E sees it (the layout's
  * `EXPANSION_EAST` note); F sees the plateau's upper storey over the lip and loses a few crowns.
  */
-import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
+import { Frustum, Matrix4, Sphere, Vector3, type Camera, type Mesh } from 'three';
 import { EAST_BOX, EXPANSION_EAST, eastDeckPlan, eastSteppingStones, type EastHouse } from '../layout';
 import { casterSpheres, frustumMeets, type Caster } from './expansionLocality';
 
@@ -50,6 +50,9 @@ declare global {
   /** the same for the other structures' far colour LOD on the plateau's far part (EAST_FAR) */
   // eslint-disable-next-line no-var
   var __KF_EAST_FAR_LOD_OFF__: boolean | undefined;
+  /** the same for the lane's house runs (structures/east.ts): `true` draws every house, and the tufts' runs by their boxes */
+  // eslint-disable-next-line no-var
+  var __KF_EAST_HOUSE_RUNS_OFF__: boolean | undefined;
 }
 
 /** true while a camera at `p` is inside EAST_ZONE (and `__KF_EAST_ZONE_OFF__` is not set) */
@@ -290,4 +293,86 @@ export function eastVisible(camera: Camera, spheres: Sphere[], x: number, z: num
   _f.setFromProjectionMatrix(_m);
   for (const s of spheres) if (_f.intersectsSphere(s)) return true;
   return false;
+}
+
+/**
+ * The edge (m) of the cubes that stand in for a house's parts when the lane asks whether a frame
+ * sees the house (structures/east.ts, its house runs): a house's round cap and root flares fill
+ * little of their box, whose corners reach into frames the house stays out of.
+ */
+export const EAST_CELL_M = 0.5;
+
+/**
+ * The cells, `cell` metres on a side, that the triangles of `meshes` touch (world space, each
+ * triangle marking every cell its box overlaps), as their min corners (x, y, z per cell): whatever
+ * of the meshes a frustum takes in lies in a cell it meets.
+ */
+export function eastCells(meshes: readonly Mesh[], cell = EAST_CELL_M): Float32Array {
+  const keys = new Set<number>();
+  const v = new Vector3();
+  // cell coordinates offset by O into [0, 2O): keys stay exact integers (< 2^53) within ±O cells
+  const O = 4096;
+  const S = 2 * O;
+  for (const m of meshes) {
+    m.updateWorldMatrix(true, false);
+    const pos = m.geometry.attributes.position;
+    const index = m.geometry.index;
+    const w = new Float64Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+      w[i * 3] = v.x / cell + O;
+      w[i * 3 + 1] = v.y / cell + O;
+      w[i * 3 + 2] = v.z / cell + O;
+    }
+    const n = index ? index.count : pos.count;
+    for (let t = 0; t + 2 < n; t += 3) {
+      const a = (index ? index.getX(t) : t) * 3;
+      const b = (index ? index.getX(t + 1) : t + 1) * 3;
+      const c = (index ? index.getX(t + 2) : t + 2) * 3;
+      const x0 = Math.floor(Math.min(w[a], w[b], w[c]));
+      const x1 = Math.floor(Math.max(w[a], w[b], w[c]));
+      const y0 = Math.floor(Math.min(w[a + 1], w[b + 1], w[c + 1]));
+      const y1 = Math.floor(Math.max(w[a + 1], w[b + 1], w[c + 1]));
+      const z0 = Math.floor(Math.min(w[a + 2], w[b + 2], w[c + 2]));
+      const z1 = Math.floor(Math.max(w[a + 2], w[b + 2], w[c + 2]));
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) for (let z = z0; z <= z1; z++) keys.add((x * S + y) * S + z);
+    }
+  }
+  const out = new Float32Array(keys.size * 3);
+  let i = 0;
+  for (const k of keys) {
+    out[i++] = (Math.floor(k / (S * S)) - O) * cell;
+    out[i++] = ((Math.floor(k / S) % S) - O) * cell;
+    out[i++] = ((k % S) - O) * cell;
+  }
+  return out;
+}
+
+/** true when `frustum` meets one of the cells (`eastCells`), each tested as a box against every plane */
+export function eastCellsMeet(frustum: Frustum, cells: Float32Array, cell = EAST_CELL_M): boolean {
+  const planes = frustum.planes;
+  next: for (let i = 0; i < cells.length; i += 3) {
+    for (const p of planes) {
+      const n = p.normal;
+      const x = cells[i] + (n.x > 0 ? cell : 0);
+      const y = cells[i + 1] + (n.y > 0 ? cell : 0);
+      const z = cells[i + 2] + (n.z > 0 ? cell : 0);
+      if (n.x * x + n.y * y + n.z * z + p.constant < 0) continue next;
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
+ * true unless `sphere`, swept along `travel` (unit, the direction the light travels), stays wholly
+ * outside one of the frustum's side or far planes — the composer's shadow-caster test
+ * (postfx/shadowcull.ts), for a part of a merged mesh: false means no shadow it casts lands in view
+ */
+export function eastSweptMeets(sphere: Sphere, travel: Vector3, frustum: Frustum): boolean {
+  for (let i = 0; i < 5; i++) {
+    const p = frustum.planes[i];
+    if (p.distanceToPoint(sphere.center) < -sphere.radius && p.normal.dot(travel) <= 0) return false;
+  }
+  return true;
 }

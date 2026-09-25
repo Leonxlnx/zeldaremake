@@ -25,7 +25,8 @@
  *    casters or their shadows. Every pose that has the lane in reach under EAST_OVER_Y is on the
  *    plateau or looking up at it from the stairway, where the houses' feet and the lane's built
  *    things show, so they share the trunks' buckets (a tier of their own costs a draw per material
- *    twice over, colour and shadow);
+ *    twice over, colour and shadow). Each bucket holds each house's parts, then the lane's, in one
+ *    stretch, and a frame draws it from the first of those runs in view to the last (`runs`);
  *  - `near`, `near-far` and `lookout-moss`: the moss tufts, casting nothing. The caps' and trunks'
  *    tufts lie in `near` house by house (TUFT_RUNS) and their coarse copies (house.ts FAR_TUFTS)
  *    the same way in `near-far`; with `core`, within EAST_DETAIL_M of any trunk or of the green, a
@@ -51,6 +52,7 @@ import {
   Float32BufferAttribute,
   Frustum,
   Group,
+  type InstancedMesh,
   LatheGeometry,
   type Material,
   Matrix4,
@@ -63,7 +65,7 @@ import {
   type PointLight,
   Raycaster,
   ShaderMaterial,
-  type Sphere,
+  Sphere,
   SphereGeometry,
   TorusGeometry,
   Vector2,
@@ -75,7 +77,26 @@ import {
 import { EXPANSION_EAST, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
 import { applyShadeFloor } from '../materials/shadeFloor';
 import type { WalkSurface, WorldContext } from '../system';
-import { EAST_DETAIL_M, EAST_GREEN, EAST_OVER_Y, EAST_SEEN_M, EAST_TUFT_FAR_M, EAST_VISIBLE_M, eastHouseCasters, eastInReach, eastLookoutCasters, eastPostCasters, eastRunRange, eastSpheres, eastTuftWindows } from '../util/eastLane';
+import {
+  EAST_CELL_M,
+  EAST_DETAIL_M,
+  EAST_GREEN,
+  EAST_OVER_Y,
+  EAST_SEEN_M,
+  EAST_TUFT_FAR_M,
+  EAST_VISIBLE_M,
+  eastCapRadius,
+  eastCells,
+  eastCellsMeet,
+  eastHouseCasters,
+  eastInReach,
+  eastLookoutCasters,
+  eastPostCasters,
+  eastRunRange,
+  eastSpheres,
+  eastSweptMeets,
+  eastTuftWindows,
+} from '../util/eastLane';
 import { frustumMeets, sunVector, type Caster } from '../util/expansionLocality';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -1863,6 +1884,9 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
    */
   const TUFT_RUNS = (['tall', 'shop', 'small'] as const).map((k) => EXPANSION_EAST.houses.findIndex((h) => h.kind === k));
   const tuftRunOf = new Map<Object3D, number>();
+  /** the core's parts by run: a house's in TUFT_RUNS' order, the lane's own after them (`consolidate` places the rest) */
+  const LANE_RUN = TUFT_RUNS.length;
+  const coreRunOf = new Map<Object3D, number>();
   houses.forEach((hb, i) => {
     for (const child of [...hb.group.children]) {
       const m = child as Mesh;
@@ -1886,12 +1910,17 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
         if (m.name === 'lantern-hanger') m.receiveShadow = true;
       }
     }
-    for (const child of [...hb.group.children]) core.add(child);
+    for (const child of [...hb.group.children]) {
+      core.add(child);
+      coreRunOf.set(child, TUFT_RUNS.indexOf(i));
+    }
   });
   [...near, lane].forEach((g, i) => {
     for (const child of [...g.children]) {
-      if (!EAST_TUFTS.test(child.name)) core.add(child);
-      else if (i < near.length) {
+      if (!EAST_TUFTS.test(child.name)) {
+        core.add(child);
+        coreRunOf.set(child, i < near.length ? TUFT_RUNS.indexOf(i) : LANE_RUN);
+      } else if (i < near.length) {
         (EAST_FAR_TUFTS.test(child.name) ? detailFar : detail).add(child);
         tuftRunOf.set(child, TUFT_RUNS.indexOf(i));
       } else lookoutMoss.add(child);
@@ -1960,11 +1989,53 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     on: TUFT_RUNS.map(() => false),
     farOn: TUFT_RUNS.map(() => false),
   };
+  /**
+   * The core's buckets draw house by house. `consolidate` sorts the core's parts into runs — each
+   * house's in TUFT_RUNS' order (its build's and its `near` group's, and what else stands within
+   * eastCapRadius + RUN_REACH_M of its axis: the deck's railing, the counter, the sign), then the
+   * lane's (the posts, the lookout's fences, stumps and bench) — so that each merged bucket holds
+   * each run's indices in one stretch (`ends`). A run is in view while the frustum meets one of the
+   * EAST_CELL_M cells its triangles touch (eastCells; a house's tufts' with its own): a house's cap
+   * and root flares fill little of their box. A frame draws each bucket from the first run in view
+   * to the last (eastRunRange). The shadow pass draws a bucket without a proxy from the first to the
+   * last run in view or whose box's sphere (+1 m, the composer's margin), swept along the sun,
+   * reaches the frustum (eastSweptMeets); a proxied bucket casts its whole coarse list. A bucket
+   * neither pass needs is hidden. `__KF_EAST_HOUSE_RUNS_OFF__` draws every run, and the tufts' runs
+   * by their boxes.
+   */
+  const RUN_REACH_M = 3;
+  const RUN_COUNT = LANE_RUN + 1;
+  const runs = {
+    buckets: [] as { mesh: Mesh; ends: number[]; proxied: boolean; shadow: [number, number] }[],
+    cells: [] as Float32Array[],
+    boxes: [] as Box3[],
+    spheres: [] as Sphere[],
+    parts: new Array<number>(RUN_COUNT).fill(0),
+    placed: Array.from({ length: RUN_COUNT }, () => [] as string[]),
+    inView: new Array<boolean>(RUN_COUNT).fill(true),
+    shadow: new Array<boolean>(RUN_COUNT).fill(true),
+    unordered: 0,
+  };
   /** the lookout's foot moss: drawn while the camera is within EAST_DETAIL_M of its box's centre and the frustum meets the box */
   const lookoutMossBox = new Box3();
   const _tuftFrustum = new Frustum();
   const _tuftM = new Matrix4();
   const _p = new Vector3();
+  const _travel = sunToward.clone().negate();
+  const scopeRuns = (all: boolean) => {
+    for (let k = 0; k < RUN_COUNT; k++) {
+      const cells = runs.cells[k];
+      const built = cells !== undefined && cells.length > 0;
+      runs.inView[k] = all || (built && _tuftFrustum.intersectsBox(runs.boxes[k]) && eastCellsMeet(_tuftFrustum, cells));
+      runs.shadow[k] = runs.inView[k] || (built && eastSweptMeets(runs.spheres[k], _travel, _tuftFrustum));
+    }
+    for (const b of runs.buckets) {
+      const [start, count] = eastRunRange(runs.inView, b.ends);
+      b.shadow = eastRunRange(runs.shadow, b.ends);
+      b.mesh.geometry.setDrawRange(start, count);
+      b.mesh.visible = count > 0 || (b.mesh.castShadow && b.shadow[1] > 0);
+    }
+  };
   const update = (camera: Camera) => {
     camera.getWorldPosition(_p);
     const on = eastInReach(_p) && frustumMeets(camera, coreSpheres);
@@ -1976,12 +2047,14 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     rooms.visible = on && roomsFaced;
     roomsNear.visible = detail.visible && roomsFaced;
     _tuftFrustum.setFromProjectionMatrix(_tuftM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    const byBoxes = globalThis.__KF_EAST_HOUSE_RUNS_OFF__ === true || runs.cells.length === 0;
+    if (on) scopeRuns(byBoxes);
     if (tufts.mesh) {
       const coarse = tufts.farMesh !== null && globalThis.__KF_EAST_FAR_TUFTS_OFF__ !== true;
       for (let k = 0; k < TUFT_RUNS.length; k++) {
         const h = sites[TUFT_RUNS[k]].h;
         const d = Math.hypot(_p.x - h.x, _p.z - h.z);
-        tufts.visible[k] = detail.visible && d < EAST_DETAIL_M && _tuftFrustum.intersectsBox(tufts.boxes[k]);
+        tufts.visible[k] = detail.visible && d < EAST_DETAIL_M && (byBoxes ? _tuftFrustum.intersectsBox(tufts.boxes[k]) : runs.inView[k]);
         tufts.far[k] = coarse && d > h.radius + EAST_TUFT_FAR_M;
       }
       const w = eastTuftWindows(tufts.visible, tufts.far);
@@ -2001,6 +2074,8 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   };
 
   let draws = { before: 0, after: 0, merged: 0 };
+  /** the core's triangles as merged (the run buckets' windows narrow their draw ranges from the first frame on) */
+  let coreTris = -1;
   const podMeshes: Mesh[] = [];
   // (the system copies `owned` when the build returns, before `consolidate` makes the pods' materials)
   owned.push({ dispose: () => podMeshes.forEach((m) => (m.material as Material).dispose()) });
@@ -2025,6 +2100,75 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       into.add(mesh);
       podMeshes.push(mesh);
     }
+    // the core's parts in run order (`runs`): what the builds left unplaced goes to the house whose
+    // axis it stands within eastCapRadius + RUN_REACH_M of, in plan, else to the lane
+    core.updateMatrixWorld(true);
+    const _v = new Vector3();
+    const axes = TUFT_RUNS.map((i) => sites[i].h);
+    for (const c of core.children) {
+      if (coreRunOf.has(c)) continue;
+      const far = axes.map(() => 0);
+      c.traverse((o) => {
+        const m = o as Mesh;
+        if (!m.isMesh) return;
+        const pos = m.geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          _v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+          for (let k = 0; k < axes.length; k++) far[k] = Math.max(far[k], Math.hypot(_v.x - axes[k].x, _v.z - axes[k].z));
+        }
+      });
+      let run = LANE_RUN;
+      for (let k = 0; k < axes.length; k++) if (far[k] <= eastCapRadius(axes[k]) + RUN_REACH_M && (run === LANE_RUN || far[k] < far[run])) run = k;
+      coreRunOf.set(c, run);
+      runs.placed[run].push(c.name);
+    }
+    const coreRun = (o: Object3D) => coreRunOf.get(o) ?? LANE_RUN;
+    core.children.sort((a, b) => coreRun(a) - coreRun(b));
+    // each run's cells, box and shadow sphere, from what can merge (instanced, transparent and the
+    // pods never do) and, for a house, its tufts
+    const partsOf = Array.from({ length: RUN_COUNT }, () => [] as Mesh[]);
+    for (const c of core.children) {
+      runs.parts[coreRun(c)]++;
+      c.traverse((o) => {
+        const m = o as Mesh;
+        if (m.isMesh && !(m as InstancedMesh).isInstancedMesh && m.name !== 'pod-lantern' && !podMeshes.includes(m) && !(m.material as Material).transparent) partsOf[coreRun(c)].push(m);
+      });
+    }
+    for (const g of [detail, detailFar]) for (const c of g.children) if ((c as Mesh).isMesh) partsOf[tuftRunOf.get(c) ?? 0].push(c as Mesh);
+    runs.cells = partsOf.map((ms) => eastCells(ms));
+    runs.boxes = runs.cells.map((cells) => {
+      const box = new Box3();
+      for (let i = 0; i < cells.length; i += 3) {
+        box.expandByPoint(_v.set(cells[i], cells[i + 1], cells[i + 2]));
+        box.expandByPoint(_v.set(cells[i] + EAST_CELL_M, cells[i + 1] + EAST_CELL_M, cells[i + 2] + EAST_CELL_M));
+      }
+      return box;
+    });
+    runs.spheres = runs.boxes.map((box) => {
+      const s = box.getBoundingSphere(new Sphere());
+      s.radius += 1;
+      return s;
+    });
+    /** a merged core bucket's parts in run order: where each run's indices end in it */
+    const onCoreMerge = (mesh: Mesh, parts: readonly Mesh[]) => {
+      if (!mesh.visible) return;
+      const counts = new Array<number>(RUN_COUNT).fill(0);
+      let last = 0;
+      for (const part of parts) {
+        let top: Object3D = part;
+        while (top.parent && top.parent !== core) top = top.parent;
+        const k = coreRun(top);
+        if (k < last) {
+          runs.unordered++;
+          return;
+        }
+        last = k;
+        counts[k] += part.geometry.index!.count;
+      }
+      let n = 0;
+      const ends = counts.map((c) => (n += c));
+      runs.buckets.push({ mesh, ends, proxied: false, shadow: [0, n] });
+    };
     // the tufts in run order: the merge appends each mesh's indices in the order it meets them
     const runOf = (o: Object3D) => tuftRunOf.get(o) ?? 0;
     const runIndices = (g: Group) => {
@@ -2045,7 +2189,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     lookoutMossBox.setFromObject(lookoutMoss);
     const out = { before: 0, after: 0, merged: 0 };
     for (const g of [core, detail, detailFar, lookoutMoss, rooms, roomsNear]) {
-      const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern');
+      const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern', g === core ? onCoreMerge : undefined);
       out.before += r.before;
       out.after += r.after;
       out.merged += r.merged;
@@ -2076,6 +2220,20 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
         const p = attachShadowProxy(m, cell);
         if (p) proxies.push({ tier: tier.name.replace('structures-east-', ''), name: m.name, ...p });
       });
+    }
+    coreTris = countTris(core);
+    for (const b of runs.buckets) {
+      b.proxied = b.mesh.userData.shadowProxy !== undefined;
+      if (b.proxied || !b.mesh.castShadow) continue;
+      const g = b.mesh.geometry;
+      let start = 0;
+      let count = 0;
+      b.mesh.onBeforeShadow = () => {
+        start = g.drawRange.start;
+        count = g.drawRange.count;
+        g.setDrawRange(b.shadow[0], b.shadow[1]);
+      };
+      b.mesh.onAfterShadow = () => g.setDrawRange(start, count);
     }
     draws = out;
     return out;
@@ -2143,7 +2301,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     podCasters: podMeshes.filter((m) => m.castShadow).length,
     /** the casters the shadow pass draws from a coarser triangle list (shadowProxy.ts), and the shadow triangles that saves when all of them cast */
     shadowProxies: { casters: proxies, saved: proxies.reduce((n, p) => n + p.fine - p.coarse, 0) },
-    coreTriangles: countTris(core),
+    coreTriangles: coreTris >= 0 ? coreTris : countTris(core),
     nearTriangles: tufts.mesh ? tufts.triangles.reduce((a, b) => a + b, 0) : countTris(detail),
     /**
      * the tufts' runs in their buckets (TUFT_RUNS): triangles each, fine and coarse; which runs the
@@ -2159,6 +2317,29 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       farOn: [...tufts.farOn],
       boxes: tufts.boxes.map((b) => [...b.min.toArray(), ...b.max.toArray()].map((v) => +v.toFixed(2))),
       drawnTriangles: (tufts.mesh && detail.visible && tufts.mesh.visible ? tri(tufts.mesh.geometry) : 0) + (tufts.farMesh && detailFar.visible && tufts.farMesh.visible ? tri(tufts.farMesh.geometry) : 0),
+    },
+    /**
+     * the core's buckets drawn house by house (`runs`): the runs' order; the buckets that hold their
+     * parts in run order, how many of those cast from a proxy, and how many could not (drawn whole);
+     * each run's top-level parts (and those of them placed by reach), cells and triangles; which runs
+     * the current frame has in view and which cast into it; and the triangles the run buckets
+     * submit, colour and (unproxied) shadow
+     */
+    houseRuns: {
+      order: [...TUFT_RUNS.map((i) => EXPANSION_EAST.houses[i].id), 'lane'],
+      cellM: EAST_CELL_M,
+      reachM: RUN_REACH_M,
+      buckets: runs.buckets.length,
+      proxied: runs.buckets.filter((b) => b.proxied).length,
+      unordered: runs.unordered,
+      parts: [...runs.parts],
+      placed: runs.placed.map((names) => [...names]),
+      cells: runs.cells.map((c) => c.length / 3),
+      triangles: runs.parts.map((_, k) => runs.buckets.reduce((n, b) => n + (b.ends[k] - (k === 0 ? 0 : b.ends[k - 1])) / 3, 0)),
+      inView: [...runs.inView],
+      shadow: [...runs.shadow],
+      drawnTriangles: core.visible ? runs.buckets.reduce((n, b) => n + (b.mesh.visible ? tri(b.mesh.geometry) : 0), 0) : 0,
+      shadowTriangles: core.visible ? runs.buckets.reduce((n, b) => n + (b.mesh.visible && b.mesh.castShadow && !b.proxied ? b.shadow[1] / 3 : 0), 0) : 0,
     },
     /** the lookout's foot moss (stumps, bench, rope posts): its triangles and whether the current frame draws it */
     lookoutMoss: { triangles: countTris(lookoutMoss), visible: lookoutMoss.visible },

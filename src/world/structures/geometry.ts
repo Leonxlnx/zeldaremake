@@ -325,8 +325,14 @@ export function merge(geos: BufferGeometry[]): BufferGeometry {
  * animated meshes (lantern pivots), transparent ones (their blend order hangs on the per-object
  * sort key) and anything the caller's `skip` names are left alone, as are singletons. Buckets whose
  * attribute layouts differ are never mixed, so no vertex ever gains or loses an attribute.
+ * `onMerge` sees each merged mesh with its parts, in the order their indices follow one another,
+ * before the parts leave the scene graph.
  */
-export function consolidateStaticMeshes(root: Object3D, skip: (m: Mesh) => boolean = () => false): { before: number; after: number; merged: number } {
+export function consolidateStaticMeshes(
+  root: Object3D,
+  skip: (m: Mesh) => boolean = () => false,
+  onMerge?: (merged: Mesh, parts: readonly Mesh[]) => void,
+): { before: number; after: number; merged: number } {
   root.updateMatrixWorld(true);
   const identity = new Matrix4();
   const buckets = new Map<string, Mesh[]>();
@@ -373,6 +379,7 @@ export function consolidateStaticMeshes(root: Object3D, skip: (m: Mesh) => boole
     mesh.layers.mask = first.layers.mask;
     mesh.visible = first.visible;
     mesh.frustumCulled = first.frustumCulled;
+    onMerge?.(mesh, list);
     for (const m of list) {
       m.removeFromParent();
       m.geometry.dispose();

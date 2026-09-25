@@ -983,6 +983,71 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
       }
     }
   }
+  // the core's house runs (structures/east.ts `runs`): a run's cells hold every vertex of its parts,
+  // a frustum that takes in any of those vertices meets one of its cells, and the shadow test on a
+  // run's sphere is the composer's (postfx/shadowcull.ts)
+  assert.equal(E.EAST_CELL_M, 0.5);
+  const cellKeys = (cells) => {
+    const out = [];
+    for (let i = 0; i < cells.length; i += 3) out.push(`${cells[i]},${cells[i + 1]},${cells[i + 2]}`);
+    return out.sort();
+  };
+  const flat = new THREE.BufferGeometry();
+  flat.setAttribute('position', new THREE.Float32BufferAttribute([0.1, 0.1, -0.2, 0.9, 0.1, -0.2, 0.1, 0.9, -0.2], 3));
+  flat.setIndex([0, 1, 2]);
+  assert.deepEqual(cellKeys(E.eastCells([new THREE.Mesh(flat)])), ['0,0,-0.5', '0,0.5,-0.5', '0.5,0,-0.5', '0.5,0.5,-0.5'], 'a triangle marks every cell its box overlaps');
+  const moved = new THREE.Mesh(flat);
+  moved.position.set(10, 2, -3);
+  assert.deepEqual(cellKeys(E.eastCells([moved])), ['10,2,-3.5', '10,2.5,-3.5', '10.5,2,-3.5', '10.5,2.5,-3.5'], 'in world space');
+  assert.equal(E.eastCells([new THREE.Mesh(flat), new THREE.Mesh(flat)]).length, 12, 'each cell once');
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(1.3, 24, 16));
+  ball.position.set(43, 8.5, -2);
+  ball.rotation.set(0.3, 1.1, -0.2);
+  ball.updateMatrixWorld(true);
+  const ballCells = E.eastCells([ball]);
+  const cellSet = new Set(cellKeys(ballCells));
+  const pos = ball.geometry.attributes.position;
+  const verts = [];
+  for (let i = 0; i < pos.count; i++) verts.push(new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(ball.matrixWorld));
+  const floors = (x) => [...new Set([-1e-6, 1e-6].map((e) => Math.floor((x + e) / 0.5) * 0.5))];
+  for (const v of verts) {
+    const held = floors(v.x).some((x) => floors(v.y).some((y) => floors(v.z).some((z) => cellSet.has(`${x},${y},${z}`))));
+    assert.ok(held, `vertex ${v.toArray().map((c) => c.toFixed(3))} lies in one of its cells`);
+  }
+  const SC = loadTs(path.join(here, '../postfx/shadowcull.ts'));
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const frustumOf = (eye, look) => {
+    const c = new THREE.PerspectiveCamera(46, 16 / 9, 0.08, 900);
+    c.position.copy(eye);
+    c.lookAt(look);
+    c.updateMatrixWorld(true);
+    c.updateProjectionMatrix();
+    return new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(c.projectionMatrix, c.matrixWorldInverse));
+  };
+  let seen = 0;
+  let missed = 0;
+  for (let i = 0; i < 400; i++) {
+    const eye = new THREE.Vector3(43 + (rnd() - 0.5) * 24, 7.5 + rnd() * 4, -2 + (rnd() - 0.5) * 24);
+    const look = eye.clone().add(new THREE.Vector3(rnd() - 0.5, (rnd() - 0.5) * 0.4, rnd() - 0.5));
+    const f = frustumOf(eye, look);
+    const meets = E.eastCellsMeet(f, ballCells);
+    if (verts.some((v) => f.containsPoint(v))) {
+      seen++;
+      assert.ok(meets, `camera ${i}: the ball is in frame, so a cell of it is`);
+    } else if (!meets) missed++;
+  }
+  assert.ok(seen > 40 && missed > 40, `the random cameras take the ball in (${seen}) and leave it out (${missed})`);
+  const travel = new THREE.Vector3(-0.55, -0.62, 0.56).normalize();
+  let culled = 0;
+  for (let i = 0; i < 400; i++) {
+    const f = frustumOf(new THREE.Vector3(43 + (rnd() - 0.5) * 20, 7.5 + rnd() * 3, -2 + (rnd() - 0.5) * 20), new THREE.Vector3(43 + (rnd() - 0.5) * 30, 7, -2 + (rnd() - 0.5) * 30));
+    const s = new THREE.Sphere(new THREE.Vector3(43 + (rnd() - 0.5) * 40, 6 + rnd() * 10, -2 + (rnd() - 0.5) * 40), 0.5 + rnd() * 6);
+    const meets = E.eastSweptMeets(s, travel, f);
+    assert.equal(meets, !SC.sweptSphereMissesFrustum(s, travel, f.planes), `sphere ${i}: the composer's shadow-caster test`);
+    if (!meets) culled++;
+  }
+  assert.ok(culled > 40, `some spheres cast nothing into the frame (${culled})`);
 }
 
 console.log('expansion2.test.mjs: ok');
