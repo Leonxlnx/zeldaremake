@@ -866,6 +866,30 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const verandaSt: WanderState = { ...wander };
   const verandaGreet = newGreet();
 
+  // -- kokiri-c: the boy at Saria's door (lane 7). Under capture the caller's idle poses him (the frames A / B /
+  // E / F hold him, `drive` returns false above the play branches); in play he takes the stands' idle here — weight
+  // shift, breath, his own look-around — and so the greet and the nod like the other four. His stand yaw is the
+  // caller's (toward the spawn, `placeFree`), read on his first play frame; his rng a fork drawn last.
+  const doorChar = chars[2] ?? null;
+  const doorRng = rng.fork('door');
+  const DOOR_DOWN = -0.03;
+  const doorKeys: [number, number, number][] = [
+    [0, 0, DOOR_DOWN],
+    [0.16, 0, DOOR_DOWN],
+    [0.3, -doorRng.range(0.35, 0.6), doorRng.range(0.0, 0.06)],
+    [0.44, -doorRng.range(0.15, 0.35), DOOR_DOWN],
+    [0.58, doorRng.range(0.3, 0.55), doorRng.range(-0.04, 0.02)],
+    [0.72, doorRng.range(0.9, 1.15), doorRng.range(-0.02, 0.05)],
+    [0.84, doorRng.range(0.2, 0.4), DOOR_DOWN],
+    [0.93, 0, DOOR_DOWN * 0.5],
+    [1, 0, DOOR_DOWN],
+  ];
+  const doorLookPeriod = 15;
+  const doorPhase = doorRng.range(0, doorLookPeriod);
+  const doorSt: WanderState = { ...wander };
+  const doorGreet = newGreet();
+  let doorStandYaw: number | null = null;
+
   // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
   // (lane 7): a light that leaves or joins the scene changes the light count every lit program
   // is keyed on and recompiles them all (the free camera parking on a viewpoint hid the ledge
@@ -996,6 +1020,20 @@ export function createNpcs(opts: NpcOptions): Npcs {
         return true;
       }
       if (view) return false;
+      if (slot === 2 && doorChar) {
+        if (doorStandYaw === null) doorStandYaw = actor.yaw;
+        const dg = standGreet(doorGreet, t, actor.pos.x, actor.pos.z, doorStandYaw, player);
+        actor.yaw = dg.yaw;
+        const [hy, hp] = seatedLook(t, doorPhase, doorKeys, doorLookPeriod);
+        const dy = ground.height(actor.pos.x, actor.pos.z);
+        poseLedgeIdle(doorChar.rig, actor.pos.x, actor.pos.z, dy, dg.yaw, t, 4.7, hy * (1 - doorGreet.g), hp, doorSt, dg.shuffle, dg.shufflePhi);
+        plantFeet(doorChar.rig, ground.height, actor.contact);
+        noticeFor(doorChar.rig, actor, player);
+        doorChar.rig.neck.rotation.x += greetNod(doorGreet, t);
+        actor.shadow.position.set(actor.pos.x, ground.decalHeight(actor.pos.x, actor.pos.z, actor.shadowRadius), actor.pos.z);
+        driven.add(2);
+        return true;
+      }
       if (slot === 0) {
         // her schedule runs on the held clock; while she greets, on the instant she stopped
         wanderStateAt(sched, phase0, schedTime(t), wander);

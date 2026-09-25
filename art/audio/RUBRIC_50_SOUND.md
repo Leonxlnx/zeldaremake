@@ -84,7 +84,11 @@ moves enough to matter.
 
 ## G. Space and direction
 
-41. ★ The world turns under the listener: a bearing is a place, not a channel.
+41. ★ The world turns under the listener: a bearing is a place, not a channel — **including while a
+    sound is already playing.** (Amended 2026-09-25: the check was scored 4 on two guards that each
+    hold the facing still for a whole run, and under them every bird in the wood was panned to the
+    facing of up to four seconds earlier — `art/audio/2026-09-25-turning/`. Turning at sixty degrees
+    a second moved a call exactly as much as standing still did, which is not at all.)
 42. Distance is audible — near and far sources are told apart by more than level.
 43. The stereo field is used but never collapses to one side.
 44. Reflection belongs to the space, not to every sound equally.
