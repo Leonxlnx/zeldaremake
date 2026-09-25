@@ -545,7 +545,8 @@ const WAVE_RAMP_S = 0.25;
 const WAVE_HZ = 2.4;
 /**
  * the greeting's wave: the right hand raised beside the head — the upper arm up and a little out
- * (shoulder x −2.6, z −0.5 puts the hand 0.24 m above the shoulder and 0.12 m clear of the head), the
+ * (shoulder x −2.6, z −0.65 puts the hand 0.24 m above the shoulder and 0.15 m clear of the head, the
+ * swing's inward extreme still 0.1 m clear of the hair bob), the
  * forearm half bent — and waved side to side at WAVE_HZ, blended over the pose's own arm by a ramp
  * in / out. Applied after the pose (the arms are the pose's; the notice never touches them).
  */
@@ -561,7 +562,7 @@ function greetWave(rig: Rig, gr: { active: boolean; since: number }, t: number):
   const el = rig.elbowR.rotation;
   sh.x += (-2.6 + 0.12 * sw - sh.x) * w;
   sh.y += (0 - sh.y) * w;
-  sh.z += (-0.5 - 0.3 * sw - sh.z) * w;
+  sh.z += (-0.65 - 0.25 * sw - sh.z) * w;
   el.x += (-0.7 + 0.35 * Math.sin(ph + 1.0) - el.x) * w;
   el.y += (0 - el.y) * w;
   el.z += (0 - el.z) * w;
