@@ -608,3 +608,10 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ### Iteration 121 (08:45) — the canopy-batch round re-verified at three lane poses (0 pixels)
 - 24dc489f → cd9400b2: x-clearing-n / x-southbank-toe / w23-stairs-f SSIM 1.0000, 0 px over 8.
+
+### Iteration 122 (11:15) — #115: the hardscape's shading arrays released after upload (≈ −46 MB)
+- `onUpload → array = null` on every static hardscape mesh's non-position attributes (the rocks / trees
+  pattern); position + index kept for ground.ts grids and raycasts; instanced sprouts and dynamic
+  attributes excluded (the first cut nulled the sprouts' per-instance arrays → `setViewpoint` crash
+  on the second view; fixed in 97d78408). performance.memory −43…−49 MB at the six views; six views
+  0 pixels; tests green. Tool: `--heap` in pose.mjs (CDP GC + page.metrics + performance.memory).
