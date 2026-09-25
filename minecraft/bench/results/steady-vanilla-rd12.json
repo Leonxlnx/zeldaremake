@@ -1,0 +1,90 @@
+{
+  "label": "steady-vanilla-rd12",
+  "world": "bench",
+  "seed": 20260924,
+  "vanillaRenderDistance": 12,
+  "window": "1280x720",
+  "gpu": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "glVersion": "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.1",
+  "cores": 4,
+  "mods": [
+    "mixinextras@0.5.5",
+    "vistabench@0.1.0"
+  ],
+  "phases": {
+    "load": {
+      "frames": 4599,
+      "seconds": 180.0,
+      "avgFps": 25.55,
+      "low1PctFps": 9.47,
+      "low01PctFps": 6.76,
+      "p50Ms": 36.9,
+      "p99Ms": 88.67,
+      "maxMs": 182.55,
+      "spikesOver50Ms": 280,
+      "cpuUtilPct": 67.95
+    },
+    "steady": {
+      "frames": 798,
+      "seconds": 29.96,
+      "avgFps": 26.63,
+      "low1PctFps": 22.22,
+      "low01PctFps": 21.26,
+      "p50Ms": 37.39,
+      "p99Ms": 43.21,
+      "maxMs": 47.03,
+      "spikesOver50Ms": 0,
+      "cpuUtilPct": 65.12
+    },
+    "fly": {
+      "frames": 632,
+      "seconds": 20.02,
+      "avgFps": 31.58,
+      "low1PctFps": 10.65,
+      "low01PctFps": 9.34,
+      "p50Ms": 28.97,
+      "p99Ms": 83.68,
+      "maxMs": 107.01,
+      "spikesOver50Ms": 62,
+      "cpuUtilPct": 94.99
+    },
+    "spin": {
+      "frames": 151,
+      "seconds": 7.99,
+      "avgFps": 18.9,
+      "low1PctFps": 8.64,
+      "low01PctFps": 8.64,
+      "p50Ms": 49.78,
+      "p99Ms": 115.54,
+      "maxMs": 115.72,
+      "spikesOver50Ms": 73,
+      "cpuUtilPct": 93.29
+    },
+    "hold": {
+      "frames": 293,
+      "seconds": 19.95,
+      "avgFps": 14.69,
+      "low1PctFps": 6.18,
+      "low01PctFps": 5.45,
+      "p50Ms": 62.43,
+      "p99Ms": 136.96,
+      "maxMs": 183.64,
+      "spikesOver50Ms": 293,
+      "cpuUtilPct": 73.48
+    },
+    "high": {
+      "frames": 2233,
+      "seconds": 20.0,
+      "avgFps": 111.63,
+      "low1PctFps": 61.34,
+      "low01PctFps": 30.39,
+      "p50Ms": 8.47,
+      "p99Ms": 13.46,
+      "maxMs": 41.52,
+      "spikesOver50Ms": 0,
+      "cpuUtilPct": 83.31
+    }
+  },
+  "maxHeapMiB": 1940,
+  "maxRssMiB": 3354
+}

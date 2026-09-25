@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "vistabench",
+  "version": "${version}",
+  "name": "Vista Bench",
+  "description": "Mod-agnostic, scripted far-terrain benchmark: creates/loads a world, flies a fixed camera path, records frame times, CPU/RAM and screenshots, then exits. Activated only by -Dbench.world=<name>.",
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.vistabench.BenchClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1"
+  }
+}
