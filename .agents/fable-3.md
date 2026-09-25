@@ -516,3 +516,14 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Lesson: a PR can be merged the minute it opens — never write "table appended when the capture lands" in a PR body
   again. Either hold the PR as a draft until the table exists, or say in the title what is unverified. And after a merge,
   never push to the merged branch: branch afresh from the head first.
+
+## 2026-09-25 06:34 tick — #93 merged; the seated girl's gaze (PR #99)
+
+- #93 merged at 06:07 (B held to the footage; the grove girl her own look). New branch `agent/fable-3-sitter-gaze` off
+  `1a183570`, PR #99 opened the hour it was pushed.
+- The item came from the twelve play-distance frames: the sitter's face hidden under her fringe. Cause in the pose —
+  the rounded back's 0.30 rad forward with only 0.08 taken back at the neck — and in `noticePlayer`, which applied the
+  pitch to Link's eyes chest-relative (the sitter noticed him and still looked under his face). `SEAT_CHIN_UP` 0.25 and
+  the torso pitch taken out of the notice angle; before / after at three camera distances, draws unchanged, 196 / 196.
+  The fixed frames cannot run either path (the seat branch is behind `if (view) return false`; capture passes no player).
+- The review script now takes `PEOPLE_ONLY` / `PEOPLE_DISTS` (6 m = past the notice range, for the resting gaze).
