@@ -527,3 +527,31 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the torso pitch taken out of the notice angle; before / after at three camera distances, draws unchanged, 196 / 196.
   The fixed frames cannot run either path (the seat branch is behind `if (view) return false`; capture passes no player).
 - The review script now takes `PEOPLE_ONLY` / `PEOPLE_DISTS` (6 m = past the notice range, for the resting gaze).
+
+## 2026-09-25 07:35 tick — #99 merged; the wanderer's walk reviewed, nothing to change
+
+- #99 merged at 07:07. The twelve stills had not covered the one kid who moves: three watches of kokiri-a's loop with
+  Link standing (9 s blind, 40 s coarse to find her window, 11 s dense at 4 fps over it). Legs, arms, planting, the
+  dwell look-around all read at 3–8 m — a review result (`people-fable-3/wanderer-walk/`), no PR of its own; it rides
+  with the next item. Lesson: find the window with a 1 fps pass first; a blind 9 s watch at 5 fps cost 10 minutes
+  for nothing.
+
+## 2026-09-25 08:28 tick — the post-merge check; the wanderer greets Link (PR #109, held)
+
+- The twelve play frames on the head `24dc489f`: today's three merges compose, draws identical to the branch renders.
+- The next item from the play distance: when Link walks up to the wanderer she only turns her head and walks on. Built
+  the greeting in `npc.ts` — a held clock (`paused` / `frozen`) so the schedule stays a function of (t − paused), a 0.5 s
+  blend with the schedule's own turn-shuffle, hysteresis 1.7 / 2.6 m + 0.6 s, the fairy's taps mapped through
+  `schedTime`. The first harness run framed her behind Link (the camera sits on the Link–girl line — the same mistake
+  as this morning's people.mjs); the numbers still showed the hold and the body tracking him. Second harness: Link
+  approaches 1 m off her axis heading parallel to her facing, backs off for the release; before / after pair rendering.
+- PR #109 opened with "[evidence in progress — hold]" in the title — the #87 lesson applied. INBOX 09:00.
+
+## 2026-09-25 09:30 + 10:35 ticks — the greeting's evidence lands; #109's hold lifted
+
+- Three harness passes (the box ran at 20–25 s a frame): before (she walks past him), after side-on (she turns 44° and
+  holds), after with the walk-past release (her body follows him round, 0.6 s past 2.6 m she turns back and walks on
+  from her spot). The S back-off got blocked behind Link at both spots — the walk-past + `setView` look-back is the
+  release harness that works. A 14° settle in the turn-back where the schedule's own turn ran under the blend: noted,
+  not visible. fable-cursor read the hold in the title (squad log 09:40) — the lesson paid.
+- Merged the head `eb3687cb` (INBOX only), 206 / 206; the hold lifted in the title, the INBOX and the README.

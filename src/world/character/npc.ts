@@ -514,6 +514,13 @@ function seatedLook(t: number, phase: number, keys: [number, number, number][], 
 /** Link within this of a kid: her head starts turning to him; fully on him by NOTICE_NEAR_M */
 const NOTICE_FAR_M = 5.0;
 const NOTICE_NEAR_M = 2.8;
+/** the wanderer stops and turns to Link inside this (m) … */
+const GREET_NEAR_M = 1.7;
+/** … and walks on once he has stayed beyond this (m) for GREET_RELEASE_S — hysteresis, so a player idling at the edge does not make her stutter */
+const GREET_FAR_M = 2.6;
+const GREET_RELEASE_S = 0.6;
+/** the stop-and-turn and the turn-back each blend over this (s) */
+const GREET_BLEND_S = 0.5;
 /** how far the neck turns (rad); past it the turn fades out over 0.7 rad rather than pinning to the shoulder */
 const NOTICE_YAW_MAX = 1.05;
 /** Link's eyes over his root (the GLB's 1.25 m to the cap) */
@@ -584,6 +591,13 @@ export function createNpcs(opts: NpcOptions): Npcs {
   // phase so the loop starts mid-dwell at her verge spot at t = 0
   const phase0 = -0.6 * sched.segments[0].dur;
   const wander: WanderState = { x: 0, z: 0, yaw: 0, speed: 0, walk: 0, phi: 0, shuffle: 0, shufflePhi: 0, headYaw: 0, headPitch: 0, segment: 'dwell', segmentIndex: 0 };
+  // The wanderer greets Link (lane 7, 2026-09-25): within GREET_NEAR_M she stops where she is, turns
+  // to face him and stands — the head's notice does the rest; once he has been beyond GREET_FAR_M for
+  // GREET_RELEASE_S she turns back and walks on from exactly where she stopped. The loop's clock is
+  // held for the pause (`paused`), so her schedule stays a function of (t − paused): no pop on either
+  // side. Capture never drives her (`view` returns above the wander branch), so the six frames cannot
+  // see any of this; the play routes only meet her if they pass within arm's reach.
+  const greet = { active: false, since: 0, until: -1e9, paused: 0, frozen: 0, farSince: -1, yaw: 0, g: 0 };
   // off-limits check of the authored loop (waypoints and 0.25 m samples along every leg)
   const offLimits: string[] = [];
   for (let i = 0; i < NPC_LOOP.length; i++) {
@@ -751,8 +765,15 @@ export function createNpcs(opts: NpcOptions): Npcs {
     return out.set(hx + fx * FAIRY_AHEAD + fz * FAIRY_LEFT, hy + FAIRY_UP, hz + fz * FAIRY_AHEAD - fx * FAIRY_LEFT);
   };
   /** the walker's hover point at time τ from the closed-form state (no rig needed) */
+  /**
+   * the schedule's clock at wall time `tau` under the greeting's hold: frozen from the stop on while she
+   * greets; after the release, frozen for taps that fall inside the pause and running again past it
+   * (the taps reach 0.26 s back, so a tap from before a pause began is off by at most that)
+   */
+  const schedTime = (tau: number) => (greet.active ? Math.min(tau - greet.paused, greet.frozen) : Math.max(tau - greet.paused, greet.frozen));
   const walkerFaceAt = (tau: number, out: Vector3) => {
-    wanderStateAt(sched, phase0, tau, _st);
+    wanderStateAt(sched, phase0, schedTime(tau), _st);
+    if (greet.g > 0) _st.yaw += angleTo(_st.yaw, greet.yaw) * greet.g;
     const h = ground.height(_st.x, _st.z);
     return hoverAt(_st.x, h + walker.rig.props.headCentreY, _st.z, _st.yaw, out);
   };
@@ -821,7 +842,46 @@ export function createNpcs(opts: NpcOptions): Npcs {
       }
       if (view) return false;
       if (slot === 0) {
-        wanderStateAt(sched, phase0, t, wander);
+        // her schedule runs on the held clock; while she greets, on the instant she stopped
+        wanderStateAt(sched, phase0, schedTime(t), wander);
+        if (player) {
+          const d = Math.hypot(player.x - wander.x, player.z - wander.z);
+          if (!greet.active) {
+            if (d < GREET_NEAR_M && t - greet.until > GREET_BLEND_S) {
+              greet.active = true;
+              greet.since = t;
+              greet.frozen = t - greet.paused;
+              greet.farSince = -1;
+            }
+          } else if (d > GREET_FAR_M) {
+            if (greet.farSince < 0) greet.farSince = t;
+            if (t - greet.farSince > GREET_RELEASE_S) {
+              greet.active = false;
+              greet.until = t;
+              greet.paused += t - greet.since;
+            }
+          } else greet.farSince = -1;
+          if (greet.active) greet.yaw = Math.atan2(player.x - wander.x, player.z - wander.z);
+        } else if (greet.active) {
+          greet.active = false;
+          greet.until = t;
+          greet.paused += t - greet.since;
+        }
+        // the greeting's weight: up over the blend as she stops, down over it as she walks on
+        const g = greet.active ? smooth((t - greet.since) / GREET_BLEND_S) : 1 - smooth((t - greet.until) / GREET_BLEND_S);
+        greet.g = g;
+        if (g > 0) {
+          const turn = angleTo(wander.yaw, greet.yaw);
+          wander.yaw += turn * g;
+          wander.walk *= 1 - g;
+          wander.speed *= 1 - g;
+          wander.headYaw *= 1 - g;
+          wander.headPitch *= 1 - g;
+          // the feet shuffle round under the turn, a bell over the blend like the schedule's own turns
+          const bell = 4 * g * (1 - g);
+          wander.shuffle = Math.max(wander.shuffle, Math.min(1, Math.abs(turn) / 1.2) * bell);
+          if (bell > 0) wander.shufflePhi = Math.PI * 2 * 2.4 * (t - (greet.active ? greet.since : greet.until)) * Math.sign(turn || 1);
+        }
         actor.pos.set(wander.x, 0, wander.z);
         actor.yaw = wander.yaw;
         const rig = walker.rig;
