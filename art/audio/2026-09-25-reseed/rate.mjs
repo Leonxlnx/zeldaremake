@@ -25,6 +25,13 @@ const AMB = loadTs(path.join(here, '../../../src/audio/ambience.ts'));
 /** the constant this replaced; it is gone from the source, so the old rule is stated here */
 const R = 25;
 const CALL_EVERY = 5.5;
+/**
+ * The player's own legs, read out of footsteps.ts rather than copied. They were copied as 4.2 m/s
+ * and went stale the moment PR #59 landed a new controller on 2026-09-25 — the game runs at 2.2 now.
+ */
+const FS = loadTs(path.join(here, '../../../src/audio/footsteps.ts'));
+const RUN = FS.RUN_GROUND_SPEED;
+const WALK = FS.WALK_SPEED;
 /** the shipped rule: re-draw the whole wood when he is more than PERCH_RESEED_M from where it was drawn */
 function reseeds(points) {
   let anchor = points[0], n = 0, at = [];
@@ -41,14 +48,14 @@ const pace = (a, b, speed, secs) => { const out=[]; const len=Math.hypot(b[0]-a[
   for (let t=0;t<secs;t+=dt){ const tr=(t*speed)/len; const leg=tr%2; const u=leg<=1?leg:2-leg;
     out.push([a[0]+(b[0]-a[0])*u, a[1]+(b[1]-a[1])*u]); } return out; };
 console.log(`the old rule: re-draw all six whenever he is more than ${R} m from where they were drawn`);
-console.log(`against a wood that calls about once every ${CALL_EVERY} s, and PERCH_DROP_M = ${AMB.PERCH_DROP_M} m now retires one at a time\n`);
+console.log(`against a wood that calls about once every ${CALL_EVERY} s, and PERCH_DROP_M = ${AMB.PERCH_DROP_M.toFixed(1)} m now retires one at a time\n`);
 const journeys = [
-  ['plaza to the log arch (one way, run)', step([0.5,2],[4,-58],4.2)],
-  ['plaza to the north grove (one way, run)', step([0.5,2],[-38,32],4.2)],
-  ['pacing a 26 m line, 2 min at a run', pace([0,0],[26,0],4.2,120)],
-  ['pacing a 26 m line, 2 min at a walk', pace([0,0],[26,0],1.5,120)],
-  ['pacing a 21 m line, 2 min at a run', pace([0,0],[21,0],4.2,120)],
-  ['pacing a 60 m line, 2 min at a run', pace([0,0],[60,0],4.2,120)],
+  ['plaza to the log arch (one way, run)', step([0.5,2],[4,-58],RUN)],
+  ['plaza to the north grove (one way, run)', step([0.5,2],[-38,32],RUN)],
+  ['pacing a 26 m line, 2 min at a run', pace([0,0],[26,0],RUN,120)],
+  ['pacing a 26 m line, 2 min at a walk', pace([0,0],[26,0],WALK,120)],
+  ['pacing a 21 m line, 2 min at a run', pace([0,0],[21,0],RUN,120)],
+  ['pacing a 60 m line, 2 min at a run', pace([0,0],[60,0],RUN,120)],
   ['standing still, 2 min', pace([0,0],[26,0],0,120)],
 ];
 for (const [name, pts] of journeys) {

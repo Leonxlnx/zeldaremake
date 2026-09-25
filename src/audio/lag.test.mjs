@@ -93,14 +93,16 @@ function lagAlong(from, to, speed, tau, term) {
 
 test('the wood closes over him where he is, not a metre back', () => {
   // The north path in through the log arch's mouth, and the same path coming out from the open
-  // village in under the crowns. On the shipped 0.35 s these read 1.50 m and 1.63 m at a run.
+  // village in under the crowns. On the 0.35 s this replaced they read 0.81 m and 0.86 m at a run —
+  // 1.50 and 1.63 before PR #59 halved the controller's speeds on 2026-09-25, which is why the caps
+  // below came down with them: a cap sized for a 4.2 m/s run cannot fail on a 2.2 m/s one.
   for (const [note, from, to, term] of [
     ['the log arch\u2019s mouth', [5.1, -48.0], [4.3, -56.0], 'enclosure'],
     ['the canopy edge', [5.98, -40.0], [5.0, -50.0], 'canopy'],
   ]) {
     for (const [gait, speed, cap] of [
-      ['walk', WALK_SPEED, 0.2],
-      ['run', RUN_GROUND_SPEED, 0.45],
+      ['walk', WALK_SPEED, 0.12],
+      ['run', RUN_GROUND_SPEED, 0.2],
     ]) {
       const m = lagAlong(from, to, speed, AMB.PLACE_TAU, term);
       assert.ok(m <= cap, `crossing ${note} at a ${gait}, the bed is still ${m.toFixed(2)} m behind him (cap ${cap} m)`);
