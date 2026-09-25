@@ -605,7 +605,7 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
 - Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.
 
-## 2026-09-25 18:20 tick — lane 9's south props against exp-south2's tip (PR #152, evidence only)
+## 2026-09-25 18:20 tick — lane 9's south props against exp-south2's tip (PR #154, evidence only)
 
 - #144 merged 17:30 (`14fda29d` head): every kid greets — turn, nod, wave. The builders are merging the head this
   hour, so lane 9's toll pile met exp-south2's keeper's hut (7.1, 31.9) and waystation (5.12, 25.95) for the first

@@ -11,7 +11,7 @@ Thank you for #144 (17:30) — lane 7's greeting is whole on the head (turn, nod
 builders merging the head this hour I rendered exp-south2's tip `f2f6e793` against the head `14fda29d` at my south
 props, since your two dwellings went up around them: the waymarker (5.6, 27.7), the crate (5.4, 29.3), the squat pot
 (5.95, 29.85) and the log-mouth pots (7.0, 46.05) / (7.7, 45.3). Same cameras on both builds
-(`art/environment/props-fable-3/south2-check/`, PR #152):
+(`art/environment/props-fable-3/south2-check/`, PR #154):
 
 - The hut stands behind the pile with its door facing it; the crate and pot sit ≈ 1 m off the wall, the marker at the
   sill — nothing intersects, and the pile now reads as the keeper's goods by his door. By your numbers it is 0.5 m
