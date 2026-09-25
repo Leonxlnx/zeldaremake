@@ -742,10 +742,21 @@ function buildGirlHeadband(rig: Rig, bandMat: MeshStandardMaterial): void {
   part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband', false);
 }
 
-/** dark leather wristbands on the bare forearms (both wrists, like the demo girl) */
+/**
+ * Dark leather wristbands on the bare forearms (both wrists, like the demo girl). Lane 7: cuffs on
+ * the belt's strap canvas — an open tube whose v is folded onto the canvas's leather face (its
+ * stitch rows a few millimetres inside each edge) and whose u carries two repeats (twelve stitches
+ * round a 23 cm cuff) — so the cuffs and the strap share one material, and the girls' skinned
+ * meshes count one fewer per material.
+ */
 function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
   const p = rig.props;
-  for (const elbow of [rig.elbowL, rig.elbowR]) part(elbow, place(new CylinderGeometry(0.037, 0.036, 0.024, 10), 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+  for (const elbow of [rig.elbowL, rig.elbowR]) {
+    const cuff = new CylinderGeometry(0.037, 0.036, 0.024, 12, 1, true);
+    const uv = cuff.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 3, uv.getY(i) * 0.33);
+    part(elbow, place(cuff, 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+  }
 }
 
 /**
@@ -867,7 +878,10 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
     const flap = skirtPanel([profile[0], profile[1], profile[2], [0.107, 0.012]], a0, a1, 10, { ...opts, radiusScale: side > 0 ? 1 : 0.985 });
     // hips space → thigh space (the thigh joint sits at ± hipHalfWidth on the hips)
     flap.applyMatrix4(_m4.makeTranslation(-side * p.hipHalfWidth, 0, 0));
-    part(thigh, flap, tunic, 'kid-tunic-flap');
+    const flapMesh = part(thigh, flap, tunic, 'kid-tunic-flap');
+    // shared with the hips (skin.ts SkinBlend): from the waist the flap hangs and drapes down over the
+    // thigh when she sits, instead of pivoting with it into a shelf at hip height over bare thighs
+    flapMesh.userData.skinBlend = { top: 0.85, hem: 0.5 };
   }
   // leather belt (lane 7, owner 23:00 JOB 7 "the belt"): a flat strap, 3 cm tall and 6 mm thick, on
   // the waist's oval — stitched along both edges and burnished at them on the strap canvas — passing
@@ -893,6 +907,36 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
     'kid-buckle',
     false,
   );
+}
+
+/** scale a rope piece's u so the canvas's twist repeats `turns` times along it (v round the strand stays 0–1) */
+function ropeUv(g: BufferGeometry, turns: number): BufferGeometry {
+  const uv = g.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * turns);
+  return g;
+}
+
+/**
+ * The rope canvas (lane 7): laid rope — three strands twisted round the core read as ridges running
+ * diagonally across the rope's length; one repeat of the canvas is one turn of the lay. Pale hemp
+ * with a darker groove between the strands and a fibre fuzz in the highlights.
+ */
+function ropeMaterial(): MeshStandardMaterial {
+  const id = 'rope-lay';
+  let m = mats.get(id);
+  if (!m) {
+    const tex = shadedCanvas(32, 32, CHAR_COLORS.kidRope, 'kid-rope-lay', (u, v, x, y) => {
+      // three strands per turn: the groove where phase crosses 0, the strand's belly at 0.5
+      const phase = (u * 3 + v * 1.0) % 1;
+      const belly = 0.5 + 0.5 * Math.cos(phase * Math.PI * 2);
+      const fuzz = 1 + 0.08 * (hash2(x * 0.71, y * 0.37) - 0.5);
+      return (0.62 + 0.5 * belly) * fuzz;
+    });
+    m = new MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 });
+    m.name = 'char-kid-rope-lay';
+    mats.set(id, m);
+  }
+  return m;
 }
 
 /**
@@ -968,13 +1012,23 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
     tunic,
     'kid-tunic-upper',
   );
+  // the rope belt (lane 7, owner 23:00 JOB 7 "the belt"): two wraps of laid rope — the twist on the
+  // rope canvas, ridges running diagonally round each wrap — knotted at the front where the wraps
+  // cross, the two ends hanging a hand down the skirt and fraying at their tips. The round-1 belt
+  // was the same two tori in flat colour, two rings at 2.5 m.
+  const wrapY = hl(0.565);
   const rope = merge([
-    place(new TorusGeometry(0.106, 0.009, 6, 26), 0, hl(0.565), 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]),
-    place(new TorusGeometry(0.106, 0.007, 6, 26), 0, hl(0.58), 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]),
-    place(new CylinderGeometry(0.008, 0.008, 0.07, 6), 0.02, hl(0.535), 0.088, [0.2, 0, 0.15]),
-    place(new CylinderGeometry(0.008, 0.008, 0.06, 6), -0.015, hl(0.54), 0.09, [0.2, 0, -0.1]),
+    ropeUv(place(new TorusGeometry(0.106, 0.009, 7, 40), 0, wrapY, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), 36),
+    ropeUv(place(new TorusGeometry(0.106, 0.008, 7, 40), 0, hl(0.582), 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), 36),
+    // the knot: the wraps' crossing, a lump the size of two rope widths
+    place(new SphereGeometry(0.017, 10, 8), 0.006, wrapY + 0.006, 0.086, undefined, [1.15, 0.85, 0.9]),
+    // the ends: out of the knot and down, splaying a little, each fraying to a point
+    ropeUv(place(new CylinderGeometry(0.0075, 0.0085, 0.095, 7), 0.026, hl(0.53), 0.09, [0.18, 0, 0.22]), 6),
+    ropeUv(place(new CylinderGeometry(0.0075, 0.0085, 0.08, 7), -0.014, hl(0.537), 0.092, [0.2, 0, -0.14]), 5),
+    place(new ConeGeometry(0.0075, 0.02, 7), 0.037, hl(0.53) - 0.057, 0.1, [Math.PI + 0.18, 0, 0.22]),
+    place(new ConeGeometry(0.0075, 0.018, 7), -0.02, hl(0.537) - 0.049, 0.1, [Math.PI + 0.2, 0, -0.14]),
   ]);
-  part(rig.hips, rope, matte('kidRope'), 'kid-rope-belt', false);
+  part(rig.hips, rope, ropeMaterial(), 'kid-rope-belt', false);
   buildFace(rig, { skin, iris: matte('irisKid', { roughness: 0.3 }), earLength: 0.07 });
   buildGirlHair(rig, hairMaterial(`boy-${variant}`, BOY_HAIR), false);
   buildGirlHeadband(rig, kidMat(`band-boy-${variant}`, CHAR_COLORS.kidHeadband));
@@ -1010,7 +1064,7 @@ export function createKokiri(variant: number): Character {
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
     buildThumbs(rig, skin);
-    buildWristbands(rig, kidMat('belt', KID.belt));
+    buildWristbands(rig, beltMaterial());
     buildGirlTunic(rig, girlCloth(look));
     buildGirlFace(rig, look);
     buildGirlHair(rig, girlHair(look));

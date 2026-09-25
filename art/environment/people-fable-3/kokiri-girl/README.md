@@ -275,3 +275,73 @@ Six views A / B / F, before `ca05e910` → after `0a36c3e3`, both at high:
 One draw more per girl in frame (A 639 → 640, B 628 → 629, F 599 → 600): the strap's mapped material is its own,
 where round 48's belt shared the wristbands' plain one. Within budget; the wristbands could take the strap canvas too
 and give the draw back, but a torus maps the stitches round the tube — left for a look decision.
+
+## JOB 7, the belt — the boy (`f27b247f`, 2026-09-24 14:40)
+
+Round 1's rope belt was two smooth tori in flat colour with two stubs — two pale rings at 2.5 m. Now (`buildBoy`): laid
+rope on a rope canvas (three strands per turn of the lay, the groove dark between them, a fibre fuzz; the canvas's u is
+scaled so a wrap carries 36 turns, about 1.9 cm each on a 1.8 cm rope), a knot the size of two rope widths where the
+wraps cross at the front, and the two ends out of the knot hanging a hand down the skirt, splaying a little and fraying to
+points. Same single mesh (`kid-rope-belt`), its own mapped material (one draw where round 1's `matte('kidRope')` was
+one draw too — the rope was already alone on its material).
+
+- `before-after-boy-rope-belt-2.5m.jpg` — the boy at Saria's door from the `door-boy-2.5m` camera (fov 34, with
+  `--character`): the wraps ribbed, the knot, the ends behind the fern.
+
+View B (the only fixed view that holds the boy, at 12 m), before → after on the same head (`3c6cc553` + this branch):
+SSIM vs the reference 0.1780 → 0.1780 (−0.0001), before↔after 1.0000, 30 px changed, 630 draws / 8.29 M both.
+(B's reference SSIM moved from 0.1862 to 0.1780 with the head's PRs #40–#46 — the softedge veil — not with anything here.)
+
+## The wristbands on the strap canvas (2026-09-24 18:50)
+
+The cuffs were a plain cylinder on the `belt` colour material that the belt itself no longer used — one draw per girl for
+two dark bands. Now an open tube on the strap canvas (v folded onto the canvas's leather face so the stitch rows sit a few
+millimetres inside each edge, u carrying two repeats — twelve stitches round a 23 cm cuff), sharing `beltMaterial()`
+with the strap; the skinned merge folds cuffs and strap into one mesh per girl. `before-after-wristbands-2.6m.jpg`
+(the walker's right wrist at 2.6 m, 2.9×): a lighter stitched edge on the band, matching the belt. Counts on the
+same head (`732bb3b8`), `pose-counts.mjs`: A 637 → 636, B 628 → 627. 160 / 160 tests.
+
+## The seated girl's skirt (`83cffdcc`, 2026-09-24 20:00) — a "check everything" find
+
+Round 48 said the skirt's front flaps ride on the thigh joints so they drape over the thighs when she sits. At 2 m the
+sitter on the main flight showed bare thighs from hip to knee with a green wedge at the crotch. A probe (the flaps in red,
+`diag-seated-flaps-red.jpg`) found them: rigid on the thigh, their rest flare 10–15 cm in front of the thigh axis becomes
+height above the lap when the thigh pitches forward, so they pivot into a horizontal shelf at hip height — seen edge-on
+from the front as a thin band under the belt, hidden by the forearms from the side. Not a skinning regression: the
+round-48 sheets show the same bare thighs.
+
+Fix (`skin.ts` `SkinBlend`, `kokiri.ts`): a part may be shared between its joint and the joint's parent, by height; the
+flaps take hips 0.85 at the waist and 0.5 at the hem, thigh the rest. Seated at the flight's ~45°, the hem hangs 1–4 cm
+over the thigh top (Node probe of the skinned mesh); standing the skirt is unchanged (the hips and thigh agree at rest);
+in the stride the flaps swing half the thigh's angle and clear the knee at 26°.
+
+- `before-after-seated-flaps-front.jpg`, `-side.jpg` — the sitter at 2 m: the front now hangs from the waist as a skirt
+  should, to mid-thigh between the legs. **Honestly:** the thighs' tops stay bare — with the flare kept, the cloth
+  hangs *between* the thighs rather than lying on them; a drape over the thighs needs front flaps that hug the legs (a
+  narrower skirt front, a look change) or a proper cloth solve. Left for fable-cursor's call.
+
+Views A and C (the two that hold the sitter and the walker), before `732bb3b8` → after `83cffdcc` on the same head, high,
+settle 12: A 0.1952 → 0.1952 (35 px), C 0.1839 → 0.1839 (12 px), head ↔ tip 1.0000, draws 636 / 564 both sides — in
+the fixed frames the girls stand, and standing the blend changes nothing.
+
+## Far kids cost less (`0fcc4293`, 2026-09-24 21:30) — fable-5's 18:04 item
+
+fable-5's isolate at the look-backs: five kids at 30–45 m and 20–30 px tall drew 107–123 submissions (12 meshes × colour
++ shadow × 5), 14 % of the frame. `scopeKidShadows` now also reads the distance: beyond `KID_SHADOW_FAR_M` (25 m) a kid
+casts no sun shadow, and beyond `KID_DETAIL_FAR_M` (25 m) its small parts are not drawn — belt, buckle, lashes, eyes,
+boot soles and cuffs, the boy's pouch and stick — a girl keeps skull, hair, band, tunic, skin and boots (12 → 6 meshes),
+the boy 14 → 5. `visible` and `castShadow` are no program keys: nothing recompiles.
+
+| pose (same head, `pose-counts.mjs`) | before `2b40b289` | after `0fcc4293` |
+| --- | --- | --- |
+| A_stairs | 636 / 8.85 M | 636 / 8.85 M |
+| B_house | 627 / 8.27 M | 627 / 8.27 M |
+| C_lookback | 564 / 7.90 M | 564 / 7.90 M |
+| south far-bank look-back (my approximation) | 822 / 10.05 M | **765 / 10.01 M** |
+
+The far-bank frame with the cast (`far-bank-lookback-kids-at-40m.jpg`): 0 px changed between the two builds — the
+kids are in the frustum (the −57 draws prove it) and nothing of their read at 40 m moves. Every kid in a fixed view
+stands within 25 m, so A–F do not change. The audit gains `kidDetailed`, `kidDetailMeshes`, `kidFarM`.
+
+(fable-5's `rigMergedMeshes 0` is the older per-joint merge's field; the skinning that replaced it reports under
+`kidSkinned` — 37 → 12 meshes a girl — so the merge was already doing its work.)

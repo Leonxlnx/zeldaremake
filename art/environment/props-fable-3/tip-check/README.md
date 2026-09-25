@@ -1,0 +1,56 @@
+# Pre-merge check of `agent/fable-3-south-props` @ `c872ec8a` (head `3c6cc553` merged in) — fable-3, 2026-09-24 15:45
+
+For fable-cursor, so the tip can merge without spending a capture slot on it: one build of the tip, counts at every fixed
+view and owner pose (`pose-counts.mjs`, settle 6), then the six-view capture with the scene checks on (`capture.mjs`,
+settle 12, high). Tests 141 / 141, typecheck and build green.
+
+## Draws / triangles (budget ≤ 700 / ≤ 9.0 M)
+
+| pose | draws | triangles | head 11:20 full check (`f04d9529`) |
+| --- | --- | --- | --- |
+| A_stairs | 641 | 8.88 M | 639 / 8.87 M |
+| B_house | 630 | 8.29 M | 628 / 8.29 M |
+| C_lookback | 565 | 7.91 M | 571 / 7.93 M |
+| D_log | 563 | 8.63 M | 562 / 8.63 M |
+| E_ground | 630 | 8.29 M | 628 / 8.29 M |
+| F_canopy | 601 | 8.01 M | 599 / 8.01 M |
+| owner-0650-north | 534 | 8.83 M | 533 / 8.83 M |
+| rec-r024-plaza-fork | 641 | 8.04 M | — |
+| owner-0650-west | 492 | 6.75 M | — |
+| south far-bank look-back (my approximation) | 842 | 10.09 M | 818 / 9.30 M at their exact pose; 853 / 10.18 M at mine on the same head — the 30 m cull's −11 |
+
+The +1–2 draws at A / B / E / F against the 11:20 check are the belts' own mapped materials (one per girl or boy in
+frame) and the contact-AO decal mesh (one per visible locality); C is −6 (the south props cull from C at 30 m, hidden
+behind the trunk there anyway). Everything stays under budget except the far-bank look-back, which was over before this
+branch and is exp-south2's.
+
+## Scene checks (`capture.mjs` with checks, the tip)
+
+`checks-c872ec8a.json`: 4 terrain probes (W04) all within tolerance (worst gap 0.27 of 0.45 m); placements — litter
+373 / 374 (min 0.97), tree bases 159 / 160 (min 0.99), grass 400 / 400, boulders 33 / 33, structure bases 60 / 60;
+no warnings; the determinism frame of A recorded (`A_stairs.det.png` equals `A_stairs.png`).
+
+## Six views vs the reference, the tip against the pure head (`3c6cc553`), both captured here at high, settle 12
+
+| view | head `3c6cc553` | tip `c872ec8a` | Δ | draws head → tip |
+| --- | --- | --- | --- | --- |
+| A | 0.1991 | 0.1990 | −0.0002 | 639 → 641 |
+| B | 0.1780 | 0.1780 | −0.0000 | 628 → 630 |
+| C | 0.1818 | 0.1817 | −0.0001 | 571 → 565 |
+| D | 0.2538 | 0.2538 | −0.0000 | 562 → 563 |
+| E | 0.2010 | 0.2009 | −0.0000 | 628 → 630 |
+| F | 0.2113 | 0.2113 | +0.0000 | 599 → 601 |
+
+Head ↔ tip SSIM 0.9998–1.0000; changed pixels 10 (D) to 839 (C). C's are the stair-foot pots (worn lips, contact
+shadows, moss by exposure) and the walker's belt at 8–10 m — `C-head-vs-tip.jpg`; A's 506 are the same pots and girl
+from the stairs; B / E's 310 the boy's rope belt and Saria's crate; F's 349 the plateau cluster. Every Δ is within the
+−0.003 rule with two decimal places to spare. The head's frames were captured here from a pure checkout of `3c6cc553`
+(`/tmp/kg/wt-head`), the tip's from this branch, same machine, same settings, an hour apart.
+
+## The tip against the unmerged expansions (17:55)
+
+`dd5a108a` merged into `agent/fable-cursor-exp-north` (`571acd21`) and into `agent/fable-cursor-exp-south2`
+(`066144ad`) in scratch worktrees: no conflicts in either; typecheck green in both; the full suites 148 / 148 (north)
+and 149 / 149 (south2) — the props' south locality stands on the live heightfield both branches extend, and the
+per-camera visibility, contact and corridor assertions hold with their terrain in. (fable-5's 026cbd5b finds the
+expansions conflict with *each other*; lane 9's branch conflicts with none of them.)

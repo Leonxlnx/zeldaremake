@@ -49,7 +49,7 @@ import { plantFeet } from './animation';
 import type { Ground } from './ground';
 import type { Character } from './link';
 import { createFairy, type Fairy } from './navi';
-import { NPC_LOOP, NPC_SEAT, NPC_SOUTH_BANK, type NpcSeat, type NpcWaypoint } from './placement';
+import { NPC_GROVE_YARD, NPC_LOOP, NPC_SEAT, NPC_SOUTH_BANK, type NpcSeat, type NpcWaypoint } from './placement';
 import { resetRig, type Rig } from './rig';
 
 /** what npc.ts needs of the character system's actor */
@@ -74,6 +74,8 @@ export interface NpcOptions {
 export const LEDGE_SLOT = 3;
 /** the kid slot that stands on the south bank's terrace (round 50, `NPC_SOUTH_BANK`) */
 export const BANK_SLOT = 4;
+/** the kid slot that stands in the north grove's yard (lane 7, `NPC_GROVE_YARD`) — no fairy: a sixth light would recompile every lit program */
+export const GROVE_SLOT = 5;
 
 export interface Npcs {
   /** the fairies (added to the character group) */
@@ -686,6 +688,29 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const bankPhase = bankRng.range(0, bankLookPeriod);
   const bankSt: WanderState = { ...wander };
 
+  // -- kokiri-grove-yard: the stand by the north grove's washing line (lane 7, after exp-north landed).
+  // Its rng is a fork of its own (`grove`), drawn after the bank's: nothing above moves. She faces the
+  // line at arm's length: the resting look is level with a little down (the pegs), the look-around
+  // glances along the line both ways and once back over her shoulder toward the trail.
+  const groveChar = chars[GROVE_SLOT] ?? null;
+  const grove = { x: NPC_GROVE_YARD.x, z: NPC_GROVE_YARD.z, yaw: Math.atan2(NPC_GROVE_YARD.lookAt[0] - NPC_GROVE_YARD.x, NPC_GROVE_YARD.lookAt[1] - NPC_GROVE_YARD.z), y: ground.height(NPC_GROVE_YARD.x, NPC_GROVE_YARD.z) };
+  const groveRng = rng.fork('grove');
+  const GROVE_DOWN = -0.06;
+  const groveKeys: [number, number, number][] = [
+    [0, 0, GROVE_DOWN],
+    [0.15, 0, GROVE_DOWN],
+    [0.28, groveRng.range(0.3, 0.55), GROVE_DOWN + groveRng.range(-0.03, 0.03)],
+    [0.42, groveRng.range(0.15, 0.35), GROVE_DOWN],
+    [0.55, -groveRng.range(0.3, 0.5), GROVE_DOWN + groveRng.range(-0.02, 0.04)],
+    [0.7, -groveRng.range(0.9, 1.2), groveRng.range(0.02, 0.08)],
+    [0.82, -groveRng.range(0.2, 0.4), GROVE_DOWN],
+    [0.92, 0, GROVE_DOWN * 0.5],
+    [1, 0, GROVE_DOWN],
+  ];
+  const groveLookPeriod = 17;
+  const grovePhase = groveRng.range(0, groveLookPeriod);
+  const groveSt: WanderState = { ...wander };
+
   // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
   // (lane 7): a light that leaves or joins the scene changes the light count every lit program
   // is keyed on and recompiles them all (the free camera parking on a viewpoint hid the ledge
@@ -770,6 +795,19 @@ export function createNpcs(opts: NpcOptions): Npcs {
         driven.add(BANK_SLOT);
         return true;
       }
+      if (slot === GROVE_SLOT && groveChar) {
+        // in the grove's yard in every mode (80–112 m north of the plaza, outside the six fixed
+        // frustums); no fairy, so nothing to dim
+        actor.pos.set(grove.x, 0, grove.z);
+        actor.yaw = grove.yaw;
+        const [hy, hp] = seatedLook(t, grovePhase, groveKeys, groveLookPeriod);
+        poseLedgeIdle(groveChar.rig, grove.x, grove.z, grove.y, grove.yaw, t, 8.3, hy, hp, groveSt);
+        plantFeet(groveChar.rig, ground.height, actor.contact);
+        noticeFor(groveChar.rig, actor, player);
+        actor.shadow.position.set(grove.x, ground.decalHeight(grove.x, grove.z, actor.shadowRadius), grove.z);
+        driven.add(GROVE_SLOT);
+        return true;
+      }
       if (view) return false;
       if (slot === 0) {
         wanderStateAt(sched, phase0, t, wander);
@@ -830,7 +868,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         npcGirls: chars.filter((c) => c.rig.root.name !== 'kokiri-2').length,
         npcWaypoints: NPC_LOOP.length,
         npcSitting: 1,
-        npcStanding: (ledgeChar ? 1 : 0) + (bankChar ? 1 : 0),
+        npcStanding: (ledgeChar ? 1 : 0) + (bankChar ? 1 : 0) + (groveChar ? 1 : 0),
         npc: {
           loop: { periodS: Number(sched.period.toFixed(3)), lengthM: Number(sched.length.toFixed(3)), segments: sched.segments.length, offLimits, strideM: Number((4 * legLength * Math.sin(AMP)).toFixed(4)), speedRange: [1.0, 1.15] },
           walker: { segment: _st.segment, segmentIndex: _st.segmentIndex, x: Number(_st.x.toFixed(3)), z: Number(_st.z.toFixed(3)), yaw: Number(_st.yaw.toFixed(3)), speed: Number(_st.speed.toFixed(3)), phi: Number(_st.phi.toFixed(3)) },

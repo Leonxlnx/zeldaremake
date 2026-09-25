@@ -351,3 +351,140 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   frame (the strap's own mapped material). Hem left as round 48 made it — it reads.
 - Lesson (an hour lost): `broll.mjs` hides the character group unless `--character` is passed. Every kid render needs it.
 - Posted exp-east's #18 plan against its README table (six props on an `east` locality after the merge).
+- **12:40 — the far-bank look-back (owner "check everything"):** fable-cursor's full check had it at 818 / 9.30 M,
+  "lanes welcome". The props' share: the village locality drawn from 33 m at the old 45 m cull. `b143fab8` sets
+  `CLUSTER_VISIBLE_M` 45 → 30: −11 draws / −90 k tris there, −9 at C (its south props hidden behind the trunk anyway),
+  A / B / D / E / F unchanged — `pose-counts.mjs` on the same merged head, both builds (`props-fable-3/cull-30/`).
+  Lesson: my first comparison put the belt build (pre-#40–#46) against a merged-head build and read +1 at A and a
+  changed canopy — the head's butterflies and veil, not the cull. Compare on one head, always.
+
+## 2026-09-24 12:39 tick (three queued) — "check everything" on my own landings
+
+- Head unchanged since 11:20; no replies; tip unmerged beyond `c35559ab`.
+- Checked: could a contact-AO decal (terrain + 1.2 cm) be buried under flagstones (tops 1.5–2.5 cm proud)? Probed the
+  mask under every prop: no prop stands on the flagstone mask — the stair-foot pots (`paving: true`) are on earth at the
+  paving's edge (path 0 / 0.01), the door pots on the house pad (structure mask), the plaza pots on the plateau mask.
+  A stone lift was written, tested and reverted as dead code; if a future prop stands on stone, lift its decal by
+  `AO_STONE_LIFT ≈ 2 cm` (the slabs' proud height) keyed on `T.mask(x, z).path > 0.18`.
+- Play-mode check: `playtest.mjs --only video` at Saria's side on the merged head — the look sweep drawn every frame:
+  the decals under the bucket, pots and crate hold still (no z-fight, no crawl); walks `plaza-to-upper-house` 6 / 6 and
+  `saria-front-arc` 3 / 3, nothing stuck. Filed in `props-fable-3/contact-ao/`. Note: `--only walk` steps without
+  drawing (no frames); `--only video --video` is the drawn sequence.
+
+## 2026-09-24 13:31 tick — exp-south2 reviewed with the props tip merged
+
+- Head still at 11:20; exp-south2 and a new exp-ruins moving on fable-cursor's side. Built exp-south2 in a worktree,
+  merged my tip into it (clean), rendered three poses on both: the dwellings and the south props clear each other; the
+  toll pile reads as the keeper's stock. Filed `props-fable-3/reviews/`; offered wall-hugging (their pad) and `aoDecal`
+  for their posts. Correction: `62bf7fcd` (marker yaw) has been on the head since 07:20 — I mis-tracked it in two notes.
+- Stopped my own playtest video run (PID 197427, the staircase climb at 25 s/frame) once the Saria-side sweep was in.
+
+## 2026-09-24 14:34 tick — JOB 7's belt, the boy
+
+- Head still at 11:20; exp-south2's README grew its dwellings section (their own firewood, basket, chopping block —
+  #18 done on their side; they name my toll pile as cleared). Nothing addressed to me.
+- `f27b247f` (`buildBoy`): the rope belt is laid rope on a rope canvas (36 turns per wrap), knotted at the front, the
+  ends hanging and fraying — for two flat tori. Before/after at 2.5 m in `people-fable-3/kokiri-girl/`; B to before
+  1.0000 (30 px), vs the reference −0.0001, 630 draws both.
+- Note for the six-view tables from here on: B's reference SSIM is 0.1780 on this head (0.1862 before PRs #40–#46).
+
+## 2026-09-24 15:28 tick — the tip checked against the pure head
+
+- Head still at 11:20 (6 h). exp-north pushed with its own 50-check scores (170–174) and its own dressing; south2 the
+  same — #18 on the new areas is fable-cursor's own. Nothing addressed to me.
+- Ran the pre-merge check of the tip for fable-cursor (slot-starved): counts at A–F + owner poses + far bank (all under
+  budget but the far bank, as before), the six-view capture with checks, then a pure-head worktree build and capture for
+  the head's own frames. Tip vs head: A −0.0002, C −0.0001, else 0; head ↔ tip 0.9998–1.0000. `props-fable-3/tip-check/`.
+- Lesson: for a tip-vs-head SSIM table the head must be captured on the same machine in the same hour — the ledger's
+  last sealed take is two days and 190 draws old, and other agents' numbers come from other boxes.
+
+## 2026-09-24 16:27 tick (queued) — rust on the iron: a FAIL, reverted
+
+- Head still at 11:20 (6 h); nothing addressed to me. `codex/walk-arms-sept24` is a GLB-Link branch off a Sep 22
+  head; it does not touch `link.ts`, so the kids' shared arms / idle are untouched.
+- Tried #20 (nothing brand-new): rust on the hoops and nails via the weathering pass. 4 px, then 10 px at the plateau
+  barrel — the iron material is too dark in shade for a multiplier to lift. Reverted (`10f74475`), documented in
+  `props-fable-3/tried/`, offered the material change to fable-cursor as a look call. Lesson: check the *rendered*
+  value of a surface before planning a vertex-colour pass on it — a multiplier cannot brighten near-black.
+
+## 2026-09-24 17:30 tick — water in the buckets: not committed
+
+- Head still at 11:20; fable-5's re-score notes credit ★16; their merge matrix says every pair of the expansions
+  conflicts (fable-cursor's integration problem). Nothing addressed to me.
+- Tried water in the two pails on the iron material: invisible at both poses (dark on dark, as the rust). Not committed;
+  documented in `props-fable-3/tried/`. Two dark-on-dark misses in a row: the next lane-9 item must start from the
+  rendered value of its surface, not the vertex colour.
+- Integration check: the tip merges clean into exp-north and exp-south2, suites 148 / 148 and 149 / 149 with their
+  terrain. Asked fable-cursor for the next ranked item (or "hold"), the n/a rule and the merge, in one line each.
+- 17:45: fable-cursor's box had been paused 12:35–17:30; at 17:45 they merged this branch to the girls' belt (AO,
+  crates, wear, the belt on the head). Still waiting: the 30 m cull (`b143fab8`), the boy's rope belt (`f27b247f`), the
+  checks. Merged `f37ee307` into the branch (clean; typecheck, build, 145 / 145) — `a8d236eb`.
+
+## 2026-09-24 18:32 tick — the cuffs on the strap canvas
+
+- Head 18:05 (audio, pebbles); merged in clean. fable-cursor reads the INBOX from the head, so my notes since 11:45
+  travel only with this branch — listed them in reading order in the 18:55 note.
+- `f2873e6d`-1 (`buildWristbands`): stitched cuffs on the strap canvas sharing `beltMaterial()` — the belt's own draw
+  given back (A 637 → 636, B 628 → 627 on one head), the cuffs matching the belt at 2.6 m. 160 / 160.
+
+## 2026-09-24 19:24 tick — the seated girl's skirt
+
+- Head 19:10 (squad log); merged. Looked at the sitter at 2 m for the first time since round 48: bare thighs, the
+  flaps a shelf at hip height (red-material diagnostic + Node probes of the skinned mesh via `applyBoneTransform` —
+  remember to load the vertex into the vector first). `83cffdcc`: `SkinBlend` in skin.ts, flaps hips 0.85 / 0.5.
+  Result: the front hangs as an apron; thighs still bare (the flare). Filed honestly; asked fable-cursor for the look call.
+- Lessons: `broll --character` again; a Node probe with a canvas-stub `document` builds a kid in 0.7 s — use it before
+  rendering; the seated pose's thigh pitch is ~45°, not 90° — check the pose's actual numbers before designing for it.
+
+## 2026-09-24 20:31 tick — the seated table, the markers' chevrons
+
+- Head still 19:10. Seated flaps' A / C: 1.0000, draws unchanged. `2b40b289`: chevrons carved into the waymarkers'
+  boards (both faces, pointing their way); readable at 3 m; D 0 px, no other fixed view holds a marker.
+
+## 2026-09-24 21:25 tick — fable-5's look-back item for lane 7
+
+- Head still 19:10. fable-5's 18:04 isolate (their review branch; not on the head yet) ranked the kids' cost at the
+  look-backs: 107–123 draws for five kids at 20–30 px. `0fcc4293`: beyond 25 m no kid shadow and no small parts. Far
+  bank 822 → 765 on my pose, A / B / C unchanged, the frame 0 px. Their `rigMergedMeshes 0` is the old field; explained.
+
+## 2026-09-24 22:28 tick — exp-north on the head; the grove's first person
+
+- exp-north merged at 22:10 (`b9993008`); this branch merged clean, 167 / 167. The hamlet had no people: `664c1bcf`
+  puts a girl at the yard's washing line (GROVE_SLOT 5) on the bank girl's pattern — no fairy (light count), a shared
+  look, 60 m cull, her own rng fork last. +19 draws at the grove's poses, D unchanged; asked fable-cursor to confirm
+  `g-back` at their pose (675 → ≈ 694) and offered the no-shadow flag. Evidence `people-fable-3/grove-girl/`.
+- Lesson: never `&` a build while stashing for the before — check the built JS for the change's string before trusting
+  a before/after pair (I did; the stash build won).
+
+## 2026-09-24 23:31 tick — the grove girl under fable-cursor's play route
+
+- Head unchanged (`b9993008`), nothing to me. Checked the thing my landing could break: their `north-grove` walk with her
+  standing — 28 / 28, 0 stuck, Link 4.0 m from her at the closest. The route's camera spike at the door swings the follow
+  camera over her head at 0.5 m; rendered that orbit at five points (broll, `--character`) — she is never in frame and
+  kids are not camera colliders. Frames from the door and the arrival added to `grove-girl/`; INBOX addendum under 23:05.
+- Method note: `playtest.json` walks carry `camera.spikes[]` with `before/after {link, cam, hit}` — enough to rebuild a
+  spike as a broll shot and look at it, no video needed.
+- Review of the unmerged lanes, the mergeability half: scratch merges show exp-east / exp-south2 / exp-ruins each conflict
+  with the head since exp-north (8 / 9 / 8 files, all changed by the north merge; none mine). My tip adds one trivial
+  hunk on exp-east (`character/index.ts` audit fields, keep both). INBOX 23:55 to fable-cursor cc fable-5. Six views of
+  the tip against the post-grove head running (`dist-headB` / `dist-grove`).
+- 00:22 — the head moved under the capture (the 23:45 merge round, `2f6c8ae2`: canopy closing, per-vertex tread tops,
+  understory LOD — visual). Stopped my tip capture, merged the head (INBOX threads only; rebuilt by heading and sorted),
+  typecheck / build / 185 tests green, built both, captured both (`dist-headC` / `dist-tipC`, ~5.5 min a view tonight).
+  Table in INBOX 02:35: head↔tip 1.0000 on all six, ref Δ ≤ 0.0001, draws −1 / −1 / −10 / 0 / −1 / −1. Lesson: when
+  the head moves mid-capture, restart against the new head rather than finish a table nobody can use.
+
+## 2026-09-25 02:33 tick (three queued) — the PR that was missing
+
+- fable-2's 01:35: "it had no PR, which is why it sat" — the merge rounds work from PRs, and my branch never had one
+  because the PR tool refuses the `agent/` prefix. The tool's prefix override (justified by the loop's own branch rule)
+  went through tonight: **PR #82** on `agent/fable-3-south-props`, base the canonical branch, the list past the head
+  and the six-view table in its description. Merged the 02:15 round first (`0afecbba`, clean; 189 / 189). INBOX 02:50.
+- Lesson, the expensive kind: five hours of "ready" notes were not a PR. A pushed branch without a PR is invisible to the
+  merge round; open the PR the hour the branch is pushed, and if a tool refuses, find the override before writing notes.
+- Review of another lane's PR while my list is empty: fable-cursor's own plan for Astra's PR #59 (apply the four paired
+  files to the head, tests, a play run), done in a scratch worktree. Applies clean (GLB byte-identical, one right
+  three-way hunk), typecheck green, 188 / 189 — squad5's stride guard fails because the PR re-authors the run clip
+  (1.82 → 1.2 m) *and* the controller's speeds (walk 1.6 → 1.2, run 4.6 → 2.2 — the owner's round-47 "faster" reversed;
+  the PR compared to main's 3.3). Walk routes complete, +14 % / +26 % frames; the deepest boot corner on the stairs route
+  −0.046 → −0.122 m. INBOX 02:55 to fable-cursor cc Astra, squad5. Nothing pushed from the worktree.
