@@ -3513,10 +3513,37 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return { kept, groups };
   };
   /**
-   * The giants' tagged far laminae (extractTaggedFoliage) as ONE static BatchedMesh, one instance
-   * per (giant, lobe group) at the identity — the geometry is world space, like the sectors'. Sized
-   * exactly and never changed after build, so its CPU arrays go with the first upload like every
-   * other tree buffer (releaseAfterUpload): no heap, unlike the pooled near-canopy batches.
+   * Which of a geometry's narrowable attributes are in the range the end-of-build compaction
+   * quantises to (colours → Uint8 over [0, 1], wind → Uint16 over [0, 1]; normals always fit). The
+   * compaction decides per geometry, so a sector whose relief bole carries a negative wind term (the
+   * bark AO) keeps Float32 colours and wind for every vertex it holds — its far laminae included.
+   */
+  const narrowLayout = (geometries: BufferGeometry[]): { color: boolean; aWind: boolean } => {
+    const fits = (name: string, lo: number, hi: number) =>
+      geometries.every((g) => {
+        const a = g.attributes[name] as BufferAttribute | undefined;
+        if (!a) return true;
+        if (!(a.array instanceof Float32Array)) return a.normalized;
+        for (let i = 0; i < a.array.length; i++) if (a.array[i] < lo || a.array[i] > hi) return false;
+        return true;
+      });
+    return { color: fits('color', 0, 1), aWind: fits('aWind', 0, 1) };
+  };
+  /** the compaction with a decided layout: normals always, colours and wind only where the decision says so */
+  const compactToLayout = (g: BufferGeometry, layout: { color: boolean; aWind: boolean }) => {
+    compactAttributes(g, 'normal');
+    if (layout.color) compactAttributes(g, 'color');
+    if (layout.aWind) compactAttributes(g, 'aWind');
+  };
+  /**
+   * A sector's tagged far laminae (extractTaggedFoliage) as one static BatchedMesh, one instance per
+   * (giant, lobe group) at the identity — the geometry is world space, like the sectors'. Sized
+   * exactly and never changed after build, so its vertex arrays go with the first upload like every
+   * other tree buffer's (only the index stays, a few MB three reads the element size of per frame):
+   * no heap to speak of, unlike the pooled near-canopy batches. One batch per sector, in the
+   * sector's own attribute layout (`narrowLayout` over the members' full geometries, what the
+   * sector's compaction decided before the laminae left it), so the laminae are quantised exactly
+   * as they were inside the sector mesh; and its `castShadow` is armed by the sector's rule.
    *
    * The fold: `nearCanopyUpdate` names the shown lobes that hold a slot (`shownLobes`) — the only
    * parts the shader folds — and `fold()` marks their instances. They are hidden in the COLOUR pass
@@ -3524,17 +3551,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * before it builds the shadow map's draw list), because the depth programs get an empty slot set
    * today and the shadows are the far foliage's at every distance. Per-instance frustum culling by
    * each group's own padded sphere (finer than the sectors' two height bands). One draw with
-   * WEBGL_multi_draw; the caller builds the batch only where the extension is present.
+   * WEBGL_multi_draw; the caller builds the batches only where the extension is present.
    */
   class FarFoliageBatch {
     readonly mesh: BatchedMesh;
     readonly instances: number;
     readonly vertices: number;
     readonly indices: number;
-    readonly wide: boolean;
+    readonly layout: { color: boolean; aWind: boolean };
     private readonly instanceOf = new Map<string, number>();
     private readonly hidden = new Set<number>();
-    constructor(material: Material, depth: Material, parts: { key: string; geometry: BufferGeometry }[], casts: boolean) {
+    constructor(name: string, material: Material, depth: Material, parts: { key: string; geometry: BufferGeometry }[], layout: { color: boolean; aWind: boolean }, casts: boolean) {
       let v = 0;
       let i = 0;
       for (const p of parts) {
@@ -3544,14 +3571,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       this.instances = parts.length;
       this.vertices = v;
       this.indices = i;
-      // one layout across the batch: the narrow one (normals Int8, colours Uint8, wind Uint16) when
-      // every part is in range, as the sectors' own compaction would have made them; else Float32
-      // colours and wind for all, normals Int8
-      this.wide = parts.some((p) => compactedBytes(p.geometry) !== compactedBytes(p.geometry, true));
-      for (const p of parts) compactAttributes(p.geometry, this.wide ? 'normal' : undefined);
+      this.layout = layout;
+      for (const p of parts) compactToLayout(p.geometry, layout);
       const mesh = new BatchedMesh(Math.max(1, parts.length), Math.max(3, v), Math.max(3, i), material);
       this.mesh = mesh;
-      mesh.name = 'giant-far-foliage-batch';
+      mesh.name = name;
       mesh.customDepthMaterial = depth;
       mesh.castShadow = casts;
       mesh.receiveShadow = true;
@@ -3570,15 +3594,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
       mesh.computeBoundingBox();
       mesh.computeBoundingSphere();
-      releaseAfterUpload(mesh.geometry);
+      // the vertex arrays go with the first upload (releaseAfterUpload's rule); the index stays —
+      // three reads its element size when it lays out the multi-draw starts every frame
+      for (const a of Object.values(mesh.geometry.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
       const proto = BatchedMesh.prototype;
       mesh.onBeforeRender = (renderer, scene, camera, geometry, mat, group) => {
         for (const id of this.hidden) mesh.setVisibleAt(id, false);
         proto.onBeforeRender.call(mesh, renderer, scene, camera, geometry, mat, group);
       };
-      mesh.onBeforeShadow = (renderer, object, camera, shadowCamera, geometry, depthMaterial, group) => {
+      mesh.onBeforeShadow = (renderer, _object, _camera, shadowCamera, geometry, depthMaterial) => {
         for (const id of this.hidden) mesh.setVisibleAt(id, true);
-        proto.onBeforeShadow.call(mesh, renderer, object, camera, shadowCamera, geometry, depthMaterial, group);
+        // three's own onBeforeShadow builds the depth list through `this.onBeforeRender` — the colour hook
+        // above, which would hide the folded lobes again — so the depth list is built here directly
+        (proto.onBeforeRender as unknown as (...args: unknown[]) => void).call(mesh, renderer, null, shadowCamera, geometry, depthMaterial);
       };
     }
     /** the lobes whose far laminae leave the colour pass this frame (`${giant}/${group}` keys; others are ignored) */
@@ -3618,12 +3646,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // the far-foliage batch needs WEBGL_multi_draw to be one draw (three draws the visible instances
   // one by one without it — squad2's +100 calls); where it is missing the fold stays the shader's
   const FAR_FOLIAGE_BATCHED = ctx.renderer.extensions.has('WEBGL_multi_draw');
-  const farParts: { key: string; geometry: BufferGeometry }[] = [];
+  const farFoliage: FarFoliageBatch[] = [];
+  /** the sector geometries whose attribute layout was decided here (the end-of-build compaction leaves them as they are) */
+  const layoutFixed = new Set<BufferGeometry>();
   for (let s = 0; s < GIANT_SECTORS; s++) {
     const members = byAngle.slice(s * perSector, (s + 1) * perSector);
     if (!members.length) continue;
     const label = members.map((m) => m.def.id).join('+');
-    if (FAR_FOLIAGE_BATCHED) {
+    const farParts: { key: string; geometry: BufferGeometry }[] = [];
+    // the sector's layout, decided on the members' full geometries: what the compaction would have
+    // done to the merged mesh with the laminae still in it, applied to both halves below
+    const layout = FAR_FOLIAGE_BATCHED ? narrowLayout(members.map((m) => m.asset.geometry)) : null;
+    if (layout) {
       for (const m of members) {
         const { kept, groups } = extractTaggedFoliage(m.asset, m.def.id);
         m.asset.geometry = kept;
@@ -3659,6 +3693,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.giants = members.map((m) => m.def.id);
     installGroupCulling(mesh, woodBounds);
     groupMeshes.push(mesh);
+    if (layout) {
+      compactToLayout(geometry, layout);
+      layoutFixed.add(geometry);
+      if (farParts.length) {
+        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows);
+        batch.mesh.userData.giants = members.map((m) => m.def.id);
+        farFoliage.push(batch);
+        giantGroup.add(batch.mesh);
+      }
+    }
     const canopy = new Mesh(cardGeometry, mats.giantCanopy);
     canopy.name = `giants-canopy-${s}-${label}`;
     canopy.customDepthMaterial = mats.giantCanopyDepth;
@@ -3668,8 +3712,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     giantGroup.add(mesh, canopy);
     sectorMeshes.push(mesh, canopy);
   }
-  const farFoliage = farParts.length ? new FarFoliageBatch(mats.giantTree, mats.giantTreeDepth, farParts, ctx.quality.shadows) : null;
-  if (farFoliage) giantGroup.add(farFoliage.mesh);
   // The laminae of the authored lobes marked `castShadow: false` (round 31: the plateau-oak's
   // shot-D curtains, clump and plugs, the lantern tree's clump — 51 k eye-detail laminae, 0.42 M
   // triangles) in one mesh of their own that never casts (submitGiants skips it). Merged into a
@@ -4258,10 +4300,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       sphere.radius += CULL_PAD_M;
       mesh.castShadow = shadowReaches(sphere);
     }
-    if (farFoliage) {
-      sphere.copy(farFoliage.mesh.boundingSphere!);
+    for (const batch of farFoliage) {
+      sphere.copy(batch.mesh.boundingSphere!);
       sphere.radius += CULL_PAD_M;
-      farFoliage.mesh.castShadow = shadowReaches(sphere);
+      batch.mesh.castShadow = shadowReaches(sphere);
     }
   };
   /** trim every bucket for `camera`; skipped while the view-projection is unchanged (unless forced) */
@@ -4440,7 +4482,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     // the giants' slotted lobes' far laminae leave the colour pass (FarFoliageBatch) — the same set the
     // slots fold; the columns' keys name no instance and fold in the shader as before
-    farFoliage?.fold(shownLobes.map((nc) => `${nc.tree}/${nc.group}`));
+    if (farFoliage.length) {
+      const keys = shownLobes.map((nc) => `${nc.tree}/${nc.group}`);
+      for (const batch of farFoliage) batch.fold(keys);
+    }
   };
   // the detached boughs' gate (see detachedGroup): the casters' spheres once, tested per pose
   const detachedSpheres = detachedCasters.flatMap((c) => casterSpheres(c, sunDir));
@@ -4543,7 +4588,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const nc of nearCanopies) if (nc.mesh) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
     if (nearCanopyBatch) add(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
     if (columnNearCanopyBatch) add(family('column-near-canopy-batch'), columnNearCanopyBatch.mesh);
-    if (farFoliage) add(family('giant-far-foliage-batch'), farFoliage.mesh);
+    for (const batch of farFoliage) add(family('giant-far-foliage-batch'), batch.mesh);
     if (detachedGroup.visible) for (const m of detachedMeshes) add(family(m.userData.kind as string), m);
     const total = tally();
     for (const t of Object.values(byFamily)) {
@@ -4674,7 +4719,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45 (item 5): a cluster card's coverage by |cos(normal, view ray)| — [gone at, full from] for the ordinary and the flat-shaded cards (materials.ts CARD_EDGE_FADE) */
       cardEdgeFade: { cards: CARD_EDGE_FADE, flat: CARD_FLAT_EDGE_FADE },
       /** the giants' geometries: sectors, authored leaves / cards, plus their pooled near bases and near-canopy parts */
-      giantMeshes: sectorGeometries.length + (farFoliage ? 1 : 0) + giants.reduce((n, g) => n + (g.asset.nearBase ? 1 : 0) + g.asset.nearCanopy.length, 0),
+      giantMeshes: sectorGeometries.length + farFoliage.length + giants.reduce((n, g) => n + (g.asset.nearBase ? 1 : 0) + g.asset.nearCanopy.length, 0),
       giantCrownRadii: giants.map((g) => Math.round(g.asset.crownRadius * 10) / 10),
       /**
        * near-bole bark (bole.ts) per giant within NEAR_BOLE_M of a hero camera:
@@ -4903,11 +4948,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         batch: nearCanopyBatch ? { ...nearCanopyBatch.stats, heapBytes: nearCanopyBatch.heapBytes } : null,
         columnBatch: columnNearCanopyBatch ? { ...columnNearCanopyBatch.stats, heapBytes: columnNearCanopyBatch.heapBytes } : null,
         /**
-         * round 54: the giants' tagged far laminae (FarFoliageBatch) — instances (one per giant lobe group),
-         * vertices / indices, whether colours and wind stayed Float32, the instances the colour pass
-         * leaves out this frame and their triangles (what the fold used to submit), the CPU arrays held
+         * round 54: the giants' tagged far laminae (FarFoliageBatch), one batch per sector — instances (one
+         * per giant lobe group), vertices / indices, the sector's layout (colours / wind narrow or Float32),
+         * the instances the colour pass leaves out this frame and their triangles (what the fold used to
+         * submit), the CPU arrays still held (the index), whether the batch casts this frame
          */
-        farBatch: farFoliage ? { instances: farFoliage.instances, vertices: farFoliage.vertices, indices: farFoliage.indices, wide: farFoliage.wide, folded: farFoliage.folded, foldedTriangles: farFoliage.foldedTriangles, heapBytes: farFoliage.heapBytes } : null,
+        farBatches: farFoliage.map((b) => ({ name: b.mesh.name, instances: b.instances, vertices: b.vertices, indices: b.indices, layout: b.layout, folded: b.folded, foldedTriangles: b.foldedTriangles, heapBytes: b.heapBytes, casting: b.mesh.castShadow })),
         /** Measured bytes after a first build; deferred records retain conservative estimates. */
         builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
         estimatedUnbuiltBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? 0 : nc.item.bytes), 0),
@@ -5007,7 +5053,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (!g.boundingSphere) g.computeBoundingSphere();
     if (!compacted.has(g)) {
       compacted.add(g);
-      compactAttributes(g);
+      // a sector whose layout was decided with its far laminae (FarFoliageBatch) keeps that decision
+      if (!layoutFixed.has(g)) compactAttributes(g);
     }
     releaseAfterUpload(g);
   });
@@ -5064,7 +5111,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearCanopyPool.dispose();
       nearBasePool.dispose();
       for (const g of sectorGeometries) g.dispose();
-      farFoliage?.mesh.dispose();
+      for (const batch of farFoliage) batch.mesh.dispose();
       for (const g of detachedGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
       // the mid crowns share the far layer's atlas: dispose the material, not the map (once, above)
