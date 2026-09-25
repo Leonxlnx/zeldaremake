@@ -313,7 +313,7 @@ if a.spectro:
     d = ImageDraw.Draw(im)
     f14, f17, f22 = font(14), font(17), font(22)
     d.text((28, 20), 'Running in through the log arch: the bed, and when its top comes off', font=f22, fill=INK)
-    d.text((28, 48), f"{take['note']} \u2014 4.2 m/s, gust held at {report['gust']}. Same seed and path, so the birds and the leaves land together in both.", font=f14, fill=DIM)
+    d.text((28, 48), f"{take['note']} \u2014 4.2 m/s. Same seed, path and held gust, so the leaves and birds land together.", font=f14, fill=DIM)
     for k, tag in enumerate(('before', 'after')):
         img, edges = spectrogram(os.path.join(a.takes, f'bore-run-bed-{tag}.wav'), report['lead'], secs, ROWS, COLS)
         y0 = 90 + k * (ROWS + 50)
