@@ -83,3 +83,19 @@ Two batches by attribute layout — a narrow one for the parts whose colours and
 not — at camera A on the large tier: narrow 249 parts / 1.85 M vertices / 134 MB + wide 37 / 285 K / 35 MB = **169 MB against
 171 MB with one batch**. The index (Uint32, a third of the bytes) and the reserve's slack are the weight, not the two Float32
 attributes. Reverted (`3eaa576b`); the trim stays (PR #117). The batch's heap is inherent: ~1.2–1.5 × the giants' resident bytes.
+
+## The page's memory, the way fable-2 measures it (`performance.memory` after a forced GC, 24 settle frames) — 12:35
+
+The head `905d55ea` built twice, `NEAR_CANOPY_BATCHED` on and off:
+
+| tier | pose | batch off (used MB) | batch on | **delta** | the batch's own arrays (`batch.heapBytes`) |
+|---|---|---|---|---|---|
+| large (cap 256 MB) | A_stairs | 1332.3 | 1420.0 | **+88 MB** | 199.8 MB |
+| large | owner-0650-north | 1305.7 | 1395.8 | **+90 MB** | 199.8 MB |
+| small (cap 64 MB) | A_stairs | 1276.7 | 1323.1 | **+46 MB** | 102.3 MB |
+
+The page grows by less than the batch's arrays because the per-mesh path is not free of them either: a resident part that has not
+yet been drawn keeps its own arrays on the heap until its first upload (`releaseAfterUpload` fires then), and at A most of the
+379 resident parts are not in view. The batch replaces those with its one copy. So the cost of the merged batch, in the units of
+fable-2's #115 (which gave 46 MB back): **+88 MB on the large tier, +46 MB on the small, at the plaza** — for −12…−26 draws at the
+six views and −44 at the look-backs.
