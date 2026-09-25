@@ -47,6 +47,12 @@ export interface AmbienceState {
   fairies?: readonly Vec3[];
   /** 0 out in the open, 1 with wood closed over the listener (inside the log tunnel's bore) */
   enclosure?: number;
+  /**
+   * How much solid wood stands between the listener and a world point, 0 … 1 (`occlusionAt` in
+   * index.ts). A callback rather than a number because it is asked per source, not per listener —
+   * the bird on his left may be behind a bole while the one ahead is not.
+   */
+  occlude?: (x: number, z: number) => number;
   /** 0 under open sky, 1 under a closed canopy (index.ts `surfaceAt`) */
   canopy?: number;
   /** the direction the wind travels (unit xz, `wind.direction`) — the canopy roll comes from upwind */
@@ -83,6 +89,8 @@ export interface AmbienceStats {
    * recording can answer.
    */
   birdSpots: [BirdKind, number, number][];
+  /** how much wood stood between him and the last bird that called, 0 … 1 */
+  birdShadow: number;
 }
 /** how many calls back `birdSpots` remembers */
 export const BIRD_SPOT_MEMORY = 24;
@@ -97,6 +105,28 @@ export const BIRD_SPOT_MEMORY = 24;
  * he is somewhere else. `FALL_AUDIBLE_M` is 42 m for a waterfall; a bird carries less far than that.
  */
 export const PERCH_RESEED_M = 25;
+
+/**
+ * How far away a perch at `distance` 1 is, in metres.
+ *
+ * A bird's `distance` is a 0–1 shorthand for "overhead" to "deep in the wood" and shapes its
+ * brightness and its share of the hall. Occlusion needs it as a place, because a bole only shadows
+ * what is behind it. Set just past `PERCH_RESEED_M`: the birds a listener has are the ones within
+ * the radius that walking re-seeds, so the furthest of them sits at about the edge of it.
+ */
+export const PERCH_FAR_M = 28;
+
+/**
+ * What a full shadow does to a call: how much of its level it keeps, and how far its top comes down.
+ *
+ * Not symmetrical, because a shadow is not a fader. An obstacle wide enough to matter removes the
+ * high end far harder than the low — through the median 3.1 m of wood in this world the Fresnel
+ * number is 32 for a distant bird and 126 for a near one, but only 2.4 at the pod flame's husk,
+ * which bends round it (`art/audio/2026-09-25-occlusion/`). So the top falls by more than a factor
+ * of five and the level by six decibels, and the two together are what "behind a tree" sounds like.
+ */
+export const OCCLUSION_DUCK = 0.5;
+export const OCCLUSION_TOP = 0.18;
 
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
 export const LANTERN_REACH_M = 1.3;
@@ -375,13 +405,15 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
-  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [] };
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [], birdShadow: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
   /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
   let canopyNow = 0;
   /** which way he was facing, likewise: the perches keep a world bearing, not a stereo position */
   let forwardNow = { x: 0, z: 1 };
+  /** the world's occluders as of the last update; null until one arrives, so the bed still runs headless */
+  let occludeNow: ((x: number, z: number) => number) | null = null;
 
   /**
    * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
@@ -435,11 +467,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * A bird heard from `distance` (0 = overhead, 1 = deep in the wood): the air takes its top off,
    * the level falls and more of it arrives through the hall. Every call is built on this.
    */
-  const birdVoice = (t: number, pan: number, distance: number, end: number) => {
+  const birdVoice = (t: number, pan: number, distance: number, end: number, occlusion = 0) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     const hp = filter(ctx, 'highpass', 320, 0.5);
-    const lp = filter(ctx, 'lowpass', 7000 - 5200 * distance, 0.6);
+    // a bole between them takes the top off far harder than it takes the level (see OCCLUSION_TOP)
+    const lp = filter(ctx, 'lowpass', (7000 - 5200 * distance) * Math.pow(OCCLUSION_TOP, occlusion), 0.6);
     const g = gain(ctx, 0);
     g.connect(hp);
     hp.connect(lp).connect(panner).connect(out);
@@ -453,15 +486,16 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     return { voice: g, air: hp as AudioNode };
   };
 
-  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number) => {
+  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number, occlusion = 0) => {
     counts.birds++;
     counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3))]);
     if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
+    counts.birdShadow = Number(occlusion.toFixed(3));
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
-    const lv = level * (1 - 0.66 * distance);
+    const lv = level * (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
     const soft = 1 + distance * 1.6;
     let end = t + 1.6;
-    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6);
+    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6, occlusion);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.connect(g);
@@ -662,6 +696,19 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   };
   /** the bearing of a perch as the listener is facing now: −1 hard left, +1 hard right */
   const perchPan = (p: { dirX: number; dirZ: number }) => panFor(forwardNow, { x: p.dirX, z: p.dirZ }) * PERCH_PAN;
+  /**
+   * How much wood stands between him and a perch, right now.
+   *
+   * The perch is a bearing and a distance from where the birds were last seeded, which makes it a
+   * place — so this is asked at the moment the call is scheduled rather than when the bird was put
+   * there. Walking behind a bole has to change what the bird on the other side of it sounds like,
+   * and the anchor does not move while he does (`PERCH_RESEED_M`).
+   */
+  const perchShadow = (p: { dirX: number; dirZ: number; distance: number }) => {
+    if (!occludeNow || !perchAnchor) return 0;
+    const m = p.distance * PERCH_FAR_M;
+    return occludeNow(perchAnchor.x + p.dirX * m, perchAnchor.z + p.dirZ * m);
+  };
 
   // its own stream: the lull trigger is drawn from `update`, whose call rate differs between the
   // live tick and an offline render, and it must not shift what the schedulers draw
@@ -674,13 +721,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const p = perches[i];
       lastPerch = i;
       const level = 0.03 + eventRng() * 0.045;
-      birdCall(p.kind, nextBird, perchPan(p), level, p.distance);
+      birdCall(p.kind, nextBird, perchPan(p), level, p.distance, perchShadow(p));
       // and sometimes another answers — a different bird in its own tree, not this one mirrored
       if (eventRng() < 0.3 && perches.length > 1) {
         const j = pickPerch(i);
         const q = perches[j];
         lastPerch = j;
-        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchPan(q), level * 0.6, q.distance);
+        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchPan(q), level * 0.6, q.distance, perchShadow(q));
       }
       // Birds shelter and stop calling in a blow, and sing when it drops. Measured, the world's
       // wind falls under the gust knee about twice a minute for three seconds at a time
@@ -711,6 +758,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
     const fl = Math.hypot(s.forward.x, s.forward.z) || 1;
     forwardNow = { x: s.forward.x / fl, z: s.forward.z / fl };
+    occludeNow = s.occlude ?? null;
     // a different part of the wood holds different birds (PERCH_RESEED_M)
     if (!perchAnchor || Math.hypot(s.listener.x - perchAnchor.x, s.listener.z - perchAnchor.z) > PERCH_RESEED_M) seedPerches(s.listener);
     const sw = swell(gust);
