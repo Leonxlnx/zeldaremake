@@ -364,21 +364,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * the village, its log and huts, the expansion, the south bridge, the north and the grove, all
    * 30–95 m off down the stair bank. The six fixed cameras stand outside the zone.
    */
-  const farCasters: Mesh[] = [];
-  const collectFarCasters = (o: Object3D) => {
+  const eastZoneCasters: Mesh[] = [];
+  const collectEastZoneCasters = (o: Object3D) => {
     if (o === east.group) return;
-    if ((o as Mesh).isMesh && (o as Mesh).castShadow) farCasters.push(o as Mesh);
-    for (const c of o.children) collectFarCasters(c);
+    if ((o as Mesh).isMesh && (o as Mesh).castShadow) eastZoneCasters.push(o as Mesh);
+    for (const c of o.children) collectEastZoneCasters(c);
   };
-  collectFarCasters(group);
-  let farShadowsOff = false;
-  const scopeFarShadows = (p: Vector3) => {
+  collectEastZoneCasters(group);
+  let inEastZoneNow = false;
+  const scopeEastZone = (p: Vector3) => {
     const off = inEastZone(p);
-    if (off === farShadowsOff) return;
-    farShadowsOff = off;
-    for (const m of farCasters) m.castShadow = !off;
+    if (off === inEastZoneNow) return;
+    inEastZoneNow = off;
+    for (const m of eastZoneCasters) m.castShadow = !off;
   };
-  scopeFarShadows(ctx.camera.position);
+  scopeEastZone(ctx.camera.position);
   /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
@@ -522,7 +522,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       list: villageShadowLod.map((p) => ({ name: p.name, fine: p.fine, coarse: p.coarse, cell: p.cell, farM: +p.farM.toFixed(1) })),
     },
     /** exp-east: the casters outside the east lane, which stop casting while the camera is on the east plateau (util/eastLane.ts EAST_ZONE) */
-    eastZone: { zone: EAST_ZONE, casters: farCasters.length, inside: farShadowsOff },
+    eastZone: { zone: EAST_ZONE, casters: eastZoneCasters.length, inside: inEastZoneNow },
     /** exp-east: per village room (house.ts HOUSE_CLONES door plane), its meshes / triangles and whether they draw for the current camera */
     villageRooms: [...villageRooms.values()].map((r) => ({
       door: r.point.toArray().map((v) => +v.toFixed(2)),
@@ -613,7 +613,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
       scopeVillageTufts(c.camera.position.x, c.camera.position.z);
       scopeVillageRooms(c.camera.position);
-      scopeFarShadows(c.camera.position);
+      scopeEastZone(c.camera.position);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
@@ -624,7 +624,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     onCameraMove(camera) {
       scopeVillageTufts(camera.position.x, camera.position.z);
       scopeVillageRooms(camera.position);
-      scopeFarShadows(camera.position);
+      scopeEastZone(camera.position);
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
