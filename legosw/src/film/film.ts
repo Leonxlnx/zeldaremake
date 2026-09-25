@@ -1,16 +1,9 @@
-import {
-  DirectionalLight,
-  HemisphereLight,
-  PerspectiveCamera,
-  Scene,
-  Vector3,
-} from 'three';
+import { Quaternion, Vector3 } from 'three';
 import { DEFAULT_LENS, type Lens, type Pipeline } from '../render/pipeline';
-import { makeEnvironment, SPACE_ENV } from '../render/env';
-import { bakeNebula, makeStars } from '../world/sky';
-import { makeCoruscant } from '../world/planet';
 import type { FilmUI } from '../ui';
-import { testBricks } from '../assets/testBricks';
+import { World } from './world';
+import { FILM_DURATION, SHOTS, scheduleBattle, shotAt, type Cam } from './shots';
+import { renderSoundtrack } from '../audio/soundtrack';
 
 export interface Film {
   duration: number;
@@ -20,36 +13,121 @@ export interface Film {
 }
 
 export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> {
-  const scene = new Scene();
-  const camera = new PerspectiveCamera(40, 2.39, 0.1, 3e6);
-  const sun = new Vector3(0.5, 0.35, -0.8).normalize();
-  scene.background = bakeNebula(pipeline.renderer);
-  scene.add(makeStars());
-  scene.environment = makeEnvironment(pipeline.renderer, SPACE_ENV([sun.x, sun.y, sun.z]));
-  const planet = makeCoruscant({ radius: 120000, center: new Vector3(0, -132000, 0), sunDir: sun });
-  scene.add(planet.group);
-  const key = new DirectionalLight(0xfff0dc, 2.8);
-  key.position.copy(sun).multiplyScalar(100);
-  key.layers.enableAll();
-  scene.add(key);
-  const hemi = new HemisphereLight(0x1c2a44, 0x5d7aa8, 0.5);
-  hemi.layers.enableAll();
-  scene.add(hemi);
-  const obj = testBricks();
-  scene.add(obj);
+  const w = new World(pipeline);
+  // schedule every shot's time-pure effects, plus the background slugfest
+  scheduleBattle(w, 19, SHOTS.find((s) => s.name === 'hangar-approach')!.start! + 4);
+  for (const s of SHOTS) s.schedule?.(w, s.start!);
+  w.fx.build();
+
+  // homes of parts that shots detach / animate, so every frame starts from the same state
+  const homes: { o: import('three').Object3D; pos: Vector3; quat: Quaternion; vis: boolean }[] = [];
+  const remember = (o: import('three').Object3D) => homes.push({ o, pos: o.position.clone(), quat: o.quaternion.clone(), vis: o.visible });
+  remember(w.r4.head);
+  remember(w.r2.head);
+  for (const b of w.buzz) remember(b.head);
+  for (const p of w.obiwanShip.breakables) remember(p);
+  for (const p of w.anakinShip.breakables) remember(p);
+
+  const camera = w.camera;
   const lens: Lens = { ...DEFAULT_LENS };
+
+  function pose(T: number): { cam: Cam; card: boolean } {
+    for (const h of homes) {
+      h.o.position.copy(h.pos);
+      h.o.quaternion.copy(h.quat);
+      h.o.visible = h.vis;
+    }
+    w.reset();
+    w.space();
+    const { shot, t } = shotAt(T);
+    const cam = shot.pose(w, t, T);
+    w.fx.update(T, pipeline.height / 804);
+    return { cam, card: !!shot.card };
+  }
+
+  function applyCamera(cam: Cam): void {
+    camera.position.copy(cam.pos);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(cam.target);
+    if (cam.roll) camera.rotateZ(cam.roll);
+    camera.fov = cam.fov;
+    camera.near = cam.near ?? 0.3;
+    camera.far = 3e6;
+    camera.aspect = pipeline.width / pipeline.height;
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+  }
+
+  function overlays(T: number): void {
+    const { shot, t } = shotAt(T);
+    // subtitles
+    let sub: { who: string; text: string; a: number } | null = null;
+    for (const l of shot.lines ?? []) {
+      if (t >= l.t0 && t <= l.t1) sub = { who: l.who, text: l.text, a: Math.min(1, (t - l.t0) / 0.08, (l.t1 - t) / 0.08) };
+    }
+    ui.setSubtitle(sub?.who ?? null, sub?.text ?? null, sub?.a ?? 0);
+    // cards and fades
+    let fade = 0;
+    let far = 0;
+    let end = 0;
+    if (shot.name === 'farfar') {
+      fade = 1;
+      far = Math.min(1, Math.max(0, (t - 0.4) / 0.8)) * Math.min(1, Math.max(0, (4.1 - t) / 0.7));
+    } else if (shot.name === 'endcard') {
+      fade = 1;
+      end = Math.min(1, Math.max(0, (t - 0.3) / 0.8)) * Math.min(1, Math.max(0, (4.4 - t) / 0.6));
+    } else {
+      // short dips to black at the act changes
+      const s = shot.start!;
+      if (shot.name === 'crawl') fade = Math.max(0, 1 - (T - s) / 1.0);
+      if (shot.name === 'landing') fade = Math.max(0, 1 - (T - s) / 0.25);
+    }
+    ui.setFade(fade);
+    ui.setCards(far, end, '<div><div style="font-size:0.55em;letter-spacing:0.35em;color:#e9e3cf;margin-bottom:0.5em">EPISODE III</div>REVENGE OF THE SITH<div style="font-size:0.32em;letter-spacing:0.3em;color:#9aa3ad;margin-top:1.6em">A BRICK-BUILT BATTLE OVER CORUSCANT</div></div>');
+  }
+
   return {
-    duration: 10,
-    renderAt(t) {
-      camera.aspect = pipeline.width / pipeline.height;
-      const a = t * 0.2;
-      camera.position.set(Math.sin(a) * 18, 6, Math.cos(a) * 18);
-      camera.lookAt(0, 0, 0);
-      camera.updateProjectionMatrix();
-      ui.setSubtitle('Obi-Wan Kenobi', 'Hello, there!');
-      pipeline.render(scene, camera, lens, { time: t });
+    duration: FILM_DURATION,
+    renderAt(T, o = {}) {
+      overlays(T);
+      const first = pose(T);
+      applyCamera(first.cam);
+      Object.assign(lens, DEFAULT_LENS, first.cam.lens ?? {});
+      if (first.card) {
+        pipeline.renderer.setRenderTarget(null);
+        pipeline.renderer.setClearColor(0x000000, 1);
+        pipeline.renderer.clear();
+        return;
+      }
+      const n = Math.max(1, o.subframes ?? 1);
+      const shutter = o.shutter ?? 0.5;
+      const fps = o.fps ?? 24;
+      pipeline.render(w.scene, camera, lens, {
+        time: T,
+        subframes: n,
+        setSub: (k, count) => {
+          const Ts = T + ((k + 0.5) / count - 0.5) * (shutter / fps);
+          const p = pose(Ts);
+          applyCamera(p.cam);
+        },
+      });
     },
-    shots: () => [{ name: 'test', start: 0, end: 10 }],
-    renderAudio: async () => '',
+    shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur })),
+    renderAudio: () =>
+      renderSoundtrack({
+        shots: SHOTS,
+        duration: FILM_DURATION,
+        camAt: (() => {
+          const cache = new Map<number, Vector3>();
+          return (T: number) => {
+            const k = Math.round(T * 5);
+            let p = cache.get(k);
+            if (!p) cache.set(k, (p = pose(k / 5).cam.pos.clone()));
+            return p;
+          };
+        })(),
+        lasers: w.fx.lasers.events,
+        explosions: w.fx.explosions,
+      }),
   };
 }

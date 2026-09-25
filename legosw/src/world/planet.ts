@@ -1,9 +1,11 @@
 import { AdditiveBlending, Color, FrontSide, Group, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
 
 /**
- * Coruscant: a planet-wide city seen from low orbit. Procedural in world space (no seams, detail at
- * every altitude): district tones and avenue grids on the day side, amber street-light networks on
- * the night side, a warm terminator, a hazed limb and a thin blue atmosphere shell.
+ * Coruscant from low orbit: a planet-wide city. The surface shader works in the local tangent
+ * plane under the fleet (the visible cap is small), with district-rotated street grids at three
+ * scales, block rooftops and towers, amber street-light networks on the night side, a warm
+ * terminator, high cloud wisps, altitude-aware aerial haze and a thin glowing atmosphere shell.
+ * Every scale fades out by its pixel footprint, so nothing aliases at the horizon.
  */
 export interface PlanetHandle {
   group: Group;
@@ -12,11 +14,14 @@ export interface PlanetHandle {
   setSun(dir: Vector3): void;
 }
 
-const NOISE = /* glsl */ `
-float h3(vec3 p){ p = fract(p * vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yxz + 33.33); return fract((p.x + p.y) * p.z); }
-float vn(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f*f*(3.0-2.0*f);
-  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x), mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
-             mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x), mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y), f.z); }
+const CITY = /* glsl */ `
+float h2(vec2 p){ p = fract(p * vec2(0.1031, 0.1030)); p += dot(p, p.yx + 33.33); return fract((p.x + p.y) * p.x); }
+float vn(vec2 x){ vec2 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
+  return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
+float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a * vn(p); p = mat2(1.6, 1.2, -1.2, 1.6) * p + 7.3; a *= 0.5; } return s; }
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+// distance to the nearest grid line of spacing S (in the same units as x)
+float gridD(vec2 x, float S){ vec2 g = abs(fract(x / S) - 0.5) * S; return min(g.x, g.y); }
 `;
 
 export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vector3 }): PlanetHandle {
@@ -36,54 +41,65 @@ export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vect
     fragmentShader: /* glsl */ `
       uniform vec3 sunDir; uniform vec3 center; uniform float R;
       varying vec3 vWorld; varying vec3 vN;
-      ${NOISE}
-      float gridLine(vec3 q, float S, float w){
-        vec3 g = abs(fract(q / S) - 0.5) * S;
-        float m = min(min(g.x, g.y), g.z);
-        float fw = fwidth(m) * 1.2 + 1e-3;
-        float fade = 1.0 - smoothstep(0.25, 0.9, fwidth(q.x) / S * 6.0);
-        return (1.0 - smoothstep(w, w + fw, m)) * fade;
-      }
+      ${CITY}
       void main(){
         vec3 n = normalize(vN);
-        vec3 q = vWorld - center;
         vec3 v = normalize(cameraPosition - vWorld);
         float ndl = dot(n, sunDir);
-        float px = length(fwidth(q));
-        // districts
-        float d1 = vn(q / 21000.0);
-        float d2 = vn(q / 6100.0 + 3.1);
-        float d3 = vn(q / 1700.0 + 7.7);
-        float d4 = vn(q / 480.0 + 1.3) * (1.0 - smoothstep(60.0, 200.0, px));
-        float dist = d1 * 0.45 + d2 * 0.3 + d3 * 0.17 + d4 * 0.08;
-        vec3 albedo = mix(vec3(0.20, 0.21, 0.23), vec3(0.42, 0.40, 0.37), smoothstep(0.25, 0.75, dist));
-        albedo = mix(albedo, vec3(0.30, 0.34, 0.40), smoothstep(0.55, 0.9, d2) * 0.5);
-        float avenues = gridLine(q + vec3(d1 * 900.0), 2600.0, 70.0) * 0.8 + gridLine(q * 1.013 + 400.0, 720.0, 14.0) * 0.45;
-        albedo *= 1.0 - avenues * 0.45;
-        // towers catch light: sparkle grain
-        float grain = vn(q / 140.0) * (1.0 - smoothstep(20.0, 70.0, px));
-        albedo *= 0.9 + grain * 0.2;
+        // tangent-plane coordinates (the fleet sits over the planet's north pole)
+        vec2 p = (vWorld - center).xz;
+        float px = max(length(fwidth(p)), 1e-3);
+        // districts: large tone patches, each with its own street-grid orientation
+        vec2 dc = floor(p / 5200.0);
+        float dh = h2(dc);
+        vec2 pr = rot(dh * 3.14159) * p;
+        float big = fbm(p / 14000.0);
+        float mid = fbm(p / 3100.0 + 9.1);
+        // three street scales with pixel-footprint fades
+        float f1 = 1.0 - smoothstep(0.08, 0.35, px / 900.0);
+        float f2 = 1.0 - smoothstep(0.08, 0.35, px / 220.0);
+        float f3 = 1.0 - smoothstep(0.08, 0.35, px / 60.0);
+        float s1 = (1.0 - smoothstep(9.0, 9.0 + px * 1.5, gridD(pr, 900.0))) * f1;
+        float s2 = (1.0 - smoothstep(2.6, 2.6 + px * 1.5, gridD(pr + 37.0, 220.0))) * f2;
+        float s3 = (1.0 - smoothstep(0.8, 0.8 + px * 1.5, gridD(pr + 11.0, 60.0))) * f3;
+        float streets = max(s1 * 0.35, max(s2 * 0.6, s3 * 0.5));
+        // rooftops: per-block albedo, towers, plazas
+        float roof1 = h2(floor(pr / 220.0) + 3.0);
+        float roof2 = h2(floor(pr / 60.0) + 7.0);
+        float roof = mix(0.5, roof1, f2 * 0.42);
+        roof = mix(roof, roof * 0.7 + roof2 * 0.3, f3 * 0.8);
+        roof = mix(roof, vn(pr / 90.0 + 5.0), 0.35 * f3);
+        vec3 alb = mix(vec3(0.13, 0.14, 0.16), vec3(0.3, 0.29, 0.27), roof);
+        alb = mix(alb, alb * vec3(0.78, 0.86, 1.05), smoothstep(0.4, 0.75, big));
+        alb = mix(alb, alb * vec3(1.12, 0.98, 0.84), smoothstep(0.5, 0.85, mid) * 0.8);
+        float dark = smoothstep(0.52, 0.7, fbm(p / 5200.0 + 2.0));
+        alb *= (0.6 + 0.7 * big) * (1.0 - dark * 0.45);
+        alb *= 1.0 - streets * 0.45;
         // lighting
-        float day = smoothstep(-0.06, 0.25, ndl);
-        vec3 sun = vec3(1.0, 0.93, 0.82) * 1.6;
-        vec3 col = albedo * (sun * max(ndl, 0.0) + vec3(0.05, 0.07, 0.11));
-        // terminator glow
-        col += vec3(0.55, 0.22, 0.06) * exp(-pow(ndl * 9.0, 2.0)) * 0.25 * albedo * 2.0;
-        // night lights
-        float cluster = smoothstep(0.35, 0.8, d2 * 0.6 + d3 * 0.4);
-        float lights = avenues * (0.5 + cluster) + smoothstep(0.62, 0.9, d3) * 0.35 + step(0.985, h3(floor(q / 90.0))) * (1.0 - smoothstep(30.0, 90.0, px)) * 1.5;
-        float night = 1.0 - smoothstep(-0.12, 0.08, ndl);
-        col += vec3(1.0, 0.62, 0.28) * lights * night * 1.6;
-        col += vec3(1.0, 0.7, 0.4) * lights * (1.0 - night) * 0.06;
-        // aerial haze toward the limb
-        float mu = clamp(dot(n, v), 0.0, 1.0);
-        float haze = pow(1.0 - mu, 2.6);
-        vec3 hazeCol = mix(vec3(0.03, 0.05, 0.1), vec3(0.45, 0.62, 0.95), smoothstep(-0.2, 0.4, ndl));
-        col = mix(col, hazeCol, haze * 0.85);
+        vec3 sun = vec3(1.0, 0.84, 0.66) * 1.9;
+        vec3 col = alb * (sun * max(ndl, 0.0) + vec3(0.035, 0.05, 0.09));
+        col += vec3(0.5, 0.2, 0.06) * exp(-pow(ndl * 10.0, 2.0)) * 0.35 * (alb + 0.1);
+        // night: street-light networks + scattered lit towers
+        float night = 1.0 - smoothstep(-0.12, 0.06, ndl);
+        float cluster = smoothstep(0.35, 0.75, mid * 0.6 + big * 0.5);
+        float spark = step(0.93, h2(floor(pr / 60.0) + 1.7)) * f3 + step(0.9, h2(floor(pr / 220.0) + 5.1)) * f2 * 0.6;
+        float lights = (s1 * 1.4 + s2 * 0.9 + s3 * 0.45) * (0.35 + cluster) + spark * (0.4 + cluster);
+        lights += (1.0 - f2) * (0.08 + cluster * 0.35) + (1.0 - f1) * 0.12 * cluster;
+        col += vec3(1.0, 0.6, 0.26) * lights * night * 1.25;
+        // clouds (day side bright, night side dark, they hide the lights)
+        float cl = smoothstep(0.64, 0.84, fbm(p / 8000.0 + vec2(3.3, 1.1)) * 0.8 + fbm(p / 2100.0) * 0.3);
+        vec3 cloudLit = vec3(1.0, 0.95, 0.9) * (max(ndl, 0.0) * 1.5 + 0.02);
+        col = mix(col, cloudLit, cl * 0.55);
+        // aerial haze: optical depth grows as the view grazes the surface
+        float mu = max(dot(n, v), 0.02);
+        float haze = 1.0 - exp(-0.05 / mu);
+        vec3 hazeCol = mix(vec3(0.015, 0.022, 0.05), vec3(0.26, 0.4, 0.72), smoothstep(-0.15, 0.35, ndl));
+        hazeCol += vec3(0.6, 0.25, 0.08) * exp(-pow(ndl * 6.0, 2.0)) * 0.6;
+        col = mix(col, hazeCol, haze);
         gl_FragColor = vec4(col, 1.0);
       }`,
   });
-  const surf = new Mesh(new SphereGeometry(R, 384, 192), surface);
+  const surf = new Mesh(new SphereGeometry(R, 512, 256), surface);
   surf.frustumCulled = false;
   group.add(surf);
 
@@ -92,7 +108,7 @@ export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vect
     depthWrite: false,
     blending: AdditiveBlending,
     side: FrontSide,
-    uniforms: { sunDir: { value: o.sunDir.clone().normalize() }, color: { value: new Color(0.35, 0.58, 1.0) } },
+    uniforms: { sunDir: { value: o.sunDir.clone().normalize() }, color: { value: new Color(0.3, 0.55, 1.0) } },
     vertexShader: /* glsl */ `
       varying vec3 vWorld; varying vec3 vN;
       void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }`,
@@ -101,14 +117,15 @@ export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vect
       void main(){
         vec3 n = normalize(vN); vec3 v = normalize(cameraPosition - vWorld);
         float mu = clamp(dot(n, v), 0.0, 1.0);
-        float rim = pow(1.0 - mu, 5.0);
-        float lit = smoothstep(-0.35, 0.3, dot(n, sunDir));
-        vec3 c = color * rim * (0.15 + 1.6 * lit);
-        c += vec3(1.0, 0.45, 0.2) * rim * exp(-pow(dot(n, sunDir) * 5.0, 2.0)) * 0.6;
+        float rim = pow(1.0 - mu, 14.0);
+        float ndl = dot(n, sunDir);
+        float lit = smoothstep(-0.3, 0.25, ndl);
+        vec3 c = color * rim * (0.05 + 0.9 * lit);
+        c += vec3(1.0, 0.42, 0.15) * rim * exp(-pow(ndl * 5.0, 2.0)) * 0.5;
         gl_FragColor = vec4(c, 1.0);
       }`,
   });
-  const shell = new Mesh(new SphereGeometry(R * 1.018, 256, 128), atmo);
+  const shell = new Mesh(new SphereGeometry(R * 1.012, 384, 192), atmo);
   shell.frustumCulled = false;
   group.add(shell);
 

@@ -35,6 +35,12 @@ export class Lab {
     this.scene.add(this.object);
     this.object.updateMatrixWorld(true);
     new Box3().setFromObject(this.object).getBoundingSphere(this.sphere);
+    // optional framing override: userData.frame = { center: [x, y, z], radius }
+    const fr = this.object.userData.frame as { center: [number, number, number]; radius: number } | undefined;
+    if (fr) {
+      this.sphere.center.set(...fr.center);
+      this.sphere.radius = fr.radius;
+    }
     const sun: [number, number, number] = [0.55, 0.62, 0.56];
     if (bg === 'space') {
       this.scene.background = bakeNebula(pipeline.renderer, { size: 256 });
