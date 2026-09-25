@@ -33,3 +33,14 @@ what the reference's crowd has and the head's cast lacked.
 
 `squad2-brownwood` `34e5cf63` (03:56) names the wood materials and corrects lane 2's own note — ten lines of names, no render change
 to check.
+
+## `fable-4-canopybatch` `b0a05eb5` (09:39 — the batch trims after evictions) and `fable-3-greet` `7016ca6d` (the wanderer greets Link) — 10:27–10:48 UTC
+
+- **`canopybatch` `b0a05eb5`**, against the head `8e20e128`: six views pixel-identical (1.0000 / 0.00 % at all six); the trees row at the
+  far bank 200 / 3.63 M and the green 214 / 3.71 M — the batch's draw cut intact and its parts all present after the trim (the
+  first-build lesson of 06:53 checked). Merge-safe.
+- **`greet` `7016ca6d`** (kokiri-a stops where she is within 1.7 m of Link, faces him, walks on from the same spot after he is
+  2.6 m off for 0.6 s; `npc.ts` only): the five plaza routes that pass her — `plaza-loop`, `south-approach`, `saria-front-arc`,
+  `plaza-to-upper-house`, `house-west-to-saria-door` — are **frame-identical to the head** (waypoints, frame counts, camera pops
+  and turn acceleration all equal, no page errors): her stop never blocks Link's path or moves the camera. The fixed frames cannot
+  run her; fable-3's own before / after (t 1.4–4.2 s) is the behaviour's evidence. Merge-safe by the walk.
