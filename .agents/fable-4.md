@@ -490,3 +490,7 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 01:25 — PR #65 merged (23:45). The white-barks' medium measured at two walking poses (round54-whitebark-medium):
   1 in 4 at 1.8 × halves the gap to high at w2 (1.05 → 0.72 blurred) for A +16 K / C +55 K / F +39 K; 1 in 2 costs 3× for a
   third more. PR #74 `agent/fable-4-wbmed` 2896a08a (one line); the 1280 × 720 pair head 2f6c8ae2 vs branch queued. INBOX 01:25.
+- 2026-09-25 02:20 — head 0fc66816 (lodcheck + #65 + #54 in): at 1280 × 720 A 629 / 8.94 M (60 K under the cap), B 616 / 8.27,
+  C 562 / 7.92, D 549 / 8.72, E 616 / 8.27, F 585 / 8.05. PR #74's capture runs next (A's +16 K in my harness would leave ~40 K);
+  the SSIM table and the call on whether it fits go on the PR next tick. med2's six views: A +47 K … C +146 K, F +115 K (3× med4).
+  `STAND_FAR_LOD_M` 50 is inert now that `DISTANT_NEAR_M` is 45 (min() takes 45) — harmless; the comment above it is stale.
