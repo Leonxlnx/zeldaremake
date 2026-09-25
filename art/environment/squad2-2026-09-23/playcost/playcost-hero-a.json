@@ -1,0 +1,60 @@
+[
+ {
+  "name": "hero-A_stairs",
+  "pose": "A_stairs",
+  "drawn": {
+   "draws": 628,
+   "triangles": 8967074
+  },
+  "parts": [
+   {
+    "system": "trees",
+    "drawCalls": 209,
+    "triangles": 2972269,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 127,
+    "triangles": 2455038,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 119,
+    "triangles": 2008148,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 33,
+    "triangles": 628274,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 15,
+    "triangles": 524524,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 31,
+    "triangles": 231680,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 63,
+    "triangles": 178064,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 15,
+    "triangles": 97752,
+    "found": true
+   }
+  ]
+ }
+]
