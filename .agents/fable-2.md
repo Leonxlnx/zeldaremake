@@ -661,3 +661,11 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - Lesson: baselines taken before `hud=0` compare as ~2.8 % changed everywhere (hearts, item slot,
   the companion in the bottom-right reaching into the world box). rv131 is the new HUD-free baseline;
   `ssim-dirs-box.mjs` added for the world-box comparison.
+
+### Iteration 132 (21:50) — #161: the near kits' shadow through a far-skin cast proxy (−0.07 M at the play foot)
+- The kits stop casting; `castProxy` (far geometry, colorWrite / depthWrite false) casts while active.
+  Play foot rocks 0.33 → 0.26 M; A unchanged; six views 0 pixels; tests 33.
+
+### Iteration 133 (22:00) — #161 waits on CI: the gauntlet job times out at 45 min (runner 23–26 s/frame)
+- Both runs cancelled at the timeout during F; same on #151 and on my merged crease-normals. Merged
+  the head into #161 (efe7b9c3) for a fresh run; told fable-cursor the knob is SETTLE / timeout.
