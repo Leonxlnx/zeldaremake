@@ -1,0 +1,206 @@
+{
+ "A_stairs": {
+  "stats": {
+   "drawCalls": 440,
+   "triangles": 6059529
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 126,
+    "triangles": 1543794,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 115,
+    "triangles": 2150594,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 74,
+    "triangles": 1289154,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 46,
+    "triangles": 92426,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 21,
+    "triangles": 282674,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 20,
+    "triangles": 137700,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 13,
+    "triangles": 505563,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 6,
+    "triangles": 44750,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 2,
+    "triangles": 4512,
+    "found": true
+   }
+  ]
+ },
+ "plateau-back": {
+  "stats": {
+   "drawCalls": 529,
+   "triangles": 7449340
+  },
+  "rows": [
+   {
+    "system": "vegetation",
+    "drawCalls": 147,
+    "triangles": 3127047,
+    "found": true
+   },
+   {
+    "system": "trees",
+    "drawCalls": 119,
+    "triangles": 1723853,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 97,
+    "triangles": 1332652,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 72,
+    "triangles": 115744,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 23,
+    "triangles": 316082,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 23,
+    "triangles": 264260,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 501774,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 11,
+    "triangles": 55000,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 2,
+    "triangles": 4512,
+    "found": true
+   }
+  ]
+ },
+ "ledge-back": {
+  "stats": {
+   "drawCalls": 511,
+   "triangles": 7736578
+  },
+  "rows": [
+   {
+    "system": "trees",
+    "drawCalls": 144,
+    "triangles": 1867173,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 108,
+    "triangles": 2899763,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 104,
+    "triangles": 1684039,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 51,
+    "triangles": 109772,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 41,
+    "triangles": 560740,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 23,
+    "triangles": 238326,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 16,
+    "triangles": 355111,
+    "found": true
+   },
+   {
+    "system": "canopy",
+    "drawCalls": 7,
+    "triangles": 8210,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 5,
+    "triangles": 8780,
+    "found": true
+   },
+   {
+    "system": "atmosphere",
+    "drawCalls": 2,
+    "triangles": 4512,
+    "found": true
+   }
+  ]
+ }
+}
