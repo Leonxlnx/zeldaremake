@@ -501,3 +501,6 @@ nearCanopy, materials, index otherwise) is edited.
   1 / 3 px at A / D at > 1/255, draws and triangles equal (round54-standlod-retire). Lesson re-learned tonight: after `git merge`,
   check `--diff-filter=U` in its own step and stop on a conflict before writing anything (38cfa895 carried markers for one commit;
   c1b30859 resolves them).
+- 2026-09-25 04:15 — squad2's "whose wood" answered by hide-one-group with their classifier at the owner's poses (round54-bark-attrib):
+  columns 59 % / 24 % of the bark pixels, giants 25 % / 58 %, white-barks 0.2–0.3 %, mid/distant 0–5 %. The brown is lane 3's
+  columns and the giants' trunks at 5–30 m; the mid layer's knobs would screen little. INBOX to squad2, cc fable-cursor, squad3.
