@@ -34,6 +34,8 @@ export interface Shot {
   start?: number;
   /** full-frame card: skip 3D rendering */
   card?: boolean;
+  /** motion-blur sub-frames to use for this shot (capped by the render request) */
+  blur?: number;
   lines?: Line[];
   schedule?(w: World, T0: number): void;
   pose(w: World, t: number, T: number): Cam;
@@ -205,6 +207,7 @@ function ltPath(T: number, who: 'anakin' | 'obiwan') {
 
 const longTake: Shot = {
   name: 'longtake',
+  blur: 2,
   dur: 16,
   schedule(w, T0) {
     // flak and hits once the dive reveals the battle
@@ -270,6 +273,7 @@ function trackPath(who: 'anakin' | 'obiwan', T0: number) {
 
 const track: Shot = {
   name: 'track',
+  blur: 2,
   dur: 5,
   schedule(w, T0) {
     const victim = w.munis[0];
@@ -387,6 +391,7 @@ const anakinCockpit = cockpitShot({
 
 const vultures: Shot = {
   name: 'vultures',
+  blur: 2,
   dur: 5,
   schedule(w, T0) {
     const pathA = vPath(T0);
@@ -496,6 +501,7 @@ function crawlerPoses(w: World, T: number): void {
 
 const handReveal: Shot = {
   name: 'hand-reveal',
+  blur: 2,
   dur: 4.5,
   lines: [{ t0: 0.4, t1: 4.3, who: 'Anakin Skywalker', text: "The General's command ship is dead ahead — the one crawling with vulture droids." }],
   pose(w, t, T) {
@@ -557,6 +563,7 @@ const PERCH: [number, number, number][] = [
 
 const missiles: Shot = {
   name: 'missiles',
+  blur: 2,
   dur: 4,
   lines: [{ t0: 2.3, t1: 3.9, who: 'Obi-Wan Kenobi', text: 'Buzz droids!' }],
   schedule(w, T0) {
@@ -692,6 +699,7 @@ function pair11(T0: number) {
 }
 const rescue: Shot = {
   name: 'rescue',
+  blur: 2,
   dur: 4,
   schedule(w, T0) {
     const pa = (tt: number) => pair11(T0)(tt).add(v3(-30, 6, -26));
@@ -759,6 +767,7 @@ const rescue: Shot = {
 
 const hangarApproach: Shot = {
   name: 'hangar-approach',
+  blur: 2,
   dur: 4,
   pose(w, t, T) {
     battle(w, T, { swarms: true });
@@ -802,6 +811,7 @@ function hangarSpots(w: World) {
 
 const landing: Shot = {
   name: 'landing',
+  blur: 2,
   dur: 5,
   schedule(w, T0) {
     const s = hangarSpots(w);

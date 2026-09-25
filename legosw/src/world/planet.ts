@@ -59,17 +59,20 @@ export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vect
         float f1 = 1.0 - smoothstep(0.08, 0.35, px / 900.0);
         float f2 = 1.0 - smoothstep(0.08, 0.35, px / 220.0);
         float f3 = 1.0 - smoothstep(0.08, 0.35, px / 60.0);
-        float s1 = (1.0 - smoothstep(9.0, 9.0 + px * 1.5, gridD(pr, 900.0))) * f1;
-        float s2 = (1.0 - smoothstep(2.6, 2.6 + px * 1.5, gridD(pr + 37.0, 220.0))) * f2;
+        float S1 = 650.0 + 700.0 * fract(dh * 7.13);
+        float S2 = 170.0 + 110.0 * fract(dh * 3.71);
+        float s1 = (1.0 - smoothstep(7.0, 7.0 + px * 1.5, gridD(pr + dh * 400.0, S1))) * f1;
+        float s2 = (1.0 - smoothstep(2.4, 2.4 + px * 1.5, gridD(pr + 37.0, S2))) * f2;
         float s3 = (1.0 - smoothstep(0.8, 0.8 + px * 1.5, gridD(pr + 11.0, 60.0))) * f3;
-        float streets = max(s1 * 0.35, max(s2 * 0.6, s3 * 0.5));
+        float streets = max(s1 * 0.18, max(s2 * 0.45, s3 * 0.4));
         // rooftops: per-block albedo, towers, plazas
         float roof1 = h2(floor(pr / 220.0) + 3.0);
         float roof2 = h2(floor(pr / 60.0) + 7.0);
         float roof = mix(0.5, roof1, f2 * 0.42);
         roof = mix(roof, roof * 0.7 + roof2 * 0.3, f3 * 0.8);
         roof = mix(roof, vn(pr / 90.0 + 5.0), 0.35 * f3);
-        vec3 alb = mix(vec3(0.13, 0.14, 0.16), vec3(0.3, 0.29, 0.27), roof);
+        vec3 tone = dh < 0.3 ? vec3(0.95, 1.0, 1.1) : dh < 0.55 ? vec3(1.12, 1.02, 0.88) : dh < 0.8 ? vec3(0.85, 0.85, 0.88) : vec3(1.15, 0.92, 0.78);
+        vec3 alb = mix(vec3(0.13, 0.14, 0.16), vec3(0.3, 0.29, 0.27), roof) * tone;
         alb = mix(alb, alb * vec3(0.78, 0.86, 1.05), smoothstep(0.4, 0.75, big));
         alb = mix(alb, alb * vec3(1.12, 0.98, 0.84), smoothstep(0.5, 0.85, mid) * 0.8);
         float dark = smoothstep(0.52, 0.7, fbm(p / 5200.0 + 2.0));
@@ -78,6 +81,9 @@ export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vect
         // lighting
         vec3 sun = vec3(1.0, 0.84, 0.66) * 1.9;
         vec3 col = alb * (sun * max(ndl, 0.0) + vec3(0.035, 0.05, 0.09));
+        // sun glints off tower glass on the day side
+        float glint = step(0.985, h2(floor(pr / 45.0) + 9.3)) * f3 * smoothstep(0.02, 0.2, ndl);
+        col += vec3(1.0, 0.9, 0.75) * glint * 0.6;
         col += vec3(0.5, 0.2, 0.06) * exp(-pow(ndl * 10.0, 2.0)) * 0.35 * (alb + 0.1);
         // night: street-light networks + scattered lit towers
         float night = 1.0 - smoothstep(-0.12, 0.06, ndl);

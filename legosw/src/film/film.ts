@@ -99,7 +99,7 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         pipeline.renderer.clear();
         return;
       }
-      const n = Math.max(1, o.subframes ?? 1);
+      const n = Math.max(1, Math.min(o.subframes ?? 1, shotAt(T).shot.blur ?? 1));
       const shutter = o.shutter ?? 0.5;
       const fps = o.fps ?? 24;
       pipeline.render(w.scene, camera, lens, {
