@@ -622,23 +622,64 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
       }
       assert.equal(hf.surfaceMask(a.x, a.z, 'legacy').structure, 0, `the legacy mask has no stump at ${fmt(a.x, a.z)}`);
     }
-    // between the stumps' centres, what the lookout's ground reaches by the character's steps (8-way,
-    // 0.1 m, walkable = no riser ≥ 0.55 m and not blocked) never gets to the bank side of the rope
+    // the west run carries the rope on from the west stump to the small house's back roots: a wall
+    // along its line with the same step short of it on the lane's side, open half a metre in (off
+    // the house's pad), its first post inside the west stump's ring and its last on the house's pad,
+    // and no gap at either end
+    const WR = EXPANSION_EAST.lookout.westRun;
+    const small = EXPANSION_EAST.houses.find((h) => h.kind === 'small');
     {
-      const [wA, eA] = anchors[0].x < anchors[1].x ? anchors : [anchors[1], anchors[0]];
-      const ropeZ = (x) => {
-        for (let i = 0; i + 1 < LF.length; i++) {
-          const [ax, , az] = LF[i];
-          const [bx, , bz] = LF[i + 1];
-          if (x >= Math.min(ax, bx) && x <= Math.max(ax, bx)) return az + ((bz - az) * (x - ax)) / (bx - ax);
+      const west = anchors[0].x < anchors[1].x ? anchors[0] : anchors[1];
+      let openW = 0;
+      for (let i = 0; i + 1 < WR.length; i++) {
+        const [ax, , az] = WR[i];
+        const [bx, , bz] = WR[i + 1];
+        const l = Math.hypot(bx - ax, bz - az);
+        let nx = (bz - az) / l;
+        let nz = -(bx - ax) / l;
+        if ((B.x - ax) * nx + (B.z - az) * nz < 0) (nx = -nx), (nz = -nz);
+        for (let u = 0; u <= 1.0001; u += 0.1) {
+          const x = ax + (bx - ax) * u;
+          const z = az + (bz - az) * u;
+          assert.equal(ground.blocked(x, z), true, `the west run is a wall at ${fmt(x, z)}`);
+          assert.equal(ground.blocked(x + nx * 0.2, z + nz * 0.2), true, `the west run stops a step 0.2 m short at ${fmt(x, z)}`);
+          if (Math.hypot(x - small.x, z - small.z) > small.radius * 1.2 + 1.0 && !inAnchor(x, z)) assert.equal(hf.surfaceMask(x, z, 'live').structure, 0, `the west run is no structure pad at ${fmt(x, z)}`);
+          const [ox, oz] = [x + nx * 0.5, z + nz * 0.5];
+          if (inAnchor(ox, oz) || hf.surfaceMask(ox, oz, 'live').structure > 0.5) continue;
+          assert.equal(ground.blocked(ox, oz), false, `half a metre in from the west run is open at ${fmt(ox, oz)}`);
+          openW++;
         }
-        return x < LF[0][0] ? LF[0][2] : LF[LF.length - 1][2];
+      }
+      assert.ok(openW >= 30, `the west run's inner side is open ground along most of it (${openW} samples)`);
+      const first = WR[0];
+      const d0 = Math.hypot(first[0] - west.x, first[2] - west.z);
+      assert.ok(d0 < west.r + 0.25 - 0.1, `the west run's first post stands ${d0.toFixed(2)} m from the west stump, inside its ${(west.r + 0.25).toFixed(2)} m ring`);
+      const last = WR[WR.length - 1];
+      assert.ok(hf.surfaceMask(last[0], last[2], 'live').structure > 0.5, `the west run's last post ${fmt(last[0], last[2])} stands on the small house's pad`);
+      for (let u = 0; u <= 1.0001; u += 0.05) {
+        assert.equal(ground.blocked(first[0] + (west.x - first[0]) * u, first[2] + (west.z - first[2]) * u), true, `no gap between the west run's first post and the stump at ${fmt(first[0] + (west.x - first[0]) * u, first[2] + (west.z - first[2]) * u)}`);
+        assert.equal(ground.blocked(last[0] + (small.x - last[0]) * u, last[2] + (small.z - last[2]) * u), true, `no gap between the west run's last post and the small house at ${fmt(last[0] + (small.x - last[0]) * u, last[2] + (small.z - last[2]) * u)}`);
+      }
+    }
+    // from the small house's axis to the east stump's centre, what the lookout's ground reaches by
+    // the character's steps (8-way, 0.1 m, walkable = no riser ≥ 0.55 m and not blocked) never gets
+    // to the bank side of the rope
+    {
+      const eA = anchors[0].x < anchors[1].x ? anchors[1] : anchors[0];
+      const line = [...WR, ...LF].map((p) => [p[0], p[2]]).sort((p, q) => p[0] - q[0]);
+      const ropeZ = (x) => {
+        for (let i = 0; i + 1 < line.length; i++) {
+          const [ax, az] = line[i];
+          const [bx, bz] = line[i + 1];
+          if (x >= ax && x <= bx) return az + ((bz - az) * (x - ax)) / (bx - ax);
+        }
+        return x < line[0][0] ? line[0][1] : line[line.length - 1][1];
       };
       const step = 0.1;
-      const x0 = wA.x;
+      const x0 = small.x;
       const x1 = eA.x;
       const z0 = B.z - 2.5;
-      const z1 = Math.max(wA.z, eA.z) + 2.5;
+      const z1 = Math.max(...anchors.map((a) => a.z), ...WR.map((p) => p[2])) + 2.5;
       const nx = Math.round((x1 - x0) / step);
       const nzc = Math.round((z1 - z0) / step);
       const seen = new Uint8Array((nx + 1) * (nzc + 1));
@@ -666,7 +707,7 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
         }
       }
       assert.ok(reached > 300, `the flood covers the lookout (${reached} cells)`);
-      assert.equal(leak, null, `the lookout's ground reaches the bank side of the rope between the stumps${leak ? ` at ${fmt(...leak)}` : ''}`);
+      assert.equal(leak, null, `the lookout's ground reaches the bank side of the rope between the small house and the east stump${leak ? ` at ${fmt(...leak)}` : ''}`);
     }
   }
   // the tall house's deck railings stop a step (off the deck strip — the built deck itself is a walk surface)

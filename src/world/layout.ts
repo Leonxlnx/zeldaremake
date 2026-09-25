@@ -1150,6 +1150,19 @@ export const EXPANSION_EAST = {
       { x: 44.72, z: 8.98, r: 0.5, height: 0.98 },
       { x: 50.88, z: 8.36, r: 0.5, height: 0.92 },
     ] as { x: number; z: number; r: number; height: number }[],
+    /**
+     * The rope run on from the west stump along the lip to the small house's back roots: its first
+     * post stands inside that stump's step, its last on the edge of the house's pad (the live mask
+     * stops the character 3.0 m off the trunk's axis), so the lip from the house to the east stump
+     * has no gap to walk down. East of the east stump the bank is the plateau's own open edge.
+     */
+    westRun: [
+      [44.15, 0, 8.95],
+      [42.9, 0, 9.0],
+      [41.6, 0, 9.0],
+      [40.3, 0, 8.85],
+      [38.95, 0, 8.45],
+    ] as [number, number, number][],
   },
   /**
    * The tall house's side deck, in its trunk frame: centred `a` rad round from the door (+ = the
@@ -1282,7 +1295,7 @@ export const EAST_BOX = (() => {
     box.z0 = Math.min(box.z0, z - m);
     box.z1 = Math.max(box.z1, z + m);
   };
-  for (const p of [...EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs.flat(), ...EXPANSION_EAST.lookout.fence]) add(p[0], p[2], 3.2);
+  for (const p of [...EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs.flat(), ...EXPANSION_EAST.lookout.fence, ...EXPANSION_EAST.lookout.westRun]) add(p[0], p[2], 3.2);
   for (const h of EXPANSION_EAST.houses) add(h.x, h.z, h.radius * 1.55 + 3.2);
   return box;
 })();

@@ -24,17 +24,22 @@ const BRIDGE_LEN = southBridgeFrame().len;
  * The east lookout's rope fence (layout `EXPANSION_EAST.lookout`), where the plateau's south lip
  * falls 5 m in 6 m: the character stops FENCE_STOP_M short of the rope. It is no structure pad, so
  * the grass under the rope stays. The stumps its ends wrap round stop him FENCE_STOP_M off their
- * feet, and each end post stands inside that ring: a push along the rope ends in the corner.
+ * feet, and each end post stands inside that ring: a push along the rope ends in the corner. The
+ * west run carries the rope on from the west stump to the small house's pad.
  */
-const LOOKOUT_FENCE = EXPANSION_EAST.lookout.fence.slice(1).map((b, i) => {
-  const a = EXPANSION_EAST.lookout.fence[i];
-  return { ax: a[0], az: a[2], ex: b[0] - a[0], ez: b[2] - a[2] };
-});
+const LOOKOUT_RUNS = [EXPANSION_EAST.lookout.fence, EXPANSION_EAST.lookout.westRun];
+const LOOKOUT_FENCE = LOOKOUT_RUNS.flatMap((run) =>
+  run.slice(1).map((b, i) => {
+    const a = run[i];
+    return { ax: a[0], az: a[2], ex: b[0] - a[0], ez: b[2] - a[2] };
+  }),
+);
 const FENCE_STOP_M = 0.25;
 const LOOKOUT_ANCHORS = EXPANSION_EAST.lookout.anchors.map((a) => ({ x: a.x, z: a.z, r: a.r + FENCE_STOP_M }));
 const LOOKOUT_FENCE_BOX = (() => {
-  const xs = [...EXPANSION_EAST.lookout.fence.map((p) => p[0] - FENCE_STOP_M), ...EXPANSION_EAST.lookout.fence.map((p) => p[0] + FENCE_STOP_M), ...LOOKOUT_ANCHORS.flatMap((a) => [a.x - a.r, a.x + a.r])];
-  const zs = [...EXPANSION_EAST.lookout.fence.map((p) => p[2] - FENCE_STOP_M), ...EXPANSION_EAST.lookout.fence.map((p) => p[2] + FENCE_STOP_M), ...LOOKOUT_ANCHORS.flatMap((a) => [a.z - a.r, a.z + a.r])];
+  const pts = LOOKOUT_RUNS.flat();
+  const xs = [...pts.map((p) => p[0] - FENCE_STOP_M), ...pts.map((p) => p[0] + FENCE_STOP_M), ...LOOKOUT_ANCHORS.flatMap((a) => [a.x - a.r, a.x + a.r])];
+  const zs = [...pts.map((p) => p[2] - FENCE_STOP_M), ...pts.map((p) => p[2] + FENCE_STOP_M), ...LOOKOUT_ANCHORS.flatMap((a) => [a.z - a.r, a.z + a.r])];
   return { x0: Math.min(...xs), x1: Math.max(...xs), z0: Math.min(...zs), z1: Math.max(...zs) };
 })();
 const lookoutFenceBlocked = (x: number, z: number): boolean => {

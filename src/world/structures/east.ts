@@ -5,7 +5,8 @@
  * the door), the bossy kid's TALL house (the tallest dome, a plank deck on log posts with a
  * railing, plank steps down toward its door and a short ladder at the far end) and a SMALL cosy
  * house (low dome, round window, two flower boxes) — two pod-lantern posts, and the lookout's rope
- * fence (its ends wrapped round two sawn stumps) and split-log bench on the south lip.
+ * fence (its ends wrapped round two sawn stumps, a second run on from the west one to the small
+ * house's back roots) and split-log bench on the south lip.
  *
  * The houses are `buildHouse` builds: the trunk, cap, roots, pods and room of Saria's and the upper
  * house. Their point lights are dropped: a light joining or leaving the scene recompiles every lit
@@ -1438,6 +1439,10 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const fence: FenceBuild = buildFence({ id: 'east-lookout', style: 'rope', points: lookout.fence }, ctx, mats, rng.fork('lookout-fence'), rope);
   for (const m of fence.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
   bases.push(...fence.bases);
+  // the rope run on from beside the west stump to the small house's back roots (layout `lookout.westRun`)
+  const westRun: FenceBuild = buildFence({ id: 'east-lookout-west', style: 'rope', points: lookout.westRun }, ctx, mats, rng.fork('lookout-fence-west'), rope);
+  for (const m of westRun.meshes) (/-foot-moss$/.test(m.name) ? lane : mid).add(m);
+  bases.push(...westRun.bases);
   // the rope's anchors (layout `lookout.anchors`): two felled trees' stumps just past the end posts,
   // sawn off at waist height — a flared, buttressed foot with three surface roots, a checked top with
   // the torn hinge's splinters standing on the fall side — and each rail run on from its end post and
@@ -2054,7 +2059,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     deck: deckAudit,
     flowerBoxes: flowerAudit,
     lanternPosts: posts.map((p) => ({ base: p.base, pods: p.lanterns.length })),
-    lookout: { fencePosts: fence.posts, bench: benchAudit, anchors: anchorAudit },
+    lookout: { fencePosts: fence.posts, westRunPosts: westRun.posts, bench: benchAudit, anchors: anchorAudit },
     walkSurfaces: walk,
     pods: lanterns.length,
     /** the pods' meshes after the bake (one per tier and material) and how many of those cast */
