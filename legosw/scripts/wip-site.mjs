@@ -5,10 +5,12 @@
  *
  *   node legosw/scripts/wip-site.mjs --render /tmp/lsw-wip-render --out /tmp/lsw-wip
  *        [--film <built dist>] [--shots <shots.json>] [--hero <still.mjs --film output>] [--asset-stills /opt/cursor/artifacts]
- *        [--commit <sha>] [--fps 24] [--no-video] [--print-hero-times]
+ *        [--commit <sha>] [--fps 24] [--no-video] [--keep-video] [--video-url <absolute mp4 url>] [--print-hero-times]
  *
  * --print-hero-times lists the time of each shot's still, to pass to `still.mjs --film --times`; stills found
  * in --hero are used instead of video frames, so the shot list can be complete before the render is.
+ * --keep-video reuses an existing encode; --video-url is tried before the local file (for static hosts that
+ * serve .mp4 with a generic content type, which iOS Safari refuses).
  *
  * <render> is a render.mjs output folder (frames/, shots.json, audio.wav). --film is copied to <out>/film
  * unless it already lives there. The page works from any static host (relative URLs only).
@@ -150,7 +152,9 @@ function main() {
   let poster = shotCards.find((c) => c.name === 'hand-reveal')?.still || shotCards.find((c) => c.still)?.still || '';
   const total = Math.round(duration * fps);
   const have = fs.existsSync(framesDir) ? fs.readdirSync(framesDir).filter((n) => /^f\d{5}\.png$/.test(n)).length : 0;
-  if (!args['no-video'] && have >= total - 1) {
+  if (args['keep-video'] && fs.existsSync(path.join(out, 'video/lego-rots-wip.mp4'))) {
+    video = 'video/lego-rots-wip.mp4';
+  } else if (!args['no-video'] && have >= total - 1) {
     fs.mkdirSync(path.join(out, 'video'), { recursive: true });
     video = 'video/lego-rots-wip.mp4';
     const audio = path.join(renderDir, 'audio.wav');
@@ -243,7 +247,7 @@ function main() {
     </header>
 
     <div class="player">
-      ${video ? `<video src="${video}" poster="${poster}" controls playsinline preload="metadata"></video>` : poster ? `<img src="${poster}" alt="Current cut" />` : ''}
+      ${video ? `<video poster="${poster}" controls playsinline preload="metadata">${args['video-url'] ? `<source src="${esc(args['video-url'])}" type="video/mp4" />` : ''}<source src="${video}" type="video/mp4" /></video>` : poster ? `<img src="${poster}" alt="Current cut" />` : ''}
     </div>
     <p class="note">${video ? 'Work-in-progress render of the current cut at 960×540 (turn the sound on). The final render will be 1080p with full motion blur.' : 'The work-in-progress video is still rendering. Shot stills are below.'}</p>
     <div class="btns">
