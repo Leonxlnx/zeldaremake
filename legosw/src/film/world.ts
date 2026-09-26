@@ -81,6 +81,8 @@ export class World {
   hangarLights = new Group();
   /** the blue wash from the ray-shield line */
   private shieldLight: PointLight;
+  /** warm light in the throat, seen from outside: lit only while the set is fitted into the ship */
+  private throatLight: PointLight;
   envSpace: Texture;
   envHangar: Texture;
   nebula: CubeTexture;
@@ -167,6 +169,8 @@ export class World {
     mkPoint(0xfff0d8, 900, 40, 34, -20);
     this.shieldLight = mkPoint(0x5aa8ff, 700, 0, 18, 58, 140);
     mkPoint(0xff6a3a, 260, -80, 10, -40, 90);
+    this.throatLight = mkPoint(0xffc27e, 1000, 0, 24, 72, 190);
+    this.throatLight.visible = false;
     s.add(this.hangarLights);
 
     // --- ships
@@ -382,7 +386,8 @@ export class World {
       const mm = m as Mesh;
       if (mm.isMesh && !(mm.material instanceof MeshBasicMaterial) && !(mm.material as MeshBasicMaterial).transparent) mm.castShadow = !!pos;
     });
-    // seen from outside, the shield line's blue is an accent in the warm bay, not a flood
+    // seen from outside, the throat glows warm and the shield line's blue is an accent, not a flood
+    this.throatLight.visible = !!pos;
     this.shieldLight.intensity = pos ? 380 : 700;
   }
 
