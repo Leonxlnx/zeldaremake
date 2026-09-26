@@ -4160,8 +4160,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     };
   };
   /**
-   * lodFade.ts: the per-instance screen-door weight for the rung a `fillFamily` pass is writing, in the
-   * colour pass's own instance order. Lazily attached, and only while `TREE_LOD_DITHER` is on.
+   * lodFade.ts: the per-instance screen-door DROP fraction for the rung a `fillFamily` pass is writing
+   * (0 = draw the whole tree, 0.4 = discard two fifths of its fragments), in the colour pass's own
+   * instance order. Lazily attached, and only while `TREE_LOD_DITHER` is on.
+   *
+   * The drop, not the weight: `mats.whiteTree` also paints the white-bark ROOTS mesh, which
+   * `fillFamily` never fills, so that geometry never gets this attribute and WebGL feeds the program a
+   * default of 0 for it. With the drop encoding that default means "draw whole"; with a weight it would
+   * have meant "discard everything", and the roots would vanish the moment the flag went on.
    *
    * It lives on the rung's geometry, which the white-barks' high bucket SHARES with its shadow proxy
    * (`new InstancedMesh(w.lods[1].geometry, …)`): the proxy fills the same geometry with a different
@@ -4170,11 +4176,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * band, which for 2.5 m of walking is the right trade anyway.
    */
   const fadeAttribute = (mesh: InstancedMesh): InstancedBufferAttribute => {
-    const existing = mesh.geometry.getAttribute('aLodFade') as InstancedBufferAttribute | undefined;
+    const existing = mesh.geometry.getAttribute('aLodDrop') as InstancedBufferAttribute | undefined;
     if (existing) return existing;
-    const attr = new InstancedBufferAttribute(new Float32Array(mesh.instanceMatrix.count).fill(1), 1);
+    const attr = new InstancedBufferAttribute(new Float32Array(mesh.instanceMatrix.count), 1);
     attr.setUsage(DynamicDrawUsage);
-    mesh.geometry.setAttribute('aLodFade', attr);
+    mesh.geometry.setAttribute('aLodDrop', attr);
     return attr;
   };
   const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[], mainCount = list.length) => {
@@ -4182,7 +4188,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
     if (TREE_LOD_DITHER) {
       const attr = fadeAttribute(mesh);
-      for (let k = 0; k < list.length; k++) attr.setX(k, w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1);
+      for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1));
       attr.needsUpdate = true;
     }
     mesh.count = list.length;
