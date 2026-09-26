@@ -1196,6 +1196,35 @@ function hangarSpots(w: World) {
   return { A, B, M, D, Dq };
 }
 
+interface Handoff { p: Vector3; v: Vector3; q: Quaternion }
+const handoffs = new WeakMap<World, { obi: Handoff; ana: Handoff }>();
+/**
+ * Where the approach leaves each fighter at its last instant (4.0 s: position, velocity, attitude), in the
+ * hangar set's frame, through the same fit of the set into the ship that the approach uses. The landing
+ * picks both fighters up there, so the entry is one continuous move across the cut.
+ */
+function approachHandoff(w: World): { obi: Handoff; ana: Handoff } {
+  let h = handoffs.get(w);
+  if (h) return h;
+  const vis = w.hand.group.visible;
+  poseHand(w);
+  w.hand.group.updateMatrixWorld(true);
+  const mouthA = w.hand.anchors['hangar'], bayA = w.hand.anchors['bay'];
+  const mouth = anchorWorld(mouthA);
+  const out = v3(0, 0, 1).applyQuaternion(mouthA.getWorldQuaternion(new Quaternion()));
+  const side = v3(0, 1, 0).cross(out).normalize();
+  const at = (l: [number, number, number]) => mouth.clone().addScaledVector(out, l[0]).addScaledVector(side, l[1]).addScaledVector(v3(0, 1, 0), l[2]);
+  const pBay = anchorWorld(bayA), qInv = bayA.getWorldQuaternion(new Quaternion()).invert();
+  const state = (l: (t: number) => [number, number, number]): Handoff => {
+    const st = flight((tt) => at(l(tt)), 4.0, { bank: 0.8 });
+    return { p: st.pos.clone().sub(pBay).applyQuaternion(qInv), v: st.vel.clone().applyQuaternion(qInv), q: qInv.clone().multiply(st.quat) };
+  };
+  h = { obi: state(approachLine), ana: state((t) => { const l = approachLine(t); return [l[0] + ANA_TRAIL[0], l[1] + ANA_TRAIL[1], l[2] + ANA_TRAIL[2]]; }) };
+  w.hand.group.visible = vis;
+  handoffs.set(w, h);
+  return h;
+}
+
 /** Lift or lower a part along world Y (through its parent's frame) until its lowest point is on the deck; `liftOnly` never lowers. */
 function onDeck(p: Object3D, deckY: number, liftOnly: boolean): void {
   p.updateMatrixWorld(true);
@@ -1327,24 +1356,30 @@ const landing: Shot = {
     hangarSpots(w);
     const s = hangarSpots(w);
     w.hangar.setShield(0);
-    // Obi-Wan: comes in fast, slams down, skids, sheds wings
-    const op = obiSlide(s, t);
-    fly(w, w.obiwanShip, { pos: op, quat: obiWreckQuat(s, t) } as FlightState, t < 1 ? 0.2 : 0, t < 2.6 ? 1 - smooth(1.8, 2.6, t) : 0);
+    // Obi-Wan: picks up where the approach left him inside the mouth, slams down, skids, sheds wings
+    const h = approachHandoff(w);
+    const op = obiSlide(s, t, h.obi);
+    const oq = t < 1 ? h.obi.q.clone().slerp(obiWreckQuat(s, t), smoother(0, 0.7, t)) : obiWreckQuat(s, t);
+    fly(w, w.obiwanShip, { pos: op, quat: oq } as FlightState, t < 1 ? 0.3 : 0, t < 2.6 ? 1 - smooth(1.8, 2.6, t) : 0);
     // from the slam-down on, the belly rides the deck (it pivots on its lowest point as it bucks)
-    hullOnDeck(w.obiwanShip, s.A.y, t < 1 ? 0.2 : 0, (i) => i < 3 && t > wreckBreak(i), t < 1.0);
+    hullOnDeck(w.obiwanShip, s.A.y, t < 1 ? 0.3 : 0, (i) => i < 3 && t > wreckBreak(i), t < 1.0);
     w.r4.head.visible = false;
     // the last buzz droids ride the fighter in until the slam-down blast takes them
     if (t < 1.05) survivorsOn(w, { pos: w.obiwanShip.group.position.clone(), quat: w.obiwanShip.group.quaternion.clone() } as FlightState, T);
     // the first three wing parts tear off on impact and tumble to rest on the deck
     for (let i = 0; i < 3; i++) wreckPose(w.obiwanShip, i, t - wreckBreak(i), s.A.y);
     face(w.obiwan, { mouth: t < 1.0 ? 'shout' : 'o', brows: 0.9 }, t, 2);
-    // Anakin: glides in, flares, sets down
+    // Anakin: carries on from where the approach left him behind Obi-Wan, brakes (critically damped, no
+    // overshoot), flares and is on his pad by 4.4 s exactly as before
     const bdir = s.B.clone().sub(s.M).setY(0).normalize();
-    const u = smoother(2.2, 4.4, t);
-    const ap = s.M.clone().lerp(s.B.clone().add(v3(0, 1.8, 0)), u).add(v3(0, Math.sin(u * Math.PI) * 6, 0));
-    const aq = basisQuat(bdir.clone().add(v3(0, -0.15 * (1 - u), 0)).normalize(), v3(0, 1, 0));
-    w.anakinShip.group.visible = t > 2.1;
-    if (t > 2.1) fly(w, w.anakinShip, { pos: ap, quat: aq } as FlightState, 1 - u, 1 - u * 0.8);
+    const u = smoother(0, 4.4, t);
+    const pad = s.B.clone().add(v3(0, 1.8, 0));
+    const k = 2.0;
+    const c1 = h.ana.p.clone().sub(pad), c2 = h.ana.v.clone().addScaledVector(c1, k);
+    const brake = c1.addScaledVector(c2, t).multiplyScalar(Math.exp(-k * t) * (1 - smoother(3.4, 4.4, t)));
+    const ap = pad.clone().add(brake);
+    const aq = h.ana.q.clone().slerp(basisQuat(bdir, v3(0, 1, 0)), smoother(0, 3.0, t));
+    fly(w, w.anakinShip, { pos: ap, quat: aq } as FlightState, 0.3 * (1 - u), 1 - u * 0.8);
     face(w.anakin, { mouth: 'smirk', brows: -0.2 }, t, 1);
     // camera: floor level, watching the skid come toward us
     const camPos = s.A.clone().add(v3(-26, 3.2, -30));
@@ -1354,9 +1389,16 @@ const landing: Shot = {
   },
 };
 
-function obiSlide(s: ReturnType<typeof hangarSpots>, t: number): Vector3 {
+/** Obi-Wan's landing, `t` into the shot; in the air (t < 1) from the approach's hand-off when given (with its velocity), otherwise from the mouth */
+function obiSlide(s: ReturnType<typeof hangarSpots>, t: number, from?: Handoff): Vector3 {
   const u = smoother(0, 1, t / 1.0);
-  const air = s.M.clone().lerp(s.A.clone().add(s.A.clone().sub(s.M).setY(0).normalize().multiplyScalar(-34)), u);
+  const touch = s.A.clone().add(s.A.clone().sub(s.M).setY(0).normalize().multiplyScalar(-34));
+  if (t < 1.0 && from) {
+    const x = Math.max(0, t);
+    const h00 = 2 * x ** 3 - 3 * x * x + 1, h10 = x ** 3 - 2 * x * x + x, h01 = -2 * x ** 3 + 3 * x * x;
+    return from.p.clone().multiplyScalar(h00).addScaledVector(from.v, h10).addScaledVector(touch, h01);
+  }
+  const air = s.M.clone().lerp(touch, u);
   if (t < 1.0) return air.add(v3(0, 3 * (1 - u), 0));
   const skid = smoother(0, 1, (t - 1.0) / 1.6);
   const p0 = s.A.clone().add(s.A.clone().sub(s.M).setY(0).normalize().multiplyScalar(-34));
