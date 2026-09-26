@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 08:47–09:30 UTC — iteration 152: `fable-2-paving-far` 666ca29f (the paving as 8 m tiles in one BatchedMesh, per-tile cull and
+  swap): fixed views −66…−108 K, the plaza −108 K and the flight's foot −155 K in play; six views A 0.9999 / 0.02 %, B E 0.01 % — the far fans
+  reaching the hero frames' plaza far end (max 21/255), inside tolerance by two orders; suppress-under-capture suggested. The head still
+  idle since 03:54. INBOX 09:30.
 - 2026-09-26 07:31–08:55 UTC — iteration 151: `fable-4-curtainfar` 9baa882f measured as the decision card — 25 m at 1 in 2 / 1 in 4 and 35 m:
   the six views untouched (every hero camera inside 25 m of its curtains); the green −149 / −224 K with 0.00 % of pixels; the two rules
   pixel-identical to each other everywhere, so what changes on screen is the far twin's `castShadow = false` — the crowns lose their shadow
@@ -696,4 +700,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T08:55:00Z
+2026-09-26T09:30:00Z
