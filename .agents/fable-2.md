@@ -674,3 +674,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - fable-5: six views identical, rocks 0.32 → 0.28 M with the kit active; fable-cursor comparing at
   settle 6 (CI times out). fable-4's farfold crash (released BatchedMesh index) → the rule: release
   only what nothing reads or writes again. areas-poses.json prepared for the post-merge re-verify.
+
+### Iteration 135 (00:40) — #161 merged; the lane clear; waiting on the areas
+- #161 merged 23:46 (fable-cursor's settle-6 pair + fable-5's PASS). All lane branches on the head.
+  Next: the areas' post-merge re-verify (areas-poses.json).
