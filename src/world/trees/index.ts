@@ -3559,6 +3559,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * today and the shadows are the far foliage's at every distance. Per-instance frustum culling by
    * each group's own padded sphere (finer than the sectors' two height bands). One draw with
    * WEBGL_multi_draw; the caller builds the batches only where the extension is present.
+   *
+   * The depth pass, per lobe (fable-4, after #171): a sector's sphere always reaches the frame from
+   * the plaza, so `shadowReaches` at the mesh level never spares a sector's laminae; per lobe it does —
+   * `reaches(sphere)` (the sector rule, the sweep along the sun from the lobe's padded sphere to
+   * SHADOW_FLOOR_Y against the camera frustum) decides each instance's place in the depth list, and a
+   * lobe whose shadow cannot land in the frame is not drawn into the map. Measured before building:
+   * 484 K → 362 K at camera A, 287 K at D, 304 K at B — a caster whose sweep misses the frustum can
+   * shadow no visible pixel, so the frame is the same.
    */
   class FarFoliageBatch {
     readonly mesh: BatchedMesh;
@@ -3568,7 +3576,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     readonly layout: { color: boolean; aWind: boolean };
     private readonly instanceOf = new Map<string, number>();
     private readonly hidden = new Set<number>();
-    constructor(name: string, material: Material, depth: Material, parts: { key: string; geometry: BufferGeometry }[], layout: { color: boolean; aWind: boolean }, casts: boolean) {
+    /** each instance's padded sphere, with CULL_PAD_M on top for the shadow sweep (the sector meshes' margin) */
+    private readonly shadowSpheres: Sphere[] = [];
+    private readonly triangles: number[] = [];
+    /** the depth list of the last shadow pass: instances drawn and their triangles */
+    casting = 0;
+    castingTriangles = 0;
+    constructor(name: string, material: Material, depth: Material, parts: { key: string; geometry: BufferGeometry }[], layout: { color: boolean; aWind: boolean }, casts: boolean, reaches: (s: Sphere) => boolean) {
       let v = 0;
       let i = 0;
       for (const p of parts) {
@@ -3597,6 +3611,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const instId = mesh.addInstance(geomId);
         mesh.setMatrixAt(instId, IDENTITY_M4);
         this.instanceOf.set(p.key, instId);
+        const shadowSphere = p.geometry.boundingSphere!.clone();
+        shadowSphere.radius += CULL_PAD_M;
+        this.shadowSpheres[instId] = shadowSphere;
+        this.triangles[instId] = p.geometry.index!.count / 3;
         p.geometry.dispose();
       }
       mesh.computeBoundingBox();
@@ -3605,28 +3623,37 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // three reads its element size when it lays out the multi-draw starts every frame
       for (const a of Object.values(mesh.geometry.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
       const proto = BatchedMesh.prototype;
+      const count = parts.length;
+      // each pass sets every instance from its own rule before three builds that pass's list
       mesh.onBeforeRender = (renderer, scene, camera, geometry, mat, group) => {
-        for (const id of this.hidden) mesh.setVisibleAt(id, false);
+        for (let id = 0; id < count; id++) mesh.setVisibleAt(id, !this.hidden.has(id));
         proto.onBeforeRender.call(mesh, renderer, scene, camera, geometry, mat, group);
       };
       mesh.onBeforeShadow = (renderer, _object, _camera, shadowCamera, geometry, depthMaterial) => {
-        for (const id of this.hidden) mesh.setVisibleAt(id, true);
+        let casting = 0;
+        let castingTriangles = 0;
+        for (let id = 0; id < count; id++) {
+          const cast = reaches(this.shadowSpheres[id]);
+          mesh.setVisibleAt(id, cast);
+          if (cast) {
+            casting++;
+            castingTriangles += this.triangles[id];
+          }
+        }
+        this.casting = casting;
+        this.castingTriangles = castingTriangles;
         // three's own onBeforeShadow builds the depth list through `this.onBeforeRender` — the colour hook
-        // above, which would hide the folded lobes again — so the depth list is built here directly
+        // above, which would apply the fold — so the depth list is built here directly
         (proto.onBeforeRender as unknown as (...args: unknown[]) => void).call(mesh, renderer, null, shadowCamera, geometry, depthMaterial);
       };
     }
     /** the lobes whose far laminae leave the colour pass this frame (`${giant}/${group}` keys; others are ignored) */
     fold(keys: Iterable<string>) {
-      const next = new Set<number>();
+      this.hidden.clear();
       for (const k of keys) {
         const id = this.instanceOf.get(k);
-        if (id !== undefined) next.add(id);
+        if (id !== undefined) this.hidden.add(id);
       }
-      // a lobe that stopped folding is visible in both passes again now
-      for (const id of this.hidden) if (!next.has(id)) this.mesh.setVisibleAt(id, true);
-      this.hidden.clear();
-      for (const id of next) this.hidden.add(id);
     }
     get folded() {
       return this.hidden.size;
@@ -3704,7 +3731,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       compactToLayout(geometry, layout);
       layoutFixed.add(geometry);
       if (farParts.length) {
-        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows);
+        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows, (sphere) => shadowReaches(sphere));
         batch.mesh.userData.giants = members.map((m) => m.def.id);
         farFoliage.push(batch);
         giantGroup.add(batch.mesh);
@@ -4986,9 +5013,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
          * round 54: the giants' tagged far laminae (FarFoliageBatch), one batch per sector — instances (one
          * per giant lobe group), vertices / indices, the sector's layout (colours / wind narrow or Float32),
          * the instances the colour pass leaves out this frame and their triangles (what the fold used to
-         * submit), the CPU arrays still held (the index), whether the batch casts this frame
+         * submit), the CPU arrays still held (the index), whether the batch casts this frame and, of its
+         * instances, how many the last depth pass drew (those whose shadow sweep meets the frame) and their triangles
          */
-        farBatches: farFoliage.map((b) => ({ name: b.mesh.name, instances: b.instances, vertices: b.vertices, indices: b.indices, layout: b.layout, folded: b.folded, foldedTriangles: b.foldedTriangles, heapBytes: b.heapBytes, casting: b.mesh.castShadow })),
+        farBatches: farFoliage.map((b) => ({ name: b.mesh.name, instances: b.instances, vertices: b.vertices, indices: b.indices, layout: b.layout, folded: b.folded, foldedTriangles: b.foldedTriangles, heapBytes: b.heapBytes, casting: b.mesh.castShadow, castingInstances: b.casting, castingTriangles: b.castingTriangles })),
         /** Measured bytes after a first build; deferred records retain conservative estimates. */
         builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
         estimatedUnbuiltBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? 0 : nc.item.bytes), 0),
