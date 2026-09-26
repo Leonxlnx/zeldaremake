@@ -167,11 +167,16 @@ float streetLevel(float k, float seed) {
 // heights are box-filtered; below that the per-block averages take over.
 const float H_MID = 45.0;
 // colour = cS * (mega-tower and cloud light) + cA; kDet: the near field's share (the lot pass is skipped under it)
-void farCity(vec2 g, vec2 gdx, vec2 gdy, vec3 N, vec3 rd, float muS, vec3 sunC, vec3 sky, float on, float kDet, out vec3 cS, out vec3 cA, out vec3 emis) {
+void farCity(vec2 g, vec2 gdx, vec2 gdy, vec3 N, vec3 rd, float muS, vec3 sunC, vec3 sky, float on, float kDet, vec2 LgH, out vec3 cS, out vec3 cA, out vec3 emis) {
   vec2 fwg = abs(gdx) + abs(gdy);
-  float kL = lodK(LOT, max(fwg.x, fwg.y));
+  // the 2×2 lot box filter below is exact while the footprint spans under a lot on both axes, so the lots'
+  // grain stays down to about a pixel a lot (the block averages alone read as flat tiles)
+  float kL = smoothstep(1.05, 2.1, LOT / max(max(fwg.x, fwg.y), 1e-3));
   vec3 wallA = vec3(0.0), roofA = vec3(0.0);
   float hm = 0.0, open = 0.0, hs = 0.0;
+  // relief (zero mean): lots taller than their block's typical building catch the low sun on their roofs, the
+  // rest stand in their shadows; blocks likewise against their sunward neighbour
+  float relief = 0.0, lotRel = 0.0;
   // the four lots around g, weighted by how much of the footprint each covers (a loop with a per-pixel trip
   // count: under SwiftShader a quad that needs none of it runs one masked pass instead of four)
   vec2 p = g / LOT - 0.5;
@@ -196,9 +201,11 @@ void farCity(vec2 g, vec2 gdx, vec2 gdy, vec3 N, vec3 rd, float muS, vec3 sunC, 
     hb += bw * L.h;
     wb += bw;
     open += w - bw;
+    lotRel += bw * (L.r.y - 0.5);
   }
   wallA = mix(wl / max(wb, 1e-3), C_GLASS, GLASS_FRAC);
   hm = wb > 0.0 ? hb / wb : 20.0;
+  relief = lotRel * 1.6;
   if (kL < 1.0) {
     // one texel per block, drawn crisp (edges box-filtered by the footprint) rather than as bilinear
     // blobs; once a block is under a pixel this is plain trilinear filtering
@@ -209,6 +216,9 @@ void farCity(vec2 g, vec2 gdx, vec2 gdy, vec3 N, vec3 rd, float muS, vec3 sunC, 
     vec2 ux = gdx / GRID_SPAN, uy = gdy / GRID_SPAN;
     vec4 fw = textureGrad(farWall, uv, ux, uy);
     vec4 fr = textureGrad(farRoof, uv, ux, uy);
+    vec2 sg = normalize(LgH + 1e-5) * (1.15 * BLOCK / GRID_SPAN);
+    float hsS = textureGrad(farWall, uv + sg, ux, uy).a;
+    relief = mix(clamp((fw.a - hsS) * 2.4, -0.7, 0.7), relief, kL);
     wallA = mix(fw.rgb, wallA, kL);
     roofA = mix(fr.rgb, roofA, kL);
     hm = mix(mix(14.0, 150.0, fw.a) * 0.62 + 3.0, hm, kL);
@@ -238,7 +248,8 @@ void farCity(vec2 g, vec2 gdx, vec2 gdy, vec3 N, vec3 rd, float muS, vec3 sunC, 
   vec3 gsky = glassSky(rd, normalize(abs(vu) * nU + abs(vv) * nV), N, muS, glint);
   vec3 wallS = sunC * litW * (wallA * sunW + GLASS_FRAC * glint);
   vec3 wallC = wallA * (sky * 0.42 + sunC * sunUp * 0.05) + GLASS_FRAC * (gsky - vec3(0.012, 0.02, 0.032));
-  vec3 roofS = roofA * sunC * sunUp * litR;
+  vec3 roofS = roofA * sunC * sunUp * litR * (1.0 + relief);
+  wallS *= 1.0 + 0.6 * relief;
   vec3 grdS = C_ASPHALT * sunC * sunUp * litG;
   // block streets and avenues (box-filtered, a little wider than the pixel for a softer line): you see
   // their floors only when looking along them, otherwise the facades across them
@@ -256,7 +267,7 @@ void farCity(vec2 g, vec2 gdx, vec2 gdy, vec3 N, vec3 rd, float muS, vec3 sunC, 
   // matched to the ray-cast city's mean (its sunlit rims, pads and facade glints are sub-pixel here)
   const vec3 TINT = vec3(1.10, 1.07, 1.03);
   cS = (cW * wallS + cR * roofS + cG * grdS) * TINT;
-  cA = (cW * wallC + cR * roofA * sky + cG * C_ASPHALT * sky * 0.25) * TINT;
+  cA = (cW * wallC + cR * roofA * sky * (1.0 + 0.35 * relief) + cG * C_ASPHALT * sky * 0.25) * TINT;
   float busy = 0.55 + 0.9 * hs;
   emis = on * busy * (pW * GLASS_FRAC * 0.4 * WIN_I * mix(WIN_WARM, WIN_COOL, 0.35) + pG * 0.35 * STREET_I * WIN_WARM + pR * 0.03 * WIN_WARM);
   // street lights and traffic along the visible street floors (each street's level fades to the mean once the
@@ -755,7 +766,7 @@ void main() {
     float kM = hM.x > 0.0 ? hM.x / tG : 1.0;
     vec2 gM = hM.x > 0.0 ? toGrid(ro + rd * hM.x) : gG;
     vec3 fS = vec3(0.0), fA = vec3(0.0), fE = vec3(0.0);
-    if (kDet < 0.999) farCity(gM, gdx * kM, gdy * kM, N, rd, muS, sunC, sky, on, kDet, fS, fA, fE);
+    if (kDet < 0.999) farCity(gM, gdx * kM, gdy * kM, N, rd, muS, sunC, sky, on, kDet, LgH, fS, fA, fE);
     // one mega-tower / cloud light lookup for the pixel, at the blend of the far field's point (its roofs)
     // and the near field's (the hit, or the silhouettes over it): both fields are smooth at this scale
     vec4 pL = mix(vec4(gM, H_MID, kM), nc.pL, kDet);

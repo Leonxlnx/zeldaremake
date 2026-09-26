@@ -12,7 +12,7 @@ import {
   type Vector3,
 } from 'three';
 import { hash2, hash3 } from '../core/rng';
-import { BLOCK_N, CLOUD_N, GRID_ANGLE, GRID_MIN, GRID_SPAN, SB_OFF, SHADE_N, SUPERW, TIER0_MIN, TOWER_N, TOWER_STYLES, Z_SHADE } from './planet-glsl';
+import { BLOCK, BLOCK_N, CLOUD_N, GRID_ANGLE, GRID_MIN, GRID_SPAN, SB_OFF, SHADE_N, SUPERW, TIER0_MIN, TOWER_N, TOWER_STYLES, Z_SHADE } from './planet-glsl';
 
 /**
  * CPU-side layout of Coruscant, baked once into small textures: per-superblock district data
@@ -76,7 +76,7 @@ const OPEN_MEAN = [0.16, 0.2, 0.13];
 /** fraction of a facade that is glass (window bands), matching the near-field facade styles */
 export const GLASS_FRAC = 0.42;
 /** share of a block's lots painted in its dominant colour (the rest pick from the scheme's four) */
-export const DOM_W = 0.6;
+export const DOM_W = 0.45;
 /** how often the other lots pick each of the scheme's colours: the first two are its neutrals */
 export const PICK_W = [0.35, 0.35, 0.15, 0.15];
 const GLASS = [0.03, 0.045, 0.07];
@@ -139,11 +139,14 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
   const GU = [Math.cos(GRID_ANGLE), Math.sin(GRID_ANGLE)];
   const GV = [-Math.sin(GRID_ANGLE), Math.cos(GRID_ANGLE)];
 
-  // --- districts (superblocks): height scale, colour scheme, merge probability, open-lot fraction
+  // --- districts (superblocks): height scale, colour scheme, merge probability, open-lot fraction. Schemes come
+  // from a warped low-frequency zone field, so a district of one character spans a dozen superblocks and its
+  // edge wanders; nb is the share of its blocks that take the scheme's first neutral (neighbours agree).
   const hsOf = new Float32Array(N * N);
   const schemeOf = new Uint8Array(N * N);
   const mergeOf = new Float32Array(N * N);
   const openOf = new Float32Array(N * N);
+  const nbOf = new Float32Array(N * N);
   for (let j = 0; j < N; j++) {
     for (let i = 0; i < N; i++) {
       const si = i - SB_OFF;
@@ -152,7 +155,11 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
       const big = vnoise(si * 0.06 + 1.3, sj * 0.06 + 8.1, 23);
       const r1 = hash3(si, sj, 101);
       hsOf[j * N + i] = Math.min(1, Math.max(0, r1 * 0.38 + town * town * 1.25 + (big - 0.5) * 0.55 - 0.12));
-      schemeOf[j * N + i] = Math.floor(((vnoise(si * 0.13 + 5.1, sj * 0.13 + 2.2, 31) * 2.3 + hash3(si, sj, 102) * 0.55) * 4) % 4);
+      const wx = si + 4 * (vnoise(si * 0.11 + 9.2, sj * 0.11 + 0.7, 33) - 0.5);
+      const wy = sj + 4 * (vnoise(si * 0.11 + 2.6, sj * 0.11 + 6.3, 34) - 0.5);
+      const zone = fbm(wx * 0.07 + 5.1, wy * 0.07 + 2.2, 31, 2) * 2.6 + (hash3(si, sj, 102) - 0.5) * 0.12;
+      schemeOf[j * N + i] = Math.floor(((zone * 4) % 4) + 4) % 4;
+      nbOf[j * N + i] = 0.15 + 0.7 * vnoise(si * 0.23 + 4.4, sj * 0.23 + 1.8, 35);
       mergeOf[j * N + i] = 0.15 + 0.45 * hash3(si, sj, 103);
       openOf[j * N + i] = hash3(si, sj, 104) < 0.08 ? 0.34 : 0.03;
     }
@@ -171,7 +178,7 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
       const bx = bi - 4 * SB_OFF;
       const by = bj - 4 * SB_OFF;
       let hs = Math.min(1, Math.max(0, hsOf[d] * (0.72 + 0.56 * hash3(bx, by, 301)) + (hash3(bx, by, 302) - 0.5) * 0.12));
-      const sch = hash3(bx, by, 303) < 0.68 ? schemeOf[d] : Math.floor(hash3(bx, by, 304) * 4) % 4;
+      const sch = hash3(bx, by, 303) < 0.93 ? schemeOf[d] : Math.floor(hash3(bx, by, 304) * 4) % 4;
       let merge = Math.min(0.9, Math.max(0.05, mergeOf[d] + (hash3(bx, by, 305) - 0.5) * 0.2));
       let open = openOf[d];
       if (hash3(bx, by, 306) < 0.035) open = 0.5;
@@ -183,7 +190,7 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
       }
       // most lots of a block share its dominant colour, usually one of the scheme's neutrals (blocks
       // of saturated accents read as a patchwork quilt from orbit)
-      const dom = (hash3(bx, by, 308) < 0.8 ? 0 : 2) + (hash3(bx, by, 309) < 0.5 ? 0 : 1);
+      const dom = (hash3(bx, by, 308) < 0.9 ? 0 : 2) + (hash3(bx, by, 309) < nbOf[d] ? 0 : 1);
       const k = (bj * BN + bi) * 4;
       block[k] = Math.round(hs * 255);
       block[k + 1] = Math.round(((sch * 4 + dom + 0.5) / 16) * 255);
@@ -203,27 +210,56 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
     }
   }
 
-  // --- mega-towers: at most one per superblock, kept off the avenues
+  // --- mega-towers, kept off the avenues: one per superblock at most in the spread-out districts; the dense
+  // cores add a cluster on block centres (a skyline with canyons between the towers), and the densest a spire
+  // that pierces the cloud deck
   const towers: Tower[] = [];
   for (let j = 0; j < N; j++) {
     for (let i = 0; i < N; i++) {
       const si = i - SB_OFF;
       const sj = j - SB_OFF;
       const hs = hsOf[j * N + i];
-      if (hash3(si, sj, 201) > 0.04 + 0.5 * hs * hs) continue;
-      const half = 44 + 52 * hash3(si, sj, 202);
-      const h = (330 + 600 * Math.pow(hash3(si, sj, 203), 1.6)) * (0.55 + 0.45 * hs);
-      const room = SUPERW / 2 - 70 - half;
-      towers.push({
-        cx: (si + 0.5) * SUPERW + (hash3(si, sj, 204) * 2 - 1) * room,
-        cy: (sj + 0.5) * SUPERW + (hash3(si, sj, 205) * 2 - 1) * room,
-        hs: half,
-        h,
-        round: hash3(si, sj, 206) < 0.38,
-        style: Math.floor(hash3(si, sj, 207) * TOWER_STYLES.length) % TOWER_STYLES.length,
-        pal: Math.floor(hash3(si, sj, 208) * 4) % 4,
-        seed: hash2(si * 17 + 3, sj * 29 + 7),
-      });
+      const mine: Tower[] = [];
+      const add = (T: Tower) => {
+        for (const o of mine) if (Math.hypot(o.cx - T.cx, o.cy - T.cy) < (o.hs + T.hs) * 1.25 + 40) return;
+        mine.push(T);
+      };
+      const style = (k: number) => Math.floor(hash3(si, sj, k) * TOWER_STYLES.length) % TOWER_STYLES.length;
+      if (hash3(si, sj, 201) <= 0.04 + 0.5 * hs * hs) {
+        const tall = hs > 0.72 && hash3(si, sj, 209) < 0.3;
+        const half = tall ? 90 + 30 * hash3(si, sj, 202) : 44 + 52 * hash3(si, sj, 202);
+        const h = tall ? 1500 + 700 * hash3(si, sj, 203) : (330 + 600 * Math.pow(hash3(si, sj, 203), 1.6)) * (0.55 + 0.45 * hs);
+        const room = SUPERW / 2 - 70 - half;
+        add({
+          cx: (si + 0.5) * SUPERW + (hash3(si, sj, 204) * 2 - 1) * room,
+          cy: (sj + 0.5) * SUPERW + (hash3(si, sj, 205) * 2 - 1) * room,
+          hs: half,
+          h,
+          round: hash3(si, sj, 206) < 0.38,
+          style: style(207),
+          pal: Math.floor(hash3(si, sj, 208) * 4) % 4,
+          seed: hash2(si * 17 + 3, sj * 29 + 7),
+        });
+      }
+      const extra = hs < 0.42 ? 0 : Math.floor(Math.pow((hs - 0.42) / 0.58, 1.3) * 7 * (0.5 + hash3(si, sj, 210)));
+      for (let k = 0; k < extra; k++) {
+        const b = Math.floor(hash3(si, sj, 220 + k) * 16);
+        const bi = b & 3;
+        const bj = b >> 2;
+        const half = 30 + 40 * hash3(si, sj, 240 + k);
+        const room = BLOCK / 2 - 34 - half;
+        add({
+          cx: si * SUPERW + (bi + 0.5) * BLOCK + (hash3(si, sj, 260 + k) * 2 - 1) * room,
+          cy: sj * SUPERW + (bj + 0.5) * BLOCK + (hash3(si, sj, 280 + k) * 2 - 1) * room,
+          hs: half,
+          h: (240 + 520 * Math.pow(hash3(si, sj, 300 + k), 1.4)) * (0.6 + 0.4 * hs),
+          round: hash3(si, sj, 320 + k) < 0.3,
+          style: style(340 + k),
+          pal: Math.floor(hash3(si, sj, 360 + k) * 4) % 4,
+          seed: hash2(si * 17 + 3 + k * 101, sj * 29 + 7 + k * 37),
+        });
+      }
+      towers.push(...mine);
     }
   }
 
