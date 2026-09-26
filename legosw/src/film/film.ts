@@ -1,4 +1,4 @@
-import { Mesh, Quaternion, Vector3, type Object3D } from 'three';
+import { Box3, Mesh, Quaternion, Vector3, type Object3D } from 'three';
 import { DEFAULT_LENS, type Lens, type Pipeline } from '../render/pipeline';
 import type { FilmUI } from '../ui';
 import { World } from './world';
@@ -19,6 +19,8 @@ export interface Film {
   renderAt(t: number, o?: { subframes?: number; shutter?: number; fps?: number }): void;
   /** framing QA: pose time T without rendering and project the visible heroes' head + hair vertices */
   probeHeads(T: number): { shot: string; heads: HeadProbe[] };
+  /** contact QA: the hangar deck height and the lowest world-space point of each visible hero, ship, droid, wreck part */
+  probeContact(T: number): { shot: string; deck: number | null; low: Record<string, number> };
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAudio(): Promise<string>;
 }
@@ -177,6 +179,40 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         if (r.right >= -1 && r.left <= 1 && r.top >= -1 && r.bottom <= 1) heads.push(r);
       }
       return { shot: shotAt(T).shot.name, heads };
+    },
+    probeContact(T) {
+      pose(T);
+      w.scene.updateMatrixWorld(true);
+      const deckA = w.hangar.group.visible ? w.hangar.anchors['landingA'] : undefined;
+      const deck = deckA ? deckA.getWorldPosition(new Vector3()).y : null;
+      const box = new Box3();
+      const lowest = (o: Object3D) => (shown(o) ? box.setFromObject(o, true).min.y : NaN);
+      const low: Record<string, number> = {
+        anakin: lowest(w.anakin.group),
+        obiwan: lowest(w.obiwan.group),
+        anakinShip: lowest(w.anakinShip.group),
+        obiwanShip: lowest(w.obiwanShip.group),
+      };
+      // the hull and the parts still attached, without the three wing parts it sheds on impact
+      const shed = new Set<Object3D>(w.obiwanShip.breakables.slice(0, 3));
+      let hull = Infinity;
+      const v = new Vector3();
+      const visit = (o: Object3D) => {
+        if (!o.visible || shed.has(o)) return;
+        if (o instanceof Mesh) {
+          if ((o as Mesh & { isInstancedMesh?: boolean }).isInstancedMesh) hull = Math.min(hull, box.setFromObject(o, true).min.y);
+          else {
+            const pos = o.geometry.getAttribute('position');
+            for (let i = 0; i < pos.count; i++) hull = Math.min(hull, v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld).y);
+          }
+        }
+        for (const c of o.children) visit(c);
+      };
+      if (shown(w.obiwanShip.group)) visit(w.obiwanShip.group);
+      low.obiwanHull = hull === Infinity ? NaN : hull;
+      w.obiwanShip.breakables.slice(0, 3).forEach((p, i) => (low[`wreck${i}`] = lowest(p)));
+      w.droids.forEach((d, i) => (low[`droid${i}`] = lowest(d.group)));
+      return { shot: shotAt(T).shot.name, deck, low };
     },
     shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur, lines: (s.lines ?? []).map((l) => ({ who: l.who, text: l.text })) })),
     renderAudio: () =>

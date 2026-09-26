@@ -1,4 +1,4 @@
-import { Box3, Euler, Matrix4, Object3D, Quaternion, Vector3 } from 'three';
+import { Box3, Euler, Matrix4, Object3D, Quaternion, Vector3, type Mesh } from 'three';
 import { DEFAULT_LENS, type Lens } from '../render/pipeline';
 import { Rng, noise1 } from '../core/rng';
 import type { FaceState, Mouth } from '../assets/prints';
@@ -968,10 +968,124 @@ function hangarSpots(w: World) {
   return { A, B, M, D, Dq };
 }
 
+/** Lift or lower a part along world Y (through its parent's frame) until its lowest point is on the deck; `liftOnly` never lowers. */
+function onDeck(p: Object3D, deckY: number, liftOnly: boolean): void {
+  p.updateMatrixWorld(true);
+  const dy = deckY - new Box3().setFromObject(p, true).min.y;
+  if (liftOnly && dy <= 0) return;
+  const q = p.parent ? p.parent.getWorldQuaternion(new Quaternion()).invert() : new Quaternion();
+  const s = p.parent ? p.parent.getWorldScale(new Vector3()) : v3(1, 1, 1);
+  p.position.add(v3(0, dy, 0).applyQuaternion(q).divide(s));
+}
+
+const lowCache = new WeakMap<Eta2, { pts: Float32Array; part: Int16Array }>();
+/**
+ * A fighter's underside vertices in its own frame with the S-foils closed (how it skids and rests),
+ * tagged with the breakable part they belong to (−1 = hull). `foils` is the frame's own foil setting, restored after.
+ */
+function undersides(ship: Eta2, foils: number): { pts: Float32Array; part: Int16Array } {
+  let c = lowCache.get(ship);
+  if (c) return c;
+  ship.setFoils(0);
+  ship.group.updateMatrixWorld(true);
+  const inv = ship.group.matrixWorld.clone().invert();
+  const m = new Matrix4(), v = new Vector3();
+  const partOf = new Map<Object3D, number>();
+  ship.breakables.forEach((p, i) => p.traverse((o) => partOf.set(o, i)));
+  const all: number[] = [], tag: number[] = [];
+  let minY = Infinity;
+  ship.group.traverse((o) => {
+    if (!(o as Mesh).isMesh) return;
+    m.multiplyMatrices(inv, o.matrixWorld);
+    const pos = (o as Mesh).geometry.getAttribute('position');
+    const i = partOf.get(o) ?? -1;
+    for (let k = 0; k < pos.count; k++) {
+      v.fromBufferAttribute(pos, k).applyMatrix4(m);
+      all.push(v.x, v.y, v.z);
+      tag.push(i);
+      minY = Math.min(minY, v.y);
+    }
+  });
+  // a 3-stud band above the lowest point covers every tilt the wreck goes through
+  const pts: number[] = [], part: number[] = [];
+  for (let k = 0; k < tag.length; k++) {
+    if (all[k * 3 + 1] < minY + 3) {
+      pts.push(all[k * 3], all[k * 3 + 1], all[k * 3 + 2]);
+      part.push(tag[k]);
+    }
+  }
+  c = { pts: new Float32Array(pts), part: new Int16Array(part) };
+  lowCache.set(ship, c);
+  ship.setFoils(foils);
+  return c;
+}
+
+/** Set a fighter's lowest point (ignoring parts it has shed) onto the deck; `liftOnly` just stops it passing through. */
+function hullOnDeck(ship: Eta2, deckY: number, foils: number, shed: (i: number) => boolean, liftOnly: boolean): void {
+  const { pts, part } = undersides(ship, foils);
+  ship.group.updateMatrixWorld(true);
+  const e = ship.group.matrixWorld.elements;
+  let low = Infinity;
+  for (let k = 0; k < part.length; k++) {
+    if (part[k] >= 0 && shed(part[k])) continue;
+    const x = pts[k * 3], y = pts[k * 3 + 1], z = pts[k * 3 + 2];
+    low = Math.min(low, e[1] * x + e[5] * y + e[9] * z + e[13]);
+  }
+  const dy = deckY - low;
+  if (liftOnly && dy <= 0) return;
+  ship.group.position.y += dy;
+  ship.group.updateMatrixWorld(true);
+}
+
+const LANDING_DUR = 5;
+/** when each of Obi-Wan's first three breakable wing parts tears off, seconds into the landing shot */
+const wreckBreak = (i: number) => 1.05 + i * 0.18;
+
+/**
+ * A wing part shed on impact, `dt` seconds after it tore off: it hops, slides to a stop against the
+ * deck's friction and tumbles to rest, never sinking through the deck and never left hovering.
+ * The landing and every later hangar shot pose the parts through this, so they carry across the cuts.
+ */
+function wreckPose(ship: Eta2, i: number, dt: number, deckY: number): void {
+  const p = ship.breakables[i];
+  const hm = p.userData.home as { pos: Vector3; quat: Quaternion };
+  if (dt <= 0) {
+    p.position.copy(hm.pos);
+    p.quaternion.copy(hm.quat);
+    return;
+  }
+  const rng = new Rng(1400 + i);
+  const dx = rng.range(-1, 1), dz = rng.range(0.2, 1);
+  const axis = v3(rng.range(-1, 1), 1, rng.range(-1, 1)).normalize();
+  const spin = rng.range(5, 9);
+  const k = 1.4;
+  const s = (1 - Math.exp(-dt * k)) / k;
+  ship.group.updateMatrixWorld(true);
+  p.quaternion.copy(hm.quat).multiply(new Quaternion().setFromAxisAngle(axis, spin * s));
+  p.position.set(hm.pos.x + dx * 14 * s, hm.pos.y, hm.pos.z + dz * 10 * s);
+  const attachedY = p.position.clone();
+  onDeck(p, deckY, false);
+  // leave the wing smoothly, then rest on the deck with a hop on top
+  p.position.lerpVectors(attachedY, p.position, smoother(0, 0.35, dt));
+  const hop = Math.max(0, dt * 6 - dt * dt * 9);
+  if (hop > 0) {
+    const q = ship.group.getWorldQuaternion(new Quaternion()).invert();
+    p.position.add(v3(0, hop, 0).applyQuaternion(q));
+  }
+  onDeck(p, deckY, true);
+}
+
+/** Obi-Wan's wreck, sliding (`t` into the landing) or at rest: the same frame either way so the cut into the jump-out is seamless */
+function obiWreckQuat(s: { A: Vector3; M: Vector3 }, t: number): Quaternion {
+  const bump = t > 1.0 ? Math.max(0, Math.sin((t - 1.0) * 9) * Math.exp(-(t - 1.0) * 3)) * 0.8 : 0;
+  const dir = s.A.clone().sub(s.M).setY(0).normalize();
+  return basisQuat(dir, v3(0, 1, 0)).multiply(new Quaternion().setFromEuler(new Euler(0.05 - bump * 0.2, smooth(1.0, 2.6, t) * 0.5, smooth(1.0, 1.6, t) * 0.12 - bump * 0.1)));
+}
+
 const landing: Shot = {
   name: 'landing',
   blur: 2,
-  dur: 5,
+  dur: LANDING_DUR,
   schedule(w, T0) {
     const s = hangarSpots(w);
     const rng = new Rng(1301);
@@ -987,28 +1101,12 @@ const landing: Shot = {
     w.hangar.setShield(0);
     // Obi-Wan: comes in fast, slams down, skids, sheds wings
     const op = obiSlide(s, t);
-    const odir = s.A.clone().sub(s.M).setY(0).normalize();
-    const yawO = Math.atan2(odir.x, odir.z);
-    const bump = t > 1.0 ? Math.max(0, Math.sin((t - 1.0) * 9) * Math.exp(-(t - 1.0) * 3)) * 0.8 : 0;
-    const oq = new Quaternion().setFromEuler(new Euler(0.05 - bump * 0.2, yawO + smooth(1.0, 2.6, t) * 0.5, smooth(1.0, 1.6, t) * 0.12 - bump * 0.1));
-    fly(w, w.obiwanShip, { pos: op, quat: oq } as FlightState, t < 1 ? 0.2 : 0, t < 2.6 ? 1 - smooth(1.8, 2.6, t) : 0);
+    fly(w, w.obiwanShip, { pos: op, quat: obiWreckQuat(s, t) } as FlightState, t < 1 ? 0.2 : 0, t < 2.6 ? 1 - smooth(1.8, 2.6, t) : 0);
+    // from the slam-down on, the belly rides the deck (it pivots on its lowest point as it bucks)
+    hullOnDeck(w.obiwanShip, s.A.y, t < 1 ? 0.2 : 0, (i) => i < 3 && t > wreckBreak(i), t < 1.0);
     w.r4.head.visible = false;
-    // breakables tumble away after impact
-    w.obiwanShip.breakables.forEach((p, i) => {
-      p.userData.home ??= { pos: p.position.clone(), quat: p.quaternion.clone() };
-      const hm = p.userData.home as { pos: Vector3; quat: Quaternion };
-      const tb = 1.05 + i * 0.18;
-      if (t > tb && i < 3) {
-        const dt = t - tb;
-        const rng = new Rng(1400 + i);
-        const dx = rng.range(-1, 1), dz = rng.range(0.2, 1);
-        p.position.set(hm.pos.x + dx * dt * 14, hm.pos.y + Math.max(-hm.pos.y - 0.5, dt * 6 - dt * dt * 9), hm.pos.z + dz * dt * 10);
-        p.quaternion.copy(hm.quat).multiply(new Quaternion().setFromAxisAngle(v3(rng.range(-1, 1), 1, rng.range(-1, 1)).normalize(), dt * rng.range(5, 9) * Math.exp(-dt * 0.8)));
-      } else {
-        p.position.copy(hm.pos);
-        p.quaternion.copy(hm.quat);
-      }
-    });
+    // the first three wing parts tear off on impact and tumble to rest on the deck
+    for (let i = 0; i < 3; i++) wreckPose(w.obiwanShip, i, t - wreckBreak(i), s.A.y);
     face(w.obiwan, { mouth: t < 1.0 ? 'shout' : 'o', brows: 0.9 }, t, 2);
     // Anakin: glides in, flares, sets down
     const bdir = s.B.clone().sub(s.M).setY(0).normalize();
@@ -1046,15 +1144,14 @@ function jediMarks(s: ReturnType<typeof hangarSpots>) {
   return { mid, toDroids, yaw, side, obiPos, anaPos };
 }
 
-/** both fighters parked after the landing (Obi-Wan's wrecked, its broken parts on the deck), canopies 0..1 open */
-function parkFighters(w: World, s: ReturnType<typeof hangarSpots>, canopy: number): void {
-  fly(w, w.obiwanShip, { pos: s.A.clone().setY(s.A.y + 1.5), quat: basisQuat(s.A.clone().sub(s.M).setY(0).normalize(), v3(0, 1, 0)).multiply(new Quaternion().setFromEuler(new Euler(0.05, 0.5, 0.12))) } as FlightState, 0, 0);
-  w.obiwanShip.breakables.forEach((p, i) => {
-    const hm = p.userData.home as { pos: Vector3; quat: Quaternion } | undefined;
-    if (!hm || i >= 3) return;
-    const rng = new Rng(1400 + i);
-    p.position.set(hm.pos.x + rng.range(-1, 1) * 14, -1.2, hm.pos.z + rng.range(0.2, 1) * 12);
-  });
+/**
+ * Both fighters parked after the landing (Obi-Wan's wrecked, its broken parts on the deck), canopies
+ * 0..1 open; `since` = seconds since the landing shot ended, so the wreck parts carry on from its last frame.
+ */
+function parkFighters(w: World, s: ReturnType<typeof hangarSpots>, canopy: number, since: number): void {
+  fly(w, w.obiwanShip, { pos: s.A.clone().setY(s.A.y + 1.5), quat: obiWreckQuat(s, LANDING_DUR + since) } as FlightState, 0, 0);
+  hullOnDeck(w.obiwanShip, s.A.y, 0, (i) => i < 3, false);
+  for (let i = 0; i < 3; i++) wreckPose(w.obiwanShip, i, LANDING_DUR + since - wreckBreak(i), s.A.y);
   w.r4.head.visible = false;
   fly(w, w.anakinShip, { pos: s.B.clone().setY(s.B.y + 1.8), quat: basisQuat(s.B.clone().sub(s.M).setY(0).normalize(), v3(0, 1, 0)) } as FlightState, 0, 0);
   w.obiwanShip.canopy.rotation.x = -1.05 * canopy;
@@ -1095,8 +1192,8 @@ function flipOut(w: World, fig: Minifig, ship: Eta2, land: Vector3, yawEnd: numb
   const tl = tj - FLIP_DUR;
   let dy = yawEnd - yawTravel;
   dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+  // feet planted from the first touchdown frame; the impact is sold by the arms, not by sinking into the deck
   w.stand(fig, land, yawTravel + dy * smooth(0.1, 0.55, tl));
-  fig.group.position.y -= 0.22 * Math.sin(Math.PI * clamp(tl / 0.22));
   const settle = smooth(0, 0.3, tl);
   fig.pose({ armL: lerp(1.4, 0.15, settle), armR: lerp(1.4, 0.25, settle), splayL: lerp(0.5, 0.1, settle), splayR: lerp(0.5, 0.05, settle) });
 }
@@ -1113,7 +1210,7 @@ const jumpOut: Shot = {
     w.interior();
     const s = hangarSpots(w);
     w.hangar.setShield(0);
-    parkFighters(w, s, smooth(0, 0.4, t));
+    parkFighters(w, s, smooth(0, 0.4, t), t);
     const J = jediMarks(s);
     flipOut(w, w.obiwan, w.obiwanShip, J.obiPos, J.yaw - 0.9, t - JUMP_OBI);
     flipOut(w, w.anakin, w.anakinShip, J.anaPos, J.yaw + 0.6, t - JUMP_ANA);
@@ -1138,7 +1235,7 @@ const droids: Shot = {
     w.interior();
     const s = hangarSpots(w);
     w.hangar.setShield(0);
-    parkFighters(w, s, 1);
+    parkFighters(w, s, 1, jumpOut.dur + t);
     // the Jedi stand where they landed, between the fighters and the droids
     const { mid, toDroids, yaw, side, obiPos, anaPos } = jediMarks(s);
     w.stand(w.obiwan, obiPos, yaw + (t < 2.4 ? -0.9 : 0));
