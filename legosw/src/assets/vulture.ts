@@ -562,7 +562,7 @@ export function vultureDroid(o: { lod?: Lod; seed?: number } = {}): VultureDroid
 // frames that share one set of meshes (setGait swaps their geometry, so no extra draw calls).
 
 const OFFSETS: Record<string, number> = { '1,-1': 0, '1,1': Math.PI / 2, '-1,-1': Math.PI, '-1,1': (3 * Math.PI) / 2 };
-const WALK_FRAMES = 8;
+const WALK_FRAMES = 16;
 
 function lod1(group: Group, seed: number, muzzles: Object3D[], engines: Object3D[]): VultureDroid {
   const key = `${seed & 3}`;
