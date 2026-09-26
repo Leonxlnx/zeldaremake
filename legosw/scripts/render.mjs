@@ -4,6 +4,7 @@
  *
  *   node legosw/scripts/render.mjs [--size 1920x1080] [--fps 24] [--from 0] [--to <end>] [--subframes 1]
  *        [--out legosw/out] [--shards 1 --shard 0] [--audio] [--encode] [--dist legosw/dist] [--step 1] [--msaa 4]
+ *        [--frames 108,468,...]   (render just these frame numbers instead of the --from/--to range)
  *
  * Frames already on disk are skipped, so an interrupted render resumes. Run several shards in
  * parallel (--shards 2 --shard 0 / --shard 1) to use more cores, then `--encode` once.
@@ -56,9 +57,10 @@ async function main() {
       if (!args['audio-only']) {
         const from = Math.round(Number(args.from || 0) * fps);
         const to = Math.round(duration * fps);
+        const list = args.frames ? String(args.frames).split(',').map(Number) : null;
         const t0 = Date.now();
         let done = 0;
-        for (let f = from; f < to; f += step) {
+        for (const f of list ?? Array.from({ length: Math.max(0, Math.ceil((to - from) / step)) }, (_, i) => from + i * step)) {
           if (f % shards !== shard) continue;
           const file = path.join(framesDir, `f${String(f).padStart(5, '0')}.png`);
           if (fs.existsSync(file) && fs.statSync(file).size > 1000) continue;
