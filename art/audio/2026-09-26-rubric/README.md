@@ -82,7 +82,11 @@ the steps came down 4 dB and the compressor came out — its numbers are certain
 its score is not).
 
 **Real, open, and this lane's** — 4 (the envelope's 26 s correlation is explained only as "what a
-slow random walk does", which is an assertion and could be a calculation), 5 (sparse events), 10
+slow random walk does", which is an assertion and could be a calculation — **taken, and the
+assertion was wrong: `art/audio/2026-09-26-gust/`. There is no random walk. `uGust` is a product
+of two sines, it repeats every 26.4 s at r = 0.868, and the bed inherits it at 0.126. Check 4
+stays at 3 with a true reason, and the fault is one line in `src/world/wind/wind.ts`**),
+5 (sparse events), 10
 (a roof is worth +2.9 dB, which is the smallest of the place terms), 28 (the double-fire half of
 "no double-fire, no misses" rests on `MIN_STEP_GAP` and has never been driven at a frame rate that
 would break it).
