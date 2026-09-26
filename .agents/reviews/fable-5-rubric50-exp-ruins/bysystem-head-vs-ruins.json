@@ -1,0 +1,413 @@
+{
+ "A_stairs": {
+  "head": {
+   "stats": {
+    "simTime": 0.08333333333333334,
+    "drawCalls": 639,
+    "triangles": 8874633,
+    "geometries": 394,
+    "textures": 101,
+    "programs": 112,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+   },
+   "bySystem": {
+    "atmosphere": {
+     "meshes": 8,
+     "instances": 309,
+     "triangles": 5036
+    },
+    "terrain": {
+     "meshes": 56,
+     "instances": 56,
+     "triangles": 622088
+    },
+    "hardscape": {
+     "meshes": 21,
+     "instances": 5037,
+     "triangles": 606847
+    },
+    "rocks": {
+     "meshes": 67,
+     "instances": 3337,
+     "triangles": 835866
+    },
+    "trees": {
+     "meshes": 575,
+     "instances": 890,
+     "triangles": 5187276
+    },
+    "canopy": {
+     "meshes": 7,
+     "instances": 7,
+     "triangles": 5938
+    },
+    "structures": {
+     "meshes": 139,
+     "instances": 139,
+     "triangles": 1954172
+    },
+    "props": {
+     "meshes": 17,
+     "instances": 17,
+     "triangles": 70778
+    },
+    "vegetation": {
+     "meshes": 479,
+     "instances": 596156,
+     "triangles": 2927244
+    },
+    "character": {
+     "meshes": 94,
+     "instances": 109,
+     "triangles": 130236
+    }
+   }
+  },
+  "ruins": {
+   "stats": {
+    "simTime": 0.08333333333333334,
+    "drawCalls": 638,
+    "triangles": 8866360,
+    "geometries": 393,
+    "textures": 101,
+    "programs": 112,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+   },
+   "bySystem": {
+    "atmosphere": {
+     "meshes": 8,
+     "instances": 309,
+     "triangles": 5036
+    },
+    "terrain": {
+     "meshes": 56,
+     "instances": 56,
+     "triangles": 622088
+    },
+    "hardscape": {
+     "meshes": 21,
+     "instances": 5037,
+     "triangles": 606847
+    },
+    "rocks": {
+     "meshes": 67,
+     "instances": 3337,
+     "triangles": 835866
+    },
+    "trees": {
+     "meshes": 575,
+     "instances": 889,
+     "triangles": 4923826
+    },
+    "canopy": {
+     "meshes": 7,
+     "instances": 7,
+     "triangles": 5938
+    },
+    "structures": {
+     "meshes": 139,
+     "instances": 139,
+     "triangles": 1954172
+    },
+    "props": {
+     "meshes": 17,
+     "instances": 17,
+     "triangles": 70778
+    },
+    "ruins": {
+     "meshes": 11,
+     "instances": 11,
+     "triangles": 91956
+    },
+    "vegetation": {
+     "meshes": 538,
+     "instances": 589683,
+     "triangles": 2910234
+    },
+    "character": {
+     "meshes": 94,
+     "instances": 109,
+     "triangles": 130236
+    }
+   }
+  }
+ },
+ "C_lookback": {
+  "head": {
+   "stats": {
+    "simTime": 0.15,
+    "drawCalls": 571,
+    "triangles": 7928403,
+    "geometries": 517,
+    "textures": 102,
+    "programs": 117,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+   },
+   "bySystem": {
+    "atmosphere": {
+     "meshes": 8,
+     "instances": 309,
+     "triangles": 5036
+    },
+    "terrain": {
+     "meshes": 56,
+     "instances": 56,
+     "triangles": 622088
+    },
+    "hardscape": {
+     "meshes": 21,
+     "instances": 4072,
+     "triangles": 539441
+    },
+    "rocks": {
+     "meshes": 67,
+     "instances": 3318,
+     "triangles": 831724
+    },
+    "trees": {
+     "meshes": 575,
+     "instances": 784,
+     "triangles": 5305847
+    },
+    "canopy": {
+     "meshes": 7,
+     "instances": 7,
+     "triangles": 5938
+    },
+    "structures": {
+     "meshes": 139,
+     "instances": 139,
+     "triangles": 1954172
+    },
+    "props": {
+     "meshes": 17,
+     "instances": 17,
+     "triangles": 70778
+    },
+    "vegetation": {
+     "meshes": 479,
+     "instances": 585709,
+     "triangles": 3004254
+    },
+    "character": {
+     "meshes": 94,
+     "instances": 109,
+     "triangles": 130236
+    }
+   }
+  },
+  "ruins": {
+   "stats": {
+    "simTime": 0.15,
+    "drawCalls": 569,
+    "triangles": 7912410,
+    "geometries": 517,
+    "textures": 102,
+    "programs": 116,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+   },
+   "bySystem": {
+    "atmosphere": {
+     "meshes": 8,
+     "instances": 309,
+     "triangles": 5036
+    },
+    "terrain": {
+     "meshes": 56,
+     "instances": 56,
+     "triangles": 622088
+    },
+    "hardscape": {
+     "meshes": 21,
+     "instances": 4072,
+     "triangles": 539441
+    },
+    "rocks": {
+     "meshes": 67,
+     "instances": 3318,
+     "triangles": 831724
+    },
+    "trees": {
+     "meshes": 575,
+     "instances": 782,
+     "triangles": 5050682
+    },
+    "canopy": {
+     "meshes": 7,
+     "instances": 7,
+     "triangles": 5938
+    },
+    "structures": {
+     "meshes": 139,
+     "instances": 139,
+     "triangles": 1954172
+    },
+    "props": {
+     "meshes": 17,
+     "instances": 17,
+     "triangles": 70778
+    },
+    "ruins": {
+     "meshes": 11,
+     "instances": 11,
+     "triangles": 91956
+    },
+    "vegetation": {
+     "meshes": 538,
+     "instances": 579302,
+     "triangles": 2990526
+    },
+    "character": {
+     "meshes": 94,
+     "instances": 109,
+     "triangles": 130236
+    }
+   }
+  }
+ },
+ "E_ground": {
+  "head": {
+   "stats": {
+    "simTime": 0.21666666666666665,
+    "drawCalls": 628,
+    "triangles": 8291522,
+    "geometries": 557,
+    "textures": 108,
+    "programs": 117,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+   },
+   "bySystem": {
+    "atmosphere": {
+     "meshes": 8,
+     "instances": 309,
+     "triangles": 5036
+    },
+    "terrain": {
+     "meshes": 56,
+     "instances": 56,
+     "triangles": 622088
+    },
+    "hardscape": {
+     "meshes": 21,
+     "instances": 4423,
+     "triangles": 560719
+    },
+    "rocks": {
+     "meshes": 67,
+     "instances": 3312,
+     "triangles": 830416
+    },
+    "trees": {
+     "meshes": 575,
+     "instances": 876,
+     "triangles": 5139878
+    },
+    "canopy": {
+     "meshes": 7,
+     "instances": 7,
+     "triangles": 5938
+    },
+    "structures": {
+     "meshes": 139,
+     "instances": 139,
+     "triangles": 1954172
+    },
+    "props": {
+     "meshes": 17,
+     "instances": 17,
+     "triangles": 70778
+    },
+    "vegetation": {
+     "meshes": 479,
+     "instances": 572494,
+     "triangles": 2785432
+    },
+    "character": {
+     "meshes": 94,
+     "instances": 109,
+     "triangles": 130236
+    }
+   }
+  },
+  "ruins": {
+   "stats": {
+    "simTime": 0.21666666666666665,
+    "drawCalls": 627,
+    "triangles": 8283249,
+    "geometries": 557,
+    "textures": 108,
+    "programs": 116,
+    "width": 640,
+    "height": 360,
+    "pixelRatio": 1
+   },
+   "bySystem": {
+    "atmosphere": {
+     "meshes": 8,
+     "instances": 309,
+     "triangles": 5036
+    },
+    "terrain": {
+     "meshes": 56,
+     "instances": 56,
+     "triangles": 622088
+    },
+    "hardscape": {
+     "meshes": 21,
+     "instances": 4423,
+     "triangles": 560719
+    },
+    "rocks": {
+     "meshes": 67,
+     "instances": 3312,
+     "triangles": 830416
+    },
+    "trees": {
+     "meshes": 575,
+     "instances": 875,
+     "triangles": 4885248
+    },
+    "canopy": {
+     "meshes": 7,
+     "instances": 7,
+     "triangles": 5938
+    },
+    "structures": {
+     "meshes": 139,
+     "instances": 139,
+     "triangles": 1954172
+    },
+    "props": {
+     "meshes": 17,
+     "instances": 17,
+     "triangles": 70778
+    },
+    "ruins": {
+     "meshes": 11,
+     "instances": 11,
+     "triangles": 91956
+    },
+    "vegetation": {
+     "meshes": 538,
+     "instances": 566087,
+     "triangles": 2768620
+    },
+    "character": {
+     "meshes": 94,
+     "instances": 109,
+     "triangles": 130236
+    }
+   }
+  }
+ }
+}

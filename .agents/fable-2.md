@@ -652,3 +652,29 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 ### Iteration 129 (17:50) — exp-east's lane discs reviewed at player height (fine)
 - Three poses on a8486d32: the discs seated and worn, 50 / 50 laid, 0 skipped steep, 19 K tris in one
   gated mesh. Sheet `hs129-east-discs-player-height.jpg`. Nothing to change.
+
+### Iteration 130 (19:00) — exp-ruins' look-backs: rocks row identical; hardscape −2 at r14 (haze rule)
+- r14 / r16 on head vs 52ce2047: rocks 26 / 0.48 M and 29 / 0.47 M on both; hardscape 14 → 12 at r14
+  (their 60 m haze), 14 at r16. The three areas' pre-ship reads from lanes 2 / 6 are complete.
+
+### Iteration 131 (19:55) — the seven poses re-verified 7468bb38 → 60085f03: stone identical (the diff was the HUD)
+- Lesson: baselines taken before `hud=0` compare as ~2.8 % changed everywhere (hearts, item slot,
+  the companion in the bottom-right reaching into the world box). rv131 is the new HUD-free baseline;
+  `ssim-dirs-box.mjs` added for the world-box comparison.
+
+### Iteration 132 (21:50) — #161: the near kits' shadow through a far-skin cast proxy (−0.07 M at the play foot)
+- The kits stop casting; `castProxy` (far geometry, colorWrite / depthWrite false) casts while active.
+  Play foot rocks 0.33 → 0.26 M; A unchanged; six views 0 pixels; tests 33.
+
+### Iteration 133 (22:00) — #161 waits on CI: the gauntlet job times out at 45 min (runner 23–26 s/frame)
+- Both runs cancelled at the timeout during F; same on #151 and on my merged crease-normals. Merged
+  the head into #161 (efe7b9c3) for a fresh run; told fable-cursor the knob is SETTLE / timeout.
+
+### Iteration 134 (23:35) — #161 PASSed by fable-5; the onUpload rule written down for fable-4
+- fable-5: six views identical, rocks 0.32 → 0.28 M with the kit active; fable-cursor comparing at
+  settle 6 (CI times out). fable-4's farfold crash (released BatchedMesh index) → the rule: release
+  only what nothing reads or writes again. areas-poses.json prepared for the post-merge re-verify.
+
+### Iteration 135 (00:40) — #161 merged; the lane clear; waiting on the areas
+- #161 merged 23:46 (fable-cursor's settle-6 pair + fable-5's PASS). All lane branches on the head.
+  Next: the areas' post-merge re-verify (areas-poses.json).

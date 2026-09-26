@@ -1,0 +1,1759 @@
+{
+ "dist": "/tmp/f5/wt-e137/dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-25T16:28:54.415Z",
+ "baselineSha": null,
+ "walk": [
+  {
+   "name": "stairs-to-east-lookout",
+   "reached": true,
+   "waypointsReached": 20,
+   "of": 20,
+   "frames": 1236,
+   "stuck": [],
+   "lengthM": 59.6,
+   "camera": {
+    "speedMps": {
+     "p50": 1.6,
+     "p95": 4.55,
+     "max": 5.82
+    },
+    "accelMps2": {
+     "p50": 1.23,
+     "p95": 69.77,
+     "max": 74.24
+    },
+    "verticalAccelMps2": {
+     "p50": 0.21,
+     "p95": 1.64,
+     "max": 5
+    },
+    "turnDegPerS": {
+     "p50": 3.58,
+     "p95": 69.64,
+     "max": 82.25
+    },
+    "turnAccelDegPerS2": {
+     "p50": 23.63,
+     "p95": 907.17,
+     "max": 1075.3
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.329,
+   "feet": {
+    "stanceSamples": 1235,
+    "soleGapAbsM": {
+     "p50": 0.0031,
+     "p95": 0.0255,
+     "max": 0.2134
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0119,
+     "max": 0.0962
+    },
+    "shareOver1cm": 0.2534,
+    "shareOver2cm": 0.0939,
+    "footprintMinGapM": -0.0372,
+    "shareFootprintInside5mm": 0.013
+   },
+   "trace": [
+    [
+     1,
+     0.04,
+     3
+    ],
+    [
+     1.48,
+     0.04,
+     2.8
+    ],
+    [
+     2.07,
+     0.04,
+     2.55
+    ],
+    [
+     2.66,
+     0.03,
+     2.3
+    ],
+    [
+     3.25,
+     0.02,
+     2.05
+    ],
+    [
+     3.84,
+     0.02,
+     1.81
+    ],
+    [
+     4.43,
+     0.03,
+     1.56
+    ],
+    [
+     5.02,
+     0.03,
+     1.31
+    ],
+    [
+     5.61,
+     0.04,
+     1.06
+    ],
+    [
+     6.2,
+     0.04,
+     0.81
+    ],
+    [
+     6.79,
+     0.04,
+     0.57
+    ],
+    [
+     7.38,
+     0.12,
+     0.32
+    ],
+    [
+     7.84,
+     0.27,
+     0.13
+    ],
+    [
+     8.24,
+     0.54,
+     -0.04
+    ],
+    [
+     8.57,
+     0.81,
+     -0.3
+    ],
+    [
+     8.95,
+     0.81,
+     -0.52
+    ],
+    [
+     9.34,
+     1.08,
+     -0.73
+    ],
+    [
+     9.65,
+     1.35,
+     -1.01
+    ],
+    [
+     10.01,
+     1.62,
+     -1.27
+    ],
+    [
+     10.36,
+     1.89,
+     -1.53
+    ],
+    [
+     10.63,
+     1.89,
+     -1.85
+    ],
+    [
+     10.96,
+     2.16,
+     -2.14
+    ],
+    [
+     11.18,
+     2.43,
+     -2.5
+    ],
+    [
+     11.38,
+     2.7,
+     -2.86
+    ],
+    [
+     11.63,
+     2.7,
+     -3.23
+    ],
+    [
+     11.88,
+     2.97,
+     -3.59
+    ],
+    [
+     12.13,
+     3.24,
+     -3.95
+    ],
+    [
+     12.38,
+     3.51,
+     -4.32
+    ],
+    [
+     12.63,
+     3.51,
+     -4.68
+    ],
+    [
+     12.92,
+     3.78,
+     -4.97
+    ],
+    [
+     13.21,
+     4.05,
+     -5.3
+    ],
+    [
+     13.5,
+     4.32,
+     -5.63
+    ],
+    [
+     13.79,
+     4.59,
+     -5.97
+    ],
+    [
+     14.13,
+     4.59,
+     -6.21
+    ],
+    [
+     14.45,
+     4.86,
+     -6.5
+    ],
+    [
+     14.78,
+     5.13,
+     -6.8
+    ],
+    [
+     15.16,
+     5.4,
+     -6.99
+    ],
+    [
+     15.53,
+     5.4,
+     -7.16
+    ],
+    [
+     15.91,
+     5.4,
+     -7.38
+    ],
+    [
+     16.32,
+     5.4,
+     -7.48
+    ],
+    [
+     16.74,
+     5.4,
+     -7.43
+    ],
+    [
+     17.15,
+     5.4,
+     -7.42
+    ],
+    [
+     17.64,
+     5.13,
+     -7.32
+    ],
+    [
+     18.28,
+     5.03,
+     -7.28
+    ],
+    [
+     18.86,
+     4.94,
+     -7.1
+    ],
+    [
+     19.42,
+     4.94,
+     -6.85
+    ],
+    [
+     20.03,
+     4.98,
+     -6.66
+    ],
+    [
+     20.64,
+     5.03,
+     -6.48
+    ],
+    [
+     21.26,
+     5.07,
+     -6.29
+    ],
+    [
+     21.87,
+     5.17,
+     -6.11
+    ],
+    [
+     22.39,
+     5.24,
+     -5.78
+    ],
+    [
+     22.98,
+     5.26,
+     -5.53
+    ],
+    [
+     23.47,
+     5.34,
+     -5.18
+    ],
+    [
+     23.93,
+     5.37,
+     -4.78
+    ],
+    [
+     24.47,
+     5.46,
+     -4.53
+    ],
+    [
+     25.03,
+     5.5,
+     -4.21
+    ],
+    [
+     25.61,
+     5.5,
+     -4.04
+    ],
+    [
+     26.21,
+     5.45,
+     -3.92
+    ],
+    [
+     26.82,
+     5.43,
+     -3.91
+    ],
+    [
+     27.42,
+     5.42,
+     -3.95
+    ],
+    [
+     28.02,
+     5.43,
+     -4.03
+    ],
+    [
+     28.66,
+     5.44,
+     -4.05
+    ],
+    [
+     29.3,
+     5.48,
+     -4.09
+    ],
+    [
+     29.94,
+     5.45,
+     -4.12
+    ],
+    [
+     30.58,
+     5.5,
+     -4.15
+    ],
+    [
+     31.16,
+     5.53,
+     -4.34
+    ],
+    [
+     31.79,
+     5.6,
+     -4.45
+    ],
+    [
+     32.42,
+     5.64,
+     -4.55
+    ],
+    [
+     33.06,
+     5.66,
+     -4.66
+    ],
+    [
+     33.57,
+     5.73,
+     -4.35
+    ],
+    [
+     34.2,
+     5.79,
+     -4.24
+    ],
+    [
+     34.76,
+     5.8,
+     -3.99
+    ],
+    [
+     35.28,
+     5.84,
+     -3.68
+    ],
+    [
+     35.87,
+     5.86,
+     -3.42
+    ],
+    [
+     36.46,
+     5.87,
+     -3.17
+    ],
+    [
+     36.96,
+     5.88,
+     -2.83
+    ],
+    [
+     37.51,
+     5.86,
+     -2.51
+    ],
+    [
+     37.94,
+     5.91,
+     -2.08
+    ],
+    [
+     38.4,
+     5.9,
+     -1.84
+    ],
+    [
+     39.01,
+     5.88,
+     -1.84
+    ],
+    [
+     39.63,
+     5.86,
+     -1.67
+    ],
+    [
+     40.24,
+     5.81,
+     -1.64
+    ],
+    [
+     40.79,
+     5.8,
+     -1.58
+    ],
+    [
+     41.29,
+     5.8,
+     -1.24
+    ],
+    [
+     41.83,
+     5.77,
+     -0.96
+    ],
+    [
+     42.26,
+     5.74,
+     -0.56
+    ],
+    [
+     42.43,
+     5.72,
+     0.05
+    ],
+    [
+     42.53,
+     5.73,
+     0.66
+    ],
+    [
+     42.77,
+     5.73,
+     1.22
+    ],
+    [
+     42.94,
+     5.74,
+     1.8
+    ],
+    [
+     43.18,
+     5.75,
+     2.39
+    ],
+    [
+     43.27,
+     5.74,
+     2.99
+    ],
+    [
+     43.31,
+     5.75,
+     3.59
+    ],
+    [
+     43.28,
+     5.77,
+     4.19
+    ],
+    [
+     43.3,
+     5.72,
+     4.83
+    ],
+    [
+     43.31,
+     5.77,
+     5.47
+    ],
+    [
+     43.33,
+     5.77,
+     6.11
+    ],
+    [
+     43.35,
+     5.76,
+     6.75
+    ],
+    [
+     43.87,
+     5.77,
+     7.11
+    ],
+    [
+     44.46,
+     5.77,
+     7.32
+    ],
+    [
+     44.94,
+     5.71,
+     7.74
+    ],
+    [
+     45.56,
+     5.67,
+     7.6
+    ],
+    [
+     46.14,
+     5.64,
+     7.48
+    ]
+   ]
+  },
+  {
+   "name": "east-tall-deck",
+   "reached": true,
+   "waypointsReached": 8,
+   "of": 8,
+   "frames": 288,
+   "stuck": [],
+   "lengthM": 15,
+   "camera": {
+    "speedMps": {
+     "p50": 1.8,
+     "p95": 5.02,
+     "max": 6.62
+    },
+    "accelMps2": {
+     "p50": 3.49,
+     "p95": 68.67,
+     "max": 102.35
+    },
+    "verticalAccelMps2": {
+     "p50": 0.34,
+     "p95": 2.19,
+     "max": 15.46
+    },
+    "turnDegPerS": {
+     "p50": 19.54,
+     "p95": 69.02,
+     "max": 84.46
+    },
+    "turnAccelDegPerS2": {
+     "p50": 11.69,
+     "p95": 882.37,
+     "max": 1010.63
+    },
+    "spikes": [
+     {
+      "row": 206,
+      "accelMps2": 102.4,
+      "jumpM": 0.025,
+      "before": {
+       "link": [
+        47.74,
+        6.86,
+        2.32
+       ],
+       "cam": [
+        46.75,
+        8.4,
+        1.86
+       ],
+       "hit": null,
+       "keep": 0.271,
+       "lift": 0,
+       "lowered": 0.107,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        47.69,
+        6.86,
+        2.34
+       ],
+       "cam": [
+        46.73,
+        8.39,
+        1.88
+       ],
+       "hit": null,
+       "keep": 0.264,
+       "lift": 0,
+       "lowered": 0.122,
+       "slimPush": 0
+      }
+     }
+    ]
+   },
+   "minCameraAboveGroundM": 1.684,
+   "feet": {
+    "stanceSamples": 286,
+    "soleGapAbsM": {
+     "p50": 0.0018,
+     "p95": 0.0257,
+     "max": 0.0476
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0166,
+     "max": 0.0476
+    },
+    "shareOver1cm": 0.2203,
+    "shareOver2cm": 0.0944,
+    "footprintMinGapM": -0.0116,
+    "shareFootprintInside5mm": 0.021
+   },
+   "trace": [
+    [
+     42.6,
+     5.72,
+     -0.3
+    ],
+    [
+     42.68,
+     5.74,
+     0.22
+    ],
+    [
+     42.78,
+     5.73,
+     0.85
+    ],
+    [
+     42.87,
+     5.73,
+     1.48
+    ],
+    [
+     43.08,
+     5.75,
+     2.05
+    ],
+    [
+     43.67,
+     5.73,
+     2.28
+    ],
+    [
+     44.27,
+     5.73,
+     2.34
+    ],
+    [
+     44.88,
+     5.75,
+     2.47
+    ],
+    [
+     45.49,
+     5.62,
+     2.53
+    ],
+    [
+     46.09,
+     5.99,
+     2.56
+    ],
+    [
+     46.69,
+     6.41,
+     2.53
+    ],
+    [
+     47.33,
+     6.86,
+     2.55
+    ],
+    [
+     47.96,
+     6.86,
+     2.54
+    ],
+    [
+     48.58,
+     6.86,
+     2.53
+    ],
+    [
+     49.19,
+     6.86,
+     2.5
+    ],
+    [
+     49.14,
+     6.86,
+     2.41
+    ],
+    [
+     48.5,
+     6.86,
+     2.39
+    ],
+    [
+     47.88,
+     6.86,
+     2.25
+    ],
+    [
+     47.29,
+     6.86,
+     2.48
+    ],
+    [
+     46.66,
+     6.39,
+     2.63
+    ],
+    [
+     46.03,
+     5.94,
+     2.68
+    ],
+    [
+     45.39,
+     5.64,
+     2.63
+    ],
+    [
+     44.77,
+     5.74,
+     2.49
+    ],
+    [
+     44.17,
+     5.73,
+     2.38
+    ]
+   ]
+  },
+  {
+   "name": "east-small-door",
+   "reached": true,
+   "waypointsReached": 5,
+   "of": 5,
+   "frames": 147,
+   "stuck": [],
+   "lengthM": 7.5,
+   "camera": {
+    "speedMps": {
+     "p50": 1.54,
+     "p95": 6.39,
+     "max": 11
+    },
+    "accelMps2": {
+     "p50": 8.94,
+     "p95": 69.92,
+     "max": 90.48
+    },
+    "verticalAccelMps2": {
+     "p50": 0.51,
+     "p95": 2.12,
+     "max": 3.2
+    },
+    "turnDegPerS": {
+     "p50": 19.62,
+     "p95": 111.57,
+     "max": 171.08
+    },
+    "turnAccelDegPerS2": {
+     "p50": 46.44,
+     "p95": 939.62,
+     "max": 1042.9
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.582,
+   "feet": {
+    "stanceSamples": 145,
+    "soleGapAbsM": {
+     "p50": 0.011,
+     "p95": 0.0216,
+     "max": 0.0259
+    },
+    "footprintLowestM": {
+     "p50": 0.0004,
+     "p95": 0.014,
+     "max": 0.024
+    },
+    "shareOver1cm": 0.5517,
+    "shareOver2cm": 0.0897,
+    "footprintMinGapM": -0.0197,
+    "shareFootprintInside5mm": 0.0276
+   },
+   "trace": [
+    [
+     38.27,
+     5.91,
+     -1.52
+    ],
+    [
+     38.07,
+     5.94,
+     -1.04
+    ],
+    [
+     37.82,
+     5.85,
+     -0.45
+    ],
+    [
+     37.57,
+     5.81,
+     0.14
+    ],
+    [
+     37.32,
+     5.83,
+     0.73
+    ],
+    [
+     36.97,
+     5.77,
+     1.23
+    ],
+    [
+     36.57,
+     5.66,
+     1.68
+    ],
+    [
+     36.57,
+     5.66,
+     1.68
+    ],
+    [
+     36.92,
+     5.78,
+     1.18
+    ],
+    [
+     37.25,
+     5.82,
+     0.65
+    ],
+    [
+     37.47,
+     5.8,
+     0.07
+    ],
+    [
+     37.78,
+     5.85,
+     -0.47
+    ],
+    [
+     37.97,
+     5.94,
+     -1.07
+    ]
+   ]
+  }
+ ],
+ "eastProbes": {
+  "ok": true,
+  "failed": 0,
+  "rows": [
+   {
+    "where": "deck",
+    "a": -1.2,
+    "c": 3.7400000000000007,
+    "x": 47.53,
+    "z": 2.18,
+    "walk": 6.858,
+    "terrain": 5.518,
+    "blocked": false,
+    "expect": "deck",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 0,
+    "c": 3.7400000000000007,
+    "x": 48.73,
+    "z": 2.14,
+    "walk": 6.858,
+    "terrain": 5.533,
+    "blocked": false,
+    "expect": "deck",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 1,
+    "c": 3.7400000000000007,
+    "x": 49.73,
+    "z": 2.1,
+    "walk": 6.858,
+    "terrain": 5.612,
+    "blocked": false,
+    "expect": "deck",
+    "ok": true
+   },
+   {
+    "where": "deck-steps",
+    "a": -1.91,
+    "c": 3.95,
+    "x": 46.82,
+    "z": 2.41,
+    "walk": 6.502,
+    "terrain": 5.526,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-steps",
+    "a": -2.74,
+    "c": 3.95,
+    "x": 46,
+    "z": 2.44,
+    "walk": 5.93,
+    "terrain": 5.516,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-outer-rail",
+    "a": -1,
+    "c": 4.390000000000001,
+    "x": 47.75,
+    "z": 2.82,
+    "walk": 6.858,
+    "terrain": 5.507,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-outer-rail",
+    "a": 0,
+    "c": 4.390000000000001,
+    "x": 48.75,
+    "z": 2.79,
+    "walk": 6.858,
+    "terrain": 5.541,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-outer-rail",
+    "a": 1,
+    "c": 4.390000000000001,
+    "x": 49.75,
+    "z": 2.75,
+    "walk": 6.858,
+    "terrain": 5.618,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-far-rail",
+    "a": 1.5,
+    "c": 2.9,
+    "x": 50.2,
+    "z": 1.25,
+    "walk": 6.858,
+    "terrain": 5.536,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-far-rail",
+    "a": 1.5,
+    "c": 3.4,
+    "x": 50.21,
+    "z": 1.75,
+    "walk": 6.858,
+    "terrain": 5.606,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-far-rail",
+    "a": 1.5,
+    "c": 3.9,
+    "x": 50.23,
+    "z": 2.25,
+    "walk": 6.858,
+    "terrain": 5.621,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-step-rail",
+    "a": -1.5,
+    "c": 3,
+    "x": 47.2,
+    "z": 1.45,
+    "walk": 6.858,
+    "terrain": 5.58,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-rope",
+    "a": 0,
+    "c": 0,
+    "x": 45.95,
+    "z": 8.8,
+    "walk": 5.387,
+    "terrain": 5.387,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-step-short",
+    "a": 0,
+    "c": 0.2,
+    "x": 45.93,
+    "z": 8.6,
+    "walk": 5.478,
+    "terrain": 5.478,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-inside",
+    "a": 0,
+    "c": 0.6,
+    "x": 45.9,
+    "z": 8.2,
+    "walk": 5.633,
+    "terrain": 5.586,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "fence-rope",
+    "a": 1,
+    "c": 0,
+    "x": 47.25,
+    "z": 8.72,
+    "walk": 5.282,
+    "terrain": 5.282,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-step-short",
+    "a": 1,
+    "c": 0.2,
+    "x": 47.24,
+    "z": 8.53,
+    "walk": 5.351,
+    "terrain": 5.351,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-inside",
+    "a": 1,
+    "c": 0.6,
+    "x": 47.23,
+    "z": 8.13,
+    "walk": 5.477,
+    "terrain": 5.477,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "fence-rope",
+    "a": 2,
+    "c": 0,
+    "x": 48.55,
+    "z": 8.72,
+    "walk": 5.365,
+    "terrain": 5.365,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-step-short",
+    "a": 2,
+    "c": 0.2,
+    "x": 48.56,
+    "z": 8.53,
+    "walk": 5.44,
+    "terrain": 5.44,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-inside",
+    "a": 2,
+    "c": 0.6,
+    "x": 48.57,
+    "z": 8.13,
+    "walk": 5.565,
+    "terrain": 5.565,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "fence-rope",
+    "a": 3,
+    "c": 0,
+    "x": 49.75,
+    "z": 8.65,
+    "walk": 5.424,
+    "terrain": 5.424,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-step-short",
+    "a": 3,
+    "c": 0.2,
+    "x": 49.71,
+    "z": 8.45,
+    "walk": 5.46,
+    "terrain": 5.46,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-inside",
+    "a": 3,
+    "c": 0.6,
+    "x": 49.64,
+    "z": 8.06,
+    "walk": 5.569,
+    "terrain": 5.569,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "west-run-rope",
+    "a": 0,
+    "c": 0,
+    "x": 43.52,
+    "z": 8.97,
+    "walk": 5.458,
+    "terrain": 5.458,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-step-short",
+    "a": 0,
+    "c": 0.2,
+    "x": 43.52,
+    "z": 8.78,
+    "walk": 5.548,
+    "terrain": 5.548,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-inside",
+    "a": 0,
+    "c": 0.6,
+    "x": 43.5,
+    "z": 8.38,
+    "walk": 5.635,
+    "terrain": 5.635,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "west-run-rope",
+    "a": 1,
+    "c": 0,
+    "x": 42.25,
+    "z": 9,
+    "walk": 5.513,
+    "terrain": 5.513,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-step-short",
+    "a": 1,
+    "c": 0.2,
+    "x": 42.25,
+    "z": 8.8,
+    "walk": 5.606,
+    "terrain": 5.606,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-inside",
+    "a": 1,
+    "c": 0.6,
+    "x": 42.25,
+    "z": 8.4,
+    "walk": 5.724,
+    "terrain": 5.724,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "west-run-rope",
+    "a": 2,
+    "c": 0,
+    "x": 40.95,
+    "z": 8.93,
+    "walk": 5.467,
+    "terrain": 5.467,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-step-short",
+    "a": 2,
+    "c": 0.2,
+    "x": 40.97,
+    "z": 8.73,
+    "walk": 5.584,
+    "terrain": 5.584,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-inside",
+    "a": 2,
+    "c": 0.6,
+    "x": 41.02,
+    "z": 8.33,
+    "walk": 5.649,
+    "terrain": 5.649,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "west-run-rope",
+    "a": 3,
+    "c": 0,
+    "x": 39.63,
+    "z": 8.65,
+    "walk": 5.54,
+    "terrain": 5.54,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-step-short",
+    "a": 3,
+    "c": 0.2,
+    "x": 39.68,
+    "z": 8.46,
+    "walk": 5.6,
+    "terrain": 5.6,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-inside",
+    "a": 3,
+    "c": 0.6,
+    "x": 39.8,
+    "z": 8.07,
+    "walk": 5.604,
+    "terrain": 5.604,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "east-run-rope",
+    "a": 0,
+    "c": 0,
+    "x": 50.95,
+    "z": 7.26,
+    "walk": 5.539,
+    "terrain": 5.539,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "east-run-step-short",
+    "a": 0,
+    "c": 0.2,
+    "x": 50.75,
+    "z": 7.27,
+    "walk": 5.544,
+    "terrain": 5.544,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "east-run-inside",
+    "a": 0,
+    "c": 0.6,
+    "x": 50.35,
+    "z": 7.28,
+    "walk": 5.543,
+    "terrain": 5.543,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "east-run-rope",
+    "a": 1,
+    "c": 0,
+    "x": 50.89,
+    "z": 6.29,
+    "walk": 5.549,
+    "terrain": 5.549,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "east-run-step-short",
+    "a": 1,
+    "c": 0.2,
+    "x": 50.69,
+    "z": 6.31,
+    "walk": 5.541,
+    "terrain": 5.541,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "east-run-inside",
+    "a": 1,
+    "c": 0.6,
+    "x": 50.29,
+    "z": 6.35,
+    "walk": 5.528,
+    "terrain": 5.528,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 0,
+    "c": 0.7,
+    "x": 45.42,
+    "z": 8.98,
+    "walk": 5.355,
+    "terrain": 5.355,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 90,
+    "c": 0.7,
+    "x": 44.72,
+    "z": 9.68,
+    "walk": 5.061,
+    "terrain": 5.061,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 180,
+    "c": 0.7,
+    "x": 44.02,
+    "z": 8.98,
+    "walk": 5.408,
+    "terrain": 5.408,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 270,
+    "c": 0.7,
+    "x": 44.72,
+    "z": 8.28,
+    "walk": 5.578,
+    "terrain": 5.578,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 0,
+    "c": 0.7,
+    "x": 51.58,
+    "z": 8.36,
+    "walk": 5.446,
+    "terrain": 5.446,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 90,
+    "c": 0.7,
+    "x": 50.88,
+    "z": 9.06,
+    "walk": 5.273,
+    "terrain": 5.273,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 180,
+    "c": 0.7,
+    "x": 50.18,
+    "z": 8.36,
+    "walk": 5.475,
+    "terrain": 5.475,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 270,
+    "c": 0.7,
+    "x": 50.88,
+    "z": 7.66,
+    "walk": 5.535,
+    "terrain": 5.535,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 0,
+    "c": 0.65,
+    "x": 51.43,
+    "z": 5.3,
+    "walk": 5.616,
+    "terrain": 5.616,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 90,
+    "c": 0.65,
+    "x": 50.78,
+    "z": 5.95,
+    "walk": 5.552,
+    "terrain": 5.552,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 180,
+    "c": 0.65,
+    "x": 50.13,
+    "z": 5.3,
+    "walk": 5.55,
+    "terrain": 5.55,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stump",
+    "a": 270,
+    "c": 0.65,
+    "x": 50.78,
+    "z": 4.65,
+    "walk": 5.579,
+    "terrain": 5.579,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-west-end",
+    "a": 0,
+    "c": 0,
+    "x": 45.01,
+    "z": 8.91,
+    "walk": 5.41,
+    "terrain": 5.41,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "fence-east-end",
+    "a": 0,
+    "c": 0,
+    "x": 50.59,
+    "z": 8.46,
+    "walk": 5.443,
+    "terrain": 5.443,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-stump-end",
+    "a": 0,
+    "c": 0,
+    "x": 44.44,
+    "z": 8.96,
+    "walk": 5.395,
+    "terrain": 5.395,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "east-run-stump-end",
+    "a": 0,
+    "c": 0,
+    "x": 50.92,
+    "z": 8.08,
+    "walk": 5.512,
+    "terrain": 5.512,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "east-run-inland-end",
+    "a": 0,
+    "c": 0,
+    "x": 50.81,
+    "z": 5.58,
+    "walk": 5.57,
+    "terrain": 5.57,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "west-run-house-end",
+    "a": 0,
+    "c": 0,
+    "x": 38.69,
+    "z": 8.08,
+    "walk": 5.558,
+    "terrain": 5.558,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "trunk-shop",
+    "a": 0,
+    "c": 1.5,
+    "x": 41.5,
+    "z": -7,
+    "walk": 5.584,
+    "terrain": 5.584,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "trunk-tall",
+    "a": 0,
+    "c": 1.5,
+    "x": 50.1,
+    "z": -1.6,
+    "walk": 5.654,
+    "terrain": 5.654,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "trunk-small",
+    "a": 0,
+    "c": 1.05,
+    "x": 38.25,
+    "z": 6,
+    "walk": 5.661,
+    "terrain": 5.661,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "lane",
+    "a": 0,
+    "c": 0,
+    "x": 33.7,
+    "z": -4.45,
+    "walk": 5.728,
+    "terrain": 5.691,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "lane",
+    "a": 0,
+    "c": 0,
+    "x": 42.6,
+    "z": -0.3,
+    "walk": 5.724,
+    "terrain": 5.686,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "lane",
+    "a": 0,
+    "c": 0,
+    "x": 43.2,
+    "z": 4.6,
+    "walk": 5.754,
+    "terrain": 5.7,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "lane",
+    "a": 0,
+    "c": 0,
+    "x": 47.2,
+    "z": 7.25,
+    "walk": 5.673,
+    "terrain": 5.61,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "lane",
+    "a": 0,
+    "c": 0,
+    "x": 44.3,
+    "z": -1.1,
+    "walk": 5.696,
+    "terrain": 5.686,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "lane",
+    "a": 0,
+    "c": 0,
+    "x": 35.96,
+    "z": 2.14,
+    "walk": 5.627,
+    "terrain": 5.547,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   }
+  ]
+ },
+ "pageErrors": [],
+ "finished": "2026-09-25T16:30:40.550Z"
+}

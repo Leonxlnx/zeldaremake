@@ -1,0 +1,188 @@
+{
+ "local": {
+  "parts": 77,
+  "withArrays": 77,
+  "minY": 7.697841644287109,
+  "maxY": 23.741424560546875,
+  "scales": [
+   0.9595,
+   1.0418,
+   0.9834,
+   1.022,
+   0.9752,
+   1.0415,
+   1.0158,
+   0.9817,
+   0.9973,
+   1.0475,
+   1.0445
+  ]
+ },
+ "rows": [
+  {
+   "name": "A_stairs",
+   "draws": 614,
+   "trisM": 8.967,
+   "objects": 77,
+   "shownBefore": 1,
+   "drawsWithout": 614,
+   "trisMWithout": 8.967,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2643297,
+    "residentMB": 139.5,
+    "batch": {
+     "instances": 302,
+     "vertices": 2265452,
+     "indices": 7469979,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": null,
+    "cpuArraysMB": 291.6,
+    "cpuByChild": {
+     "white-bark": 30.6,
+     "understory": 0.5,
+     "columns": 46.6,
+     "giants": 213.3,
+     "giant-detached-boughs": 0.4,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "green-west",
+   "draws": 704,
+   "trisM": 9.923,
+   "objects": 77,
+   "shownBefore": 18,
+   "drawsWithout": 686,
+   "trisMWithout": 9.829,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2708299,
+    "residentMB": 142.9,
+    "batch": {
+     "instances": 311,
+     "vertices": 2330454,
+     "indices": 7673523,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": null,
+    "cpuArraysMB": 272.6,
+    "cpuByChild": {
+     "white-bark": 23.3,
+     "understory": 0.5,
+     "columns": 37.7,
+     "giants": 210.8,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "lookout-fence-west",
+   "draws": 695,
+   "trisM": 9.966,
+   "objects": 77,
+   "shownBefore": 12,
+   "drawsWithout": 683,
+   "trisMWithout": 9.902,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2735680,
+    "residentMB": 144.3,
+    "batch": {
+     "instances": 314,
+     "vertices": 2357835,
+     "indices": 7759158,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": null,
+    "cpuArraysMB": 260.7,
+    "cpuByChild": {
+     "white-bark": 13.6,
+     "understory": 0.2,
+     "columns": 37,
+     "giants": 209.6,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "plateau-lookback-south",
+   "draws": 576,
+   "trisM": 9.073,
+   "objects": 77,
+   "shownBefore": 6,
+   "drawsWithout": 576,
+   "trisMWithout": 9.073,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2799111,
+    "residentMB": 147.6,
+    "batch": {
+     "instances": 321,
+     "vertices": 2421266,
+     "indices": 7959066,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": null,
+    "cpuArraysMB": 252.1,
+    "cpuByChild": {
+     "white-bark": 13.6,
+     "understory": 0.2,
+     "columns": 28.5,
+     "giants": 209.6,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "owner-0650-north",
+   "draws": 497,
+   "trisM": 9.013,
+   "objects": 77,
+   "shownBefore": 3,
+   "drawsWithout": 496,
+   "trisMWithout": 9.008,
+   "audit": {
+    "parts": 426,
+    "residentVertices": 2860859,
+    "residentMB": 150.8,
+    "batch": {
+     "instances": 329,
+     "vertices": 2483014,
+     "indices": 8152185,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": null,
+    "cpuArraysMB": 245.1,
+    "cpuByChild": {
+     "white-bark": 13.1,
+     "columns": 24.5,
+     "giants": 207.3,
+     "distant": 0.1
+    }
+   }
+  }
+ ]
+}

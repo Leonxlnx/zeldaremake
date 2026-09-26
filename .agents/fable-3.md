@@ -604,3 +604,70 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the frames (the swing's inward extreme at the hair edge). 10 fps strip: turn, hand up, nod, wave, down.
   209 / 209. PR #144 opened held, the hold lifted with the frames. INBOX 16:55.
 - Lesson: for a limb pose, compute the end-effector in node first — a 2 s check saved a 12 min render or two.
+
+## 2026-09-25 18:20 tick — lane 9's south props against exp-south2's tip (PR #154, evidence only)
+
+- #144 merged 17:30 (`14fda29d` head): every kid greets — turn, nod, wave. The builders are merging the head this
+  hour, so lane 9's toll pile met exp-south2's keeper's hut (7.1, 31.9) and waystation (5.12, 25.95) for the first
+  time. Rendered `f2f6e793` vs the head at the pile, the lean-to and the far-bank log mouth, same cameras both
+  builds: nothing intersects — the crate and pot ≈ 1 m off the hut's wall in front of its door (0.5 m outside the
+  gallery's end by their numbers), the lean-to's floor short of the marker's post, the log-mouth pots identical but
+  for their rim vines. Props tests 1/1 and the suite 227/227 on their tip. `props-fable-3/south2-check/`. INBOX 18:55.
+- Lesson: a camera at the exact prop is often inside somebody's new structure — two of five cameras this round stood
+  in the giant's root flare and in the lean-to's opening; aim from the walked line, not from the coordinates.
+
+## 2026-09-25 19:20 + 20:20 + 21:20 ticks — Astra's PR #59 applied to the head, measured (PR #165)
+
+- #154 merged 19:29. Nothing addressed to me; the builders still merging. fable-cursor's 19:10 squad note: PR #59
+  pending integration, with a checklist (apply the four paired files to the head, gait tests, a play-mode run) —
+  lane 7's files, so I ran the checklist on a branch: `agent/fable-3-pr59-applied`, `7734f615` = the four files
+  applied (the tip `7b0103fa`, not the `ae894d5d` the note named — #59 moved: 3.3 → 2.2 m/s, stride 1.82 → 1.2,
+  GLB `aa0520e0` → `8d7efa78`, a sole-floor clamp). Applies cleanly; tsc / build green; 219 / 220 — the failure is
+  the footsteps audio's pinned speeds (fable-cursor's file), and its `RUN_SPEED = 2.4` threshold means a 2.2 m/s
+  run would sound like a walk. Run grounding passes both; stair grounding fails both (pre-existing). Play-mode
+  strips on the flagstones: head 4.60 m/s / 5.1 steps/s / airborne 60 %; #59 2.20 / 3.6 / 40 %. Six views inside
+  −0.003 (D −0.0009: his hero pose), draws / triangles identical. `people-fable-3/pr59-apply/`. INBOX 21:40.
+- Lessons: (1) a follow camera eases back behind a moving player — hold the view every step, and move him with the
+  key perpendicular to it; (2) a "flat plaza" start is in somebody's flowerbed until you have looked — the stones
+  run x −3.5…−1.5 at z 3–6; five strips to find that. (3) `gh` lost its token again at 21:20 (401); git was fine.
+
+## 2026-09-25 22:20 + 23:20 ticks — the Kokiri hands get fingers (PR #169); the seated girl found standing
+
+- #165 merged 22:05 (Astra's #59 in via my branch; fable-cursor's footsteps followed, `RUN_SPEED` at the midpoint).
+  Lane 7's next: fingers on the Kokiri hands — Link has them now and every kid waves a mitten at 1.7–2.6 m.
+  `buildThumbs` → `buildHands`: four capsules from the ball's lower front, roots inside the ball, splayed / curled;
+  skin material → baked into the skin's SkinnedMesh, draws identical, +2 K tris at A. Geometry checked in node
+  first (roots inside, tips 1.7–2.5 cm below). Six views inside the band; wave and rest-hand crops. PR #169 opened
+  held at 22:30, lifted 00:30 with the evidence (`people-fable-3/fingers/`). INBOX 00:30.
+- Found on the way: **the seated girl stands in play** (legs straight, arms bent toward absent knees) — on the
+  branch, the head, and the 18:46 / 14:22 / 08:26 heads; the 06:55 sitter-gaze frames show it too. The seat's
+  numbers allow a sit (knee ≈ 97° by `twoBone`); the audit's `kneeInteriorDeg` has read 177.1° since 09-23. Not
+  the fingers' doing; lane 7's next item. Two live-probe attempts timed out waiting for `__ZR_PLAY__` at
+  `quality=low` — use `quality=high` like the harnesses do.
+- Lessons: the follow camera makes "2 m from Link" mean "6 m from the lens" — judge a hand-sized change at the
+  lens distance, and say so; an audit number that never moves across days (177.1°) is a reading of the wrong
+  moment or the wrong state, and it was telling me for two days.
+
+## 2026-09-26 00:20 tick — the seated girl sits; my 00:30 alarm withdrawn
+
+- Probed live (`fingers/sitter-live.mjs`; the play hooks need `navigator.webdriver` overridden — `isHeadlessCapture`
+  reads it, which is why two earlier probes waited 10 min for `__ZR_PLAY__`): thigh −1.02, knee 1.403 rad (interior
+  99.6° / 104.1°), chest curled, right shoulder −2.68 mid-wave with Link 1.5 m off; the skinned meshes' bone
+  matrices equal her joints' world matrices; one `kokiri-1` in the scene; her skinned meshes attribute-identical to
+  the wanderer's. An aimed 2.4× crop shows the sit plainly. The head-on harness view foreshortens the thighs to
+  nothing at thumbnail scale, and capture.mjs's `audit.json` reads 177.1° because that audit runs before her
+  first pose. INBOX 00:30 amended, README corrected, PR #169 body corrected — within the hour.
+- Lessons: (1) before naming a defect, get one frame that shows the limb in question edge-on at ≥ 2× — a head-on
+  thumbnail of a seated child is a standing child; (2) a live joint read beats any audit number; (3) I put the
+  alarm in the INBOX before the probe had run — the order should have been probe, then note.
+
+## 2026-09-26 01:20 tick — the withdrawal reaches the head (PR #183); fable-5's wave question
+
+- #169 merged 00:26 — before my 01:00 correction — so the "seated girl stands" text went to the head and into
+  fable-cursor's 00:26 round as lane 7's next item. Cherry-picked the withdrawal (`cc1c37f0`) onto a fresh branch,
+  added a top-of-INBOX note naming it withdrawn and asking for the log line to be struck. PR #183, docs only.
+- fable-5's 00:20: their south-bank frames at 0.9 / 1.5 s after a second `place()` showed no wave — because the wave
+  is a one-shot at the greeting's start and their first `place()` (1.4 m, behind Link) had already started it; the
+  second never left `GREET_FAR_M`. Answered with the release-then-approach recipe and the grove girl's wave frame.
+- Lesson: when a PR carries a claim, the claim merges with the PR — a correction made after the merge needs its own
+  PR the same hour, and the INBOX line should say "withdrawn" in its heading so a skim catches it.

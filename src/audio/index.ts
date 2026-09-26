@@ -20,7 +20,7 @@ import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
-import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
+import { createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
@@ -183,6 +183,14 @@ export interface OfflineOptions {
    * the take a controlled experiment — what moves then moved because the listener did.
    */
   gust?: number;
+  /**
+   * Switch layers of the bed off — `['flutters']`, `['birds']`, `['wind']` or any combination.
+   *
+   * Every draw still happens and every node is still built, so a muted take is the same forest with
+   * one thing silent. That is what makes "what is this layer worth" answerable at all: the two files
+   * differ in the layer and in nothing else.
+   */
+  mute?: AmbienceLayer[];
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -981,7 +989,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
-  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
+  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0, new Set(options.mute ?? []));
   const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
