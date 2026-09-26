@@ -398,7 +398,8 @@ function walkRoundHut(speed, reverse = false) {
 }
 
 test('walking and running round the keeper\'s wall as the play-test steers, the camera trails him along it — it never snaps in', () => {
-  for (const speed of [1.6, 3, 4.6]) {
+  // the controller's walk and run (1.2, 2.2 m/s) and the older gaits' 1.6, 3 and 4.6
+  for (const speed of [1.2, 2.2, 1.6, 3, 4.6]) {
     for (const reverse of [false, true]) {
       const w = walkRoundHut(speed, reverse);
       const at = `at ${speed} m/s${reverse ? ', the other way' : ''}`;
