@@ -4,14 +4,15 @@ import { tube, type V3 } from '../core/geom';
 import type { ColorKey } from '../core/palette';
 import type { VultureDroid } from './types';
 import { anchor } from './placeholder';
-import { DEG, boxAt, clamp01, clean, cylAt, emit, lathePts, lerp, lerpTable, newTally, pivot, rod, smooth, studsIn, type Tally } from './c-kit';
+import { DEG, ball, boxAt, clamp01, clean, cylAt, emit, frame, lathePts, lerp, lerpTable, newTally, pivot, rod, smooth, studsIn, type Tally } from './c-kit';
 
 /**
  * Vulture droid (Variable Geometry Self-Propelled Battle Droid, Mk I) in ROTS Separatist colours.
  *
- * Flight: a wide flat hull with the domed sensor head at its front. At each end of the hull an
- * upper and a lower crescent wing-leg run fore-aft — clawed feet forward, pointed tips trailing —
- * splayed apart so the front view is an X; a laser cannon rides on the inside of each wing.
+ * Flight: a flat trapezoidal hull with the domed sensor head (two round red photoreceptors) at its
+ * front. At each end of the hull an upper and a lower crescent wing-leg run fore-aft — clawed feet
+ * forward, pointed tips trailing — splayed apart so the front view is an X; each wing-leg breaks at
+ * a dark knee joint and carries a blaster cannon under its clawed end.
  * Walk (setMode(1)): every wing-leg pitches down around its hinge so the claws stand on the
  * ground and the tips rise above the hull; front and rear legs cross in an X seen from the side.
  * setGait(phase) runs a four-beat walk that keeps planted claws fixed on the ground plane
@@ -50,7 +51,7 @@ const CANT_F = 2 * DEG, CANT_R = 14 * DEG;
 const GROUND = HY - 12.8; // walk: claw contact plane
 const CLAW: V3 = [0.9, 0, 13.85]; // canonical wing frame: tip of the middle talon (walk-mode contact)
 const SWEEP = 10 * DEG; // walk: stance sweep ± (pitch)
-const NECK_Y = 1.35, NECK_Z = 0.9;
+const NECK_Y = 1.05, NECK_Z = 1.5;
 
 type Lod = 0 | 1;
 
@@ -61,6 +62,8 @@ type Lod = 0 | 1;
 /** Outer-face colour blocking per planform segment: the transverse Separatist marking bands. */
 const OUTER_KEYS: ColorKey[] = ['tan', 'tan', 'darkRed', 'tan', 'tan', 'tan', 'tan', 'darkRed', 'tan', 'reddishBrown'];
 const INNER_KEYS: ColorKey[] = ['tan', 'tan', 'tan', 'tan', 'tan', 'darkTan', 'tan', 'darkRed', 'tan', 'darkTan'];
+const KNEE = 0.62; // the wing-leg's knee joint (a PLAN row): the blade splits there round a dark joint band
+const KNEE_GAP = 0.13; // half-width of the joint band along z
 
 function wing(b: Builder, lod: Lod): V3 {
   const st = PLAN;
@@ -75,33 +78,51 @@ function wing(b: Builder, lod: Lod): V3 {
     return [u, a + 0.12, Math.min(a + 0.12 + Math.max(1.05, w * 0.4), c - 0.5)];
   });
   const ridgeOuter = (z: number) => lerpTable(RIDGE, z / L + HU)[1];
+  /** z span of a segment with the knee band cut out of it. */
+  const kneeCut = (u0: number, u1: number): [number, number] => [zU(u0) + (u0 === KNEE ? KNEE_GAP : 0), zU(u1) - (u1 === KNEE ? KNEE_GAP : 0)];
   for (let i = 0; i < st.length - 1; i++) {
     const [u0, a0, c0] = st[i], [u1, a1, c1] = st[i + 1];
     const z0 = zU(u0), z1 = zU(u1);
+    const [k0, k1] = kneeCut(u0, u1);
     b.shape('darkTan', clean([[a0, z0], [c0, z0], [c1, z1], [a1, z1]]), -0.2, 0.4, { hideBottom: false });
     const [ai0, ci0] = inset(a0, c0, 0.05, 0.26), [ai1, ci1] = inset(a1, c1, 0.05, 0.26);
-    const outer = clean([[ai0, z0], [ci0, z0], [ci1, z1], [ai1, z1]]);
+    const outer = clean([[ai0, k0], [ci0, k0], [ci1, k1], [ai1, k1]]);
     const ok: ColorKey = lod === 1 && OUTER_KEYS[i] === 'reddishBrown' ? 'darkRed' : OUTER_KEYS[i];
     b.shape(ok, outer, 0.2, 0.4);
     const [bi0, di0] = inset(a0, c0, 0.05, 0.55), [bi1, di1] = inset(a1, c1, 0.05, 0.55);
-    b.shape(lod === 1 ? 'darkTan' : INNER_KEYS[i], clean([[bi0, z0], [di0, z0], [di1, z1], [bi1, z1]]), -0.6, 0.4, { hideBottom: false });
+    b.shape(lod === 1 ? 'darkTan' : INNER_KEYS[i], clean([[bi0, k0], [di0, k0], [di1, k1], [bi1, k1]]), -0.6, 0.4, { hideBottom: false });
     if (lod === 0 && u0 >= 0.18 && u1 <= 0.62 && ok === 'tan') studsIn(b, ok, outer, 0.6, { keep: (x, z) => x > ridgeOuter(z) + 0.36 });
   }
   // raised ridge along the inner half of the outer face — studded toward the tip, tiles toward the claw
   for (let i = 0; i < RIDGE.length - 1; i++) {
     const [u0, p0, q0] = RIDGE[i], [u1, p1, q1] = RIDGE[i + 1];
-    const z0 = zU(u0), z1 = zU(u1);
+    const [z0, z1] = kneeCut(u0, u1);
     const poly = clean([[p0, z0], [q0, z0], [q1, z1], [p1, z1]]);
     const key: ColorKey = i === 6 || i === 7 ? 'reddishBrown' : i === 5 ? 'darkTan' : 'tan';
     b.shape(lod === 1 && key === 'reddishBrown' ? 'darkTan' : key, poly, 0.6, 0.4);
     if (lod === 0 && u0 >= 0.12 && u1 <= 0.5) studsIn(b, key, poly, 1.0);
     if (lod === 0 && i === 7) b.shape('darkRed', clean([[p0 + 0.2, z0 + 0.2], [q0 - 0.2, z0 + 0.2], [q1 - 0.2, z1 - 0.2], [p1 + 0.2, z1 - 0.2]]), 1.0, 0.12);
   }
+  // knee: a dark grey joint band across both faces (just below the plates around it, so it reads as
+  // the break between thigh and shin), a technic knuckle across the inner face, pins at the edges
+  {
+    const [a, c] = lerpTable(st, KNEE), [p, q] = lerpTable(RIDGE, KNEE);
+    const zk = zU(KNEE), g = KNEE_GAP + 0.01;
+    const band = (x0: number, x1: number): number[][] => [[x0, zk - g], [x1, zk - g], [x1, zk + g], [x0, zk + g]];
+    b.shape('dbg', band(a + 0.04, c - 0.24), 0.2, 0.3);
+    b.shape('dbg', band(p, q), 0.5, 0.4);
+    b.shape('dbg', band(a + 0.04, c - 0.5), -0.52, 0.32, { hideBottom: false });
+    cylAt(b, 'dbg', [a + 0.48, -0.86, zk], [1, 0, 0], 0.34, 1.12, { radial: lod ? 8 : 14 });
+    if (lod === 0) {
+      for (const x of [a - 0.12, a + 1.08]) cylAt(b, 'flatSilver', [x, -0.86, zk], [1, 0, 0], 0.17, 0.14, { radial: 10 });
+      cylAt(b, 'flatSilver', [c - 0.2, 0.25, zk], [1, 0, 0], 0.16, 0.14, { radial: 10 });
+    }
+  }
   // inner face: dark grey spine beam with technic holes along the inner edge
-  const SP = [0.08, 0.3, 0.58, 0.86];
+  const SP = [0.08, 0.3, KNEE, 0.86];
   for (let i = 0; i < SP.length - 1; i++) {
     const [a0] = lerpTable(st, SP[i]), [a1] = lerpTable(st, SP[i + 1]);
-    const z0 = zU(SP[i]) + 0.03, z1 = zU(SP[i + 1]) - 0.03;
+    const z0 = zU(SP[i]) + (SP[i] === KNEE ? 0.36 : 0.03), z1 = zU(SP[i + 1]) - (SP[i + 1] === KNEE ? 0.36 : 0.03);
     b.shape('dbg', [[a0 + 0.04, z0], [a0 + 0.95, z0], [a1 + 0.95, z1], [a1 + 0.04, z1]], -1.0, 0.4, { hideBottom: false });
     if (lod === 0) {
       for (let z = z0 + 0.6; z < z1 - 0.4; z += 1.0) {
@@ -116,21 +137,23 @@ function wing(b: Builder, lod: Lod): V3 {
     cylAt(b, 'flatSilver', [-0.2, -0.3, 0], [0, 0, 1], 0.32, 2.5, { radial: 10 });
     for (const z of [-0.75, 0.75]) cylAt(b, 'black', [-0.2, -0.3, z], [0, 0, 1], 0.64, 0.12, { radial: 14 });
     b.box('dbg', 0.4, -0.75, -1.6, 0.9, 0.5, 1.1);
-    // hydraulic rams along the inner face
+    // hydraulic rams along the inner face: tip section, and the knee ram driving the shin
     rod(b, 'dbg', [0.45, -1.15, -2.3], [0.45, -1.15, -4.2], 0.17, { radial: 8 });
     rod(b, 'flatSilver', [0.45, -1.15, -4.2], [0.45, -1.15, -6.0], 0.09, { radial: 6 });
-    rod(b, 'dbg', [0.55, -1.15, 6.6], [0.62, -1.15, 8.6], 0.17, { radial: 8 });
-    rod(b, 'flatSilver', [0.62, -1.15, 8.6], [0.7, -1.15, 10.4], 0.09, { radial: 6 });
+    rod(b, 'dbg', [0.62, -1.12, zU(KNEE) - 3.4], [0.62, -1.12, zU(KNEE) - 1.4], 0.16, { radial: 8 });
+    rod(b, 'flatSilver', [0.62, -1.12, zU(KNEE) - 1.4], [0.62, -1.02, zU(KNEE) - 0.3], 0.08, { radial: 6 });
   }
-  // flight assault laser on the inner face (fires along +z)
-  const lx = 0.5, ly = -1.35;
-  b.box('dbg', lx, ly + 0.05, 0.9, 0.95, 0.6, 2.4);
-  rod(b, 'dbg', [lx, ly, 2.1], [lx, ly, 5.3], 0.2, { radial: lod ? 6 : 10 });
+  // blaster cannon slung under the shin, firing along +z past the claw (its tip clears the ground
+  // plane through the whole walk sweep because it stays behind and above the middle talon)
+  const cx = 0.9, cy = -0.95, h0 = zU(0.755), h1 = zU(0.86);
+  b.box('dbg', cx, -0.925, (h0 + h1) / 2, 0.72, 0.65, h1 - h0);
+  rod(b, 'dbg', [cx, cy, h1], [cx, cy, 12.2], 0.2, { radial: lod ? 6 : 12 });
   if (lod === 0) {
-    b.box('black', lx, ly - 0.3, 0.9, 0.5, 0.12, 1.6);
-    for (const z of [2.6, 3.4, 4.2]) cylAt(b, 'dbg', [lx, ly, z], [0, 0, 1], 0.26, 0.2, { radial: 10 });
-    rod(b, 'flatSilver', [lx, ly, 5.3], [lx, ly, 6.1], 0.28, { radial: 10 });
-    rod(b, 'black', [lx, ly, 6.1], [lx, ly, 6.3], 0.13, { radial: 8 });
+    b.box('black', cx, -1.27, (h0 + h1) / 2 + 0.2, 0.44, 0.06, h1 - h0 - 0.9);
+    for (let k = 0; k < 3; k++) b.box('dbg', cx + 0.37, -0.93, h0 + 0.5 + k * 0.32, 0.04, 0.36, 0.14, { c: 0.01 });
+    for (const z of [h1 + 0.4, h1 + 0.85]) cylAt(b, 'dbg', [cx, cy, z], [0, 0, 1], 0.27, 0.16, { radial: 12 });
+    rod(b, 'flatSilver', [cx, cy, 12.2], [cx, cy, 12.72], 0.26, { radial: 12 });
+    rod(b, 'black', [cx, cy, 12.72], [cx, cy, 12.8], 0.13, { radial: 8 });
   }
   // clawed foot: knuckle block and three talons (the middle one longest)
   const f0 = zU(0.87), f1 = zU(1.0);
@@ -146,46 +169,68 @@ function wing(b: Builder, lod: Lod): V3 {
     cylAt(b, 'flatSilver', [0.5, 0, f0 + 1.1], [0, 1, 0], 0.16, 0.7, { radial: 8 });
     rod(b, 'dbg', [0.95, 0.72, zU(0.72)], [0.95, 0.72, zU(0.8)], 0.16, { radial: 8 });
     rod(b, 'flatSilver', [0.95, 0.72, zU(0.8)], [0.95, 0.72, f0 + 0.9], 0.08, { radial: 6 });
-    rod(b, 'dbg', [0.95, -0.8, zU(0.74)], [0.95, -0.8, zU(0.82)], 0.16, { radial: 8 });
-    rod(b, 'flatSilver', [0.95, -0.8, zU(0.82)], [0.95, -0.8, f0 + 0.9], 0.08, { radial: 6 });
     b.box('trRed', 1.0, 0.62, f0 + 0.45, 0.3, 0.1, 0.3);
   }
-  return [lx, ly, lod ? 5.3 : 6.35];
+  return [cx, cy, lod ? 12.25 : 12.85];
 }
 
 // ---------------------------------------------------------------------------------------------
 // hull (model frame)
 
-const FRONT = [[0, 4.3], [1.0, 4.15], [2.0, 3.72], [2.9, 3.05], [3.7, 2.25], [4.4, 1.35], [4.9, 0.45]];
-const REAR = [[0, -2.7], [1.0, -2.65], [2.0, -2.5], [2.9, -2.3], [3.7, -2.1], [4.4, -1.9], [4.9, -1.7]];
+/** Hull plan, port half: [x, front z, rear z]. A trapezoid: straight rear edge along the hinge rails, front edge narrowing to the head. */
+const HULL = [[0, 3.7, -3.3], [1.0, 3.7, -3.3], [1.9, 3.5, -3.3], [2.9, 2.7, -3.25], [3.9, 1.85, -3.15], [4.9, 1.0, -3.0]];
+const hullFront = (x: number) => lerpTable(HULL, Math.abs(x))[0];
 
 function hull(b: Builder, lod: Lod): void {
-  const xs = FRONT.map((p) => p[0]);
+  const xs = HULL.map((p) => p[0]);
+  const last = xs.length - 2;
   const slice = (i: number, inset: number, zTrimF = 0, zTrimR = 0): number[][] => {
-    const x0 = xs[i] + (i === 0 ? 0 : 0.0), x1 = xs[i + 1];
+    const x0 = xs[i], x1 = xs[i + 1] - (i === last ? inset : 0);
     return [
-      [x0, REAR[i][1] + inset + zTrimR],
-      [x1 - (i === xs.length - 2 ? inset : 0), REAR[i + 1][1] + inset + zTrimR],
-      [x1 - (i === xs.length - 2 ? inset : 0), FRONT[i + 1][1] - inset - zTrimF],
-      [x0, FRONT[i][1] - inset - zTrimF],
+      [x0, HULL[i][2] + inset + zTrimR],
+      [x1, HULL[i + 1][2] + inset + zTrimR],
+      [x1, HULL[i + 1][1] - inset - zTrimF],
+      [x0, HULL[i][1] - inset - zTrimF],
     ];
   };
+  /** Part of a slice between two z lines (the slice's front / rear edges still bound it). */
+  const band = (i: number, inset: number, z0: number, z1: number): number[][] =>
+    clean(slice(i, inset).map(([x, z], k) => [x, k < 2 ? Math.max(z, z0) : Math.min(z, z1)]));
   for (const s of [1, -1]) {
     b.push();
     if (s < 0) b.mirrorX();
-    for (let i = 0; i < xs.length - 1; i++) {
-      // layers: belly, dark core, top deck, raised centre deck
-      if (i <= 2) b.shape('darkTan', slice(i, 0.3), -1.1, 0.4);
-      b.shape('darkTan', slice(i, 0.12), -0.7, 0.4, { hideBottom: i > 2 });
+    for (let i = 0; i <= last; i++) {
+      // layers: belly, dark core, a dark seam course (reads as the panel line round the deck), deck
+      if (i <= 3) b.shape('darkTan', slice(i, 0.3), -1.1, 0.4);
+      b.shape('darkTan', slice(i, 0.12), -0.7, 0.4, { hideBottom: i > 3 });
       b.shape(lod ? 'darkTan' : 'dbg', slice(i, 0.35), -0.3, 0.4);
-      const deck: ColorKey = i === 4 ? 'darkRed' : 'tan';
-      b.shape(deck, slice(i, 0), 0.1, 0.4);
-      if (i <= 2) {
-        const top = slice(i, 0.3, 0.25, 0.15);
-        b.shape('tan', top, 0.5, 0.4);
-        if (lod === 0 && i >= 1) studsIn(b, 'tan', top, 0.9, { ox: 0.5, oz: 0.5 });
+      // deck tiles: split fore / aft so the seam between them reads; the outboard strip is the marking
+      const zs = HULL[i][2] + 2.4;
+      if (i === last) b.shape('darkRed', slice(i, 0), 0.1, 0.4);
+      else if (lod) b.shape('tan', slice(i, 0), 0.1, 0.4);
+      else {
+        b.shape('tan', band(i, 0, -9, zs - 0.03), 0.1, 0.4);
+        b.shape(i === 0 ? 'darkTan' : 'tan', band(i, 0, zs + 0.03, 9), 0.1, 0.4);
       }
-      if (lod === 0 && i === 3) studsIn(b, 'tan', slice(i, 0.25), 0.5, { ox: 0.5, oz: 0.5, max: 4 });
+    }
+    // raised spine behind the head (|x| < 1.9), studded ahead of the fuel chamber
+    for (const i of [0, 1]) {
+      const sp = band(i, 0.25, -9, 0.8);
+      b.shape('tan', sp, 0.5, 0.4);
+      if (lod === 0) studsIn(b, 'tan', sp, 0.9, { ox: 0.5, oz: 0.5, keep: (x, z) => z > -1.9 && x < 1.5 });
+    }
+    // shoulders: raised plates between the spine and the marking strip, a dark red chevron at their front
+    for (const i of [2, 3]) {
+      const zf = Math.min(HULL[i][1], HULL[i + 1][1]);
+      const sh = band(i, 0.25, -9, zf - 1.35);
+      b.shape('tan', sh, 0.5, 0.4);
+      b.shape('darkRed', band(i, 0.25, zf - 1.25, 9), 0.5, 0.4);
+      if (lod === 0) studsIn(b, 'tan', sh, 0.9, { ox: 0.5, oz: 0.5, keep: (_x, z) => z > -1.5 });
+    }
+    if (lod === 0) {
+      // printed hatch on the rear deck, vents on the shoulders
+      b.shape('darkTan', [[2.2, -2.75], [3.6, -2.75], [3.6, -1.75], [2.2, -1.75]], 0.9, 0.04, { c: 0.01 });
+      for (let k = 0; k < 3; k++) b.box('dbg', 3.0, 0.93, -2.5 + k * 0.3, 1.0, 0.04, 0.12, { c: 0.01 });
     }
     // hinge rail: technic beams top and bottom joined by a web, pistons
     b.box('dbg', HX, HY + 1.05, HZ, 0.7, 0.42, 6.6);
@@ -205,12 +250,12 @@ function hull(b: Builder, lod: Lod): void {
       rod(b, 'dbg', [1.6, -1.05, 3.3], [1.6, -1.05, 4.0], 0.26, { radial: 10 });
       rod(b, 'black', [1.6, -1.05, 4.0], [1.6, -1.05, 4.08], 0.16, { radial: 8 });
       // leading-edge sensor lights
-      b.box('trRed', 3.3, 0.3, 2.62, 0.4, 0.14, 0.12);
+      b.box('trRed', 3.3, 0.3, hullFront(3.3) - 0.02, 0.4, 0.14, 0.12);
     }
     b.pop();
   }
   // head mount / neck well
-  b.box('dbg', 0, 1.1, 1.3, 1.6, 0.5, 2.2);
+  b.box('dbg', 0, 0.62, 2.1, 2.2, 0.3, 2.8);
   // engine block at the tail
   b.box('dbg', 0, -0.2, -3.55, 2.7, 1.3, 1.9);
   b.shape('tan', [[-1.5, -2.6], [1.5, -2.6], [1.25, -4.1], [-1.25, -4.1]], 0.45, 0.4);
@@ -224,6 +269,9 @@ function hull(b: Builder, lod: Lod): void {
     for (const z of [-2.6, -3.3, -4.0]) b.cyl('darkRed', 0, 1.25, z, 0.46, 0.18, { axis: 'z', radial: 12 });
     // cooling fins either side of the engine
     for (const s of [1, -1]) for (let k = 0; k < 5; k++) b.box('dbg', s * 1.45, -0.72 + k * 0.26, -3.55, 0.36, 0.08, 1.6, { c: 0.02 });
+    // heat-rusted exhaust collar and scorched tiles behind the rear deck
+    b.add('darkOrange', tube(1.03, 0.96, 0.18, 0.02, 18), new Matrix4().makeTranslation(0, -0.2, -4.68).multiply(new Matrix4().makeRotationX(Math.PI / 2)));
+    for (const s of [1, -1]) b.shape('darkOrange', [[s * 0.35, -3.2], [s * 1.15, -3.2], [s * 1.0, -3.9], [s * 0.35, -3.9]], 0.85, 0.04, { c: 0.01 });
   }
 }
 
@@ -233,6 +281,7 @@ function hull(b: Builder, lod: Lod): void {
 // blunt bullet: nearly flat face (ya 3.7 … 4.0), rounded brow, long rounded crown tapering aft
 const HEAD_PTS = [[0, 4.0], [0.55, 3.97], [0.95, 3.88], [1.22, 3.68], [1.4, 3.36], [1.5, 2.9], [1.53, 2.2], [1.5, 1.5], [1.38, 0.8], [1.15, 0.2], [0.8, -0.2], [0.4, -0.38], [0, -0.42]];
 const HEAD_FRONT = 7; // HEAD_PTS[0..HEAD_FRONT) is the visor shell
+const HEAD_FACE = 3; // HEAD_PTS[0..HEAD_FACE] is the dark face disc carrying the photoreceptors
 const HEAD_R = 1.53;
 const HEAD_AY = 0.45; // lathe axis height above the neck pivot
 const HEAD_SY = 1.22; // vertical stretch
@@ -259,8 +308,9 @@ function head(b: Builder, lod: Lod): void {
   const radial = lod ? 10 : 24;
   b.push();
   b.scale(1, HEAD_SY, 1);
-  // front visor shell (tan) and rear cap (darkTan) with a moulding seam between them
-  lathePts(b, 'tan', HEAD_PTS.slice(0, HEAD_FRONT), { at: [0, HEAD_AY, 0], axis: 'z', radial, theta0: th0, thetaLen: thL, crease: 60 });
+  // face disc (dark tan), front visor shell (tan) and rear cap (darkTan), moulding seams between them
+  lathePts(b, 'darkTan', HEAD_PTS.slice(0, HEAD_FACE + 1), { at: [0, HEAD_AY, 0], axis: 'z', radial, theta0: th0, thetaLen: thL, crease: 60 });
+  lathePts(b, 'tan', HEAD_PTS.slice(HEAD_FACE, HEAD_FRONT).map((p, i) => (i === 0 ? [p[0] + 0.03, p[1] + 0.03] : p)), { at: [0, HEAD_AY, 0], axis: 'z', radial, theta0: th0, thetaLen: thL, crease: 60 });
   lathePts(b, 'darkTan', HEAD_PTS.slice(HEAD_FRONT - 1).map((p, i) => (i === 0 ? [p[0] - 0.03, p[1] - 0.05] : p)), { at: [0, HEAD_AY, 0], axis: 'z', radial, theta0: th0, thetaLen: thL, crease: 60 });
   b.pop();
   // flat underside plate
@@ -282,12 +332,8 @@ function head(b: Builder, lod: Lod): void {
   b.shape('darkTan', convex(brim), bottomY - 0.1, 0.2, { hideBottom: lod === 1 });
   // neck
   b.cyl('dbg', 0, bottomY - 0.55, 0.6, 0.5, 0.7, { radial: 12 });
-  if (lod === 1) {
-    for (const s of [1, -1]) visor(b, s * 0.42, 1, 6);
-    return;
-  }
-  // twin sensor slits running over the brow and down the face
-  for (const s of [1, -1]) visor(b, s * 0.42, 0, 14);
+  eyes(b, lod);
+  if (lod === 1) return;
   // chin: magnetic imaging sensor grille under the face
   for (let k = 0; k < 4; k++) b.box('dbg', 0, bottomY - 0.12 - k * 0.08, 3.3 + k * 0.12, 1.3 - k * 0.14, 0.06, 0.5, { c: 0.015 });
   b.box('black', 0, bottomY - 0.2, 2.9, 1.4, 0.3, 0.9);
@@ -338,30 +384,42 @@ function headFrontYa(r: number): number {
   return P[HEAD_FRONT - 1][1];
 }
 
-/** One sensor slit: glowing red tile segments running from the brow straight down the face at x = xs. */
-function visor(b: Builder, xs: number, lod: Lod, n: number): void {
-  const r0 = 1.5, r1 = Math.abs(xs) + 0.1;
-  const pts: V3[] = [];
-  const nrm: V3[] = [];
-  for (let k = 0; k <= n; k++) {
-    const r = lerp(r0, r1, Math.pow(k / n, 0.8));
-    const ya = headFrontYa(r);
-    const sx = Math.min(0.98, Math.abs(xs) / r);
-    const c = Math.sqrt(1 - sx * sx);
-    const y = HEAD_SY * (HEAD_AY + r * c);
-    // surface normal (profile slope → axial component), corrected for the vertical stretch
-    const dr = (headRadius(ya + 0.05) - headRadius(ya - 0.05)) / 0.1;
-    const n0 = new Vector3(Math.sign(xs) * sx, c / HEAD_SY, -dr / HEAD_SY).normalize();
-    pts.push([xs, y, ya]);
-    nrm.push([n0.x, n0.y, n0.z]);
+/** Point and outward normal on the face at lateral x and height v above the lathe axis (before the vertical stretch). */
+function facePoint(x: number, v: number): { p: V3; n: V3 } {
+  const r = Math.hypot(x, v);
+  const ya = headFrontYa(r);
+  const dr = (headRadius(ya + 0.05) - headRadius(ya - 0.05)) / 0.1;
+  const n = new Vector3(r > 1e-4 ? x / r : 0, (r > 1e-4 ? v / r : 0) / HEAD_SY, -dr).normalize();
+  return { p: [x, HEAD_SY * (HEAD_AY + v), ya], n: [n.x, n.y, n.z] };
+}
+
+/**
+ * The photoreceptors: two round red eyes in raised gunmetal rims on the dark face, split by a tan
+ * ridge running down the middle like a beak; lod 1 keeps the two glowing eyes.
+ */
+function eyes(b: Builder, lod: Lod): void {
+  for (const s of [1, -1]) {
+    const { p, n } = facePoint(s * 0.62, 0.2);
+    b.push();
+    b.apply(frame(p, n));
+    if (lod) ball(b, 'glowRed', [0, 0, 0.06], 0.33, 8, 4);
+    else {
+      lathePts(b, 'gunmetal', [[0.32, 0.14], [0.4, 0.14], [0.44, 0.08], [0.44, -0.14]], { axis: 'z', radial: 20, crease: 40 });
+      lathePts(b, 'black', [[0, 0.03], [0.32, 0.03], [0.32, 0.14]], { axis: 'z', radial: 20, crease: 40 });
+      ball(b, 'glowRed', [0, 0, 0.05], 0.24, 14, 7);
+      ball(b, 'glowYellow', [0.06, 0.07, 0.2], 0.065, 8, 4);
+    }
+    b.pop();
   }
-  for (let k = 0; k < n; k++) {
-    const a = pts[k], c = pts[k + 1];
-    const nm: V3 = [(nrm[k][0] + nrm[k + 1][0]) / 2, (nrm[k][1] + nrm[k + 1][1]) / 2, (nrm[k][2] + nrm[k + 1][2]) / 2];
-    const mid: V3 = [(a[0] + c[0]) / 2 + nm[0] * 0.02, (a[1] + c[1]) / 2 + nm[1] * 0.02, (a[2] + c[2]) / 2 + nm[2] * 0.02];
-    const len = Math.hypot(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
-    boxAt(b, 'black', [mid[0] - nm[0] * 0.03, mid[1] - nm[1] * 0.03, mid[2] - nm[2] * 0.03], [c[0] - a[0], c[1] - a[1], c[2] - a[2]], nm, 0.42, 0.1, len + 0.04, { c: 0.02 });
-    boxAt(b, lod ? 'glowRed' : 'glowRed', mid, [c[0] - a[0], c[1] - a[1], c[2] - a[2]], nm, 0.24, 0.1, len * 0.86, { c: 0.02 });
+  if (lod) return;
+  // beak ridge from the brow to the chin
+  const top = facePoint(0, 0.95), bot = facePoint(0, -0.3);
+  const mid: V3 = [0, (top.p[1] + bot.p[1]) / 2, Math.max(top.p[2], bot.p[2]) + 0.06];
+  boxAt(b, 'tan', mid, [0, 0, 1], [0, 1, 0], 0.3, top.p[1] - bot.p[1], 0.24, { c: 0.05 });
+  // brow: a dark bar over each eye
+  for (const s of [1, -1]) {
+    const { p, n } = facePoint(s * 0.64, 0.76);
+    boxAt(b, 'dbg', [p[0] + n[0] * 0.04, p[1] + n[1] * 0.04, p[2] + n[2] * 0.04], [1, 0, -s * 0.35], n, 0.14, 0.1, 0.6, { c: 0.03 });
   }
 }
 
@@ -504,7 +562,7 @@ export function vultureDroid(o: { lod?: Lod; seed?: number } = {}): VultureDroid
 // frames that share one set of meshes (setGait swaps their geometry, so no extra draw calls).
 
 const OFFSETS: Record<string, number> = { '1,-1': 0, '1,1': Math.PI / 2, '-1,-1': Math.PI, '-1,1': (3 * Math.PI) / 2 };
-const WALK_FRAMES = 8;
+const WALK_FRAMES = 16;
 
 function lod1(group: Group, seed: number, muzzles: Object3D[], engines: Object3D[]): VultureDroid {
   const key = `${seed & 3}`;
@@ -529,7 +587,7 @@ function lod1(group: Group, seed: number, muzzles: Object3D[], engines: Object3D
       for (const lvl of [1, -1] as const) {
         legPose({ pv: group, side, lvl, off: OFFSETS[`${side},${lvl}`] }, walk ? 1 : 0, phase, pose);
         const m = new Matrix4().makeTranslation(pose.x, pose.y, pose.z).multiply(new Matrix4().makeRotationFromEuler(_e.set(pose.pitch, 0, pose.roll, 'ZYX'))).multiply(new Matrix4().makeScale(side, lvl, 1));
-        let mz: V3 = [0.5, -1.12, 5.3];
+        let mz: V3 = [0.9, -0.95, 12.25];
         if (b) {
           b.push();
           b.apply(m);

@@ -101,6 +101,7 @@ export const LAB_D: Record<string, () => Object3D> = {
   'mun-aft': () => focus(frigate(0), [0, 48, -800], 480),
   'mun-bow': () => focus(frigate(0), [0, 40, 1000], 300),
   'mun-mid': () => focus(frigate(0), [0, 0, -240], 380),
+  'mun-comm': () => focus(frigate(0), [0, 0, -568], 900),
   'invisible-hand': () => hand(0),
   'invisible-hand-lod1': () => hand(1),
   'ih-mouth': () => handMouth(70, 10),

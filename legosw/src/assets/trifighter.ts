@@ -167,6 +167,14 @@ function arm(b: Builder, lod: 0 | 1): void {
   for (const q of strip(1 / segs, 1, segs - 1, (w) => w - 0.24, (w) => w + 0.03)) side('lbg', q, T + 0.12, { c: lod ? 0 : 0.04 });
   if (lod) {
     for (const q of strip(0.24, 0.95, 3, (w) => 0.3 - w, (w) => w - 0.3)) side(PANEL, q, T + 0.03, { c: 0 });
+    // coarser sawtooth (five teeth a side): the arms' signature still reads across a swarm
+    const K = 5;
+    for (const sg of [1, -1]) {
+      for (let k = 0; k < K; k++) {
+        const a = 0.26 + (0.67 * k) / K, e = 0.26 + (0.67 * (k + 1)) / K, m = (a + e) / 2;
+        side(TEETH, [at(a, station(a).w - 0.36), at(e, station(e).w - 0.36), at(m, 0.36 - station(m).w)], 0.02, { c: 0, zc: sg * (T / 2 + 0.03) });
+      }
+    }
   } else {
     const panel = strip(0.24, 0.95, 6, (w) => 0.3 - w, (w) => w - 0.3);
     const K = 7;

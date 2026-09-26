@@ -1,5 +1,6 @@
 import { Group, Mesh, Object3D, Vector3, type Material } from 'three';
 import { Builder, PLATE } from '../core/builder';
+import { profile } from '../core/geom';
 import type { ColorKey } from '../core/palette';
 import { hash3, Rng } from '../core/rng';
 import type { CapitalShip } from './types';
@@ -49,6 +50,8 @@ const se = (t: number, p: number): number => Math.pow(Math.max(0, 1 - Math.pow(M
 const FZ0 = -4;
 const FZK = 30;
 const FZ1 = 144;
+/** Muzzle face of the prow cannon's brakes, a little ahead of the prong tips. */
+const PROW_Z = 147.5;
 /** Forward shell, port half (offset by x0 = trench half width); steep domed rear, long bow taper. */
 function fwdSec(z: number): Sec {
   const u = z > FZK ? (z - FZK) / (FZ1 - FZK) : 0;
@@ -191,7 +194,8 @@ function shellSpec(q: Q, seed: number, stripes: [number, number][], ribs: number
     const tj = ft[j];
     const walls = { px: t.col === t.cols - 1 && tj > (ft[j + 1] ?? 0) + 1e-4, nx: t.col === 0 && tj > (ft[j - 1] ?? 0) + 1e-4 };
     if (th < RIM) return { key: 'lbg', t: tj, walls };
-    if (q.ribs && onRib(th, ribs)) return { key: 'dbg', t: tj, walls };
+    // lod 1 ribs in dark tan: at fleet range dark grey hairlines along the hull shimmer
+    if (q.ribs && onRib(th, ribs)) return { key: q.lod === 0 ? 'dbg' : 'darkTan', t: tj, walls };
     if (inR(th, stripes)) return { key: hx < 0.05 ? 'darkRed' : 'reddishBrown', t: tj, walls };
     const zh = zoneHash(c.z, th, seed);
     let key: ColorKey = zh < (th > te - 0.55 ? 0.45 : 0.15) ? 'darkTan' : 'tan';
@@ -409,8 +413,13 @@ function tower(b: Builder, q: Q, rng: Rng, z: number, yb: number): number {
   return yt;
 }
 
-/** Hyperwave comm mast through the aft trench: tall slab with stacked slats above and below. */
-function commMast(b: Builder, q: Q, rng: Rng, z: number): void {
+/**
+ * Hyperwave comm array through the aft trench: tall slabs with stacked slats above and below, each
+ * carrying a narrower slatted spire — the relay dish tilted aft on top, the sensor pod underneath.
+ * Returns the dish centre. (No Rng draws beyond the original mast's: the shared stream sets the
+ * turret yaws after it.)
+ */
+function commMast(b: Builder, q: Q, rng: Rng, z: number): Vector3 {
   const L = 18;
   const T = 3.6;
   for (const [ya, yb] of [[9, 36], [-44, -12]] as const) {
@@ -436,9 +445,42 @@ function commMast(b: Builder, q: Q, rng: Rng, z: number): void {
   b.box('lbg', 0, 36.6, z + 1, T + 1.2, 1.2, L + 1.6);
   sideProfile(b, 'dbg', [[z - L / 2, 37.2], [z + L / 2 + 1.6, 37.2], [z + L / 2 - 2, 39], [z - L / 2, 39]], T);
   b.box('lbg', 0, -44.6, z, T + 1.2, 1.2, L + 1);
-  mast(b, q, rng, 0, 39, z - 5, 6);
-  mast(b, q, rng, 0, 39, z + 2, 3.5);
+  mast(b, q, rng, 0, 39, z - L / 2 + 1.4, 6);
+  mast(b, q, rng, 0, 39, z + L / 2 - 1.4, 3.5);
+  const SL = 10, ST = 2.6;
+  for (const [ya, yb, zc] of [[39, 54, z - 1], [-59, -45.2, z + 1]] as const) {
+    b.box('darkTan', 0, (ya + yb) / 2, zc, ST, yb - ya, SL);
+    for (let y = ya + 1.4; y < yb - 0.8; y += q.lod === 2 ? 4.8 : 2.4) {
+      const k: ColorKey = Math.round((y - ya) / 2.4) % 3 === 1 ? 'reddishBrown' : 'tan';
+      b.box(k, 0, y, zc + 0.3, ST + 0.7, 0.8, SL - 1.4);
+    }
+    if (q.lod < 2) for (const s of [-1, 1]) b.box('dbg', s * (ST / 2 + 0.25), (ya + yb) / 2, zc - SL / 2 + 1, 0.5, yb - ya - 1.6, 1.2);
+  }
+  // relay dish: collar and yoke on the spire cap, the bowl tilted up and aft, feed horn and struts
+  const dc = new Vector3(0, 57.8, z - 2.8);
+  b.box('dbg', 0, 54.6, z - 1, ST + 1, 1.2, SL + 1);
+  bar(b, 'dbg', [0, 55.2, z - 1], [dc.x, dc.y - 0.6, dc.z + 0.3], 0.8, { radial: q.radial > 12 ? 10 : 6 });
+  b.push();
+  b.translate(dc.x, dc.y, dc.z);
+  b.rotateX(-0.55);
+  b.scale(1.4);
+  b.lathe('lbg', profile([[0, 0.55], [2.8, 0.95], [4.9, 1.8], [6, 2.55], [6, 2.15], [4.9, 1.4], [2.8, 0.55], [0, 0.15]], 40), { radial: q.radial });
+  if (q.lod < 2) {
+    b.lathe('dbg', profile([[6.05, 2.6], [6.05, 2.1]]), { radial: q.radial });
+    for (let k = 0; k < 3; k++) {
+      const a = (k / 3) * Math.PI * 2;
+      bar(b, 'dbg', [Math.sin(a) * 5.4, 2.1, Math.cos(a) * 5.4], [0, 4.6, 0], 0.12, { radial: 4 });
+    }
+    bar(b, 'dbg', [0, 0.6, 0], [0, 4.6, 0], 0.3, { radial: 6 });
+  }
+  b.cyl('glowRed', 0, 4.8, 0, 0.4, 0.5, { radial: 6 });
+  b.pop();
+  // sensor pod under the lower spire
+  b.box('lbg', 0, -59.6, z + 1, ST + 1, 1.2, SL + 1);
+  b.lathe('darkTan', profile([[0, -60.2], [1.9, -60.2], [2.3, -61.4], [1.6, -62.8], [0, -63.2]], 40), { radial: q.radial > 12 ? 12 : 8, at: [0, 0, z + 1] });
   b.cyl('glowRed', 0, -45.4, z + 6, 0.3, 0.4, { radial: 6 });
+  b.cyl('glowRed', 0, -63.3, z + 1, 0.35, 0.3, { radial: 6 });
+  return dc;
 }
 
 /** Long lateral comm arm (port; mirrored for starboard) rooted in the midsection at zc. */
@@ -621,19 +663,24 @@ export function munificent(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
       bar(b, 'gunmetal', [s * 8.6, -5.2, 83], [s * 8.6, -5.2, 101], 0.6, { radial: rb });
       bar(b, 'dbg', [s * 8.6, -5.2, 99], [s * 8.6, -5.2, 102], 0.8, { radial: rb });
     }
+    // prow cannon: twin heavy barrels in shrouds out of the breech block, cooling rings, muzzle
+    // brakes standing just proud of the prong tips (|x| < 2.75 keeps them inside the prong trench)
     b.box('dbg', 0, 0.2, 112, 7, 4.4, 16);
     b.box('darkTan', 0, 2.6, 110, 6, 0.8, 12);
     sideProfile(b, 'darkTan', [[104, -2], [120, -2], [120, 1], [104, 2.4]], 7.4);
     for (const s of [-1, 1]) {
-      bar(b, 'gunmetal', [s * 1.7, 0.4, 118], [s * 1.7, 0.4, 142], 0.75, { radial: rb + 2 });
-      bar(b, 'dbg', [s * 1.7, 0.4, 139], [s * 1.7, 0.4, 143], 1.0, { radial: rb + 2 });
-      bar(b, 'dbg', [s * 1.7, 0.4, 122], [s * 1.7, 0.4, 125], 1.0, { radial: rb + 2 });
+      bar(b, 'dbg', [s * 1.6, 0.4, 118], [s * 1.6, 0.4, 127], 1.2, { radial: rb + 2 });
+      bar(b, 'gunmetal', [s * 1.6, 0.4, 127], [s * 1.6, 0.4, 145], 0.9, { radial: rb + 2 });
+      bar(b, 'dbg', [s * 1.6, 0.4, PROW_Z - 4.4], [s * 1.6, 0.4, PROW_Z - 0.3], 1.12, { radial: rb + 2 });
+      bar(b, 'black', [s * 1.6, 0.4, PROW_Z - 0.3], [s * 1.6, 0.4, PROW_Z], 0.6, { radial: rb + 2 });
+      if (q.lod < 2) for (const z of [129.5, 132, 134.5, 137]) bar(b, 'dbg', [s * 1.6, 0.4, z], [s * 1.6, 0.4, z + 0.9], 1.05, { radial: rb + 2 });
     }
   }
 
   /* ---- dorsal superstructure, bridge, comm mast ---- */
   const TZ = 98;
   let bridgeY = 0;
+  let commTop = new Vector3(0, 39, -71);
   {
     const b = B('top');
     spine(b, q, rng, FZ0 - 2, TZ - 9, 5.2, fCrest, 6);
@@ -644,7 +691,7 @@ export function munificent(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
     // midsection deck
     b.box('darkTan', 0, 11.6, -28, 12, 2, 48);
     spine(b, q, rng, -50, -6, 4.4, () => 15.5, 12.4);
-    commMast(b, q, rng, -71);
+    commTop = commMast(b, q, rng, -71);
   }
 
   /* ---- arms ---- */
@@ -732,8 +779,8 @@ export function munificent(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
   anchors.bridge = anchorFrom(ab, 'bridge', group, [0, bridgeY, TZ], [0, 0, 1]);
   anchors.bow = anchorFrom(ab, 'bow', group, [0, 3, FZ1], [0, 0, 1]);
   anchors.stern = anchorFrom(ab, 'stern', group, [0, 0.5, EZ - 3], [0, 0, -1]);
-  anchors.cannon = anchorFrom(ab, 'cannon', group, [0, 0.4, 143.2], [0, 0, 1]);
-  anchors.comm = anchorFrom(ab, 'comm', group, [0, 39, -71], [0, 1, 0], [0, 0, 1]);
+  anchors.cannon = anchorFrom(ab, 'cannon', group, [0, 0.4, PROW_Z + 0.2], [0, 0, 1]);
+  anchors.comm = anchorFrom(ab, 'comm', group, [commTop.x, commTop.y, commTop.z], [0, 1, 0], [0, 0, 1]);
 
   group.userData.triangles = tris;
   group.userData.parts = parts;

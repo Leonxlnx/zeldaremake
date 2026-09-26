@@ -470,6 +470,15 @@ function engine(b: Builder, fine: boolean): void {
   b.lathe('gunmetal', profile([[ENG_R - 0.4, ENG_Z1 + 0.8], [ENG_R - 0.25, ENG_Z1 - 0.4], [ENG_R - 0.4, ENG_Z1 - 1.2], [ENG_R - 0.7, ENG_Z1 - 1.2], [ENG_R - 0.8, ENG_Z1 + 0.2]], 30), { at, axis: 'z', radial: rad });
   b.cyl('glowOrange', ENG_X, ENG_Y, ENG_Z1 - 0.3, ENG_R - 0.75, 0.2, { axis: 'z', radial: rad });
   b.cyl('glowEngine', ENG_X, ENG_Y, ENG_Z1 - 0.4, (ENG_R - 0.75) * 0.5, 0.2, { axis: 'z', radial: rad });
+  // hot liner round the inside of the bell, so the exhaust reads deep rather than as a flat disc
+  b.add('glowOrange', tube(ENG_R - 0.8, ENG_R - 0.98, 0.7, 0.02, rad), T(ENG_X, ENG_Y, ENG_Z1 - 0.8).multiply(ROT_Y_TO_Z));
+  if (fine) {
+    // nozzle petals round the bell
+    for (let k = 0; k < 10; k++) {
+      const a = ((k + 0.5) / 10) * Math.PI * 2;
+      b.box('dbg', ENG_X + Math.cos(a) * (ENG_R - 0.19), ENG_Y + Math.sin(a) * (ENG_R - 0.19), ENG_Z1 - 0.45, 0.55, 0.16, 1.6, { rot: [0, 0, a + Math.PI / 2], c: 0.02 });
+    }
+  }
   // fairing between the nacelle and the flat body side
   b.box('white', 3.6 + 1.0, ENG_Y + 1.0, (ENG_Z0 - 1 + ENG_Z1 + 1.5) / 2, 2.0, 2.4, ENG_Z0 - ENG_Z1 - 2.5, { hide: { nx: true } });
   b.box('lbg', 3.6 + 1.0, ENG_Y - 1.1, (ENG_Z0 - 1 + ENG_Z1 + 1.5) / 2, 2.0, 1.4, ENG_Z0 - ENG_Z1 - 2.5, { hide: { nx: true } });
