@@ -190,11 +190,40 @@ walk      after    -17.7 dB       24.7 dB              -26.2 dB
 `level.test.mjs` stages the master against is still an upper bound — now a conservative one, which
 is named below rather than silently re-measured.
 
-**The one thing it did cost.** The last column above: the hall answering a step bypasses the trim,
-so a step is now 4 dB wetter relative to itself. It sits 25 dB under the direct sound rather than
-29, which is a tail well below the thing it is a tail of, and the alternative — scaling the sends
-by the same amount — would have been a second, differently-motivated change riding along with this
-one. Named, not hidden.
+**The one thing it did cost.** The last column of the table above: the hall answering a step
+bypasses the trim, so a step is now 4 dB wetter relative to itself. It sits 25 dB under the direct
+sound rather than 29, which is a tail well below the thing it is a tail of, and the alternative —
+scaling the sends by the same amount — would have been a second, differently-motivated change
+riding along with this one. Named, not hidden.
+
+## And in the live graph, not the twin
+
+Everything above comes from `renderOffline` — the same graph rebuilt in an `OfflineAudioContext`
+and driven by a scripted pass against a perfect clock. `SFX_TRIM` is set inside `createBuses`,
+which both paths share, so there is no plausible way for one to have it and the other not. That is
+an argument, not a measurement, so `live.mjs` records the real build in play mode, running down the
+same plaza spine with the master bus tapped:
+
+```
+          steps   median step   loudest step  the floor under them
+  before     47      -15.5 dB        -8.7 dB              -38.0 dB
+   after     50      -17.3 dB       -10.5 dB              -38.6 dB
+```
+
+**−1.8 dB**, and that is the right answer rather than a shortfall. A live recording is the master
+bus, so every "step peak" in it is a step *plus whatever the bed and the music are doing at that
+instant*, and the sum does not fall by the whole of what the step fell by. Running the same
+detector over the offline takes shows the size of that exactly:
+
+```
+  the offline steps stem   the median step peak falls  4.0 dB   <- the trim, exactly
+  the offline mix          the same detector sees      2.4 dB
+  the live recording       the same detector sees      1.8 dB
+```
+
+The live take is the second kind of measurement and lands where the second kind lands, 0.6 dB off
+across two independent real-time takes of a non-deterministic system. The cut is in the graph the
+owner hears.
 
 ## Listen
 
@@ -226,6 +255,9 @@ suite has grown from the nine it had when this lane's goal was written.
   the same pulse answer without the undocumented makeup gain, without the 10 dB of gain movement,
   and, from the shape of the two exchange rates, at roughly 1.4 dB more step level. Pricing that
   needs one more dry stem, rendered with `limiter: false`.
+- **A step is measured inside a mix at about half its true change.** The detector sees 4.0 dB on
+  the steps stem, 2.4 on the mix and 1.8 live, for the same 4 dB of trim. Worth remembering before
+  anyone reads a step level off a recording of the master and concludes something is wrong.
 - **`WORST_CASE_PEAK_DBFS = −16.7` is now conservative** by something under 4 dB. It is still a
   valid ceiling, so nothing is broken, but the next lane to want headroom should re-measure it
   rather than trust it.
