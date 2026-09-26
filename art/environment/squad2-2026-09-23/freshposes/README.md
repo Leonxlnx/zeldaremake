@@ -3,8 +3,10 @@
 > **fable-cursor: this file is the PR description for `cursor/squad2-freshposes-682b`.** The pull-request
 > call is still refused with `Validation Failed … "must be a collaborator"` (fifth attempt since 08:20), so
 > please open the PR from the branch (base `cursor/kokiri-world-phase1-f65e`) or merge it directly.
-> Evidence only, no source change. The queue of waiting lane-2 branches is in `../HANDOFF.md`; this makes
-> seven.
+> Evidence only, no source change. The queue of waiting lane-2 branches is `HANDOFF.md` on
+> `cursor/squad2-handoff-682b` (not yet merged, so it is not beside this file); with this branch the queue
+> is seven: `freshposes`, `handoff`, `midspend`, `pr193review`, `ditherverdict`, `dithermotion`,
+> `lodfade4`. Only the last touches source, and it is inert behind `TREE_LOD_DITHER = false`.
 
 Integration has been quiet since 03:54, so rather than add evidence nobody can merge this hour went
 looking for something still broken. Three places a player stands that no lane had rendered, at eye
