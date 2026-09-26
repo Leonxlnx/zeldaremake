@@ -688,10 +688,14 @@ const handReveal: Shot = {
     fly(w, w.obiwanShip, o, 1);
     face(w.anakin, { mouth: 'smirk', brows: -0.3 }, t, 1);
     const mid = a.pos.clone().lerp(o.pos, 0.5);
-    const cam = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, 24, 30, -78).add(shake(t, 0.25, 1, 14));
-    const look = HAND_POS.clone().add(v3(-150, 120, -350)).lerp(mid, 0.3);
+    // the reveal: from tight behind the pair (the command ship dead ahead beyond them) the camera cranes up and
+    // out to starboard while the lens tightens, and the aim slides from the bow to the hull the droids crawl on
+    const u = smoother(0, 4.5, t);
+    const cam = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, lerp(8, 30, u), lerp(11, 27, u), lerp(-44, -76, u)).add(shake(t, 0.2, 1, 14));
+    const bow = HAND_POS.clone().add(v3(-420, 110, -520)), hull = HAND_POS.clone().add(v3(-120, 150, -280));
+    const look = bow.lerp(hull, smoother(1.8, 4.3, t)).lerp(mid, lerp(0.3, 0.2, u));
     w.aimShadow(mid, 60);
-    return { pos: cam, target: look, fov: 32, roll: 0.05, lens: { exposure: 1.05 } };
+    return { pos: cam, target: look, fov: lerp(34, 29, u), roll: lerp(0.02, 0.06, u), lens: { exposure: 1.05 } };
   },
 };
 
