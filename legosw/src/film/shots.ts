@@ -605,15 +605,39 @@ const PERCH: [number, number, number][] = [
   [4.9, 0.98 + BUZZ_LIFT, -7],
 ];
 
+/** missile beat: droid i leaves its payload bay at DEPLOY0 + i·DEPLOY_STEP, the casings pop at CASING_POP */
+const DEPLOY0 = 1.72;
+const DEPLOY_STEP = 0.1;
+const CASING_POP = 2.3;
+const buzzRelease = (i: number) => DEPLOY0 + i * DEPLOY_STEP;
+
 const missiles: Shot = {
   name: 'missiles',
   blur: 2,
   dur: 4,
   lines: [{ t0: 2.3, t1: 3.9, who: 'Obi-Wan Kenobi', text: 'Buzz droids!' }],
   schedule(w, T0) {
+    const ship = obiPath8(T0);
     for (let k = 0; k < 2; k++) {
-      const st = flight(missilePath(k, T0), T0 + 1.9);
-      w.fx.explosion(T0 + 1.9, st.pos, { size: 5, pieces: 6, sparks: 30, smoke: 2, colors: ['gunmetal', 'dbg'], seed: 800 + k, inherit: flight(obiPath8(T0), T0 + 1.9).vel });
+      const path = missilePath(k, T0);
+      // exhaust streaks, carried along with the fighter's frame, so the missiles read on the way in
+      w.fx.sparkStream(
+        T0,
+        T0 + CASING_POP,
+        (T) => {
+          const st = flight(path, T);
+          return st.pos.clone().sub(st.fwd.clone().multiplyScalar(4.8));
+        },
+        (T) => flight(path, T).fwd.clone().negate(),
+        80,
+        810 + k,
+        6,
+        (T) => flight(ship, T).vel,
+      );
+      // once the payload is out the empty casing pops: a small flash, sparks and panels, no fireball
+      // or smoke to hide the droids on their way to the hull
+      const st = flight(path, T0 + CASING_POP);
+      w.fx.explosion(T0 + CASING_POP, st.pos, { size: 2.2, pieces: 5, sparks: 26, smoke: 0, colors: ['gunmetal', 'dbg'], seed: 800 + k, inherit: flight(ship, T0 + CASING_POP).vel });
     }
   },
   pose(w, t, T) {
@@ -626,31 +650,33 @@ const missiles: Shot = {
     face(w.obiwan, { mouth: talk(t, 2.35, 3.5, 'o', ['shout', 'open']), brows: 0.9, lookX: 0.02 }, t, 2);
     for (let k = 0; k < 2; k++) {
       const m = w.missiles[k];
-      m.group.visible = t < 2.05;
+      m.group.visible = t < CASING_POP;
       const st = flight(missilePath(k, T0), T);
       place(m.group, st);
-      m.setOpen(smooth(1.55, 1.95, t));
+      m.setOpen(smooth(1.45, 1.8, t));
       // payload slot j of missile k carries buzz droid j * 2 + k
-      m.payloadAnchors.forEach((pa, j) => (pa.visible = t <= 1.9 + (j * 2 + k) * 0.07));
+      m.payloadAnchors.forEach((pa, j) => (pa.visible = t <= buzzRelease(j * 2 + k)));
     }
-    // buzz droids burst out of the payload bays and grow to full size as they unfold on the way to their perches
+    // buzz droids pop out of the payload bays one after another, then hop in an arc onto their
+    // perches, unfolding and growing to full size on the way
+    const up = v3(0, 1, 0).applyQuaternion(o.quat);
     w.buzz.forEach((b, i) => {
       const k = i % 2;
       const m = w.missiles[k];
-      const tr = 1.9 + i * 0.07;
+      const tr = buzzRelease(i);
       b.group.visible = t > tr;
       if (t <= tr) return;
       const slot = m.payloadAnchors[Math.floor(i / 2) % Math.max(1, m.payloadAnchors.length)];
       const rel = slot ? payloadLocal(m.group, slot) : v3(0, 0, 0);
-      const from = local(flight(missilePath(k, T0), T0 + tr), rel.x, rel.y, rel.z);
+      const from = local(flight(missilePath(k, T0), T), rel.x, rel.y, rel.z);
       const c = crawlLocal(i, T);
       const perch = local(o, c.p.x, c.p.y, c.p.z);
-      const f = smoother(tr, tr + 0.7, t);
-      b.group.position.copy(from.lerp(perch, f));
+      const f = smoother(tr, tr + 0.85, t);
+      b.group.position.copy(from.lerp(perch, f)).add(up.clone().multiplyScalar(4 * f * (1 - f) * 3.2));
       b.group.quaternion.copy(o.quat).slerp(o.quat.clone().multiply(c.q), f);
       const ps = (m.group.userData.payloadScale as number | undefined) ?? 0.28;
-      b.group.scale.setScalar(lerp(ps, 1, smoother(tr, tr + 0.55, t)));
-      b.setDeploy(smooth(tr + 0.4, tr + 0.9, t));
+      b.group.scale.setScalar(lerp(ps, 1, smoother(tr, tr + 0.6, t)));
+      b.setDeploy(smooth(tr + 0.35, tr + 0.85, t));
       b.animate(T + i);
     });
     const cam = local({ pos: o.pos, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, -16, 6, -30).add(shake(t, 0.5, 1.4, 17));

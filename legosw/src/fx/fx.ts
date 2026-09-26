@@ -384,14 +384,19 @@ export class FX {
     }
   }
 
-  /** A stream of cutting sparks (buzz droid saws) from a point along a direction. */
-  sparkStream(t0: number, t1: number, at: (t: number) => Vector3, dir: (t: number) => Vector3, rate = 90, seed = 1, speed = 3): void {
+  /**
+   * A stream of sparks from a point along a direction (buzz droid saws, exhaust). `carry` is the
+   * velocity of the frame the emitter rides in, so the stream stays put relative to a moving craft.
+   */
+  sparkStream(t0: number, t1: number, at: (t: number) => Vector3, dir: (t: number) => Vector3, rate = 90, seed = 1, speed = 3, carry?: (t: number) => Vector3): void {
     const rng = new Rng(seed);
     const n = Math.floor((t1 - t0) * rate);
     for (let i = 0; i < n; i++) {
       const t = t0 + (i / rate) + rng.range(0, 1 / rate);
       const d = dir(t).clone().add(new Vector3(rng.gauss(), rng.gauss(), rng.gauss()).multiplyScalar(0.45)).normalize();
-      this.sparks.push({ t0: t, life: rng.range(0.15, 0.45), from: at(t).clone(), vel: d.multiplyScalar(speed * rng.range(0.6, 1.6)), size: rng.range(1.5, 3.5) });
+      const vel = d.multiplyScalar(speed * rng.range(0.6, 1.6));
+      if (carry) vel.add(carry(t));
+      this.sparks.push({ t0: t, life: rng.range(0.15, 0.45), from: at(t).clone(), vel, size: rng.range(1.5, 3.5) });
     }
   }
 
