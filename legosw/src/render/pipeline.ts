@@ -44,6 +44,10 @@ export interface Lens {
   split: number;
   lift: [number, number, number];
   gain: [number, number, number];
+  /** anamorphic streak strength: very hot sources (engine cores, bolts, fire) throw soft horizontal blue flares */
+  streak: number;
+  /** HDR level a pixel must exceed to streak */
+  streakThreshold: number;
 }
 
 export const DEFAULT_LENS: Lens = {
@@ -60,6 +64,8 @@ export const DEFAULT_LENS: Lens = {
   split: 0.25,
   lift: [0, 0, 0],
   gain: [1, 1, 1],
+  streak: 0.5,
+  streakThreshold: 3.0,
 };
 
 const VERT = /* glsl */ `
@@ -100,6 +106,9 @@ export class Pipeline {
   private sceneRT!: WebGLRenderTarget;
   private accumRT!: WebGLRenderTarget;
   private mips: WebGLRenderTarget[] = [];
+  private streakRT: WebGLRenderTarget[] = [];
+  private streakPre: ShaderMaterial;
+  private streakBlur: ShaderMaterial;
   private quad = new FullScreenQuad();
   private prefilter: ShaderMaterial;
   private down: ShaderMaterial;
@@ -162,6 +171,33 @@ export class Pipeline {
       { tSrc: { value: null }, px: { value: new Vector2() }, weight: { value: 1 } },
       AdditiveBlending,
     );
+    this.streakPre = mkPass(
+      /* glsl */ `
+      uniform sampler2D tSrc; uniform vec2 px; uniform float threshold; varying vec2 vUv;
+      void main() {
+        vec3 s = texture2D(tSrc, vUv + px * vec2(-0.5, -1.5)).rgb + texture2D(tSrc, vUv + px * vec2(0.5, -0.5)).rgb
+               + texture2D(tSrc, vUv + px * vec2(-0.5, 0.5)).rgb + texture2D(tSrc, vUv + px * vec2(0.5, 1.5)).rgb;
+        s = min(s * 0.25, vec3(60.0));
+        float br = max(s.r, max(s.g, s.b));
+        gl_FragColor = vec4(s * max(br - threshold, 0.0) / max(br, 1e-4), 1.0);
+      }`,
+      { tSrc: { value: null }, px: { value: new Vector2() }, threshold: { value: 3 } },
+    );
+    this.streakBlur = mkPass(
+      /* glsl */ `
+      uniform sampler2D tSrc; uniform vec2 step; varying vec2 vUv;
+      void main() {
+        vec3 s = texture2D(tSrc, vUv).rgb;
+        float wsum = 1.0, w = 1.0;
+        for (int k = 1; k <= 7; k++) {
+          w *= 0.78;
+          s += (texture2D(tSrc, vUv + step * float(k)).rgb + texture2D(tSrc, vUv - step * float(k)).rgb) * w;
+          wsum += 2.0 * w;
+        }
+        gl_FragColor = vec4(s / wsum, 1.0);
+      }`,
+      { tSrc: { value: null }, step: { value: new Vector2() } },
+    );
     this.accum = mkPass(
       /* glsl */ `
       uniform sampler2D tSrc; uniform float weight; varying vec2 vUv;
@@ -173,6 +209,8 @@ export class Pipeline {
       tScene: { value: null },
       tDepth: { value: null },
       tBloom: { value: null },
+      tStreak: { value: null },
+      streak: { value: 0 },
       res: { value: new Vector2() },
       projInv: { value: new Matrix4() },
       reversed: { value: 1 },
@@ -203,10 +241,13 @@ export class Pipeline {
     this.sceneRT?.dispose();
     this.accumRT?.dispose();
     for (const m of this.mips) m.dispose();
+    for (const m of this.streakRT) m.dispose();
     const depthTexture = new DepthTexture(w, h, FloatType);
     this.sceneRT = new WebGLRenderTarget(w, h, { type: HalfFloatType, format: RGBAFormat, samples: this.samples, depthTexture, depthBuffer: true, minFilter: LinearFilter, magFilter: LinearFilter });
     this.accumRT = new WebGLRenderTarget(w, h, { type: HalfFloatType, format: RGBAFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
     this.mips = [];
+    // streaks only need horizontal resolution
+    this.streakRT = [0, 1].map(() => new WebGLRenderTarget(Math.max(1, w >> 2), Math.max(1, h >> 3), { type: HalfFloatType, format: RGBAFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter }));
     let mw = Math.max(1, w >> 1), mh = Math.max(1, h >> 1);
     for (let i = 0; i < 6; i++) {
       this.mips.push(new WebGLRenderTarget(mw, mh, { type: HalfFloatType, format: RGBAFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter }));
@@ -296,6 +337,26 @@ export class Pipeline {
     this.quad.material = this.prefilter;
     r.setRenderTarget(mips[0]);
     this.quad.render(r);
+    // anamorphic streaks from the thresholded half-res image, before the upsample chain accumulates into mips[0]
+    const [sa, sb] = this.streakRT;
+    if (lens.streak > 0) {
+      this.streakPre.uniforms.tSrc.value = mips[0].texture;
+      this.streakPre.uniforms.px.value.set(1 / mips[0].width, 1 / mips[0].height);
+      this.streakPre.uniforms.threshold.value = lens.streakThreshold;
+      this.quad.material = this.streakPre;
+      r.setRenderTarget(sa);
+      this.quad.render(r);
+      let src = sa, dst = sb;
+      for (const k of [1, 4, 16]) {
+        this.streakBlur.uniforms.tSrc.value = src.texture;
+        this.streakBlur.uniforms.step.value.set(k / sa.width, 0);
+        this.quad.material = this.streakBlur;
+        r.setRenderTarget(dst);
+        this.quad.render(r);
+        [src, dst] = [dst, src];
+      }
+      this.final.uniforms.tStreak.value = src.texture;
+    }
     for (let i = 1; i < mips.length; i++) {
       this.down.uniforms.tSrc.value = mips[i - 1].texture;
       this.down.uniforms.px.value.set(1 / mips[i - 1].width, 1 / mips[i - 1].height);
@@ -323,6 +384,8 @@ export class Pipeline {
     u.aperture.value = lens.aperture * (this.height / 804);
     u.exposure.value = lens.exposure;
     u.bloom.value = lens.bloom;
+    u.streak.value = lens.streak;
+    if (lens.streak <= 0) u.tStreak.value = mips[mips.length - 1].texture;
     u.vignette.value = lens.vignette;
     u.grain.value = lens.grain;
     u.ca.value = lens.ca;
@@ -343,6 +406,8 @@ const FINAL_FRAG = /* glsl */ `
 uniform sampler2D tScene;
 uniform sampler2D tDepth;
 uniform sampler2D tBloom;
+uniform sampler2D tStreak;
+uniform float streak;
 uniform vec2 res;
 uniform mat4 projInv;
 uniform float reversed;
@@ -408,6 +473,7 @@ void main() {
     col.b = texture2D(tScene, uv + off).b;
   }
   col += texture2D(tBloom, uv).rgb * bloom * 0.09;
+  col += texture2D(tStreak, uv).rgb * vec3(0.32, 0.55, 1.0) * streak;
   col = aces(col);
   // grade
   float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
