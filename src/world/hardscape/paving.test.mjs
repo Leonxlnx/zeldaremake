@@ -215,8 +215,9 @@ test('the far LOD: one fan per stone over the same ground, the full paving untou
     assert.ok(Math.abs(fb.min[k] - nb.min[k]) < 0.02, `footprint min ${k}: far ${fb.min[k].toFixed(3)} near ${nb.min[k].toFixed(3)}`);
     assert.ok(Math.abs(fb.max[k] - nb.max[k]) < 0.02, `footprint max ${k}: far ${fb.max[k].toFixed(3)} near ${nb.max[k].toFixed(3)}`);
   }
-  // the far tops sit at the near tops' height (the fan is the shoulder ring's height, no walls below it)
-  assert.ok(fb.max.y <= nb.max.y + 0.001 && fb.max.y >= nb.max.y - 0.05, `far top ${fb.max.y.toFixed(3)} vs near top ${nb.max.y.toFixed(3)}`);
+  // the far tops sit at the near tops' height (the fan is the shoulder ring's height, no walls
+  // below it; on a tilted stone the rim on the wall's outline stands up to ~1.5 cm over the top)
+  assert.ok(fb.max.y <= nb.max.y + 0.02 && fb.max.y >= nb.max.y - 0.05, `far top ${fb.max.y.toFixed(3)} vs near top ${nb.max.y.toFixed(3)}`);
   assert.ok(fb.min.y >= nb.min.y, 'nothing of the far mesh under the near mesh');
   assert.equal(withFar.farMesh.castShadow, false);
   assert.equal(withFar.farMesh.visible, false, 'hidden until the hardscape shows it beyond FLAGSTONE_FAR_M');

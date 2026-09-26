@@ -61,6 +61,10 @@ export interface PlacedStone {
   mottleGrey: number;
   /** the stone's whole-slab luminance factor (the vertex tint's level; 1 = the material's own) */
   lum: number;
+  /** this stone's vertices in the paving mesh's (non-indexed) geometry: [first vertex, count] */
+  range: [number, number];
+  /** the same in the far LOD's geometry when it was built ([0, 0] otherwise) */
+  farRange: [number, number];
 }
 
 // --- geometry helpers ----------------------------------------------------------------------
@@ -1804,12 +1808,15 @@ export function placeFlagstones(pc: PavingContext, material: Material, lod: { fa
     pos.set(s.x, bottomY, s.z);
     one.compose(pos, q, new Vector3(1, 1, 1));
     all.transform(one, from);
+    const farRange: [number, number] = [0, 0];
     if (far) {
       const farFrom = far.vertexCount;
       far.currentRough = roughDelta;
       buildSlab(far, outline.outer, { ...slab, farLod: true });
       far.currentRough = 0;
       far.transform(one, farFrom);
+      farRange[0] = farFrom;
+      farRange[1] = far.vertexCount - farFrom;
     }
 
     const poly = outline.outer.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
@@ -1836,6 +1843,8 @@ export function placeFlagstones(pc: PavingContext, material: Material, lod: { fa
       mottleMoss,
       mottleGrey,
       lum,
+      range: [from, all.vertexCount - from],
+      farRange,
     };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
