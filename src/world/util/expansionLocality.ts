@@ -198,7 +198,7 @@ export function ruinsVisible(camera: Camera, spheres: Sphere[]): boolean {
  * houses, posts, fences and kids lie 35–95 m east behind the west giant, the trail's white-barks
  * and the forest, yet all of them were drawn: frustum culling passes the whole village from
  * there, and the sun's 46 m shadow window, 18 m ahead of a look-back, covers its west half
- * (~105 draws, ~1.8 M triangles). Hidden at the three look-backs and at fifteen trail, forest and
+ * (~105 draws, ~1.8 M triangles). Hidden at the three look-backs and at fourteen trail, forest and
  * site poses, each against the same frame drawn in full, the one structure that reached a pixel
  * was the lantern branch on the lantern tree's limb, down the trail (200–6,600 px of a 960 × 540
  * frame) — so structures/index.ts keeps it. The eye limit keeps the rule to the play camera
