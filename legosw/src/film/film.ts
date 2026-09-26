@@ -21,6 +21,8 @@ export interface Film {
   probeHeads(T: number): { shot: string; heads: HeadProbe[] };
   /** contact QA: the hangar deck height and the lowest world-space point of each visible hero, ship, droid, wreck part */
   probeContact(T: number): { shot: string; deck: number | null; low: Record<string, number> };
+  /** caption QA: apply the overlays for time T (no rendering) and report the caption box against the page and picture */
+  captionAt(T: number): { text: string; box: number[]; pic: number[]; page: number[]; font: number };
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAudio(): Promise<string>;
 }
@@ -213,6 +215,18 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
       w.obiwanShip.breakables.slice(0, 3).forEach((p, i) => (low[`wreck${i}`] = lowest(p)));
       w.droids.forEach((d, i) => (low[`droid${i}`] = lowest(d.group)));
       return { shot: shotAt(T).shot.name, deck, low };
+    },
+    captionAt(T) {
+      overlays(T);
+      const r = ui.sub.getBoundingClientRect();
+      const L = ui.layout;
+      return {
+        text: ui.sub.style.opacity === '0' ? '' : (ui.sub.textContent ?? ''),
+        box: [r.left, r.top, r.right, r.bottom],
+        pic: [L.left, L.top, L.left + L.width, L.top + L.height],
+        page: [L.pageW, L.pageH],
+        font: parseFloat(ui.sub.style.fontSize),
+      };
     },
     shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur, lines: (s.lines ?? []).map((l) => ({ who: l.who, text: l.text })) })),
     renderAudio: () =>

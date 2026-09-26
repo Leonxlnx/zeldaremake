@@ -19,6 +19,8 @@ const app = document.getElementById('app')!;
 const ui = new FilmUI(document.getElementById('film-ui')!);
 const samples = Number(params.get('msaa') ?? 4);
 const loading = capture ? null : new Loading();
+// keep captions clear of the transport bar in the realtime viewer (?reserve= lets caption QA reproduce it under capture)
+ui.reserve = capture ? Number(params.get('reserve') ?? 0) : 64;
 
 let pipeline!: Pipeline;
 try {
@@ -48,6 +50,7 @@ interface Api {
   renderAt(t: number, subframes?: number, shutter?: number, fps?: number): { ms: number };
   probeHeads(t: number): ReturnType<Film['probeHeads']> | null;
   probeContact(t: number): ReturnType<Film['probeContact']> | null;
+  captionAt(t: number): ReturnType<Film['captionAt']> | null;
   renderAudio(): Promise<string>;
 }
 
@@ -161,5 +164,6 @@ window.__LSW__ = {
   },
   probeHeads: (t) => film?.probeHeads(t) ?? null,
   probeContact: (t) => film?.probeContact(t) ?? null,
+  captionAt: (t) => film?.captionAt(t) ?? null,
   renderAudio: async () => (film ? film.renderAudio() : ''),
 };

@@ -14,7 +14,7 @@ export interface Layout {
 }
 
 const css = `
-#film-ui .sub { position: absolute; left: 0; right: 0; text-align: center; color: #fff; font-family: Inter, "Source Sans 3", Arimo, Arial, sans-serif; font-weight: 600; letter-spacing: 0.01em; text-shadow: 0 2px 3px rgba(0,0,0,0.85); white-space: nowrap; }
+#film-ui .sub { position: absolute; left: 50%; transform: translateX(-50%); width: max-content; max-width: 88%; text-align: center; color: #fff; font-family: Inter, "Source Sans 3", Arimo, Arial, sans-serif; font-weight: 600; letter-spacing: 0.01em; line-height: 1.25; text-shadow: 0 2px 3px rgba(0,0,0,0.85); white-space: normal; text-wrap: balance; }
 #film-ui .sub b { color: #f2c33a; font-weight: 600; }
 #film-ui .card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; opacity: 0; }
 #film-ui .card.farfar { color: #4cc3ff; font-family: "Source Sans 3", Inter, Arimo, sans-serif; font-weight: 400; line-height: 1.35; letter-spacing: 0.01em; }
@@ -29,6 +29,9 @@ export class FilmUI {
   cardEnd: HTMLDivElement;
   fade: HTMLDivElement;
   layout: Layout = { width: 1, height: 1, top: 0, left: 0, pageW: 1, pageH: 1 };
+  /** px kept clear at the bottom of the page (the realtime viewer's transport bar); 0 for exports */
+  reserve = 0;
+  private fs = 24;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -59,8 +62,10 @@ export class FilmUI {
     const left = Math.round((pageW - w) / 2);
     Object.assign(canvas.style, { position: 'absolute', left: `${left}px`, top: `${top}px`, width: `${w}px`, height: `${h}px` });
     this.layout = { width: w, height: h, top, left, pageW, pageH };
-    const fs = Math.round(pageH * 0.034);
-    Object.assign(this.sub.style, { fontSize: `${fs}px`, top: `${top + h + Math.round((pageH - top - h) / 2 - fs * 0.62)}px` });
+    // sized by the page height, capped by its width so long cues stay at two lines in narrow windows
+    this.fs = Math.round(Math.min(pageH * 0.034, pageW * 0.0205));
+    this.sub.style.fontSize = `${this.fs}px`;
+    this.placeSub();
     Object.assign(this.fade.style, { left: `${left}px`, top: `${top}px`, width: `${w}px`, height: `${h}px` });
     this.cardFar.style.fontSize = `${Math.round(pageH * 0.042)}px`;
     this.cardEnd.style.fontSize = `${Math.round(pageH * 0.05)}px`;
@@ -74,8 +79,21 @@ export class FilmUI {
     }
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
     const html = speaker ? `<b>${esc(speaker)}:</b> ${esc(line)}` : esc(line);
-    if (this.sub.innerHTML !== html) this.sub.innerHTML = html;
+    if (this.sub.innerHTML !== html) {
+      this.sub.innerHTML = html;
+      this.placeSub();
+    }
     this.sub.style.opacity = String(opacity);
+  }
+
+  /** Centre the (possibly wrapped) caption in the lower bar above the reserve; overlay the picture's foot if the bar is too thin. */
+  private placeSub(): void {
+    const { top, height, pageH } = this.layout;
+    const foot = top + height;
+    const room = pageH - foot - this.reserve;
+    const bh = this.sub.offsetHeight || Math.round(this.fs * 1.25);
+    const y = room >= bh + 8 ? foot + Math.round((room - bh) / 2) : pageH - this.reserve - bh - 8;
+    this.sub.style.top = `${y}px`;
   }
 
   setFade(black: number): void {

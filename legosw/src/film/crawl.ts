@@ -26,10 +26,17 @@ export class Crawl {
     g.clearRect(0, 0, W, H);
     g.fillStyle = '#f2c230';
     g.textAlign = 'center';
-    g.font = '600 64px "Source Sans 3", Inter, Arimo, sans-serif';
-    g.fillText(TITLE[0], W / 2, 120);
-    g.font = '800 104px "Source Sans 3", Inter, Arimo, sans-serif';
-    g.fillText(TITLE[1], W / 2, 250);
+    // title lines are measured and shrunk to 90% of the texture width: the fallback fonts that actually
+    // render (no web font is loaded) set "REVENGE OF THE SITH" ~1350 px wide at 104 px, clipping both ends
+    const fitLine = (text: string, weight: number, size: number, y: number) => {
+      const face = (s: number) => `${weight} ${s}px "Source Sans 3", Inter, Arimo, sans-serif`;
+      g.font = face(size);
+      const wide = g.measureText(text).width;
+      if (wide > W * 0.9) g.font = face(Math.floor((size * W * 0.9) / wide));
+      g.fillText(text, W / 2, y);
+    };
+    fitLine(TITLE[0], 600, 64, 120);
+    fitLine(TITLE[1], 800, 104, 250);
     g.font = '600 64px "Source Sans 3", Inter, Arimo, sans-serif';
     let y = 400;
     const lineH = 84;
