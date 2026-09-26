@@ -190,6 +190,79 @@ test('a height that flickers on the threshold does not machine-gun', () => {
   assert.ok(heard <= cap, `${shoves} flickers became ${heard} shoves in ${t.toFixed(1)} s; MIN_STEP_GAP caps it at ${cap}`);
 });
 
+/**
+ * A real gait's stance flags: two boots, each down for half the cycle, offset by half. One gait
+ * cycle is two steps, so a rising edge comes every `stride / speed` seconds — which is the same
+ * cadence the distance integrator is asked for, and the point of the comparison.
+ */
+function stanceAt(t, speed, onStairs) {
+  const cycle = (2 * F.strideFor(speed, onStairs)) / speed;
+  const u = ((t % cycle) + cycle) % cycle;
+  return [u < cycle / 2, u >= cycle / 2];
+}
+
+/** walk `metres` driven by the gait's flags rather than by distance; returns steps per metre */
+function gaitPerMetre(speed, dt, metres = 400, surface = 'stone') {
+  const ctx = fakeCtx();
+  const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, null, createRng('cadence/gait'), 0);
+  for (let t = 0; t < metres / speed; t += dt) steps.drive(t, dt, { speed, surface, onStairs: false, stance: stanceAt(t, speed, false) });
+  return steps.stats().steps / metres;
+}
+
+test("the gait's own boot plants survive the tick rate too", () => {
+  // The other path through `drive`, and the one that actually runs in play whenever the character
+  // system publishes `feetContact`. Its twin was driven at eight frame rates in
+  // `2026-09-25-tickrate` and a real fault came out; this one had never been driven at all.
+  for (const [speed, label] of [
+    [F.WALK_SPEED, 'a walk'],
+    [F.RUN_GROUND_SPEED, 'a run'],
+  ]) {
+    const want = 1 / F.strideFor(speed, false);
+    for (const dt of [1 / 120, 1 / 60, 1 / 30, 1 / 20, 1 / 15]) {
+      const got = gaitPerMetre(speed, dt);
+      assert.ok(Math.abs(got / want - 1) < 0.05, `${label} at a ${(dt * 1000).toFixed(0)} ms tick gives ${got.toFixed(3)} steps a metre off the gait's flags, and a stride says ${want.toFixed(3)}`);
+    }
+  }
+});
+
+test('and the two paths agree with each other, not just with the stride', () => {
+  // A player can be driven either way in the same session — `gaitDriven` flips with whether
+  // `feetContact` is published — so the two must not disagree about how often a boot lands.
+  for (const speed of [F.WALK_SPEED, F.RUN_GROUND_SPEED]) {
+    const a = perMetre(speed, 1 / 30);
+    const b = gaitPerMetre(speed, 1 / 30);
+    assert.ok(Math.abs(a / b - 1) < 0.05, `at ${speed} m/s the distance path gives ${a.toFixed(3)} steps a metre and the gait's flags ${b.toFixed(3)}`);
+  }
+});
+
+test('flags that freeze while he keeps walking hand back to the distance integrator', () => {
+  // `gaitUntil = t + 1.2` locks the integrator out after every gait-driven step, so that the two
+  // paths never both fire. If the publisher stalls — the flags still arriving but no longer
+  // toggling — nothing can fire until that lock expires. The question is how long he walks in
+  // silence, and whether the integrator ever takes over at all.
+  const ctx = fakeCtx();
+  const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, null, createRng('cadence/freeze'), 0);
+  const dt = 1 / 30;
+  const speed = F.WALK_SPEED;
+  let last = 0;
+  let gap = 0;
+  const frozen = stanceAt(2.0, speed, false);
+  for (let t = 0; t < 12; t += dt) {
+    const before = steps.stats().steps;
+    steps.drive(t, dt, { speed, surface: 'stone', onStairs: false, stance: t < 2 ? stanceAt(t, speed, false) : frozen });
+    if (steps.stats().steps > before) {
+      if (t > 2) gap = Math.max(gap, t - last);
+      last = t;
+    }
+  }
+  assert.ok(steps.stats().steps > 20, `only ${steps.stats().steps} steps in twelve seconds — the integrator never took over from the frozen flags`);
+  // The silence must be the LOCK and nothing more. It used to be 1.60 s — 1.2 s of lock and then
+  // a whole stride from zero, because the integrator was not merely held off, it was frozen and
+  // lost the distance he covered. Now it shadows the gait, so the stride is already banked when
+  // the lock lifts: 1.2 s plus the tick it is noticed on.
+  assert.ok(gap < 1.2 + 2 * dt, `he walked ${gap.toFixed(2)} s in silence after the gait's flags froze; the lock is 1.2 s and the integrator should have a stride banked by the time it lifts`);
+});
+
 test('the seeded stream does not depend on how often the audio is asked', () => {
   // the stride's jitter used to be drawn every tick rather than every step, so the same walk
   // rendered at 20 Hz and heard at 30 drew a different number of times and got different steps

@@ -697,7 +697,19 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
         if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true, enclosure, gorge)) gaitUntil = t + 1.2;
       }
       wasStance = d.stance.slice();
-      if (t < gaitUntil) return;
+      // The integrator SHADOWS the gait rather than stopping while it drives.
+      //
+      // `gaitUntil` keeps the two paths from both firing, and it used to do that by returning
+      // before `travelled` was touched — so the distance he covered under the lock was thrown
+      // away. `fire` zeroes the integrator at every boot plant, so keeping it running costs
+      // nothing at all while the flags are alive; what it buys is the case where they are not.
+      // Measured with the flags frozen mid-walk (`cadence.test.mjs`), he went **1.60 s** without
+      // a step: 1.2 s of lock and then a whole stride from zero before the integrator could
+      // trigger. Now the stride is already banked when the lock lifts and the gap is the lock.
+      if (t < gaitUntil) {
+        travelled += speed * dt;
+        return;
+      }
     }
     // 2. otherwise (or if the flags went quiet) the distance the boot has travelled
     if (first) {
