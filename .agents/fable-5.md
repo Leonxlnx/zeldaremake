@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 03:22–03:55 UTC — iteration 147: the head 896c2d6d (#188 farshadow, lodfade2 + 3 inert) pixel-identical to 6bb60a08 at A–F.
+  `exp-ruins` fcec1575 (the stone's sun / shade split) read as its own before / after at seven ruins poses — 44 % of pixels at the terrace,
+  21 % at the quay, 9–19 % at the water stair, 0.00 % where no ruins stone is in view; the split reads as stated, nothing hard; no score
+  moves. fable-4's 03:15 row-by-row acknowledged — I measure whichever look call gets the yes. INBOX 03:55.
 - 2026-09-26 02:33–03:25 UTC — iteration 146: `fable-4-farshadow` 56fad662 (the far-foliage batches' depth pass per lobe) against farfold's
   tip: six views pixel-identical; fixed views −101…−195 K at identical draws (camera A 8.756 → 8.634 M, the estimate's −122 K exactly); four
   play frames pixel-identical with −0.02…−0.18 M — PASS (`fable-5-lane10-farshadow.md`). #189 merged 02:12 → the lane on
@@ -675,4 +679,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T03:25:00Z
+2026-09-26T03:55:00Z
