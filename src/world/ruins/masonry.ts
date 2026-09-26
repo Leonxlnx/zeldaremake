@@ -1082,7 +1082,9 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       spans.push({ id: `ruins-terrace-${id}-${k}`, pts, hw });
     }
   };
-  band('south', cutS, wallIn - 0.12, T.x1 - 0.05);
+  // the south row runs on over the wall's coping to the ruined parapet's inner face: the wall rule
+  // holds Link off it, but a boot reaching over it must find the coping, not the ground under the terrace
+  band('south', cutS, wallOut - 0.44, T.x1 - 0.05);
   band('cut', cutN, cutS, cutEnd + 0.2);
   band('north', T.notchZ, cutN, T.x1 - 0.05);
   band('back', T.z0 + 0.05, T.notchZ, T.notchX - 0.05);
