@@ -11,6 +11,11 @@ fourth is the open lawn, where nothing is in the way and the two takes must be t
 The flame is two bands -- a 132 Hz husk and a 320 Hz body -- so the level is read in 80-400 Hz as
 well as broadband, and the always-on figure (the 10th percentile over time) is quoted beside the
 mean, because a flame never stops and the floor is what a listener actually lives with.
+
+The lead is eight seconds, not two. The bed's gust is analytic and its slowest component has a
+seventeen-second period, so the opening of any standing take is a swell that belongs to the weather
+rather than to the place -- the first measurement here read 16 dB of it and called the take's mean
+unmoved when the floor had dropped four decibels.
 """
 import argparse
 import json
@@ -53,7 +58,7 @@ ap.add_argument('--takes', default='/tmp/shadow2')
 a = ap.parse_args()
 
 spots = json.load(open(os.path.join(a.takes, 'spots.json')))['spots']
-lead = 2.0
+lead = 8.0
 
 print('the pod flames alone (leaves, birds and wind muted), either side of the wall knowing it is there\n')
 print(f"{'where':22} {'':7} {'80-400 Hz mean':>15} {'always-on':>11} {'broadband':>11}")
