@@ -536,6 +536,13 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
       const overGorge = th > 34 - K.gallery.from && th < 165 - K.gallery.from;
       return { surface: overGorge ? 'bridge' : 'wood', stairs: false, enclosure: 0, canopy: overGorge ? 0 : canopy, gorge };
     }
+    // the split log along the gallery's open east end lies beside the end line, not on the arc: its
+    // walk runs 1.475–2.245 m out along the line and −0.08…0.30 m off it on the landward side, and
+    // near the hut that is up to 12° short of the gallery's end
+    const g = (K.gallery.from * Math.PI) / 180;
+    const out = (x - K.centre[0]) * Math.cos(g) + (z - K.centre[1]) * Math.sin(g);
+    const off = (x - K.centre[0]) * Math.sin(g) - (z - K.centre[1]) * Math.cos(g);
+    if (out > K.radius + 0.325 && out < K.gallery.outer && off > -0.08 && off < 0.305) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
   }
   const W = EXPANSION_SOUTH_DWELLINGS.waystation;
   {
@@ -546,9 +553,10 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     const s = (x - W.centre[0]) * fz - (z - W.centre[1]) * fx;
     const hd = W.depth / 2;
     // the floor, then its two split-log steps along the front (structures/expansionSouthDwellings.ts):
-    // the upper out to 0.265 m past the floor across s −0.74…0.62, the lower to 0.565 m across −0.54…0.82
+    // the upper out to 0.265 m past the floor across s −0.74…0.62, the lower from 0.24 m to 0.565 m
+    // across −0.54…0.82 (its walk starts under the upper log's front edge)
     const onFloor = a > -hd && a < hd && Math.abs(s) < W.width / 2;
-    const onStep = (a >= hd && a < hd + 0.265 && s > -0.74 && s < 0.62) || (a >= hd + 0.265 && a < hd + 0.565 && s > -0.54 && s < 0.82);
+    const onStep = (a >= hd && a < hd + 0.265 && s > -0.74 && s < 0.62) || (a >= hd + 0.24 && a < hd + 0.565 && s > -0.54 && s < 0.82);
     if (onFloor || onStep) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
   }
   return null;

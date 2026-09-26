@@ -46,6 +46,11 @@ const { LAYOUT, EXPANSION, EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS, EXPANSION
 
 /** rotate (u along, v across) in a thing's own frame into the world */
 const inFrame = (x, z, yaw, u, v) => [x + Math.cos(yaw) * u - Math.sin(yaw) * v, z + Math.sin(yaw) * u + Math.cos(yaw) * v];
+/** `out` m along the keeper's gallery's east end line from the hut's centre, `off` m off it on the landward side */
+const onEastStep = (K, out, off) => {
+  const g = (K.gallery.from * Math.PI) / 180;
+  return [K.centre[0] + Math.cos(g) * out + Math.sin(g) * off, K.centre[1] + Math.sin(g) * out - Math.cos(g) * off];
+};
 
 /** [what it is, x, z, the surface it must sound like] */
 function standingPlaces() {
@@ -70,12 +75,17 @@ function standingPlaces() {
   for (const deg of [0, 200, 221]) p.push([`the keeper's gallery on the lip at ${deg}°`, ...onGallery(deg, 1.7), 'wood']);
   p.push(["the split-log step at the gallery's entrance", ...onGallery(210, 2.45), 'wood']);
   p.push(["the log step off the gallery's east end", ...onGallery(-20.5, 1.86), 'wood']);
+  // that log lies beside the end line, and by the hut its landward edge is 12° short of the end:
+  // the dwellings walk stepped down onto it at (9.05, 31.11) and heard grass
+  for (const [out, off] of [[1.55, 0.27], [2.2, -0.05]]) p.push([`the east log step ${out} m out, ${off} m off the end line`, ...onEastStep(K, out, off), 'wood']);
+  p.push(['the east log step where the dwellings walk heard grass', 9.05, 31.11, 'wood']);
   const W = EXPANSION_SOUTH_DWELLINGS.waystation;
   const wYaw = (W.facingDeg * Math.PI) / 180;
   const onWaystation = (a, s) => [W.centre[0] + Math.sin(wYaw) * a + Math.cos(wYaw) * s, W.centre[1] + Math.cos(wYaw) * a - Math.sin(wYaw) * s];
   for (const [a, s] of [[0, 0], [-0.4, 0.6], [0.3, -0.7]]) p.push([`the waystation's floor at (${a}, ${s}) in its own frame`, ...onWaystation(a, s), 'wood']);
   p.push(["the waystation's step", ...onWaystation(0.79, 0), 'wood']);
   for (const s of [-0.3, 0.3, 0.7]) p.push([`the waystation's lower step at s ${s}`, ...onWaystation(1.09, s), 'wood']);
+  p.push(["the waystation's lower step under the upper one's front edge, north of it", ...onWaystation(0.925, 0.7), 'wood']);
 
   p.push(["the log arch's bore on the north path", 4.84, -55.4, 'hollow']);
   p.push(['the main stone flight', 9.2, -1.4, 'stone']);
@@ -136,6 +146,10 @@ test('the ground around them is still the ground', () => {
   const K = EXPANSION_SOUTH_DWELLINGS.keeper;
   const north = surfaceAt(K.centre[0] + Math.cos((270 * Math.PI) / 180) * 1.8, K.centre[1] + Math.sin((270 * Math.PI) / 180) * 1.8).surface;
   assert.ok(north !== 'wood' && north !== 'bridge', `the ground on the keeper's hut's landward side, off the gallery's arc, sounds like ${north}`);
+  for (const [out, off] of [[1.8, 0.45], [2.45, 0.1]]) {
+    const past = surfaceAt(...onEastStep(K, out, off)).surface;
+    assert.ok(past !== 'wood' && past !== 'bridge', `the ground past the east log step (${out} m out, ${off} m off the end line) sounds like ${past}`);
+  }
   const W = EXPANSION_SOUTH_DWELLINGS.waystation;
   const wYaw = (W.facingDeg * Math.PI) / 180;
   const front = surfaceAt(W.centre[0] + Math.sin(wYaw) * 1.7, W.centre[1] + Math.cos(wYaw) * 1.7).surface;
