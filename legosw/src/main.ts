@@ -91,7 +91,11 @@ async function boot(): Promise<void> {
     let t = Math.max(0, Math.min(f.duration, Number(params.get('t') ?? 0)));
     let last = performance.now();
     let paused = false;
-    const seek = (to: number) => (t = Math.max(0, Math.min(f.duration - 1e-3, to)));
+    let seeked = false;
+    const seek = (to: number) => {
+      t = Math.max(0, Math.min(f.duration - 1e-3, to));
+      seeked = true;
+    };
     // the soundtrack is pre-rendered next to a published build (soundtrack.m4a) and optional; it starts from
     // the sound button (a user gesture), and while it plays its clock drives the picture so a slow GPU
     // drops frames instead of drifting out of sync
@@ -139,18 +143,21 @@ async function boot(): Promise<void> {
     loading?.done();
     const loop = () => {
       const now = performance.now();
-      if (!paused) t += Math.min(0.1, (now - last) / 1000);
+      // while the soundtrack plays it is the clock; otherwise wall time, capped so a stall does not jump
+      const driven = soundOn && !paused && !audio.paused && !audio.ended;
+      if (!paused && !driven) t += Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (t > f.duration) t = 0;
+      if (t > f.duration) seek(0);
       if (soundOn) {
         if (paused) {
           if (!audio.paused) audio.pause();
         } else if (audio.paused || audio.ended) {
           audio.currentTime = t;
           audio.play().catch(() => (soundOn = false));
-        } else if (Math.abs(audio.currentTime - t) > 0.3) audio.currentTime = t;
+        } else if (seeked) audio.currentTime = t;
         else t = audio.currentTime;
       }
+      seeked = false;
       f.renderAt(t);
       controls.update();
       requestAnimationFrame(loop);
