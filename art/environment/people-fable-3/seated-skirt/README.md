@@ -42,7 +42,12 @@ and her — the harness view is the honest one.
 | E | 0.1997 | 0.2000 | **+0.0003** | 0.9982 | 1 095 |
 | F | 0.2191 | 0.2191 | 0.0000 | 1.0000 | 0 |
 
-B and E (the same camera) move only where she sits at the frame's left edge — the changed pixels' box is x 15–123,
-y 548–660, her lap (`view-B-left-edge-3x-head-vs-shells.jpg`) — and both move toward the reference. A, C, D and F
-are pixel-identical. No geometry beyond her two shells, so draws are the head's at every view.
+B and E (the same camera) move only at the frame's left edge — x 15–123, y 548–660 — and both move toward the
+reference. **Flagged, not buried:** the kid there is kokiri-b herself, *placed standing* for the fixed frames (the
+reference's girl at far left), and standing she wears the shells as a skirt to the knee below her flaps' hem
+(`view-B-left-edge-3x-head-vs-shells.jpg`). Inside the band and closer to the reference, but a look change on a
+sealed frame — fable-cursor's to accept. The alternative is one number: the shells' hem at the flaps' (−0.14 from the
+hip joint instead of −0.19) hides them inside the standing skirt and B / E stay pixel-identical, at the cost of the
+lower third of the seated thigh showing again above the knee — which is what a mid-thigh skirt does when you sit.
+A, C, D and F are pixel-identical. No geometry beyond her two shells, so draws are the head's at every view.
 
