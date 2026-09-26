@@ -21,7 +21,7 @@ import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
-import { contactFor, createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
+import { contactFor, createFootsteps, paceFrom, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -731,6 +731,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const lastPos = { x: NaN, z: NaN };
   let lastT = 0;
+  /** the simulation clock as of the last tick, and the speed it gave (`paceFrom`) */
+  let lastSim: number | null = null;
+  let lastSpeed = 0;
   let nextWake = 0;
   /**
    * Ask for the clock back, no more often than `WAKE_RETRY_MS`.
@@ -774,8 +777,17 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       wake(now);
       return;
     }
-    const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 1 / 60;
+    const wallElapsed = lastT ? (now - lastT) / 1000 : 1 / 60;
     lastT = now;
+    // How much of the WORLD happened since the last tick, which is not how much of the wall did.
+    // Link moves inside `world.update(dt, simTime)` and `main.ts` clamps that dt at 0.1 s, so a
+    // long frame advances him less than the clock says and every speed read off the wall is wrong
+    // for the one tick that matters (see `paceFrom`). `wind.update` is handed the same `simTime`
+    // and writes it into `uTime`, so the clock is already in this lane's hands; without a wind
+    // there is nothing better than the wall.
+    const simNow = o.wind?.uniforms.uTime.value;
+    const simElapsed = simNow === undefined ? wallElapsed : lastSim === null ? 0 : simNow - lastSim;
+    if (simNow !== undefined) lastSim = simNow;
     const t = ctx.currentTime + 0.03;
     // listener: Link's sole when the character system published him, the camera otherwise
     const player = o.scene.userData.player as PlayerHandle | undefined;
@@ -810,7 +822,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     // speed otherwise (see footsteps.ts — a step is heard when a boot lands, not on a stride timer)
     if (p && player?.playMode?.()) {
       if (Number.isFinite(lastPos.x)) {
-        const speed = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-3);
+        const { speed, dt } = paceFrom(Math.hypot(p.x - lastPos.x, p.z - lastPos.z), simElapsed, lastSpeed);
+        lastSpeed = speed;
         const stance = player.feetContact?.()?.map((f) => f.stance);
         gaitDriven = !!stance;
         // the jump's two contacts (`contactFor` in footsteps.ts, where a test can reach it): the
@@ -827,7 +840,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       lastPos.z = p.z;
     } else {
       lastPos.x = NaN;
-      footsteps.drive(t, dt, { speed: 0, surface: 'grass', onStairs: false });
+      lastSpeed = 0;
+      footsteps.drive(t, simElapsed, { speed: 0, surface: 'grass', onStairs: false });
     }
   };
 

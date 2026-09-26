@@ -263,6 +263,120 @@ test('flags that freeze while he keeps walking hand back to the distance integra
   assert.ok(gap < 1.2 + 2 * dt, `he walked ${gap.toFixed(2)} s in silence after the gait's flags froze; the lock is 1.2 s and the integrator should have a stride banked by the time it lifts`);
 });
 
+test('a frame that runs long does not turn a walk into a run', () => {
+  // The tick read Link's speed off the WALL clock, and he does not move on it: `main.ts` clamps
+  // the simulation's dt at 0.1 s, so a 300 ms frame advances him a tenth of a second's worth of
+  // ground. Dividing that by the wall's 300 ms (or by the clamped 100 — the audio tick is 33 ms
+  // and rarely reaches the clamp, so both estimators behaved the same) gave a speed he never
+  // travelled at, and speed is not only the stride: it picks the level and swaps the design.
+  //
+  // Measured in the real build, one 300 ms blocking frame a second on a 1.2 m/s walk: 4 % of
+  // ticks read as a RUN and 16 % of his boots landed over 3 dB above their own twin, worst
+  // +6.1 dB (`art/audio/2026-09-26-hitch/`).
+  const walk = F.strengthFor(F.WALK_SPEED);
+  // the simulation advances by the CLAMPED dt however long the frame was; the wall does not
+  for (const frameMs of [16.7, 33.3, 100, 150, 200, 300, 500, 1000]) {
+    const sim = Math.min(0.1, frameMs / 1000);
+    const { speed, dt } = F.paceFrom(F.WALK_SPEED * sim, sim, 0);
+    assert.ok(Math.abs(speed - F.WALK_SPEED) < 1e-9, `a ${frameMs.toFixed(0)} ms frame reported ${speed.toFixed(2)} m/s for a 1.2 m/s walk`);
+    assert.ok(speed < F.RUN_SPEED, `a ${frameMs.toFixed(0)} ms frame made a walk read as a run`);
+    assert.ok(Math.abs(F.strengthFor(speed) - walk) < 1e-9, `a ${frameMs.toFixed(0)} ms frame changed the step's strength`);
+    // and the integrator is still handed exactly the ground he covered, which is the one property
+    // the old arithmetic did keep and the thing that must not be lost in fixing it
+    assert.ok(Math.abs(speed * dt - F.WALK_SPEED * sim) < 1e-9, `a ${frameMs.toFixed(0)} ms frame gave the integrator ${(speed * dt).toFixed(4)} m where he moved ${(F.WALK_SPEED * sim).toFixed(4)}`);
+  }
+});
+
+test('a tick the simulation did not move under is not a standstill', () => {
+  // The audio runs on a timer and the world on animation frames, so ticks where nothing was
+  // stepped are normal, not exceptional — on a starved frame pattern a QUARTER of them. Calling
+  // those a standstill is wrong twice over: `drive` returns under 0.25 m/s before it looks at the
+  // gait's stance flags, and it resets the stride he had banked.
+  const { speed, dt } = F.paceFrom(0, 0, F.WALK_SPEED);
+  assert.equal(speed, F.WALK_SPEED, 'a tick with no simulation under it threw away the speed he was walking at');
+  assert.equal(dt, 0, 'and handed the stride integrator distance he had not travelled');
+
+  // held across a stall of any length, and the integrator still gets nothing
+  let held = F.WALK_SPEED;
+  let banked = 0;
+  for (let i = 0; i < 30; i++) {
+    const r = F.paceFrom(0, 0, held);
+    held = r.speed;
+    banked += r.speed * r.dt;
+  }
+  assert.equal(held, F.WALK_SPEED, 'a long stall decayed the speed');
+  assert.equal(banked, 0, `a stall banked ${banked} m of stride he did not walk`);
+
+  // and when he really has stopped, the simulation says so and the speed follows it down
+  const stopped = F.paceFrom(0, 1 / 30, held);
+  assert.ok(stopped.speed < 0.25, `standing still with the simulation running reported ${stopped.speed} m/s`);
+});
+
+test('the same ground covered reports the same speed however the frames fell', () => {
+  // the property in one line: two frame patterns, same ground, same simulation time, same speed
+  const total = 6.0;
+  const patterns = [
+    Array(180).fill(1 / 30),
+    Array(360).fill(1 / 60),
+    // sixty smooth frames and one long one a second, which is the case that was broken
+    Array(6).fill([...Array(45).fill(1 / 60), 0.1]).flat(),
+    // and the harness's: `__ZR_PLAY__.step(n, dt)` advances the world n frames inside one call,
+    // so half a second of world can land between two audio ticks. Nothing may cap the interval —
+    // a tenth-of-a-second ceiling here would call that walk a 6 m/s sprint.
+    Array(12).fill(0.5),
+  ];
+  for (const frames of patterns) {
+    const sim = frames.reduce((a, b) => a + b, 0);
+    let ground = 0;
+    let held = 0;
+    const speeds = [];
+    for (const f of frames) {
+      const r = F.paceFrom(F.WALK_SPEED * f, f, held);
+      held = r.speed;
+      ground += r.speed * r.dt;
+      speeds.push(r.speed);
+    }
+    const worst = speeds.reduce((a, s) => Math.max(a, Math.abs(s - F.WALK_SPEED)), 0);
+    assert.ok(worst < 1e-9, `a ${frames.length}-frame pattern over ${sim.toFixed(2)} s was off by ${worst.toFixed(3)} m/s at worst`);
+    assert.ok(Math.abs(ground - F.WALK_SPEED * sim) < 1e-9, `it banked ${ground.toFixed(3)} m where he walked ${(F.WALK_SPEED * sim).toFixed(3)}`);
+    assert.ok(sim <= total + 1e-9, 'pattern longer than the walk');
+  }
+});
+
+test('and the tick hands it the simulation clock, not the wall', () => {
+  // `paceFrom` is pure, so the three tests above cannot see WHICH clock the live tick feeds it —
+  // put the wall clock back at the call site and they all still pass. That half of the fault is
+  // wiring, and the only other thing that catches it is a recording (`art/audio/2026-09-26-hitch/`
+  // measures it off the master at 16 % of plants over 3 dB), which is not something `node --test`
+  // can run. This reads the call site instead, the way footsteps.test.mjs reads `CLIP_SPEC`.
+  const src = readFileSync(path.join(here, 'index.ts'), 'utf8');
+  const call = src.match(/paceFrom\(([^;]*?)\);/);
+  assert.ok(call, 'the tick should still call paceFrom — has it moved or been renamed?');
+  // split on the commas between arguments, not the ones inside `Math.hypot(...)`
+  const args = [];
+  let depth = 0;
+  let at = 0;
+  for (let i = 0; i < call[1].length; i++) {
+    const c = call[1][i];
+    if (c === '(') depth++;
+    else if (c === ')') depth--;
+    else if (c === ',' && depth === 0) {
+      args.push(call[1].slice(at, i).trim());
+      at = i + 1;
+    }
+  }
+  args.push(call[1].slice(at).trim());
+  assert.equal(args.length, 3, `paceFrom is called with ${args.length} arguments: ${call[1]}`);
+  assert.equal(args[1], 'simElapsed', `the tick divides the ground he covered by \`${args[1]}\`; he covers it on the simulation clock`);
+  // and that clock has to come from something the world actually steps
+  assert.match(src, /const simNow = o\.wind\?\.uniforms\.uTime\.value/, 'simElapsed should be read from the wind, which world.update writes the simulation time into every frame');
+  assert.doesNotMatch(
+    src.slice(src.indexOf('const simNow'), src.indexOf('const simNow') + 400),
+    /Math\.min\(0\.1/,
+    'the interval between two audio ticks must not be capped: the play-test harness steps half a second of world inside one call',
+  );
+});
+
 test('the seeded stream does not depend on how often the audio is asked', () => {
   // the stride's jitter used to be drawn every tick rather than every step, so the same walk
   // rendered at 20 Hz and heard at 30 drew a different number of times and got different steps

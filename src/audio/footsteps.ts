@@ -554,6 +554,54 @@ export function contactFor(air: number, peakAir: number): { event: 'shove' | 'la
   return { event: null, peakAir: 0, fall: 0 };
 }
 
+/**
+ * How fast Link is walking — **on the clock he is walking on**.
+ *
+ * Nothing tells the audio his speed. It differences his position between two of its own ticks and
+ * divides by a time, and that quotient is not just the stride: `strengthFor` reads it for how hard
+ * the boot lands, `speed > RUN_SPEED` swaps the entire design for a run's, and under 0.25 m/s
+ * `drive` returns before it even looks at the gait's stance flags. So the whole thing turns on
+ * which time it divides by, and the audio was dividing by the WALL clock (`Math.min(0.1, now -
+ * lastT)`), which is not the clock he moves on.
+ *
+ * He moves in `world.update(dt, simTime)`, and `main.ts` hands that a dt CLAMPED at 0.1 s. Over a
+ * frame that runs longer than that he covers a tenth of a second of ground no matter how long the
+ * frame really was — the world slows down rather than skipping — so the wall clock and the ground
+ * disagree exactly when it matters. Measured in the real build on the plaza spine at 1.2 m/s, one
+ * 300 ms blocking frame a second (`art/audio/2026-09-26-hitch/`):
+ *
+ *     estimator        median    p95   |level err|    worst   reads as a run   silent
+ *     wall, clamped      1.20   1.44        1.0 dB   −11.5 dB             4 %      3 %
+ *     wall, true         1.20   1.44        1.0 dB   −11.5 dB             4 %      4 %
+ *     sim                1.20   1.20        0.0 dB     0.0 dB             0 %      0 %
+ *
+ * and on the same walk recorded off the master, paired plant against plant over the same sixteen
+ * metres of flagstone, **16 % of his boots landed more than 3 dB above their own twin** and the
+ * worst was +6.1 dB. Not a hitch you can hear as a hitch — a hitch you hear as Link breaking into
+ * a run for one step on a plaza he is strolling across.
+ *
+ * Removing the clamp does not fix it and makes it worse in the common case: a long frame is
+ * usually a BLOCKED main thread (a shader compile, a GC), which holds up the audio's own 30 Hz
+ * timer by the same amount, so the true wall elapsed is the stretched one while the ground is not.
+ * The table above is the two of them measured side by side, and they are the same column.
+ *
+ * The simulation clock is the one that cannot be wrong, because it is the clock the distance was
+ * generated on: `moved / Δsim` is his speed by construction at any frame length, in any tab state,
+ * under any harness. `mountAudio` can read it without reaching outside this lane — `wind.update`
+ * is handed the same `t` and writes it straight into `uTime`.
+ *
+ * `held` is for the ticks where the simulation did not advance at all (the audio ticks on a timer,
+ * which keeps running when animation frames do not). There is no new speed to read on those and
+ * zero is not the answer — he has not stopped, he has not been stepped — so the last one stands
+ * and `dt` is zero, which hands the stride integrator the nothing he actually travelled. The old
+ * code called those ticks a standstill and reset the stride: on a starved frame pattern that was
+ * **a quarter of them**.
+ */
+export function paceFrom(moved: number, simElapsed: number, held: number): { speed: number; dt: number } {
+  if (!(simElapsed > 0)) return { speed: held, dt: 0 };
+  return { speed: moved / simElapsed, dt: simElapsed };
+}
+
 export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, gorgeSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence
