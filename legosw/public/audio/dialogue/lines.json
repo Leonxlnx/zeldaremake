@@ -1,0 +1,265 @@
+{
+ "generator": "legosw/scripts/tts/make_dialogue.py",
+ "engine": "Kokoro-82M v1.0 via kokoro-onnx (Apache-2.0), stock voicepacks",
+ "sampleRate": 44100,
+ "notes": "offset: shot-relative time of the first sample; speech: onset/offset inside the clip (-40 dB); segments/mouth: shot-relative speech",
+ "lines": [
+  {
+   "id": "anakin-fun",
+   "file": "anakin-fun.wav",
+   "shot": "anakin-cockpit",
+   "who": "Anakin Skywalker",
+   "text": "This is where the fun begins.",
+   "voice": "am_fenrir",
+   "lang": "en-us",
+   "fx": "",
+   "say": [
+    "This is where the fun begins."
+   ],
+   "gap": 0,
+   "speed": 1.0,
+   "duration": 1.33,
+   "offset": 1.035,
+   "speech": [
+    0.015,
+    1.267
+   ],
+   "segments": [
+    [
+     1.05,
+     2.302
+    ]
+   ],
+   "mouth": [
+    1.05,
+    2.302
+   ]
+  },
+  {
+   "id": "anakin-command-ship",
+   "file": "anakin-command-ship.wav",
+   "shot": "hand-reveal",
+   "who": "Anakin Skywalker",
+   "text": "The General's command ship is dead ahead — the one crawling with vulture droids.",
+   "voice": "am_fenrir",
+   "lang": "en-us",
+   "fx": "",
+   "say": [
+    "The General's command ship is dead ahead,",
+    "the one crawling with vulture droids."
+   ],
+   "gap": 0.14,
+   "speed": 1.12,
+   "duration": 3.645,
+   "offset": 0.435,
+   "speech": [
+    0.015,
+    3.597
+   ],
+   "segments": [
+    [
+     0.45,
+     2.181
+    ],
+    [
+     2.411,
+     4.027
+    ]
+   ],
+   "mouth": [
+    0.45,
+    4.032
+   ]
+  },
+  {
+   "id": "obiwan-bad-feeling",
+   "file": "obiwan-bad-feeling.wav",
+   "shot": "obiwan-cockpit",
+   "who": "Obi-Wan Kenobi",
+   "text": "Oh, I have a bad feeling about this.",
+   "voice": "bm_george",
+   "lang": "en-gb",
+   "fx": "",
+   "say": [
+    "Oh, I have a bad feeling about this."
+   ],
+   "gap": 0,
+   "speed": 0.95,
+   "duration": 2.435,
+   "offset": 0.54,
+   "speech": [
+    0.01,
+    2.36
+   ],
+   "segments": [
+    [
+     0.55,
+     2.895
+    ]
+   ],
+   "mouth": [
+    0.55,
+    2.9
+   ]
+  },
+  {
+   "id": "obiwan-buzz-droids",
+   "file": "obiwan-buzz-droids.wav",
+   "shot": "missiles",
+   "who": "Obi-Wan Kenobi",
+   "text": "Buzz droids!",
+   "voice": "bm_george",
+   "lang": "en-gb",
+   "fx": "",
+   "say": [
+    "Buzz droids!"
+   ],
+   "gap": 0,
+   "speed": 1.0,
+   "duration": 1.175,
+   "offset": 2.335,
+   "speech": [
+    0.015,
+    1.117
+   ],
+   "segments": [
+    [
+     2.35,
+     3.428
+    ]
+   ],
+   "mouth": [
+    2.35,
+    3.452
+   ]
+  },
+  {
+   "id": "obiwan-get-out",
+   "file": "obiwan-get-out.wav",
+   "shot": "obiwan-cockpit-2",
+   "who": "Obi-Wan Kenobi",
+   "text": "Get out of here, Anakin! There's nothing more you can do.",
+   "voice": "bm_george",
+   "lang": "en-gb",
+   "fx": "",
+   "say": [
+    "Get out of here, Anakin! There's nothing more you can do."
+   ],
+   "gap": 0,
+   "speed": 1.06,
+   "duration": 3.46,
+   "offset": -0.965,
+   "speech": [
+    0.015,
+    3.402
+   ],
+   "segments": [
+    [
+     -0.95,
+     0.636
+    ],
+    [
+     0.936,
+     2.407
+    ]
+   ],
+   "mouth": [
+    -0.95,
+    2.437
+   ]
+  },
+  {
+   "id": "anakin-not-leaving",
+   "file": "anakin-not-leaving.wav",
+   "shot": "anakin-cockpit-2",
+   "who": "Anakin Skywalker",
+   "text": "I'm not leaving without you, Master.",
+   "voice": "am_fenrir",
+   "lang": "en-us",
+   "fx": "",
+   "say": [
+    "I'm not leaving without you, Master."
+   ],
+   "gap": 0,
+   "speed": 1.0,
+   "duration": 1.67,
+   "offset": 0.23,
+   "speech": [
+    0.01,
+    1.601
+   ],
+   "segments": [
+    [
+     0.24,
+     1.821
+    ]
+   ],
+   "mouth": [
+    0.24,
+    1.831
+   ]
+  },
+  {
+   "id": "obiwan-flying",
+   "file": "obiwan-flying.wav",
+   "shot": "droids",
+   "who": "Obi-Wan Kenobi",
+   "text": "Flying is for droids.",
+   "voice": "bm_george",
+   "lang": "en-gb",
+   "fx": "",
+   "say": [
+    "Flying is for droids."
+   ],
+   "gap": 0,
+   "speed": 0.98,
+   "duration": 1.775,
+   "offset": 0.335,
+   "speech": [
+    0.025,
+    1.701
+   ],
+   "segments": [
+    [
+     0.36,
+     2.026
+    ]
+   ],
+   "mouth": [
+    0.36,
+    2.036
+   ]
+  },
+  {
+   "id": "droid-uh-oh",
+   "file": "droid-uh-oh.wav",
+   "shot": "droids",
+   "who": "Battle Droid",
+   "text": "Uh oh.",
+   "voice": "am_puck",
+   "lang": "en-us",
+   "fx": "droid",
+   "say": [
+    "Uh, oh."
+   ],
+   "gap": 0,
+   "speed": 0.8,
+   "duration": 0.614,
+   "offset": 3.735,
+   "speech": [
+    0.015,
+    0.524
+   ],
+   "segments": [
+    [
+     3.75,
+     4.214
+    ]
+   ],
+   "mouth": [
+    3.75,
+    4.259
+   ]
+  }
+ ]
+}

@@ -21,7 +21,12 @@
     "gauntlet:verify-exit": "node gauntlet/scripts/gauntlet.mjs --verify-exit",
     "take": "node gauntlet/scripts/take.mjs",
     "site:dev": "node site/serve.mjs",
-    "site:build": "node site/build.mjs"
+    "site:build": "node site/build.mjs",
+    "lsw:dev": "vite --config legosw/vite.config.ts --host 0.0.0.0 --port 5174",
+    "lsw:typecheck": "tsc -p legosw/tsconfig.json",
+    "lsw:build": "tsc -p legosw/tsconfig.json && vite build --config legosw/vite.config.ts",
+    "lsw:still": "node legosw/scripts/still.mjs",
+    "lsw:render": "node legosw/scripts/render.mjs"
   },
   "repository": {
     "type": "git",
