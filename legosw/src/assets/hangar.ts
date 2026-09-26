@@ -23,6 +23,8 @@ const MH = 36;
 const MY0 = 1;
 const CELL = 7;
 const CATY = 20;
+/** the deck tiles' shade: dark, so the glossy plating reads by what it reflects rather than as a pale grid */
+const DECK_SHADE = 0.66;
 const THROAT = 32;
 const APRON = 6;
 
@@ -363,6 +365,12 @@ function deck(b: B, rng: Rng, pads: [number, number][]): void {
   const nz = Math.floor((HZ * 2) / CELL);
   const x0 = -(nx * CELL) / 2;
   const z0 = -(nz * CELL) / 2;
+  // plating: each cell is four deck tiles with hairline seams in a worn patchwork of tones (one slab per cell
+  // with wide seams read as a bathroom floor from deck level); now and then a cell is a grate or a heavy
+  // bolted plate. Its own stream, so the shared one (walls, props) draws exactly what it always did.
+  const pr = new Rng(2077);
+  const T = CELL / 2;
+  const TILES: [number, number][] = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
   for (let i = 0; i < nx; i++) {
     for (let j = 0; j < nz; j++) {
       const cx = x0 + (i + 0.5) * CELL;
@@ -370,9 +378,24 @@ function deck(b: B, rng: Rng, pads: [number, number][]): void {
       const edge = i === 0 || i === nx - 1 || j === 0;
       const h = rng.next();
       const key: ColorKey = edge ? 'lbg' : h < 0.05 ? 'lbg' : h < 0.09 ? 'sandBlue' : 'dbg';
-      b.box(key, cx, -0.2, cz, CELL - 0.6, 0.4, CELL - 0.6, { hide: { ny: true } });
-      if (!edge && !pads.some(([px, pz]) => Math.hypot(cx - px, cz - pz) < 13)) {
+      const open = !edge && !pads.some(([px, pz]) => Math.hypot(cx - px, cz - pz) < 13);
+      const kind = open ? pr.next() : 0;
+      if (kind > 0.95) {
+        b.box('black', cx, -0.25, cz, CELL - 0.22, 0.1, CELL - 0.22, { hide: { ny: true } });
+        grille(b, 'gunmetal', cx, -0.28, cz, CELL - 1.4, CELL - 1.8);
+        for (const s of [-1, 1]) b.box('dbg', cx + s * (T - 0.45), -0.1, cz, 0.7, 0.2, CELL - 0.22, { hide: { ny: true } });
+      } else if (kind > 0.88) {
+        b.box(key, cx, -0.2, cz, CELL - 0.22, 0.4, CELL - 0.22, { hide: { ny: true }, tint: 0.06, shade: DECK_SHADE * pr.range(0.8, 0.92) });
+        for (const [dx, dz] of TILES) b.cyl('dbg', cx + dx * (T - 0.9), 0.03, cz + dz * (T - 0.9), 0.3, 0.06, { radial: 8, bottom: false });
+      } else {
+        for (const [dx, dz] of TILES) {
+          const shade = key === 'dbg' ? DECK_SHADE * (pr.chance(0.14) ? pr.range(0.7, 0.82) : pr.range(0.92, 1.04)) : key === 'lbg' ? 0.8 : 1;
+          b.box(key, cx + (dx * T) / 2, -0.2, cz + (dz * T) / 2, T - 0.2, 0.4, T - 0.2, { hide: { ny: true }, tint: 0.05, shade });
+        }
+      }
+      if (open) {
         const r = rng.next();
+        if (kind > 0.95) continue;
         if (r < 0.06) roundPlate(b, 'lbg', cx + 1.6, 0, cz + 1.6, 1.0, 0.2, 14);
         else if (r < 0.1) grille(b, 'black', cx, 0, cz, 4, 2);
         else if (r < 0.16) b.box('lbg', cx, 0.05, cz - 2.4, 4, 0.1, 0.6);

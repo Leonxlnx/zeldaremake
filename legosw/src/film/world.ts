@@ -19,7 +19,7 @@ import {
   type Texture,
 } from 'three';
 import type { Pipeline } from '../render/pipeline';
-import { HANGAR_ENV, SPACE_ENV, makeEnvironment } from '../render/env';
+import { HANGAR_OPEN_ENV, SPACE_ENV, makeEnvironment } from '../render/env';
 import { bakeNebula, makeStars } from '../world/sky';
 import { makeCoruscant, type PlanetHandle } from '../world/planet';
 import { FX } from '../fx/fx';
@@ -132,7 +132,7 @@ export class World {
     const r = pipeline.renderer;
     const s = this.scene;
     this.envSpace = makeEnvironment(r, SPACE_ENV([SUN_DIR.x, SUN_DIR.y, SUN_DIR.z]));
-    this.envHangar = makeEnvironment(r, HANGAR_ENV);
+    this.envHangar = makeEnvironment(r, HANGAR_OPEN_ENV);
     this.nebula = bakeNebula(r, { size: 512, strength: 0.9 });
     this.stars = makeStars({ count: 11000 });
     s.add(this.stars);
@@ -170,6 +170,8 @@ export class World {
     mkPoint(0xfff0d8, 900, 40, 34, -20);
     this.shieldLight = mkPoint(0x5aa8ff, 700, 0, 18, 58, 140);
     mkPoint(0xff6a3a, 260, -80, 10, -40, 90);
+    // the gantries over the forward deck: a warm pool on the pads, falling off toward the open mouth
+    mkPoint(0xffe2b8, 560, 0, 33, 24, 150);
     this.throatLight = mkPoint(0xffc27e, 1000, 0, 24, 72, 190);
     this.throatLight.visible = false;
     s.add(this.hangarLights);
@@ -362,7 +364,7 @@ export class World {
     this.scene.background = this.nebula;
     this.stars.visible = true;
     this.planet.group.visible = true;
-    this.sun.intensity = 1.2;
+    this.sun.intensity = 0.9;
     this.sun.color.set(0xffe2c0);
     this.rim.intensity = 0.25;
     this.hemi.intensity = 0.35;
@@ -387,9 +389,11 @@ export class World {
       const mm = m as Mesh;
       if (mm.isMesh && !(mm.material instanceof MeshBasicMaterial) && !(mm.material as MeshBasicMaterial).transparent) mm.castShadow = !!pos;
     });
-    // seen from outside, the throat glows warm and the shield line's blue is an accent, not a flood
+    // seen from outside, the throat glows warm and the shield line's blue is an accent, not a flood; inside,
+    // the field is down for the landing and after, so only the emitters' faint spill is left (at full power the
+    // glossy deck mirrored it as a pale-blue glare across the whole floor)
     this.throatLight.visible = !!pos;
-    this.shieldLight.intensity = pos ? 380 : 700;
+    this.shieldLight.intensity = pos ? 380 : 90;
   }
 
   /** Point the sun's shadow frustum at a subject. */

@@ -189,11 +189,11 @@ export class Builder {
   }
 
   /** Chamfered box by centre and size (local units). */
-  box(key: ColorKey, cx: number, cy: number, cz: number, w: number, h: number, d: number, o: { c?: number; hide?: BoxFaces; rot?: [number, number, number]; tint?: number } = {}): this {
+  box(key: ColorKey, cx: number, cy: number, cz: number, w: number, h: number, d: number, o: { c?: number; hide?: BoxFaces; rot?: [number, number, number]; tint?: number; shade?: number } = {}): this {
     const md = box(w, h, d, o.c ?? this.chamfer, o.hide ?? {});
     const local = new Matrix4().makeTranslation(cx, cy, cz);
     if (o.rot) local.multiply(new Matrix4().makeRotationFromEuler(new Euler(o.rot[0], o.rot[1], o.rot[2])));
-    return this.add(key, md, local, { tint: o.tint });
+    return this.add(key, md, local, { tint: o.tint, shade: o.shade });
   }
 
   /**

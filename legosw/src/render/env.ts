@@ -99,6 +99,27 @@ export const HANGAR_ENV: EnvSpec = {
   ],
 };
 
+/**
+ * The bay once its ray shield is down (the landing and everything after): the mouth is open space, so
+ * the glossy deck mirrors near-black there instead of a blue wall, and the long highlights it carries
+ * come from the gantry strips overhead and the lit office windows along both catwalks.
+ */
+export const HANGAR_OPEN_ENV: EnvSpec = {
+  top: 0x201e1c,
+  horizon: 0x2c2926,
+  bottom: 0x131211,
+  panels: [
+    { dir: [0, 1, 0], color: 0xfff0d8, power: 4, w: 80, h: 6 },
+    { dir: [0.35, 1, 0.3], color: 0xfff0d8, power: 3.5, w: 80, h: 5 },
+    { dir: [-0.35, 1, -0.3], color: 0xfff0d8, power: 3.5, w: 80, h: 5 },
+    { dir: [0, 0.1, 1], color: 0x0c1322, power: 1, w: 80, h: 34 },
+    { dir: [1, 0.3, 0], color: 0xffd9a0, power: 1.6, w: 110, h: 5 },
+    { dir: [-1, 0.3, 0], color: 0xffd9a0, power: 1.6, w: 110, h: 5 },
+    { dir: [0, 0.35, -1], color: 0xffd9a0, power: 1.2, w: 90, h: 5 },
+    { dir: [-1, 0.3, -0.2], color: 0xff7a3a, power: 1.4, w: 20, h: 10 },
+  ],
+};
+
 export const STUDIO_ENV: EnvSpec = {
   top: 0x2c3340,
   horizon: 0x3a4250,
