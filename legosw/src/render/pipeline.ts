@@ -48,6 +48,10 @@ export interface Lens {
   streak: number;
   /** HDR level a pixel must exceed to streak */
   streakThreshold: number;
+  /** ambient occlusion strength (screen-space, contact shadows in brick seams, under studs and greebles) */
+  ao: number;
+  /** AO sampling radius in pixels of a 720-line frame */
+  aoRadius: number;
 }
 
 export const DEFAULT_LENS: Lens = {
@@ -66,6 +70,8 @@ export const DEFAULT_LENS: Lens = {
   gain: [1, 1, 1],
   streak: 0.5,
   streakThreshold: 3.0,
+  ao: 0.8,
+  aoRadius: 32,
 };
 
 const VERT = /* glsl */ `
@@ -107,6 +113,8 @@ export class Pipeline {
   private accumRT!: WebGLRenderTarget;
   private mips: WebGLRenderTarget[] = [];
   private streakRT: WebGLRenderTarget[] = [];
+  private aoRT!: WebGLRenderTarget;
+  private aoPass: ShaderMaterial;
   private streakPre: ShaderMaterial;
   private streakBlur: ShaderMaterial;
   private quad = new FullScreenQuad();
@@ -198,6 +206,46 @@ export class Pipeline {
       }`,
       { tSrc: { value: null }, step: { value: new Vector2() } },
     );
+    this.aoPass = mkPass(
+      /* glsl */ `
+      uniform sampler2D tDepth; uniform mat4 projInv; uniform vec2 res; uniform float reversed; uniform float radius;
+      varying vec2 vUv;
+      vec3 viewPos(vec2 uv) {
+        float d = texture2D(tDepth, uv).x;
+        if (reversed > 0.5 ? d <= 1e-7 : d >= 0.999999) return vec3(0.0, 0.0, -1e9);
+        float ndcZ = reversed > 0.5 ? d : d * 2.0 - 1.0;
+        vec4 p = projInv * vec4(uv * 2.0 - 1.0, ndcZ, 1.0);
+        return p.xyz / p.w;
+      }
+      float hash(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+      void main() {
+        vec3 P = viewPos(vUv);
+        if (P.z < -1e8) { gl_FragColor = vec4(1.0); return; }
+        vec2 px = 1.0 / res;
+        // normal from the flatter neighbour on each axis, so silhouettes do not smear it
+        vec3 l = viewPos(vUv - vec2(px.x, 0.0)), r = viewPos(vUv + vec2(px.x, 0.0));
+        vec3 b = viewPos(vUv - vec2(0.0, px.y)), t = viewPos(vUv + vec2(0.0, px.y));
+        vec3 dx = abs(r.z - P.z) < abs(P.z - l.z) ? r - P : P - l;
+        vec3 dy = abs(t.z - P.z) < abs(P.z - b.z) ? t - P : P - b;
+        vec3 N = normalize(cross(dx, dy));
+        float z = -P.z;
+        // world size of the pixel radius at this depth, for the range falloff
+        float pw = length(viewPos(vUv + vec2(px.x * radius, 0.0)) - P);
+        float occ = 0.0;
+        float a0 = hash(gl_FragCoord.xy) * 6.2831853;
+        for (int i = 0; i < 12; i++) {
+          float fi = (float(i) + 0.5) / 12.0;
+          float a = a0 + float(i) * 2.39996323;
+          vec2 o = vec2(cos(a), sin(a)) * sqrt(fi) * radius * px;
+          vec3 v = viewPos(vUv + o) - P;
+          float vv = dot(v, v);
+          occ += max(0.0, dot(v, N) - 0.002 * z) / (vv + 1e-4 * z * z) * smoothstep(2.0 * pw, pw, sqrt(vv));
+        }
+        float ao = clamp(1.0 - occ * (2.0 / 12.0) * 1.3 * pw, 0.0, 1.0);
+        gl_FragColor = vec4(vec3(ao * ao), 1.0);
+      }`,
+      { tDepth: { value: null }, projInv: { value: new Matrix4() }, res: { value: new Vector2() }, reversed: { value: 1 }, radius: { value: 7 } },
+    );
     this.accum = mkPass(
       /* glsl */ `
       uniform sampler2D tSrc; uniform float weight; varying vec2 vUv;
@@ -211,6 +259,8 @@ export class Pipeline {
       tBloom: { value: null },
       tStreak: { value: null },
       streak: { value: 0 },
+      tAO: { value: null },
+      ao: { value: 0 },
       res: { value: new Vector2() },
       projInv: { value: new Matrix4() },
       reversed: { value: 1 },
@@ -242,10 +292,12 @@ export class Pipeline {
     this.accumRT?.dispose();
     for (const m of this.mips) m.dispose();
     for (const m of this.streakRT) m.dispose();
+    this.aoRT?.dispose();
     const depthTexture = new DepthTexture(w, h, FloatType);
     this.sceneRT = new WebGLRenderTarget(w, h, { type: HalfFloatType, format: RGBAFormat, samples: this.samples, depthTexture, depthBuffer: true, minFilter: LinearFilter, magFilter: LinearFilter });
     this.accumRT = new WebGLRenderTarget(w, h, { type: HalfFloatType, format: RGBAFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
     this.mips = [];
+    this.aoRT = new WebGLRenderTarget(Math.max(1, w >> 1), Math.max(1, h >> 1), { type: HalfFloatType, format: RGBAFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
     // streaks only need horizontal resolution
     this.streakRT = [0, 1].map(() => new WebGLRenderTarget(Math.max(1, w >> 2), Math.max(1, h >> 3), { type: HalfFloatType, format: RGBAFormat, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter }));
     let mw = Math.max(1, w >> 1), mh = Math.max(1, h >> 1);
@@ -372,8 +424,22 @@ export class Pipeline {
       r.setRenderTarget(mips[i - 1]);
       this.quad.render(r);
     }
+    // ambient occlusion from the centre sub-sample's depth, half res
+    if (lens.ao > 0) {
+      const a = this.aoPass.uniforms;
+      a.tDepth.value = this.sceneRT.depthTexture;
+      a.projInv.value.copy(camera.projectionMatrixInverse);
+      a.res.value.set(this.aoRT.width, this.aoRT.height);
+      a.reversed.value = r.capabilities.reversedDepthBuffer ? 1 : 0;
+      a.radius.value = lens.aoRadius * (this.height / 720) * 0.5;
+      this.quad.material = this.aoPass;
+      r.setRenderTarget(this.aoRT);
+      this.quad.render(r);
+    }
     // final
     const u = this.final.uniforms;
+    u.tAO.value = this.aoRT.texture;
+    u.ao.value = lens.ao;
     u.tScene.value = color;
     u.tDepth.value = this.sceneRT.depthTexture;
     u.tBloom.value = mips[0].texture;
@@ -408,6 +474,8 @@ uniform sampler2D tDepth;
 uniform sampler2D tBloom;
 uniform sampler2D tStreak;
 uniform float streak;
+uniform sampler2D tAO;
+uniform float ao;
 uniform vec2 res;
 uniform mat4 projInv;
 uniform float reversed;
@@ -471,6 +539,15 @@ void main() {
     col.r = texture2D(tScene, uv - off).r;
     col.g = texture2D(tScene, uv).g;
     col.b = texture2D(tScene, uv + off).b;
+  }
+  if (ao > 0.0) {
+    vec2 ap = 1.0 / res;
+    float occl = 0.25 * (texture2D(tAO, uv + ap * vec2(-1.0, -1.0)).r + texture2D(tAO, uv + ap * vec2(1.0, -1.0)).r
+                       + texture2D(tAO, uv + ap * vec2(-1.0, 1.0)).r + texture2D(tAO, uv + ap * vec2(1.0, 1.0)).r);
+    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    float k = ao * (1.0 - smoothstep(1.2, 4.0, lum));
+    if (aperture > 0.05) k *= 1.0 - smoothstep(1.0, 4.0, coc(uv));
+    col *= mix(1.0, occl, k);
   }
   col += texture2D(tBloom, uv).rgb * bloom * 0.09;
   col += texture2D(tStreak, uv).rgb * vec3(0.32, 0.55, 1.0) * streak;

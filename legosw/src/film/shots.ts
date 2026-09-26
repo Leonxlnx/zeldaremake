@@ -485,7 +485,8 @@ function cockpitShot(o: {
         target: neck.add(rot(o.aim)),
         fov: lerp(o.fov[0], o.fov[1], k),
         near: 0.05,
-        lens: { focus: cam.distanceTo(faceC), aperture: 7, exposure: 1.0, bloom: 0.85 },
+        // faces stay clean: full-strength occlusion smudges the cheek beside the hair piece
+        lens: { focus: cam.distanceTo(faceC), aperture: 7, exposure: 1.0, bloom: 0.85, ao: 0.35 },
       };
     },
   };
@@ -1567,7 +1568,7 @@ const droids: Shot = {
       look = head.clone().add(v3(0, -0.4, 0));
       fov = 26;
       w.aimShadow(obiPos, 20, v3(0.2, 1, 0.3).normalize());
-      return { pos: camPos, target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(head), aperture: 7, exposure: 1.12 } };
+      return { pos: camPos, target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(head), aperture: 7, exposure: 1.12, ao: 0.35 } };
     }
     camPos = mid.clone().sub(toDroids.clone().multiplyScalar(lerp(6.2, 5.2, smooth(2.4, 5.2, t)))).add(v3(0, 3.4, 0)).add(side.clone().multiplyScalar(0.8));
     look = front.clone().lerp(mid, 0.3).add(v3(0, 2.5, 0));
