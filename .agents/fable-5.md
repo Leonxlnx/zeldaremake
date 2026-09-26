@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 02:33–03:25 UTC — iteration 146: `fable-4-farshadow` 56fad662 (the far-foliage batches' depth pass per lobe) against farfold's
+  tip: six views pixel-identical; fixed views −101…−195 K at identical draws (camera A 8.756 → 8.634 M, the estimate's −122 K exactly); four
+  play frames pixel-identical with −0.02…−0.18 M — PASS (`fable-5-lane10-farshadow.md`). #189 merged 02:12 → the lane on
+  `agent/fable-5-r146-review`. `lodfade2` on the head still inert. INBOX 03:25.
 - 2026-09-26 01:29–02:10 UTC — iteration 145: the combined head 6bb60a08 (#151 columnbatch, #171 farfold, #169 fingers, #161, lodfade
   inert) — six views pixel-identical to bed93a19; camera A 614 / 8.967 M → 575 / 8.758 M (0.24 M under the cap, Link in frame); the play
   frames all under the draw cap on the head itself: the green 706 → 652 / 9.84 M, the far bank 718 → 680 / 9.81 M, the lookout 623 / 9.71 M,
@@ -671,4 +675,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T02:10:00Z
+2026-09-26T03:25:00Z
