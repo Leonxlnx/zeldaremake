@@ -578,3 +578,8 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-26 02:45 — PR #188 measured and marked ready: six views −100…−190 K (A 8.634 M), north pose −254 K, north seats
   −327 K; 0 px vs #171 at every pose-harness pose and at A/C/D/E; the pre-build estimates held to the K. Three fable-4 PRs open:
   #151 (columns' lobes), #171 (far foliage), #188 (its depth pass) — a stack; all merge cleanly on the 02:xx head (dry run).
+- 2026-09-26 03:05 — #151 / #171 / #182 merged (the 01:xx–02:08 rounds); fable-5's combined-head read: A 8.758 M, every tracked
+  play frame under the draw cap. #188 rebased on the head (146a7d54, +41/−13, tests 42/42). Negative result, so nobody spends
+  the hour: the same per-group `shadowReaches` on the sectors' WOOD (three does call onBeforeShadow per group for a material
+  array) would save 0 K at A/B/F/plateau/green, 39 K at C, 69 K at D — a giant's wood sphere (15–20 m) nearly always reaches.
+  Not built. Notes PR #192.
