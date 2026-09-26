@@ -1,12 +1,14 @@
 import { Matrix4, Vector3, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import type { Builder } from '../core/builder';
-import { MeshAcc, box, cylinder, prism, type MeshData, type V3 } from '../core/geom';
+import { MeshAcc, box, catmull, cylinder, prism, sweep, tube, type MeshData, type V3 } from '../core/geom';
 import type { ColorKey } from '../core/palette';
 
 /**
  * Part helpers for asset agent A (Eta-2, astromechs): convex-footprint layers with clipping, studs
  * inside arbitrary outlines, oriented slabs / beams / rods between 3D points, glass panes, and
- * curved "printed" panels that sit just proud of spheres and cylinders.
+ * curved "printed" panels that sit just proud of spheres and cylinders. The second half is a small
+ * LEGO part vocabulary (seamed plates and tiles, prints, grilles, slopes, Technic holes and pins,
+ * hoses) that works in any face frame (`onFace`).
  */
 
 export type P2 = [number, number];
@@ -394,25 +396,42 @@ export function squareRing(w: number, rIn: number, h: number, seg = 32, o: { flo
 }
 
 /**
- * A run of 1×2 grille tiles along X or Z: individual tile bodies (so the seams read) and
- * continuous raised bars. `x0,z0` = min corner, `len` studs long, `w` studs wide, bottom `y0`.
+ * A run of 1×2 grille tiles along X or Z. `x0,z0` = min corner, `len` studs long, `w` studs wide,
+ * bottom `y0`. Each tile is a full-height frame (side rails, end caps) round square bars. The grooves
+ * are deep enough to lie in their own shadow, so no shadow edge crawls across a groove floor, and
+ * nothing inside the frame is bevelled (a bevel this small is a sub-pixel highlight that twinkles).
  */
 export function grilleRun(b: Builder, baseKey: ColorKey, barKey: ColorKey, x0: number, z0: number, len: number, w: number, y0: number, alongZ: boolean, o: { bars?: number; tile?: number; hBody?: number } = {}): void {
   const tile = o.tile ?? 2;
-  const hB = o.hBody ?? 0.3;
-  const G = 0.012;
-  for (let s = 0; s < len - 1e-6; s += tile) {
-    const l = Math.min(tile, len - s);
-    if (alongZ) b.box(baseKey, x0 + w / 2, y0 + hB / 2, z0 + s + l / 2, w - 2 * G, hB, l - 2 * G, { c: 0.03, hide: { ny: true } });
-    else b.box(baseKey, x0 + s + l / 2, y0 + hB / 2, z0 + w / 2, l - 2 * G, hB, w - 2 * G, { c: 0.03, hide: { ny: true } });
-  }
+  const hF = o.hBody ?? 0.14;
+  const top = 0.396;
+  const cap = 0.08;
   const nb = o.bars ?? 4 * w - 1;
   const bw = (w * 0.8) / (2 * nb - 1);
-  const hBar = 0.4 - hB - 0.004;
-  for (let k = 0; k < nb; k++) {
-    const off = -w * 0.4 + bw / 2 + k * 2 * bw;
-    if (alongZ) b.box(barKey, x0 + w / 2 + off, y0 + hB + hBar / 2, z0 + len / 2, bw, hBar, len - 0.16, { c: 0.012, hide: { ny: true } });
-    else b.box(barKey, x0 + len / 2, y0 + hB + hBar / 2, z0 + w / 2 + off, len - 0.16, hBar, bw, { c: 0.012, hide: { ny: true } });
+  const rail = 0.1 * w + bw;
+  // u across the run, v along it, both from the min corner; tiles butt (see SEAM)
+  const put = (key: ColorKey, u0: number, u1: number, v0: number, v1: number, ya: number, yb: number, c: number) => {
+    const cu = (u0 + u1) / 2, cv = (v0 + v1) / 2;
+    if (alongZ) b.box(key, x0 + cu, (ya + yb) / 2, z0 + cv, u1 - u0, yb - ya, v1 - v0, { c, hide: { ny: true } });
+    else b.box(key, x0 + cv, (ya + yb) / 2, z0 + cu, v1 - v0, yb - ya, u1 - u0, { c, hide: { ny: true } });
+  };
+  for (let s = 0; s < len - 1e-6; s += tile) {
+    const l = Math.min(tile, len - s);
+    const v0 = s, v1 = s + l;
+    if (nb < 2) {
+      put(baseKey, 0, w, v0, v1, y0, y0 + top, 0.03);
+      continue;
+    }
+    const ya = y0 + hF, yb = y0 + top;
+    put(baseKey, 0, w, v0, v1, y0, ya, 0.03);
+    put(baseKey, 0, rail, v0, v1, ya, yb, 0);
+    put(baseKey, w - rail, w, v0, v1, ya, yb, 0);
+    put(baseKey, rail, w - rail, v0, s + cap, ya, yb, 0);
+    put(baseKey, rail, w - rail, s + l - cap, v1, ya, yb, 0);
+    for (let k = 1; k < nb - 1; k++) {
+      const u = 0.1 * w + k * 2 * bw;
+      put(barKey, u, u + bw, s + cap, s + l - cap, ya, yb, 0);
+    }
   }
 }
 
@@ -450,3 +469,161 @@ export function satin(root: Object3D, keys: ColorKey[]): void {
 export const V = (x: number, y: number, z: number): V3 => [x, y, z];
 export const mirX = (p: V3): V3 => [-p[0], p[1], p[2]];
 export const lerp3 = (a: V3, c: V3, t: number): V3 => [a[0] + (c[0] - a[0]) * t, a[1] + (c[1] - a[1]) * t, a[2] + (c[2] - a[2]) * t];
+
+// ——— LEGO part vocabulary ———
+// Every helper below works in the builder's current frame with the part's "top" along local +Y, so
+// the same calls dress a deck (identity frame) or a flank / raked face (inside `onFace`).
+
+/**
+ * Seam between neighbouring parts: each footprint is shrunk by this much per side. Zero: the two
+ * chamfers alone make the groove (a few pixels wide at chase distance, lit on one side, shaded on
+ * the other). Any real gap is a deep, sub-pixel black slit that blinks as it crosses pixel centres;
+ * the butting walls it would expose are enclosed by the parts on either side.
+ */
+export const SEAM = 0;
+
+/** Run `fn` with local +Y along the face normal `n` and local +Z along `f` (projected into the face), origin `o`. */
+export function onFace(b: Builder, o: V3, n: V3, f: V3, fn: () => void): void {
+  const y = new Vector3(...n).normalize();
+  const z = new Vector3(...f);
+  z.addScaledVector(y, -z.dot(y)).normalize();
+  const x = new Vector3().crossVectors(y, z);
+  b.push();
+  b.apply(new Matrix4().makeBasis(x, y, z).setPosition(o[0], o[1], o[2]));
+  fn();
+  b.pop();
+}
+
+/** A plate / tile / brick with a convex footprint, shrunk by the seam; studs on the stud grid if asked. */
+export function part(
+  b: Builder,
+  key: ColorKey,
+  poly: P2[],
+  y0: number,
+  h: number,
+  o: { studs?: ColorKey | boolean; seam?: number; c?: number; hideBottom?: boolean; gx?: number; gz?: number; margin?: number; skip?: (x: number, z: number) => boolean } = {},
+): void {
+  if (poly.length < 3 || Math.abs(area2(poly)) < 0.02) return;
+  const s = o.seam ?? SEAM;
+  layer(b, key, s > 0 ? inset(poly, s) : poly, y0, h, { c: o.c, hideBottom: o.hideBottom });
+  if (o.studs) studsIn(b, o.studs === true ? key : o.studs, poly, y0 + h, { gx: o.gx, gz: o.gz, margin: o.margin, skip: o.skip });
+}
+
+/** Axis-aligned part over [x0, x1] × [z0, z1]. */
+export function partR(b: Builder, key: ColorKey, x0: number, z0: number, x1: number, z1: number, y0: number, h: number, o: Parameters<typeof part>[5] = {}): void {
+  part(b, key, rect(x0, z0, x1, z1), y0, h, o);
+}
+
+/** A footprint built from several parts: cut at the z (and x) lines, one part per piece. */
+export function parts(b: Builder, key: ColorKey, poly: P2[], y0: number, h: number, cutsZ: number[] = [], cutsX: number[] = [], o: Parameters<typeof part>[5] = {}): void {
+  for (const p of split(poly, cutsZ, cutsX)) part(b, key, p, y0, h, o);
+}
+
+/**
+ * Printed / stickered detail: a thin convex patch on a surface at local height y. It is sunk 0.004
+ * into the surface and stands `t` proud, so it never shares a plane with the part it is printed on.
+ */
+export function decal(b: Builder, key: ColorKey, poly: P2[], y: number, t = 0.014): void {
+  if (poly.length < 3 || Math.abs(area2(poly)) < 1e-4) return;
+  b.shape(key, poly, y - 0.004, t + 0.004, { c: Math.min(0.004, t * 0.3), hideBottom: true });
+}
+
+export function decalR(b: Builder, key: ColorKey, x0: number, z0: number, x1: number, z1: number, y: number, t?: number): void {
+  decal(b, key, rect(x0, z0, x1, z1), y, t);
+}
+
+/** Printed disc (or ring when rIn > 0) at (x, y, z), local +Y up. */
+export function decalDisc(b: Builder, key: ColorKey, x: number, y: number, z: number, r: number, o: { rIn?: number; t?: number; radial?: number } = {}): void {
+  const t = o.t ?? 0.014;
+  const n = o.radial ?? 20;
+  if (o.rIn) b.add(key, tube(r, o.rIn, t + 0.004, 0.003, n), new Matrix4().makeTranslation(x, y + (t - 0.004) / 2, z));
+  else b.cyl(key, x, y + (t - 0.004) / 2, z, r, t + 0.004, { radial: n, bottom: false, c: 0.003 });
+}
+
+/** Printed arc band between radii rIn..r over angles a0..a1 (θ = 0 → +Z, toward +X), as convex wedges. */
+export function decalArc(b: Builder, key: ColorKey, x: number, y: number, z: number, rIn: number, r: number, a0: number, a1: number, o: { t?: number; steps?: number } = {}): void {
+  const n = o.steps ?? Math.max(2, Math.ceil(Math.abs(a1 - a0) / 0.2));
+  for (let i = 0; i < n; i++) {
+    const t0 = a0 + ((a1 - a0) * i) / n, t1 = a0 + ((a1 - a0) * (i + 1)) / n;
+    const P = (rr: number, t: number): P2 => [x + rr * Math.sin(t), z + rr * Math.cos(t)];
+    decal(b, key, [P(rIn, t0), P(r, t0), P(r, t1), P(rIn, t1)], y, o.t);
+  }
+}
+
+/** Diagonal bands of `key` printed across the rectangle (hazard stripes / chevrons). */
+export function stripes(b: Builder, key: ColorKey, x0: number, z0: number, x1: number, z1: number, y: number, pitch = 0.32, o: { angle?: number; duty?: number; t?: number; phase?: number } = {}): void {
+  const a = o.angle ?? Math.PI / 4;
+  const dx = Math.cos(a), dz = Math.sin(a);
+  const R = rect(x0, z0, x1, z1);
+  const us = R.map(([x, z]) => x * dx + z * dz);
+  const u0 = Math.min(...us), u1 = Math.max(...us);
+  const w = pitch * (o.duty ?? 0.5);
+  for (let u = u0 + pitch * (o.phase ?? 0.25) - pitch; u < u1; u += pitch) {
+    let p = clipHalf(R, -dx, -dz, -u);
+    p = clipHalf(p, dx, dz, u + w);
+    if (p.length >= 3 && Math.abs(area2(p)) > 2e-3) decal(b, key, p, y, o.t);
+  }
+}
+
+/** Parallel printed lines along z (n lines across [x0, x1]), e.g. a vent or radiator print. */
+export function decalLines(b: Builder, key: ColorKey, x0: number, z0: number, x1: number, z1: number, y: number, n: number, duty = 0.45, alongZ = true, t?: number): void {
+  const span = alongZ ? x1 - x0 : z1 - z0;
+  const p = span / n;
+  for (let i = 0; i < n; i++) {
+    const a = (alongZ ? x0 : z0) + p * i + (p * (1 - duty)) / 2;
+    if (alongZ) decalR(b, key, a, z0, a + p * duty, z1, y, t);
+    else decalR(b, key, x0, a, x1, a + p * duty, y, t);
+  }
+}
+
+/** Technic pin hole in a face (local +Y out of the face, surface at y): dark bore inside a moulded rim. */
+export function pinHole(b: Builder, rimKey: ColorKey, x: number, y: number, z: number, o: { dark?: ColorKey; radial?: number } = {}): void {
+  const n = o.radial ?? 16;
+  b.add(rimKey, tube(0.37, 0.27, 0.05, 0.012, n), new Matrix4().makeTranslation(x, y + 0.015, z));
+  b.cyl(o.dark ?? 'black', x, y + 0.001, z, 0.285, 0.022, { radial: n, bottom: false, c: 0.004 });
+}
+
+/** Technic pin seated in a hole: the collar and the slotted head stand `len` proud of the face. */
+export function pinHead(b: Builder, key: ColorKey, x: number, y: number, z: number, o: { len?: number; radial?: number } = {}): void {
+  const n = o.radial ?? 16;
+  const L = o.len ?? 0.14;
+  b.cyl(key, x, y + 0.03, z, 0.36, 0.08, { radial: n, bottom: false, c: 0.02 });
+  b.cyl(key, x, y + L / 2 + 0.02, z, 0.28, L - 0.02, { radial: n, bottom: false, c: 0.03 });
+}
+
+/** Cross axle end standing `len` proud (the two arms at different heights so no faces coincide). */
+export function axleEnd(b: Builder, key: ColorKey, x: number, y: number, z: number, len = 0.08, spin = 0): void {
+  b.box(key, x, y + len / 2, z, 0.56, len, 0.19, { c: 0.02, rot: [0, spin, 0] });
+  b.box(key, x, y + (len - 0.008) / 2, z, 0.19, len - 0.008, 0.56, { c: 0.02, rot: [0, spin, 0] });
+}
+
+/** 30° "cheese" slope, `w` wide (along local x after rotation) and `d` deep, low edge toward −z before `rotY`. */
+export function cheese(b: Builder, key: ColorKey, x: number, y: number, z: number, rotY = 0, w = 1, d = 1, h = 0.267): void {
+  const g = SEAM;
+  b.push();
+  b.translate(x, y, z);
+  b.rotateY(rotY);
+  b.rotateY(-Math.PI / 2);
+  b.prism(key, [[-d / 2 + g, 0], [d / 2 - g, 0], [d / 2 - g, h], [-d / 2 + g, 0.035]], w - 2 * g, { c: 0.02 });
+  b.pop();
+}
+
+/** Round 1×1 plate / tile (with stud if asked), base at y. */
+export function roundPlate(b: Builder, key: ColorKey, x: number, y: number, z: number, o: { r?: number; h?: number; stud?: boolean; radial?: number } = {}): void {
+  const h = o.h ?? 0.4;
+  b.cyl(key, x, y + h / 2, z, o.r ?? 0.46, h, { radial: o.radial ?? 16, c: 0.03, bottom: false });
+  if (o.stud) b.stud(key, x, y + h, z);
+}
+
+/** Flexible hose through control points (Catmull-Rom smoothed), closed ends. */
+export function hose(b: Builder, key: ColorKey, pts: V3[], r = 0.12, o: { radial?: number; steps?: number } = {}): void {
+  const n = o.steps ?? Math.max(4, pts.length * 5);
+  const path: V3[] = [];
+  for (let i = 0; i <= n; i++) path.push(catmull(pts, i / n));
+  b.add(key, sweep(path, r, o.radial ?? 10));
+}
+
+/** Small round detail (bolt head / sensor) on a face: cylinder of radius r standing h proud of y. */
+export function boss(b: Builder, key: ColorKey, x: number, y: number, z: number, r: number, h: number, radial = 12): void {
+  b.cyl(key, x, y + h / 2 - 0.004, z, r, h + 0.004, { radial, bottom: false, c: Math.min(0.02, r * 0.25, h * 0.4) });
+}
