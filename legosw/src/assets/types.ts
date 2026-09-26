@@ -113,4 +113,9 @@ export interface Hangar {
 export interface InvisibleHand extends CapitalShip {
   /** the hangar mouth rectangle (anchor at its centre, +Z pointing out of the ship) */
   setShield(v: number): void;
+  /**
+   * The stand-in bay behind the mouth (shown from afar). Hide it when the real hangar set is fitted
+   * at the 'bay' anchor (its origin: deck centre, +Z out of the mouth).
+   */
+  setBayProxy(v: boolean): void;
 }

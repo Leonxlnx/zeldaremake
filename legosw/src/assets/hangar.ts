@@ -23,7 +23,15 @@ const MH = 36;
 const MY0 = 1;
 const CELL = 7;
 const CATY = 20;
-const THROAT = 8;
+const THROAT = 32;
+const APRON = 6;
+
+/**
+ * The mouth in the set's frame, for fitting the set into the Invisible Hand: the shield line is at
+ * z = HZ, the throat runs out to z = HZ + THROAT (the outer lip, where the ray shield sits) and the
+ * deck apron sticks APRON further out. The deck is y = 0; the opening is MW × MH from y = MY0.
+ */
+export const HANGAR_MOUTH = { HZ, THROAT, APRON, MW, MH, MY0, HY, HX };
 
 type B = Builder;
 type Face = 'px' | 'nx' | 'py' | 'ny' | 'pz' | 'nz';
@@ -261,21 +269,90 @@ function frontWall(b: B, rng: Rng): void {
   quad(b, 'glowBlue', 'ny', 0, MY0 + MH - 0.22, 1.5, MW - 2, 1.2);
   sideProfile(b, 'dbg', [[0, MY0 + MH + 2], [5, MY0 + MH + 2], [2.4, HY - 0.2], [0, HY - 0.2]], MW + 6);
   for (let x = -xm + 4; x < xm; x += 8) b.box('lbg', x, MY0 + MH + 2.6, 4.2, 5, 0.5, 1.2);
-  // throat beyond the shield line (local z < 0)
-  const tz = -THROAT / 2;
+  throat(b, rng);
+}
+
+/**
+ * The throat beyond the shield line (local z < 0 runs out of the ship): a deep tunnel with ribbed
+ * walls and warm light bays, a lit coffered ceiling, blast-door leaves parked in their pockets, the
+ * heavy outer lip carrying the ray-shield emitters, and the deck running out onto a lit apron.
+ */
+function throat(b: B, rng: Rng): void {
+  const xm = MW / 2;
+  const T = THROAT;
+  const top = MY0 + MH;
+  const DOOR = -T + 7;
+  // skins: walls 3 thick, ceiling 2, deck 1.2 (outer faces are always buried in the hull)
+  for (const s of [-1, 1]) b.box('dbg', s * (xm + 1.5), (top + 2 - 1.2) / 2, -T / 2, 3, top + 2 + 1.2, T, { hide: s > 0 ? { px: true } : { nx: true } });
+  b.box('dbg', 0, top + 1, -T / 2, MW + 6, 2, T, { hide: { py: true } });
+  b.box('dbg', 0, -0.6, -T / 2, MW + 6, 1.2, T, { hide: { ny: true } });
+  // walls: rib every 4 studs; between them a recessed bay with a warm light strip, a vent and a status light
+  const ribs: number[] = [];
+  for (let z = -1.2; z > -T + 9.5; z -= 4) ribs.push(z);
   for (const s of [-1, 1]) {
-    b.box('dbg', s * (xm + 0.6), fy, tz, 1.2, MH, THROAT);
-    for (let z = -1.6; z > -THROAT; z -= 2.6) b.box('lbg', s * (xm - 0.1), fy, z, 0.6, MH, 0.9);
-    quad(b, 'glowWhite', s > 0 ? 'nx' : 'px', s * (xm - 0.02), fy, -5.5, 0.6, MH - 4);
+    const face = s > 0 ? 'nx' : 'px';
+    for (const z of ribs) {
+      b.box('lbg', s * (xm - 0.45), top / 2, z, 0.9, top, 1.2, { c: 0.12 });
+      b.box('darkTan', s * (xm - 0.55), 2.2, z, 1.1, 4.4, 1.5, { c: 0.1 });
+      b.box('dbg', s * (xm - 0.55), top - 3, z, 1.1, 2.4, 1.5, { c: 0.1 });
+    }
+    for (let i = 0; i + 1 < ribs.length; i++) {
+      const zc = (ribs[i] + ribs[i + 1]) / 2;
+      b.box('lbg', s * (xm - 0.12), 12.5, zc, 0.24, 1.2, 2.6);
+      b.box('gunmetal', s * (xm - 0.2), 6, zc, 0.4, 3, 2.2);
+      quad(b, i % 2 ? 'windowWarm' : 'glowWhite', face, s * (xm - 0.03), 24, zc, 0.9, 14);
+      b.cyl('glowRed', s * (xm - 0.1), 15, zc + 0.9, 0.22, 0.2, { axis: 'x', radial: 8 });
+    }
+    bar(b, 'gunmetal', [s * (xm - 1.1), 9.4, 0], [s * (xm - 1.1), 9.4, DOOR + 3], 0.4, { radial: 10 });
+    bar(b, 'dbg', [s * (xm - 1.1), 10.4, 0], [s * (xm - 1.1), 10.4, DOOR + 3], 0.28, { radial: 8 });
+    // blast-door leaf parked in its pocket: the thick leading edge shows, hazard-striped, between heavy pocket jambs
+    for (const dz of [-2.6, 2.6]) b.box('lbg', s * (xm - 1), top / 2, DOOR + dz, 2, top, 1.4, { c: 0.2 });
+    b.box('gunmetal', s * (xm - 0.7), top / 2, DOOR, 1.4, top, 3.8, { c: 0.08 });
+    for (let y = 0.6; y < top - 0.5; y += 2) b.box(Math.round(y / 2) % 2 ? 'yellow' : 'black', s * (xm - 1.42), y + 0.9, DOOR, 0.06, 1.96, 2.6);
+    b.box('darkRed', s * (xm - 1.43), top - 4, DOOR, 0.06, 2.4, 3.4);
   }
-  b.box('dbg', 0, MY0 + MH + 0.5, tz, MW + 2.4, 1, THROAT);
-  for (let z = -1.6; z > -THROAT; z -= 2.6) b.box('lbg', 0, MY0 + MH - 0.2, z, MW, 0.6, 0.9);
-  quad(b, 'glowWhite', 'ny', 0, MY0 + MH - 0.02, -5.5, MW - 4, 0.6);
-  // deck lip in the throat with hazard stripes and edge lights
-  b.box('dbg', 0, -0.6, tz, MW + 2.4, 1.2, THROAT);
-  for (let x = -xm; x < xm; x += 2) b.box(Math.round((x + xm) / 2) % 2 ? 'yellow' : 'black', x + 1, 0.06, -1.4, 1.96, 0.12, 2);
-  for (let x = -xm + 3; x < xm; x += 6) b.cyl('glowYellow', x, 0.05, -THROAT + 0.8, 0.3, 0.1, { radial: 8 });
-  b.box('lbg', 0, -0.6, -THROAT - 0.6, MW + 2.4, 1.6, 1.2);
+  // ceiling: transverse beams continuing the ribs, light panels between them, the top leaf's edge
+  for (const z of ribs) b.box('lbg', 0, top - 0.5, z, MW, 1, 1.2, { c: 0.12 });
+  for (let i = 0; i + 1 < ribs.length; i++) {
+    const zc = (ribs[i] + ribs[i + 1]) / 2;
+    for (const x of [-30, 0, 30]) quad(b, i % 2 ? 'glowWhite' : 'windowWarm', 'ny', x, top - 0.03, zc, 22, 1.6);
+  }
+  b.box('gunmetal', 0, top - 1.4, DOOR, MW, 2.8, 3.8, { c: 0.08 });
+  for (let x = -xm; x < xm - 0.5; x += 3) b.box(Math.round((x + xm) / 3) % 2 ? 'yellow' : 'black', x + 1.5, top - 2.85, DOOR, 2.96, 0.06, 2.6);
+  // deck: plate courses, hazard bands at both ends, twin rows of guide lights leading in, edge lights
+  for (let z = -1; z > -T + 0.6; z -= 3) {
+    const k: ColorKey = rng.chance(0.2) ? 'lbg' : 'dbg';
+    for (const x of [-37.5, -12.5, 12.5, 37.5]) b.box(k === 'lbg' && Math.abs(x) < 20 ? 'dbg' : k, x, 0.05, z - 1.5, 24.6, 0.1, 2.9, { hide: { ny: true } });
+  }
+  for (const zz of [-1.4, -T + 1.6]) for (let x = -xm; x < xm; x += 2) b.box(Math.round((x + xm) / 2) % 2 ? 'yellow' : 'black', x + 1, 0.14, zz, 1.96, 0.1, 2, { hide: { ny: true } });
+  for (let z = -4; z > -T + 3; z -= 3) {
+    for (const x of [-9, 9]) b.cyl('glowYellow', x, 0.16, z, 0.34, 0.12, { radial: 8 });
+    for (const s of [-1, 1]) b.cyl('glowWhite', s * (xm - 2.4), 0.16, z - 1.5, 0.26, 0.12, { radial: 8 });
+  }
+  // outer lip: a heavy bevelled frame around the opening, dark-red band, ray-shield emitter columns and nodes
+  const zo = -T + 1.4;
+  for (const s of [-1, 1]) {
+    b.box('lbg', s * (xm + 2.6), top / 2 + 1, zo, 5.2, top + 6, 2.8, { c: 0.4 });
+    b.box('darkRed', s * (xm + 2.6), top / 2 + 1, zo - 1.42, 1.6, top - 2, 0.1);
+    b.box('gunmetal', s * (xm - 0.3), top / 2, zo + 0.2, 1.4, top - 1, 2);
+    quad(b, 'glowBlue', s > 0 ? 'nx' : 'px', s * (xm - 1.02), top / 2, zo + 0.2, 1.1, top - 3);
+    for (const y of [2.2, top - 2.2]) {
+      b.cyl('dbg', s * (xm - 1.2), y, zo, 1.3, 3, { axis: 'z', radial: 14 });
+      b.cyl('glowBlue', s * (xm - 1.2), y, zo - 1.55, 0.8, 0.1, { axis: 'z', radial: 14 });
+    }
+  }
+  b.box('lbg', 0, top + 2.6, zo, MW + 10.4, 5.2, 2.8, { c: 0.4 });
+  b.box('darkRed', 0, top + 2.6, zo - 1.42, MW + 4, 1.4, 0.1);
+  b.box('gunmetal', 0, top - 0.3, zo + 0.2, MW - 1, 1.2, 2);
+  quad(b, 'glowBlue', 'ny', 0, top - 0.92, zo + 0.2, MW - 3, 1.1);
+  for (let x = -xm + 6; x < xm - 3; x += 11) b.cyl('glowYellow', x, top + 4.2, zo - 1.45, 0.4, 0.1, { axis: 'z', radial: 10 });
+  // apron: the deck runs out past the lip, hazard edge, lit fascia
+  const za = -T - APRON / 2;
+  b.box('dbg', 0, -0.9, za, MW + 10.4, 1.8, APRON, { hide: { ny: true } });
+  for (let x = -xm - 5; x < xm + 5; x += 2.6) b.box(Math.round((x + xm) / 2.6) % 2 ? 'yellow' : 'black', x + 1.3, 0.06, -T - APRON + 1.1, 2.56, 0.12, 1.8, { hide: { ny: true } });
+  for (let x = -xm - 2; x <= xm + 2; x += 6.5) b.cyl('glowYellow', x, 0.08, -T - 2.2, 0.34, 0.12, { radial: 8 });
+  b.box('lbg', 0, -1.2, -T - APRON - 0.5, MW + 10.4, 2.4, 1, { c: 0.25 });
+  for (let x = -xm; x <= xm; x += 5) quad(b, 'glowYellow', 'nz', x, -1.2, -T - APRON - 1.02, 1.6, 0.5);
 }
 
 /* --- deck ------------------------------------------------------------------------------------ */
@@ -560,7 +637,7 @@ export function hangarInterior(): Hangar {
   put(cl, 'hangar-ceiling', { castShadow: false });
 
   const shield = rayShield(MW, MH, { name: 'hangar-ray-shield', scan: 40 });
-  shield.mesh.position.set(0, MY0 + MH / 2, HZ + 0.2);
+  shield.mesh.position.set(0, MY0 + MH / 2, HZ + THROAT - 1.2);
   group.add(shield.mesh);
 
   anchors.landingA = anchorFrom(fl, 'landingA', group, [A[0], 0, A[1]], [0, 0, -1]);

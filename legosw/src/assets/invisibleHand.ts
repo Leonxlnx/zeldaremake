@@ -27,6 +27,7 @@ import {
   type TileSpec,
 } from './d-kit';
 import { rayShield } from './d-shield';
+import { HANGAR_MOUTH } from './hangar';
 
 /**
  * The Invisible Hand — Providence-class carrier/destroyer, General Grievous's flagship — as a
@@ -77,6 +78,23 @@ const PM = 3;
 const XF = 32.2;
 const XB = XF - 3;
 const ROOM_X = XB - 10;
+/**
+ * The open bay is the hangar set's own mouth: its throat's outer lip lands on XO (its apron sticks
+ * out beyond), so the approach can fly into the very bay the landing plays in. BAY_* is where the
+ * set's origin sits; OZ0..OZ1 × DECK_Y..TOP_Y is the throat opening (studs).
+ */
+const HM = HANGAR_MOUTH;
+/** the set's front wall (2 thick, beyond its shield line) stays just behind the neighbouring bays' blast doors */
+const BAY_X = XB - 0.62 - (HM.HZ + 2) / S;
+const XO = BAY_X + (HM.HZ + HM.THROAT) / S;
+const BAY_Y = MY - (HM.MY0 + HM.MH / 2) / S;
+const DECK_Y = BAY_Y;
+const TOP_Y = BAY_Y + (HM.MY0 + HM.MH) / S;
+const OZ0 = MZ - HM.MW / 2 / S;
+const OZ1 = MZ + HM.MW / 2 / S;
+/** half width of the set's outer lip frame and of the ship's portal pylons around it */
+const LIP = (HM.MW / 2 + 5.2) / S;
+const PYL = LIP + 1.9;
 const BL_BASE = { a: 13, b: 19.5, bb: 19, y0: 0, n: 2.3, nb: 2.3 };
 const BL_BLUE: [number, number][] = [[-35, -30], [-45, -40], [-55, -50], [-68, -62], [-124, -120], [-131, -127]];
 const blister = (side: number): Sec[] =>
@@ -619,41 +637,51 @@ export function invisibleHand(o: { lod: 0 | 1 }): InvisibleHand {
       }
     }
     for (const zz of [SZ0 - PM / 2, SZ1 + PM / 2]) hb.box('lbg', XF + 0.2, MY, zz, 0.4, SY1 - SY0 - 0.07, PM - 0.07, { hide: { nx: true } });
-    // raised frame around the slot
-    hb.box('lbg', XF + 0.6, SY1 + 0.45, zc, 0.8, 0.9, SZ1 - SZ0 + 1.8);
-    hb.box('lbg', XF + 0.6, SY0 - 0.45, zc, 0.8, 0.9, SZ1 - SZ0 + 1.8);
+    // the portal (port side) interrupts the slot's lips, lights and hazard band
+    const port = side > 0;
+    const inPortal = (z: number, m = 0) => port && z > MZ - PYL - m && z < MZ + PYL + m;
+    // bevelled lips above and below the slot: a sloped chamfer strip catches the light, a dark shadow line under it
+    const runs: [number, number][] = port ? [[SZ0 - 0.9, MZ - PYL], [MZ + PYL, SZ1 + 0.9]] : [[SZ0 - 0.9, SZ1 + 0.9]];
+    for (const [za, zb] of runs) {
+      const L = zb - za;
+      const zm = (za + zb) / 2;
+      hb.prism('lbg', [[XF + 0.2, SY1], [XF + 1.15, SY1], [XF + 1.15, SY1 + 0.3], [XF + 0.55, SY1 + 1.0], [XF + 0.2, SY1 + 1.0]], L, { zc: zm, c: 0.08 });
+      hb.prism('lbg', [[XF + 0.2, SY0 - 1.0], [XF + 0.55, SY0 - 1.0], [XF + 1.15, SY0 - 0.3], [XF + 1.15, SY0], [XF + 0.2, SY0]], L, { zc: zm, c: 0.08 });
+      hb.box('black', XF + 0.9, SY1 - 0.06, zm, 0.5, 0.12, L - 0.2);
+      if (!lod) hb.box('darkRed', XF + 1.17, SY0 - 0.16, zm, 0.06, 0.2, L - 0.4);
+    }
     hb.box('lbg', XF + 0.6, MY, SZ0 - 0.45, 0.8, SY1 - SY0, 0.9);
     hb.box('lbg', XF + 0.6, MY, SZ1 + 0.45, 0.8, SY1 - SY0, 0.9);
-    for (let z = SZ0 + 2; z < SZ1 - 1; z += 4) hb.box('glowYellow', XF + 1.02, SY0 - 0.45, z, 0.06, 0.25, 0.5);
+    for (let z = SZ0 + 2; z < SZ1 - 1; z += 4) if (!inPortal(z, 0.5)) hb.box('glowYellow', XF + 1.17, SY0 - 0.6, z, 0.06, 0.25, 0.5);
     // recess ceiling lights and floor hazard band
     for (let z = SZ0 + 2; z < SZ1 - 1; z += 4) {
+      if (inPortal(z, 1.2)) continue;
       hb.push();
       hb.translate(XF - 0.9, SY1 - 0.02, z);
       hb.scale(1, -1, 1);
       flatQuad(hb, 'glowWhite', 0, 0, 0, 0.5, 2.2);
       hb.pop();
     }
-    for (let z = SZ0 + 0.5; z < SZ1; z += 1) hb.box(Math.floor(z - SZ0) % 2 ? 'yellow' : 'black', XF - 0.7, SY0 + 0.05, z + 0.5, 1.2, 0.1, 0.96, { hide: { ny: true } });
-    // pillars
-    for (const pz of pillars) {
-      hb.box('gunmetal', XB + 1.1, MY, pz, 2.2, SY1 - SY0, 1.5, { hide: { nx: true } });
-      if (!lod) for (let y = SY0 + 0.6; y < SY1 - 0.3; y += 1.1) hb.box('dbg', XB + 2.3, y, pz, 0.3, 0.5, 1.2);
-      hb.box('glowRed', XB + 2.26, SY1 - 0.5, pz, 0.12, 0.3, 0.3);
+    for (let z = SZ0 + 0.5; z < SZ1; z += 1) if (!inPortal(z + 0.5, 0.5)) hb.box(Math.floor(z - SZ0) % 2 ? 'yellow' : 'black', XF - 0.7, SY0 + 0.05, z + 0.5, 1.2, 0.1, 0.96, { hide: { ny: true } });
+    // lit viewport band above the slot and a dark-red livery band below it: the scale cues along the hangar deck
+    if (!lod) {
+      windowRow(hb, hr, XF + 0.45, 1, SZ0, SZ1, SY1 + 2.2, 0.7, 0.7, 1.1);
+      hb.box('darkRed', XF + 0.44, SY0 - PM + 0.9, zc, 0.12, 0.55, SZ1 - SZ0 + 2 * PM - 0.6);
     }
-    // bays: blast doors, and on the port side the open mouth
+    // support ribs between the bays: gunmetal core, bevelled light cap, dark-tan collars, red marker
+    for (const pz of pillars) {
+      if (inPortal(pz, 0.8)) continue;
+      hb.box('gunmetal', XB + 1.1, MY, pz, 2.2, SY1 - SY0, 1.5, { hide: { nx: true } });
+      hb.box('lbg', XB + 2.3, MY, pz, 0.4, SY1 - SY0 - 0.6, 1.1, { c: 0.12 });
+      for (const y of [SY0 + 0.45, SY1 - 0.45]) hb.box('darkTan', XB + 1.3, y, pz, 2.2, 0.5, 1.7, { c: 0.08 });
+      if (!lod) for (let y = SY0 + 1.2; y < SY1 - 0.9; y += 1.1) hb.box('dbg', XB + 2.55, y, pz, 0.2, 0.45, 0.8);
+      hb.box('glowRed', XB + 2.55, SY1 - 1.2, pz, 0.12, 0.3, 0.3);
+    }
+    // closed bays: heavy blast doors between jambs
     for (const [z0, z1] of bays) {
-      const open = side > 0 && z0 === MZ - MW / 2;
+      if (port && z0 === MZ - MW / 2) continue;
       const zm = (z0 + z1) / 2;
       const w = z1 - z0;
-      if (open) {
-        for (const sz of [z0 + 0.3, z1 - 0.3]) {
-          hb.box('gunmetal', XB + 0.3, MY, sz, 0.6, MH, 0.6);
-          hb.box('glowBlue', XB + 0.62, MY, sz, 0.06, MH - 0.4, 0.22);
-        }
-        hb.box('gunmetal', XB + 0.25, MY + MH / 2 + 0.2, zm, 0.5, 0.4, w);
-        hb.box('gunmetal', XB + 0.25, MY - MH / 2 - 0.2, zm, 0.5, 0.4, w);
-        continue;
-      }
       hb.box('dbg', XB - 0.3, MY, zm, 0.6, SY1 - SY0, w, { hide: { nx: true } });
       const ribs = lod ? 2 : 5;
       for (let i = 0; i < ribs; i++) {
@@ -661,11 +689,13 @@ export function invisibleHand(o: { lod: 0 | 1 }): InvisibleHand {
         hb.box(i % 2 ? 'gunmetal' : 'lbg', XB + 0.1, y, zm, 0.3, ((SY1 - SY0) / ribs) * 0.62, w - 0.8);
       }
       hb.box('black', XB + 0.3, MY, zm, 0.1, SY1 - SY0 - 0.4, 0.14);
+      for (const jz of [z0 + 0.35, z1 - 0.35]) if (!inPortal(jz, 0.2)) hb.box('lbg', XB + 0.45, MY, jz, 0.9, SY1 - SY0 - 0.1, 0.7, { c: 0.1 });
       if (!lod) {
         for (let z = z0 + 0.8; z < z1 - 0.6; z += 1.2) hb.box(Math.round((z - z0) / 1.2) % 2 ? 'yellow' : 'black', XB + 0.28, SY0 + 0.35, z, 0.08, 0.5, 1.1);
         for (let z = z0 + 1.2; z < z1 - 1; z += 2.4) flatQuadX(hb, 'windowWarm', XB + 0.3, SY1 - 0.45, z, 0.3, 1.1);
       }
     }
+    if (port) portal(hb, lod);
     hb.pop();
   }
 
@@ -722,11 +752,33 @@ export function invisibleHand(o: { lod: 0 | 1 }): InvisibleHand {
   } else {
     flatQuadX(room, 'glowWhite', ROOM_X + 0.03, (FY + CY) / 2, MZ, CY - FY - 1, RZ1 - RZ0 - 2);
   }
-  put(room, 'ih-hangar-room');
+  // stand-in throat, lip and apron for distant shots (the approach swaps in the real hangar set)
+  const tl = XO - XB + 0.9;
+  const tc = XO - tl / 2;
+  for (const zs of [OZ0 - 0.1, OZ1 + 0.1]) room.box('dbg', tc, (DECK_Y + TOP_Y) / 2, zs, tl, TOP_Y - DECK_Y, 0.2);
+  room.box('dbg', tc, TOP_Y + 0.1, MZ, tl, 0.2, OZ1 - OZ0 + 0.4);
+  room.box('dbg', tc, DECK_Y - 0.1, MZ, tl, 0.2, OZ1 - OZ0 + 0.4);
+  for (let x = XB - 0.3; x < XO - 0.6; x += 0.8) {
+    room.push();
+    room.translate(x, TOP_Y - 0.01, MZ);
+    room.scale(1, -1, 1);
+    flatQuad(room, 'windowWarm', 0, 0, 0, 0.2, OZ1 - OZ0 - 1.5);
+    room.pop();
+  }
+  const cheek = LIP - (OZ1 - MZ);
+  for (const s of [-1, 1]) {
+    room.box('lbg', XO - 0.175, (DECK_Y + TOP_Y + 0.65) / 2, MZ + s * (OZ1 - MZ + cheek / 2), 0.35, TOP_Y + 0.65 - DECK_Y, cheek, { c: 0.05 });
+    room.box('glowBlue', XO - 0.14, (DECK_Y + TOP_Y) / 2, MZ + s * (OZ1 - MZ - 0.1), 0.1, TOP_Y - DECK_Y - 0.4, 0.1);
+  }
+  room.box('lbg', XO - 0.175, TOP_Y + 0.325, MZ, 0.35, 0.65, 2 * LIP, { c: 0.05 });
+  room.box('dbg', XO + 0.44, DECK_Y - 0.14, MZ, 0.875, 0.28, 2 * LIP);
+  room.box('yellow', XO + 0.62, DECK_Y + 0.01, MZ, 0.22, 0.02, 2 * LIP - 0.3);
+  const proxy = put(room, 'ih-hangar-room').group;
   put(hb, 'ih-hangar-slots');
 
   /* ---- anchors ---- */
-  anchors.hangar = anchorFrom(gb, 'hangar', group, [XB, MY, MZ], [1, 0, 0], [0, 1, 0]);
+  anchors.hangar = anchorFrom(gb, 'hangar', group, [XO, MY, MZ], [1, 0, 0], [0, 1, 0]);
+  anchors.bay = anchorFrom(gb, 'bay', group, [BAY_X, BAY_Y, MZ], [1, 0, 0], [0, 1, 0]);
   anchors.bridge = anchorFrom(gb, 'bridge', group, [0, 78.5, -146], [0, 0, 1]);
   anchors.commandBridge = anchorFrom(gb, 'commandBridge', group, [0, 19.8, 136], [0, 0, 1]);
   anchors.shieldGen = anchorFrom(gb, 'shieldGen', group, [0, 25.3, -60], [0, 0, 1]);
@@ -754,13 +806,51 @@ export function invisibleHand(o: { lod: 0 | 1 }): InvisibleHand {
 
   /* ---- ray shield ---- */
   const shield = rayShield(MW * S, MH * S, { name: 'ih-ray-shield', scan: 26 });
-  shield.mesh.position.set((XB + 0.05) * S, MY * S, MZ * S);
+  shield.mesh.position.set(XO * S - 1.2, MY * S, MZ * S);
   shield.mesh.rotation.y = Math.PI / 2;
   group.add(shield.mesh);
   group.userData.animate = (t: number) => shield.update(t);
   group.userData.triangles = tris;
 
-  return { group, length: 381 * S, turrets, engineGlows, anchors, setShield: (v: number) => shield.set(v) };
+  return { group, length: 381 * S, turrets, engineGlows, anchors, setShield: (v: number) => shield.set(v), setBayProxy: (v: boolean) => void (proxy.visible = v) };
+}
+
+/**
+ * The portal around the open bay (port side), framing the hangar set's own lip: heavy bevelled
+ * pylons with docking lights, a sloped hood with downlights over the apron, and a chin fairing under
+ * the apron. It stays clear of the set (|z − MZ| > LIP, above its lip, below its apron).
+ */
+function portal(b: Builder, lod: 0 | 1): void {
+  const y0 = SY0 - 0.9;
+  const y1 = SY1 + 1.3;
+  const ym = (y0 + y1) / 2;
+  const w = PYL - LIP;
+  const L = 2 * PYL;
+  for (const s of [-1, 1]) {
+    const zc = MZ + (s * (LIP + PYL)) / 2;
+    b.box('dbg', (XB + XO) / 2, ym, zc, XO - XB, y1 - y0, w, { hide: { nx: true } });
+    b.prism('lbg', [[XO - 0.2, y0 + 0.25], [XO + 0.3, y0 + 0.25], [XO + 0.7, y0 + 0.65], [XO + 0.7, y1 - 0.65], [XO + 0.3, y1 - 0.25], [XO - 0.2, y1 - 0.25]], w - 0.25, { zc, c: 0.08 });
+    for (const y of [y0 + 0.95, y1 - 0.95]) b.box('darkTan', XO + 0.4, y, zc, 0.8, 0.5, w - 0.05, { c: 0.08 });
+    b.box('darkRed', XO + 0.72, ym, zc + s * 0.35, 0.06, (y1 - y0) * 0.42, 0.3);
+    if (!lod) for (let y = y0 + 1.6; y < y1 - 1.4; y += 0.7) b.box('glowYellow', XO + 0.73, y, zc - s * 0.4, 0.05, 0.22, 0.3);
+    b.cyl('dbg', XO + 0.1, y1 + 0.25, zc, 0.55, 0.5, { radial: 12 });
+    b.cyl('glowRed', XO + 0.1, y1 + 0.6, zc, 0.22, 0.25, { radial: 8 });
+  }
+  const hy0 = TOP_Y + 0.7;
+  b.prism('lbg', [[XB, hy0], [XO + 1.1, hy0], [XO + 1.1, hy0 + 0.35], [XO + 0.3, y1], [XB, y1]], L, { zc: MZ, c: 0.1 });
+  b.box('darkRed', XO + 1.12, hy0 + 0.17, MZ, 0.06, 0.2, L - 0.4);
+  if (!lod) {
+    for (let z = MZ - LIP + 0.8; z < MZ + LIP - 0.5; z += 1.6) {
+      b.push();
+      b.translate(XO + 0.7, hy0 - 0.01, z);
+      b.scale(1, -1, 1);
+      flatQuad(b, 'glowWhite', 0, 0, 0, 0.35, 0.9);
+      b.pop();
+    }
+  }
+  const cy1 = DECK_Y - 0.32;
+  b.prism('dbg', [[XB, y0], [XO - 0.3, y0], [XO + 0.9, cy1 - 0.3], [XO + 0.9, cy1], [XB, cy1]], L, { zc: MZ, c: 0.1 });
+  if (!lod) for (let z = MZ - LIP + 0.5; z < MZ + LIP; z += 1.3) b.box('glowYellow', XO + 0.92, cy1 - 0.15, z, 0.05, 0.14, 0.4);
 }
 
 /** Height of a section's upper surface at x. */
