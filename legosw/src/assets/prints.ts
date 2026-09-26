@@ -17,7 +17,7 @@ export const FACE_PX = FACE_H / HEAD_H;
 /** half the printed arc around the head, head units */
 export const FACE_ARC = FACE_W / FACE_PX / 2;
 
-export type Mouth = 'smile' | 'smirk' | 'grin' | 'open' | 'talk' | 'o' | 'grit' | 'frown' | 'shout' | 'flat';
+export type Mouth = 'smile' | 'smirk' | 'grin' | 'open' | 'talk' | 'o' | 'grit' | 'frown' | 'shout' | 'flat' | 'worry';
 
 export interface FaceState {
   mouth: Mouth;
@@ -157,6 +157,7 @@ function mouthGeo(m: Mouth, style: FaceStyle): MouthGeo {
     o: [0.042, -0.066, 0.05],
     grit: [0.036, -0.046, 0.15],
     shout: [0.05, -0.13, 0.146],
+    worry: [0.036, -0.092, 0.1],
   };
   const [t, b, h] = ext[m];
   return { m, y0, top: y0 + t, bottom: y0 + b, half: h, lop: style.lopsided ?? 0 };
@@ -384,6 +385,10 @@ function drawMouth(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthGeo, 
     }
     case 'talk':
       openMouth(g, L(-0.085, y0 + 0.02), L(0.085, y0 + 0.02), L(0, y0), y0 - 0.075, 0.7, 0.022, 0, 0.65, halo ? style.skin : null);
+      break;
+    case 'worry':
+      // talking while worried: the corners pulled down, the upper lip arched up in the middle
+      openMouth(g, [-0.09, y0 - 0.034], [0.09, y0 - 0.034], [0, y0 + 0.05], y0 - 0.092, 0.62, 0.02, 0, 0.55, halo ? style.skin : null);
       break;
     case 'open':
       openMouth(g, L(-0.11, y0 + 0.03), L(0.11, y0 + 0.03), L(0, y0 + 0.018), y0 - 0.13, 0.8, 0.026, 0.016, 0.7, halo ? style.skin : null);

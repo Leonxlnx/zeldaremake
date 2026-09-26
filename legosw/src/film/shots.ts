@@ -318,6 +318,10 @@ function cockpitShot(o: {
   fov: [number, number];
   aim: L3;
   key: L3;
+  /** key colour and intensity, ambient fill (environment intensity): each beat gets its own mood */
+  keyColor?: number;
+  keyI?: number;
+  fill?: number;
   schedule?: Shot['schedule'];
 }): Shot {
   return {
@@ -347,9 +351,9 @@ function cockpitShot(o: {
       const [c0, c1] = o.cam;
       const cam = local(st, lerp(c0[0], c1[0], k), lerp(c0[1], c1[1], k), lerp(c0[2], c1[2], k));
       w.aimShadow(faceC, 8);
-      w.keyLight(faceC, rot(o.key), 3.4);
-      w.scene.environmentIntensity = 0.6;
-      w.hemi.intensity = 0.3;
+      w.keyLight(faceC, rot(o.key), o.keyI ?? 3.4, o.keyColor);
+      w.scene.environmentIntensity = o.fill ?? 0.6;
+      w.hemi.intensity = 0.5 * (o.fill ?? 0.6);
       return {
         pos: cam,
         target: neck.add(rot(o.aim)),
@@ -394,9 +398,9 @@ const anakinCockpit = cockpitShot({
   lines: [{ t0: 1.0, t1: 3.4, who: 'Anakin Skywalker', text: 'This is where the fun begins.' }],
   faceAt: (t) => ({ mouth: talk(t, 1.05, 2.9, 'smirk'), brows: -0.35, squint: 0.1, lookX: -0.02 }),
   headAt: (t) => ({ yaw: -0.05 - smooth(0.4, 1.0, t) * 0.22, pitch: 0.16 - smooth(0.3, 0.9, t) * 0.2 }),
-  cam: [[1.4, 2.85, 4.0], [1.25, 2.9, 3.75]],
-  fov: [36, 31],
-  aim: [-0.6, 0.45, 0],
+  cam: [[1.4, 2.85, 4.0], [1.3, 2.9, 3.88]],
+  fov: [36, 32.5],
+  aim: [-0.6, 0.55, 0],
   key: [-0.65, 0.45, 0.6],
   schedule: cockpitLasers('anakin', 41),
 });
@@ -564,12 +568,16 @@ const obiCockpit = cockpitShot({
   dur: 3.5,
   who: 'obiwan',
   lines: [{ t0: 0.5, t1: 3.2, who: 'Obi-Wan Kenobi', text: 'Oh, I have a bad feeling about this.' }],
-  faceAt: (t) => ({ mouth: talk(t, 0.55, 2.7, 'frown'), brows: 0.85, lookX: t < 1.8 ? 0.02 : 0.01, lookY: 0.005 }),
+  // worried, not amused: brows up at the inner ends, the mouth pulled down between words, a nervous glance aside
+  faceAt: (t) => ({ mouth: talk(t, 0.55, 2.7, 'frown', ['worry', 'frown', 'worry', 'o']), brows: 1, lookX: t < 1.2 ? 0.02 : t < 1.75 ? -0.018 : 0.012, lookY: 0.005 }),
   headAt: (t) => ({ yaw: 0.3 - smooth(1.6, 2.4, t) * 0.16, pitch: 0.04 }),
   cam: [[-1.4, 2.85, 4.0], [-1.3, 2.9, 3.8]],
   fov: [34, 31],
-  aim: [0.6, 0.45, 0],
+  aim: [0.6, 0.55, 0],
   key: [0.65, 0.45, 0.6],
+  keyColor: 0xd8e4ff,
+  keyI: 2.3,
+  fill: 0.5,
   schedule: cockpitLasers('obiwan', 42),
 });
 
@@ -805,8 +813,11 @@ const obiCockpit2 = cockpitShot({
   headAt: () => ({ yaw: -0.5, pitch: 0.02 }),
   cam: [[1.35, 2.9, 3.95], [1.25, 2.9, 3.8]],
   fov: [33, 31],
-  aim: [-0.6, 0.45, 0],
+  aim: [-0.6, 0.55, 0],
   key: [-0.6, 0.45, 0.65],
+  keyColor: 0xffb48c,
+  keyI: 2.8,
+  fill: 0.45,
 });
 
 const anakinCockpit2 = cockpitShot({
@@ -817,9 +828,11 @@ const anakinCockpit2 = cockpitShot({
   faceAt: (t) => ({ mouth: talk(t, 0.25, 2.2, 'grit'), brows: -0.9, squint: 0.2, lookX: 0.03 }),
   headAt: () => ({ yaw: 0.45, pitch: 0 }),
   cam: [[-1.35, 2.85, 3.95], [-1.25, 2.9, 3.8]],
-  fov: [33, 31],
-  aim: [0.6, 0.45, 0],
+  fov: [34, 32],
+  aim: [0.6, 0.66, 0],
   key: [0.6, 0.45, 0.65],
+  keyI: 3.0,
+  fill: 0.5,
 });
 
 /* --- shot 11: Anakin blasts one droid off; R2 zaps another */

@@ -46,7 +46,7 @@ function turnaround(make: () => Minifig, face: Partial<FaceState>): Object3D {
   return g;
 }
 
-const MOUTHS: Mouth[] = ['smile', 'smirk', 'grin', 'talk', 'open', 'o', 'grit', 'shout', 'frown', 'flat'];
+const MOUTHS: Mouth[] = ['smile', 'smirk', 'grin', 'talk', 'open', 'o', 'grit', 'shout', 'frown', 'flat', 'worry'];
 /** brow / squint that the film pairs with each mouth */
 const MOOD: Record<Mouth, Partial<FaceState>> = {
   smile: { brows: 0.1 },
@@ -59,6 +59,7 @@ const MOOD: Record<Mouth, Partial<FaceState>> = {
   shout: { brows: 0.9 },
   frown: { brows: 0.85 },
   flat: { brows: 0 },
+  worry: { brows: 1 },
 };
 
 /** Every mouth shape at close range: two rows of heads. */

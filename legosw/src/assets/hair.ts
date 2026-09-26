@@ -393,9 +393,10 @@ function buildLock(L: LockSpec, sh: Shell, acc: Acc, jitter: number): void {
   const { xs, gs } = sectionXs(L.grooves ?? 2);
   const nTop = xs.length;
   const loop = nTop + BOTTOM_X.length;
+  // shallow, soft strand grooves: the lock reads as one moulded mass, the V where locks meet carries the sculpt
   const groove = (x: number) => {
     let g = 0;
-    for (const c of gs) g += Math.exp(-Math.pow((x - c) / 0.055, 2));
+    for (const c of gs) g += Math.exp(-Math.pow((x - c) / 0.075, 2));
     return g;
   };
   // ring centres
@@ -483,7 +484,7 @@ function buildLock(L: LockSpec, sh: Shell, acc: Acc, jitter: number): void {
       let e: number;
       if (top) {
         const tp = topProf(x);
-        e = layer + hh * (tp - 0.3 * groove(x) * Math.sqrt(tp));
+        e = layer + hh * (tp - 0.16 * groove(x) * Math.sqrt(tp));
         if (roll) {
           const eb = -D * Math.pow(Math.max(0, 1 - Math.pow(Math.min(1, Math.abs(x)) / 0.95, 4)), 0.25);
           e = eb + (e - eb) * rootF;
