@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -4159,9 +4159,32 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.count = mesh.userData[FULL_COUNT] as number;
     };
   };
+  /**
+   * lodFade.ts: the per-instance screen-door weight for the rung a `fillFamily` pass is writing, in the
+   * colour pass's own instance order. Lazily attached, and only while `TREE_LOD_DITHER` is on.
+   *
+   * It lives on the rung's geometry, which the white-barks' high bucket SHARES with its shadow proxy
+   * (`new InstancedMesh(w.lods[1].geometry, …)`): the proxy fills the same geometry with a different
+   * instance order, so the weight is only correct for the colour pass. The discard that reads it must
+   * therefore be colour-pass only — the depth pass keeps the outgoing rung's silhouette across the
+   * band, which for 2.5 m of walking is the right trade anyway.
+   */
+  const fadeAttribute = (mesh: InstancedMesh): InstancedBufferAttribute => {
+    const existing = mesh.geometry.getAttribute('aLodFade') as InstancedBufferAttribute | undefined;
+    if (existing) return existing;
+    const attr = new InstancedBufferAttribute(new Float32Array(mesh.instanceMatrix.count).fill(1), 1);
+    attr.setUsage(DynamicDrawUsage);
+    mesh.geometry.setAttribute('aLodFade', attr);
+    return attr;
+  };
   const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[], mainCount = list.length) => {
     const mesh = w.meshes[l];
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
+    if (TREE_LOD_DITHER) {
+      const attr = fadeAttribute(mesh);
+      for (let k = 0; k < list.length; k++) attr.setX(k, w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1);
+      attr.needsUpdate = true;
+    }
     mesh.count = list.length;
     mesh.visible = list.length > 0;
     mesh.instanceMatrix.needsUpdate = true;

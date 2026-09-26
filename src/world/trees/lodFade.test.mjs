@@ -80,3 +80,35 @@ test('a zero band is the hard cut, even with the flag on', () => {
     assert.equal(slots.length, 1, `d=${d} split with no band at all`);
   }
 });
+
+/**
+ * The plumbing half, pinned at the source: the weight attribute must be written only while the flag is
+ * on, must default to 1 for a tree with no recorded weight, and must stay out of the depth pass — the
+ * white-barks' high bucket shares its geometry with the shadow proxy, which fills the same buffers in a
+ * different instance order, so a weight read there would mask the wrong instances.
+ */
+const indexSource = readFileSync(path.join(here, 'index.ts'), 'utf8');
+
+test('the weight attribute is written only behind the flag', () => {
+  const at = indexSource.indexOf('const fillFamily');
+  assert.notEqual(at, -1, 'fillFamily is gone');
+  const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
+  assert.match(body, /if \(TREE_LOD_DITHER\) \{/, 'the attribute write must be guarded by the flag');
+  assert.match(body, /w\.lodWeights\?\.get\(l \* w\.placements\.length \+ list\[k\]\) \?\? 1/, 'a tree with no recorded weight must draw whole');
+});
+
+test('the attribute is lazily attached and marked dynamic', () => {
+  const at = indexSource.indexOf('const fadeAttribute');
+  assert.notEqual(at, -1, 'fadeAttribute is gone');
+  const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
+  assert.match(body, /getAttribute\('aLodFade'\)/, 'it must reuse an attribute it already attached');
+  assert.match(body, /new Float32Array\(mesh\.instanceMatrix\.count\)\.fill\(1\)/, 'the buffer must cover every instance slot and default to whole trees');
+  assert.match(body, /setUsage\(DynamicDrawUsage\)/, 'it is rewritten on every bucket change');
+});
+
+test('the shared-geometry constraint is recorded where the attribute is made', () => {
+  const at = indexSource.indexOf('const fadeAttribute');
+  const doc = indexSource.slice(Math.max(0, at - 1200), at);
+  assert.match(doc, /shadow proxy/i, 'the proxy sharing the medium rung geometry must stay written down here');
+  assert.match(doc, /colour pass/i, 'the discard being colour-pass only is the consequence to keep');
+});
