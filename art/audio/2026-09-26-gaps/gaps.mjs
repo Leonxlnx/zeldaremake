@@ -78,16 +78,18 @@ const ctxOf = () => ({
 const LISTENER = { x: 0, y: 1.2, z: 0 };
 const NORTH = { x: 0, z: -1 };
 
-/** every moment a leaf flutter is scheduled, over `seconds`, at a fixed gust and canopy */
-function flutterTimes(gust, canopy, seconds = 900) {
+/** every moment an event of `kind` is scheduled, over `seconds`, at a fixed gust and canopy */
+function eventTimes(kind, gust, canopy, seconds = 900) {
   const ctx = ctxOf();
   const amb = A.createAmbience(ctx, ctx.createGain(), ctx.createGain(), ctx.createGain(), createRng('gaps/bed'), 0);
+  // a fairy at arm's length, so the glint scheduler has something to answer
+  const fairies = [{ x: 0.9, y: 1.4, z: -0.6 }];
   const at = [];
   let seen = 0;
   for (let t = 0; t < seconds; t += 1 / 30) {
-    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy });
+    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy, fairies });
     amb.scheduleUntil(t + 4);
-    const n = amb.stats().flutters;
+    const n = amb.stats()[kind];
     while (seen < n) {
       at.push(t);
       seen++;
@@ -104,28 +106,51 @@ const CORNERS = [
   ['a full gust, closed crowns', 1, 1],
 ];
 
-console.log(`\nthe gaps between leaf flutters, as the scheduler makes them (the cap is ${CAP} s)\n`);
-console.log(`${'weather'.padEnd(26)} ${'gaps'.padStart(6)} ${'mean'.padStart(8)} ${'shortest'.padStart(9)} ${'longest'.padStart(8)} ${'spread'.padStart(8)} ${'at the cap'.padStart(11)}`);
-const rows = [];
-for (const [label, gust, canopy] of CORNERS) {
-  const at = flutterTimes(gust, canopy);
+/**
+ * How much a stream of events varies, as a number an ear would agree with.
+ *
+ * The coefficient of variation — the standard deviation of the gaps over their mean — is the
+ * usual one, and it has a reference point that matters here: a **Poisson process**, which is what
+ * "independent sparse events" means, has a CV of exactly **1**. A metronome has 0. Anything much
+ * under a half is something an ear can start counting.
+ */
+function spreadOf(at, burst = 0.05) {
   const gaps = [];
   for (let i = 1; i < at.length; i++) {
     const g = at[i] - at[i - 1];
-    // the scheduler fires a burst of two or three leaves for one turn-over; the gap that matters
-    // is between BURSTS, so anything inside a tick of the last one is the same event
-    if (g > 0.05) gaps.push(g);
+    // a scheduler may fire a burst for one event (two or three leaves for one turn-over, a
+    // second bird answering the first); the gap that matters is between BURSTS
+    if (g > burst) gaps.push(g);
   }
   gaps.sort((a, b) => a - b);
-  const mean = gaps.reduce((s, v) => s + v, 0) / (gaps.length || 1);
-  // the tick quantises everything to 1/30 s, so "at the cap" means within one tick of it
-  const atCap = gaps.filter((g) => g >= CAP - 1 / 30 - 1e-9).length;
-  const p10 = gaps[Math.floor(gaps.length * 0.1)] ?? 0;
-  const p90 = gaps[Math.floor(gaps.length * 0.9)] ?? 0;
-  rows.push({ label, gust, canopy, n: gaps.length, mean, min: gaps[0], max: gaps[gaps.length - 1], p10, p90, atCap });
-  console.log(`   ${label.padEnd(23)} ${String(gaps.length).padStart(6)} ${mean.toFixed(2).padStart(6)} s ${gaps[0].toFixed(2).padStart(7)} s ${gaps[gaps.length - 1].toFixed(2).padStart(6)} s ${(p90 - p10).toFixed(2).padStart(6)} s ${`${((100 * atCap) / gaps.length).toFixed(0)} %`.padStart(11)}`);
+  const n = gaps.length || 1;
+  const mean = gaps.reduce((s, v) => s + v, 0) / n;
+  const sd = Math.sqrt(gaps.reduce((s, v) => s + (v - mean) ** 2, 0) / n);
+  return { gaps, n: gaps.length, mean, sd, cv: sd / (mean || 1), min: gaps[0] ?? 0, max: gaps[gaps.length - 1] ?? 0, p10: gaps[Math.floor(n * 0.1)] ?? 0, p90: gaps[Math.floor(n * 0.9)] ?? 0 };
+}
+
+const rows = [];
+for (const [kind, burst, note] of [
+  ['flutters', 0.05, `the cap is ${CAP} s`],
+  ['birds', 2.5, 'a second bird answers the first 1.1\u20132.5 s later; that pair is one event'],
+  ['glints', 0.05, 'only sounded while a fairy is inside 4.33 m'],
+]) {
+  console.log(`\nthe gaps between ${kind}, as the scheduler makes them (${note})\n`);
+  console.log(`${'weather'.padEnd(26)} ${'gaps'.padStart(6)} ${'mean'.padStart(8)} ${'shortest'.padStart(9)} ${'longest'.padStart(8)} ${'spread'.padStart(8)} ${'variation'.padStart(10)} ${'at the cap'.padStart(11)}`);
+  for (const [label, gust, canopy] of CORNERS) {
+    const s = spreadOf(eventTimes(kind, gust, canopy), burst);
+    if (!s.n) {
+      console.log(`   ${label.padEnd(23)} ${'none'.padStart(6)}`);
+      continue;
+    }
+    const atCap = kind === 'flutters' ? s.gaps.filter((g) => g >= CAP - 1 / 30 - 1e-9).length : 0;
+    rows.push({ kind, label, gust, canopy, n: s.n, mean: s.mean, cv: s.cv, min: s.min, max: s.max, p10: s.p10, p90: s.p90, atCap });
+    const cap = kind === 'flutters' ? `${((100 * atCap) / s.n).toFixed(0)} %` : '\u2014';
+    console.log(`   ${label.padEnd(23)} ${String(s.n).padStart(6)} ${s.mean.toFixed(2).padStart(6)} s ${s.min.toFixed(2).padStart(7)} s ${s.max.toFixed(2).padStart(6)} s ${(s.p90 - s.p10).toFixed(2).padStart(6)} s ${s.cv.toFixed(2).padStart(10)} ${cap.padStart(11)}`);
+  }
 }
 console.log('\n   "spread" is the tenth to the ninetieth percentile — how much the gap actually varies.');
-console.log('   "at the cap" is how many of them the `Math.min` replaced with the same number.');
+console.log('   "variation" is the standard deviation over the mean: a Poisson process — independent');
+console.log('   sparse events, which is what a wood is — has exactly 1, and a metronome has 0.');
 fs.writeFileSync(path.join(out, 'gaps.json'), JSON.stringify({ cap: CAP, rows }, null, 1));
 console.log(`\nwrote ${path.join(out, 'gaps.json')}`);

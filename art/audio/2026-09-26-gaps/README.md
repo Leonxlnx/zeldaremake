@@ -149,18 +149,76 @@ The new guard drives 600 s of the schedule in still air and requires **nothing a
 and a tenth-to-ninetieth spread over a second. Put the `Math.min` back and it says *"74 % of the
 gaps sit at the ceiling — the cap is clipping again, not saturating"*.
 
+## The other two streams, measured the same way
+
+The leaves were one of three. `gaps.mjs` now drives all of them, and reports the **coefficient of
+variation** — the standard deviation of the gaps over their mean, which has the reference point
+that matters here: a **Poisson process**, which is what "independent sparse events" means, has a
+CV of exactly **1**, and a metronome has **0**.
+
+```
+flutters   still air, open sky        2.38 s mean   spread 1.47 s   variation 0.23
+           a full gust, closed crowns 0.74 s        spread 0.80     variation 0.40
+birds      still air, open sky        6.79 s        spread 5.93     variation 0.33
+           a full gust, closed crowns 15.68 s       spread 13.97    variation 0.31
+glints     any weather                ~2.7 s        spread ~2.1     variation 0.28
+```
+
+Neither of the other two is clipped and neither could have had the flutters' fault. What they do
+have in common with each other, and with the leaves, is that **every gap in this bed is a uniform
+draw over a bounded range** — which is why they all land near 0.3 and none near 1. A uniform draw
+over `[a, b]` has a CV of `(b − a) / (√3 (a + b))`, and the bird's 3.5–11.5 gives 0.31 to the
+second decimal.
+
+**Nothing shipped for it.** The bed is three times more regular than independent events would be,
+and there is no evidence that a CV of 0.3 is heard as regular — the case that plainly was, CV near
+zero at a clipped cap, is the one this iteration fixed. Making all three exponential is a texture
+decision across the whole bed, it would break the ceiling `QUIET_GAP_MAX` promises and the guards
+around it, and it is not a measurement away. Named with its number.
+
+## And the weather's clock does not reach the events
+
+`2026-09-26-gust` found `uGust` deterministic and repeating every 26.4 s, and left the question of
+whether that reaches anything an ear notices. The bed answers the wind dropping away with a call —
+`BIRD_ANSWERS_LULL` pulls the next one forward to 0.5–1.8 s after the lull's edge — so the calls
+had every opportunity to inherit the cycle.
+
+Driven on the world's own gust for an hour and folded modulo the cycle:
+
+```
+       cycle   calls  concentration
+      26.4 s     594          0.031   <- the gust's own
+      13.2 s     594          0.033
+      52.8 s     594          0.012
+      17.0 s     594          0.040
+      60.0 s     594          0.017
+
+   for 594 calls scattered at random the concentration is 0.034 typically and
+   0.096 at the 99th percentile — that is the line a real pile-up has to clear.
+```
+
+**The calls are no more clustered on the gust's cycle than random times are** — 0.031 against a
+null of 0.034, and inside the null at every period tried. Two reasons, both measurable: the lull
+*crossings* come every 29.9 s rather than the autocorrelation's 26.4, and only a fifth of the
+calls are lull-answers, each with 1.3 s of jitter of its own.
+
+So the wind's period stays in the level, where it is worth r = 0.126, and does not get into the
+events. A null, and the one that closes the question `-gust` opened.
+
 ## Check 5
 
-**3 → 4** at the next re-score, on this evidence: the events are sparse (the mean gap in the
-sparsest weather went up, not down), irregular (nothing at the ceiling, and the spread is seven
-times what it was), and the gaps are long enough to notice without the wood falling silent for
-longer than it did.
+**3 → 4** at the next re-score. Its three clauses are now measured true across all three streams:
+**sparse** (mean gaps 0.7 s to 15.7 s depending on the weather), **irregular** (nothing at any
+ceiling, CV 0.23–0.40, and no clustering on the weather's own clock), and **gaps long enough to
+notice** (up to 23.5 s between calls in a full gust) without the wood falling silent for longer
+than it did.
 
 ## Named, not taken
 
-- **The bird gaps have not had the same treatment.** `FAIRY_GAP` is a flat `[1.4, 4]` draw and the
-  bird scheduler is shaped by the gust; neither is clipped, so neither can have this fault, but
-  neither has been measured for regularity either. The instrument now exists and is nine lines.
+- **Every gap in the bed is a uniform draw, CV ≈ 0.3 against nature's 1.** Measured above. An
+  exponential draw is the physically right model and a one-line change per scheduler; it is not
+  made here because it is a texture decision for the whole bed, it breaks the ceiling promise,
+  and nothing measured says 0.3 is heard as regular.
 - **The 8 % shortening at the short end** could be removed with a piecewise curve that is exact
   below half the ceiling. Measured, it is worth 18 more flutters in 150 s of the quietest weather
   in the game, so it is named rather than built.
@@ -169,6 +227,7 @@ longer than it did.
 
 ```bash
 node art/audio/2026-09-26-gaps/gaps.mjs --out /tmp/gaps
+node art/audio/2026-09-26-gaps/phase.mjs --out /tmp/gaps
 node --test src/audio/ambience.test.mjs
 npm run build
 node art/audio/2026-09-25-layers/layers.mjs --dist dist --out /tmp/layers-gaps --seconds 150
