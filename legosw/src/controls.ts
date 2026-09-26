@@ -27,6 +27,9 @@ const css = `
 .lsw-controls .time { flex: none; font-variant-numeric: tabular-nums; min-width: 8.6em; }
 .lsw-controls .shot { flex: none; color: #f2c33a; min-width: 9em; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lsw-controls .build, .lsw-panel .build { color: #8d96a3; font-size: 11px; white-space: nowrap; }
+/* the build label gets its own line above the transport, so the seek bar keeps the row's width */
+.lsw-controls { flex-wrap: wrap; row-gap: 6px; }
+.lsw-controls .build { flex: 1 0 100%; order: -1; text-align: right; overflow: hidden; text-overflow: ellipsis; }
 .lsw-panel .build { margin-top: 10px; }
 @media (max-width: 760px) { .lsw-controls .build { display: none; } }
 .lsw-controls .track { position: relative; flex: 1; height: 26px; cursor: pointer; }
