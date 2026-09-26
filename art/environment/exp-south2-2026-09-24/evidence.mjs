@@ -303,12 +303,15 @@ async function walks(page, result, out) {
     for (const r of w.rows) for (const f of r.feet ?? []) {
       if (!f.stance) continue;
       gaps.push(Math.abs(f.gapM));
-      if (Math.abs(f.gapM) > foot.gapM) foot = { gapM: +Math.abs(f.gapM).toFixed(3), link: r2(r.link), air: +r.air.toFixed(3) };
+      if (Math.abs(f.gapM) > foot.gapM) foot = { gapM: +Math.abs(f.gapM).toFixed(3), shoeM: f.minShoeGapM == null ? null : +f.minShoeGapM.toFixed(3), link: r2(r.link), air: +r.air.toFixed(3) };
     }
     gaps.sort((p, q) => p - q);
+    // a sole over an edge with the rest of the shoe on the step is a straddle, not a float: the
+    // smallest gap over the boot's footprint in those frames says which
     const footOver = (t) => {
-      const at = w.rows.filter((r) => (r.feet ?? []).some((f) => f.stance && Math.abs(f.gapM) > t)).map((r) => r2(r.link));
-      return { frames: at.length, first: at.slice(0, 12) };
+      const hits = w.rows.map((r) => ({ r, over: (r.feet ?? []).filter((f) => f.stance && Math.abs(f.gapM) > t) })).filter((h) => h.over.length);
+      const shoes = hits.flatMap((h) => h.over.map((f) => f.minShoeGapM)).filter((v) => v != null);
+      return { frames: hits.length, first: hits.slice(0, 12).map((h) => r2(h.r.link)), maxShoeGapM: shoes.length ? +Math.max(...shoes).toFixed(3) : null };
     };
     // Link's height and the footsteps: every third frame's position, the character's ground there
     const trace = w.rows.filter((_, i) => i % 3 === 0).map((r) => r.link);
@@ -333,7 +336,8 @@ async function walks(page, result, out) {
     const drawn = w.rows.filter((r) => r.drawn);
     const worst = drawn.reduce((m, r) => (!m || r.calls > m.calls ? r : m), null);
     const heaviest = drawn.reduce((m, r) => (!m || r.triangles > m.triangles ? r : m), null);
-    const lowest = w.rows.reduce((m, r) => Math.min(m, r.link[1]), Infinity);
+    const lowestRow = w.rows.reduce((m, r) => (!m || r.link[1] < m.link[1] ? r : m), null);
+    const lowest = lowestRow?.link[1] ?? Infinity;
     const row = {
       name,
       reached: w.reached,
@@ -343,11 +347,12 @@ async function walks(page, result, out) {
       stuck: w.stuck,
       lengthM: +walked.toFixed(1),
       lowestGroundY: +lowest.toFixed(2),
+      lowestAt: lowestRow ? r2(lowestRow.link) : null,
       maxAirM: +Math.max(...w.rows.map((r) => r.air)).toFixed(3),
       minCameraAboveGroundM: +minAbove.toFixed(3),
       cameraPop: pop,
       cameraJump: jump,
-      soleGap: gaps.length ? { p50: +gaps[Math.floor(gaps.length / 2)].toFixed(4), p95: +gaps[Math.floor(gaps.length * 0.95)].toFixed(4), worst: foot, framesOver10cm: footOver(0.1) } : null,
+      soleGap: gaps.length ? { p50: +gaps[Math.floor(gaps.length / 2)].toFixed(4), p95: +gaps[Math.floor(gaps.length * 0.95)].toFixed(4), worst: foot, framesOver5cm: footOver(0.05), framesOver10cm: footOver(0.1) } : null,
       cameraInside: Object.fromEntries(Object.entries(inside).map(([k, v]) => [k, { frames: v.length, first: v.slice(0, 3) }])),
       drawnFrames: drawn.length,
       maxDraws: worst ? { draws: worst.calls, triangles: worst.triangles, link: worst.link.map((v) => +v.toFixed(2)), cam: worst.cam.map((v) => +v.toFixed(2)), inZone: inFarBankZone(...worst.cam) } : null,
