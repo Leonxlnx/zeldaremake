@@ -45,6 +45,9 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
   const w = new World(pipeline);
   // ?debug=1: the world, plus an optional camera override (framing sweeps) called after each shot's pose
   const debug = new URLSearchParams(location.search).get('debug') === '1';
+  // ?ca=<strength>: chromatic-aberration override for A/B tests (the film's lens default otherwise)
+  const caParam = new URLSearchParams(location.search).get('ca');
+  const caOverride = caParam === null ? null : Number(caParam);
   const dbg = window as unknown as { __LSW_WORLD__?: World; __LSW_CAM__?: (cam: Cam, shot: string, t: number, T: number) => Cam | undefined };
   if (debug) dbg.__LSW_WORLD__ = w;
   // schedule every shot's time-pure effects, plus the background slugfest
@@ -134,6 +137,7 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
       const first = pose(T);
       applyCamera(first.cam);
       Object.assign(lens, DEFAULT_LENS, first.cam.lens ?? {});
+      if (caOverride !== null) lens.ca = caOverride;
       if (first.card) {
         pipeline.renderer.setRenderTarget(null);
         pipeline.renderer.setClearColor(0x000000, 1);

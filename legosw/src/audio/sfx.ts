@@ -557,7 +557,11 @@ export function renderSfx(inp: AudioInputs, dry: Stereo, send: Stereo): SfxResul
     x.boom(T(2.55), 3, 0.35, 0.1, 10);
   });
   on('rescue', (T) => {
-    x.zap(T(2.0), 0.7, 0.3, -0.1);
+    // R2's arc (2.0-2.72 s in the picture), then the zapped droid's head pops off and its parts rattle away
+    x.zap(T(2.0), 0.72, 0.45, -0.1);
+    x.boom(T(2.65), 2, 0.3, -0.1, 8);
+    x.click(T(2.65), 0.55, -0.1, 1800, 0.06);
+    x.clatter(T(2.7), 6, 0.2, -0.15, 0.5);
     x.beeps(T(2.8), 8, 0.16, -0.1, 91);
   });
   on('hangar-approach', (T) => {
