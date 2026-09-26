@@ -192,14 +192,13 @@ export interface OfflineOptions {
    */
   mute?: AmbienceLayer[];
   /**
-   * Take the sfx bus's compressor out of the path.
+   * Take the sfx bus's output stage out of the path, so the steps arrive as the designs make them.
    *
-   * It was added because the owner said the music *"kind of still shakes whenever I run"*, and its
-   * own comment says "quiet steps pass untouched (the threshold is below a walk's peak); a run's
-   * are held". Measured on 2026-09-26 neither half of that is true — compression begins 16 dB under
-   * a walk's peak, so every step in the game is in full four-to-one. Bypassing it is the only way
-   * to ask what it is worth, and whether the complaint it answers still exists on a controller
-   * that runs at 2.2 m/s instead of 4.6.
+   * Named for the `DynamicsCompressorNode` it used to bypass, which is how it earned its keep:
+   * that node was added because the owner said the music *"kind of still shakes whenever I run"*,
+   * and bypassing it was the only way to ask what it was worth. The answer took four takes and it
+   * was "less than it costs" (`SFX_PAD_DB`), so the stage is now a plain gain and this bypasses
+   * that. The name stays because three committed evidence scripts pass it.
    */
   limiter?: boolean;
 }
