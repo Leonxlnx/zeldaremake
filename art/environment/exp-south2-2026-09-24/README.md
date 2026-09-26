@@ -84,6 +84,22 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   a log lay 6.5° past the end with a 5–13 cm strip of bare ground between them: walking off the end, Link dropped
   0.47 m into the strip and stepped back up onto the log (one stance foot 0.154 m over the ground for a frame),
   and the log hung 9 cm over the ground along its axis.
+- What Link walks on: 14 chords 0.72 m wide round the boards (1.38–2.10 m out), a disc at each of their 13 joints,
+  and over the entrance, where no railing stops him short of the boards' ends, four short chords out to 2.28 m, with
+  the west step's walk reaching 7 cm in under them. A strip just inside each end line covers the sliver the chords'
+  square ends left. Each of these was a stop on the way in after the merge's slower gait (walk 1.2 m/s):
+  - `7436dabb`: the chords' square ends left a wedge outside each joint, 5 cm wide 0.25 m out. Over the gorge and
+    beside the bridge the ground under it is a drop (the bridge's side rule refuses it), and Link stopped dead on
+    the boards at 210.7°.
+  - `1aa32afc`: the chords' walk ended at 2.10 m, the boards at 2.25 m, and the west step's walk began at
+    2.29–2.34 m. Beside the bridge the ground between is refused, and Link, walking in off the step, stood on it at
+    (5.32, 30.71) with every stride landing short of the deck: the play-test's `south-dwellings` missed its next
+    three waypoints there. The same commit's end strips took away a one-frame float at the east end (a stance shoe
+    0.115 m over the step's walk, where the chord's end fell 3 cm short of the boards' end).
+  The play-test now sweeps the gallery every 0.5° at 1.45, 1.74 and 1.95 m, at the entrance also at 2.05, 2.20
+  and 2.24 m, and 1 cm inside both end lines every 2 cm (1,683 samples, every one on the deck at its height; before `1aa32afc` three were off it, at both ends and at the entrance's edge), and walks five lines in off the west step
+  (200–220°, every 1 cm), which must never be refused, never dip below the step and rise at most 0.28 m
+  (each goes from the step's top, −0.23 to −0.27 m, straight onto the deck at −0.07 m: risers 0.16–0.20 m).
 - Use and repair: the 5 boards between the entrance's step and the door are trodden greyer and paler, their moss worn
   off; one board at 78° is a newer, browner replacement; one at ≈ 136° has lost 0.22 m of its outer end (jagged).
 - A davit over the drop: a bent pole socketed through the boards and lashed to the rail, a turned block under its tip,
@@ -103,9 +119,10 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   canonical's round-wall collision and ring trailing (`camera/follow.ts`) carry the camera round the gallery. Since
   the merge `77ed21f9` the lane's own camera cylinders and `wallSwing` (`5b8dde39`, `066144ad`) are gone and
   canonical's camera code is untouched. `follow.test.mjs` walks Link round the gallery as the play-test steers him,
-  both ways: at 1.6 and 3 m/s the camera stays 4.37–4.51 m from him with pops of 0.085–0.103 m; running at 4.6 m/s
-  it eases in to 1.40–1.65 m ahead of the wall (pops 0.135–0.168 m). In all six walks every waypoint is reached,
-  the camera stays 2.02 m or more from the hut's axis, and the wall is never between it and Link.
+  both ways, at the controller's walk and run (1.2 and 2.2 m/s since #165, `ae86c580`) and at the older 1.6, 3 and
+  4.6 m/s: from 1.2 to 3 m/s the camera stays 4.36–4.51 m from him with pops of 0.081–0.103 m; at 4.6 m/s it eases
+  in to 1.40–1.65 m ahead of the wall (pops 0.135–0.168 m). In all ten walks every waypoint is reached, the camera
+  stays 2.02 m or more from the hut's axis, and the wall is never between it and Link.
 - 59,446 triangles (its rope work 21,152 of them).
 
 ### The waystation: centre (5.12, 25.95), facing −74° (open to the path), floor y 0.22
@@ -144,6 +161,14 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   part, takes the third. Every riser is ⟨WRANGE⟩ (the single log's 0.36 m risers at the south end had one of Link's
   shoes sunk 0.17 m into it while the other hung 0.59 m over the ground). Both logs rest on stumps where they clear
   the ground (⟨WSTUMPS⟩).
+- Until `f6ba842c` Link could not get onto the floor. The upper log stood 9 cm off the boards' ends and its walk
+  stopped 16.5 cm short of the floor's, over ground 0.56 m under the floor (past the 0.55 m step guard): he
+  stepped into the gap and turned back. The play-test passed anyway, because a waypoint counted as reached within
+  0.5 m, and the floor's waypoint was within 0.5 m of the gap. Now the upper log's back edge is tucked 3.5 cm under
+  the boards' ends, its north end stops clear of the root post, and the floor's, the upper log's and the lower
+  log's walks overlap. The route's floor waypoints must be stood on at the floor's height (within 0.2 m, y
+  0.22 ± 0.06), and four lines out of the floor over both steps must stay built with no riser over 0.28 m
+  (floor 0.22 m, upper log 0.00–0.02 m, lower log −0.18 to −0.26 m: risers 0.20–0.26 m). The footsteps sound wood over both logs.
 - A pod (4.66, 1.82, 26.66) hangs from a hanger under the front plate; it lays a soft pool on the floor and out of the
   open front onto the path, never past the back or the north wall.
 - 32,956 triangles.
