@@ -485,7 +485,8 @@ const canopyUpdateFor = (parts, pool, slots = 64, keep = 0.25) => {
   const expression = ts.transpileModule(`(${initializer.getText(ast)})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   const mats = { nearCanopy: { value: Array.from({ length: slots }, () => new THREE.Vector4()) } };
   // `shownLastFrame` and NEAR_CANOPY_KEEP are the slot rank's hysteresis (index.ts byRank): the closure
-  // reads both, so the sandbox supplies them the way it supplies the caps.
+  // reads both, so the sandbox supplies them the way it supplies the caps. `farFoliage` is the giants'
+  // far-laminae batches the closure hands the slotted set to (round 54, FarFoliageBatch): none here.
   const shownLastFrame = new Set();
   const update = new Function(
     'nearCanopies',
@@ -496,8 +497,9 @@ const canopyUpdateFor = (parts, pool, slots = 64, keep = 0.25) => {
     'NEAR_CANOPY_LIMBS_MAX',
     'NEAR_CANOPY_KEEP',
     'shownLastFrame',
+    'farFoliage',
     `return ${expression}`,
-  )(parts, pool, mats, 42, slots, 12, keep, shownLastFrame);
+  )(parts, pool, mats, 42, slots, 12, keep, shownLastFrame, []);
   return { mats, update, shownLastFrame };
 };
 const canopyFixture = (item, group = 0) => ({ item, group, center: new THREE.Vector3(0, 40, 0), radius: 4, root: new THREE.Vector3(), kind: 'lobe', inM: 26, outM: 30, active: false, dist: Infinity, mesh: { visible: false } });
@@ -621,4 +623,97 @@ test('an explicit re-pose ranks canopy slots unbiased, so a capture of a pose is
   update(new THREE.Vector3(0, 41, 0), true);
   assert.equal(b.mesh.visible, true, 'reset ignores the incumbent bias');
   assert.equal(a.mesh.visible, false);
+});
+
+// Round 54 (FarFoliageBatch): the partition of a giant's geometry into its kept triangles and one
+// sub-geometry per tagged lobe group, exercised on the production closures themselves.
+const foliageSplitters = () => {
+  const file = path.join(here, 'index.ts'), ast = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+  const wanted = ['subsetGeometry', 'foldGroupOf', 'extractTaggedFoliage'];
+  const found = {};
+  const visit = node => {
+    if (ts.isVariableDeclaration(node) && wanted.includes(node.name.getText(ast))) found[node.name.getText(ast)] = node.initializer.getText(ast);
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  for (const name of wanted) assert.ok(found[name], `${name} declared in index.ts`);
+  const source = wanted.map(name => `const ${name} = ${found[name]};`).join('\n') + '\nreturn { subsetGeometry, foldGroupOf, extractTaggedFoliage };';
+  const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  return new Function('BufferGeometry', 'BufferAttribute', js)(THREE.BufferGeometry, THREE.BufferAttribute);
+};
+/** an indexed quad strip: `quads` laminae of two triangles each, aRoot.w per quad, colours = the vertex index */
+const taggedQuads = (ws) => {
+  const g = new THREE.BufferGeometry();
+  const n = ws.length * 4;
+  const pos = new Float32Array(n * 3), root = new Float32Array(n * 4), col = new Float32Array(n * 3), idx = [];
+  ws.forEach((w, q) => {
+    for (let c = 0; c < 4; c++) {
+      const v = q * 4 + c;
+      pos.set([q * 2 + (c & 1), 10 + (c >> 1), 0.5 * q], v * 3);
+      root.set([1, 2, 3, w], v * 4);
+      col.set([v / n, 0.5, 1 - v / n], v * 3);
+    }
+    idx.push(q * 4, q * 4 + 1, q * 4 + 2, q * 4 + 2, q * 4 + 1, q * 4 + 3);
+  });
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aRoot', new THREE.BufferAttribute(root, 4));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setIndex(idx);
+  return g;
+};
+const triangleKeys = (g) => {
+  const out = [];
+  const p = g.getAttribute('position');
+  for (let t = 0; t < g.index.count; t += 3) out.push([0, 1, 2].map(k => { const v = g.index.getX(t + k); return `${p.getX(v)},${p.getY(v)},${p.getZ(v)}`; }).join('|'));
+  return out.sort();
+};
+
+test('the fold group decodes as the shader does: 3 + group, a flat lobe 1000 + group + share, nothing else', () => {
+  const { foldGroupOf } = foliageSplitters();
+  assert.equal(foldGroupOf(0), -1);          // wood
+  assert.equal(foldGroupOf(1), -1);          // an ordinary leaf
+  assert.equal(foldGroupOf(1.5), -1);        // a flat leaf
+  assert.equal(foldGroupOf(2.5), -1);        // the last untagged leaf code
+  assert.equal(foldGroupOf(3), 0);
+  assert.equal(foldGroupOf(3 + 17), 17);
+  assert.equal(foldGroupOf(1000 + 4 + 0.5), 4);
+  assert.equal(foldGroupOf(1000 + 4 + 0.25), 4);
+  assert.equal(foldGroupOf(1000 + 12), 12);
+});
+
+test('a giant\'s tagged far laminae leave for one sub-geometry per lobe group; wood, ordinary leaves and mixed triangles stay', () => {
+  const { extractTaggedFoliage } = foliageSplitters();
+  // quads: wood, ordinary leaf, group 2 (×2), group 0 (flat), group 2 again, ordinary leaf
+  const g = taggedQuads([0, 1, 5, 5, 1000.5, 5, 0.75]);
+  // one triangle of the last group-2 quad gets a wood vertex: a mixed triangle, which must stay
+  g.getAttribute('aRoot').setW(5 * 4 + 3, 0);
+  const all = triangleKeys(g);
+  const asset = { geometry: g };
+  const { kept, groups } = extractTaggedFoliage(asset, 'test-giant');
+  assert.deepEqual(groups.map(p => p.group), [0, 2]);
+  const keptKeys = triangleKeys(kept), groupKeys = groups.flatMap(p => triangleKeys(p.geometry));
+  assert.deepEqual([...keptKeys, ...groupKeys].sort(), all, 'the kept and the extracted triangles partition the original');
+  assert.equal(groups[0].geometry.index.count, 6, 'the flat lobe: one quad');
+  assert.equal(groups[1].geometry.index.count, 3 * 5, 'group 2: two whole quads and the unmixed triangle of the third');
+  assert.equal(kept.index.count, 3 * (2 + 2 + 2 + 1), 'wood, two ordinary leaves, the mixed triangle');
+  // attributes travel with their vertices
+  for (const sub of [kept, ...groups.map(p => p.geometry)]) {
+    const p = sub.getAttribute('position'), c = sub.getAttribute('color'), r = sub.getAttribute('aRoot');
+    assert.equal(c.itemSize, 3);
+    assert.equal(r.itemSize, 4);
+    for (let v = 0; v < p.count; v++) {
+      assert.equal(r.getX(v), 1); assert.equal(r.getY(v), 2); assert.equal(r.getZ(v), 3);
+      assert.ok(Math.abs(c.getY(v) - 0.5) < 1e-6);
+    }
+    assert.ok(sub.boundingSphere && sub.boundingSphere.radius > 0);
+  }
+  assert.equal(groups[0].geometry.name, 'giant-far-foliage-test-giant-0');
+});
+
+test('a giant without tagged laminae keeps its geometry object', () => {
+  const { extractTaggedFoliage } = foliageSplitters();
+  const g = taggedQuads([0, 1, 1.5, 0]);
+  const out = extractTaggedFoliage({ geometry: g }, 'plain');
+  assert.equal(out.kept, g);
+  assert.deepEqual(out.groups, []);
 });
