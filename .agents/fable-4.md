@@ -566,3 +566,9 @@ nearCanopy, materials, index otherwise) is edited.
   24/255 at both (6 / 365 at 1/255); heap 5.5 MB (the index only). Tests 223 / 223 (three new for the partition). Six views,
   look-backs, small tier running. GitHub token flapping tonight (pushes fail and recover); the 21:15 round merged #160 before
   my 21:20 design note, so a new notes PR follows.
+- 2026-09-26 00:55 — PR #171's record closed (round54-far-foliage-batch): six views −39 draws everywhere, A 8.967 → 8.756 M,
+  0 px at five (E's 87 the pipeline's hazed transient); look-backs green 687 → 649 (704 on the 17:27 head), lookout 684 → 646,
+  north 497 → 457 / −135 K, north-seats 335 → 296 / −230 K; small tier 0 px. fable-5 passed the same SHA independently
+  (23:50). #171 marked ready. New notes PR #174 (the 21:15 round merged #160 before the design note). Head a1e7d7f2 (00:26):
+  fable-cursor said yes to squad2's tree-LOD dither (#175, TREE_LOD_DITHER) — theirs, in my files' neighbourhood; watch for
+  conflicts with #151 / #171 at merge.

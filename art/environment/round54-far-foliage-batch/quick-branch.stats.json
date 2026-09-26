@@ -1,0 +1,265 @@
+{
+ "local": {
+  "parts": 0,
+  "withArrays": 0,
+  "minY": null,
+  "maxY": null,
+  "scales": []
+ },
+ "rows": [
+  {
+   "name": "A_stairs",
+   "draws": 575,
+   "trisM": 8.756,
+   "objects": 3,
+   "shownBefore": 3,
+   "drawsWithout": 570,
+   "trisMWithout": 8.148,
+   "audit": {
+    "farBatches": [
+     {
+      "name": "giant-far-foliage-0-lantern-tree+north-west-near+north-west+north-east",
+      "instances": 100,
+      "vertices": 225179,
+      "indices": 562308,
+      "layout": {
+       "color": true,
+       "aWind": true
+      },
+      "folded": 6,
+      "foldedTriangles": 10896,
+      "heapBytes": 2249232,
+      "casting": true
+     },
+     {
+      "name": "giant-far-foliage-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+      "instances": 100,
+      "vertices": 173120,
+      "indices": 415488,
+      "layout": {
+       "color": false,
+       "aWind": false
+      },
+      "folded": 22,
+      "foldedTriangles": 31036,
+      "heapBytes": 1661952,
+      "casting": true
+     },
+     {
+      "name": "giant-far-foliage-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "instances": 105,
+      "vertices": 197410,
+      "indices": 473784,
+      "layout": {
+       "color": true,
+       "aWind": true
+      },
+      "folded": 33,
+      "foldedTriangles": 46208,
+      "heapBytes": 1895136,
+      "casting": true
+     }
+    ],
+    "giantWoodFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 541250
+    },
+    "farFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 791440
+    },
+    "pool": {
+     "capBytes": 268435456,
+     "poolBytes": 146291811,
+     "items": 426,
+     "resident": 379,
+     "pinned": 79,
+     "wanted": 355,
+     "pinnedBytes": 34986333,
+     "wantedBytes": 139676469,
+     "pending": 0,
+     "building": 0,
+     "built": 269,
+     "evicted": 0,
+     "syncBuilds": 63,
+     "hits": 1520,
+     "buildMsP50": 5.7,
+     "buildMsP95": 6.8,
+     "buildMsMax": 19.1,
+     "stepMsMax": 10.3,
+     "workMsMax": 1400.2,
+     "workMsTotal": 1403.1,
+     "steps": 8703,
+     "stepMsP50": 0.1,
+     "stepMsP95": 0.3,
+     "longSteps": 0,
+     "workOverBudget": 0,
+     "workMsP95": 1.4
+    },
+    "parts": 426,
+    "residentVertices": 2643297,
+    "residentMB": 139.5,
+    "batch": {
+     "instances": 302,
+     "vertices": 2265452,
+     "indices": 7469979,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 311.6,
+    "cpuByChild": {
+     "white-bark": 30.6,
+     "understory": 0.5,
+     "columns": 61.1,
+     "giants": 218.9,
+     "giant-detached-boughs": 0.4,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "plateau-lookback-south",
+   "draws": 538,
+   "trisM": 8.879,
+   "objects": 3,
+   "shownBefore": 3,
+   "drawsWithout": 532,
+   "trisMWithout": 8.227,
+   "audit": {
+    "farBatches": [
+     {
+      "name": "giant-far-foliage-0-lantern-tree+north-west-near+north-west+north-east",
+      "instances": 100,
+      "vertices": 225179,
+      "indices": 562308,
+      "layout": {
+       "color": true,
+       "aWind": true
+      },
+      "folded": 14,
+      "foldedTriangles": 38632,
+      "heapBytes": 2249232,
+      "casting": true
+     },
+     {
+      "name": "giant-far-foliage-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+      "instances": 100,
+      "vertices": 173120,
+      "indices": 415488,
+      "layout": {
+       "color": false,
+       "aWind": false
+      },
+      "folded": 36,
+      "foldedTriangles": 52828,
+      "heapBytes": 1661952,
+      "casting": true
+     },
+     {
+      "name": "giant-far-foliage-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "instances": 105,
+      "vertices": 197410,
+      "indices": 473784,
+      "layout": {
+       "color": true,
+       "aWind": true
+      },
+      "folded": 0,
+      "foldedTriangles": 0,
+      "heapBytes": 1895136,
+      "casting": true
+     }
+    ],
+    "giantWoodFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 541250
+    },
+    "farFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 784800
+    },
+    "pool": {
+     "capBytes": 268435456,
+     "poolBytes": 148710873,
+     "items": 426,
+     "resident": 384,
+     "pinned": 79,
+     "wanted": 389,
+     "pinnedBytes": 33075138,
+     "wantedBytes": 172371117,
+     "pending": 41,
+     "building": 1,
+     "built": 274,
+     "evicted": 0,
+     "syncBuilds": 63,
+     "hits": 2863,
+     "buildMsP50": 5.7,
+     "buildMsP95": 6.9,
+     "buildMsMax": 19.1,
+     "stepMsMax": 10.3,
+     "workMsMax": 1400.2,
+     "workMsTotal": 1488.5,
+     "steps": 8985,
+     "stepMsP50": 0.1,
+     "stepMsP95": 0.8,
+     "longSteps": 0,
+     "workOverBudget": 0,
+     "workMsP95": 6.1
+    },
+    "parts": 426,
+    "residentVertices": 2687846,
+    "residentMB": 141.8,
+    "batch": {
+     "instances": 307,
+     "vertices": 2310001,
+     "indices": 7610334,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 300.1,
+    "cpuByChild": {
+     "white-bark": 28.9,
+     "understory": 0.5,
+     "columns": 52.5,
+     "giants": 217.5,
+     "giant-detached-boughs": 0.4,
+     "distant": 0.2
+    }
+   }
+  }
+ ]
+}
