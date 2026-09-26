@@ -363,6 +363,24 @@ export class World {
     this.hangarLights.visible = true;
   }
 
+  /**
+   * Put the hangar set and its lights at `pos`/`quat` (fitted into the Invisible Hand's open bay for
+   * the approach), or back at the origin. Fitted, the ceiling casts shadows: the ship's one-sided
+   * hull above it does not, and the sun must stay out of the bay.
+   */
+  placeHangar(pos?: Vector3, quat?: Quaternion): void {
+    for (const o of [this.hangar.group, this.hangarLights]) {
+      if (pos) o.position.copy(pos);
+      else o.position.set(0, 0, 0);
+      if (quat) o.quaternion.copy(quat);
+      else o.quaternion.identity();
+    }
+    this.hangar.group.getObjectByName('hangar-ceiling')?.traverse((m) => {
+      const mm = m as Mesh;
+      if (mm.isMesh && !(mm.material instanceof MeshBasicMaterial) && !(mm.material as MeshBasicMaterial).transparent) mm.castShadow = !!pos;
+    });
+  }
+
   /** Point the sun's shadow frustum at a subject. */
   aimShadow(center: Vector3, radius: number, dir = SUN_DIR): void {
     this.sun.position.copy(dir).multiplyScalar(radius * 6).add(center);

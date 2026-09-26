@@ -634,6 +634,7 @@ function poseHand(w: World): void {
   h.visible = true;
   h.position.copy(HAND_POS);
   h.rotation.set(0, HAND_YAW, 0);
+  w.hand.setBayProxy(true);
 }
 
 function crawlerPoses(w: World, T: number): void {
@@ -1101,6 +1102,23 @@ const rescue: Shot = {
 
 /* --- shot 12: into the hangar */
 
+/** a smooth max(x, 0) with a knee `k` wide */
+const softplus = (x: number, k: number) => (x > 30 * k ? x : k * Math.log1p(Math.exp(x / k)));
+
+/**
+ * Obi-Wan's line into the open bay, as (out of the mouth, toward pad B, up) from the centre of the
+ * outer lip, `t` seconds into the shot: braking hard from 900 out, 32 out as the ray shield dies
+ * (2.45 s), across the lip at ≈2.8 s and still moving over the forward deck at 4 s, where the landing
+ * picks him up coming through the mouth. Anakin trails 24 back, 24 toward his own pad and 5 up.
+ */
+function approachLine(t: number): [number, number, number] {
+  const v1 = 45, k = 1.25, d0 = 900, d4 = -70;
+  const v0 = v1 + ((d0 - v1 * 4 - d4) * k) / (1 - Math.exp(-4 * k));
+  const u = t / 4;
+  return [d0 - v1 * t - ((v0 - v1) * (1 - Math.exp(-k * t))) / k, lerp(36, -12, smoother(0, 0.72, u)), lerp(62, -9, smoother(0, 0.66, u))];
+}
+const ANA_TRAIL: [number, number, number] = [24, 24, 5];
+
 const hangarApproach: Shot = {
   name: 'hangar-approach',
   blur: 2,
@@ -1113,29 +1131,48 @@ const hangarApproach: Shot = {
     const mouth = mouthA ? anchorWorld(mouthA) : HAND_POS.clone().add(v3(0, 0, -300));
     const out = mouthA ? v3(0, 0, 1).applyQuaternion(mouthA.getWorldQuaternion(new Quaternion())) : v3(0, 0, -1);
     const side = v3(0, 1, 0).cross(out).normalize();
+    const up = v3(0, 1, 0);
+    const at = (l: [number, number, number]) => mouth.clone().addScaledVector(out, l[0]).addScaledVector(side, l[1]).addScaledVector(up, l[2]);
+    // the real hangar set, fitted behind the mouth: the fighters fly into the bay the landing plays in
+    const bayA = w.hand.anchors['bay'];
+    if (bayA) {
+      w.hand.setBayProxy(false);
+      w.hangar.group.visible = true;
+      w.placeHangar(anchorWorld(bayA), bayA.getWorldQuaternion(new Quaternion()));
+      w.hangar.setShield(0);
+      w.hangarLights.visible = true;
+    }
     const shield = t < 2.0 ? 1 : t < 2.45 ? (Math.sin(t * 90) > 0 ? 0.7 : 0.12) : 0;
     w.hand.setShield(shield);
     const T0 = T - t;
-    const path = (tt: number) => {
-      const u = clamp((tt - T0) / 4, -0.2, 1.2);
-      return mouth
-        .clone()
-        .add(out.clone().multiplyScalar(lerp(950, -70, smoother(0, 1, u))))
-        .add(side.clone().multiplyScalar(lerp(60, 0, smoother(0, 0.85, u))))
-        .add(v3(0, lerp(90, -2, smoother(0, 0.85, u)), 0));
+    const obiL = (tt: number) => approachLine(tt - T0);
+    const anaL = (tt: number): [number, number, number] => {
+      const l = obiL(tt);
+      return [l[0] + ANA_TRAIL[0], l[1] + ANA_TRAIL[1], l[2] + ANA_TRAIL[2]];
     };
-    const a = flight(path, T, { bank: 0.8 });
-    const o = flight((tt) => path(tt).add(out.clone().multiplyScalar(20)).add(side.clone().multiplyScalar(22)).add(v3(0, 4, 0)), T, { bank: 0.8 });
-    fly(w, w.anakinShip, a, 0.3);
+    const o = flight((tt) => at(obiL(tt)), T, { bank: 0.8 });
+    const a = flight((tt) => at(anaL(tt)), T, { bank: 0.8 });
     fly(w, w.obiwanShip, o, 0.3);
+    fly(w, w.anakinShip, a, 0.3);
     w.r4.head.visible = false;
     survivorsOn(w, o, T);
-    // chase at a fixed distance, but stop at the mouth: the fighters fly on into the bay
-    const outDist = a.pos.clone().sub(mouth).dot(out);
-    const camOut = Math.max(outDist + 58, 26);
-    const camPos = mouth.clone().add(out.clone().multiplyScalar(camOut)).add(side.clone().multiplyScalar(lerp(60, 0, smoother(0, 0.85, t / 4)) - 10)).add(v3(0, a.pos.y - mouth.y + 15, 0)).add(shake(t, 0.35, 1.2, 23));
-    const look = a.pos.clone().add(out.clone().multiplyScalar(-160)).add(v3(0, 4, 0));
-    w.aimShadow(a.pos, 50);
+    const u = t / 4;
+    const al = anaL(T);
+    // chase Anakin 52 back, easing to a stop 44 out from the lip; settle on the mouth's axis a little above the fighters
+    const camOut = 44 + softplus(al[0] + 52 - 44, 14);
+    const camSide = lerp(50, 4, smoother(0.05, 0.85, u));
+    const camUp = lerp(al[2] + 13, 3, smoother(0.5, 0.9, u));
+    const camPos = at([camOut, camSide, camUp]).add(shake(t, 0.35 * (1 - 0.6 * smooth(2.8, 3.6, t)), 1.2, 23));
+    const mid = a.pos.clone().lerp(o.pos, 0.5);
+    const look = mid.clone().addScaledVector(out, -160).addScaledVector(up, 2).lerp(at([-110, -2, -7]), smooth(0.5, 0.92, u));
+    // warm spill from the open bay onto the fighters as they close on it, steep enough that the glossy deck never mirrors it into the lens
+    w.keyLight(mid, out.clone().multiplyScalar(-0.35).add(up), 2.2 * smooth(0.3, 0.72, u), 0xffc48a);
+    // one frustum around the fighters and the whole bay (whose ceiling keeps the sun off the deck), tightening as they close
+    const bayC = at([-72, 0, 2]);
+    const rb = 135;
+    const dF = mid.distanceTo(bayC);
+    const r = Math.max(rb, (dF + rb + 16) / 2);
+    w.aimShadow(dF > 1e-3 ? bayC.clone().lerp(mid, (r - rb) / dF) : bayC, r);
     return { pos: camPos, target: look, fov: 36, lens: { exposure: 1.05 } };
   },
 };
@@ -1143,10 +1180,8 @@ const hangarApproach: Shot = {
 /* --- hangar interior: crash landing, then the droids */
 
 function hangarSpots(w: World) {
-  const g = w.hangar.group;
-  g.visible = true;
-  g.position.set(0, 0, 0);
-  g.rotation.set(0, 0, 0);
+  w.hangar.group.visible = true;
+  w.placeHangar();
   const A = w.hangar.anchors['landingA'] ? anchorWorld(w.hangar.anchors['landingA']) : v3(-30, 0, 0);
   const B = w.hangar.anchors['landingB'] ? anchorWorld(w.hangar.anchors['landingB']) : v3(30, 0, 0);
   const M = w.hangar.anchors['mouth'] ? anchorWorld(w.hangar.anchors['mouth']) : v3(0, 18, 70);
