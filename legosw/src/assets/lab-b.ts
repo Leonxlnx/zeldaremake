@@ -39,6 +39,13 @@ export const LAB_B: Record<string, () => Object3D> = {
   'venator-neck': () => venatorSpot(0, 0, 37, -168, 12),
   'venator-bridge-under': () => venatorSpot(0, 14, 50, -165, 12),
   'venator-engines': () => venatorSpot(0, 30, -14, -200, 30),
+  // stern dressing (rear window bands over the engine housing), housing roof, a medium turret
+  'venator-rear': () => venatorSpot(0, 0, 12, -186, 36),
+  'venator-housing': () => venatorSpot(0, 20, 3, -191, 16),
+  'venator-medium': () => {
+    const [x, z] = VENATOR_DIMS.mediumXZ[1];
+    return venatorSpot(0, x, VENATOR_DIMS.dorsalY(x, z) + 1.5, z, 5);
+  },
   'venator-lod1-stern': () => venatorSpot(1, 0, 5, -150, 110),
   'venator-lod1-port': () => venatorSpot(1, rimX(-100), 5, -100, 45),
   'venator-lod2-port': () => venatorSpot(2, rimX(-100), 5, -100, 45),

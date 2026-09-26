@@ -2871,4 +2871,15 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
   return { group, length: (ZT - (ZS - 14.6)) * S, turrets, engineGlows, anchors };
 }
 
-export const VENATOR_DIMS = { scale: S, bowZ: ZT, sternZ: ZS, dorsalY, tz };
+export const VENATOR_DIMS = {
+  scale: S,
+  bowZ: ZT,
+  sternZ: ZS,
+  dorsalY,
+  tz,
+  /** port medium turret stations (x, z) in studs */
+  mediumXZ: MEDIUM_L.map(([u, v]) => {
+    const w = toWorld(FD, u, v);
+    return [w.x, w.z] as P2;
+  }),
+};
