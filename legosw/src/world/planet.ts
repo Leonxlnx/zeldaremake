@@ -1,147 +1,290 @@
-import { AdditiveBlending, Color, FrontSide, Group, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
+import {
+  AddEquation,
+  BackSide,
+  BufferGeometry,
+  type Camera,
+  CustomBlending,
+  Float32BufferAttribute,
+  Group,
+  Mesh,
+  OneFactor,
+  OneMinusSrcAlphaFactor,
+  ShaderMaterial,
+  SphereGeometry,
+  Vector2,
+  Vector3,
+  Vector4,
+  type WebGLRenderer,
+} from 'three';
+import { bakePlanet } from './planet-data';
+import { ATMO_GLSL, ATMO_TOP, COMMON_GLSL, LOT, UNIFORMS_GLSL } from './planet-glsl';
+import { CAP_VERT, NEAR_PX, SURFACE_FRAG, SURFACE_VERT } from './planet-surface';
+import { makeTowers } from './planet-towers';
+
+/** Largest angular radius (radians from the camera's nadir) the proxy cap may need: its horizon from afar. */
+const CAP_MAX = 1.5;
+/** The silhouette band: from this far inside the horizon to this far past it (radians). */
+const SIL_IN = 0.06;
+const SIL_OUT = 0.03;
+/** Longitudes round the cap: chords at the horizon sag under the proxy's 8-stud lift for every camera over the fleet. */
+const CAP_LON = 192;
 
 /**
- * Coruscant from low orbit: a planet-wide city. The surface shader works in the local tangent
- * plane under the fleet (the visible cap is small), with district-rotated street grids at three
- * scales, block rooftops and towers, amber street-light networks on the night side, a warm
- * terminator, high cloud wisps, altitude-aware aerial haze and a thin glowing atmosphere shell.
- * Every scale fades out by its pixel footprint, so nothing aliases at the horizon.
+ * Grids for CAP_VERT, one per [zone, latitude steps]; triangles face away from the planet. The proxy is only
+ * a carrier for per-pixel ray casts, and a CPU rasteriser shades every 2×2 quad a triangle edge crosses once
+ * per triangle, so the steps are as coarse as the silhouette band's sag allows: thin screen-space slivers
+ * would shade much of the ground twice.
+ */
+function capGrid(zones: [number, number][]): BufferGeometry {
+  const p: number[] = [];
+  const idx: number[] = [];
+  for (const [zone, nLat] of zones) {
+    const v0 = p.length / 3;
+    for (let i = 0; i <= nLat; i++) for (let j = 0; j <= CAP_LON; j++) p.push(i / nLat, (j / CAP_LON) * Math.PI * 2, zone);
+    for (let i = 0; i < nLat; i++) {
+      for (let j = 0; j < CAP_LON; j++) {
+        const a = v0 + i * (CAP_LON + 1) + j;
+        const c = a + CAP_LON + 1;
+        idx.push(a, c, a + 1, a + 1, c, c + 1);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(p, 3));
+  g.setIndex(idx);
+  return g;
+}
+
+const FIT_NX = 48;
+const FIT_NY = 28;
+const fitTh = new Float64Array(FIT_NX * FIT_NY);
+const fitFp = new Float64Array(FIT_NX * FIT_NY);
+
+/**
+ * The near field's zones for this frame, as angular radii from the camera's nadir: out.x, inside which
+ * every pixel's near-field weight is ~1 (the far field is not needed), and out.y, outside which it is 0.
+ * The shader's footprint max(|dg/dx|, |dg/dy|) is evaluated exactly on a grid of screen samples (edges
+ * and corners included), and each radius is pushed past the neighbours of every sample near its threshold,
+ * so nothing between the samples can land on the wrong side. A footprint only changes slowly across a
+ * sample spacing.
+ */
+function fitZones(R: number, C: Vector3, camera: Camera, vw: number, vh: number, out: Vector2): void {
+  const P = camera.projectionMatrix.elements;
+  const M = camera.matrixWorld.elements;
+  const ox = M[12] - C.x;
+  const oy = M[13] - C.y;
+  const oz = M[14] - C.z;
+  const oo = ox * ox + oy * oy + oz * oz;
+  if (P[11] === 0 || oo <= R * R) {
+    out.set(0, CAP_MAX);
+    return;
+  }
+  const ol = Math.sqrt(oo);
+  const cc = oo - R * R;
+  const sx = Math.hypot(M[0], M[1], M[2]);
+  const sy = Math.hypot(M[4], M[5], M[6]);
+  const sz = Math.hypot(M[8], M[9], M[10]);
+  // ground point of the ray through NDC (x, y): its grid position (u, v) and angle from the nadir, or false
+  let u = 0;
+  let v = 0;
+  let th = 0;
+  const hit = (x: number, y: number): boolean => {
+    const cx = (x + P[8]) / P[0];
+    const cy = (y + P[9]) / P[5];
+    let dx = (M[0] / sx) * cx + (M[4] / sy) * cy - M[8] / sz;
+    let dy = (M[1] / sx) * cx + (M[5] / sy) * cy - M[9] / sz;
+    let dz = (M[2] / sx) * cx + (M[6] / sy) * cy - M[10] / sz;
+    const dl = Math.hypot(dx, dy, dz);
+    dx /= dl;
+    dy /= dl;
+    dz /= dl;
+    const b = ox * dx + oy * dy + oz * dz;
+    const disc = b * b - cc;
+    if (b >= 0 || disc < 0) return false;
+    const t = -b - Math.sqrt(disc);
+    const nx = (ox + dx * t) / R;
+    const ny = (oy + dy * t) / R;
+    const nz = (oz + dz * t) / R;
+    u = nx * R;
+    v = nz * R;
+    th = Math.acos(Math.min(1, (nx * ox + ny * oy + nz * oz) / ol));
+    return true;
+  };
+  const px = 2 / vw;
+  const py = 2 / vh;
+  for (let j = 0; j < FIT_NY; j++) {
+    for (let i = 0; i < FIT_NX; i++) {
+      const k = j * FIT_NX + i;
+      const x = -1 + (2 * i) / (FIT_NX - 1);
+      const y = -1 + (2 * j) / (FIT_NY - 1);
+      fitTh[k] = NaN;
+      fitFp[k] = Infinity;
+      if (!hit(x, y)) continue;
+      const u0 = u;
+      const v0 = v;
+      fitTh[k] = th;
+      if (!hit(x + px, y)) continue;
+      const fx = Math.hypot(u - u0, v - v0);
+      if (!hit(x, y + py)) continue;
+      fitFp[k] = Math.max(fx, Math.hypot(u - u0, v - v0));
+    }
+  }
+  // kDet = smoothstep(NEAR_PX / 2, NEAR_PX, LOT / footprint): > 0 below limOut, > 0.995 below LOT / 7.84
+  const limOut = (LOT / (NEAR_PX / 2)) * 1.2;
+  const limIn = (LOT / NEAR_PX) * 0.88;
+  let outer = 0;
+  let inner = Infinity;
+  for (let j = 0; j < FIT_NY; j++) {
+    for (let i = 0; i < FIT_NX; i++) {
+      const k = j * FIT_NX + i;
+      if (Number.isNaN(fitTh[k])) continue;
+      const isOut = fitFp[k] < limOut;
+      const isIn = fitFp[k] > limIn;
+      if (!isOut && !isIn) continue;
+      for (let b = Math.max(0, j - 1); b <= Math.min(FIT_NY - 1, j + 1); b++) {
+        for (let a = Math.max(0, i - 1); a <= Math.min(FIT_NX - 1, i + 1); a++) {
+          const t = fitTh[b * FIT_NX + a];
+          if (Number.isNaN(t)) {
+            // the near field reaches the horizon
+            if (isOut) outer = Infinity;
+            continue;
+          }
+          if (isOut) outer = Math.max(outer, t);
+          if (isIn) inner = Math.min(inner, t);
+        }
+      }
+    }
+  }
+  outer = Math.min(CAP_MAX, outer * 1.02 + 1e-4);
+  out.set(Math.min(inner * 0.98, outer), outer);
+}
+
+/**
+ * Coruscant from low orbit: a planet-wide LEGO city at dusk.
+ *
+ * - `surface`: a proxy cap just outside the planet sphere whose fragments trace the exact view ray
+ *   through a painted city (lots with facades, roofs, streets, canyon shadows) near the camera and
+ *   a filtered statistical average of the same city further out, with baked mega-tower and cloud
+ *   shadows, air-traffic lanes, city lights that come on through the terminator, a parallax cloud
+ *   deck and Chapman-function aerial perspective.
+ * - `towers`: brick-built mega-towers as real geometry rising out of the painted city, lit, shadowed
+ *   and hazed like the ground.
+ * - `atmo`: a back-facing shell that paints the limb and sky glow with the same atmosphere model,
+ *   so the horizon is seamless (no floating ring).
+ *
+ * Every detail scale is filtered by its pixel footprint, so nothing shimmers under camera motion.
+ * Mega-tower shadows are baked for the construction-time sun; `setSun` only relights.
  */
 export interface PlanetHandle {
   group: Group;
+  /** the ground where the ray-cast city blends into the far field */
   surface: ShaderMaterial;
+  /** the ground under the camera, all ray-cast city */
+  surfaceNear: ShaderMaterial;
+  /** the ground beyond the ray-cast city (far field only) */
+  surfaceFar: ShaderMaterial;
   atmo: ShaderMaterial;
+  towers: ShaderMaterial;
   setSun(dir: Vector3): void;
 }
-
-const CITY = /* glsl */ `
-float h2(vec2 p){ p = fract(p * vec2(0.1031, 0.1030)); p += dot(p, p.yx + 33.33); return fract((p.x + p.y) * p.x); }
-float vn(vec2 x){ vec2 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
-  return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
-float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a * vn(p); p = mat2(1.6, 1.2, -1.2, 1.6) * p + 7.3; a *= 0.5; } return s; }
-mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
-// distance to the nearest grid line of spacing S (in the same units as x)
-float gridD(vec2 x, float S){ vec2 g = abs(fract(x / S) - 0.5) * S; return min(g.x, g.y); }
-`;
 
 export function makeCoruscant(o: { radius: number; center: Vector3; sunDir: Vector3 }): PlanetHandle {
   const R = o.radius;
   const group = new Group();
   group.name = 'coruscant';
   group.position.copy(o.center);
-  const surface = new ShaderMaterial({
-    uniforms: {
-      sunDir: { value: o.sunDir.clone().normalize() },
-      center: { value: o.center.clone() },
-      R: { value: R },
-    },
-    vertexShader: /* glsl */ `
-      varying vec3 vWorld; varying vec3 vN;
-      void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }`,
-    fragmentShader: /* glsl */ `
-      uniform vec3 sunDir; uniform vec3 center; uniform float R;
-      varying vec3 vWorld; varying vec3 vN;
-      ${CITY}
-      void main(){
-        vec3 n = normalize(vN);
-        vec3 v = normalize(cameraPosition - vWorld);
-        float ndl = dot(n, sunDir);
-        // tangent-plane coordinates (the fleet sits over the planet's north pole)
-        vec2 p = (vWorld - center).xz;
-        float px = max(length(fwidth(p)), 1e-3);
-        // districts: large tone patches, each with its own street-grid orientation
-        vec2 dc = floor(p / 5200.0);
-        float dh = h2(dc);
-        vec2 pr = rot(dh * 3.14159) * p;
-        float big = fbm(p / 14000.0);
-        float mid = fbm(p / 3100.0 + 9.1);
-        // three street scales with pixel-footprint fades
-        float f1 = 1.0 - smoothstep(0.08, 0.35, px / 900.0);
-        float f2 = 1.0 - smoothstep(0.08, 0.35, px / 220.0);
-        float f3 = 1.0 - smoothstep(0.08, 0.35, px / 60.0);
-        float S1 = 650.0 + 700.0 * fract(dh * 7.13);
-        float S2 = 170.0 + 110.0 * fract(dh * 3.71);
-        float s1 = (1.0 - smoothstep(7.0, 7.0 + px * 1.5, gridD(pr + dh * 400.0, S1))) * f1;
-        float s2 = (1.0 - smoothstep(2.4, 2.4 + px * 1.5, gridD(pr + 37.0, S2))) * f2;
-        float s3 = (1.0 - smoothstep(0.8, 0.8 + px * 1.5, gridD(pr + 11.0, 60.0))) * f3;
-        float streets = max(s1 * 0.18, max(s2 * 0.45, s3 * 0.4));
-        // rooftops: per-block albedo, towers, plazas
-        float roof1 = h2(floor(pr / 220.0) + 3.0);
-        float roof2 = h2(floor(pr / 60.0) + 7.0);
-        float roof = mix(0.5, roof1, f2 * 0.42);
-        roof = mix(roof, roof * 0.7 + roof2 * 0.3, f3 * 0.8);
-        roof = mix(roof, vn(pr / 90.0 + 5.0), 0.35 * f3);
-        vec3 tone = dh < 0.3 ? vec3(0.95, 1.0, 1.1) : dh < 0.55 ? vec3(1.12, 1.02, 0.88) : dh < 0.8 ? vec3(0.85, 0.85, 0.88) : vec3(1.15, 0.92, 0.78);
-        vec3 alb = mix(vec3(0.13, 0.14, 0.16), vec3(0.3, 0.29, 0.27), roof) * tone;
-        alb = mix(alb, alb * vec3(0.78, 0.86, 1.05), smoothstep(0.4, 0.75, big));
-        alb = mix(alb, alb * vec3(1.12, 0.98, 0.84), smoothstep(0.5, 0.85, mid) * 0.8);
-        float dark = smoothstep(0.52, 0.7, fbm(p / 5200.0 + 2.0));
-        alb *= (0.6 + 0.7 * big) * (1.0 - dark * 0.45);
-        alb *= 1.0 - streets * 0.45;
-        // lighting
-        vec3 sun = vec3(1.0, 0.84, 0.66) * 1.9;
-        vec3 col = alb * (sun * max(ndl, 0.0) + vec3(0.035, 0.05, 0.09));
-        // sun glints off tower glass on the day side
-        float glint = step(0.985, h2(floor(pr / 45.0) + 9.3)) * f3 * smoothstep(0.02, 0.2, ndl);
-        col += vec3(1.0, 0.9, 0.75) * glint * 0.6;
-        col += vec3(0.5, 0.2, 0.06) * exp(-pow(ndl * 10.0, 2.0)) * 0.35 * (alb + 0.1);
-        // night: street-light networks + scattered lit towers
-        float night = 1.0 - smoothstep(-0.12, 0.06, ndl);
-        float cluster = smoothstep(0.35, 0.75, mid * 0.6 + big * 0.5);
-        float spark = step(0.93, h2(floor(pr / 60.0) + 1.7)) * f3 + step(0.9, h2(floor(pr / 220.0) + 5.1)) * f2 * 0.6;
-        float lights = (s1 * 1.4 + s2 * 0.9 + s3 * 0.45) * (0.35 + cluster) + spark * (0.4 + cluster);
-        lights += (1.0 - f2) * (0.08 + cluster * 0.35) + (1.0 - f1) * 0.12 * cluster;
-        col += vec3(1.0, 0.6, 0.26) * lights * night * 1.25;
-        // clouds (day side bright, night side dark, they hide the lights)
-        float cl = smoothstep(0.64, 0.84, fbm(p / 8000.0 + vec2(3.3, 1.1)) * 0.8 + fbm(p / 2100.0) * 0.3);
-        vec3 cloudLit = vec3(1.0, 0.95, 0.9) * (max(ndl, 0.0) * 1.5 + 0.02);
-        col = mix(col, cloudLit, cl * 0.55);
-        // aerial haze: optical depth grows as the view grazes the surface
-        float mu = max(dot(n, v), 0.02);
-        float haze = 1.0 - exp(-0.05 / mu);
-        vec3 hazeCol = mix(vec3(0.015, 0.022, 0.05), vec3(0.26, 0.4, 0.72), smoothstep(-0.15, 0.35, ndl));
-        hazeCol += vec3(0.6, 0.25, 0.08) * exp(-pow(ndl * 6.0, 2.0)) * 0.6;
-        col = mix(col, hazeCol, haze);
-        gl_FragColor = vec4(col, 1.0);
-      }`,
-  });
-  const surf = new Mesh(new SphereGeometry(R, 512, 256), surface);
-  surf.frustumCulled = false;
-  group.add(surf);
+  const sun = o.sunDir.clone().normalize();
+  const data = bakePlanet(R, sun);
+  const shared = {
+    center: { value: o.center.clone() },
+    R: { value: R },
+    sunDir: { value: sun },
+    districtTex: { value: data.district },
+    paletteTex: { value: data.palette },
+    farWall: { value: data.farWall },
+    farRoof: { value: data.farRoof },
+    shadeTex: { value: data.shade },
+    cloudTex: { value: data.cloud },
+  };
+
+  // The ground is a proxy cap centred under the camera, in zones: a disc where the ray-cast near field covers
+  // every pixel, a ring where it blends into the far field, and beyond that the far field alone (its last
+  // band, round the horizon, finer so the cap's silhouette stays outside the planet's). Each field runs its own
+  // build of the same shader (a CPU rasteriser pays for every branch on every pixel); at each common edge the
+  // dropped field's weight is zero (to 0.5%), so the zones meet without a seam.
+  const capTh = { value: new Vector4(0.1, 0.2, 0.3, 0.4) };
+  const zone = (defines: Record<string, number>) =>
+    new ShaderMaterial({ defines, uniforms: { ...shared, capTh }, vertexShader: CAP_VERT, fragmentShader: SURFACE_FRAG });
+  const surfaceNear = zone({ NEAR_ONLY: 1 });
+  const surface = zone({});
+  const surfaceFar = zone({ FAR_ONLY: 1 });
+  const vp = new Vector4();
+  const th = new Vector2();
+  const cam = new Vector3();
+  const edges = new Vector4();
+  const fitCap = (renderer: WebGLRenderer, camera: Camera) => {
+    renderer.getCurrentViewport(vp);
+    fitZones(R, o.center, camera, Math.max(vp.z, 1), Math.max(vp.w, 1), th);
+    const d = cam.setFromMatrixPosition(camera.matrixWorld).distanceTo(o.center);
+    const hor = d > R ? Math.acos(R / d) : CAP_MAX;
+    const end = Math.min(CAP_MAX, hor + SIL_OUT);
+    const far = Math.min(end, th.y);
+    edges.set(Math.min(th.x, far), far, Math.min(end, Math.max(far, hor - SIL_IN)), end);
+    if (!edges.equals(capTh.value)) {
+      capTh.value.copy(edges);
+      for (const m of [surfaceNear, surface, surfaceFar]) m.uniformsNeedUpdate = true;
+    }
+  };
+  const meshes: [ShaderMaterial, [number, number][]][] = [
+    [surfaceNear, [[0, 3]]],
+    [surface, [[1, 4]]],
+    [surfaceFar, [[2, 5], [3, 6]]],
+  ];
+  for (const [mat, zones] of meshes) {
+    const m = new Mesh(capGrid(zones), mat);
+    m.frustumCulled = false;
+    // drawn after the ships and towers so early depth rejects the expensive city pixels they cover
+    m.renderOrder = 10;
+    m.onBeforeRender = (renderer, _scene, camera) => fitCap(renderer, camera);
+    group.add(m);
+  }
+  const towers = makeTowers(data.towers, R, shared);
+  group.add(towers.group);
 
   const atmo = new ShaderMaterial({
     transparent: true,
     depthWrite: false,
-    blending: AdditiveBlending,
-    side: FrontSide,
-    uniforms: { sunDir: { value: o.sunDir.clone().normalize() }, color: { value: new Color(0.3, 0.55, 1.0) } },
-    vertexShader: /* glsl */ `
-      varying vec3 vWorld; varying vec3 vN;
-      void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }`,
+    side: BackSide,
+    blending: CustomBlending,
+    blendEquation: AddEquation,
+    blendSrc: OneFactor,
+    blendDst: OneMinusSrcAlphaFactor,
+    uniforms: shared,
+    vertexShader: SURFACE_VERT,
     fragmentShader: /* glsl */ `
-      uniform vec3 sunDir; uniform vec3 color; varying vec3 vWorld; varying vec3 vN;
-      void main(){
-        vec3 n = normalize(vN); vec3 v = normalize(cameraPosition - vWorld);
-        float mu = clamp(dot(n, v), 0.0, 1.0);
-        float rim = pow(1.0 - mu, 14.0);
-        float ndl = dot(n, sunDir);
-        float lit = smoothstep(-0.3, 0.25, ndl);
-        vec3 c = color * rim * (0.05 + 0.9 * lit);
-        c += vec3(1.0, 0.42, 0.15) * rim * exp(-pow(ndl * 5.0, 2.0)) * 0.5;
-        gl_FragColor = vec4(c, 1.0);
+      ${UNIFORMS_GLSL}
+      ${COMMON_GLSL}
+      ${ATMO_GLSL}
+      varying vec3 vWorld;
+      void main() {
+        gl_FragColor = limb(cameraPosition, normalize(vWorld - cameraPosition));
       }`,
   });
-  const shell = new Mesh(new SphereGeometry(R * 1.012, 384, 192), atmo);
+  const shell = new Mesh(new SphereGeometry(R + ATMO_TOP, 160, 80), atmo);
   shell.frustumCulled = false;
+  // before the other transparents: it composites over the backdrop, effects stay on top of it
+  shell.renderOrder = -1;
   group.add(shell);
 
   return {
     group,
     surface,
+    surfaceNear,
+    surfaceFar,
     atmo,
+    towers: towers.material,
     setSun(dir: Vector3) {
-      surface.uniforms.sunDir.value.copy(dir).normalize();
-      atmo.uniforms.sunDir.value.copy(dir).normalize();
+      sun.copy(dir).normalize();
     },
   };
 }
