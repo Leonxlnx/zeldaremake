@@ -153,8 +153,11 @@ export const GORGE_DAMP = 0.45;
  * The target is physics. A boot's direct sound reaches the ear about 1.7 m away; a wall 5 m off
  * returns it over 10 m, which is 15.4 dB of spreading loss and almost nothing absorbed, and the
  * floor 8.8 m down returns it over 17.6 m. Summed, the first-order field is about **12.6 dB under
- * the direct**, and higher orders add little because the fourth wall is the sky. This sits just
- * under that at −14 dB, which is an answer a player can hear without the bridge becoming a cave.
+ * the direct**, and higher orders add little because the fourth wall is the sky.
+ *
+ * At 1.5 the ravine answers an isolated boot **12.8 dB under it**, which is that figure and not a
+ * taste. For scale the hut's plank box sits at 10.9 dB under, and it should be the louder of the
+ * two: six surfaces two metres off against two walls at five and a roof made of sky.
  */
 export const GORGE_RETURN = 1.5;
 

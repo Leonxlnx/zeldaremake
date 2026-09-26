@@ -86,7 +86,12 @@ a = ap.parse_args()
 
 off, rate = read(os.path.join(a.takes, f'{a.tag}-gorge0.wav'))
 on, _ = read(os.path.join(a.takes, f'{a.tag}-gorge1.wav'))
-ship, _ = read(os.path.join(a.takes, f'{a.tag}-shipped.wav'))
+# The `shipped` take was added to this script after the "before" pair was rendered. On the before
+# it would have been the same file as `gorge0` to the last bit, because nothing read the term at
+# all — which is the whole finding — so its absence is handled rather than faked.
+ship_path = os.path.join(a.takes, f'{a.tag}-shipped.wav')
+have_ship = os.path.exists(ship_path)
+ship = read(ship_path)[0] if have_ship else off
 n = min(len(off), len(on), len(ship))
 off, on, ship = off[:n], on[:n], ship[:n]
 
@@ -97,12 +102,15 @@ rel = db(np.sqrt((d**2).mean())) - db(np.sqrt((o**2).mean()))
 print(f'   on the bridge   {rel:>8.1f} dB under the take   ' + ('the render floor: the boots do not know' if rel < -80 else 'the ravine'))
 
 print('\n2. does it stay where the cut is (the shipped term, leg by leg)\n')
-print(f"{'':22} {'shipped minus no-ravine':>25}")
-for label, t0, t1 in LEGS:
-    o = cut(off, rate, t0, t1)
-    d = cut(ship - off, rate, t0, t1)
-    r = db(np.sqrt((d**2).mean())) - db(np.sqrt((o**2).mean()))
-    print(f'   {label:22} {r:>17.1f} dB   ' + ('unchanged' if r < -80 else 'the ravine'))
+if not have_ship:
+    print('   no `shipped` take here — it postdates this pair, and on it nothing read the term')
+else:
+    print(f"{'':22} {'shipped minus no-ravine':>25}")
+    for label, t0, t1 in LEGS:
+        o = cut(off, rate, t0, t1)
+        d = cut(ship - off, rate, t0, t1)
+        r = db(np.sqrt((d**2).mean())) - db(np.sqrt((o**2).mean()))
+        print(f'   {label:22} {r:>17.1f} dB   ' + ('unchanged' if r < -80 else 'the ravine'))
 
 print('\n3. what it did to the walk\n')
 print(f"{'':22} {'p95 (the steps)':>17} {'p50 (between them)':>20}")
