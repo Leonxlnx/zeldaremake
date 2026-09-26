@@ -1,16 +1,18 @@
 import type { Vector3 } from 'three';
 import type { Shot } from '../film/shots';
 import { Biquad, CR, SR, SVF, Stereo, clamp, convolveStereo, db, eqStereo, hallIR, smoothstep, yieldTick } from './dsp';
+import { findTake, loadDialogue, placeDialogue, type PlacedTake, type Take } from './dialogue';
 import { encodeWav, loudness, master } from './master';
 import { renderScore, type CueShot, type Hit } from './score';
 import { renderSfx } from './sfx';
 import { renderVoices, speechSpan, type VoiceLine, type VoiceSpan } from './voice';
 
 /**
- * The whole soundtrack, synthesised offline in plain JS — no samples, no WebAudio graph: an original
- * orchestral score cued to the shots (score.ts, instruments.ts), sound design keyed to the picture
- * and the fx event lists (sfx.ts), LEGO-game mumbled dialogue under the subtitles (voice.ts), two
- * generated reverbs, dialogue ducking, and a master chain for phones and headphones (master.ts).
+ * The whole soundtrack, rendered offline in plain JS — no WebAudio graph: an original orchestral score
+ * cued to the shots (score.ts, instruments.ts), sound design keyed to the picture and the fx event
+ * lists (sfx.ts), the spoken lines under the subtitles (stock-TTS recordings, dialogue.ts; the
+ * synthetic voice.ts only stands in for a line with no recording), two generated reverbs, dialogue
+ * ducking, and a master chain for phones and headphones (master.ts).
  */
 
 export interface AudioInputs {
@@ -29,11 +31,11 @@ const MIX = {
   hall: 0.8,
   space: 0.6,
   /** under each line the bed (music + effects) ducks until it sits snr LU below the voice, within [duckMin, duckMax] dB */
-  snr: 8,
-  duckMin: 4,
-  duckMax: 14,
+  snr: 10,
+  duckMin: 5,
+  duckMax: 16,
   /** effects duck this many dB less than the music */
-  sfxLess: 2,
+  sfxLess: 1.5,
   /** extra cut of the music around 2 kHz while someone speaks (0..1) */
   dip: 0.45,
   target: -14,
@@ -105,14 +107,29 @@ export async function renderMix(inp: AudioInputs, o: { onStems?: (s: Stems) => v
   const n = Math.ceil((inp.duration + 1) * SR);
 
   // dialogue is planned first so the score can place its stingers around the speech
+  const takes = await loadDialogue().catch((e: unknown): Take[] => {
+    console.error(`[audio] dialogue recordings unavailable (${e instanceof Error ? e.message : String(e)}): every line falls back to the synthetic voice`);
+    return [];
+  });
+  const spoken: PlacedTake[] = [];
   const lines: VoiceLine[] = [];
   const shots: CueShot[] = inp.shots.map((s) => {
     const s0 = s.start ?? 0;
     const verb = /droids|landing|jump/.test(s.name) ? 0.16 : s.name.includes('cockpit') ? 0.03 : 0.07;
     const cueLines = (s.lines ?? []).map((l) => {
-      const vl: VoiceLine = { t0: s0 + l.t0, t1: s0 + l.t1, who: l.who, text: l.text, verb };
-      lines.push(vl);
-      const sp = speechSpan(vl) ?? { t0: vl.t0, t1: vl.t1 };
+      const take = findTake(takes, s.name, l.text);
+      let sp: VoiceSpan;
+      if (take) {
+        // a recording made for another shot keeps its lead on the subtitle
+        const at = take.clip.shot === s.name ? s0 + take.clip.offset : s0 + l.t0 + 0.05 - take.clip.speech[0];
+        spoken.push({ take, at, verb });
+        sp = { t0: at + take.clip.speech[0], t1: at + take.clip.speech[1] };
+      } else {
+        if (takes.length) console.error(`[audio] no recording of ${s.name} "${l.text}": it falls back to the synthetic voice`);
+        const vl: VoiceLine = { t0: s0 + l.t0, t1: s0 + l.t1, who: l.who, text: l.text, verb };
+        lines.push(vl);
+        sp = speechSpan(vl) ?? { t0: vl.t0, t1: vl.t1 };
+      }
       return { t0: l.t0, t1: l.t1, s0: sp.t0 - s0, s1: sp.t1 - s0, who: l.who };
     });
     return { name: s.name, start: s0, dur: s.dur, lines: cueLines };
@@ -142,7 +159,9 @@ export async function renderMix(inp: AudioInputs, o: { onStems?: (s: Stems) => v
   eqStereo(sfx, () => [Biquad.highpass(45, 0.5412), Biquad.highpass(45, 1.3066), Biquad.lowshelf(120, -3, 0.8)]);
   lap('sfx');
   const voice = new Float32Array(n);
-  const spans = renderVoices(lines, voice, send);
+  const rec = placeDialogue(spoken, voice, send);
+  const spans = [...rec.spans, ...renderVoices(lines, voice, send)].sort((a, b) => a.t0 - b.t0);
+  report.push(`dialogue: ${spoken.length} recorded, ${lines.length} synthetic`, ...rec.log);
   lap('dialogue');
   crossfeed(send, 0.3);
   const [sl, sr] = hallIR({ seconds: 1.6, rtLow: 1.4, rtMid: 1.2, rtHigh: 0.6, predelay: 0.012, er: 10, erSpan: 0.05, hp: 220, lp: 7000, seed: 5 });
