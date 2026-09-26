@@ -151,13 +151,13 @@ function mouthGeo(m: Mouth, style: FaceStyle): MouthGeo {
     smirk: [0.09, -0.07, 0.16],
     flat: [0.012, -0.03, 0.1],
     frown: [0.03, -0.04, 0.11],
-    grin: [0.05, -0.058, 0.16],
+    grin: [0.05, -0.064, 0.16],
     talk: [0.028, -0.055, 0.092],
     open: [0.034, -0.095, 0.116],
     o: [0.042, -0.066, 0.05],
-    grit: [0.036, -0.046, 0.15],
+    grit: [0.04, -0.052, 0.18],
     shout: [0.05, -0.13, 0.146],
-    worry: [0.036, -0.092, 0.1],
+    worry: [0.024, -0.082, 0.1],
   };
   const [t, b, h] = ext[m];
   return { m, y0, top: y0 + t, bottom: y0 + b, half: h, lop: style.lopsided ?? 0 };
@@ -196,14 +196,9 @@ function drawSkinLines(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceSta
     g.globalAlpha = 1;
   }
   if (style.age) {
-    // crow's feet and a line under each eye
-    g.globalAlpha = 0.75;
-    for (const sgn of [-1, 1]) {
-      brush(g, [sgn * 0.266, 0.626], [sgn * 0.284, 0.634], [sgn * 0.305, 0.652], 0.004, 0.0055, 0);
-      brush(g, [sgn * 0.266, 0.584], [sgn * 0.286, 0.574], [sgn * 0.303, 0.553], 0.004, 0.0055, 0);
-    }
-    g.globalAlpha = 0.55;
-    for (const sgn of [-1, 1]) brush(g, [sgn * 0.155, 0.503], [sgn * 0.2, 0.486], [sgn * 0.248, 0.507], 0, 0.0065, 0);
+    // a curved line under each eye (the licensed Obi-Wan print has no crow's feet: they read as lashes)
+    g.globalAlpha = 0.85;
+    for (const sgn of [-1, 1]) brush(g, [sgn * 0.13, 0.51], [sgn * 0.2, 0.482], [sgn * 0.27, 0.512], 0, 0.009, 0);
     g.globalAlpha = 1;
   }
   // smile folds from the nose round the mouth corners
@@ -244,9 +239,9 @@ function drawEyes(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState): 
     // the lids: the upper comes down to blink, the lower rises to squint
     const up = cy + ry * (1.12 - 2.35 * blink) - ry * 0.3 * sq;
     const lo = cy - ry * (1.12 - 2.0 * sq);
-    // crease over the lid
+    // a faint crease over the lid
     g.fillStyle = style.line;
-    g.globalAlpha = 0.85;
+    g.globalAlpha = 0.4;
     brush(g, [cx - sgn * 0.034, cy + ry + 0.028 - blink * 0.01], [cx + sgn * 0.022, cy + ry + 0.05 + s.brows * 0.008], [cx + sgn * 0.078, cy + ry - 0.004], 0, 0.0085, 0.002);
     g.globalAlpha = 1;
     if (up - lo < 0.022) {
@@ -268,12 +263,10 @@ function drawEyes(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState): 
     g.fillStyle = INK;
     ellipse(g, cx, cy, rx, ry);
     g.fill();
-    // catchlights: one light, so both eyes share it
+    // one printed catchlight, the same in both eyes
     g.fillStyle = TEETH;
     const gx = cx - s.lookX * 0.15, gy = cy - s.lookY * 0.15;
-    ellipse(g, gx - rx * 0.28, gy + ry * 0.36, rx * 0.44, rx * 0.5);
-    g.fill();
-    ellipse(g, gx + rx * 0.36, gy - ry * 0.42, rx * 0.15, rx * 0.15);
+    ellipse(g, gx - rx * 0.26, gy + ry * 0.34, rx * 0.46, rx * 0.52);
     g.fill();
     g.restore();
     // lid edges where they cut the eye
@@ -308,10 +301,10 @@ function drawBrows(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState):
     const outX = sgn * 0.31;
     const yIn = 0.768 + b * 0.052 + raise * 0.3;
     const yOut = 0.781 - b * 0.014 + raise;
-    const peak = Math.max(yIn, yOut) + 0.022 - angry * 0.012 + worry * 0.004 + raise * 0.5;
+    const peak = Math.max(yIn, yOut) + 0.014 - angry * 0.008 + worry * 0.004 + raise * 0.5;
     const ctrl: Pt = [(inX + outX) / 2 - sgn * 0.022, 2 * peak - (yIn + yOut) / 2];
-    // licensed-print brows: a broad bar that holds its weight almost to the outer tip
-    brush(g, [inX, yIn], ctrl, [outX, yOut], 0.06 + angry * 0.008, 0.056, 0.03);
+    // licensed-print brows: a heavy, nearly flat bar, blunt at the inner end, holding its weight to the tip
+    brush(g, [inX, yIn], ctrl, [outX, yOut], 0.068 + angry * 0.008, 0.062, 0.036);
   }
   if (style.scar) {
     // Anakin: the scar over his right eye (viewer's left) splits the brow and runs on under the eye
@@ -377,7 +370,7 @@ function drawMouth(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthGeo, 
       break;
     case 'grin': {
       const a = L(-0.15, y0 + 0.045), b = L(0.15, y0 + 0.045);
-      openMouth(g, a, b, L(0, y0 - 0.012), y0 - 0.085, 0.55, 0.03, 0, 0.5, halo ? style.skin : null);
+      openMouth(g, a, b, L(0, y0 - 0.012), y0 - 0.092, 0.55, 0.042, 0.024, 0.15, halo ? style.skin : null);
       g.fillStyle = INK;
       dimple(-1, a[0] - 0.006, a[1]);
       dimple(1, b[0] + 0.006, b[1]);
@@ -417,7 +410,7 @@ function drawMouth(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthGeo, 
       break;
     }
     case 'grit': {
-      const x0 = -0.14, x1 = 0.14, yb = y0 - 0.042, yt = y0 + 0.03, r = 0.028;
+      const x0 = -0.17, x1 = 0.17, yb = y0 - 0.046, yt = y0 + 0.032, r = 0.03;
       const shape = () => {
         const [ax, ay] = P(x0, yt), [bx, by] = P(x1, yb);
         g.beginPath();
@@ -450,18 +443,14 @@ function drawMouth(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthGeo, 
         path(g, [[x - 0.0025, ya], [x + 0.0025, ya], [x + 0.0025, yz], [x - 0.0025, yz]], true);
         g.fill();
       };
-      for (const x of [-0.064, 0, 0.064]) tooth(x, yt, y0 - 0.006);
-      for (const x of [-0.032, 0.032]) tooth(x, y0 - 0.006, yb);
+      for (const x of [-0.078, 0, 0.078]) tooth(x, yt, y0 - 0.006);
+      for (const x of [-0.039, 0.039]) tooth(x, y0 - 0.006, yb);
       g.globalAlpha = 1;
       g.restore();
       shape();
       g.strokeStyle = INK;
       g.lineWidth = px(0.013);
       g.stroke();
-      if (!beard) {
-        g.fillStyle = style.line;
-        for (const sgn of [-1, 1]) brush(g, [sgn * 0.152, y0 + 0.036], [sgn * 0.17, y0 + 0.0], [sgn * 0.158, y0 - 0.036], 0, 0.007, 0);
-      }
       break;
     }
   }
@@ -598,7 +587,7 @@ function beardLayer(style: FaceStyle): HTMLCanvasElement {
       const ux = (dx / l) * len, uy = (dy / l) * len;
       const light = rng.chance(0.22);
       g.fillStyle = light ? b.light : b.dark;
-      g.globalAlpha = light ? 0.4 : 0.52;
+      g.globalAlpha = light ? 0.24 : 0.3;
       const bend = rng.range(-0.007, 0.007);
       brush(g, [jx - ux / 2, jy - uy / 2], [jx + bend, jy], [jx + ux / 2, jy + uy / 2], 0.0, rng.range(0.0048, 0.0066), 0.0);
     }
@@ -666,7 +655,7 @@ function drawMoustache(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthG
     const l = Math.hypot(dx, dy);
     const light = rng.chance(0.3);
     g.fillStyle = light ? b.light : b.dark;
-    g.globalAlpha = light ? 0.45 : 0.55;
+    g.globalAlpha = light ? 0.28 : 0.36;
     brush(g, [x - (dx / l) * len * 0.5, y - (dy / l) * len * 0.5], [x, y + 0.003], [x + (dx / l) * len * 0.5, y + (dy / l) * len * 0.5], 0, 0.0055, 0);
   }
   g.restore();

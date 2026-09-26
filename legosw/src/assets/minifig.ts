@@ -463,7 +463,7 @@ export const ANAKIN_SPEC = (hair: HairSpec): MinifigSpec => ({
   legs: 'reddishBrown',
   torsoPrint: { base: '#5a3120', robe: '#4a2210', robeDark: '#2c1409', inner: '#1f1a17', belt: '#1a1512', buckle: '#9fa2a6', skin: '#f6d7b3', line: '#140d09', tabard: '#1e1916', pouch: '#3b2517' },
   legPrint: { base: '#5a3120', boot: '#15110e', line: '#0c0907', top: 0.45, hem: 0.42 },
-  face: { skin: '#f6d7b3', brow: '#4a2414', line: '#a8745a', scar: true, cheekLines: true, lopsided: 0.35, eye: [0.064, 0.068] },
+  face: { skin: '#f6d7b3', brow: '#5a2a14', line: '#a8745a', scar: true, cheekLines: true, lopsided: 0.35, eye: [0.064, 0.068] },
   hair,
 });
 

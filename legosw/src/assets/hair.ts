@@ -687,7 +687,7 @@ function anakinLocks(k: LockKit): LockSpec[] {
 
 export const ANAKIN_HAIR: HairSpec = {
   key: 'hairAnakin',
-  hex: 0x4a2816,
+  hex: 0x5a2c16,
   hem: [
     [0, 1.0],
     [20, 0.99],
