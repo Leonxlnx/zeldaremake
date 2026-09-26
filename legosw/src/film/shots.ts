@@ -6,6 +6,7 @@ import type { Minifig } from '../assets/minifig';
 import type { BuzzDroid, Eta2 } from '../assets/types';
 import { World, SUN_DIR, VICTIM_POSE } from './world';
 import { HAND_POS, HAND_YAW, LONG_T0, poseSwarms, scheduleCapitalFire, scheduleDogfights, vFrame } from './battle';
+import { JUMP_OUT } from './choreo';
 import { basisQuat, clamp, flight, keyed, lerp, local, place, shake, smooth, smoother, v3, type FlightState, type Key } from './motion';
 
 /**
@@ -982,9 +983,8 @@ function parkFighters(w: World, s: ReturnType<typeof hangarSpots>, canopy: numbe
   w.anakinShip.canopy.rotation.x = -0.9 * canopy;
 }
 
-const FLIP_DUR = 0.95;
-/** take-off times in the jump-out shot */
-const JUMP_OBI = 0.32, JUMP_ANA = 0.78;
+const FLIP_DUR = JUMP_OUT.flip;
+const JUMP_OBI = JUMP_OUT.obi, JUMP_ANA = JUMP_OUT.ana;
 /**
  * A pilot vaulting out of the cockpit: a ballistic arc from the seat to `land` with one tucked front
  * flip (about the torso, not the hips), a little squash on touchdown, then turning to `yawEnd`.
