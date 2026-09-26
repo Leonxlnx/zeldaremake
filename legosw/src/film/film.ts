@@ -85,7 +85,7 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
     // animated ray shields (scanlines / flicker)
     if (w.hand.group.visible) (w.hand.group.userData.animate as ((t: number) => void) | undefined)?.(T);
     if (w.hangar.group.visible) (w.hangar.group.userData.animate as ((t: number) => void) | undefined)?.(T);
-    w.fx.update(T, pipeline.height / 804, cam.pos);
+    w.fx.update(T, pipeline.height / 804, cam.pos, shot.laserClear ?? 0);
     return { cam, card: !!shot.card };
   }
 

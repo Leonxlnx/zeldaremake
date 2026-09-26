@@ -4,6 +4,7 @@ import { Rng, noise1 } from '../core/rng';
 import type { FaceState, Mouth } from '../assets/prints';
 import type { Minifig } from '../assets/minifig';
 import type { BuzzDroid, Eta2 } from '../assets/types';
+import type { LaserColor } from '../fx/fx';
 import { World, SUN_DIR, VICTIM_POSE } from './world';
 import { HAND_POS, HAND_YAW, LONG_T0, poseSwarms, scheduleCapitalFire, scheduleDogfights, vFrame } from './battle';
 import { JUMP_OUT } from './choreo';
@@ -40,6 +41,8 @@ export interface Shot {
   blur?: number;
   /** shutter as a fraction of the frame (default: the render's, 0.5) */
   shutter?: number;
+  /** background bolts nearer the camera than this are hidden so crossing traffic cannot bury the featured attacks */
+  laserClear?: number;
   lines?: Line[];
   schedule?(w: World, T0: number): void;
   pose(w: World, t: number, T: number): Cam;
@@ -172,24 +175,123 @@ function flatBasis(fwd: Vector3, damp = 0.35): Quaternion {
   return basisQuat(f, v3(0, 1, 0));
 }
 
+/* --- attack pairs the audience can follow: shooter and target in the same frame, bolts that end on the
+   target, a brick break-up, and debris the camera flies through */
+
+const DROID_BITS = ['tan', 'darkTan', 'reddishBrown', 'dbg', 'black'] as const;
+
+/** Bolts from a moving gun that lead a moving target and end on it; early bolts walk in, none flies off into space. */
+function burstOnto(w: World, gun: (T: number, n: number) => Vector3, target: (T: number) => Vector3, arrivals: number[], o: { speed: number; length: number; width: number; color: LaserColor; spread: number; seed: number }): void {
+  const rng = new Rng(o.seed);
+  arrivals.forEach((ta, n) => {
+    let tf = ta - 0.3;
+    for (let i = 0; i < 4; i++) tf = ta - gun(tf, n).distanceTo(target(ta)) / o.speed;
+    const from = gun(tf, n);
+    const walk = Math.max(0, arrivals.length - 2 - n) / Math.max(1, arrivals.length - 2);
+    const aim = target(ta).add(v3(rng.gauss(), rng.gauss(), rng.gauss()).multiplyScalar(o.spread * walk));
+    const dist = from.distanceTo(aim);
+    w.fx.laser({ t0: tf, from, dir: aim.clone().sub(from), speed: o.speed, life: dist / o.speed, length: o.length, width: o.width, color: o.color, hero: true });
+  });
+}
+
+/** The target comes apart into bricks, carrying some of its speed so the wreckage drifts through the shot. */
+function breakUp(w: World, T: number, path: (T: number) => Vector3, size: number, seed: number, carry = 0.55): void {
+  const st = flight(path, T);
+  w.fx.explosion(T, st.pos, { size, pieces: 80, brickScale: 1.8, sparks: 50, smoke: 8, flashes: 2, colors: [...DROID_BITS], seed, inherit: st.vel.clone().multiplyScalar(carry) });
+}
+
+const LT_KILL_A = 8.3, LT_KILL_B = 10.5, LT_KILL_C = 14.3;
+function ltBasis(T: number): { pos: Vector3; quat: Quaternion } {
+  const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
+  return { pos: st.pos, quat: flatBasis(st.fwd) };
+}
+/** A: a vulture flees ahead of the pair across the hull; Anakin runs it down */
+function ltVultureA(T: number): Vector3 {
+  const t = T - LONG_T0;
+  const k = smooth(6.0, LT_KILL_A, t);
+  return local(ltBasis(T), lerp(70, 24, k) + Math.sin(t * 2.3) * 6, lerp(44, 22, k) + Math.cos(t * 1.9) * 4, lerp(330, 90, k));
+}
+/** B: a vulture dives on the hull from starboard; a dorsal point-defence turret takes it */
+function ltVultureB(T: number): Vector3 {
+  const t = T - LONG_T0;
+  const k = smooth(8.8, LT_KILL_B, t);
+  return local(ltBasis(T), lerp(-260, -46, k), lerp(170, 40, k), lerp(520, 115, k));
+}
+/** C: in the dive a vulture crosses below the pair with an ARC-170 on its tail */
+function ltVultureC(T: number): Vector3 {
+  const t = T - LONG_T0;
+  const k = smooth(12.0, LT_KILL_C, t);
+  return local(ltBasis(T), lerp(-260, 34, k), lerp(-4, -12, k), lerp(330, 85, k));
+}
+const ltArcC = (T: number) => ltVultureC(T - 0.2).add(v3(0, 8, 0));
+
+function scheduleLongTakeKills(w: World, T0: number): void {
+  const gunA = (T: number, n: number) => {
+    const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
+    const mz = w.loc.muzzlesA[n % w.loc.muzzlesA.length];
+    return local(st, mz.x, mz.y, mz.z + 0.6);
+  };
+  burstOnto(w, gunA, ltVultureA, [7.5, 7.66, 7.82, 7.98, 8.14, 8.3].map((t) => T0 + t), { speed: 1700, length: 18, width: 1.5, color: 'red', spread: 16, seed: 71 });
+  breakUp(w, T0 + LT_KILL_A, ltVultureA, 30, 701);
+  // B: the nearest dorsal turret ahead of the pair (turret offsets ride with the moving Venator)
+  const kB = T0 + LT_KILL_B;
+  const g = w.venator.group;
+  g.position.copy(vFrame(kB));
+  g.rotation.set(0, 0, 0);
+  g.updateMatrixWorld(true);
+  const near = local(ltBasis(kB), 60, -60, 200);
+  let off = new Vector3(), bd = Infinity;
+  for (const a of w.venator.turrets) {
+    const p = a.getWorldPosition(new Vector3());
+    if (p.distanceTo(near) < bd) {
+      bd = p.distanceTo(near);
+      off = p.sub(g.position);
+    }
+  }
+  burstOnto(w, (T) => vFrame(T).add(off).add(v3(0, 5, 0)), ltVultureB, [9.7, 9.86, 10.02, 10.18, 10.34, 10.5].map((t) => T0 + t), { speed: 2600, length: 44, width: 3.4, color: 'blue', spread: 24, seed: 72 });
+  breakUp(w, kB, ltVultureB, 32, 702, 0.7);
+  burstOnto(w, (T) => ltArcC(T), ltVultureC, [13.5, 13.66, 13.82, 13.98, 14.14, 14.3].map((t) => T0 + t), { speed: 1800, length: 16, width: 1.4, color: 'red', spread: 12, seed: 73 });
+  breakUp(w, T0 + LT_KILL_C, ltVultureC, 30, 703);
+}
+
+function poseLongTakeKills(w: World, T: number): void {
+  const t = T - LONG_T0;
+  const put = (v: World['vultures'][number], path: (T: number) => Vector3, from: number, kill: number) => {
+    v.group.visible = t >= from && t < kill;
+    if (!v.group.visible) return;
+    place(v.group, flight(path, T, { bank: 1.4 }));
+    v.setMode(0);
+    v.animate?.(T);
+  };
+  put(w.vultures[6], ltVultureA, 5.8, LT_KILL_A);
+  put(w.vultures[7], ltVultureB, 8.6, LT_KILL_B);
+  put(w.vultures[5], ltVultureC, 11.8, LT_KILL_C);
+  const arc = w.arcs[0];
+  arc.group.visible = t >= 11.8 && t < 15.4;
+  if (arc.group.visible) place(arc.group, flight(ltArcC, T, { bank: 1.4 }));
+}
+
 const longTake: Shot = {
   name: 'longtake',
   // the camera threads the bridge towers at ~450 u/s: a shorter shutter and more samples keep the blur
   // a smear instead of stepped ghost copies
   blur: 6,
   shutter: 0.32,
+  laserClear: 420,
   dur: 16,
   schedule(w, T0) {
-    // flak and hits once the dive reveals the battle
+    scheduleLongTakeKills(w, T0);
+    // a little flak once the dive reveals the battle (kept sparse so the three kills read)
     const rng = new Rng(31);
-    for (let t = 11.8; t < 16; t += rng.range(0.14, 0.3)) {
+    for (let t = 11.8; t < 16; t += rng.range(0.4, 0.7)) {
       const st = flight(ltPath(T0 + t, 'anakin'), T0 + t);
-      const p = local({ pos: st.pos, quat: flatBasis(st.fwd) }, rng.range(-260, 260), rng.range(-140, 160), rng.range(250, 900));
-      w.fx.explosion(T0 + t, p, { size: rng.range(12, 28), pieces: 14, sparks: 16, smoke: 3, colors: ['dbg', 'lbg', 'black'], seed: Math.floor(t * 97) });
+      const p = local({ pos: st.pos, quat: flatBasis(st.fwd) }, rng.range(-300, 300), rng.range(-140, 160), rng.range(450, 950));
+      w.fx.explosion(T0 + t, p, { size: rng.range(12, 24), pieces: 14, sparks: 16, smoke: 3, colors: ['dbg', 'lbg', 'black'], seed: Math.floor(t * 97) });
     }
   },
   pose(w, t, T) {
     battle(w, T, { hero: true });
+    poseLongTakeKills(w, T);
     const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
     const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3 });
     if (t > 2.3) {
@@ -246,35 +348,48 @@ function trackPath(who: 'anakin' | 'obiwan', T0: number) {
   };
 }
 
+/** the shooter Venator keeps station with the pair, upper left of the tracking frame */
+const TRACK_SHOOTER = v3(3933, -682, -1177);
+const trackShooter = (T0: number) => (T: number) => trackPath('anakin', T0)(T).add(TRACK_SHOOTER);
+
 const track: Shot = {
   name: 'track',
   dur: 5,
+  laserClear: 300,
   schedule(w, T0) {
     const victim = w.munis[0];
     victim.group.updateMatrixWorld(true);
     const hits = Object.entries(victim.anchors)
       .filter(([k]) => k.startsWith('hit'))
       .map(([, a]) => ({ p: anchorWorld(a), n: v3(0, 0, 1).applyQuaternion(a.getWorldQuaternion(new Quaternion())) }));
-    // the Republic ship doing the killing: the nearest Venator in the fleet
-    const shooter = w.fleet.filter((f) => f.kind === 'venator').sort((a, b) => a.root.position.distanceTo(VICTIM_POSE.pos) - b.root.position.distanceTo(VICTIM_POSE.pos))[0];
-    shooter.root.updateMatrixWorld(true);
-    const muzzles = shooter.ship.turrets.map((m) => anchorWorld(m));
+    // the Republic ship doing the killing: the hero Venator cruising alongside the pair in the upper left
+    // of frame, its salvos crossing the sky onto the frigate, which enters from the right at t≈1.6
+    const g = w.venator.group;
+    g.position.set(0, 0, 0);
+    g.rotation.set(0, 0, 0);
+    g.updateMatrixWorld(true);
+    const offs = w.venator.turrets.map((m) => anchorWorld(m));
+    const shooterAt = trackShooter(T0);
     const rng = new Rng(5);
-    const times = [0.7, 1.3, 1.9, 2.4, 3.0, 3.4];
+    const times = [2.0, 2.4, 2.75, 3.1, 3.4, 3.65];
     times.forEach((h, i) => {
       const hit = hits[i % hits.length];
       const p = hit.p.clone().add(hit.n.clone().multiplyScalar(20));
       // a salvo that arrives on the hit
       for (let k = 0; k < 3; k++) {
-        const from = muzzles[(i * 5 + k * 7) % muzzles.length];
+        const off = offs[(i * 5 + k * 7) % offs.length];
+        const ta = T0 + h - k * 0.06;
+        let tf = ta - 0.6;
+        for (let it = 0; it < 3; it++) tf = ta - shooterAt(tf).add(off).distanceTo(p) / 3200;
+        const from = shooterAt(tf).add(off);
         const dist = from.distanceTo(p);
-        w.fx.laser({ t0: T0 + h - dist / 3200 - k * 0.06, from, dir: p.clone().sub(from), speed: 3200, life: dist / 3200, length: 160, width: 11, color: 'blue' });
+        w.fx.laser({ t0: tf, from, dir: p.clone().sub(from), speed: 3200, life: dist / 3200, length: 260, width: 20, color: 'blue', hero: true });
       }
       w.fx.explosion(T0 + h, p, { size: 150 + i * 30, pieces: 26, brickScale: 7, sparks: 20, smoke: 5, colors: ['tan', 'darkTan', 'lbg', 'reddishBrown'], seed: 300 + i, flashes: 2 });
     });
     w.fx.explosion(T0 + 3.9, VICTIM_POSE.pos.clone().add(v3(0, 50, 0)), { size: 520, pieces: 90, brickScale: 8, sparks: 60, smoke: 10, colors: ['tan', 'darkTan', 'lbg', 'reddishBrown', 'dbg'], seed: 399, flashes: 3 });
     // flak bursting around the pair
-    for (let t = 0.2; t < 5; t += rng.range(0.35, 0.7)) {
+    for (let t = 0.2; t < 5; t += rng.range(0.6, 1.0)) {
       const st = flight(trackPath('anakin', T0), T0 + t);
       const p = local(st, rng.range(-200, 200), rng.range(-120, 140), rng.range(-60, 500));
       w.fx.explosion(T0 + t, p, { size: rng.range(10, 22), pieces: 10, sparks: 14, smoke: 2, colors: ['dbg', 'black', 'lbg'], seed: Math.floor(t * 131) });
@@ -283,6 +398,8 @@ const track: Shot = {
   pose(w, t, T) {
     battle(w, T, { hero: true });
     const T0 = T - t;
+    w.venator.group.position.copy(trackShooter(T0)(T));
+    w.venator.group.rotation.set(0, 0, 0);
     const a = flight(trackPath('anakin', T0), T, { bank: 1 });
     const o = flight(trackPath('obiwan', T0), T, { bank: 1 });
     const foils = smooth(0.2, 1.1, t);
@@ -417,6 +534,7 @@ const vultureDead = (k: number, t: number) => VULTURE_KILLS.some(([kk, tk]) => k
 const vultures: Shot = {
   name: 'vultures',
   dur: 5,
+  laserClear: 250,
   schedule(w, T0) {
     const pathA = vPath(T0);
     const rng = new Rng(55);
@@ -426,33 +544,20 @@ const vultures: Shot = {
       const mz = w.loc.muzzlesA[k % w.loc.muzzlesA.length];
       return local(st, mz.x, mz.y, mz.z + 0.6);
     };
-    const burst = (target: (T: number) => Vector3, ta: number, k: number, miss: number, hits: boolean) => {
-      let tf = ta - 0.3;
-      for (let n = 0; n < 3; n++) tf = ta - muzzle(tf, k).distanceTo(target(ta)) / SPEED;
-      const from = muzzle(tf, k);
-      const aim = target(ta).add(v3(rng.gauss(), rng.gauss(), rng.gauss()).multiplyScalar(miss));
-      const dist = from.distanceTo(aim);
-      w.fx.laser({ t0: tf, from, dir: aim.clone().sub(from), speed: SPEED, life: hits ? dist / SPEED : (dist + 150) / SPEED, length: 9, width: 0.8, color: 'red' });
-    };
-    // Anakin's cannons: each burst walks onto a doomed vulture; the last pair lands on the kill frame
+    // Anakin's cannons: each burst walks onto a doomed vulture close enough to read, the last bolts land
+    // on the kill frame and it comes apart into bricks that fly back past the camera
     for (const [k, tk] of VULTURE_KILLS) {
       const target = (T: number) => vulturePos(k, T, T0);
-      for (let n = 0; n < 6; n++) burst(target, T0 + tk - (5 - n) * 0.1, n, n < 4 ? (4 - n) * 2.2 : 0, n >= 4);
-      const st = flight(target, T0 + tk);
-      w.fx.explosion(T0 + tk, st.pos, { size: 16, pieces: 45, sparks: 40, smoke: 5, colors: ['tan', 'darkTan', 'reddishBrown', 'dbg', 'black'], seed: 500 + k, inherit: st.vel.clone().multiplyScalar(0.8) });
+      burstOnto(w, (T, n) => muzzle(T, n), target, [0.55, 0.44, 0.33, 0.22, 0.11, 0].map((d) => T0 + tk - d), { speed: SPEED, length: 16, width: 1.4, color: 'red', spread: 10, seed: 510 + k });
+      breakUp(w, T0 + tk, target, 26, 500 + k, 0.45);
     }
-    // snap shots at the survivors (near misses)
-    for (let t = 0.7; t < 2.7; t += 0.34) {
-      const k = [1, 3, 5][Math.floor(t * 3) % 3];
-      burst((T) => vulturePos(k, T, T0), T0 + t + 0.15, Math.floor(t * 10), 7, false);
-    }
-    // droid return fire, aimed at Anakin
-    for (let t = 0.3; t < 3.5; t += rng.range(0.08, 0.16)) {
+    // droid return fire from droids in frame, passing close around Anakin
+    for (let t = 0.3; t < 3.2; t += rng.range(0.12, 0.2)) {
       const k = rng.int(0, 5);
       if (vultureDead(k, t)) continue;
       const p = vulturePos(k, T0 + t, T0);
-      const target = flight(pathA, T0 + t + 0.5).pos.clone().add(v3(rng.range(-30, 30), rng.range(-20, 20), rng.range(-40, 40)));
-      w.fx.laser({ t0: T0 + t, from: p, dir: target.sub(p), speed: 1300, life: 1.2, length: 9, width: 0.9, color: 'red' });
+      const target = flight(pathA, T0 + t + 0.3).pos.clone().add(v3(rng.range(-22, 22), rng.range(-12, 16), rng.range(-20, 20)));
+      w.fx.laser({ t0: T0 + t, from: p, dir: target.sub(p), speed: 1300, life: 0.9, length: 12, width: 1.1, color: 'red', hero: true });
     }
   },
   pose(w, t, T) {
@@ -497,12 +602,27 @@ function vPath(T0: number) {
   };
 }
 
+/** where each doomed vulture is (Anakin-relative x, y) when it is hit: inside the frame, clear of his fighter */
+const VULTURE_KILL_AT: Record<number, [number, number]> = { 0: [62, 30], 2: [-58, 38], 4: [30, 24] };
+
 function vulturePos(k: number, T: number, T0: number): Vector3 {
   const t = T - T0;
   const a = vPath(T0)(T);
   const rng = new Rng(900 + k);
-  const spreadX = rng.range(-140, 140), spreadY = rng.range(-70, 90);
-  const z = 1500 - t * 520 + k * 60;
+  let spreadX = rng.range(-140, 140);
+  const spreadY = rng.range(-70, 90);
+  // the swarm closes head-on; the kills happen 170/120/80 units ahead so they read on screen, and a doomed
+  // droid checks its closing speed for its last second so it is recognisable before the hit
+  let z = 924 - t * 520 + k * 143;
+  const kill = VULTURE_KILL_AT[k];
+  const tk = VULTURE_KILLS.find(([kk]) => kk === k)?.[1];
+  if (tk !== undefined) {
+    const zk = 924 - tk * 520 + k * 143, dt = tk - t;
+    z = dt > 1 ? zk + 140 + (dt - 1) * 520 : zk + dt * 140;
+  }
+  if (kill) return a.clone().add(v3(kill[0] * (0.7 + 0.3 * smooth(0, 2.7, t)) + Math.sin(t * 2 + k) * 8, kill[1] + Math.cos(t * 1.7 + k) * 6, z));
+  // survivors break wide of the fighter and the camera as they pass
+  spreadX = Math.sign(spreadX || 1) * Math.max(70, Math.abs(spreadX));
   return a.clone().add(v3(spreadX * (0.4 + t * 0.25) + Math.sin(t * 2 + k) * 20, spreadY * (0.4 + t * 0.2) + Math.cos(t * 1.7 + k) * 14, z));
 }
 

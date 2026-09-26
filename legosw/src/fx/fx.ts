@@ -40,6 +40,8 @@ export interface LaserEvent {
   length: number;
   width: number;
   color: LaserColor;
+  /** part of a featured attack: never hidden by the shot's clearance around the camera */
+  hero?: boolean;
   /** optional frame the bolt lives in (e.g. a moving Venator); world if absent */
 }
 
@@ -76,7 +78,7 @@ class LaserSystem {
       this.meshes.set(c, { core, glow });
     }
   }
-  update(t: number, cam?: Vector3): void {
+  update(t: number, cam?: Vector3, clear = 0): void {
     const counts: Record<LaserColor, number> = { red: 0, blue: 0, green: 0 };
     const m = new Matrix4();
     const q = new Quaternion();
@@ -95,6 +97,11 @@ class LaserSystem {
         const d = c.copy(e.dir).multiplyScalar(along).add(p).distanceTo(cam);
         const near = Math.max(0, Math.min(1, (d - 3 - e.width * 2) / (14 + e.width * 6)));
         fade *= near * near * (3 - 2 * near);
+        // background traffic crossing close to the camera would bury the featured attacks
+        if (clear > 0 && !e.hero) {
+          const k = Math.max(0, Math.min(1, (d - clear * 0.6) / (clear * 0.4)));
+          fade *= k * k * (3 - 2 * k);
+        }
       }
       if (fade < 0.02) continue;
       const set = this.meshes.get(e.color)!;
@@ -466,9 +473,9 @@ export class FX {
     this.group.add(this.sparkPts);
   }
 
-  update(t: number, pixelScale = 1, cam?: Vector3): void {
+  update(t: number, pixelScale = 1, cam?: Vector3, laserClear = 0): void {
     if (!this.built) this.build();
-    this.lasers.update(t, cam);
+    this.lasers.update(t, cam, laserClear);
     this.fire!.mat.uniforms.uTime.value = t;
     this.smoke!.mat.uniforms.uTime.value = t;
     this.sparkMat!.uniforms.uTime.value = t;
