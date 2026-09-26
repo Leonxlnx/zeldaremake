@@ -36,6 +36,7 @@ import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../
 import { inExpansionNorth } from '../layout';
 import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
+import { lodSlots, TREE_LOD_DITHER } from './lodFade';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -1858,8 +1859,14 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A 
   meshes: InstancedMesh[];
   placements: T[];
   matrices: Matrix4[];
-  /** LOD bucket sizes (every placement is in exactly one bucket; the audit counts these) */
+  /** LOD bucket sizes (one bucket per placement, or two inside a transition band; the audit counts these) */
   counts: number[];
+  /**
+   * lodFade.ts: the screen-door weight of a placement in a rung, keyed `level * placements.length + i`.
+   * Written only while `TREE_LOD_DITHER` is on — a tree inside a gate's band sits in two rungs and its
+   * two weights sum to 1 — and read by the drawing half. Absent with the flag off.
+   */
+  lodWeights?: Map<number, number>;
   /** placement indices per LOD bucket, as bucketed by camera distance */
   lists: number[][];
   /** placement indices actually submitted per LOD (the bucket minus the culled instances) */
@@ -4036,8 +4043,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const p = w.placements[i];
         if (hidden?.(p)) continue;
         const d = Math.hypot(p.x - cam.x, p.z - cam.z) - w.lods[0].radius * p.scale * 0.5;
-        const l = d < lodDist[0] ? 0 : d < lodDist[1] ? 1 : 2;
-        buckets[l].push(i);
+        // lodFade.ts: one rung with TREE_LOD_DITHER off (the rule this line has always used), a pair
+        // inside a gate's transition band with it on. The weights travel in `w.lodWeights` for the
+        // drawing half; with the flag off the array is never written and never read.
+        for (const slot of lodSlots(d, [lodDist[0], lodDist[1]])) {
+          buckets[slot.level].push(i);
+          if (TREE_LOD_DITHER) (w.lodWeights ??= new Map()).set(slot.level * w.placements.length + i, slot.weight);
+        }
       }
       for (let l = 0; l < 3; l++) {
         w.lists[l] = buckets[l];
