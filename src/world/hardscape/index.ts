@@ -3,8 +3,8 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, InstancedMesh, Matrix4, Mesh, StaticDrawUsage, type BufferAttribute, type Camera } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { BatchedMesh, Box3, Group, InstancedMesh, Matrix4, Mesh, Sphere, StaticDrawUsage, type BufferAttribute, type BufferGeometry, type Camera } from 'three';
+import { planarDistanceToBox, positionsOnly, tilePaving, type PavingTile } from './pavingTiles';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES, southRouteSurface, surfaceMask } from '../terrain/heightfield';
 import { northVisible } from '../util/northLocality';
@@ -45,6 +45,22 @@ const JOINT_TUFT_TINT: Record<string, number> = {
   'north-joints': 1.0,
   'north-cushions': 0.45,
 };
+
+/**
+ * The plaza paving's far LOD (fable-2, lane 6): a tile of the paving (`flagstones-batch`,
+ * pavingTiles.ts) farther than this planar distance (m) from the camera draws its stones as top
+ * fans (geometry.ts `farLod`) instead of full slabs. The roll and the crown are under a pixel well
+ * before this; what the fan cannot keep is the stones' interior shading (the rings' per-quad tones
+ * and mottle), and at camera A's 46° a 0.9 m stone is still 34 px wide at 40 m. Measured against
+ * the head at 30 m the hero frames moved 259 / 91 / 31 / 79 px over 8 levels (A / B / D / E, the
+ * path receding in frame); at 40 m 37 / 20 / — / — with the far bank still 0.30 → 0.18 M and the
+ * east green 0.16 M (all of it far at 46 m). The joints (7.5 cm) are the fill's own mesh and stay.
+ */
+export const FLAGSTONE_FAR_M = 40;
+/** the walk's hysteresis (m) under FLAGSTONE_FAR_M before a tile's full slabs come back */
+export const FLAGSTONE_LOD_HYSTERESIS_M = 3;
+/** the paving tiles' grid pitch (m): ~20 tiles over the plaza and its paths, each culled and LOD-switched on its own */
+export const FLAGSTONE_TILE_M = 8;
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
@@ -132,8 +148,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // (round 47: this is the `legacy` pass — it reads the path mask as it was before the north
   // extension, so nothing it lays moves; the extension beyond the arch is the second pass below)
   const pc: PavingContext = { terrain: T, frames, rng: rng.fork('paving'), seed: ctx.config.seed, bbox, density: ctx.quality.density, steppingStones: houseSteppingStones(), region: 'legacy' };
-  const paving = placeFlagstones(pc, stoneMat);
-  group.add(paving.mesh);
+  // (the plaza paving builds its far LOD too; the mesh itself is not drawn — its stones go into the
+  // tiled `flagstones-batch` below, its positions into the `flagstones` carrier)
+  const paving = placeFlagstones(pc, stoneMat, { far: true });
   ctx.progress('hardscape', 0.6);
 
   // --- round 47 (expansion-1): the paving beyond the arch ------------------------------------
@@ -938,13 +955,79 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The lookout dais lives on the PLATEAU (21.6, 2.2), 55 m from the north box: it goes into the
   // always-drawn legacy mesh (fable-3 caught the round-47 split hiding it — the player stood 0.35 m
   // up on invisible stone), the north paving alone into the distance-hidden one.
+  // fable-2 (lane 6): the plaza paving draws as ONE BatchedMesh of FLAGSTONE_TILE_M tiles
+  // (`flagstones-batch`, pavingTiles.ts), each tile an instance with two geometries — the stones'
+  // full slabs and their far fans (geometry.ts `farLod`) — and the lookout dais a last instance of
+  // its own. Three culls each tile by its own sphere inside the one draw, and each tile swaps to
+  // its far fans by ITS distance (pavingLod below): from camera A the north path's tiles 30–65 m up
+  // the frame and the plaza behind the camera were 88 K of the 188 K; from the far bank the plaza
+  // 40 m off was 89 % of it; from the east green all of it, for no pixel. The 529 stones' walls,
+  // rolled shoulders and dished rings are under a pixel past 30 m; the joints are the fill's mesh.
+  // character/ground.ts keeps a `flagstones` Mesh to read for the walk grid: `pavingCarrier`, the
+  // full paving's positions (with the dais) in world space, never drawn.
+  const daisGeometry = dais.build();
+  const pavingNear = paving.mesh.geometry;
+  const pavingFarGeometry = paving.farMesh!.geometry;
+  const tiles: (PavingTile & { nearId: number; farId: number; instance: number; isFar: boolean })[] = tilePaving(paving.stones, pavingNear, pavingFarGeometry, FLAGSTONE_TILE_M).map((t) => ({ ...t, nearId: -1, farId: -1, instance: -1, isFar: false }));
+  const batchVertices = tiles.reduce((n, t) => n + t.nearVertices + t.farVertices, 0) + daisGeometry.getAttribute('position').count;
+  const pavingBatch = new BatchedMesh(tiles.length + 1, batchVertices, undefined, stoneMat);
+  pavingBatch.name = 'flagstones-batch';
+  pavingBatch.castShadow = paving.mesh.castShadow;
+  pavingBatch.receiveShadow = paving.mesh.receiveShadow;
+  pavingBatch.perObjectFrustumCulled = true;
+  pavingBatch.sortObjects = false;
   {
-    const withDais = mergeGeometries([paving.mesh.geometry, dais.build()], false);
-    if (withDais) {
-      paving.mesh.geometry.dispose();
-      paving.mesh.geometry = withDais;
+    // the bounds are computed now, from the arrays, so they are cached before the sweep below
+    // releases the batch's CPU copies on upload (three computes them lazily from the positions)
+    const box = new Box3();
+    const sphere = new Sphere();
+    const add = (g: BufferGeometry) => {
+      const id = pavingBatch.addGeometry(g);
+      pavingBatch.getBoundingBoxAt(id, box);
+      pavingBatch.getBoundingSphereAt(id, sphere);
+      g.dispose();
+      return id;
+    };
+    for (const t of tiles) {
+      t.nearId = add(t.near);
+      t.farId = add(t.far!);
+      t.instance = pavingBatch.addInstance(t.nearId);
     }
+    pavingBatch.addInstance(add(daisGeometry));
+    pavingBatch.computeBoundingBox();
+    pavingBatch.computeBoundingSphere();
   }
+  group.add(pavingBatch);
+  // the carrier for character/ground.ts: the paving's and the dais's positions, nothing else
+  const pavingCarrier = new Mesh(positionsOnly([pavingNear, daisGeometry]), stoneMat);
+  pavingCarrier.name = 'flagstones';
+  pavingCarrier.visible = false;
+  pavingCarrier.frustumCulled = false;
+  group.add(pavingCarrier);
+  pavingNear.dispose();
+  pavingFarGeometry.dispose();
+  let farTiles = 0;
+  /**
+   * each tile near ↔ far by the camera's planar distance to the tile's box: on the walk (`update`)
+   * with a 3 m hysteresis so nothing flickers on the line; on a pose jump (`onCameraMove`, the
+   * captures) by the far threshold alone, so a frame at a pose does not depend on the pose before
+   */
+  const pavingLod = (camera: Camera, jump: boolean) => {
+    const x = camera.position.x;
+    const z = camera.position.z;
+    let n = 0;
+    for (const t of tiles) {
+      const d = planarDistanceToBox(t.box, x, z);
+      const far = jump ? d > FLAGSTONE_FAR_M : t.isFar ? d >= FLAGSTONE_FAR_M - FLAGSTONE_LOD_HYSTERESIS_M : d > FLAGSTONE_FAR_M;
+      if (far !== t.isFar) {
+        t.isFar = far;
+        pavingBatch.setGeometryIdAt(t.instance, far ? t.farId : t.nearId);
+      }
+      if (far) n++;
+    }
+    farTiles = n;
+  };
+  pavingLod(ctx.camera, true);
   const northMesh = new Mesh(pavingN.mesh.geometry, stoneMat);
   northMesh.name = 'flagstones-north';
   northMesh.castShadow = paving.mesh.castShadow;
@@ -1211,6 +1294,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // (round 47: the legacy paving, the north extension and the lookout dais are one merged `flagstones` mesh)
     flagstoneTriangles: paving.triangles + pavingN.triangles + daisTriangles,
     flagstoneDrawCalls: 1,
+    /** the plaza paving's tiles and far LOD: the threshold, the tiles, how many show their far fans now, and the triangles the batch holds / submits for its instances (before three's per-tile frustum cull) */
+    flagstoneFar: {
+      farM: FLAGSTONE_FAR_M,
+      hysteresisM: FLAGSTONE_LOD_HYSTERESIS_M,
+      tileM: FLAGSTONE_TILE_M,
+      tiles: tiles.length,
+      farTiles,
+      footprint: [round(pavingBatch.boundingBox!.min.x), round(pavingBatch.boundingBox!.min.z), round(pavingBatch.boundingBox!.max.x), round(pavingBatch.boundingBox!.max.z)],
+      nearTriangles: paving.triangles + daisTriangles,
+      farTriangles: paving.farTriangles + daisTriangles,
+      activeTriangles: tiles.reduce((n, t) => n + (t.isFar ? t.farVertices : t.nearVertices), 0) / 3 + daisTriangles,
+    },
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass + discTufts - discPads,
@@ -1406,12 +1501,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group.traverse((o) => {
       const m = o as Mesh;
       // the instanced sprouts (joint tufts, flower heads) rewrite their per-instance attributes on
-      // every camera move (materials/sprouts.ts `cull`): their arrays stay
-      if (!m.isMesh || (m as InstancedMesh).isInstancedMesh || !m.geometry || done.has(m.geometry.uuid)) return;
+      // every camera move (materials/sprouts.ts `cull`): their arrays stay; the `flagstones`
+      // carrier is never drawn (so never uploaded) and keeps its positions for the walk grid
+      if (!m.isMesh || (m as InstancedMesh).isInstancedMesh || m === pavingCarrier || !m.geometry || done.has(m.geometry.uuid)) return;
       done.add(m.geometry.uuid);
+      // the paving batch's positions go too: its per-geometry bounds are cached above, nothing
+      // raycasts it, and its instances only ever change geometry id (no deleteGeometry / optimize)
+      const keepPosition = m !== pavingBatch;
       for (const [name, attr] of Object.entries(m.geometry.attributes)) {
         const a = attr as BufferAttribute & { isInstancedBufferAttribute?: boolean };
-        if (name === 'position' || a.isInstancedBufferAttribute || a.usage !== StaticDrawUsage) continue;
+        if ((keepPosition && name === 'position') || a.isInstancedBufferAttribute || a.usage !== StaticDrawUsage) continue;
         a.onUpload(dropArray as unknown as () => void);
       }
     });
@@ -1434,6 +1533,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansionGroup.visible = expansionVisible(c.camera);
       southGroup.visible = southPavingVisible(c.camera);
       groveGroup.visible = grovePavingVisible(c.camera);
+      pavingLod(c.camera, false);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
@@ -1444,6 +1544,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansionGroup.visible = expansionVisible(camera);
       southGroup.visible = southPavingVisible(camera);
       groveGroup.visible = grovePavingVisible(camera);
+      pavingLod(camera, true);
     },
     dispose() {
       if (disposed) return;
@@ -1456,6 +1557,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // the joint fills and the flower heads release their own geometry below
         if (object instanceof Mesh && object !== joints.mesh && object !== jointsN.mesh && object !== jointsS.mesh && object !== flowers.mesh) object.geometry.dispose();
       });
+      // the batch's per-instance textures (its geometry went with the traverse above)
+      pavingBatch.dispose();
       stoneMat.dispose();
       joints.dispose();
       jointsN.dispose();

@@ -59,7 +59,7 @@ const T = createTerrain('live');
 const frames = LAYOUT.stairs.map((s) => stairFrame(s));
 
 /** the legacy paving pass, as index.ts lays it (the forks are label-keyed, so only the labels matter) */
-function layPaving() {
+function layPaving(lod = {}) {
   const rng = createRng(WORLD.seed).fork('hardscape');
   const pts = [...LAYOUT.pathSpine, ...LAYOUT.pathToStairs, ...LAYOUT.pathToHouse];
   const bbox = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
@@ -74,7 +74,7 @@ function layPaving() {
   bbox.z0 = Math.min(bbox.z0, -7.5);
   bbox.z1 = Math.max(bbox.z1, 7.5);
   const pc = { terrain: T, frames, rng: rng.fork('paving'), seed: WORLD.seed, bbox, density: 1, steppingStones: houseSteppingStones(), region: 'legacy' };
-  return placeFlagstones(pc, new THREE.MeshStandardMaterial());
+  return placeFlagstones(pc, new THREE.MeshStandardMaterial(), lod);
 }
 
 const quantiles = (v) => {
@@ -193,6 +193,34 @@ test('determinism: two runs lay the same stones', () => {
   const again = layPaving();
   assert.equal(again.stones.length, paving.stones.length);
   assert.equal(outlineHash(again.stones), outlineHash(paving.stones));
+});
+
+test('the far LOD: one fan per stone over the same ground, the full paving untouched beside it', () => {
+  assert.equal(paving.farMesh, null, 'not built unless asked for');
+  const withFar = layPaving({ far: true });
+  // the full mesh is the same build with or without the far one (its arrays byte-identical)
+  const near = paving.mesh.geometry.getAttribute('position').array;
+  const nearAgain = withFar.mesh.geometry.getAttribute('position').array;
+  assert.equal(nearAgain.length, near.length);
+  assert.ok(Buffer.from(nearAgain.buffer).equals(Buffer.from(near.buffer)), 'the full paving is byte-identical with the far LOD built');
+  assert.equal(withFar.triangles, paving.triangles);
+  // the far mesh: a fan per stone, so about an eleventh of the triangles, over the same footprint
+  assert.ok(withFar.farMesh && withFar.farMesh.name === 'flagstones-far');
+  assert.ok(withFar.farTriangles > 0 && withFar.farTriangles < withFar.triangles * 0.15, `far ${withFar.farTriangles} of ${withFar.triangles} triangles`);
+  assert.equal(withFar.farMesh.geometry.getAttribute('position').count, withFar.farTriangles * 3);
+  for (const name of ['normal', 'uv', 'color', 'aMoss', 'aStain', 'aWear', 'aCrack', 'aMottle', 'aRough', 'aEarth']) assert.ok(withFar.farMesh.geometry.getAttribute(name), `far mesh carries ${name}`);
+  const fb = withFar.farMesh.geometry.boundingBox;
+  const nb = withFar.mesh.geometry.boundingBox;
+  for (const k of ['x', 'z']) {
+    assert.ok(Math.abs(fb.min[k] - nb.min[k]) < 0.02, `footprint min ${k}: far ${fb.min[k].toFixed(3)} near ${nb.min[k].toFixed(3)}`);
+    assert.ok(Math.abs(fb.max[k] - nb.max[k]) < 0.02, `footprint max ${k}: far ${fb.max[k].toFixed(3)} near ${nb.max[k].toFixed(3)}`);
+  }
+  // the far tops sit at the near tops' height (the fan is the shoulder ring's height, no walls
+  // below it; on a tilted stone the rim on the wall's outline stands up to ~1.5 cm over the top)
+  assert.ok(fb.max.y <= nb.max.y + 0.02 && fb.max.y >= nb.max.y - 0.05, `far top ${fb.max.y.toFixed(3)} vs near top ${nb.max.y.toFixed(3)}`);
+  assert.ok(fb.min.y >= nb.min.y, 'nothing of the far mesh under the near mesh');
+  assert.equal(withFar.farMesh.castShadow, false);
+  assert.equal(withFar.farMesh.visible, false, 'hidden until the hardscape shows it beyond FLAGSTONE_FAR_M');
 });
 
 test('V17: the main flight lightens foot → top; the other flights and the nosings are as before', () => {
