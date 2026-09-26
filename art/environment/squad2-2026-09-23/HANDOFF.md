@@ -12,6 +12,17 @@
 > The individual branches are still pushed if you would rather take them one by one; their PRs, where the
 > tool allowed one, are #198, #204, #206 and #209.
 
+## Both branches are merge-tested against the head (22:40, 2026-09-26)
+
+* **`cursor/squad2-consolidate-682b`** — based on the current head; `git merge` reports *already up to
+  date*. Evidence only, 51 files, no source change.
+* **`cursor/squad2-lodfade4-682b`** — the head has been merged **into** it, so it is current and conflict
+  free. The merge combines fable-4's `releaseAfterUpload` exemption (#193) with this branch's build-time
+  attachment; both are belt and braces and both are inert with `TREE_LOD_DITHER = false`. On the merged
+  state: `tsc` clean, build clean, `node --test` **244 / 244**, and a flag-**on** smoke render of hero A
+  completes with **no console error** — so if anyone ever flips the flag, the merged combination boots and
+  draws (what it costs a sealed frame is in `dither/PART4-*`, and the recommendation remains: leave it off).
+
 ## What is in the consolidated branch
 
 | directory / file | the headline |
