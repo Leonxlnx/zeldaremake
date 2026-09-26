@@ -67,6 +67,8 @@ export class World {
   sun: DirectionalLight;
   rim: DirectionalLight;
   hemi: HemisphereLight;
+  /** close-up key (off unless a shot aims it with `keyLight`); shadowless, so it reaches faces inside canopies */
+  key: DirectionalLight;
   hangarLights = new Group();
   envSpace: Texture;
   envHangar: Texture;
@@ -138,6 +140,9 @@ export class World {
     this.hemi = new HemisphereLight(0x1d2a45, 0x6a86b8, 0.55);
     this.hemi.layers.enableAll();
     s.add(this.hemi);
+    this.key = new DirectionalLight(0xffd6a8, 0);
+    this.key.layers.enableAll();
+    s.add(this.key, this.key.target);
 
     // interior lights for the hangar (enabled only there)
     const mkPoint = (c: number, i: number, x: number, y: number, z: number, d = 160) => {
@@ -283,6 +288,7 @@ export class World {
   /** Hide every actor (shots then show what they need). */
   reset(): void {
     for (const a of this.actors) a.visible = false;
+    this.key.intensity = 0;
     // the missile shot shrinks buzz droids into their payload bays; every other shot expects full size
     for (const b of this.buzz) b.group.scale.setScalar(1);
     this.fx.group.visible = true;
@@ -290,6 +296,7 @@ export class World {
 
   space(): void {
     this.scene.environment = this.envSpace;
+    this.scene.environmentIntensity = 1;
     this.scene.background = this.nebula;
     this.stars.visible = true;
     this.planet.group.visible = true;
@@ -304,6 +311,7 @@ export class World {
 
   interior(): void {
     this.scene.environment = this.envHangar;
+    this.scene.environmentIntensity = 1;
     this.scene.background = this.nebula;
     this.stars.visible = true;
     this.planet.group.visible = true;
@@ -330,6 +338,15 @@ export class World {
     c.updateProjectionMatrix();
     this.sun.shadow.normalBias = radius * 0.0015;
     this.sun.target.updateMatrixWorld();
+  }
+
+  /** Light `center` from direction `dir` (toward the light) with the close-up key. */
+  keyLight(center: Vector3, dir: Vector3, intensity: number, color = 0xffd6a8): void {
+    this.key.position.copy(dir).normalize().multiplyScalar(20).add(center);
+    this.key.target.position.copy(center);
+    this.key.target.updateMatrixWorld();
+    this.key.intensity = intensity;
+    this.key.color.set(color);
   }
 
   /** Seat a minifig in a fighter cockpit. */

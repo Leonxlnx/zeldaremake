@@ -756,10 +756,11 @@ function cockpit(b: Builder, s: Scheme, hi: boolean): void {
     // screen on a bezel at the front of the console
     b.box(s.dark, sx * 1.64, 1.12, 2.05, 0.46, 0.04, 0.34, { c: 0.01 });
     b.box('windowCool', sx * 1.64, 1.14, 2.05, 0.36, 0.02, 0.24, { c: 0.004 });
-    // yoke: grip bar through the hand (X axis) on a stem to the dash
-    rod(b, s.dark, [sx * 0.8, 1.6, 1.8], [sx * 1.3, 1.6, 1.8], 0.09, { radial: 10 });
-    rod(b, s.struct2, [sx * 1.22, 1.6, 1.8], [sx * 1.22, 1.05, 2.4], 0.07, { radial: 8 });
-    b.cyl(s.metal, sx * 1.34, 1.6, 1.8, 0.1, 0.06, { axis: 'x', radial: 10 });
+    // yoke: grip bar along X through the C of a seated minifig's hand (arms at 0.95 rad, grip at
+    // x ±1.1, y 2.07, z 1.78), on a stem down into the dash
+    rod(b, s.dark, [sx * 0.85, 2.07, 1.78], [sx * 1.36, 2.07, 1.78], 0.09, { radial: 10 });
+    rod(b, s.struct2, [sx * 1.27, 2.07, 1.8], [sx * 1.27, 1.1, 2.45], 0.07, { radial: 8 });
+    b.cyl(s.metal, sx * 1.4, 2.07, 1.78, 0.1, 0.06, { axis: 'x', radial: 10 });
   }
   // dash with its sloped instrument face toward the pilot
   side(b, s.struct2, [[2.25, -0.4], [3.95, -0.4], [3.95, 1.72], [2.95, 1.72], [2.25, 1.1]], -1.3, 1.3);

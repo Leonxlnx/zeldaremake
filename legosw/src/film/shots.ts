@@ -299,6 +299,14 @@ const track: Shot = {
 
 /* --- cockpit close-ups */
 
+type L3 = [number, number, number];
+
+/**
+ * Cockpit close-up. The camera is inside the canopy, in the nose ahead of the pilot, so no strut
+ * crosses the face; it pushes in slowly between two ship-space positions. `aim` offsets the look
+ * point from the head joint to put the head on a third with room on the side the pilot looks to, and
+ * the key lights the far side of the face (short lighting) under a reduced ambient fill.
+ */
 function cockpitShot(o: {
   name: string;
   dur: number;
@@ -306,9 +314,11 @@ function cockpitShot(o: {
   lines?: Line[];
   faceAt: (t: number) => Partial<FaceState>;
   headAt?: (t: number) => { yaw: number; pitch: number };
-  camLocal?: [number, number, number];
+  cam: [L3, L3];
+  fov: [number, number];
+  aim: L3;
+  key: L3;
   schedule?: Shot['schedule'];
-  fov?: number;
 }): Shot {
   return {
     name: o.name,
@@ -330,13 +340,23 @@ function cockpitShot(o: {
       face(fig, o.faceAt(t), t, o.who === 'anakin' ? 1 : 2);
       const hd = o.headAt?.(t) ?? { yaw: 0, pitch: 0 };
       fig.pose({ legL: Math.PI / 2, legR: Math.PI / 2, armL: 0.95, armR: 0.95, splayL: 0.08, splayR: 0.08, headYaw: hd.yaw, headPitch: hd.pitch });
-      const head = anchorWorld(ship.cockpitAnchor).add(v3(0, 2.5, 0).applyQuaternion(st.quat));
-      const cl = o.camLocal ?? [1.8, 3.4, 7.6];
-      const cam = local(st, cl[0], cl[1], cl[2]);
-      // live background: approaching fighters, laser fire
-      w.aimShadow(head, 8);
-      const dist = cam.distanceTo(head);
-      return { pos: cam, target: head, fov: o.fov ?? 24, near: 0.05, lens: { focus: dist, aperture: 9, exposure: 1.0, bloom: 1.0 } };
+      const rot = (p: L3) => v3(p[0], p[1], p[2]).applyQuaternion(st.quat);
+      const neck = anchorWorld(ship.cockpitAnchor).add(rot([0, 1.9, 0]));
+      const faceC = neck.clone().add(rot([0, 0.5, 0]));
+      const k = smooth(0, o.dur, t);
+      const [c0, c1] = o.cam;
+      const cam = local(st, lerp(c0[0], c1[0], k), lerp(c0[1], c1[1], k), lerp(c0[2], c1[2], k));
+      w.aimShadow(faceC, 8);
+      w.keyLight(faceC, rot(o.key), 3.4);
+      w.scene.environmentIntensity = 0.6;
+      w.hemi.intensity = 0.3;
+      return {
+        pos: cam,
+        target: neck.add(rot(o.aim)),
+        fov: lerp(o.fov[0], o.fov[1], k),
+        near: 0.05,
+        lens: { focus: cam.distanceTo(faceC), aperture: 7, exposure: 1.0, bloom: 0.85 },
+      };
     },
   };
 }
@@ -366,13 +386,18 @@ function cockpitLasers(who: 'anakin' | 'obiwan', seedBase: number): Shot['schedu
   };
 }
 
+// camera from the port side of the nose; Anakin looks ahead-starboard (screen left) at the droids
 const anakinCockpit = cockpitShot({
   name: 'anakin-cockpit',
   dur: 4,
   who: 'anakin',
   lines: [{ t0: 1.0, t1: 3.4, who: 'Anakin Skywalker', text: 'This is where the fun begins.' }],
-  faceAt: (t) => ({ mouth: talk(t, 1.05, 2.9, 'smirk'), brows: -0.35, squint: 0.1, lookX: t < 0.9 ? 0.02 : 0 }),
-  headAt: (t) => ({ yaw: 0.25 - smooth(0.6, 1.3, t) * 0.35, pitch: -0.05 }),
+  faceAt: (t) => ({ mouth: talk(t, 1.05, 2.9, 'smirk'), brows: -0.35, squint: 0.1, lookX: -0.02 }),
+  headAt: (t) => ({ yaw: -0.05 - smooth(0.4, 1.0, t) * 0.22, pitch: 0.16 - smooth(0.3, 0.9, t) * 0.2 }),
+  cam: [[1.4, 2.85, 4.0], [1.25, 2.9, 3.75]],
+  fov: [36, 31],
+  aim: [-0.6, 0.45, 0],
+  key: [-0.65, 0.45, 0.6],
   schedule: cockpitLasers('anakin', 41),
 });
 
@@ -539,9 +564,12 @@ const obiCockpit = cockpitShot({
   dur: 3.5,
   who: 'obiwan',
   lines: [{ t0: 0.5, t1: 3.2, who: 'Obi-Wan Kenobi', text: 'Oh, I have a bad feeling about this.' }],
-  faceAt: (t) => ({ mouth: talk(t, 0.55, 2.7, 'frown'), brows: 0.85, lookX: t < 1.8 ? -0.015 : 0.02, lookY: 0.005 }),
-  headAt: (t) => ({ yaw: -0.2 + smooth(1.6, 2.4, t) * 0.35, pitch: 0.04 }),
-  camLocal: [-1.9, 3.3, 7.4],
+  faceAt: (t) => ({ mouth: talk(t, 0.55, 2.7, 'frown'), brows: 0.85, lookX: t < 1.8 ? 0.02 : 0.01, lookY: 0.005 }),
+  headAt: (t) => ({ yaw: 0.3 - smooth(1.6, 2.4, t) * 0.16, pitch: 0.04 }),
+  cam: [[-1.4, 2.85, 4.0], [-1.3, 2.9, 3.8]],
+  fov: [34, 31],
+  aim: [0.6, 0.45, 0],
+  key: [0.65, 0.45, 0.6],
   schedule: cockpitLasers('obiwan', 42),
 });
 
@@ -746,8 +774,13 @@ const obiCockpit2 = cockpitShot({
   who: 'obiwan',
   lines: [{ t0: 0.15, t1: 2.5, who: 'Obi-Wan Kenobi', text: "Get out of here, Anakin! There's nothing more you can do." }],
   faceAt: (t) => ({ mouth: talk(t, 0.2, 2.3, 'frown', ['shout', 'open', 'talk']), brows: -0.2, lookX: -0.03 }),
+  // Anakin flies off his starboard side: from the port camera Obi-Wan looks screen left, Anakin's
+  // reverse (below) looks screen right, so the two singles face each other across the cut
   headAt: () => ({ yaw: -0.5, pitch: 0.02 }),
-  camLocal: [-2.2, 3.1, 7.2],
+  cam: [[1.35, 2.9, 3.95], [1.25, 2.9, 3.8]],
+  fov: [33, 31],
+  aim: [-0.6, 0.45, 0],
+  key: [-0.6, 0.45, 0.65],
 });
 
 const anakinCockpit2 = cockpitShot({
@@ -757,7 +790,10 @@ const anakinCockpit2 = cockpitShot({
   lines: [{ t0: 0.2, t1: 2.5, who: 'Anakin Skywalker', text: "I'm not leaving without you, Master." }],
   faceAt: (t) => ({ mouth: talk(t, 0.25, 2.2, 'grit'), brows: -0.9, squint: 0.2, lookX: 0.03 }),
   headAt: () => ({ yaw: 0.45, pitch: 0 }),
-  camLocal: [2.4, 3.2, 7.0],
+  cam: [[-1.35, 2.85, 3.95], [-1.25, 2.9, 3.8]],
+  fov: [33, 31],
+  aim: [0.6, 0.45, 0],
+  key: [0.6, 0.45, 0.65],
 });
 
 /* --- shot 11: Anakin blasts one droid off; R2 zaps another */

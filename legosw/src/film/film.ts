@@ -23,7 +23,10 @@ function halton(i: number, base: number): number {
 
 export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> {
   const w = new World(pipeline);
-  if (new URLSearchParams(location.search).get('debug') === '1') (window as unknown as { __LSW_WORLD__: World }).__LSW_WORLD__ = w;
+  // ?debug=1: the world, plus an optional camera override (framing sweeps) called after each shot's pose
+  const debug = new URLSearchParams(location.search).get('debug') === '1';
+  const dbg = window as unknown as { __LSW_WORLD__?: World; __LSW_CAM__?: (cam: Cam, shot: string, t: number, T: number) => Cam | undefined };
+  if (debug) dbg.__LSW_WORLD__ = w;
   // schedule every shot's time-pure effects, plus the background slugfest
   scheduleBattle(w, 19, SHOTS.find((s) => s.name === 'hangar-approach')!.start! + 4);
   for (const s of SHOTS) s.schedule?.(w, s.start!);
@@ -54,7 +57,8 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
     w.reset();
     w.space();
     const { shot, t } = shotAt(T);
-    const cam = shot.pose(w, t, T);
+    let cam = shot.pose(w, t, T);
+    if (debug && dbg.__LSW_CAM__) cam = dbg.__LSW_CAM__(cam, shot.name, t, T) ?? cam;
     // animated ray shields (scanlines / flicker)
     if (w.hand.group.visible) (w.hand.group.userData.animate as ((t: number) => void) | undefined)?.(T);
     if (w.hangar.group.visible) (w.hangar.group.userData.animate as ((t: number) => void) | undefined)?.(T);
