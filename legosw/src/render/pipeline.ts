@@ -62,7 +62,8 @@ export const DEFAULT_LENS: Lens = {
   bloomThreshold: 1.0,
   vignette: 0.35,
   grain: 0.035,
-  ca: 0.9,
+  // the approved level (earlier cuts reduced 0.9 to this at encode time)
+  ca: 0.3,
   saturation: 1.08,
   contrast: 1.06,
   split: 0.25,

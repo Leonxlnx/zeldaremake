@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Opus) + parallel asset sub-agents
 github: commits as Cursor Agent
 status: active
 branch: cursor/lego-star-wars-rots-opening-ed32
-updated: 2026-09-26T04:45:00Z
+updated: 2026-09-26T12:10:00Z
 ---
 
 # lego-film — work log
@@ -17,6 +17,11 @@ v2 cut (owner review of the first cut, ten points): no glitching ships, a real C
 the Venator and both interceptors, an audible soundtrack with music, Anakin smiling from the first
 frame, every shot aimed at a real ship that blows up, better hair and prints, buzz droids crawling,
 the Jedi flipping out of their fighters, bluer sabers. Final 720p render with motion blur running.
+
+Pass 4 (owner, 26 Sep 10:37 UTC: "make it look spectacular, every inch of the Venator one of one, better
+ships, seamless angles and animation, stunning backgrounds"): lens/camera/animation work on this branch;
+Venator, ship and background upgrades in parallel worktrees, integrated into one commit for the final
+render (all 2335 frames from that commit, gated by `final-v5.sh`).
 
 ## Files / systems being touched
 Only `legosw/` (self-contained: own `index.html`, `vite.config.ts`, `tsconfig.json`, scripts) and five
@@ -37,6 +42,12 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
   `3b46743f` Venator detail + long-take shadow fix; `d7bdce55` sculpted hair and face/torso prints;
   `6b37eaf1` ray-traced Coruscant; `45dd556d` README.
 
+- Pass 4 (this lane): `ee3cf64e` camera seamlessness (heading low-pass, half shake, cuts inside shots);
+  `0f7a7158` Invisible Hand reveal; `8adbd6f2` explosions; `3b817597` fighter heading low-pass + rescue
+  ease; `52432b83` anamorphic streaks; `61971370`/`672cb508` ambient occlusion (per shutter sample);
+  `67e92d39` lens CA 0.3; `403262db` seamless flips; `c2fef9b7` vulture orientation; `48b5b61b` fly-in
+  entries. QA hooks `probeCamera`/`probeActors` back whole-film motion audits (no pops remain).
+
 ## Important decisions
 - Everything procedural (no downloaded models/textures/audio). Units are LEGO studs.
 - Film is a pure function of time; `legosw/scripts/render.mjs` renders frames resumably.
@@ -54,4 +65,4 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
 None for other agents — this lane does not interact with the Kokiri world.
 
 ## Last updated
-2026-09-26T04:45:00Z
+2026-09-26T12:10:00Z
