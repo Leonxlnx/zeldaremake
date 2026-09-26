@@ -187,20 +187,31 @@ const TURRETS: [number, number][] = [
 /** Open Circle emblem centre on each dorsal wing (x, z), clear of the deck-edge service trench */
 const EMBLEM_XZ: [number, number] = [27, 2];
 
-/** aft-wing livery stripe in the dorsal-wing frame: v0..v1 in from the rim, from u0 aft */
-type Stripe = [v0: number, v1: number, u0: number];
+/** point-defence mounts lining each rim on the dorsal wing (dorsal-wing frame u, v), inboard of the bow bands */
+const PD_EDGE_STEP = 24;
+const PD_EDGE: P2[] = Array.from({ length: 12 }, (_, i) => [100 + i * PD_EDGE_STEP, 8.5] as P2);
+
 /**
- * Lod 0 has four 2-stud stripes. At fleet range their 4-stud period drops under two pixels and turns
- * to moiré, so the fleet LOD merges them into two 4-stud stripes (the same amount of red) and the far
- * LOD into one band.
+ * Republic livery on each dorsal wing, in the dorsal-wing frame (v in from the rim, u aft from the
+ * tip): a red band along the rim from the red nose aft over the forward third, and inboard of it a
+ * pinstripe that starts and stops short of it, both cut square. The fleet LODs merge the two into one
+ * wider band (a 1-stud pinstripe drops under a pixel there and shimmers).
  */
-const STRIPES_LOD0: Stripe[] = [0, 1, 2, 3].map((k) => [5 + 4 * k, 7 + 4 * k, 236 + 14 * k]);
-const STRIPES_LOD1: Stripe[] = [
-  [6, 10, 236],
-  [14, 18, 264],
+interface Band {
+  v0: number;
+  v1: number;
+  u0: number;
+  u1: number;
+}
+const BOW_U1 = 132;
+const BOW_BANDS_LOD0: Band[] = [
+  { v0: 0, v1: 3, u0: 0, u1: BOW_U1 },
+  { v0: 4, v1: 5, u0: 16, u1: BOW_U1 - 18 },
 ];
-const STRIPES_LOD2: Stripe[] = [[7, 17, 236]];
-const nearStripe = (stripes: Stripe[], u: number, v: number, g: number) => stripes.some(([v0, v1, u0]) => u >= u0 - g && v >= v0 - g && v < v1 + g);
+const BOW_BANDS_FAR: Band[] = [{ v0: 0, v1: 4, u0: 0, u1: BOW_U1 }];
+const onBand = (bands: Band[], u: number, v: number, g: number) => bands.some((s) => u >= s.u0 - g && u < s.u1 + g && v >= s.v0 - g && v < s.v1 + g);
+/** width of the red outline along the outer edge of the dorsal doors (studs, across the edge) */
+const DOOR_RIM = 2;
 
 // ─── frames ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -311,8 +322,8 @@ function styleSet(D: boolean) {
     red: s('darkRed', LONG2),
     rail: s('dbg', LONG, { kind: 'raised' }),
     railTile: s('dbg', LONG),
-    door: s('darkRed', DOOR),
-    doorRib: s('darkRed', CROSS, { kind: D ? 'plate' : 'raised', hP: 2 }),
+    door: s('lbg', DOOR),
+    doorRib: s('dbg', CROSS, { kind: D ? 'plate' : 'raised', hP: 2 }),
     black: s('black', LONG2),
     trench: s('dbg', BIG),
     trenchL: s('lbg', LONG2),
@@ -321,8 +332,8 @@ function styleSet(D: boolean) {
     ventralD: s('dbg', BIG),
     // lod-0 detail: hangar-door leaves, window bands with sills and headers, pilasters, louvres
     lip: s('dbg', LONG),
-    leaf: s('darkRed', LEAF, { kind: 'raised' }),
-    leafFlush: s('darkRed', LEAF),
+    leaf: s('lbg', LEAF, { kind: 'raised' }),
+    leafFlush: s('lbg', LEAF),
     leafSeam: s('black', CROSS),
     leafGrille: s('dbg', GR, { kind: 'grille' }),
     winBand: s('black', LONG, { lift: -0.25 }),
@@ -684,7 +695,7 @@ function sectionFaceKey(i: number): ColorKey {
   const my = (a[1] + c[1]) / 2;
   const mx = Math.abs((a[0] + c[0]) / 2);
   const vertical = Math.abs(a[0] - c[0]) < 0.01;
-  if (my >= 15.9) return 'darkRed'; // flight deck
+  if (my >= 15.9) return 'lbg'; // flight deck (its red outline is overlaid)
   if (my > 2 && mx > 18) return 'white'; // dorsal wings
   if (vertical && mx > 95) return 'lbg'; // rim
   if (vertical && Math.abs(mx - L0[0]) < 0.01) return 'white'; // lower side band
@@ -777,6 +788,9 @@ function deckHalf1(b: Builder, L: Styles, seed: number): void {
           const m = mod(u, 12);
           if (d < 1) return L.rail;
           if (d < 2) return m < 2 ? L.grilleD : L.railTile;
+          // red-outlined doors (lod 0's layout, lines widened to 2 studs): the nose wedge, the border
+          // inside the track, the centre and the aft end
+          if (u < 96 || d < 2 + DOOR_RIM || v < 2.5 || u > DECK_LEN - 2) return L.red;
           if (m < 1) return L.doorRib;
           return L.door;
         },
@@ -845,15 +859,18 @@ function deckHalfD(b: Builder, L: Styles, seed: number): void {
     if (dIn > 0 && q.length >= 3) q = clipHalf(q, -DECK_TAN, 1, -dIn / DECK_COS);
     return q;
   };
+  // red-outlined doors: the red nose runs aft as a wedge between the centre channel and the door track
+  // and forks where the doors open up (u 96) into the inner line along the channel and the outer band
+  // inside the track (deckRail), with an aft end line under the superstructure's front
   const leafStyle = (u: number, v: number): TStyle => {
-    if (v < 1.5) return L.lip;
+    if (v < 1.5 || u > DECK_LEN - 1.5) return L.red;
     const m = mod(u, 12);
     if (m < 1) return L.leafSeam;
     if (m >= 6 && m < 7) return L.leafFlush;
     return leafVariant(u, seed) === 3 ? L.leafGrille : L.leaf;
   };
   packPanel(b, region(6, 28, 0), { seed, module: 12, style: () => L.red, gridV: 0.5, minArea: 0.2, mask: (u) => underNose(deckZ(u)) });
-  packPanel(b, region(28, 96, 0.8), { seed: seed + 1, module: 12, period: 5, gridV: 0.5, minArea: 0.25, style: leafStyle });
+  packPanel(b, region(28, 96, 0.8), { seed: seed + 1, module: 12, style: () => L.red, gridV: 0.5, minArea: 0.2 });
   packPanel(b, region(96, DECK_LEN, 2.3), { seed: seed + 2, module: 12, period: 5, gridV: 0.5, minArea: 0.25, style: leafStyle });
   leafDecor(b, seed);
   b.push();
@@ -865,19 +882,18 @@ function deckHalfD(b: Builder, L: Styles, seed: number): void {
 /** cover plates, twin hatches and stepped spines on the raised door leaves (all above the leaf tops) */
 function leafDecor(b: Builder, seed: number): void {
   const y = 2 * PLATE;
-  for (let k = 3; k * 12 < DECK_LEN - 1; k++) {
+  for (let k = 8; k * 12 < DECK_LEN - 1; k++) {
     for (const half of [0, 1]) {
       const ua = k * 12 + (half ? 7 : 1), ub = ua + 5;
-      if (ub > DECK_LEN - 0.3) continue;
-      const dIn = ua >= 96 ? 2.3 : 0.8;
-      const W = deckEdgeV(ua) - dIn / DECK_COS - 1.5;
+      if (ub > DECK_LEN - 1.8) continue;
+      const W = deckEdgeV(ua) - 2.3 / DECK_COS - 1.5;
       if (W < 1.9) continue;
       const uc = (ua + ub) / 2, vc = 1.5 + W / 2;
       const kind = leafVariant(uc, seed);
       if (kind === 1) {
         const dd = Math.min(2, Math.floor(W - 0.6));
-        slab(b, 'darkRed', uc, y, vc, 3 - 2 * GAP, dd - 2 * GAP, PLATE);
-        b.studs('darkRed', uc - 1.5, (y + PLATE) / PLATE, vc - dd / 2, 3, dd);
+        slab(b, 'white', uc, y, vc, 3 - 2 * GAP, dd - 2 * GAP, PLATE);
+        b.studs('white', uc - 1.5, (y + PLATE) / PLATE, vc - dd / 2, 3, dd);
       } else if (kind === 2) {
         const dd = Math.min(1.8, W - 0.8);
         for (const du of [-1.15, 1.15]) {
@@ -885,7 +901,7 @@ function leafDecor(b: Builder, seed: number): void {
           fine(b, () => slab(b, 'lbg', uc + du, y + 0.2, vc, 0.9, 0.14, 0.12, 0.02));
         }
       } else if (kind === 4) {
-        slab(b, 'darkRed', uc, y, vc, 4.4, Math.min(1.2, W - 0.6), PLATE);
+        slab(b, 'white', uc, y, vc, 4.4, Math.min(1.2, W - 0.6), PLATE);
         slab(b, 'dbg', uc, y + PLATE, vc, 1.4, Math.min(0.9, W - 0.8), 0.3);
       } else if (kind === 5 && W >= 3.4) {
         // door actuator housing at the outer end, two pistons reaching inboard
@@ -911,24 +927,19 @@ function deckRail(b: Builder): void {
     slab(b, 'dbg', x + l / 2, 0, -0.4, l - 0.12, 0.8 - 2 * GAP, 2 * PLATE);
     slab(b, 'lbg', x + 0.6, 2 * PLATE, -0.4, 1.0, 0.9, 0.3);
   }
+  // the doors' red outer outline: a flush band inside the track (ahead of u 96 the deck is a red wedge)
   const x0 = 96;
   for (let x = x0; x < xEnd - 0.5; x += 6) {
     const l = Math.min(6, xEnd - x);
-    slab(b, 'dbg', x + l / 2, 0, -1.54, l - 2 * GAP, 1.48 - 2 * GAP, PLATE);
+    slab(b, 'darkRed', x + l / 2, 0, -1.54, l - 2 * GAP, 1.48 - 2 * GAP, PLATE);
   }
-  for (let x = x0; x < xEnd - 1; x += 12) {
-    const l = Math.min(12, xEnd - x) - 0.4;
-    slab(b, 'gunmetal', x + 0.2 + l / 2, PLATE, -1.54, l, 0.36, 0.26, 0.04);
-  }
-  for (let x = x0 + 6.5; x < xEnd - 1.5; x += 12) {
-    slab(b, 'dbg', x, PLATE, -1.54, 1.5, 1.3, 0.62);
-    slab(b, 'lbg', x, PLATE + 0.62, -1.54, 1.0, 0.9, 0.2);
-    fine(b, () => {
-      for (const s of [-1, 1]) b.cyl('flatSilver', x + s * 1.6, PLATE + 0.38, -1.54, 0.13, 1.8, { axis: 'x', radial: 8 });
-    });
+  // guide rail between the caps along the top of the track, a marker lamp on every cap
+  for (let x = 28; x < xEnd - 2; x += 12) {
+    const l = Math.min(12, xEnd - x) - 1.8;
+    if (l > 1) slab(b, 'gunmetal', x + 1.4 + l / 2, 2 * PLATE, -0.4, l, 0.3, 0.16, 0.03);
   }
   fine(b, () => {
-    for (let x = x0 + 3; x < xEnd - 1; x += 6) slab(b, 'glowWhite', x, PLATE, -2.02, 0.34, 0.3, 0.14, 0.02);
+    for (let x = 28; x < xEnd - 0.5; x += 12) slab(b, 'glowWhite', x + 0.6, 2 * PLATE + 0.3, -0.4, 0.4, 0.34, 0.12, 0.02);
   });
 }
 
@@ -1060,15 +1071,16 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
   const minArea = D ? 0.3 : 0.08;
   if (!D) deckHalf1(b, L, seed);
   // ── dorsal wing ──
-  const stripes = D ? STRIPES_LOD0 : STRIPES_LOD1;
+  const bands = D ? BOW_BANDS_LOD0 : BOW_BANDS_FAR;
   const WS = wingStrakes(L);
   const poly = DORSAL_PTS.map((p) => toLocal(FD, p));
   const wingStyle = (u: number, v: number): TStyle | null => {
+    if (onBand(bands, u, v, 0)) return L.red;
     if (v < 1) return L.trim;
     if (v < 2 && u > 40) return L.trimD;
-    if (nearStripe(stripes, u, v, 0)) return L.red;
-    // flush margins: raised plates beside a stripe would shade it and hide it at grazing angles
-    if (nearStripe(stripes, u, v, 2)) return L.trimW;
+    // flush margins: raised plates beside a band would shade it and hide it at grazing angles
+    if (onBand(bands, u, v, 2)) return L.trimW;
+    for (const [pu, pv] of PD_EDGE) if (Math.abs(u - pu) < 1.6 && Math.abs(v - pv) < 1.6) return D ? L.pad : L.panelD;
     // pads around the heavy turrets
     for (const [tu, tv] of TURRET_L) if (Math.abs(u - tu) < 5 && Math.abs(v - tv) < 5) return D ? L.plateD : L.panelD;
     if (mod(u, 32) < 1 && u > 24) return L.seam;
@@ -1102,8 +1114,16 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
           return u > 150 ? 0.42 : 0.36;
         },
         style: wingStyle,
-        mask: (u, v) => wingMask(u, v) || Math.hypot(u - EMB[0], v - EMB[1]) < 9.5 || nearStripe(stripes, u, v, 3),
+        mask: (u, v) => wingMask(u, v) || Math.hypot(u - EMB[0], v - EMB[1]) < 9.5 || onBand(bands, u, v, 3) || PD_EDGE.some(([pu, pv]) => Math.abs(u - pu) < 3 && Math.abs(v - pv) < 3),
         seed: seed + 40,
+      });
+    }
+    // point-defence mounts lining the rim, barrels trained outboard (the fleet LOD keeps every other one)
+    for (const [pu, pv] of PD_EDGE) {
+      if (!D && mod(pu - PD_EDGE[0][0], 2 * PD_EDGE_STEP) >= PD_EDGE_STEP) continue;
+      b.at(pu, PLATE, pv, () => {
+        b.rotateY(Math.PI);
+        pdTurret(b, D);
       });
     }
   });
@@ -1130,7 +1150,8 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
       minArea,
       mask: (u, v) => underNose(toWorld(fR, u, v).z),
       style: (u, v) => {
-        if (v < 1) return L.trimW;
+        // the dorsal bow band wraps over the edge
+        if (v < 1) return u < BOW_U1 ? L.red : L.trimW;
         if (u < 30) return L.red;
         if (v < 2 && u > uWin) return L.black;
         return L.trim;
@@ -2181,80 +2202,168 @@ interface EngineSpec {
   y: number;
   r: number;
   len: number;
+  main?: boolean;
 }
+/**
+ * Port half (the axis engine once): the three main thrusters in a row across the keel, and the two
+ * auxiliaries of each side stacked outboard of them. Every bell ends 14.6 aft of the stern plane
+ * or short of it (the ship's length).
+ */
 const ENGINES: EngineSpec[] = [
-  { x: 15, y: -17, r: 10.5, len: 14 },
-  { x: 37.5, y: -14.5, r: 10.5, len: 14 },
-  { x: 57, y: -12, r: 7, len: 11 },
-  { x: 70, y: -8, r: 4, len: 8 },
-  { x: 70, y: -15.5, r: 4, len: 8 },
+  { x: 0, y: -15, r: 12.2, len: 14, main: true },
+  { x: 27, y: -14, r: 12.2, len: 14, main: true },
+  { x: 50, y: -5, r: 5.4, len: 9 },
+  { x: 50, y: -17, r: 5.4, len: 9 },
 ];
+const ENGINE_ALL: EngineSpec[] = ENGINES.flatMap((e) => (e.x === 0 ? [e] : [e, { ...e, x: -e.x }]));
+/** the housing over the cluster: roof half width, underside, top, depth aft of the stern plane */
+const HOUSING = { hw: 58.5, y0: 1.2, y1: 3.6, len: 10.5 };
+/** lower edge of the stern plane at |x| (the ventral wing's trailing edge) */
+const sternFloorY = (x: number) => (Math.abs(x) <= K1[0] ? K1[1] : K1[1] + ((Math.abs(x) - K1[0]) * (L1[1] - K1[1])) / (L1[0] - K1[0]));
 
-function engines(b: Builder, cfg: Cfg): void {
-  const D = cfg.D;
-  const rad = D ? 32 : 16;
-  for (const sx of [1, -1]) {
-    for (const e of ENGINES) {
-      const x = e.x * sx, y = e.y, R = e.r, Lz = e.len;
-      // mounting plate on the stern face
-      b.cyl('dbg', x, y, ZS - 0.3, R * 0.98, 0.8, { axis: 'z', radial: rad });
-      const pts: number[][] = [
-        [R * 0.8, 0.2],
-        [R * 0.8, -1.4],
-        [R * 0.86, -1.8],
-        [R * 0.9, -Lz * 0.4],
-        [R * 0.96, -Lz * 0.75],
-        [R, -Lz + 0.5],
-        [R, -Lz],
-        [R * 0.9, -Lz],
-        [R * 0.84, -Lz + 1.4],
-        [R * 0.78, -Lz + 3.2],
-      ];
-      b.lathe('pearlDarkGray', profile(pts, 30), { at: [x, y, ZS - 0.6], axis: 'z', radial: rad });
-      const zExit = ZS - 0.6 - Lz;
-      const ring = (key: ColorKey, z: number, rOut: number, rIn: number, h: number) => b.add(key, tube(rOut, rIn, h, 0.04, rad), T(x, y, z).multiply(ROT_Y_TO_Z));
-      if (D) {
-        // brackets between the bell and the stern plate, exit rim
-        for (let k = 0; k < 4; k++) {
-          const a = ((k + 0.5) / 4) * Math.PI * 2;
-          b.box('dbg', x + Math.cos(a) * R * 0.9, y + Math.sin(a) * R * 0.9, ZS - 1.9, R * 0.22, R * 0.22, 2.6, { rot: [0, 0, a] });
-        }
-        ring('lbg', zExit + 0.25, R + 0.12, R * 0.9, 0.5);
-        fine(b, () => {
-          for (const f of [0.28, 0.52, 0.76]) {
-            const rb = R * (0.87 + 0.1 * f);
-            ring('gunmetal', ZS - 0.6 - Lz * f, rb + 0.2, rb - 0.1, 0.6);
-          }
-        });
-      }
-      // glow: blue exhaust plate with a hot cyan core
-      b.cyl('glowBlue', x, y, zExit + 3.0, R * 0.8, 0.3, { axis: 'z', radial: rad });
-      b.cyl('glowCyan', x, y, zExit + 2.7, R * 0.5, 0.3, { axis: 'z', radial: rad });
-      if (D) {
-        // stator in front of the glow (a dark ring around the hot core, eight radial vanes): it is
-        // what gives the exhaust its ringed look from far off, so it is base detail
-        ring('gunmetal', zExit + 2.35, R * 0.56, R * 0.5, 0.3);
-        for (let k = 0; k < 8; k++) {
-          const a = ((k + 0.5) / 8) * Math.PI * 2;
-          b.box('gunmetal', x + Math.cos(a) * R * 0.67, y + Math.sin(a) * R * 0.67, zExit + 2.35, R * 0.05, R * 0.24, 0.3, { rot: [0, 0, a - Math.PI / 2] });
-        }
-      }
-    }
-  }
-  // hyperdrive housing between the inner primaries
-  const hx = 4.2;
-  b.box('lbg', 0, -16, ZS - 6, hx * 2, 26, 12, { c: 0.1 });
-  b.box('dbg', 0, -16, ZS - 12.3, hx * 2 - 1.4, 22, 0.8, { c: 0.08 });
+function engineBell(b: Builder, e: EngineSpec, D: boolean): void {
+  const rad = D ? (e.main ? 36 : 24) : e.main ? 16 : 10;
+  const { x, y, r: R, len: Lz } = e;
+  const z0 = ZS - 0.6;
+  const zExit = z0 - Lz;
+  const ring = (key: ColorKey, z: number, rOut: number, rIn: number, h: number) => b.add(key, tube(rOut, rIn, h, 0.04, rad), T(x, y, z).multiply(ROT_Y_TO_Z));
+  // mounting flange on the stern plate, then the bell: a stepped root, a long flare, a rolled lip
+  b.cyl('dbg', x, y, ZS - 0.3, R * 1.02, 0.8, { axis: 'z', radial: rad });
+  ring(D ? 'lbg' : 'dbg', ZS - 1.4, R * 0.96, R * 0.7, 1.6);
+  const pts: number[][] = [
+    [R * 0.74, 0.2],
+    [R * 0.74, -2.3],
+    [R * 0.8, -2.6],
+    [R * 0.8, -3.7],
+    [R * 0.85, -4.1],
+    [R * 0.88, -Lz * 0.5],
+    [R * 0.95, -Lz * 0.8],
+    [R, -Lz + 0.6],
+    [R, -Lz],
+    [R * 0.9, -Lz],
+    [R * 0.85, -Lz + 1.3],
+    [R * 0.78, -Lz + 3.6],
+  ];
+  b.lathe('pearlDarkGray', profile(pts, 30), { at: [x, y, z0], axis: 'z', radial: rad });
+  // exit rim and a light heat-shield band round the flare
+  ring('lbg', zExit + 0.25, R + 0.14, R * 0.9, 0.5);
   if (D) {
-    for (let y = -27; y < -5; y += 2.2) {
-      b.push();
-      b.apply(T(0, y, ZS - 12.6).multiply(new Matrix4().makeRotationX(-Math.PI / 2)).multiply(new Matrix4().makeRotationY(Math.PI / 2)));
-      grille(b, 'dbg', 0, 0, 0, 1, 2, 0.4);
-      b.pop();
+    ring('lbg', z0 - Lz * 0.64, R * 0.93 + 0.18, R * 0.9, 0.9);
+    const nb = e.main ? 8 : 6;
+    for (let k = 0; k < nb; k++) {
+      const a = ((k + 0.5) / nb) * Math.PI * 2;
+      b.box('dbg', x + Math.cos(a) * R * 0.86, y + Math.sin(a) * R * 0.86, ZS - 3.2, R * 0.16, R * 0.2, 2.2, { rot: [0, 0, a] });
     }
-    for (const y of [-26, -6]) b.box('white', 0, y, ZS - 6, hx * 2 + 0.3, 1.2, 11);
+    fine(b, () => {
+      for (const f of e.main ? [0.36, 0.5, 0.78, 0.88] : [0.42, 0.8]) {
+        const rb = R * (0.855 + 0.13 * f);
+        ring('gunmetal', z0 - Lz * f, rb + 0.2, rb - 0.1, 0.5);
+      }
+      // bolt heads round the flange
+      const nbolt = e.main ? 16 : 10;
+      for (let k = 0; k < nbolt; k++) {
+        const a = (k / nbolt) * Math.PI * 2;
+        b.cyl('flatSilver', x + Math.cos(a) * R * 0.99, y + Math.sin(a) * R * 0.99, ZS - 0.8, 0.22, 0.2, { axis: 'z', radial: 6 });
+      }
+    });
   }
-  b.box('dbg', 0, -2, ZS - 5, hx * 2 + 2, 2, 10);
+  // glow: blue exhaust plate, a hot blue-white core behind the stator
+  b.cyl('glowBlue', x, y, zExit + 3.0, R * 0.8, 0.3, { axis: 'z', radial: rad });
+  b.cyl('glowCyan', x, y, zExit + 2.7, R * 0.54, 0.3, { axis: 'z', radial: rad });
+  if (D) {
+    // stator in front of the glow (a dark ring around the hot core, radial vanes): it is what gives
+    // the exhaust its ringed look from far off, so it is base detail
+    ring('gunmetal', zExit + 2.35, R * 0.6, R * 0.54, 0.3);
+    const nv = e.main ? 10 : 6;
+    for (let k = 0; k < nv; k++) {
+      const a = ((k + 0.5) / nv) * Math.PI * 2;
+      b.box('gunmetal', x + Math.cos(a) * R * 0.7, y + Math.sin(a) * R * 0.7, zExit + 2.35, R * 0.045, R * 0.22, 0.3, { rot: [0, 0, a - Math.PI / 2] });
+    }
+    if (e.main) {
+      ring('gunmetal', zExit + 2.2, R * 0.2, R * 0.12, 0.4);
+      b.cyl('dbg', x, y, zExit + 2.2, R * 0.12, 0.5, { axis: 'z', radial: 12 });
+    }
+  }
+}
+
+/** the housing the cluster sits under: a tiled roof on pylons between the bells, cheeks at its ends */
+function engineHousing(b: Builder, D: boolean, L: Styles, seed: number): void {
+  const { hw, y0, y1, len } = HOUSING;
+  const z0 = ZS, z1 = ZS - len;
+  const minArea = D ? 0.3 : 0.08;
+  b.box(D ? 'dbg' : 'lbg', 0, (y0 + y1 - 0.4) / 2, (z0 + z1) / 2, hw * 2, y1 - 0.4 - y0, len, { c: 0.1, hide: { py: true } });
+  const RP = roofPlates(L);
+  const mains = ENGINES.filter((e) => e.main);
+  tileFace(
+    b,
+    [
+      [-hw, y1 - 0.4, z0],
+      [hw, y1 - 0.4, z0],
+      [hw, y1 - 0.4, z1],
+      [-hw, y1 - 0.4, z1],
+    ],
+    {
+      seed,
+      outward: [0, 1, 0],
+      uDir: [1, 0, 0],
+      module: 12,
+      period: 4,
+      studs: D,
+      minArea,
+      style: (u, v) => {
+        const ax = Math.abs(u - hw);
+        if (v < 1) return L.trimD;
+        if (v > len - 1) return L.trim;
+        if (!D) return mains.some((e) => Math.abs(ax - e.x) < 7) && v > 3 && v < 5 ? L.grilleD : L.fieldL;
+        // an exhaust-vent row over each main bell, seams between the bells, plating elsewhere
+        if (v >= 3 && v < 5 && mains.some((e) => Math.abs(ax - e.x) < 7)) return L.grilleD;
+        if (Math.abs(ax - 13.5) < 1 || Math.abs(ax - 41.9) < 1.2) return L.seamD;
+        return plating(ax, v, seed + 3, 12, 5, RP) ?? L.fieldL;
+      },
+    },
+  );
+  // aft face: dark trim with a lit window band
+  bandedFace(
+    b,
+    [
+      [hw, y0, z1],
+      [-hw, y0, z1],
+      [-hw, y1, z1],
+      [hw, y1, z1],
+    ],
+    { seed: seed + 5, outward: [0, 0, -1], module: 12, studs: false, minArea, bands: [1], lit: D, step: 2, w: 0.8, win: { h: 0.3 }, style: (_u, v) => (v < 1 ? L.trimD : D ? L.winBand : L.black) },
+  );
+  // pylons between the bells (outer ones down to the ventral trailing edge), cheeks closing the ends
+  for (const sx of [1, -1] as const) {
+    const xo = 41.9 * sx, yo = sternFloorY(xo) + 1;
+    b.box('dbg', xo, (yo + y0) / 2, (z0 + z1 + 1) / 2, 2.4, y0 - yo, len - 1, { c: 0.08 });
+    b.box('dbg', 13.5 * sx, (y0 - 24) / 2 + 0.2, z0 - 4, 1.6, y0 + 24, 8, { c: 0.06 });
+    // cheek top under the roof tiles, so the two never share a plane
+    const xc = (hw - 0.8) * sx, yc = sternFloorY(hw) + 0.6, yt = y1 - 0.4;
+    b.box('lbg', xc, (yc + yt) / 2, (z0 + z1) / 2, 1.6, yt - yc, len, { c: 0.1 });
+    if (D) {
+      b.box('white', xc + 0.4 * sx, (yc + yt) / 2, (z0 + z1) / 2, 1.0, yt - yc - 1.2, len - 1.6, { c: 0.08 });
+      for (let yy = yc + 2; yy < yt - 3; yy += 3.2) grilleSide(b, xc + 0.9 * sx, yy, (z0 + z1) / 2, len - 3.4, sx);
+      micro(b, () => {
+        lamp(b, 'glowRed', xc, y1, z1 + 0.6, 0.18, 0.2);
+        lamp(b, 'glowRed', 3.5 * sx, y1, z1 + 0.6, 0.14, 0.18);
+      });
+    }
+  }
+}
+
+/** a grille strip on a side face (normal ±x): bars along z */
+function grilleSide(b: Builder, x: number, y: number, z: number, l: number, sx: 1 | -1): void {
+  b.push();
+  b.translate(x, y, z);
+  b.rotateZ((-Math.PI / 2) * sx);
+  grille(b, 'dbg', 0, 0, 0, 1.2, l, 0.3);
+  b.pop();
+}
+
+function engines(b: Builder, cfg: Cfg, L: Styles): void {
+  for (const e of ENGINE_ALL) engineBell(b, e, cfg.D);
+  engineHousing(b, cfg.D, L, cfg.seed * 71 + 9);
 }
 
 // ─── lod 2 ──────────────────────────────────────────────────────────────────────────────────────
@@ -2317,15 +2426,15 @@ function lod2Half(b: Builder, seed: number, side: 1 | -1): void {
     return inSuper(w.x, w.z, 0.6) || Math.hypot(u - EMB[0], v - EMB[1]) < 8.2;
   };
   overlay(b, DORSAL_PTS, [0, 1, 0], (poly, len) => {
-    patch(b, poly, 'lbg', 0, FAR, 0, 1, LIFT.trim);
-    patch(b, poly, 'dbg', 40, FAR, 1, 2, LIFT.trim);
-    for (const [v0, v1, u0] of STRIPES_LOD2) patch(b, poly, 'darkRed', u0, FAR, v0, v1, LIFT.livery);
+    patch(b, poly, 'lbg', BOW_U1, FAR, 0, 1, LIFT.trim);
+    patch(b, poly, 'dbg', BOW_U1, FAR, 1, 2, LIFT.trim);
+    for (const s of BOW_BANDS_FAR) patch(b, poly, 'darkRed', s.u0, s.u1, s.v0, s.v1, LIFT.livery);
     for (const [tu, tv] of TURRET_L) patch(b, poly, 'dbg', tu - 5, tu + 5, tv - 5, tv + 5, LIFT.livery);
     for (let u = 32; u < len; u += 32) patch(b, poly, 'lbg', u, u + 1, 2, FAR, LIFT.seam);
     aztecRects(len, 90, hs + 3, 16, 6, 2, (u0, u1, v0, v1, r) => {
       if (r >= 0.8 && r < 0.9) return; // white raised panels: invisible on white at this range
       const uc = (u0 + u1) / 2, vc = (v0 + v1) / 2;
-      if (v0 < 2 || covered(uc, vc) || nearStripe(STRIPES_LOD2, uc, vc, 1) || onSeam(u0, u1, 32)) return;
+      if (v0 < 2 || covered(uc, vc) || onBand(BOW_BANDS_FAR, uc, vc, 1) || onSeam(u0, u1, 32)) return;
       for (const [tu, tv] of TURRET_L) if (Math.abs(uc - tu) < 7 && Math.abs(vc - tv) < 7) return;
       patch(b, poly, r < 0.8 ? 'lbg' : 'dbg', u0, u1, v0, v1, LIFT.aztec);
     });
@@ -2336,11 +2445,35 @@ function lod2Half(b: Builder, seed: number, side: 1 | -1): void {
     for (const a0 of [0.35, Math.PI + 0.35]) b.add('yellow', arcMD(3.7, 5.3, 1.2, a0, a0 + Math.PI - 0.7, 8), m);
     b.add('darkRed', discMD(2.2, 1.1, 10), m);
   });
-  // rim: red bow, white top line, black window band
+  // flight deck: the red nose wedge forking into the doors' outline, the dark centre channel
+  inFrame(b, DECK_FRAME, () => {
+    const tri: P2[] = ccw([
+      [0, 0],
+      [DECK_LEN, 0],
+      [DECK_LEN, DECK_HW],
+    ]);
+    const e = deckEdgeV;
+    patch(b, tri, 'darkRed', 0, 96, 0, FAR, LIFT.livery);
+    patch(b, tri, 'darkRed', 96, DECK_LEN, 0.5, 2.5, LIFT.livery);
+    patch(b, tri, 'darkRed', DECK_LEN - 2, DECK_LEN, 0, FAR, LIFT.livery);
+    const rim = clipConvex(
+      ccw([
+        [96, e(96) - 4],
+        [DECK_LEN, e(DECK_LEN) - 4],
+        [DECK_LEN, e(DECK_LEN) - 1],
+        [96, e(96) - 1],
+      ]),
+      tri,
+    );
+    if (rim.length >= 3) b.add('darkRed', topMD(rim, LIFT.livery));
+    patch(b, tri, 'black', 7.5, DECK_LEN, 0, 0.5, LIFT.trim);
+  });
+  // rim: red bow, the bow band's wrap along the top line, black window band
   overlay(b, [TIP, st(R0), st(R1)], [1, 0, 0], (poly, len) => {
     const uWin = Math.ceil(len * 0.44);
     patch(b, poly, 'darkRed', 0, 30, 0, FAR, LIFT.livery);
-    patch(b, poly, 'white', 30, FAR, 0, 1, LIFT.trim);
+    patch(b, poly, 'darkRed', 30, BOW_U1, 0, 1, LIFT.livery);
+    patch(b, poly, 'white', BOW_U1, FAR, 0, 1, LIFT.trim);
     patch(b, poly, 'black', uWin, FAR, 1, 2, LIFT.livery);
   });
   // lower side band: dark top line, red bow, black window band
@@ -2510,24 +2643,25 @@ function lod2(b: Builder, seed: number, anchors: Record<string, V3>): void {
   }
   lod2Keel(b);
   lod2Super(b, seed, anchors);
-  // turrets
+  // turrets: domed housing on its ring, twin barrels
   for (const sx of [1, -1]) {
     for (const [x0, z] of TURRETS) {
       const x = x0 * sx, y = dorsalY(x, z);
-      b.box('lbg', x, y + 1.6, z, 5.4, 2.6, 6, { c: 0.2 });
-      b.box('gunmetal', x, y + 1.9, z + 6, 3, 0.6, 7, { c: 0 });
+      b.cyl('dbg', x, y + 0.3, z, 3.4, 1.4, { radial: 10, c: 0 });
+      b.add('white', sphere(3.0, 10, 4, 0, Math.PI / 2), T(x, y + 0.9, z).multiply(new Matrix4().makeScale(1, 0.72, 1)));
+      b.box('gunmetal', x, y + 2.35, z + 6, 3, 0.6, 7, { c: 0 });
     }
   }
-  // engines: bells with the blue exhaust plate and hot core
-  for (const sx of [1, -1]) {
-    for (const e of ENGINES) {
-      const rad = e.r > 6 ? 14 : 8;
-      b.cyl('pearlDarkGray', e.x * sx, e.y, ZS - e.len / 2, e.r, e.len, { axis: 'z', radial: rad, c: 0 });
-      b.cyl('glowBlue', e.x * sx, e.y, ZS - e.len - 0.1, e.r * 0.82, 0.3, { axis: 'z', radial: rad, c: 0 });
-      b.cyl('glowCyan', e.x * sx, e.y, ZS - e.len - 0.3, e.r * 0.5, 0.3, { axis: 'z', radial: rad, c: 0 });
-    }
+  // engines: bells with the blue exhaust plate and hot core, the housing roof over them
+  for (const e of ENGINE_ALL) {
+    const rad = e.main ? 14 : 8;
+    b.cyl('pearlDarkGray', e.x, e.y, ZS - e.len / 2, e.r, e.len, { axis: 'z', radial: rad, c: 0 });
+    b.cyl('glowBlue', e.x, e.y, ZS - e.len - 0.1, e.r * 0.82, 0.3, { axis: 'z', radial: rad, c: 0 });
+    b.cyl('glowCyan', e.x, e.y, ZS - e.len - 0.3, e.r * 0.54, 0.3, { axis: 'z', radial: rad, c: 0 });
   }
-  b.box('lbg', 0, -16, ZS - 6, 8.4, 26, 12, { c: 0 });
+  const H = HOUSING;
+  b.box('lbg', 0, (H.y0 + H.y1) / 2, ZS - H.len / 2, H.hw * 2, H.y1 - H.y0, H.len, { c: 0 });
+  b.box('dbg', 0, (H.y0 + H.y1) / 2 - 0.3, ZS - H.len - 0.05, H.hw * 2 - 1, 1.2, 0.1, { c: 0 });
 }
 
 // ─── lod-0 routing: spatial chunks × detail tiers ───────────────────────────────────────────────
@@ -2610,7 +2744,7 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
     const out: HullOut = { turretMuzzles: [] };
     hull(b, cfg, L, out);
     superstructure(b, cfg, L, anchorsStud);
-    engines(b, cfg);
+    engines(b, cfg, L);
     const built = b.build('venator-lod1');
     group.add(built.group);
     collectGlows(built.group);
@@ -2631,7 +2765,7 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
     const out: HullOut = { turretMuzzles: [] };
     hull(rb, cfg, L, out);
     superstructure(rb, cfg, L, anchorsStud);
-    engines(rb, cfg);
+    engines(rb, cfg, L);
     muzzles.push(...out.turretMuzzles);
     for (const [key, t] of targets) {
       const built = t.b.build(`venator-${key}`);
