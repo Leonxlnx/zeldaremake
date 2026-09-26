@@ -100,6 +100,96 @@ test('and a run, up to the one-step-per-tick ceiling that is arithmetic rather t
   }
 });
 
+/**
+ * A jump's arc, sampled at whatever rate the caller asks. `airHeight` is 0 on the ground and the
+ * clearance above it in flight, so a jump of `peak` metres lasting `flight` seconds is a parabola
+ * and the ticks land wherever they land.
+ */
+function jumpAir(peak, flight, dt, pad = 0.5) {
+  const out = [];
+  for (let t = -pad; t < flight + pad; t += dt) {
+    const u = t / flight;
+    out.push(t < 0 || t > flight ? 0 : Math.max(0, 4 * peak * u * (1 - u)));
+  }
+  return out;
+}
+
+/** run an air trace through the shipped machine and count what it fired */
+function contacts(trace) {
+  let peakAir = 0;
+  const fired = [];
+  for (const air of trace) {
+    const c = F.contactFor(air, peakAir);
+    if (c.event) fired.push({ event: c.event, fall: c.fall });
+    peakAir = c.peakAir;
+  }
+  return fired;
+}
+
+test('one jump is one shove and one landing, at every frame rate', () => {
+  // The other half of rubric check 28. The distance integrator was driven at eight frame rates and
+  // a real fault came out of it; this machine had never been driven at all, because it lived
+  // inside `mountAudio`'s tick where a test could not reach it.
+  for (const dt of [1 / 120, 1 / 60, 1 / 30, 1 / 20, 1 / 15, 1 / 10, 1 / 6]) {
+    const fired = contacts(jumpAir(0.8, 0.62, dt));
+    const shoves = fired.filter((f) => f.event === 'shove').length;
+    const lands = fired.filter((f) => f.event === 'land');
+    assert.equal(shoves, 1, `at a ${(dt * 1000).toFixed(0)} ms tick one jump fired ${shoves} shoves`);
+    assert.equal(lands.length, 1, `at a ${(dt * 1000).toFixed(0)} ms tick one jump fired ${lands.length} landings`);
+    assert.equal(fired[0].event, 'shove', 'the landing came before the shove');
+    // and the fall it reports is the arc's real height, because `landingStrength` scales with it.
+    // A slow tick samples the parabola coarsely and can only ever UNDER-read the peak.
+    const fall = lands[0].fall;
+    assert.ok(fall <= 0.8 + 1e-9, `the fall read ${fall.toFixed(3)} m off a 0.8 m arc — a sampled peak cannot exceed the real one`);
+    assert.ok(fall > 0.8 * 0.9, `at a ${(dt * 1000).toFixed(0)} ms tick the fall read ${fall.toFixed(3)} m off a 0.8 m arc, more than a tenth low`);
+  }
+});
+
+test('every contact has both ends, at every size of arc', () => {
+  // The hole this found, and the reason the machine was extracted. The shove used to open at
+  // 0.02 and the landing to need 0.05, so an arc peaking between them shoved and never landed —
+  // a contact with no answer, which is the fault `2026-09-24-jump` was written to remove, sitting
+  // inside the machine that removed it.
+  for (const peak of [0.01, 0.021, 0.03, 0.049, 0.051, 0.1, 0.8]) {
+    const fired = contacts(jumpAir(peak, 0.3, 1 / 60));
+    const shoves = fired.filter((f) => f.event === 'shove').length;
+    const lands = fired.filter((f) => f.event === 'land').length;
+    assert.equal(shoves, lands, `a ${(peak * 100).toFixed(1)} cm arc fired ${shoves} shoves and ${lands} landings — every contact must have both ends or neither`);
+  }
+});
+
+test('and the one threshold costs the shove under a fifth of a tick', () => {
+  // Using the landing's threshold for both edges delays the shove to where the arc passes 5 cm
+  // rather than 2. That is a real cost and it is small; this is the number, rather than the claim.
+  const peak = 0.8;
+  const flight = 0.62;
+  const at = (h) => (flight / 2) * (1 - Math.sqrt(Math.max(0, 1 - h / peak)));
+  const late = at(F.AIR_MIN) - at(0.02);
+  assert.ok(late < 0.033 / 5, `the shove now fires ${(late * 1000).toFixed(1)} ms into the arc rather than ${(at(0.02) * 1000).toFixed(1)}, which is not under a fifth of the 33 ms tick`);
+});
+
+test('a height that flickers on the threshold does not machine-gun', () => {
+  // `airHeight` comes from the character system and is a float. If it ever chatters across
+  // `AIR_MIN` the machine sees a rising edge each time, and a shove is the loudest thing a boot
+  // makes. `MIN_STEP_GAP` is the backstop and this is the check that it is reached.
+  const trace = [];
+  for (let i = 0; i < 120; i++) trace.push(i % 2 ? F.AIR_MIN + 0.005 : 0);
+  const fired = contacts(trace);
+  const shoves = fired.filter((f) => f.event === 'shove').length;
+  assert.ok(shoves > 1, 'the flicker did not reach the machine; this test is not testing anything');
+  // the machine itself cannot suppress them — it has no clock — so the guard has to be downstream
+  const ctx = fakeCtx();
+  const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, null, createRng('chatter'), 0);
+  let t = 0;
+  for (const air of trace) {
+    if (F.contactFor(air, 0).event === 'shove') steps.pushOff(t, 'stone', 1.2);
+    t += 1 / 60;
+  }
+  const heard = steps.stats().pushOffs;
+  const cap = Math.ceil(t / F.MIN_STEP_GAP) + 1;
+  assert.ok(heard <= cap, `${shoves} flickers became ${heard} shoves in ${t.toFixed(1)} s; MIN_STEP_GAP caps it at ${cap}`);
+});
+
 test('the seeded stream does not depend on how often the audio is asked', () => {
   // the stride's jitter used to be drawn every tick rather than every step, so the same walk
   // rendered at 20 Hz and heard at 30 drew a different number of times and got different steps

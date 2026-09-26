@@ -513,6 +513,47 @@ export const GORGE_SEND = 0.7;
 /** below this the cut is too far or too shallow to answer, and a step costs exactly what it did */
 export const GORGE_MIN = 0.02;
 
+/**
+ * Clear of the ground by this much and he is in the air. `airHeight` is 0 whenever a boot is down.
+ *
+ * **One threshold, for both edges**, and it used to be two: leaving the ground opened at 0.02 and
+ * landing needed the arc to have reached 0.05. An arc peaking between them therefore **shoved and
+ * never landed** — a contact with no answer, which is the exact fault `2026-09-24-jump` was
+ * written to remove, sitting in the machine that removed it. Found by extracting the machine so a
+ * test could drive it (below); not reachable in the shipped game, because `airHeight` is non-zero
+ * only while `loco.jump.phase === 'air'` and a deliberate jump's arc peaks near 0.8 m. Latent, and
+ * fixed rather than documented, because the character system is another lane's and its jump can
+ * change without anyone here hearing about it.
+ *
+ * It is the landing's threshold that both now use, not the shove's, and that is `landingStrength`'s
+ * doing: it floors at 0.45, so a two-centimetre bob answered would be 7 dB under a full landing
+ * off a storey rather than the nothing it deserves. The cost is that the shove fires when the arc
+ * passes 5 cm rather than 2 — **6 ms later on a jump that peaks at 0.8 m**, which is under a fifth
+ * of the tick the game runs at and is measured in `cadence.test.mjs` rather than argued here.
+ */
+export const AIR_MIN = 0.05;
+
+/**
+ * The jump's two contacts, as a state machine with one number in it.
+ *
+ * `airHeight` is a height, and a shove and a landing are EDGES of it: he leaves the ground once
+ * and arrives once however often the height is sampled. `peakAir` is the latch that turns the one
+ * into the other, and it also carries how far he fell, because the highest point of the arc is
+ * what `landingStrength` needs and it is gone by the time he lands.
+ *
+ * This was eleven lines inside `mountAudio`'s tick, which is why rubric check 28 — *nothing fires
+ * twice for one event, and nothing is missed at any frame rate* — had only ever been half tested.
+ * The other half, the distance integrator, was measured at eight frame rates and a real fault came
+ * out of it (`art/audio/2026-09-25-tickrate/`: one step in fifteen dropped at the shipping tick).
+ * A machine that cannot be reached by a test is a machine nobody has checked, and this one had a
+ * fault in it.
+ */
+export function contactFor(air: number, peakAir: number): { event: 'shove' | 'land' | null; peakAir: number; fall: number } {
+  if (air > AIR_MIN) return { event: peakAir === 0 ? 'shove' : null, peakAir: Math.max(peakAir, air), fall: 0 };
+  if (peakAir > AIR_MIN) return { event: 'land', peakAir: 0, fall: peakAir };
+  return { event: null, peakAir: 0, fall: 0 };
+}
+
 export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, gorgeSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence

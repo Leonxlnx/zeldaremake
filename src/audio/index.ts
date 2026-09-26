@@ -21,7 +21,7 @@ import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
-import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
+import { contactFor, createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -813,18 +813,14 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         const speed = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-3);
         const stance = player.feetContact?.()?.map((f) => f.stance);
         gaitDriven = !!stance;
-        // the jump's arc (`airHeight` is 0 whenever a boot is down): the drop's highest point is
-        // how hard he comes back onto whatever is under him
-        const air = player.airHeight?.() ?? 0;
-        if (air > 0.02) {
-          // the rising edge is the shove: he is leaving the ground here, and until now that was
-          // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
-          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure, s.gorge);
-          peakAir = Math.max(peakAir, air);
-        } else if (peakAir > 0.05) {
-          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir, s.enclosure, s.gorge);
-          peakAir = 0;
-        } else peakAir = 0;
+        // the jump's two contacts (`contactFor` in footsteps.ts, where a test can reach it): the
+        // rising edge is the shove, which until 2026-09-24 was the one contact in the game that
+        // made no sound, and the fall it carries is the arc's highest point, which is how hard he
+        // comes back onto whatever is under him
+        const contact = contactFor(player.airHeight?.() ?? 0, peakAir);
+        if (contact.event === 'shove') footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure, s.gorge);
+        else if (contact.event === 'land') footsteps.land(t, s.stairs ? 'stair' : s.surface, contact.fall, s.enclosure, s.gorge);
+        peakAir = contact.peakAir;
         footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure, gorge: s.gorge });
       }
       lastPos.x = p.x;
