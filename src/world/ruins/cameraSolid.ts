@@ -5,7 +5,8 @@
  *  - the rock as built: the cliff, the ivy rock, the slab bridge and its pile (the cliff builder's
  *    geometry), and the gate boulders (as balls);
  *  - the masonry the walker never stands on: the terrace block's outer faces, the retaining wall and
- *    the water stair's faces up to UNDER_TOP under the walked tops, the ruined parapet on the terrace
+ *    the water stair's faces up to UNDER_TOP under the walked tops, the copings' overhangs beyond
+ *    those faces up to the walked top, the ruined parapet on the terrace
  *    section's wall top (not its break to the water stair), the parapet with its posts and finials,
  *    the arch's ring and pendant, the colonnade's lintel, the broken arch's piers and surviving ring.
  * The walked surfaces (paving, treads, the outcrop) stay out: the camera's lift keeps it over the
@@ -17,7 +18,7 @@ import { Box3, type BufferGeometry, Matrix4, Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
 import { WATER_STAIR_WEST, waterStairTop } from '../terrain/ruins';
 import { VoxelGrid, worldBounds } from '../util/voxelGrid';
-import { PARAPET_POSTS, PARAPET_Z, type Blocker } from './masonry';
+import { COPING_PROUD, PARAPET_POSTS, PARAPET_Z, type Blocker } from './masonry';
 
 const R = EXPANSION_RUINS;
 const T = R.terrace;
@@ -105,6 +106,16 @@ export function buildRuinsCameraSolid(rock: BufferGeometry, ground: Ground): Rui
   // over the paving, some lost; the gaps are filled too) — not its break to the water stair
   fillBox(W.x0, Math.min(T.x1 - 0.4, Q.head[0] - 0.05), top, T.y + 0.62, W.z + W.half - 0.44, W.z + W.half - 0.02);
   fillBox(T.x1, W.x1, bottom, R.platform.y - UNDER_TOP, W.z - W.half, W.z + W.half);
+  // the copings' overhangs beyond those faces: the wall's over the pool (not the break's crossing),
+  // the east front's either side of the cut, the notch's two, the north face's (their tops 1 cm under
+  // the walked top: a band ending on a cell boundary would fill the cell over it)
+  const cop = T.y - 0.01;
+  fillBox(W.x0, Q.head[0] - 0.05, top, cop, W.z + W.half, W.z + W.half + COPING_PROUD);
+  fillBox(T.x1, T.x1 + COPING_PROUD, top, cop, cutS, W.z + W.half);
+  fillBox(T.x1, T.x1 + COPING_PROUD, top, cop, T.notchZ, cutN);
+  fillBox(T.notchX, T.x1, top, cop, T.notchZ - COPING_PROUD, T.notchZ);
+  fillBox(T.notchX, T.notchX + COPING_PROUD, top, cop, T.z0, T.notchZ);
+  fillBox(T.x0, T.notchX, top, cop, T.z0 - COPING_PROUD, T.z0);
   const base = R.platform.y - 0.02;
   fillBox(Math.min(P.x0, P.x1), Math.max(P.x0, P.x1), base, base + P.height, PARAPET_Z - P.half, PARAPET_Z + P.half);
   for (const px of PARAPET_POSTS) fillBox(px - 0.27, px + 0.27, base, base + P.height + 0.32, PARAPET_Z - 0.27, PARAPET_Z + 0.27);
