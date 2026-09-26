@@ -1,5 +1,16 @@
 # Lane 5 — what each layer of the wood is worth, and the answer to last hour's question
 
+> **Corrected 2026-09-26 — one number in this report is wrong, and it is understated.** `mute` was
+> not muting the wind: `canopyMod` and `hushMod` are connected to the wind gains' AudioParams and
+> a node connected to a param is summed with its automation rather than scaling it, so zeroing the
+> level left the gust still driving the gain (found in `art/audio/2026-09-26-shadow2/`, fixed
+> there). Every "no wind" take below therefore still had wind in it.
+>
+> Re-run on a build with the bug and one without (`art/audio/2026-09-26-relayers/`): the leaf and
+> bird rows are **identical to the decimal**, the quiet gaps move by at most 0.05 s, and the one
+> real correction is the sentence *"muting it costs 20.2 dB under gusty crowns"* — **it costs
+> 29.2 dB.** The conclusion the report draws from it is strengthened, not overturned.
+
 Branch `cursor/squad5-layers-5535`, **stacked on `cursor/squad5-recheck-5535`** (PR #156), which
 ended on a question it could not answer: *if a leaf cannot be heard to move, can it be heard at
 all?*
