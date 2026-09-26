@@ -845,6 +845,30 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
     const foot = [Math.round(((D.stepInner + D.stepOuter) / 2 - o0) / C), Math.round((-D.half - D.stepRun - 0.5 - a0) / C)];
     assert.equal(seen[foot[0] * na + foot[1]], 1, `walked from the deck down the flight to the ground at its foot`);
     assert.ok(reached > 300, `walked the deck, its steps and the ground round them (${reached} cells)`);
+    // walked up the flight anywhere across its treads and on along the deck by moveRoot's rule
+    // (character index.ts: the straight 4 cm step, else turned 0.6 / 1.1 rad either way and
+    // shortened to its component along the turn): the flight's band lies inside the strip's where
+    // they meet, so the skirt meets nobody head-on at the steps' top
+    const slideTurns = [0.6, 1.1];
+    const [dx, dz] = [plan.t[0] * 0.04, plan.t[1] * 0.04];
+    for (let out = D.stepInner + 0.05; out <= D.stepOuter - 0.05 + 1e-9; out += 0.05) {
+      let [x, z] = plan.at(out, -D.half - D.stepRun * 0.5);
+      for (let k = 0; k < 120; k++) {
+        const h0 = skirted.height(x, z);
+        const ok = ([sx, sz]) => !skirted.blocked(x + sx, z + sz) && skirted.height(x + sx, z + sz) - h0 < 0.55;
+        const tries = [[dx, dz], ...slideTurns.flatMap((a) => [1, -1].map((side) => {
+          const c = Math.cos(a);
+          const s = Math.sin(a) * side;
+          return [(dx * c - dz * s) * c, (dx * s + dz * c) * c];
+        }))];
+        const step = tries.find(ok);
+        if (!step) break;
+        x += step[0];
+        z += step[1];
+      }
+      const along = (x - h.x) * plan.t[0] + (z - h.z) * plan.t[1];
+      assert.ok(along > 0, `walked up the flight ${out.toFixed(2)} m out onto the deck's strip (stopped ${along.toFixed(2)} m along, at ${fmt(x, z)})`);
+    }
   }
   // the boots on the deck and its flight sound like planks (audio/index.ts `surfaceAt`); the ground
   // a metre off the outer railing and past the flight's foot does not

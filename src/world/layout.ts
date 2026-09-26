@@ -1183,9 +1183,11 @@ export const EXPANSION_EAST = {
    * `stepRun` m down from its door-side end between `stepInner` and `stepOuter`; a short ladder
    * leans on its far end. The walk strip (`walkHw` either side of its line) stops `railStop` m
    * inside the outer and far railings, so a walker pressing on them keeps his boots and chest on
-   * this side of the boards.
+   * this side of the boards. The flight's walk band (4 cm in from either stringer) is the strip's
+   * band: wider on the outside, a walker coming up the treads' outer edge met the strip's skirt
+   * head-on at the top, under the outer corner post, and stopped dead there.
    */
-  tallDeck: { a: 1.5, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.4, railStop: 0.25, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
+  tallDeck: { a: 1.5, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.4, railStop: 0.25, stepRun: 1.65, stepInner: 3.3, stepOuter: 4.18 },
   /** the shop's hanging sign: its post north of the lane, the arm reaching `armDeg` (bearing) over the verge */
   shopSign: { x: 35.7, z: -6.95, armDeg: 4, height: 2.35 },
   /**

@@ -104,7 +104,7 @@ if (pp) {
   }
   out.push(`fence/rope/stump pushes: closest ${minStop} m; largest drop of any push ${maxDrop} m`);
   out.push('\n### footsteps\n');
-  const line = [[45.59, 2.45], [47.33, 2.4], [49.92, 2.1]];
+  const line = [[45.58, 2.25], [47.33, 2.19], [49.92, 2.1]];
   const segD = (x, z, a, b) => {
     const ex = b[0] - a[0];
     const ez = b[1] - a[1];

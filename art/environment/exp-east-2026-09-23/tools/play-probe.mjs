@@ -64,10 +64,10 @@ const PUSHES = [
 // footstep walks: [name, points]
 const WALKS = [
   ['lane: stair head to the green', [[17.6, -7.35], [19.8, -6.55], [22.3, -5.7], [24.35, -4.3], [26.6, -3.95], [28.9, -4.3], [31.3, -4.5], [33.7, -4.45], [35.48, -3.45], [38.27, -1.52], [41.03, -1.8], [42.6, -0.3]]],
-  ['deck: lane, steps, strip, far end and back', [[42.6, -0.3], [43.0, 2.3], [44.6, 2.45], [45.59, 2.45], [47.33, 2.4], [49.9, 2.2], [47.4, 2.36], [45.59, 2.45], [43.2, 2.3]]],
+  ['deck: lane, steps, strip, far end and back', [[42.6, -0.3], [43.0, 2.3], [44.58, 2.28], [45.58, 2.25], [47.33, 2.19], [49.9, 2.1], [47.4, 2.18], [45.58, 2.25], [43.2, 2.3]]],
   ['green lawn off the discs', [[40.0, 2.5], [41.5, 4.5], [40.0, 5.5]]],
 ];
-const DECK = { steps: [[45.59, 2.45], [47.33, 2.4]], strip: [[47.25, 2.19], [49.92, 2.10]] };
+const DECK = { steps: [[45.58, 2.25], [47.33, 2.19]], strip: [[47.25, 2.19], [49.92, 2.10]] };
 
 const server = await serveStatic(dist);
 const browser = await launchBrowser({ width: 960, height: 540 });
@@ -217,7 +217,7 @@ try {
     // (arrival, +12, +24 frames) as pictures of where the camera stands.
     const TRUNKS = [['east-shop', 40.0, -7.0, 3.0], ['east-tall', 48.6, -1.6, 3.0], ['east-small', 37.2, 6.0, 2.1]];
     const CAM_WALKS = [
-      ['east-tall-deck', [[42.6, -0.3], [43.0, 2.3], [44.6, 2.45], [45.59, 2.45], [47.33, 2.4], [49.9, 2.2], [47.4, 2.36], [45.59, 2.45], [43.2, 2.3]], 6],
+      ['east-tall-deck', [[42.6, -0.3], [43.0, 2.3], [44.58, 2.28], [45.58, 2.25], [47.33, 2.19], [49.9, 2.1], [47.4, 2.18], [45.58, 2.25], [43.2, 2.3]], 6],
       ['east-small-door', [[38.27, -1.52], [37.65, -0.05], [37.0, 1.4], [35.96, 2.14], [37.0, 1.4], [38.27, -1.52]], 4],
     ];
     const canvas = await page.$('canvas');
@@ -233,7 +233,7 @@ try {
       let turnAt = -1;
       const rows = [];
       const shots = [];
-      while (wp < pts.length && frames < 900) {
+      while (wp < pts.length && frames < 1200) {
         const st = await page.evaluate(() => window.__ZR_PLAY__.state());
         const [x, , z] = st.link;
         if (Math.hypot(pts[wp][0] - x, pts[wp][1] - z) < 0.5) {

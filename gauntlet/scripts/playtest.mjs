@@ -119,7 +119,7 @@ const groveFrames = () => {
  */
 const EAST = {
   tall: { c: [48.6, -1.6], facingDeg: -84 },
-  deck: { a: 1.5, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.4, railStop: 0.25, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
+  deck: { a: 1.5, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.4, railStop: 0.25, stepRun: 1.65, stepInner: 3.3, stepOuter: 4.18 },
   fence: [[45.3, 8.85], [46.6, 8.75], [47.9, 8.7], [49.2, 8.75], [50.3, 8.55]],
   westRun: [[44.15, 8.95], [42.9, 9.0], [41.6, 9.0], [40.3, 8.85], [38.95, 8.45]],
   eastRun: [[50.97, 7.8], [50.93, 6.72], [50.84, 5.86]],
@@ -784,7 +784,7 @@ async function walkScenario(page, results) {
     ['stairs-to-east-lookout', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -7.35], [19.8, -6.55], [22.3, -5.7], [24.35, -4.3], [26.6, -3.95], [28.9, -4.3], [31.3, -4.5], [33.7, -4.45], [35.48, -3.45], [38.27, -1.52], [41.03, -1.8], [42.6, -0.3], [43.0, 2.3], [43.2, 4.6], [43.6, 7.2], [45.5, 7.9], [47.2, 7.25]], 2400],
     // the tall house's side deck (layout eastDeckPlan): off the lane, up its plank steps onto the
     // railed strip (walk surfaces east-tall-steps / east-tall-deck), to the ladder end and back down
-    ['east-tall-deck', [[42.6, -0.3], [43.0, 2.3], [44.6, 2.45], [45.59, 2.45], [47.33, 2.4], [49.9, 2.2], [47.4, 2.36], [45.59, 2.45], [43.2, 2.3]], 900],
+    ['east-tall-deck', [[42.6, -0.3], [43.0, 2.3], [44.58, 2.28], [45.58, 2.25], [47.33, 2.19], [49.9, 2.1], [47.4, 2.18], [45.58, 2.25], [43.2, 2.3]], 900],
     // the small house's spur (layout EXPANSION_EAST.spurs[2]) from the lane to its doorstep and back
     ['east-small-door', [[38.27, -1.52], [37.65, -0.05], [37.0, 1.4], [35.96, 2.14], [37.0, 1.4], [38.27, -1.52]], 900],
     // 2026-09-24 (expansion-north): from the second clearing up the ledge flight, past the grove's
