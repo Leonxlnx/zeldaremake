@@ -90,6 +90,13 @@ would break it).
 **38 is the one I would take next.** Every number in it predates two changes to the mix's own
 staging, and "stems balance" is the row closest to the owner's standing complaint.
 
+> **Taken, 2026-09-26 — `art/audio/2026-09-26-balance/`.** Re-measured against the integration
+> head on the same box: the music is untouched to the decimal, the mix is unchanged at −24.3 LUFS
+> with 0 clipped samples, and the steps are 2.8 LU quieter as intended. **Check 38 stays at 3**
+> and its figures on `balance.py`'s own walk are 8.4 / 14.4 / 0.3 LU under the mix. The pass also
+> turned up something none of the six iterations aimed at: **the bed's always-on level fell 2.7 to
+> 4.7 dB across every band**, which is the metric the owner's complaint lives in.
+
 ## Green
 
 No `src/` change. `npm run typecheck`, `npm run build`, **252 / 252** tests, and
