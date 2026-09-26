@@ -47,15 +47,15 @@ export function lightsaber(color: 'blue' | 'green' = 'blue', o: { length?: numbe
   geo.setAttribute('normal', new BufferAttribute(cap.nrm, 3));
   // deep, saturated sheath around a thin blue-white core: ACES desaturates very bright colours, so the
   // core stays moderate and the colour comes from the sheath and its bloom
-  // HDR budget after the core and sheath add up: centre ≈ (0.3, 0.9, 4) → light blue, sheath ≈ (0.04, 0.25, 1.8) → deep blue
+  // HDR budget after the core and sheath add up: centre ≈ (0.4, 1.3, 6.8) → light blue, sheath ≈ (0.07, 0.5, 3.6) → deep blue
   const hue = color === 'blue' ? new Color(0.02, 0.14, 1.0) : new Color(0.1, 1.0, 0.14);
   const coreCol = color === 'blue' ? new Color(0.1, 0.26, 1.0) : new Color(0.3, 1.0, 0.34);
-  const core = new Mesh(geo, new MeshBasicMaterial({ color: coreCol.multiplyScalar(2.4), toneMapped: false }));
+  const core = new Mesh(geo, new MeshBasicMaterial({ color: coreCol.multiplyScalar(3.2), toneMapped: false }));
   core.scale.set(0.065, L, 0.065);
-  const glow = new Mesh(geo, new MeshBasicMaterial({ color: hue.clone().multiplyScalar(2.6), transparent: true, opacity: 0.7, blending: AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const glow = new Mesh(geo, new MeshBasicMaterial({ color: hue.clone().multiplyScalar(4.5), transparent: true, opacity: 0.8, blending: AdditiveBlending, depthWrite: false, toneMapped: false }));
   glow.scale.set(0.19, L * 1.03, 0.19);
   glow.renderOrder = 5;
-  const glow2 = new Mesh(geo, new MeshBasicMaterial({ color: hue.clone().multiplyScalar(1.2), transparent: true, opacity: 0.45, blending: AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const glow2 = new Mesh(geo, new MeshBasicMaterial({ color: hue.clone().multiplyScalar(1.8), transparent: true, opacity: 0.5, blending: AdditiveBlending, depthWrite: false, toneMapped: false }));
   glow2.scale.set(0.46, L * 1.06, 0.46);
   glow2.renderOrder = 5;
   blade.add(core, glow, glow2);

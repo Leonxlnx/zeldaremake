@@ -1035,8 +1035,8 @@ const jumpOut: Shot = {
     face(w.obiwan, { mouth: t < 1.3 ? 'o' : 'smile', brows: t < 1.3 ? 0.6 : 0.2 }, t, 2);
     face(w.anakin, { mouth: 'grin', brows: -0.3 }, t, 1);
     // wide three-quarter from the droids' side: both flips read in profile against the hangar mouth
-    const camPos = J.mid.clone().add(J.toDroids.clone().multiplyScalar(30)).add(v3(0, 7.5, 0)).add(J.side.clone().multiplyScalar(-4));
-    const look = J.mid.clone().add(J.toDroids.clone().multiplyScalar(-1.5)).add(v3(0, 3.6, 0));
+    const camPos = J.mid.clone().add(J.toDroids.clone().multiplyScalar(lerp(24, 22, smooth(0, 3.4, t)))).add(v3(0, 6.2, 0)).add(J.side.clone().multiplyScalar(-3));
+    const look = J.mid.clone().add(J.toDroids.clone().multiplyScalar(-1.5)).add(v3(0, 4.2, 0));
     w.aimShadow(J.mid, 40, v3(0.2, 1, 0.3).normalize());
     return { pos: camPos.add(shake(t, 0.04, 1, 47)), target: look, fov: 40, near: 0.1, lens: { exposure: 1.1 } };
   },
@@ -1060,8 +1060,9 @@ const droids: Shot = {
     w.stand(w.anakin, anaPos, yaw + (t < 2.4 ? 0.6 : 0));
     const ign = smooth(2.9, 3.25, t);
     const raise = smooth(2.5, 3.0, t);
-    w.obiwan.pose({ armR: 0.2 + raise * 1.0, armL: 0.1 + raise * 0.3, splayL: 0.1, wristR: raise * Math.PI / 2, headYaw: t < 2.4 ? 0.3 : 0, headPitch: 0 });
-    w.anakin.pose({ armR: 0.25 + raise * 1.15, armL: 0.15, splayL: 0.1, wristR: raise * Math.PI / 2, headYaw: t < 2.4 ? -0.5 : 0 });
+    // ready stance: blades up and angled forward over the droids, so they stay in frame
+    w.obiwan.pose({ armR: 0.2 + raise * 1.0, armL: 0.1 + raise * 0.3, splayL: 0.1, wristR: raise * (Math.PI / 2 + 0.5), headYaw: t < 2.4 ? 0.3 : 0, headPitch: 0 });
+    w.anakin.pose({ armR: 0.25 + raise * 1.15, armL: 0.15, splayL: 0.1, wristR: raise * (Math.PI / 2 - 0.5), headYaw: t < 2.4 ? -0.5 : 0 });
     face(w.obiwan, { mouth: talk(t, 0.35, 2.0, t < 2.4 ? 'smile' : 'smirk'), brows: t < 2.4 ? 0.2 : -0.4, lookX: t < 2.4 ? -0.03 : 0 }, t, 2);
     face(w.anakin, { mouth: t < 2.4 ? 'grin' : 'smirk', brows: -0.4 }, t, 1);
     w.sabers.forEach((sb, i) => {
