@@ -1677,6 +1677,29 @@ const TREE_LOD_SCALE: [number, number, number, number] = (() => {
   if (parts.length === 1) return [ok(parts[0]), ok(parts[0]), ok(parts[0]), ok(parts[0])];
   return [ok(parts[0]), ok(parts[1]), ok(parts[2] ?? parts[1]), ok(parts[3] ?? 1)];
 })();
+/**
+ * A far rung for the giants' AUTHORED curtains (the eye-detail laminae of the authored lobes,
+ * `giants-authored-leaves-*`: one mesh per giant, 13–257 K triangles, drawn whole from any range —
+ * 0.32 M at the green look-back, the plateau-oak's shot-D curtains 257 K of it at 45 m). Beyond this
+ * many metres from a curtain mesh's sphere the camera sees a thinned twin: every
+ * AUTHORED_LEAVES_FAR_EVERY-th lamina kept and grown about its base by AUTHORED_LEAVES_FAR_SCALE
+ * (1 in 2 at √2 keeps the leaf area; the writer's medium rule for the family trees is 1 in 4 at 1.8).
+ * Infinity = off, the shipped value until the owner takes the look call; `?curtainfar=<m>[,<every>,<scale>]`
+ * is the measuring knob (the take / CI path never sets it).
+ */
+const AUTHORED_LEAVES_FAR: { m: number; every: number; scale: number } = (() => {
+  const off = { m: Infinity, every: 2, scale: Math.SQRT2 };
+  if (typeof location === 'undefined') return off;
+  const raw = new URLSearchParams(location.search).get('curtainfar');
+  if (!raw) return off;
+  const parts = raw.split(',').map(Number);
+  const m = Number.isFinite(parts[0]) && parts[0] > 0 ? parts[0] : Infinity;
+  const every = Number.isFinite(parts[1]) && parts[1] >= 2 ? Math.round(parts[1]) : 2;
+  const scale = Number.isFinite(parts[2]) && parts[2] > 0 ? parts[2] : Math.sqrt(every);
+  return { m, every, scale };
+})();
+/** the far rung's hysteresis: a curtain goes far past `m`, comes back within `m − AUTHORED_LEAVES_FAR_BACK_M` */
+const AUTHORED_LEAVES_FAR_BACK_M = 3;
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
 const NEAR_CANOPY_PREFETCH_M = NEAR_LOD_TIER.canopyPrefetchM;
@@ -3808,6 +3831,61 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // draws the curtains whose own sphere meets it: +1 call per giant that has any.
   const authoredParts = giants.filter((g) => g.asset.authoredLeaves.getAttribute('position').count > 0);
   for (const g of giants) if (!authoredParts.includes(g)) g.asset.authoredLeaves.dispose();
+  /**
+   * The thinned twin of a leaf geometry (AUTHORED_LEAVES_FAR): the writer emits each lamina's
+   * vertices and triangles together with one wind phase (`aWind.y`) per leaf and its base vertex at
+   * uv.y = 0, so consecutive triangles sharing a phase are one lamina. Every `every`-th lamina is
+   * kept and its vertices scaled about its base by `scale` — the writer's own medium rule, applied
+   * after the fact. Arrays must still be on the CPU.
+   */
+  const thinLaminae = (g: BufferGeometry, every: number, scale: number, name: string): BufferGeometry => {
+    const index = g.index!;
+    const wind = g.getAttribute('aWind') as BufferAttribute;
+    const triCount = index.count / 3;
+    const keptTris: number[] = [];
+    let ordinal = -1;
+    let lastPhase = NaN;
+    for (let t = 0; t < triCount; t++) {
+      const phase = wind.getY(index.getX(t * 3));
+      if (phase !== lastPhase) {
+        ordinal++;
+        lastPhase = phase;
+      }
+      if (ordinal % every === 0) keptTris.push(t);
+    }
+    const thin = subsetGeometry(g, keptTris, name);
+    // the kept laminae grow about their base vertex (uv.y = 0; the lamina's centroid when a leaf has none)
+    const pos = thin.getAttribute('position') as BufferAttribute;
+    const uv = thin.getAttribute('uv') as BufferAttribute;
+    const thinWind = thin.getAttribute('aWind') as BufferAttribute;
+    const bases = new Map<number, Vector3>();
+    const members = new Map<number, number[]>();
+    for (let v = 0; v < pos.count; v++) {
+      const phase = thinWind.getY(v);
+      let list = members.get(phase);
+      if (!list) members.set(phase, (list = []));
+      list.push(v);
+      if (uv && uv.getY(v) === 0 && !bases.has(phase)) bases.set(phase, new Vector3(pos.getX(v), pos.getY(v), pos.getZ(v)));
+    }
+    const p = new Vector3();
+    for (const [phase, list] of members) {
+      let base = bases.get(phase);
+      if (!base) {
+        base = new Vector3();
+        for (const v of list) base.add(p.set(pos.getX(v), pos.getY(v), pos.getZ(v)));
+        base.multiplyScalar(1 / list.length);
+      }
+      for (const v of list) {
+        p.set(pos.getX(v), pos.getY(v), pos.getZ(v)).sub(base).multiplyScalar(scale).add(base);
+        pos.setXYZ(v, p.x, p.y, p.z);
+      }
+    }
+    thin.computeBoundingBox();
+    thin.computeBoundingSphere();
+    return thin;
+  };
+  /** a curtain mesh and its thinned twin, swapped by the camera's distance to the curtain's sphere */
+  const authoredCurtains: { near: Mesh; far: Mesh | null; sphere: Sphere; isFar: boolean }[] = [];
   for (const g of authoredParts) {
     const geometry = mergeParts(`giants-authored-leaves-${g.def.id}`, [g.asset.authoredLeaves]);
     sectorGeometries.push(geometry);
@@ -3820,7 +3898,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.giants = [g.def.id];
     giantGroup.add(mesh);
     sectorMeshes.push(mesh);
+    let far: Mesh | null = null;
+    if (Number.isFinite(AUTHORED_LEAVES_FAR.m)) {
+      const thin = thinLaminae(geometry, AUTHORED_LEAVES_FAR.every, AUTHORED_LEAVES_FAR.scale, `giants-authored-leaves-${g.def.id}-far`);
+      sectorGeometries.push(thin);
+      far = new Mesh(thin, mats.giantTree);
+      far.name = `giants-authored-leaves-${g.def.id}-far`;
+      far.customDepthMaterial = mats.giantTreeDepth;
+      far.castShadow = false;
+      far.receiveShadow = true;
+      far.visible = false;
+      far.userData.kind = 'giant-authored-leaves';
+      far.userData.giants = [g.def.id];
+      far.userData.farRung = true;
+      giantGroup.add(far);
+      sectorMeshes.push(far);
+    }
+    authoredCurtains.push({ near: mesh, far, sphere: geometry.boundingSphere!.clone(), isFar: false });
   }
+  /** the curtains' rung for the camera at `cam` (AUTHORED_LEAVES_FAR): far past `m`, back within `m − AUTHORED_LEAVES_FAR_BACK_M`; `reset` decides from the distance alone */
+  const authoredCurtainsUpdate = (cam: Vector3, reset: boolean) => {
+    for (const c of authoredCurtains) {
+      if (!c.far) continue;
+      const d = Math.max(0, c.sphere.center.distanceTo(cam) - c.sphere.radius);
+      if (reset) c.isFar = d > AUTHORED_LEAVES_FAR.m;
+      else if (c.isFar) c.isFar = d > AUTHORED_LEAVES_FAR.m - AUTHORED_LEAVES_FAR_BACK_M;
+      else c.isFar = d > AUTHORED_LEAVES_FAR.m;
+      c.near.visible = !c.isFar;
+      c.far.visible = c.isFar;
+    }
+  };
   // The cards of the flat lobes (CanopyLobe.flat — round 38's bank canopy over F / C), likewise
   // one non-casting mesh per giant that has any: a flat lobe is a canopy underside in the shade
   // of the crown above it, and its full-size card sheet 3–4 m over the bank would otherwise lay
@@ -4612,6 +4719,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     nearBoleUpdate(_v, force);
     nearCanopyUpdate(_v, force);
+    authoredCurtainsUpdate(_v, force);
     cull(camera, moved);
     detachedGroup.visible = detachedVisible(camera);
   };
@@ -5066,6 +5174,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
          * submit), the CPU arrays still held (the index), whether the batch casts this frame and, of its
          * instances, how many the last depth pass drew (those whose shadow sweep meets the frame) and their triangles
          */
+        /** AUTHORED_LEAVES_FAR: the curtains' rung per giant — [id, far?, distance to the sphere (m), near triangles, far triangles] — and the knob in force */
+        authoredCurtains: { farM: AUTHORED_LEAVES_FAR.m, every: AUTHORED_LEAVES_FAR.every, scale: +AUTHORED_LEAVES_FAR.scale.toFixed(3), meshes: authoredCurtains.map((c) => [c.near.userData.giants[0], c.isFar, Math.round(Math.max(0, c.sphere.center.distanceTo(ctx.camera.getWorldPosition(new Vector3())) - c.sphere.radius) * 10) / 10, c.near.geometry.index!.count / 3, c.far ? c.far.geometry.index!.count / 3 : null]) },
         farBatches: farFoliage.map((b) => ({ name: b.mesh.name, instances: b.instances, vertices: b.vertices, indices: b.indices, layout: b.layout, folded: b.folded, foldedTriangles: b.foldedTriangles, heapBytes: b.heapBytes, casting: b.mesh.castShadow, castingInstances: b.casting, castingTriangles: b.castingTriangles })),
         /** Measured bytes after a first build; deferred records retain conservative estimates. */
         builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
