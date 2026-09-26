@@ -99,8 +99,11 @@ class LaserSystem {
         const near = Math.max(0, Math.min(1, (d - 3 - e.width * 2) / (14 + e.width * 6)));
         fade *= near * near * (3 - 2 * near);
         // background traffic crossing close to the camera would bury the featured attacks
+        // (turbolaser bolts are ten times a fighter bolt's width and stay bright ovals thousands of units out, so
+        // they keep proportionally farther away)
         if (clear > 0 && !e.hero) {
-          const k = Math.max(0, Math.min(1, (d - clear * 0.6) / (clear * 0.4)));
+          const cl = clear * Math.max(1, e.width / 3);
+          const k = Math.max(0, Math.min(1, (d - cl * 0.6) / (cl * 0.4)));
           fade *= k * k * (3 - 2 * k);
         }
       }
