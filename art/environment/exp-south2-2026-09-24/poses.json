@@ -324,23 +324,26 @@
    0.35,
    5.514,
    32.64
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "K-up",
-  "note": "on the gallery at 200 deg, looking up 58 deg at the mast and the beacon",
-  "eye": [
-   5.456,
-   31.301,
-   1.5
-  ],
-  "look": [
-   7.01,
-   32.73,
-   4.87,
-   5.456,
-   31.301
-  ]
+  "note": "on the gallery at 115 deg by the railing (r 2.05), looking up 58 deg past the cap's rim at the mast and the beacon (the davit stands at 96 deg, beside the view)",
+  "from": {
+   "p": [
+    6.234,
+    1.43,
+    33.758
+   ],
+   "t": [
+    6.938,
+    3.99,
+    32.32
+   ],
+   "fov": 46
+  },
+  "ab": false
  },
  {
   "name": "K-down",
@@ -369,7 +372,8 @@
    8.8,
    31.5,
    -0.1
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "W-front",
@@ -420,6 +424,24 @@
    4.832,
    26.033
   ],
+  "ab": false
+ },
+ {
+  "name": "W-up",
+  "note": "on the waystation's lower step, looking up 60 deg at the front plate, the rafters' ends and the moss roof's rolled rim",
+  "from": {
+   "p": [
+    4.068,
+    1.28,
+    26.252
+   ],
+   "t": [
+    4.568,
+    2.146,
+    26.109
+   ],
+   "fov": 46
+  },
   "ab": false
  },
  {
@@ -570,21 +592,20 @@
  },
  {
   "name": "E-up",
-  "note": "1.5 m short of the roots, looking up 60 deg at the hollow's roof where the roots come through",
-  "eye": [
-   4.376,
-   51.098,
-   1.5,
-   4.31,
-   48.899
-  ],
-  "look": [
-   4.4,
-   51.898,
-   2.9,
-   4.31,
-   48.899
-  ],
+  "note": "at the dead end, looking up 60 deg along the bore at the cracks in the rotten roof where the roots come through (0.2-0.8 m past the walk's end)",
+  "from": {
+   "p": [
+    4.409,
+    1.279,
+    52.198
+   ],
+   "t": [
+    4.427,
+    2.319,
+    52.798
+   ],
+   "fov": 46
+  },
   "ab": false
  },
  {
