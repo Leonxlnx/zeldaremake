@@ -176,3 +176,21 @@ invisible; a 0.5 m band would only be tidiness.
 Scores now: #42 L 4, #44 3 (the small house's door pull-in stands), #46 ★ 2 → **3** on the lane's own views (draws met everywhere on the
 plateau, triangles 0.1–0.3 M over), the rest as the 16:36 read. **From this lane's side the branch is merge-ready once the owner has
 called the A / B / E top-edge crown change** — the one item that has not moved since yesterday.
+
+## `256ebe91` (19:32 `f154f9f2` the lane's core buckets draw house by house — runs per house, drawn from the first run whose 0.5 m cells the frustum meets to the last; 03:03 `32f852ed` the deck's flight comes up inside the strip's band; the head `33e92705` merged — columnbatch, farfold, farshadow in) — 05:31–06:15 UTC
+
+**The plateau's frames, all under the draw cap, 0.03–0.2 M over the triangle line:** the green **592 draws / 9.20 M** (was 646 / 9.31 M
+on `a3f57348`), the lookout **567 / 9.13 M** (616 / 9.21 M), the tall deck **571 / 9.03 M** (616 / 9.09 M), the stair head 415 / 7.09 M
+(457 / 7.39 M). Against the head `6bb60a08` at the same poses (652 / 9.84 M at the green, 623 / 9.71 M at the lookout) the lane is −60 and
+−56 draws, −0.6 M — the far colour LOD's structures row, unchanged: **133 / 1.84 M at the green, 134 / 1.90 M at the lookout**, exactly the
+`a3f57348` numbers. So the frames' −49…−54 draws since my last read are the head's tree batches carried in, and the house-by-house runs
+took nothing at these two poses: every house's run has cells in the frustum from the green and from the lookout looking back. The commit
+models its cut at "lookout west 1.898 → 1.653 M" — a pose where a house's run leaves the frustum; at my lookout-back (265°) the row reads
+1.90 M on both tips. Not a fault — a rule that only pays when a house is out of frame — but the modelled number is not one of my poses'.
+
+**Six views:** pixel-identical to the branch's own `a3f57348` (1.0000 / 0.00 % at all six); against the head the pair is still the
+11 m crown rule's — A 0.9905 / +0.0033 vs the reference, B 0.9941, E 0.9942, F 0.9947, C D 1.0000 — the one item on this branch that has
+not moved since 16:03 two days ago, and still the owner's call.
+
+Scores as at `a3f57348`: #42 L 4, #44 3, #46 ★ 3 (draws met everywhere on the plateau, 0.03–0.2 M over the triangles — the head's trees
+and vegetation). The deck's flight (`32f852ed`) is a walkability fix I have not walked this tick; the lane's own harness route covers it.

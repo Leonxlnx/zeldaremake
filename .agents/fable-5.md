@@ -40,6 +40,27 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 08:47–09:30 UTC — iteration 152: `fable-2-paving-far` 666ca29f (the paving as 8 m tiles in one BatchedMesh, per-tile cull and
+  swap): fixed views −66…−108 K, the plaza −108 K and the flight's foot −155 K in play; six views A 0.9999 / 0.02 %, B E 0.01 % — the far fans
+  reaching the hero frames' plaza far end (max 21/255), inside tolerance by two orders; suppress-under-capture suggested. The head still
+  idle since 03:54. INBOX 09:30.
+- 2026-09-26 07:31–08:55 UTC — iteration 151: `fable-4-curtainfar` 9baa882f measured as the decision card — 25 m at 1 in 2 / 1 in 4 and 35 m:
+  the six views untouched (every hero camera inside 25 m of its curtains); the green −149 / −224 K with 0.00 % of pixels; the two rules
+  pixel-identical to each other everywhere, so what changes on screen is the far twin's `castShadow = false` — the crowns lose their shadow
+  past the distance (the plaza's top row brightens, the same −54 K for both rules). Dark by default; the twin must cast before the switch
+  goes on. `fable-5-lane10-curtainfar.md`. INBOX 08:55.
+- 2026-09-26 06:48–07:35 UTC — iteration 150: `fable-2-paving-far` b3f677a0 (the plaza paving's far LOD beyond 30 m) against the head: six
+  views pixel-identical with identical counts (every hero camera inside 30 m); the green and the far bank −170 K each, frames pixel-identical
+  (hardscape 0.30 → 0.13 M); the plaza, the flight's foot and the bridge unchanged — PASS (`fable-5-lane10-paving-far.md`). squad2's dither
+  verdict: dropped (0.22 % of a frame vs a step's 46 %) — no measurement due. The head idle since 03:54. INBOX 07:35.
+- 2026-09-26 05:31–06:40 UTC — iteration 149: `exp-east` 256ebe91 — the plateau 592 / 9.20 M (green), 567 / 9.13 M (lookout), 571 / 9.03 M
+  (deck), the structures row unchanged (the house-by-house runs pay nothing at my poses), six views identical to its own tip. `exp-south2`
+  5e5ef0b0 — the far bank 539 / 8.43 M, +0.19 M over the branch's own 8.23 M while every row fell; bisected to 223c2e93 (the farfold merge):
+  the batches' one sphere defeats the zone's mesh-level shadow reach (SSIM 0.9998 — perf only); the corner zone pays −0.73 M at the
+  waystation turn; the trailing-camera pose not reproduced (three tries). Six views C 0.9998, the rest identical. INBOX 06:40.
+- 2026-09-26 04:26–05:25 UTC — iteration 148: `fable-4-nearbox` ad40ecda (the batched parts cull by their own boxes in the colour pass) against
+  its base 896c2d6d: six views pixel-identical; fixed views −126…−198 K at identical draws (camera A 8.636 → 8.510 M); four play frames
+  pixel-identical with −68…−190 K — PASS (`fable-5-lane10-nearbox.md`). #195 merged 03:51 → the lane on `agent/fable-5-r148-review` (PR #205). INBOX 05:25.
 - 2026-09-26 03:22–03:55 UTC — iteration 147: the head 896c2d6d (#188 farshadow, lodfade2 + 3 inert) pixel-identical to 6bb60a08 at A–F.
   `exp-ruins` fcec1575 (the stone's sun / shade split) read as its own before / after at seven ruins poses — 44 % of pixels at the terrace,
   21 % at the quay, 9–19 % at the water stair, 0.00 % where no ruins stone is in view; the split reads as stated, nothing hard; no score
@@ -679,4 +700,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T03:55:00Z
+2026-09-26T09:30:00Z

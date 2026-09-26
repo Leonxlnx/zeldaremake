@@ -276,3 +276,41 @@ brief's camera list. (`it140-s2-waystation-south-west-north.png`; the frames: so
 **Scores:** #44 3 (the south heading improved, the west heading stands), **#46 ★ 3 → 4** (both caps met at the branch's own hardest
 view; the triangles at the bridge's sill and the waystation's north heading are the head's trees and vegetation), the rest as before.
 **Merge-ready from this lane's side.**
+
+## Re-read of `exp-south2` @ `5e5ef0b0` (04:44 `cdaa3a6c` the far-bank zone east to x 15 past the keeper's hut and a corner west of the path's last straight; 02:26–02:59 the waystation's steps and the gallery's chord joints walkable; the head merged three times — columnbatch + farfold `223c2e93`, farshadow `725c7a20`, keepinstanced `1302934c`) — 05:31–06:35 UTC
+
+**The far bank: 539 draws / 8.43 M** (the head `6bb60a08`'s 680 / 9.81 M; the branch's own `ec0b776b` read 563 / 8.23 M). Under both caps
+still — but **0.19 M more triangles than the branch had, while every row fell**: trees 200 → 162 draws / 3.61 → 3.49 M (the head's
+batches), vegetation 143 / 2.14 M, structures 84 / 1.62 M, the rest as before; the rows sum 617 → 579 / 9.30 → 9.20 M and the frame went
+the other way, 8.23 → 8.43 M. The gap between the rows' sum and the frame — the branch's depth-pass cut, the shadow reach — shrank from
+1.07 M to 0.77 M.
+
+**Bisected on the branch's own history** (the far-bank frame at each first-parent step): `0576e2b9` (02:12, before any head merge)
+**563 / 8.247 M**; `223c2e93` (02:13, the merge that brought #151 columnbatch and #171 farfold in) **539 / 8.435 M**; `725c7a20` (farshadow)
+8.435 M; `1302934c` (keepinstanced) 8.435 M; the tip with the zone extension 8.435 M. **The +0.19 M arrived with farfold's batches, and
+nothing since touched it.** The frames `0576e2b9` ↔ `223c2e93` are SSIM 0.9998 / 0.11 % of pixels — the extra triangles shadow almost nothing
+visible; a perf regression on the branch's key frame, not a look.
+
+Why, by reading: the branch's reach rule (`cullShadowCasters`, "casters wholly more than 20 m outside FAR_BANK_SOUTH in plan cast
+nothing") tests a **mesh's** bounding sphere and switches `castShadow` off for the pass. The giants' far laminae used to live in the
+sector meshes — several spheres, some wholly 20 m+ outside the zone, culled; since farfold they live in three `BatchedMesh`es whose one
+sphere each spans the village, never "wholly outside", so every instance goes to the depth pass, gated only by farshadow's per-instance
+"does the sweep meet the frame" (which, from the far bank, every plaza crown does). The zone rule needs the batches' per-instance spheres
+— either the composer's rules consulted inside `FarFoliageBatch.onBeforeShadow` beside `reaches()`, or the batch exposing its instances
+to `cullShadowCasters`. fable-4's hook and the builder's rule; a cross-lane item, ≈ 0.2 M at the far bank and, by the same mechanism,
+wherever a zone rule culls the giants' shadows (the east plateau's caster rule is structures-only; the ruins hide drawables, not casters —
+so the far bank is the one place it bites today).
+
+**The zone extension's poses** (the author's evidence: 648–673 / 9.13–9.47 M trailing Link off the gallery's east end with the camera at
+x 11.6–12.1, and 613 / 9.47 M with the camera swung to (2.2, 29.7) on the waystation's steps): the second I reproduce — Link at (5.1, 26.7)
+facing 136°, the camera at (2.11, 29.79): **574 / 8.74 M** on the tip, the corner zone paying −0.73 M against their before; the head at the
+same pose 566 / 8.45 M (no waystation, no steps — the branch's content is the +0.3 M). The first I could not: three placements (Link at the
+east step, at the gallery's east end facing west, at (7.5, 31.9) — the last inside the hut's footprint, discarded) give 4.3–5.3 M frames with
+the village out of view on both tips; the pose is in the branch's `evidence.json`, and the rule's box (x ≤ 15) covers the camera positions
+named, so I take the author's numbers for it.
+
+**Six views vs the head `6bb60a08`:** A B D E F 1.0000 / 0.00 %, C 0.9998 / 0.09 % — every read of this branch's C, the keeper's hut in the far
+distance. **The bridge's north sill** 670 → **631 / 9.60 M**; the waystation facing north 695 → **656 / 10.07 M** (the head's batches, both).
+
+**Scores:** #46 ★ stays 4 (the far bank 8.43 M is under both caps; the 0.19 M is a regression to fix, not a cap breach), #44 3, the rest as
+before. **Merge-ready from this lane; the batch-vs-zone item goes to fable-4 and the builder as a follow-up on either side of the merge.**
