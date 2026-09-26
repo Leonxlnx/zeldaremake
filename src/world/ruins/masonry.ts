@@ -68,6 +68,8 @@ const RAIL_Y = PARAPET_BASE + P.height - 0.16;
 export const PARAPET_POSTS = P.posts.map((x) => Math.max(x, P.x1 + 0.25));
 /** the hero arch's voussoir ring (the (z, y) plane at x = arch.x): its springing height, intrados and extrados radii, half depth */
 export const ARCH_RING = { spring: T.y + A.columnH, r0: A.span / 2, r1: A.span / 2 + 0.5, half: 0.28 };
+/** how far a coping stands proud of the face under it (unless a coping says otherwise): deep enough to throw a shade line */
+export const COPING_PROUD = 0.12;
 
 const mossNoise = new Noise2D('ruins-moss');
 const up = new Vector3(0, 1, 0);
@@ -189,7 +191,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     }
   };
 
-  /** a projecting coping along a face's top (its top at `top`), `depth` back from the face */
+  /** a projecting coping along a face's top (its top at `top`), `proud` of the face and `depth` front to back (by default its back 0.44 m behind the face) */
   const coping = (f: { a: [number, number]; b: [number, number]; out: [number, number]; top: number; depth?: number; proud?: number; h?: number; missing?: number; moss?: number }) => {
     const [ax, az] = f.a;
     const [bx, bz] = f.b;
@@ -197,9 +199,11 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     const dx = (bx - ax) / len;
     const dz = (bz - az) / len;
     const yaw = Math.atan2(dz, dx);
-    const depth = f.depth ?? 0.5;
-    const proud = f.proud ?? 0.06;
+    const proud = f.proud ?? COPING_PROUD;
+    const depth = f.depth ?? 0.44 + proud;
     const h = f.h ?? 0.22;
+    // a coping that overhangs its face is seen from under it: its underside is closed
+    const skip: ('-y')[] = proud > 0.05 ? [] : ['-y'];
     let t = -rng.range(0, 0.4);
     while (t < len) {
       const L = rng.range(0.6, 1.15);
@@ -214,7 +218,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       block(mb, ax + dx * tm + f.out[0] * off, top - h / 2, az + dz * tm + f.out[1] * off, (t1 - t0) / 2 - 0.01, h / 2, depth / 2, yaw + rng.range(-0.02, 0.02), {
         bevel: rng.range(0.03, 0.055),
         color: stoneCol(rng, 1.02),
-        skip: ['-y'],
+        skip,
         sag: [rng.range(-0.02, 0), rng.range(-0.02, 0), rng.range(-0.02, 0), rng.range(-0.02, 0)],
         mossFn: (p, n) => moss(p, n, f.moss ?? 0.34),
       });
@@ -247,13 +251,13 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     { a: [T.x1, cutS], b: [cutEnd, cutS], out: [0, -1], y1: yc, y0: S.base[1] - 0.15, ground: (x, z) => treadTop(stairLocal(x, z).u) },
   ];
   for (const f of faces) ashlar(f);
-  // the copings (the wall's covers its whole top)
-  coping({ a: [T.x1, wallOut + 0.06], b: [T.x1, cutS], out: [1, 0], top });
+  // the copings (the wall's covers its whole top); at an outside corner one runs on by the other's overhang
+  coping({ a: [T.x1, wallOut + COPING_PROUD], b: [T.x1, cutS], out: [1, 0], top });
   coping({ a: [T.x1, cutN], b: [T.x1, T.notchZ], out: [1, 0], top });
-  coping({ a: [T.x1 + 0.06, T.notchZ], b: [T.notchX, T.notchZ], out: [0, -1], top });
-  coping({ a: [T.notchX, T.notchZ], b: [T.notchX, T.z0 - 0.06], out: [1, 0], top });
-  coping({ a: [T.notchX + 0.06, T.z0], b: [x0, T.z0], out: [0, -1], top, moss: 0.42 });
-  coping({ a: [x0, wallOut], b: [T.x1 + 0.06, wallOut], out: [0, 1], top, depth: W.half * 2 + 0.08, missing: 0.02 });
+  coping({ a: [T.x1 + COPING_PROUD, T.notchZ], b: [T.notchX, T.notchZ], out: [0, -1], top });
+  coping({ a: [T.notchX, T.notchZ], b: [T.notchX, T.z0 - COPING_PROUD], out: [1, 0], top });
+  coping({ a: [T.notchX + COPING_PROUD, T.z0], b: [x0, T.z0], out: [0, -1], top, moss: 0.42 });
+  coping({ a: [x0, wallOut], b: [T.x1 + COPING_PROUD, wallOut], out: [0, 1], top, depth: W.half * 2 + 0.02 + COPING_PROUD, missing: 0.02 });
   coping({ a: [T.x1, cutN], b: [cutEnd - 0.02, cutN], out: [0, 1], top, depth: 0.45, proud: 0.03 });
   coping({ a: [T.x1, cutS], b: [cutEnd - 0.02, cutS], out: [0, -1], top, depth: 0.45, proud: 0.03 });
   // the outcrop section's inner kerb (the parapet stands on the wall's outer half)
@@ -1005,7 +1009,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       const edge = i === WS.steps - 1;
       const ta = treadX(i) + 0.003;
       const tb = edge ? xLand + edgeRun - 0.003 : treadX(i + 1) - 0.003;
-      const za = edge ? Qy.z0 + 0.07 : Qy.z0 + 0.003;
+      const za = edge ? Qy.z0 + COPING_PROUD + 0.025 : Qy.z0 + 0.003;
       const zb = front + oh;
       const t1 = treadTop(i) + ws.range(-0.006, 0.002);
       const b0 = treadBed[i];
@@ -1049,7 +1053,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     // the platform (to the cliff's foot, under its rock), the quay to the flight's foot, the landing
     slabs(WATER_STAIR_WEST, Qy.fallX + oh, Qy.z0 + 0.003, Qy.fallZ + oh, Qy.y);
     slabs(Qy.fallX + oh + 0.008, xFoot - 0.003, Qy.z0 + 0.003, front + oh, Qy.y);
-    slabs(xLand + edgeRun + 0.003, Qy.east + oh, Qy.z0 + 0.07, front + oh, top);
+    slabs(xLand + edgeRun + 0.003, Qy.east + oh, Qy.z0 + COPING_PROUD + 0.025, front + oh, top);
     counts.waterStair = counts.ashlar + counts.treads + counts.slabs - n0;
 
     // its walk spans: the platform and the quay (the flight and the landing are `stairAt`'s), and the
