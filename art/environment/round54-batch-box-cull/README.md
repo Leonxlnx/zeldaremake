@@ -67,6 +67,15 @@ every pair, not laminae clipped at the border.
 (`far-bank.head-branch-heat.jpg`: head | branch | differences, none above 24/255.) The rest of each
 Δ beyond the near batches' is the far-foliage batches' colour pass through the same box test.
 
+## The look-backs and the north poses — the same harness (`lookbacks-*.stats.json`)
+
+| pose | head draws / M tris | branch draws / M tris | Δ | near-canopy batches' triangles | px at any level |
+|---|---|---|---|---|---|
+| green-west (43, 4) → plaza | 649 / 9.832 | 649 / 9.706 | −126 K | 433 K → 333 K | **0** |
+| lookout-fence-west (47.5, 8) → plaza | 646 / 9.914 | 646 / 9.863 | −51 K | 248 K → 210 K | **0** |
+| owner-0650-north | 457 / 8.624 | 456 / 8.508 | −116 K | 118 K → 10 K | **0** |
+| north-seats (2, −18 → −3.5, −28) | 296 / 5.304 | 296 / 5.163 | −141 K | 346 K → 212 K | **0** |
+
 ## Checks
 
 `npm run typecheck` green; `vite build` green; trees' tests 45 / 45.

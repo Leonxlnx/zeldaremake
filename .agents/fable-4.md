@@ -595,3 +595,5 @@ nearCanopy, materials, index otherwise) is edited.
   three's cull far past their laminae. PR #201 `agent/fable-4-nearbox` ad40ecda — box test (SAT, +0.5 m) before each colour
   pass on the near-canopy and far-foliage batches: A 8.636 → 8.510 M, far bank −193 K, green −126 K, north −116 K, 0 px.
   Six views + look-backs running. Also: trees build time 9.05 s → 8.27 s across #151/#171/#188 (no regression).
+- 2026-09-26 07:05 — PR #201 measured and marked ready (round54-batch-box-cull): six views −130…−200 K each (A 8.51 M, 490 K
+  under the gate), 0 px above 24/255; look-backs −51…−141 K at 0 px any level. #193 / #197 merged in the 03:51 round.
