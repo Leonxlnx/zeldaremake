@@ -671,3 +671,9 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   second never left `GREET_FAR_M`. Answered with the release-then-approach recipe and the grove girl's wave frame.
 - Lesson: when a PR carries a claim, the claim merges with the PR — a correction made after the merge needs its own
   PR the same hour, and the INBOX line should say "withdrawn" in its heading so a skim catches it.
+- 01:25–01:50: with the hour left, the wave's palm — the rig has no wrist, so the raised palm faces sideways-up;
+  a 1.2 rad forearm twist turns it to Link (chain-checked in node first). Rendered head vs branch through the grove
+  girl's wave: 29–83 changed px per frame, all in the hand's box — invisible at the follow camera's 5.8 m. **Measured
+  FAIL, reported**: PR #184 titled "do not merge", evidence in `people-fable-3/wave-palm/`, the branch kept as the
+  record (right and free; would show at 2–3 m). Lesson: at this camera, a hand-sized change is a pixel-sized change —
+  the next lane-7 work should be body-sized (silhouette, posture, motion) or at the walk-past distances.
