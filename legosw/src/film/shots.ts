@@ -1657,8 +1657,7 @@ const endCard: Shot = {
   dur: 4.5,
   blur: 2,
   schedule(w, T0) {
-    // the broadside, gun to hull on the ships as the shot stages them; scheduled after every other shot's
-    // effects and silent, so the finale's score plays alone and the soundtrack is untouched
+    // the broadside, gun to hull on the ships as the shot stages them; silent, so the finale's score plays alone
     poseEndShips(w);
     w.venator.group.updateMatrixWorld(true);
     w.hand.group.updateMatrixWorld(true);
