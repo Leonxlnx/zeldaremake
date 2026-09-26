@@ -1,8 +1,10 @@
 /**
  * The far-bank locality (exp-south2) — the camera south of the rope bridge's north sill: over the
- * bridge head and the bridge, the far bank's path, the hollow log and the cleft past it, at
- * play-camera height. Looking back north from there the frustum takes in the whole village, which
- * shows, where it shows at all, through the haze beyond the gorge and in the gaps between the south
+ * bridge head and the bridge, round the keeper's hut, the far bank's path, the hollow log and the
+ * cleft past it, at play-camera height, and in the corner west of the path's last straight where
+ * it swings as Link turns onto the waystation's steps. Looking north from there the frustum takes
+ * in the whole village, which shows, where it shows at all, through the haze beyond the gorge and
+ * in the gaps between the south
  * giants' boles (the far-bank look-back: 818 draws / 9.30 M on cc02a9cf against the 700 / 9.0 M
  * budget; walking back over the bridge and off it, 700–725 draws / 9.8–10.4 M without this LOD).
  * Hiding the village there is not an option: zone-probe finds it on screen from every pose tried.
@@ -14,8 +16,8 @@
  * and 2 draws / 0.37 M at the look-back and changed at most 959 pixels of 518,400 by more than 6
  * levels (max 24).
  *
- * Moving the bridge or the log voids the measurements, so `farBankLocality.test.mjs` pins the box
- * to the layout and a move fails the test.
+ * Moving the bridge, the log, the path's last straight or the dwellings voids the measurements, so
+ * `farBankLocality.test.mjs` pins the boxes to the layout and a move fails the test.
  */
 import type { Box3 } from 'three';
 
@@ -27,11 +29,24 @@ import type { Box3 } from 'three';
  * (just off the sill 703 draws / 10.08 M, at the bridge head 718 / 10.15 M, without the LOD). At the
  * bend the path turns him north-west, the camera swings round behind him and soon leaves the zone as
  * the village swings out of the frustum (turned at the bend: 583 / 7.73 M, the camera at z 30.2).
+ * East it runs past the keeper's hut: walking off the gallery's east end and back west, the camera
+ * trails 11.6–12.1 m east with the village in the frame (648–673 draws / 9.13–9.47 M there while
+ * the zone stopped at x 11, 8.4–8.7 M a stride either side inside it), and with Link at the east
+ * step's end facing back west it stands 14 m east.
  */
-export const FAR_BANK_ZONE = { x0: -2, x1: 11, z0: 30.45, z1: 62, yMax: 4 } as const;
+export const FAR_BANK_ZONE = { x0: -2, x1: 15, z0: 30.45, z1: 62, yMax: 4 } as const;
 
-/** the zone from the bridge's last 1.2 m on (plan bounds as the zone's): the far bank itself, where `FAR_BANK_SHADOW_REACH` applies */
-export const FAR_BANK_SOUTH = { x0: FAR_BANK_ZONE.x0, x1: FAR_BANK_ZONE.x1, z0: 42.5, z1: FAR_BANK_ZONE.z1 } as const;
+/**
+ * The zone's corner west of the path's last straight (plan bounds, north of the zone, under its
+ * cap): turning off the path onto the waystation's steps Link faces north-east and the camera swings
+ * round south-west of him, out of the zone while the village is still in the frame — from z 30.1 to
+ * 28.7, x 2.4 to 1.3, heading 155° to 126° (at (2.2, 29.7) 613 draws / 9.47 M). The path's nodes
+ * (x 3.3–3.7 there) and the waystation stay outside it.
+ */
+export const FAR_BANK_BEND = { x0: FAR_BANK_ZONE.x0, x1: 3.2, z0: 28.5, z1: FAR_BANK_ZONE.z0 } as const;
+
+/** the zone from the bridge's last 1.2 m on, over the far path's x band: the far bank itself, where `FAR_BANK_SHADOW_REACH` applies */
+export const FAR_BANK_SOUTH = { x0: FAR_BANK_ZONE.x0, x1: 11, z0: 42.5, z1: FAR_BANK_ZONE.z1 } as const;
 
 /** true while a camera at (x, y, z) is inside `FAR_BANK_SOUTH` (under the zone's cap) */
 export function inFarBankSouth(x: number, y: number, z: number): boolean {
@@ -39,10 +54,12 @@ export function inFarBankSouth(x: number, y: number, z: number): boolean {
   return x > Z.x0 && x < Z.x1 && z > Z.z0 && z < Z.z1 && y < FAR_BANK_ZONE.yMax;
 }
 
-/** true while a camera at (x, y, z) is inside `FAR_BANK_ZONE` */
+/** true while a camera at (x, y, z) is inside `FAR_BANK_ZONE` or its corner `FAR_BANK_BEND` */
 export function inFarBankZone(x: number, y: number, z: number): boolean {
   const Z = FAR_BANK_ZONE;
-  return x > Z.x0 && x < Z.x1 && z > Z.z0 && z < Z.z1 && y < Z.yMax;
+  const B = FAR_BANK_BEND;
+  if (y >= Z.yMax) return false;
+  return (x > Z.x0 && x < Z.x1 && z > Z.z0 && z < Z.z1) || (x > B.x0 && x < B.x1 && z > B.z0 && z <= B.z1);
 }
 
 declare global {
@@ -103,10 +120,9 @@ export function farBankDrawRule(p: { x: number; y: number; z: number }): typeof 
   return farBankLodAt(p) ? FAR_BANK_SMALL_DRAWS : undefined;
 }
 
-/** horizontal distance (m) from `FAR_BANK_ZONE` to a world box; 0 where they overlap */
+/** horizontal distance (m) from the zone (`FAR_BANK_ZONE` or `FAR_BANK_BEND`, the nearer) to a world box; 0 where they overlap */
 export function farBankDistance(box: Box3): number {
-  const Z = FAR_BANK_ZONE;
-  const dx = Math.max(0, box.min.x - Z.x1, Z.x0 - box.max.x);
-  const dz = Math.max(0, box.min.z - Z.z1, Z.z0 - box.max.z);
-  return Math.hypot(dx, dz);
+  const gap = (Z: { x0: number; x1: number; z0: number; z1: number }) =>
+    Math.hypot(Math.max(0, box.min.x - Z.x1, Z.x0 - box.max.x), Math.max(0, box.min.z - Z.z1, Z.z0 - box.max.z));
+  return Math.min(gap(FAR_BANK_ZONE), gap(FAR_BANK_BEND));
 }
