@@ -251,7 +251,8 @@ function scheduleLongTakeKills(w: World, T0: number): void {
   burstOnto(w, (T) => vFrame(T).add(off).add(v3(0, 5, 0)), ltVultureB, [9.7, 9.86, 10.02, 10.18, 10.34, 10.5].map((t) => T0 + t), { speed: 2600, length: 44, width: 3.4, color: 'blue', spread: 24, seed: 72 });
   breakUp(w, kB, ltVultureB, 32, 702, 0.7);
   burstOnto(w, (T) => ltArcC(T), ltVultureC, [13.5, 13.66, 13.82, 13.98, 14.14, 14.3].map((t) => T0 + t), { speed: 1800, length: 16, width: 1.4, color: 'red', spread: 12, seed: 73 });
-  breakUp(w, T0 + LT_KILL_C, ltVultureC, 30, 703);
+  // the wreck keeps the droid's speed: the camera closes on the pair at dive speed and flew through the fireball
+  breakUp(w, T0 + LT_KILL_C, ltVultureC, 30, 703, 0.95);
 }
 
 function poseLongTakeKills(w: World, T: number): void {
