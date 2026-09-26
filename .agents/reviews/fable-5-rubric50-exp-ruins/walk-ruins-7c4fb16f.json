@@ -1,0 +1,5246 @@
+{
+ "dist": "/tmp/f5/wt-r110b/dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-24T14:56:44.696Z",
+ "baselineSha": null,
+ "walk": [
+  {
+   "name": "plaza-to-ruins-terrace",
+   "reached": true,
+   "waypointsReached": 26,
+   "of": 26,
+   "frames": 1506,
+   "stuck": [],
+   "lengthM": 77.9,
+   "camera": {
+    "speedMps": {
+     "p50": 1.6,
+     "p95": 3.27,
+     "max": 4.11
+    },
+    "accelMps2": {
+     "p50": 0.13,
+     "p95": 33.21,
+     "max": 43.8
+    },
+    "verticalAccelMps2": {
+     "p50": 0.05,
+     "p95": 0.98,
+     "max": 4.29
+    },
+    "turnDegPerS": {
+     "p50": 0.29,
+     "p95": 39.51,
+     "max": 64
+    },
+    "turnAccelDegPerS2": {
+     "p50": 1.37,
+     "p95": 476.03,
+     "max": 815.16
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.624,
+   "feet": {
+    "stanceSamples": 1467,
+    "soleGapAbsM": {
+     "p50": 0.0033,
+     "p95": 0.0434,
+     "max": 0.1495
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0303,
+     "max": 0.1495
+    },
+    "shareOver1cm": 0.1929,
+    "shareOver2cm": 0.0907,
+    "footprintMinGapM": -0.0456,
+    "shareFootprintInside5mm": 0.0164
+   },
+   "trace": [
+    [
+     0,
+     0.04,
+     4
+    ],
+    [
+     -0.44,
+     0.04,
+     4.29
+    ],
+    [
+     -0.97,
+     0.04,
+     4.65
+    ],
+    [
+     -1.5,
+     0.05,
+     5
+    ],
+    [
+     -2.03,
+     0.04,
+     5.36
+    ],
+    [
+     -2.57,
+     -0.1,
+     5.71
+    ],
+    [
+     -3.1,
+     -0.05,
+     6.07
+    ],
+    [
+     -3.63,
+     0,
+     6.42
+    ],
+    [
+     -4.16,
+     0.05,
+     6.78
+    ],
+    [
+     -4.7,
+     0.19,
+     7.13
+    ],
+    [
+     -5.23,
+     0.18,
+     7.49
+    ],
+    [
+     -5.78,
+     0.18,
+     7.72
+    ],
+    [
+     -6.38,
+     0.44,
+     7.86
+    ],
+    [
+     -6.98,
+     0.83,
+     8.1
+    ],
+    [
+     -7.57,
+     1.29,
+     8.33
+    ],
+    [
+     -8.17,
+     1.6,
+     8.56
+    ],
+    [
+     -8.77,
+     1.67,
+     8.65
+    ],
+    [
+     -9.39,
+     1.82,
+     8.82
+    ],
+    [
+     -9.99,
+     1.83,
+     8.85
+    ],
+    [
+     -10.63,
+     1.67,
+     8.95
+    ],
+    [
+     -11.23,
+     1.72,
+     8.89
+    ],
+    [
+     -11.83,
+     1.78,
+     8.78
+    ],
+    [
+     -12.41,
+     1.82,
+     8.61
+    ],
+    [
+     -13.05,
+     1.86,
+     8.51
+    ],
+    [
+     -13.42,
+     2.12,
+     8.16
+    ],
+    [
+     -13.6,
+     2.29,
+     7.55
+    ],
+    [
+     -13.76,
+     2.5,
+     6.96
+    ],
+    [
+     -13.92,
+     2.6,
+     6.37
+    ],
+    [
+     -14.03,
+     2.6,
+     5.78
+    ],
+    [
+     -14.08,
+     2.6,
+     5.17
+    ],
+    [
+     -14.2,
+     2.61,
+     4.54
+    ],
+    [
+     -14.45,
+     2.63,
+     3.99
+    ],
+    [
+     -14.94,
+     2.66,
+     3.65
+    ],
+    [
+     -15.49,
+     2.67,
+     3.38
+    ],
+    [
+     -15.97,
+     2.66,
+     2.96
+    ],
+    [
+     -16.51,
+     2.65,
+     2.67
+    ],
+    [
+     -17.11,
+     2.66,
+     2.7
+    ],
+    [
+     -17.72,
+     2.67,
+     2.51
+    ],
+    [
+     -18.32,
+     2.67,
+     2.46
+    ],
+    [
+     -18.92,
+     2.67,
+     2.47
+    ],
+    [
+     -19.56,
+     2.67,
+     2.42
+    ],
+    [
+     -20.2,
+     2.66,
+     2.37
+    ],
+    [
+     -20.84,
+     2.66,
+     2.33
+    ],
+    [
+     -21.48,
+     2.65,
+     2.28
+    ],
+    [
+     -22.11,
+     2.64,
+     2.24
+    ],
+    [
+     -22.66,
+     2.62,
+     2.47
+    ],
+    [
+     -23.3,
+     2.62,
+     2.55
+    ],
+    [
+     -23.93,
+     2.62,
+     2.64
+    ],
+    [
+     -24.56,
+     2.61,
+     2.74
+    ],
+    [
+     -25.17,
+     2.59,
+     2.69
+    ],
+    [
+     -25.77,
+     2.58,
+     2.57
+    ],
+    [
+     -26.35,
+     2.57,
+     2.4
+    ],
+    [
+     -26.98,
+     2.56,
+     2.28
+    ],
+    [
+     -27.61,
+     2.54,
+     2.17
+    ],
+    [
+     -28.24,
+     2.52,
+     2.06
+    ],
+    [
+     -28.87,
+     2.52,
+     1.95
+    ],
+    [
+     -29.5,
+     2.52,
+     1.84
+    ],
+    [
+     -30.13,
+     2.51,
+     1.72
+    ],
+    [
+     -30.76,
+     2.5,
+     1.61
+    ],
+    [
+     -31.39,
+     2.5,
+     1.5
+    ],
+    [
+     -32.02,
+     2.5,
+     1.39
+    ],
+    [
+     -32.58,
+     2.5,
+     1.17
+    ],
+    [
+     -33.12,
+     2.51,
+     0.88
+    ],
+    [
+     -33.71,
+     2.52,
+     0.64
+    ],
+    [
+     -34.3,
+     2.51,
+     0.4
+    ],
+    [
+     -34.89,
+     2.51,
+     0.15
+    ],
+    [
+     -35.48,
+     2.51,
+     -0.09
+    ],
+    [
+     -36.07,
+     2.51,
+     -0.33
+    ],
+    [
+     -36.67,
+     2.53,
+     -0.45
+    ],
+    [
+     -37.28,
+     2.56,
+     -0.64
+    ],
+    [
+     -37.89,
+     2.61,
+     -0.82
+    ],
+    [
+     -38.51,
+     2.66,
+     -1
+    ],
+    [
+     -39.12,
+     2.7,
+     -1.18
+    ],
+    [
+     -39.74,
+     2.74,
+     -1.36
+    ],
+    [
+     -40.35,
+     2.77,
+     -1.54
+    ],
+    [
+     -40.96,
+     2.8,
+     -1.72
+    ],
+    [
+     -41.58,
+     2.83,
+     -1.89
+    ],
+    [
+     -42.19,
+     2.85,
+     -2.07
+    ],
+    [
+     -42.81,
+     2.87,
+     -2.25
+    ],
+    [
+     -43.42,
+     2.88,
+     -2.43
+    ],
+    [
+     -44.04,
+     2.88,
+     -2.61
+    ],
+    [
+     -44.65,
+     2.88,
+     -2.79
+    ],
+    [
+     -45.27,
+     2.86,
+     -2.97
+    ],
+    [
+     -45.88,
+     2.85,
+     -3.15
+    ],
+    [
+     -46.5,
+     2.84,
+     -3.32
+    ],
+    [
+     -47.11,
+     2.83,
+     -3.5
+    ],
+    [
+     -47.71,
+     2.8,
+     -3.56
+    ],
+    [
+     -48.34,
+     2.77,
+     -3.68
+    ],
+    [
+     -48.97,
+     2.74,
+     -3.79
+    ],
+    [
+     -49.6,
+     2.72,
+     -3.91
+    ],
+    [
+     -50.23,
+     2.7,
+     -4.02
+    ],
+    [
+     -50.86,
+     2.67,
+     -4.13
+    ],
+    [
+     -51.49,
+     2.66,
+     -4.24
+    ],
+    [
+     -52.12,
+     2.68,
+     -4.35
+    ],
+    [
+     -52.75,
+     2.77,
+     -4.47
+    ],
+    [
+     -53.35,
+     2.85,
+     -4.46
+    ],
+    [
+     -53.95,
+     2.91,
+     -4.39
+    ],
+    [
+     -54.59,
+     2.91,
+     -4.36
+    ],
+    [
+     -55.23,
+     2.9,
+     -4.34
+    ],
+    [
+     -55.87,
+     2.88,
+     -4.31
+    ],
+    [
+     -56.51,
+     2.87,
+     -4.29
+    ],
+    [
+     -57.15,
+     2.86,
+     -4.26
+    ],
+    [
+     -57.79,
+     2.87,
+     -4.24
+    ],
+    [
+     -58.43,
+     2.87,
+     -4.21
+    ],
+    [
+     -59.07,
+     2.89,
+     -4.19
+    ],
+    [
+     -59.71,
+     2.88,
+     -4.16
+    ],
+    [
+     -60.35,
+     2.89,
+     -4.14
+    ],
+    [
+     -60.99,
+     3.1,
+     -4.11
+    ],
+    [
+     -61.43,
+     3.3,
+     -4.09
+    ],
+    [
+     -61.87,
+     3.5,
+     -4.08
+    ],
+    [
+     -62.31,
+     3.7,
+     -4.06
+    ],
+    [
+     -62.75,
+     3.9,
+     -4.04
+    ],
+    [
+     -63.19,
+     4.1,
+     -4.03
+    ],
+    [
+     -63.62,
+     4.3,
+     -4.01
+    ],
+    [
+     -64.06,
+     4.5,
+     -3.99
+    ],
+    [
+     -64.47,
+     4.5,
+     -4.07
+    ],
+    [
+     -64.91,
+     4.5,
+     -4.1
+    ],
+    [
+     -65.35,
+     4.5,
+     -4.13
+    ],
+    [
+     -65.79,
+     4.5,
+     -4.16
+    ],
+    [
+     -66.41,
+     4.5,
+     -4.2
+    ],
+    [
+     -66.99,
+     4.5,
+     -4.36
+    ],
+    [
+     -67.62,
+     4.5,
+     -4.46
+    ],
+    [
+     -68.25,
+     4.5,
+     -4.57
+    ],
+    [
+     -68.88,
+     4.5,
+     -4.68
+    ],
+    [
+     -69.44,
+     4.5,
+     -4.91
+    ],
+    [
+     -69.98,
+     4.5,
+     -5.19
+    ]
+   ],
+   "camsSummary": {
+    "frames": 1506,
+    "maxOneFrameMoveM": 0.137,
+    "minCamAboveLinkFeetM": 1.18
+   }
+  }
+ ],
+ "ruinsProbes": {
+  "ok": false,
+  "failed": 1,
+  "rows": [
+   {
+    "where": "trail",
+    "x": -23,
+    "z": 2.6,
+    "walk": 2.616,
+    "terrain": 2.586,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "x": -37.2,
+    "z": -0.5,
+    "walk": 2.549,
+    "terrain": 2.519,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "x": -44.8,
+    "z": -2.6,
+    "walk": 2.876,
+    "terrain": 2.846,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "x": -51.4,
+    "z": -4.1,
+    "walk": 2.663,
+    "terrain": 2.633,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail-by-lantern",
+    "x": -45.21,
+    "z": -2.7,
+    "walk": 2.87,
+    "terrain": 2.84,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail-by-lantern",
+    "x": -50.05,
+    "z": -3.87,
+    "walk": 2.705,
+    "terrain": 2.675,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "outcrop-and-shore",
+    "x": -57,
+    "z": -4.3,
+    "walk": 2.864,
+    "terrain": 2.864,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "outcrop-and-shore",
+    "x": -58.5,
+    "z": -6.5,
+    "walk": 2.896,
+    "terrain": 2.896,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "outcrop-and-shore",
+    "x": -56.5,
+    "z": -3,
+    "walk": 2.896,
+    "terrain": 2.896,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "outcrop-and-shore",
+    "x": -52.8,
+    "z": 3.35,
+    "walk": 2.756,
+    "terrain": 2.756,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "stair-mouth",
+    "x": -60.7,
+    "z": -4.2,
+    "walk": 2.89,
+    "terrain": 2.89,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "stair",
+    "x": -62.4,
+    "z": -4.2,
+    "walk": 3.7,
+    "terrain": 2.508,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "arch-passage",
+    "x": -64.75,
+    "z": -4.2,
+    "walk": 4.5,
+    "terrain": 2.335,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "paving",
+    "x": -67.5,
+    "z": -4.6,
+    "walk": 4.5,
+    "terrain": 2.566,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "paving",
+    "x": -72,
+    "z": -3.2,
+    "walk": 4.5,
+    "terrain": 3.156,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "paving",
+    "x": -68,
+    "z": -8.4,
+    "walk": 4.5,
+    "terrain": 2.718,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "paving",
+    "x": -62.2,
+    "z": -5.7,
+    "walk": 4.5,
+    "terrain": 2.43,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "paving",
+    "x": -62,
+    "z": -2.65,
+    "walk": 4.5,
+    "terrain": 2.483,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "ivy-rock-over-paving",
+    "x": -62,
+    "z": -6.75,
+    "walk": 4.5,
+    "terrain": 2.599,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ivy-rock-over-paving",
+    "x": -63.25,
+    "z": -8.5,
+    "walk": 4.5,
+    "terrain": 2.15,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-inside:east-front-north",
+    "x": -61.25,
+    "z": -5.65,
+    "walk": 4.5,
+    "terrain": 2.778,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "edge-off:east-front-north",
+    "x": -60.85,
+    "z": -5.65,
+    "walk": 2.88,
+    "terrain": 2.88,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-off:east-front-north",
+    "x": -60.65,
+    "z": -5.65,
+    "walk": 2.876,
+    "terrain": 2.876,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-inside:east-front-south",
+    "x": -61.25,
+    "z": -2.65,
+    "walk": 4.5,
+    "terrain": 2.697,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "edge-off:east-front-south",
+    "x": -60.85,
+    "z": -2.65,
+    "walk": 2.834,
+    "terrain": 2.834,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-off:east-front-south",
+    "x": -60.65,
+    "z": -2.65,
+    "walk": 2.881,
+    "terrain": 2.881,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-inside:notch-east-face",
+    "x": -63.25,
+    "z": -9.5,
+    "walk": 4.5,
+    "terrain": 2.147,
+    "blocked": true,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": false
+   },
+   {
+    "where": "edge-off:notch-east-face",
+    "x": -62.85,
+    "z": -9.5,
+    "walk": 2.094,
+    "terrain": 2.094,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-off:notch-east-face",
+    "x": -62.65,
+    "z": -9.5,
+    "walk": 2.073,
+    "terrain": 2.073,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-inside:north-face",
+    "x": -68,
+    "z": -9.55,
+    "walk": 4.5,
+    "terrain": 2.814,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "edge-off:north-face",
+    "x": -68,
+    "z": -9.95,
+    "walk": 2.849,
+    "terrain": 2.849,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-off:north-face",
+    "x": -68,
+    "z": -10.15,
+    "walk": 2.85,
+    "terrain": 2.85,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-inside:north-face",
+    "x": -72.8,
+    "z": -9.55,
+    "walk": 4.5,
+    "terrain": 3.544,
+    "blocked": false,
+    "expect": "walk",
+    "y": 4.5,
+    "ok": true
+   },
+   {
+    "where": "edge-off:north-face",
+    "x": -72.8,
+    "z": -9.95,
+    "walk": 3.558,
+    "terrain": 3.558,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "edge-off:north-face",
+    "x": -72.8,
+    "z": -10.15,
+    "walk": 3.588,
+    "terrain": 3.588,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "pool-deep",
+    "x": -64.9,
+    "z": 3.35,
+    "walk": -0.9,
+    "terrain": -0.9,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "pool-deep",
+    "x": -70,
+    "z": 3,
+    "walk": -0.918,
+    "terrain": -0.918,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "pool-deep",
+    "x": -60,
+    "z": 4,
+    "walk": -0.9,
+    "terrain": -0.9,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "pool-deep",
+    "x": -64.9,
+    "z": 7,
+    "walk": -0.646,
+    "terrain": -0.646,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "wall",
+    "x": -66,
+    "z": -1.85,
+    "walk": 2.142,
+    "terrain": 2.142,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "wall",
+    "x": -70,
+    "z": -1.85,
+    "walk": 2.616,
+    "terrain": 2.616,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "parapet",
+    "x": -58,
+    "z": -1.72,
+    "walk": 2.233,
+    "terrain": 2.233,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "cliff",
+    "x": -75.2,
+    "z": -5,
+    "walk": 3.678,
+    "terrain": 3.678,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "cliff",
+    "x": -76,
+    "z": 0,
+    "walk": 3.392,
+    "terrain": 3.392,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "cliff",
+    "x": -75.6,
+    "z": 6,
+    "walk": 2.473,
+    "terrain": 2.473,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ivy-rock",
+    "x": -60.6,
+    "z": -9,
+    "walk": 2.383,
+    "terrain": 2.383,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ivy-rock",
+    "x": -59,
+    "z": -8,
+    "walk": 2.902,
+    "terrain": 2.902,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gate-boulder",
+    "x": -52.9,
+    "z": -7.2,
+    "walk": 2.393,
+    "terrain": 2.393,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gate-boulder",
+    "x": -53.2,
+    "z": -1.2,
+    "walk": 2.579,
+    "terrain": 2.579,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "arch-column",
+    "x": -64.75,
+    "z": -5.9,
+    "walk": 4.5,
+    "terrain": 2.222,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "arch-column",
+    "x": -64.75,
+    "z": -2.5,
+    "walk": 4.5,
+    "terrain": 2.377,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "colonnade",
+    "x": -66.8,
+    "z": -9.1,
+    "walk": 4.5,
+    "terrain": 2.566,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "colonnade",
+    "x": -69.2,
+    "z": -9.1,
+    "walk": 4.5,
+    "terrain": 2.953,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "colonnade",
+    "x": -71.6,
+    "z": -9.1,
+    "walk": 4.5,
+    "terrain": 3.366,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "broken-arch-pier",
+    "x": -73.3,
+    "z": -7.6,
+    "walk": 4.5,
+    "terrain": 3.557,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "broken-arch-pier",
+    "x": -73.3,
+    "z": -4.2,
+    "walk": 4.5,
+    "terrain": 3.248,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "plunge",
+    "x": -73.8,
+    "z": 2.7,
+    "walk": -0.231,
+    "terrain": -0.231,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "lantern-post",
+    "x": -45.6,
+    "z": -1.14,
+    "walk": 2.854,
+    "terrain": 2.854,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "lantern-post",
+    "x": -49.74,
+    "z": -5.32,
+    "walk": 2.635,
+    "terrain": 2.635,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "lantern-post",
+    "x": -55.1,
+    "z": -2.62,
+    "walk": 2.911,
+    "terrain": 2.911,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "offering",
+    "x": -63.72,
+    "z": -6.28,
+    "walk": 4.5,
+    "terrain": 2.269,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   }
+  ],
+  "wade": [
+   {
+    "deg": 68,
+    "waterlineM": null,
+    "heldM": 1.45,
+    "paddleM": null
+   },
+   {
+    "deg": 90,
+    "waterlineM": 2.75,
+    "heldM": 3,
+    "paddleM": 0.25
+   },
+   {
+    "deg": 135,
+    "waterlineM": 1.65,
+    "heldM": 2.35,
+    "paddleM": 0.7
+   }
+  ]
+ },
+ "ruinsCamera": {
+  "samples": 216,
+  "rows": [
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -73.8,
+     6.314,
+     -3.412
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -73.8,
+     6.036,
+     -3.499
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -73.8,
+     5.94,
+     -3.497
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -74.162,
+     6.314,
+     -3.262
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -74.224,
+     6.036,
+     -3.324
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -74.222,
+     5.94,
+     -3.322
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -74.312,
+     6.314,
+     -2.9
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -74.399,
+     6.036,
+     -2.9
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -74.397,
+     5.94,
+     -2.9
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -74.162,
+     6.314,
+     -2.538
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -74.224,
+     6.036,
+     -2.476
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -74.222,
+     5.94,
+     -2.478
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -73.8,
+     8.251,
+     0.772
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -73.8,
+     6.258,
+     1.4
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -73.8,
+     5.64,
+     0.686
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -71.203,
+     8.251,
+     -0.303
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -70.76,
+     6.258,
+     0.14
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -71.265,
+     5.64,
+     -0.365
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -70.128,
+     8.251,
+     -2.9
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -69.5,
+     6.258,
+     -2.9
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -70.214,
+     5.64,
+     -2.9
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -73.438,
+     6.314,
+     -3.262
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -73.376,
+     6.036,
+     -3.324
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-west-by-cliff",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -73.378,
+     5.94,
+     -3.322
+    ],
+    "link": [
+     -73.8,
+     4.5,
+     -2.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -73.9,
+     6.314,
+     -9.412
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -73.9,
+     6.036,
+     -9.499
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -73.9,
+     5.94,
+     -9.497
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -74.262,
+     6.314,
+     -9.262
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -74.324,
+     6.036,
+     -9.324
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -74.322,
+     5.94,
+     -9.322
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -74.412,
+     6.314,
+     -8.9
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -74.499,
+     6.036,
+     -8.9
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -74.497,
+     5.94,
+     -8.9
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -74.262,
+     6.314,
+     -8.538
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -74.324,
+     6.036,
+     -8.476
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -74.322,
+     5.94,
+     -8.478
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -73.9,
+     6.314,
+     -8.388
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -73.9,
+     6.036,
+     -8.301
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -73.9,
+     5.94,
+     -8.303
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -73.538,
+     6.314,
+     -8.538
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -73.476,
+     6.036,
+     -8.476
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -73.478,
+     5.94,
+     -8.478
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -70.228,
+     8.251,
+     -8.9
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -69.9,
+     6.24,
+     -8.9
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -70.314,
+     5.64,
+     -8.9
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -73.538,
+     6.314,
+     -9.262
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -73.476,
+     6.036,
+     -9.324
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-northwest-by-cliff",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -73.478,
+     5.94,
+     -9.322
+    ],
+    "link": [
+     -73.9,
+     4.5,
+     -8.9
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -68,
+     8.251,
+     -12.272
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -68,
+     6.258,
+     -12.9
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -68,
+     5.64,
+     -12.186
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -70.597,
+     8.251,
+     -11.197
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -71.04,
+     6.258,
+     -11.64
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -70.535,
+     5.64,
+     -11.135
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -71.672,
+     8.251,
+     -8.6
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -72.3,
+     6.258,
+     -8.6
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -70.989,
+     5.7,
+     -8.6
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -70.597,
+     8.251,
+     -6.003
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -71.04,
+     6.258,
+     -5.56
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -70.535,
+     5.64,
+     -6.065
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -68,
+     8.251,
+     -4.928
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -68,
+     6.258,
+     -4.3
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -68,
+     5.64,
+     -5.014
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -65.528,
+     8.143,
+     -6.128
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 0.952,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -65.524,
+     6.21,
+     -6.124
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -65.465,
+     5.64,
+     -6.065
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -64.328,
+     8.101,
+     -8.6
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -63.7,
+     6.258,
+     -8.6
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -64.414,
+     5.64,
+     -8.6
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -65.403,
+     8.251,
+     -11.197
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -64.96,
+     6.258,
+     -11.64
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "colonnade",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -65.465,
+     5.64,
+     -11.135
+    ],
+    "link": [
+     -68,
+     4.5,
+     -8.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -64.75,
+     6.41,
+     -5.112
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 0.596,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -64.75,
+     6.258,
+     -8.5
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -64.75,
+     5.64,
+     -7.786
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -67.347,
+     8.251,
+     -6.797
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -67.79,
+     6.258,
+     -7.24
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -67.285,
+     5.64,
+     -6.735
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -68.422,
+     8.251,
+     -4.2
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -69.05,
+     6.258,
+     -4.2
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -68.336,
+     5.64,
+     -4.2
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -67.347,
+     8.251,
+     -1.603
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -67.79,
+     6.258,
+     -1.16
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -67.285,
+     5.64,
+     -1.665
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -64.75,
+     7.651,
+     -0.528
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -64.75,
+     6.258,
+     0.1
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -64.75,
+     5.64,
+     -0.614
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -62.153,
+     8.251,
+     -1.603
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -61.71,
+     6.258,
+     -1.16
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -62.215,
+     5.64,
+     -1.665
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -61.078,
+     8.251,
+     -4.2
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -60.45,
+     6.258,
+     -4.2
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -61.164,
+     5.64,
+     -4.2
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -62.218,
+     8.195,
+     -6.732
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 0.975,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -62.491,
+     6.192,
+     -6.459
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 0.743,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "arch-passage",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -62.499,
+     5.681,
+     -6.451
+    ],
+    "link": [
+     -64.75,
+     4.5,
+     -4.2
+    ],
+    "keep": 0.888,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -62.4,
+     6.716,
+     -6.672
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 0.673,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -62.4,
+     5.338,
+     -6.496
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 0.534,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -62.4,
+     4.97,
+     -6.489
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 0.638,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -64.997,
+     7.151,
+     -6.797
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -65.44,
+     5.458,
+     -7.24
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -64.935,
+     4.85,
+     -6.735
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0.01
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -66.072,
+     7.451,
+     -4.2
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -66.7,
+     5.458,
+     -4.2
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -65.986,
+     4.85,
+     -4.2
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0.01
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -64.997,
+     7.301,
+     -1.603
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -65.44,
+     5.458,
+     -1.16
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -64.935,
+     4.84,
+     -1.665
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -62.4,
+     7.451,
+     -0.528
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -62.4,
+     5.458,
+     0.1
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -62.4,
+     4.84,
+     -0.614
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -59.803,
+     7.451,
+     -1.603
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -59.36,
+     5.458,
+     -1.16
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -59.865,
+     4.84,
+     -1.665
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -58.728,
+     7.451,
+     -4.2
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -58.1,
+     5.458,
+     -4.2
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -58.814,
+     4.84,
+     -4.2
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -60.35,
+     6.977,
+     -6.25
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 0.789,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -60.635,
+     5.35,
+     -5.965
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 0.58,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "stair-mid",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -60.641,
+     4.95,
+     -5.959
+    ],
+    "link": [
+     -62.4,
+     3.7,
+     -4.2
+    ],
+    "keep": 0.694,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -58.2,
+     4.912,
+     -7.453
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.232,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -58.2,
+     4.443,
+     -7.498
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.209,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -58.2,
+     4.3,
+     -7.496
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.25,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -58.562,
+     4.703,
+     -6.962
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -58.624,
+     4.425,
+     -7.024
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -58.622,
+     4.33,
+     -7.022
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -58.712,
+     4.703,
+     -6.6
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -58.797,
+     4.453,
+     -6.6
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0.202
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -58.795,
+     4.466,
+     -6.6
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0.82
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -60.797,
+     6.641,
+     -4.003
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -61.24,
+     4.648,
+     -3.56
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -60.735,
+     4.03,
+     -4.065
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -58.2,
+     6.641,
+     -2.928
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -58.2,
+     4.648,
+     -2.3
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -58.2,
+     4.03,
+     -3.014
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -55.603,
+     6.641,
+     -4.003
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -55.16,
+     4.648,
+     -3.56
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -55.665,
+     4.03,
+     -4.065
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -54.528,
+     6.641,
+     -6.6
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -53.9,
+     4.648,
+     -6.6
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -54.614,
+     4.03,
+     -6.6
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -55.603,
+     6.641,
+     -9.197
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -55.16,
+     4.648,
+     -9.64
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "outcrop-by-ivy-rock",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -55.665,
+     4.03,
+     -9.135
+    ],
+    "link": [
+     -58.2,
+     2.89,
+     -6.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -57.5,
+     6.644,
+     -6.272
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -57.5,
+     4.651,
+     -6.9
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -57.5,
+     4.033,
+     -6.186
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -60.097,
+     6.644,
+     -5.197
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -60.54,
+     4.651,
+     -5.64
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -60.035,
+     4.033,
+     -5.135
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -61.172,
+     6.644,
+     -2.6
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -61.8,
+     4.85,
+     -2.6
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0.199
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -61.086,
+     4.85,
+     -2.6
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0.817
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -60.097,
+     6.644,
+     -0.003
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -57.924,
+     4.429,
+     -2.176
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 0.139,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -57.922,
+     4.333,
+     -2.178
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 0.166,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -57.5,
+     6.644,
+     1.072
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -57.5,
+     4.651,
+     1.7
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -57.5,
+     4.033,
+     0.986
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -54.903,
+     6.644,
+     -0.003
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -54.46,
+     4.651,
+     0.44
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -56.515,
+     4.253,
+     -1.615
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 0.388,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -53.828,
+     6.644,
+     -2.6
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -53.2,
+     4.651,
+     -2.6
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -53.914,
+     4.033,
+     -2.6
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -54.903,
+     6.644,
+     -5.197
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -54.46,
+     4.651,
+     -5.64
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "parapet",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -54.965,
+     4.033,
+     -5.135
+    ],
+    "link": [
+     -57.5,
+     2.893,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -53,
+     6.514,
+     -7.872
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -53,
+     4.37,
+     -5.997
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 0.418,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -53,
+     4.113,
+     -5.693
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 0.416,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -55.597,
+     6.514,
+     -6.797
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -56.04,
+     4.521,
+     -7.24
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -55.535,
+     3.903,
+     -6.735
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -56.672,
+     6.514,
+     -4.2
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -57.3,
+     4.521,
+     -4.2
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -56.586,
+     3.903,
+     -4.2
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -55.597,
+     6.514,
+     -1.603
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -54.694,
+     4.406,
+     -2.506
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 0.65,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -54.689,
+     4.023,
+     -2.511
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 0.777,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -53,
+     6.514,
+     -0.528
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -53,
+     4.376,
+     -2.303
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 0.441,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -53,
+     4.093,
+     -2.508
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 0.472,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -50.403,
+     6.514,
+     -1.603
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -49.96,
+     4.521,
+     -1.16
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -50.465,
+     3.903,
+     -1.665
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -49.328,
+     6.514,
+     -4.2
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -48.7,
+     4.521,
+     -4.2
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -49.414,
+     3.903,
+     -4.2
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -50.403,
+     6.514,
+     -6.797
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -49.96,
+     4.521,
+     -7.24
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "gate",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -50.465,
+     3.903,
+     -6.735
+    ],
+    "link": [
+     -53,
+     2.763,
+     -4.2
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 0,
+    "pitch": -0.55,
+    "cam": [
+     -68.5,
+     8.251,
+     -6.272
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 0,
+    "pitch": -0.06,
+    "cam": [
+     -68.5,
+     6.258,
+     -6.9
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 0,
+    "pitch": 0.45,
+    "cam": [
+     -68.5,
+     5.64,
+     -6.186
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 45,
+    "pitch": -0.55,
+    "cam": [
+     -71.097,
+     8.251,
+     -5.197
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 45,
+    "pitch": -0.06,
+    "cam": [
+     -71.54,
+     6.258,
+     -5.64
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 45,
+    "pitch": 0.45,
+    "cam": [
+     -71.035,
+     5.64,
+     -5.135
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 90,
+    "pitch": -0.55,
+    "cam": [
+     -72.172,
+     8.251,
+     -2.6
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 90,
+    "pitch": -0.06,
+    "cam": [
+     -72.8,
+     6.258,
+     -2.6
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 90,
+    "pitch": 0.45,
+    "cam": [
+     -72.086,
+     5.64,
+     -2.6
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 135,
+    "pitch": -0.55,
+    "cam": [
+     -71.097,
+     8.251,
+     -0.003
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 135,
+    "pitch": -0.06,
+    "cam": [
+     -71.54,
+     6.258,
+     0.44
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 135,
+    "pitch": 0.45,
+    "cam": [
+     -71.035,
+     5.64,
+     -0.065
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 180,
+    "pitch": -0.55,
+    "cam": [
+     -68.5,
+     8.251,
+     1.072
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 180,
+    "pitch": -0.06,
+    "cam": [
+     -68.5,
+     6.258,
+     1.7
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 180,
+    "pitch": 0.45,
+    "cam": [
+     -68.5,
+     5.64,
+     0.986
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 225,
+    "pitch": -0.55,
+    "cam": [
+     -65.903,
+     8.251,
+     -0.003
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 225,
+    "pitch": -0.06,
+    "cam": [
+     -65.46,
+     6.258,
+     0.44
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 225,
+    "pitch": 0.45,
+    "cam": [
+     -65.965,
+     5.64,
+     -0.065
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 270,
+    "pitch": -0.55,
+    "cam": [
+     -65.516,
+     7.829,
+     -2.6
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 0.813,
+    "hit": "solid",
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 270,
+    "pitch": -0.06,
+    "cam": [
+     -65.498,
+     6.18,
+     -2.6
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 270,
+    "pitch": 0.45,
+    "cam": [
+     -65.511,
+     5.7,
+     -2.6
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 315,
+    "pitch": -0.55,
+    "cam": [
+     -65.903,
+     8.251,
+     -5.197
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 315,
+    "pitch": -0.06,
+    "cam": [
+     -65.46,
+     6.258,
+     -5.64
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   },
+   {
+    "spot": "terrace-south-by-wall",
+    "yawDeg": 315,
+    "pitch": 0.45,
+    "cam": [
+     -65.965,
+     5.64,
+     -5.135
+    ],
+    "link": [
+     -68.5,
+     4.5,
+     -2.6
+    ],
+    "keep": 1,
+    "hit": null,
+    "lift": 0
+   }
+  ]
+ },
+ "pageErrors": [],
+ "finished": "2026-09-24T14:58:42.155Z"
+}

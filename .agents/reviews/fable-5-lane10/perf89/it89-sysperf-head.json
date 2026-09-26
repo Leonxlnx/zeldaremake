@@ -1,0 +1,117 @@
+{
+ "dist": "/tmp/f5/wt-h89/dist",
+ "spots": {
+  "plaza": {
+   "systems": {
+    "wind": 0,
+    "lighting": 0.003,
+    "atmosphere": 0.033,
+    "terrain": 0.003,
+    "hardscape": 0.008,
+    "rocks": 0.015,
+    "trees": 4.367,
+    "canopy": 0,
+    "structures": 0.028,
+    "props": 0.005,
+    "vegetation": 0.087,
+    "character": 0.75
+   },
+   "updateMs": 5.3,
+   "renderMs": 7.3,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1262.6,
+    1245.1
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  },
+  "stairs2-base": {
+   "systems": {
+    "wind": 0.007,
+    "lighting": 0.01,
+    "atmosphere": 0.037,
+    "terrain": 0.002,
+    "hardscape": 0.01,
+    "rocks": 0.013,
+    "trees": 5.617,
+    "canopy": 0,
+    "structures": 0.027,
+    "props": 0.003,
+    "vegetation": 0.073,
+    "character": 1.917
+   },
+   "updateMs": 7.71,
+   "renderMs": 14562.57,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1262.8,
+    1295.7
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  },
+  "saria-side": {
+   "systems": {
+    "wind": 0,
+    "lighting": 0.005,
+    "atmosphere": 0.02,
+    "terrain": 0.002,
+    "hardscape": 0.012,
+    "rocks": 0.007,
+    "trees": 6.003,
+    "canopy": 0.002,
+    "structures": 0.05,
+    "props": 0.008,
+    "vegetation": 0.057,
+    "character": 2.098
+   },
+   "updateMs": 8.27,
+   "renderMs": 6.7,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1248.7,
+    1300.7
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  },
+  "west-house": {
+   "systems": {
+    "wind": 0,
+    "lighting": 0.008,
+    "atmosphere": 0.023,
+    "terrain": 0.002,
+    "hardscape": 0.012,
+    "rocks": 0.007,
+    "trees": 3.207,
+    "canopy": 0,
+    "structures": 0.028,
+    "props": 0,
+    "vegetation": 0.053,
+    "character": 0.687
+   },
+   "updateMs": 4.03,
+   "renderMs": 5.94,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1300.6,
+    1289.1
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  }
+ }
+}

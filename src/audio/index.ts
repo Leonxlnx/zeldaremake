@@ -20,7 +20,7 @@ import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
-import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
+import { createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
@@ -183,6 +183,25 @@ export interface OfflineOptions {
    * the take a controlled experiment — what moves then moved because the listener did.
    */
   gust?: number;
+  /**
+   * Switch layers of the bed off — `['flutters']`, `['birds']`, `['wind']` or any combination.
+   *
+   * Every draw still happens and every node is still built, so a muted take is the same forest with
+   * one thing silent. That is what makes "what is this layer worth" answerable at all: the two files
+   * differ in the layer and in nothing else.
+   */
+  mute?: AmbienceLayer[];
+  /**
+   * Take the sfx bus's compressor out of the path.
+   *
+   * It was added because the owner said the music *"kind of still shakes whenever I run"*, and its
+   * own comment says "quiet steps pass untouched (the threshold is below a walk's peak); a run's
+   * are held". Measured on 2026-09-26 neither half of that is true — compression begins 16 dB under
+   * a walk's peak, so every step in the game is in full four-to-one. Bypassing it is the only way
+   * to ask what it is worth, and whether the complaint it answers still exists on a controller
+   * that runs at 2.2 m/s instead of 4.6.
+   */
+  limiter?: boolean;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -948,7 +967,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   if (!Ctor) throw new Error('OfflineAudioContext unavailable');
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
-  const buses = createBuses(ctx, rng.fork('buses'));
+  const buses = createBuses(ctx, rng.fork('buses'), options.limiter ?? true);
   if (options.reverb === false) {
     buses.reverbReturn.gain.value = 0;
     buses.roomReturn.gain.value = 0;
@@ -957,7 +976,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
-  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
+  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0, new Set(options.mute ?? []));
   const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';

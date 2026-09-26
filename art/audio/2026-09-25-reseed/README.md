@@ -117,3 +117,10 @@ the property that makes the swap inaudible.
 
 **214 / 214 tests**, typecheck clean, build green, `playtest.mjs --only walk` 11 / 11 with no page
 errors.
+
+---
+
+**2026-09-25 22:30 — the numbers above were measured against the controller PR #59 replaced** (walk
+1.5 m/s, run 4.2). The game now walks at 1.2 and runs at 2.2, and every figure here roughly halves:
+see `art/audio/2026-09-25-newlegs/`. The conclusions hold and the scripts read the speeds out of
+`footsteps.ts` now instead of carrying copies.

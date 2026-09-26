@@ -116,8 +116,6 @@ export interface FootstepStats {
   scheduledAt: number;
 }
 
-/** above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind */
-export const RUN_SPEED = 2.4;
 /** the shortest gap between two steps — a guard against a noisy stance flag double-triggering */
 export const MIN_STEP_GAP = 0.16;
 
@@ -126,29 +124,36 @@ export const MIN_STEP_GAP = 0.16;
  * numbers, not this lane's**.
  *
  * `glbLink.ts` publishes the clip contract from Astra's pipeline as `CLIP_SPEC`: the walk clip
- * covers a 0.88 m stride in 0.55 s, the run clip 1.82 m in 28/60 s. A stride is two steps, so the
- * boot lands every **0.44 m** at a walk and every **0.91 m** at a run, and `animation.ts` gives the
- * ground speeds the player controller drives at — `PLAYER_SPEED` 1.6 and 4.6 m/s. The clips follow
- * the speed actually covered, so there is no foot slide and the step rate falls straight out:
- * 1.6 / 0.44 = 3.64 a second at a walk, 4.6 / 0.91 = 5.06 at a run.
+ * covers a 0.88 m stride in 0.55 s, the run clip 1.2 m in 28/60 s (PR #59's grounded run). A stride
+ * is two steps, so the boot lands every **0.44 m** at a walk and every **0.60 m** at a run, and
+ * `animation.ts` gives the ground speeds the player controller drives at — `PLAYER_SPEED` 1.2 and
+ * 2.2 m/s. The clips follow the speed actually covered, so there is no foot slide and the step rate
+ * falls straight out: 1.2 / 0.44 = 2.73 a second at a walk, 2.2 / 0.60 = 3.67 at a run.
  *
- * Those are exactly what a play-mode probe counted off the character system's stance edges — 3.56
- * and 3.71 walking, 4.85 and 4.99 running (`art/audio/2026-09-24-cadence/`) — which is the check
- * that the derivation is the right one rather than a coincidence.
+ * A play-mode strip of the run counted 3.6 steps a second at 0.60 m off the character system's
+ * stance flags (`art/environment/people-fable-3/pr59-apply/`), which is the check that the
+ * derivation is the right one rather than a coincidence; on the previous clips the same derivation
+ * gave 3.64 walking against a probe's 3.56 and 3.71 (`art/audio/2026-09-24-cadence/`).
  *
  * It matters because the model is consulted wherever the character system is **not** reporting boot
  * plants: never in play, always in an offline render. Before this it was an adult's guess (2.02 a
  * second, a 0.79 m step) and every evidence WAV this lane published stepped at 55 % of the rate the
  * owner hears. Fixed once by measuring, which left a copy of the animation's number sitting here to
- * go stale the moment anyone re-authors a clip — and PR #59 is re-authoring the walk. Deriving it
- * instead means there is nothing to go stale, and `footsteps.test.mjs` reads `CLIP_SPEC` out of
- * `glbLink.ts` and fails with the new numbers if it ever moves. (Read as source, not imported:
- * `glbLink.ts` is 2,700 lines and pulls in the GLTF loader, which has no business in the audio.)
+ * go stale the moment anyone re-authors a clip. Deriving it instead means there is nothing to go
+ * stale, and `footsteps.test.mjs` reads `CLIP_SPEC` out of `glbLink.ts` and fails with the new
+ * numbers if it ever moves. (Read as source, not imported: `glbLink.ts` is 2,700 lines and pulls in
+ * the GLTF loader, which has no business in the audio.)
  */
-export const WALK_SPEED = 1.6;
-export const RUN_GROUND_SPEED = 4.6;
+export const WALK_SPEED = 1.2;
+export const RUN_GROUND_SPEED = 2.2;
 export const WALK_STEP_M = 0.88 / 2;
-export const RUN_STEP_M = 1.82 / 2;
+export const RUN_STEP_M = 1.2 / 2;
+/**
+ * above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind. It
+ * has to sit between the controller's walk and run speeds or one of the two designs is never heard,
+ * so it is their midpoint rather than a number of its own.
+ */
+export const RUN_SPEED = (WALK_SPEED + RUN_GROUND_SPEED) / 2;
 /** on a flight, one step is one tread whatever the speed */
 export const STAIR_STEP_M = 0.54;
 
@@ -165,14 +170,31 @@ export function cadence(speed: number): number {
 }
 
 /**
- * How hard the step lands: a stroll is soft, a full run is not — but the curve is flatter than it
- * was (0.14 per m/s → 0.10). Running already multiplies the steps by cadence as well as by weight,
- * and at 0.14 a run's steps were the loudest thing in the game by a clear margin, pulsing over the
- * music at the step rate (owner, 23:00: "the music … shakes whenever I run"). A run is still
- * plainly heavier than a walk; it just no longer out-punches everything else.
+ * How hard the step lands at a standstill, at the controller's walk, and at its run.
+ *
+ * These are anchored to `WALK_SPEED` and `RUN_GROUND_SPEED` rather than being a slope, because a
+ * slope is a number about a controller and controllers change. It was `0.3 + speed × 0.1` — flat
+ * enough that a run stopped out-punching the music (owner, 23:00: *"the music … shakes whenever I
+ * run"*), and tuned when the game ran at 4.6 m/s. PR #59 brought the run down to 2.2 on 2026-09-25
+ * and the slope quietly took the level difference between the gaits **from 4.35 dB to 1.86**: at
+ * 4.6 m/s it gave 0.76 against a walk's 0.46, and at 2.2 it gives 0.52 against 0.42.
+ *
+ * The walk is left exactly where it was, so nothing about walking moves. The run is put back to a
+ * 4.3 dB gap — the difference the design was tuned against — and 0.69 is still **under the 0.76 the
+ * game made at the old run speed**, so it asks nothing new of the headroom.
+ *
+ * A run has three cues: its cadence, its level, and its shape. The cadence survived PR #59 (the run
+ * stride came down with the speed, so the step rate only fell from 5.05 to 3.67 a second against a
+ * walk's 2.73) and the shape is a boolean and cannot drift. The level was the one that went.
  */
+export const STEP_FORCE_STILL = 0.3;
+export const STEP_FORCE_WALK = 0.42;
+export const STEP_FORCE_RUN = 0.69;
+
 export function strengthFor(speed: number): number {
-  return Math.max(0.3, Math.min(1, 0.3 + speed * 0.1));
+  if (speed <= WALK_SPEED) return STEP_FORCE_STILL + (STEP_FORCE_WALK - STEP_FORCE_STILL) * Math.max(0, speed / WALK_SPEED);
+  const over = (speed - WALK_SPEED) / Math.max(0.1, RUN_GROUND_SPEED - WALK_SPEED);
+  return Math.min(1, STEP_FORCE_WALK + (STEP_FORCE_RUN - STEP_FORCE_WALK) * over);
 }
 
 const body = (at: number, f0: number, f1: number, glide: number, peak: number, attack: number, decay: number, wave: OscillatorType = 'sine'): BodyPart => ({

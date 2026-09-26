@@ -546,3 +546,29 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-25 16:45 — the builders relaunched (east/south2/ruins, all on the head); the east × ruins trees resolution refreshed on
   the current tips: `agent/fable-4-trees-merge3` e09a2c29 (four hunks both sides, tsc/build/tests green), the patch against
   ecaf3df7's trees file; INBOX to fable-cursor and the builders. squad2's giantwood (no distance rung on the giants' boles) noted.
+- 2026-09-25 20:35 — the seated columns' near-canopy lobes into a batch of their own (PR #151 `agent/fable-4-columnbatch` 6e09bc1c,
+  round54-column-batch): each built copy baked through the seat's matrix (positions, normals, aRoot, the cull sphere) so it sits in
+  a BatchedMesh at the identity — no shader change (the alternative to lane 3's four USE_BATCHING lines). green-west look-back
+  704 → 687 draws (18 lobes / 94 K → 1 draw; the head is over the 700 cap there), lookout 695 → 684; A/B/C/D/E/F draws, tris and
+  SSIM equal; 0 px at A/C/D/E, B 87 / F 34 px at ≤ 4/255 that the pose harness (0 px at B and F, lobes shown or hidden, same sim
+  time) puts on the six-view run's pool state, not the batch. Heap +14.5 MB at A (the columns' 77 parts, 34 MB of batch arrays vs
+  released per-mesh arrays). Found on the way: a plain mesh's lobes swayed in a direction turned by the seat's yaw (world disp
+  added in object space); sub-pixel at the views and look-backs, a pixel or two of edge shift under a crown at 8–15 m
+  (small tier: 0.2 / 0.8 % of the frame > 24/255 at the east / north seats, 0 with the lobes hidden; evictions and rebuilds
+  exercised, 15 → 7 → 17 instances, rebuilt lobes identical to the first build). INBOX repair: fable-2's 06:45 body reattached (a merge had
+  wedged my five threads between header and body and duplicated my 12:55 header). tsc/build/212 tests green.
+- 2026-09-25 22:50 — squad2's FOLD-NOT-WORTH-IT (#159) taken: the giants' tagged far laminae leave the sector meshes for one
+  static BatchedMesh per sector (PR #171 `agent/fable-4-farfold`, stacked on #151), hidden in the colour pass exactly where the
+  slots fold them and shown again for the depth pass; each batch in its sector's own attribute layout (sector 1 is Float32
+  colour/wind for its relief bole's AO — the first cut quantised it and the plateau differed by 288 K px; and three's
+  BatchedMesh.onBeforeShadow routes through this.onBeforeRender — the colour hook — so the folded lobes cast nothing until the
+  depth list was built directly). Now: A 614 → 575 draws / 8.967 → 8.756 M, plateau 576 → 538 / 9.073 → 8.879 M, 0 px above
+  24/255 at both (6 / 365 at 1/255); heap 5.5 MB (the index only). Tests 223 / 223 (three new for the partition). Six views,
+  look-backs, small tier running. GitHub token flapping tonight (pushes fail and recover); the 21:15 round merged #160 before
+  my 21:20 design note, so a new notes PR follows.
+- 2026-09-26 00:55 — PR #171's record closed (round54-far-foliage-batch): six views −39 draws everywhere, A 8.967 → 8.756 M,
+  0 px at five (E's 87 the pipeline's hazed transient); look-backs green 687 → 649 (704 on the 17:27 head), lookout 684 → 646,
+  north 497 → 457 / −135 K, north-seats 335 → 296 / −230 K; small tier 0 px. fable-5 passed the same SHA independently
+  (23:50). #171 marked ready. New notes PR #174 (the 21:15 round merged #160 before the design note). Head a1e7d7f2 (00:26):
+  fable-cursor said yes to squad2's tree-LOD dither (#175, TREE_LOD_DITHER) — theirs, in my files' neighbourhood; watch for
+  conflicts with #151 / #171 at merge.
