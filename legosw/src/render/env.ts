@@ -85,22 +85,8 @@ export const SPACE_ENV = (sun: [number, number, number]): EnvSpec => ({
   ],
 });
 
-export const HANGAR_ENV: EnvSpec = {
-  top: 0x2a2724,
-  horizon: 0x3d3833,
-  bottom: 0x1c1a18,
-  panels: [
-    { dir: [0, 1, 0], color: 0xfff0d8, power: 4, w: 80, h: 6 },
-    { dir: [0.35, 1, 0.3], color: 0xfff0d8, power: 3.5, w: 80, h: 5 },
-    { dir: [-0.35, 1, -0.3], color: 0xfff0d8, power: 3.5, w: 80, h: 5 },
-    { dir: [0, 0.2, 1], color: 0x4aa8ff, power: 3.2, w: 70, h: 30 },
-    { dir: [-1, 0.3, -0.2], color: 0xff7a3a, power: 1.4, w: 20, h: 10 },
-    { dir: [1, 0.2, -0.4], color: 0xffc27a, power: 1.2, w: 30, h: 14 },
-  ],
-};
-
 /**
- * The bay once its ray shield is down (the landing and everything after): the mouth is open space, so
+ * The hangar bay (it is only seen from inside once its ray shield is down): the mouth is open space, so
  * the glossy deck mirrors near-black there instead of a blue wall, and the long highlights it carries
  * come from the gantry strips overhead and the lit office windows along both catwalks.
  */
