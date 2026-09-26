@@ -21,6 +21,8 @@ export interface Film {
   probeHeads(T: number): { shot: string; heads: HeadProbe[] };
   /** contact QA: the hangar deck height and the lowest world-space point of each visible hero, ship, droid, wreck part */
   probeContact(T: number): { shot: string; deck: number | null; low: Record<string, number> };
+  /** camera QA: the pose the shot asks for at T (no rendering) */
+  probeCamera(T: number): { shot: string; pos: number[]; target: number[]; fov: number; roll: number };
   /** caption QA: apply the overlays for time T (no rendering) and report the caption box against the page and picture */
   captionAt(T: number): { text: string; box: number[]; pic: number[]; page: number[]; font: number };
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
@@ -153,12 +155,17 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
       const n = (o.subframes ?? 1) > 1 ? Math.max(o.subframes!, shot.blur ?? 1) : 1;
       const shutter = shot.shutter ?? o.shutter ?? 0.5;
       const fps = o.fps ?? 24;
-      const s0 = shot.start ?? 0, s1 = s0 + shot.dur;
+      let s0 = shot.start ?? 0, s1 = s0 + shot.dur;
+      for (const c of shot.cuts ?? []) {
+        const cT = (shot.start ?? 0) + c;
+        if (cT <= T) s0 = Math.max(s0, cT);
+        else s1 = Math.min(s1, cT);
+      }
       pipeline.render(w.scene, camera, lens, {
         time: T,
         subframes: n,
         setSub: (k, count) => {
-          // samples stay inside this frame's shot, or the first frame after a cut is a double exposure
+          // samples stay inside this frame's shot (and setup, for cuts inside a shot), or the first frame after a cut is a double exposure
           const Ts = Math.min(s1 - 1e-6, Math.max(s0, T + ((k + 0.5) / count - 0.5) * (shutter / fps)));
           const p = pose(Ts);
           applyCamera(p.cam);
@@ -192,6 +199,11 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         if (r.right >= -1 && r.left <= 1 && r.top >= -1 && r.bottom <= 1) heads.push(r);
       }
       return { shot: shotAt(T).shot.name, heads };
+    },
+    probeCamera(T) {
+      const p = pose(T);
+      const c = p.cam;
+      return { shot: shotAt(T).shot.name, pos: c.pos.toArray(), target: c.target.toArray(), fov: c.fov, roll: c.roll ?? 0 };
     },
     probeContact(T) {
       pose(T);
