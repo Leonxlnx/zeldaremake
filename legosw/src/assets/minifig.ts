@@ -410,7 +410,8 @@ export function minifig(spec: MinifigSpec): Minifig {
   head.position.set(0, 1.58, 0);
   torso.add(head);
   const face = new FaceTexture(spec.face);
-  const headMat = printMaterial(face.texture, (FACE_W / FACE_PX), HEAD_H, 0.6, 0.12);
+  // a broad clearcoat lobe: faces in the licensed cinematics carry wide soft sheens, not pin highlights
+  const headMat = printMaterial(face.texture, (FACE_W / FACE_PX), HEAD_H, 0.7, 0.2);
   const headMesh = new Mesh(headGeometry(), headMat);
   headMesh.position.y = 0.0;
   headMesh.castShadow = true;
@@ -462,7 +463,7 @@ export const ANAKIN_SPEC = (hair: HairSpec): MinifigSpec => ({
   legs: 'reddishBrown',
   torsoPrint: { base: '#5a3120', robe: '#4a2210', robeDark: '#2c1409', inner: '#1f1a17', belt: '#1a1512', buckle: '#9fa2a6', skin: '#f6d7b3', line: '#140d09', tabard: '#1e1916', pouch: '#3b2517' },
   legPrint: { base: '#5a3120', boot: '#15110e', line: '#0c0907', top: 0.45, hem: 0.42 },
-  face: { skin: '#f6d7b3', brow: '#3f1f10', line: '#a8745a', scar: true, cheekLines: true, lopsided: 0.35 },
+  face: { skin: '#f6d7b3', brow: '#4a2414', line: '#a8745a', scar: true, cheekLines: true, lopsided: 0.35, eye: [0.064, 0.068] },
   hair,
 });
 
@@ -476,6 +477,6 @@ export const OBIWAN_SPEC = (hair: HairSpec): MinifigSpec => ({
   legs: 'tan',
   torsoPrint: { base: '#e0c796', robe: '#cdb07a', robeDark: '#9c8358', inner: '#f0e2c2', belt: '#5c2b14', buckle: '#a9abae', skin: '#f6d7b3', line: '#3a2a18' },
   legPrint: { base: '#e0c796', boot: '#3d2616', line: '#2b1a0e', top: 0.5, hem: 0.42 },
-  face: { skin: '#f6d7b3', brow: '#6e3814', line: '#b07c62', beard: { color: '#8e4a1c', dark: '#5c2c0e', light: '#b8733a' }, cheekLines: false, age: true },
+  face: { skin: '#f6d7b3', brow: '#6e3814', line: '#b07c62', beard: { color: '#8e4a1c', dark: '#5c2c0e', light: '#b8733a' }, cheekLines: false, age: true, eye: [0.061, 0.074] },
   hair,
 });

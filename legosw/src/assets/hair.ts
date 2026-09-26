@@ -604,7 +604,7 @@ function hairMaterial(spec: HairSpec): Material {
   let m = matCache.get(id);
   if (!m) {
     m = MATERIAL_QUALITY.clearcoat
-      ? new MeshPhysicalMaterial({ color: hex, roughness: 0.46, roughnessMap: plasticRoughnessTexture(), metalness: 0, clearcoat: 0.8, clearcoatRoughness: 0.09, envMapIntensity: 1.0 })
+      ? new MeshPhysicalMaterial({ color: hex, roughness: 0.46, roughnessMap: plasticRoughnessTexture(), metalness: 0, clearcoat: 0.8, clearcoatRoughness: 0.14, envMapIntensity: 1.0 })
       : new MeshStandardMaterial({ color: hex, roughness: 0.34, roughnessMap: plasticRoughnessTexture(), metalness: 0 });
     m.name = `lego:hair:${hex.toString(16)}`;
     matCache.set(id, m);

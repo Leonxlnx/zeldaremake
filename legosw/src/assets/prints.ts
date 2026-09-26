@@ -46,6 +46,8 @@ export interface FaceStyle {
   age?: boolean;
   /** how far smiles and grins lift toward the figure's left (0 … 1) */
   lopsided?: number;
+  /** eye half-width and half-height, head units (default 0.058 × 0.076) */
+  eye?: [number, number];
 }
 
 const INK = '#15110e';
@@ -235,7 +237,7 @@ function drawSkinLines(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceSta
 
 function drawEyes(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState): void {
   const blink = clamp(s.blink, 0, 1), sq = clamp(s.squint, 0, 1);
-  const rx = 0.05, ry = 0.078;
+  const [rx, ry] = style.eye ?? [0.058, 0.076];
   for (const sgn of [-1, 1]) {
     const cx = sgn * 0.2 + s.lookX * 0.45, cy = 0.6 + s.lookY * 0.45;
     // the lids: the upper comes down to blink, the lower rises to squint
@@ -268,7 +270,7 @@ function drawEyes(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState): 
     // catchlights: one light, so both eyes share it
     g.fillStyle = TEETH;
     const gx = cx - s.lookX * 0.15, gy = cy - s.lookY * 0.15;
-    ellipse(g, gx - rx * 0.3, gy + ry * 0.4, rx * 0.36, rx * 0.42);
+    ellipse(g, gx - rx * 0.28, gy + ry * 0.36, rx * 0.44, rx * 0.5);
     g.fill();
     ellipse(g, gx + rx * 0.36, gy - ry * 0.42, rx * 0.15, rx * 0.15);
     g.fill();
@@ -301,13 +303,14 @@ function drawBrows(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState):
   for (const sgn of [-1, 1]) {
     // a smirk cocks the brow on the lifted side
     const raise = smirk ? (sgn > 0 ? 0.024 : -0.004) : 0;
-    const inX = sgn * (0.078 - angry * 0.012);
-    const outX = sgn * 0.306;
+    const inX = sgn * (0.072 - angry * 0.012);
+    const outX = sgn * 0.31;
     const yIn = 0.768 + b * 0.052 + raise * 0.3;
     const yOut = 0.781 - b * 0.014 + raise;
     const peak = Math.max(yIn, yOut) + 0.022 - angry * 0.012 + worry * 0.004 + raise * 0.5;
     const ctrl: Pt = [(inX + outX) / 2 - sgn * 0.022, 2 * peak - (yIn + yOut) / 2];
-    brush(g, [inX, yIn], ctrl, [outX, yOut], 0.05 + angry * 0.008, 0.043, 0.014);
+    // licensed-print brows: a broad bar that holds its weight almost to the outer tip
+    brush(g, [inX, yIn], ctrl, [outX, yOut], 0.06 + angry * 0.008, 0.056, 0.03);
   }
   if (style.scar) {
     // Anakin: the scar over his right eye (viewer's left) splits the brow and runs on under the eye
