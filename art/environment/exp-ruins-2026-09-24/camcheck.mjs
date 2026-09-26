@@ -10,10 +10,14 @@
 //  - rock: inside the cliff, the ivy rock or the slab bridge (a ray east crosses the built surface an
 //    odd number of times), or nearer that surface than the near plane (0.08 m);
 //  - masonry: in a solid cell of cameraSolid.ts's grid as written (its core — the terrace's faces, the
-//    wall, the parapets, the arch's ring, the lintel, the piers, the gate boulders); the cells are
-//    0.25 m, so each such camera is also measured against the masonry as built (the stone, tile and
-//    carving triangles): its distance to the nearest face and which side of that face it is on —
-//    `insideMasonry` behind it, `nearMasonry` in front of it but nearer than the near plane;
+//    wall, the parapets, the arch's ring, the lintel, the piers, the gate boulders): the 0.25 m grid
+//    the camera itself collides with;
+//  - insideMasonry: inside the stone as masonry.ts lays it, whatever the grid says: a block's chamfered
+//    box (geom.ts's `block`, recorded call by call, its top's sag included), a lathe's shell or an arch
+//    ring's voussoirs (an odd number of crossings along two of three rays), with the distance to the
+//    nearest built face (how deep it is); abutting stones do not fool it the way a nearest-face side
+//    test is fooled (a camera inside a coping is in front of the ashlar face just under it);
+//  - nearMasonry: outside the stone but nearer a built face (stone, tile, carving) than the near plane;
 //  - ground: under the character ground (the walked tops included) or the terrain;
 //  - water: under the pool's surface where the ground is under it;
 //  - sight: the line from the camera to Link's chest crosses the rock or a masonry cell (he is hidden),
@@ -47,6 +51,39 @@ function loadTs(file) {
   return module.exports;
 }
 const src = (p) => path.join(root, 'src', p);
+// the stone's solids as they are laid: geom.ts's block and lathe record each call (the modules share
+// geom.ts's exports, read at call time) and the polygons laid outside them (the voussoirs, the mortar)
+const geom = loadTs(src('world/ruins/geom.ts'));
+const prims = [];
+let laying = 0;
+{
+  const { block, lathe } = geom;
+  const poly = geom.MeshBuilder.prototype.poly;
+  geom.block = (mb, cx, cy, cz, ha, hy, hb, yaw, o) => {
+    laying++;
+    try {
+      block(mb, cx, cy, cz, ha, hy, hb, yaw, o);
+    } finally {
+      laying--;
+    }
+    prims.push({ kind: 'block', mb, cx, cy, cz, ha, hy, hb, cs: Math.cos(yaw), sn: Math.sin(yaw), bev: Math.min(o.bevel ?? 0.04, ha * 0.45, hy * 0.45, hb * 0.45), sag: o.sag ?? [0, 0, 0, 0] });
+  };
+  geom.lathe = (mb, ...rest) => {
+    const t0 = mb.idx.length;
+    laying++;
+    try {
+      lathe(mb, ...rest);
+    } finally {
+      laying--;
+    }
+    prims.push({ kind: 'lathe', mb, t0, t1: mb.idx.length });
+  };
+  geom.MeshBuilder.prototype.poly = function (pts, normal, c, ...rest) {
+    const t0 = this.idx.length;
+    poly.call(this, pts, normal, c, ...rest);
+    if (!laying) prims.push({ kind: 'poly', mb: this, t0, t1: this.idx.length, c });
+  };
+}
 const { getTerrain } = loadTs(src('world/terrain/heightfield.ts'));
 const { LAYOUT, EXPANSION_RUINS: R, inExpansionRuins } = loadTs(src('world/layout.ts'));
 const { WORLD } = loadTs(src('world/config.ts'));
@@ -127,7 +164,7 @@ const rockClearance = (p) => {
   }
   return best;
 };
-// the masonry as built, in 0.5 m cells, for the flagged cameras' true clearance
+// the masonry as built, in 0.5 m cells: the distance from a camera to the nearest face (up to C)
 const built = new Map();
 for (const g of [masonry.stone.build(), masonry.tiles.build(), masonry.carving.build()]) {
   const pos = g.getAttribute('position');
@@ -140,26 +177,93 @@ for (const g of [masonry.stone.build(), masonry.tiles.build(), masonry.carving.b
     for (let x = cell(lo.x); x <= cell(hi.x); x++) for (let y = cell(lo.y); y <= cell(hi.y); y++) for (let z = cell(lo.z); z <= cell(hi.z); z++) put(built, `${x},${y},${z}`, t);
   }
 }
-const faceN = new THREE.Vector3();
-/** the distance to the nearest built masonry face within a cell (C) and whether the point is in front of it */
 const masonryClearance = (p) => {
   let best = C;
-  let front = true;
   for (let x = cell(p.x) - 1; x <= cell(p.x) + 1; x++) {
     for (let y = cell(p.y) - 1; y <= cell(p.y) + 1; y++) {
       for (let z = cell(p.z) - 1; z <= cell(p.z) + 1; z++) {
-        for (const t of built.get(`${x},${y},${z}`) ?? []) {
-          tri.set(t[0], t[1], t[2]);
-          const d = tri.closestPointToPoint(p, near).distanceTo(p);
-          if (d < best) {
-            best = d;
-            front = tri.getNormal(faceN).dot(p.clone().sub(near)) >= 0;
-          }
-        }
+        for (const t of built.get(`${x},${y},${z}`) ?? []) best = Math.min(best, tri.set(t[0], t[1], t[2]).closestPointToPoint(p, near).distanceTo(p));
       }
     }
   }
-  return { d: best, front };
+  return best;
+};
+
+// the stone's solids: the blocks by 1 m columns (x, z), the lathes' and the voussoirs' shells
+const stone = masonry.stone;
+const boxes = prims.filter((q) => q.kind === 'block' && q.mb === stone);
+if (!boxes.length) throw new Error('no blocks recorded: geom.ts is no longer called through its exports');
+const columns = new Map();
+for (const b of boxes) {
+  const ex = Math.abs(b.cs) * b.ha + Math.abs(b.sn) * b.hb;
+  const ez = Math.abs(b.sn) * b.ha + Math.abs(b.cs) * b.hb;
+  for (let x = Math.floor(b.cx - ex); x <= Math.floor(b.cx + ex); x++) for (let z = Math.floor(b.cz - ez); z <= Math.floor(b.cz + ez); z++) put(columns, `${x},${z}`, b);
+}
+/** inside a block's chamfered box: its top sags by corner (geom.ts scales the upper half by the quadrant's sag), read here bilinearly across the top */
+const inBlock = (b, p) => {
+  const dx = p.x - b.cx;
+  const dz = p.z - b.cz;
+  const la = dx * b.cs + dz * b.sn;
+  const lb = -dx * b.sn + dz * b.cs;
+  let ly = p.y - b.cy;
+  const A = Math.abs(la);
+  const B = Math.abs(lb);
+  if (A > b.ha || B > b.hb) return false;
+  if (ly > 0) {
+    const u = Math.min(1, Math.max(0, (la / Math.max(1e-6, b.ha - b.bev) + 1) / 2));
+    const v = Math.min(1, Math.max(0, (lb / Math.max(1e-6, b.hb - b.bev) + 1) / 2));
+    const [s0, s1, s2, s3] = b.sag;
+    const s = (1 - u) * (1 - v) * s0 + (1 - u) * v * s1 + u * (1 - v) * s2 + u * v * s3;
+    ly /= 1 + s / b.hy;
+  }
+  const Y = Math.abs(ly);
+  if (Y > b.hy) return false;
+  const { ha, hy, hb, bev } = b;
+  return A + Y <= ha + hy - bev && A + B <= ha + hb - bev && Y + B <= hy + hb - bev && A + Y + B <= ha + hy + hb - 2 * bev;
+};
+const shellOf = (mb, ranges) => {
+  const tris = [];
+  const lo = new THREE.Vector3(Infinity, Infinity, Infinity);
+  const hi = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+  for (const [t0, t1] of ranges) {
+    for (let i = t0; i < t1; i += 3) {
+      const t = [0, 1, 2].map((j) => new THREE.Vector3().fromArray(mb.pos, mb.idx[i + j] * 3));
+      for (const v of t) {
+        lo.min(v);
+        hi.max(v);
+      }
+      tris.push(t);
+    }
+  }
+  return { tris, lo, hi };
+};
+const lathes = prims.filter((q) => q.kind === 'lathe' && q.mb === stone).map((q) => shellOf(stone, [[q.t0, q.t1]]));
+// the mortar planes behind the joints and the lost slabs' beds are open sheets, not solids
+const sheet = (c) => ['0.36,0.34,0.3', '0.24,0.19,0.135'].includes(c.join(','));
+const voussoirs = shellOf(
+  stone,
+  prims.filter((q) => q.kind === 'poly' && q.mb === stone && !sheet(q.c)).map((q) => [q.t0, q.t1]),
+);
+const AXES = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)];
+const inShell = (s, p) => {
+  if (p.x < s.lo.x || p.y < s.lo.y || p.z < s.lo.z || p.x > s.hi.x || p.y > s.hi.y || p.z > s.hi.z) return false;
+  let odd = 0;
+  for (const d of AXES) {
+    ray.set(p, d);
+    let n = 0;
+    for (const t of s.tris) if (ray.intersectTriangle(t[0], t[1], t[2], false, hit)) n++;
+    odd += n % 2;
+  }
+  return odd >= 2;
+};
+/** the solid the point is inside ('block at …', 'lathe', 'voussoir') or null */
+const insideStone = (p) => {
+  for (const b of columns.get(`${Math.floor(p.x)},${Math.floor(p.z)}`) ?? []) {
+    if (inBlock(b, p)) return `block at (${[b.cx, b.cy, b.cz].map((v) => v.toFixed(2)).join(', ')}) half ${[b.ha, b.hy, b.hb].map((v) => v.toFixed(2)).join(' × ')}`;
+  }
+  for (const s of lathes) if (inShell(s, p)) return 'lathe';
+  if (inShell(voussoirs, p)) return 'voussoir';
+  return null;
 };
 const NEAR = 0.08;
 const AIM = 1.5;
@@ -187,12 +291,13 @@ for (const s of sources) {
     if (inside) bad.insideRock.push(where);
     else if (clear < NEAR) bad.nearRock.push(`${where} ${clear.toFixed(3)} m`);
     if (!inside) minRock = Math.min(minRock, clear);
-    if (grid.hasCorePoint(p.x, p.y, p.z)) {
-      const m = masonryClearance(p);
-      bad.masonry.push(`${where} ${m.front ? '' : 'behind '}${m.d.toFixed(3)} m`);
-      if (!m.front) bad.insideMasonry.push(`${where} ${m.d.toFixed(3)} m`);
-      else if (m.d < NEAR) bad.nearMasonry.push(`${where} ${m.d.toFixed(3)} m`);
-      if (m.front) minMasonry = Math.min(minMasonry, m.d);
+    if (grid.hasCorePoint(p.x, p.y, p.z)) bad.masonry.push(where);
+    const inStone = insideStone(p);
+    const dm = masonryClearance(p);
+    if (inStone) bad.insideMasonry.push(`${where} ${dm.toFixed(3)} m deep in the ${inStone}`);
+    else {
+      if (dm < NEAR) bad.nearMasonry.push(`${where} ${dm.toFixed(3)} m`);
+      minMasonry = Math.min(minMasonry, dm);
     }
     const g = Math.max(walker.height(p.x, p.z), terrain.height(p.x, p.z));
     minGround = Math.min(minGround, p.y - g);
@@ -208,8 +313,8 @@ for (const s of sources) {
     }
     if (blocked) bad.hidden.push(where);
   }
-  const row = { source: s.name, samples: s.samples.length, minRockClearanceM: +minRock.toFixed(3), minOverGroundM: +minGround.toFixed(3), flaggedMinMasonryClearanceM: Number.isFinite(minMasonry) ? +minMasonry.toFixed(3) : null };
-  for (const [k, v] of Object.entries(bad)) row[k] = { n: v.length, first: v.slice(0, 4) };
+  const row = { source: s.name, samples: s.samples.length, minRockClearanceM: +minRock.toFixed(3), minOverGroundM: +minGround.toFixed(3), minMasonryClearanceM: +minMasonry.toFixed(3) };
+  for (const [k, v] of Object.entries(bad)) row[k] = { n: v.length, first: v.slice(0, k === 'insideMasonry' || k === 'nearMasonry' ? 12 : 4) };
   report.push(row);
 }
 for (const r of play.walk ?? []) {
