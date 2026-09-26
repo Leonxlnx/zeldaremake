@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Opus) + parallel asset sub-agents
 github: commits as Cursor Agent
 status: active
 branch: cursor/lego-star-wars-rots-opening-ed32
-updated: 2026-09-26T14:45:00Z
+updated: 2026-09-26T17:55:00Z
 ---
 
 # lego-film — work log
@@ -16,7 +16,12 @@ the Sith* opening (Battle over Coruscant), rendered to an MP4. Not a Phase 1 rub
 v2 cut (owner review of the first cut, ten points): no glitching ships, a real Coruscant, more detail on
 the Venator and both interceptors, an audible soundtrack with music, Anakin smiling from the first
 frame, every shot aimed at a real ship that blows up, better hair and prints, buzz droids crawling,
-the Jedi flipping out of their fighters, bluer sabers. Final 720p render with motion blur running.
+the Jedi flipping out of their fighters, bluer sabers.
+
+**Final film delivered (26 Sep 17:51 UTC):** `lego-rots-final-57ff41e7.mp4` (1280x720, 2335 frames, 97.3 s,
+x264 CRF 16, 102 MB) plus a 35 MB phone encode, published on the WIP site's clips page. Gated by
+`final-v5.sh`: all frames present, 36 shot-boundary frames decoded match their own renders, AAC lag 0 /
+-0.05 dB against the soundtrack (`24ea6994ba8cfba9`), -14.1 LUFS, peak -1.4 dBFS.
 
 Pass 4 (owner, 26 Sep 10:37 UTC: "make it look spectacular, every inch of the Venator one of one, better
 ships, seamless angles and animation, stunning backgrounds"): lens/camera/animation work on this branch;
@@ -27,6 +32,15 @@ Pass 5 (same window, from 14:00 UTC): the hangar finale and the end title, the w
 cut once the space shots were final. Changes are confined to those shots (every other frame checked
 byte-identical, soundtrack hash unchanged), so the running render continues on each new build and
 `SOURCES.txt` in the render directory records which commit rendered which frames.
+
+Pass 6 (16:30 UTC, end of the window): a motion review of the final render's 56-80 s found one real
+defect, Anakin's fighter hanging dead still over its pad for 2.5 s of the landing; `a7f1435e` gives it a
+braking flare and a live hover, and landing frames 1901-1988 were re-rendered (1988 on is byte-identical
+to before). The reviewer's other flags (buzz droids popping in or vanishing, a flat bay behind the
+shield) were checked frame by frame and are not in the render. A review of the delivered cut then
+caught torn crawl text at 10.42-10.48 s, in every cut so far: the crawl plane's near end passes
+through the camera there and SwiftShader drew the one-quad plane's triangle holding that vertex
+displaced. `57ff41e7` subdivides the plane (64 rows); crawl frames 108-466 were re-rendered.
 
 ## Files / systems being touched
 Only `legosw/` (self-contained: own `index.html`, `vite.config.ts`, `tsconfig.json`, scripts) and five
@@ -64,6 +78,9 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
   `df0a34dd` end title over the battle (hero Venator and Invisible Hand trading broadsides over the
   limb, title in the stars, silent fx so the soundtrack is byte-identical); `5df72f16` bay haze and an
   eleven-droid squad in three ranks with the commander front and centre.
+- Pass 6: `a7f1435e` Anakin's landing flare and hover (zero at the approach hand-off and from 3.6 s on);
+  `57ff41e7` crawl plane in 64 rows (no torn text at 10.4 s). Soundtrack hash re-checked on both builds:
+  `24ea6994ba8cfba9`. Live preview `/qa/` serves `57ff41e7`; final film delivered from the same code.
 
 ## Important decisions
 - Everything procedural (no downloaded models/textures/audio). Units are LEGO studs.
@@ -72,6 +89,8 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
   renders use `--subframes 4 --msaa 1`; the long take asks for 6 samples at a 0.32 shutter.
 - Coruscant is traced per pixel on a carrier cap (three compiled zones, fitted per frame) instead of a
   dense sphere: SwiftShader pays for every shader branch, so each zone gets its own program.
+- Any large quad that can pass through the camera plane (the crawl) is subdivided: SwiftShader draws a
+  big triangle with a vertex near the camera plane displaced.
 
 ## Known issues
 - Renders in software WebGL are slow (seconds per frame); final film is pre-rendered.
@@ -82,4 +101,4 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
 None for other agents — this lane does not interact with the Kokiri world.
 
 ## Last updated
-2026-09-26T14:45:00Z
+2026-09-26T17:55:00Z
