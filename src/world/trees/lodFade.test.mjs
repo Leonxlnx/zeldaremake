@@ -94,15 +94,15 @@ test('the weight attribute is written only behind the flag', () => {
   assert.notEqual(at, -1, 'fillFamily is gone');
   const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
   assert.match(body, /if \(TREE_LOD_DITHER\) \{/, 'the attribute write must be guarded by the flag');
-  assert.match(body, /w\.lodWeights\?\.get\(l \* w\.placements\.length \+ list\[k\]\) \?\? 1/, 'a tree with no recorded weight must draw whole');
+  assert.match(body, /1 - \(w\.lodWeights\?\.get\(l \* w\.placements\.length \+ list\[k\]\) \?\? 1\)/, 'the attribute carries the DROP fraction, so an unrecorded tree writes 0 and draws whole');
 });
 
 test('the attribute is lazily attached and marked dynamic', () => {
   const at = indexSource.indexOf('const fadeAttribute');
   assert.notEqual(at, -1, 'fadeAttribute is gone');
   const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
-  assert.match(body, /getAttribute\('aLodFade'\)/, 'it must reuse an attribute it already attached');
-  assert.match(body, /new Float32Array\(mesh\.instanceMatrix\.count\)\.fill\(1\)/, 'the buffer must cover every instance slot and default to whole trees');
+  assert.match(body, /getAttribute\('aLodDrop'\)/, 'it must reuse an attribute it already attached');
+  assert.match(body, /new Float32Array\(mesh\.instanceMatrix\.count\)(?!\.fill)/, 'a zeroed buffer is "draw whole" for every slot, which is also what WebGL feeds a mesh without the attribute');
   assert.match(body, /setUsage\(DynamicDrawUsage\)/, 'it is rewritten on every bucket change');
 });
 
@@ -111,4 +111,30 @@ test('the shared-geometry constraint is recorded where the attribute is made', (
   const doc = indexSource.slice(Math.max(0, at - 1200), at);
   assert.match(doc, /shadow proxy/i, 'the proxy sharing the medium rung geometry must stay written down here');
   assert.match(doc, /colour pass/i, 'the discard being colour-pass only is the consequence to keep');
+});
+
+/**
+ * The mask itself. Two things make it safe rather than clever: the attribute is a DROP fraction (a mesh
+ * that never gets the attribute — the white-bark roots share this material — reads 0 and draws whole),
+ * and the mask is injected only where a colour `extra` is passed, never into the depth materials, because
+ * the white-barks' high bucket shares its geometry with the shadow proxy in a different instance order.
+ */
+const matSource = readFileSync(path.join(here, 'materials.ts'), 'utf8');
+
+test('the mask discards against the drop fraction, hashed per pixel', () => {
+  assert.match(matSource, /attribute float aLodDrop;/, 'the instance drop must reach the vertex stage');
+  assert.match(matSource, /vLodDrop = aLodDrop;/, 'and travel to the fragment stage');
+  assert.match(matSource, /if \(lodHash < vLodDrop\) discard;/, 'the kept share must be 1 − drop');
+  assert.match(matSource, /gl_FragCoord\.xy/, 'a screen-space hash is what makes the kept fragments a stipple');
+});
+
+test('the mask is colour-pass only', () => {
+  const at = matSource.indexOf('function injectWind');
+  const body = matSource.slice(at, matSource.indexOf('\n}', at));
+  assert.match(body, /if \(extra\) injectLodDrop\(shader\)/, 'the depth materials pass no extra: they must not get the mask');
+  assert.match(matSource, /if \(!TREE_LOD_DITHER\) return;/, 'with the flag off the program must be untouched');
+});
+
+test('a flag flip cannot reuse a cached program', () => {
+  assert.match(matSource, /trees-\$\{key\}-v8\$\{TREE_LOD_DITHER \? '-drop' : ''\}/, 'the cache key must carry the flag');
 });
