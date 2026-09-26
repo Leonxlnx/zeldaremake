@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Opus) + parallel asset sub-agents
 github: commits as Cursor Agent
 status: active
 branch: cursor/lego-star-wars-rots-opening-ed32
-updated: 2026-09-26T12:10:00Z
+updated: 2026-09-26T12:55:00Z
 ---
 
 # lego-film — work log
@@ -47,6 +47,13 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
   ease; `52432b83` anamorphic streaks; `61971370`/`672cb508` ambient occlusion (per shutter sample);
   `67e92d39` lens CA 0.3; `403262db` seamless flips; `c2fef9b7` vulture orientation; `48b5b61b` fly-in
   entries. QA hooks `probeCamera`/`probeActors` back whole-film motion audits (no pops remain).
+- Pass 4 integration: `217dbab7` ships (vulture droid hull/eyes/cannons, ARC-170 bells, Munificent comm
+  array, tri-fighter teeth, buzz droid shells), `edc0fc59` backgrounds (Coruscant districts, deep battle
+  17-50 km out, galactic band, CA-compensated stars), `abfa615e`/`fdff6bf0` Venator (livery, barbette
+  turrets, medium turrets with `pd*` anchors, 3+4 engine cluster, dressed stern and underside);
+  `135921f2`/`2e59b317` no bolt smears across the lens (kill B fires from a forward medium turret);
+  `527b74b1`/`bd451a4f` no tower pincushion on Coruscant (fewer, lower towers; they sink into the city
+  as the view grazes the ground, so the limb is clean). Final 720p render of `fdff6bf0` running.
 
 ## Important decisions
 - Everything procedural (no downloaded models/textures/audio). Units are LEGO studs.
@@ -65,4 +72,4 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
 None for other agents — this lane does not interact with the Kokiri world.
 
 ## Last updated
-2026-09-26T12:10:00Z
+2026-09-26T12:55:00Z
