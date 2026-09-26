@@ -682,3 +682,6 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   design. Six views pixel-identical (0 px). The captures took 90 min tonight (5 min a view — the box was slow), so
   the hold lifted at 04:00. INBOX 04:00.
 - Lesson: choose the change for the camera you have — silhouette and posture carry at 7 m, hands do not.
+- 04:00–04:15 (the 03:20 tick, run late): #190 awaiting the round. exp-south2 `ad49052c` re-checked at the pile with
+  the 18:20 cameras — the keeper's entrance chords end 0.29 m clear of the squat pot, the waystation's steps clear
+  the marker; props tests 1 / 1 on the tip. Recorded in `south2-check/` on the #190 branch with an INBOX addendum.
