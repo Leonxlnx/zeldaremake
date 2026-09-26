@@ -99,9 +99,46 @@ character system publishes `feetContact`) is still only tested through the dista
 frame-rate sweep and its own edge test, not driven with pathological flags. That is the next piece
 of this row and it is named rather than done.
 
+> **Taken in the same session — see the section below.** Driven at five frame rates and both
+> gaits it holds, and against the distance path it can be swapped with mid-session it agrees. The
+> hand-back between them did not: with the flags frozen he walked **1.60 s** in silence. Fixed,
+> and it is now 1.23.
+
+## The stance path, and the hand-back that was not one
+
+`drive` has two ways to make a step and the game uses whichever the character system offers:
+the gait's own `feetContact` flags when they are published, the distance he has travelled when
+they are not. `gaitUntil = t + 1.2` keeps them from both firing.
+
+Driven the same way the integrator was — a real two-boot stance signal at five frame rates, at a
+walk and at a run — the gait path holds to within 5 % of the stride, and the two paths agree with
+each other to within 5 % at the tick the game runs at. Both of those are new tests and both pass.
+
+**The hand-back between them did not.** `gaitUntil` did its job by returning *before* `travelled`
+was touched, so the distance he covered under the lock was thrown away. With the flags frozen
+mid-walk — the publisher stalling while he keeps moving — he went **1.60 s without a step**: 1.2 s
+of lock, and then a whole stride from zero before the integrator could trigger.
+
+```
+not ok 9 - flags that freeze while he keeps walking hand back to the distance integrator
+  he walked 1.60 s in silence after the gait's flags froze; the lock is 1.2 s and the
+  integrator should take it from there
+```
+
+`fire()` zeroes the integrator at every boot plant, so **keeping it running while the gait drives
+costs nothing at all** — it is reset before it can ever reach a stride. What it buys is the case
+where the gait stops delivering: the stride is already banked when the lock lifts.
+
+**1.60 s becomes 1.23** — the lock, plus the tick it is noticed on — and the test asserts
+`1.2 + 2·dt` rather than a round number, so the fault cannot creep back.
+
+This is the same class of fault `2026-09-25-tickrate` found in the same function: `fire()` zeroing
+a distance that had not been spent. That one threw away half a tick every step and cost one step
+in fifteen. This one throws away 1.2 seconds.
+
 ## Green
 
-`npm run typecheck`, `npm run build`, **256 / 256** tests (four new), and
+`npm run typecheck`, `npm run build`, **259 / 259** tests (seven new), and
 `playtest.mjs --only walk` at 11/11 routes with no page errors.
 
 No listenable clip: the change is inaudible in the shipped game by construction — the arcs it
@@ -110,9 +147,9 @@ The evidence is the test that fails when the asymmetry is put back.
 
 ## Named, not taken
 
-- **The stance path at pathological frame rates.** Both feet rising in one tick, a stance array
-  that appears and disappears between ticks, and `wasStance` going stale while the distance
-  integrator runs. All three are reachable by a test now that the pattern exists; none is driven.
+- **Both feet rising in one tick** and a stance array that appears and disappears between ticks
+  are still not driven, though the frame-rate sweep above covers the ordinary case. `wasStance`
+  going stale while the integrator runs is the one most likely to bite, and the pattern for testing it now exists.
 - **`landingStrength`'s 0.45 floor is why the thresholds had to be unified upward**, and it is
   worth its own look: it means a landing from 2 cm and a landing from 1.7 m span only 7 dB. Rubric
   check 24 is *"landing after a drop sounds, and scales with the fall"* and scores 4 on the
