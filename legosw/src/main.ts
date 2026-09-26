@@ -3,6 +3,7 @@ import { FilmUI } from './ui';
 import { Lab } from './lab';
 import { createFilm, type Film } from './film/film';
 import { ASSETS } from './assets';
+import { Controls, Loading } from './controls';
 
 /**
  * Entry point. Modes:
@@ -17,8 +18,16 @@ const labId = params.get('lab');
 const app = document.getElementById('app')!;
 const ui = new FilmUI(document.getElementById('film-ui')!);
 const samples = Number(params.get('msaa') ?? 4);
+const loading = capture ? null : new Loading();
 
-const pipeline = new Pipeline(app, { width: 16, height: 16, samples });
+let pipeline!: Pipeline;
+try {
+  pipeline = new Pipeline(app, { width: 16, height: 16, samples });
+} catch (e) {
+  loading?.fail(e);
+  throw e;
+}
+pipeline.renderer.domElement.addEventListener('webglcontextlost', () => loading?.fail(new Error('the graphics context was lost (GPU reset or out of memory)')));
 function fit() {
   const L = ui.fit(pipeline.renderer.domElement, innerWidth, innerHeight);
   pipeline.setSize(L.width, L.height);
@@ -38,6 +47,7 @@ interface Api {
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAt(t: number, subframes?: number, shutter?: number, fps?: number): { ms: number };
   probeHeads(t: number): ReturnType<Film['probeHeads']> | null;
+  probeContact(t: number): ReturnType<Film['probeContact']> | null;
   renderAudio(): Promise<string>;
 }
 
@@ -55,6 +65,7 @@ async function boot(): Promise<void> {
     lab = new Lab(pipeline, labId, (params.get('bg') as 'studio' | 'space') ?? 'studio');
     lab.pose(Number(params.get('yaw') ?? 35), Number(params.get('pitch') ?? 18), Number(params.get('dist') ?? 1), 0);
     ui.setCards(0, 0);
+    loading?.done();
     if (!capture) {
       let yaw = Number(params.get('yaw') ?? 35);
       const t0 = performance.now();
@@ -69,23 +80,50 @@ async function boot(): Promise<void> {
     }
     return;
   }
+  loading?.status('Building the fleet… (bricks, ships and minifigures are generated in the browser)');
+  await new Promise((r) => setTimeout(r, 30));
   film = await createFilm(pipeline, ui);
   if (!capture) {
-    let t = Number(params.get('t') ?? 0);
+    const f = film;
+    let t = Math.max(0, Math.min(f.duration, Number(params.get('t') ?? 0)));
     let last = performance.now();
     let paused = false;
+    const seek = (to: number) => (t = Math.max(0, Math.min(f.duration - 1e-3, to)));
+    const controls = new Controls({
+      duration: f.duration,
+      shots: f.shots(),
+      time: () => t,
+      seek,
+      paused: () => paused,
+      setPaused: (p) => (paused = p),
+    });
     addEventListener('keydown', (e) => {
       if (e.code === 'Space') paused = !paused;
-      if (e.code === 'ArrowRight') t += 2;
-      if (e.code === 'ArrowLeft') t = Math.max(0, t - 2);
+      else if (e.code === 'ArrowRight') seek(t + 2);
+      else if (e.code === 'ArrowLeft') seek(t - 2);
+      else if (e.code === 'Home') {
+        seek(0);
+        paused = false;
+      } else if (e.code === 'Period') {
+        paused = true;
+        seek(t + 1 / 24);
+      } else if (e.code === 'Comma') {
+        paused = true;
+        seek(t - 1 / 24);
+      } else return;
+      e.preventDefault();
     });
     addEventListener('click', () => (paused = !paused));
+    // the first frame is on screen before the panel goes, so the page never shows an unexplained black canvas
+    f.renderAt(t);
+    loading?.done();
     const loop = () => {
       const now = performance.now();
       if (!paused) t += Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (t > film!.duration) t = 0;
-      film!.renderAt(t);
+      if (t > f.duration) t = 0;
+      f.renderAt(t);
+      controls.update();
       requestAnimationFrame(loop);
     };
     loop();
@@ -93,6 +131,7 @@ async function boot(): Promise<void> {
 }
 
 const ready = boot();
+ready.catch((e) => loading?.fail(e));
 
 window.__LSW__ = {
   ready,
@@ -121,5 +160,6 @@ window.__LSW__ = {
     return { ms: performance.now() - t0 };
   },
   probeHeads: (t) => film?.probeHeads(t) ?? null,
+  probeContact: (t) => film?.probeContact(t) ?? null,
   renderAudio: async () => (film ? film.renderAudio() : ''),
 };
