@@ -694,7 +694,6 @@ function scatter(b: Builder, o: ScatterOpts): void {
 
 interface HullOut {
   turretMuzzles: V3[];
-  /** forward medium turrets' barrel tips (film anchors only; the battle volleys use the heavy battery) */
   mediumMuzzles: V3[];
 }
 
@@ -1153,17 +1152,17 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
     else out.turretMuzzles.push([-x + 1.1, y + 1.95, z + 10.4], [-x - 1.1, y + 1.95, z + 10.4]);
     b.at(x, y, z, () => heavyTurret(b, D, side));
   }
-  // medium turrets: the same gunhouse at a smaller scale (no battle anchors, so the volleys stay as they were)
+  // medium turrets: the same gunhouse at a smaller scale
   for (const [mu, mv] of MEDIUM_L) {
     const w = toWorld(FD, mu, mv);
-    const ym = dorsalY(w.x, w.z) + 0.4 * MEDIUM_SCALE;
-    const xm = side > 0 ? w.x : -w.x;
-    out.mediumMuzzles.push([xm + 1.1 * MEDIUM_SCALE, ym + 1.95 * MEDIUM_SCALE, w.z + 10.4 * MEDIUM_SCALE], [xm - 1.1 * MEDIUM_SCALE, ym + 1.95 * MEDIUM_SCALE, w.z + 10.4 * MEDIUM_SCALE]);
+    const y = dorsalY(w.x, w.z) + 0.4 * MEDIUM_SCALE;
     b.push();
-    b.translate(w.x, ym, w.z);
+    b.translate(w.x, y, w.z);
     b.scale(MEDIUM_SCALE);
     heavyTurret(b, D, side);
     b.pop();
+    const x = side > 0 ? w.x : -w.x;
+    for (const dx of [1.1, -1.1]) out.mediumMuzzles.push([x + dx * MEDIUM_SCALE, y + 1.95 * MEDIUM_SCALE, w.z + 10.4 * MEDIUM_SCALE]);
   }
   // ── rim (upper hull side face) ──
   const rimPts: V3[] = [TIP, st(R0), st(R1)];
@@ -2830,7 +2829,7 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
   const engineGlows: Mesh[] = [];
   const anchorsStud: Record<string, V3> = {};
   const muzzles: V3[] = [];
-  const medium: V3[] = [];
+  const mediumMuzzles: V3[] = [];
   const collectGlows = (g: Object3D) =>
     g.traverse((m) => {
       if (m instanceof Mesh && /:glow(Blue|Cyan)$/.test(m.name)) engineGlows.push(m);
@@ -2863,7 +2862,7 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
     group.add(built.group);
     collectGlows(built.group);
     muzzles.push(...out.turretMuzzles);
-    medium.push(...out.mediumMuzzles);
+    mediumMuzzles.push(...out.mediumMuzzles);
   } else {
     // one construction pass, every part routed to a spatial chunk of its detail tier
     const cfg: Cfg = { D: true, seed };
@@ -2882,7 +2881,7 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
     superstructure(rb, cfg, L, anchorsStud);
     engines(rb, cfg, L);
     muzzles.push(...out.turretMuzzles);
-    medium.push(...out.mediumMuzzles);
+    mediumMuzzles.push(...out.mediumMuzzles);
     for (const [key, t] of targets) {
       const built = t.b.build(`venator-${key}`);
       if (t.tier === TIER_BASE) {
@@ -2909,7 +2908,8 @@ export function venator(o: { lod: 0 | 1 | 2; seed?: number }): CapitalShip {
   A('portEdgeMid', [R0[0] * tz(zm), R0[1] * tz(zm), zm]);
   A('hangarVentral', [0, K0[1] * tz(-0) - 0.5, 20]);
   const turrets = muzzles.map((p, i) => anchor(`turret${i}`, group, p[0] * S, p[1] * S, p[2] * S));
-  medium.forEach((p, i) => A(`pd${i}`, p));
+  // the long take's kill B takes 'pd*' anchors as candidate guns next to the heavy battery
+  mediumMuzzles.forEach((p, i) => A(`pd${i}`, p));
   return { group, length: (ZT - (ZS - 14.6)) * S, turrets, engineGlows, anchors };
 }
 
