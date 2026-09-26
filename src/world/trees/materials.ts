@@ -23,6 +23,7 @@ import {
   type Texture,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
+import { TREE_LOD_DITHER } from './lodFade';
 import { WIND_GLSL, type Wind } from '../wind/wind';
 import { GIANT_BARK_FLOOR as SHARED_BARK_FLOOR, LEAF_FLOOR as SHARED_LEAF_FLOOR, bindShadeFloor, shadeFloorGlsl, shadeFloorPars, type ShadeFloor, type ShadeFloorGlslOptions } from '../materials/shadeFloor';
 import type { WorldContext } from '../system';
@@ -374,6 +375,35 @@ interface LodSlots {
   nearCanopy: IUniform<Vector4[]>;
 }
 
+/**
+ * The rung transition band's drawing half (lodFade.ts, TREE_LOD_DITHER): a tree inside a gate's band is
+ * drawn in both rungs, and each keeps the share of its fragments the band gives it — a screen-door mask
+ * on `aLodDrop`, the per-instance DROP fraction `fillFamily` writes (0 = whole tree, which is also what
+ * WebGL feeds a mesh that has no such attribute, so the white-bark roots are safe).
+ *
+ * COLOUR PASS ONLY, deliberately: the white-barks' high bucket shares its geometry with round 53's
+ * shadow proxy, which fills the same buffers in a different instance order, so a drop read in the depth
+ * pass would mask the wrong instances. Shadows keep the outgoing rung's silhouette across the band —
+ * two paces of lag, against a shadow that would otherwise dither.
+ */
+const LOD_DROP_VERTEX_PARS = /* glsl */ `
+attribute float aLodDrop;
+varying float vLodDrop;
+`;
+const LOD_DROP_FRAGMENT = /* glsl */ `
+  #include <alphatest_fragment>
+  if (vLodDrop > 0.001) {
+    // a hash of the pixel, so the kept fragments are an even stipple rather than a shape
+    float lodHash = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    if (lodHash < vLodDrop) discard;
+  }
+`;
+function injectLodDrop(shader: WebGLProgramParametersWithUniforms) {
+  if (!TREE_LOD_DITHER) return;
+  shader.vertexShader = `${LOD_DROP_VERTEX_PARS}${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLodDrop = aLodDrop;');
+  shader.fragmentShader = `varying float vLodDrop;\n${shader.fragmentShader}`.replace('#include <alphatest_fragment>', LOD_DROP_FRAGMENT);
+}
+
 function injectWind(material: Material, wind: Wind, o: WindOpts, slots: LodSlots, extra?: (shader: WebGLProgramParametersWithUniforms) => void, key = '') {
   const uTreeStiff = { value: o.treeStiffness };
   const uFlex = { value: o.flex };
@@ -385,8 +415,10 @@ function injectWind(material: Material, wind: Wind, o: WindOpts, slots: LodSlots
     shader.vertexShader = WIND_GLSL + WIND_VERTEX_PARS + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', WIND_VERTEX_BODY);
     extra?.(shader);
+    // the depth materials pass no `extra` (they are MeshDepthMaterial): the band's mask is colour-only
+    if (extra) injectLodDrop(shader);
   };
-  material.customProgramCacheKey = () => `trees-${key}-v8`;
+  material.customProgramCacheKey = () => `trees-${key}-v8${TREE_LOD_DITHER ? '-drop' : ''}`;
   wind.bind(material);
 }
 
