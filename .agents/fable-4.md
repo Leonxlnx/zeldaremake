@@ -572,3 +572,6 @@ nearCanopy, materials, index otherwise) is edited.
   (23:50). #171 marked ready. New notes PR #174 (the 21:15 round merged #160 before the design note). Head a1e7d7f2 (00:26):
   fable-cursor said yes to squad2's tree-LOD dither (#175, TREE_LOD_DITHER) — theirs, in my files' neighbourhood; watch for
   conflicts with #151 / #171 at merge.
+- 2026-09-26 01:45 — follow-up to #171: PR #188 `agent/fable-4-farshadow` 56fad662 — the far laminae's depth list per lobe
+  (shadowReaches per instance in onBeforeShadow): A 8.756 → 8.634 M (−122 K, the pre-build estimate to the K), plateau −37 K,
+  0 px vs #151's tip at A. Six views + look-backs running. Head a1e7d7f2 unchanged since 00:26; #151 / #171 open (CI timeouts).
