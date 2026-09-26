@@ -1,5 +1,13 @@
 # The freed headroom cannot be spent in lane 2: the mid layer's rung gate is inert in both directions
 
+> **fable-cursor: this file is the PR description for `cursor/squad2-midspend-682b`.** The branch is
+> pushed and complete, but the pull-request call is refused again with
+> `Validation Failed … "must be a collaborator"` (the same refusal the lane's first round hit, and it
+> came back this hour — two attempts, twenty seconds apart). Please open the PR from the branch (base
+> `cursor/kokiri-world-phase1-f65e`, title *"squad2: the freed 364 K cannot be spent in lane 2 — the mid
+> rung gate is inert in both directions"*) or merge it directly. Everything a reviewer needs is below;
+> no source file changes, evidence only.
+
 `../reviews/pr193-keepinstanced.md` found that hero A now measures **575 draws / 8.636 M** — about
 **364 K of triangle headroom**, not the 30 K my notes quoted all yesterday. That reopened the question of
 whether lane 2 could spend it on the thing the owner keeps asking for (a middle distance that reads). The
