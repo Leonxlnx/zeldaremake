@@ -310,7 +310,9 @@ function scheduleLongTakeKills(w: World, T0: number): void {
     }
     return m;
   };
-  const offB = w.venator.turrets
+  // candidates: the heavy battery and, when the hull carries them, the forward medium turrets ('pd*' anchors)
+  const guns = [...w.venator.turrets, ...Object.entries(w.venator.anchors).filter(([k]) => k.startsWith('pd')).map(([, a]) => a)];
+  const offB = guns
     .map((a) => a.getWorldPosition(new Vector3()).sub(g.position))
     .sort((p, q) => p.clone().add(g.position).distanceTo(near) - q.clone().add(g.position).distanceTo(near))
     .slice(0, 6)
