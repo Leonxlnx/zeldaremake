@@ -21,7 +21,10 @@ proportions), the elbow kept out of the torso, a small cost on shoulder twist:
 | behind | (0.65, −1.40, 0.20) | −1.05 | 0.6 cm apart at the lumbar (∓0.006, 0.579, −0.082) | 13 cm out, 7 cm behind (±0.13, 0.66, −0.07) |
 | akimbo | (0.60, −0.65, 0.45) | −1.08 | 0.6 cm off the hip's side (±0.119, 0.532, 0.032) | out and a little back (±0.18, 0.66, −0.045) |
 
-The right arm mirrors y and z. A crossed-arms style was tried and dropped: on this rig the second forearm cannot
+The right arm mirrors y and z. The grid ran on `KOKIRI_PROPORTIONS`; the kids are built on `KOKIRI_CHILD_PROPORTIONS`
+(arms 1 cm shorter), so the chosen angles were re-evaluated on that chain (`arm-eval-child.mjs`): behind, the hands
+1.0 cm apart at the lumbar (y 0.563, z −0.076 — at the back's surface), elbows 12 cm out; akimbo, each hand 0.3 cm off
+its hip's side (x ±0.110 vs ±0.113). A crossed-arms style was tried and dropped: on this rig the second forearm cannot
 pass under the first without the forearms intersecting or the arm laying straight across the chest.
 
 ## At play distance (head left, branch right)
