@@ -31,7 +31,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { LOOP_SECONDS, REST_SECONDS, QUIET_PASS_SHARE, restAfter, passIsQuiet, PHRASE_BEATS, PHRASE_LEVEL, PHRASE_PAD_BEATS, phraseGain, gatedRmsDb, fileGain, MUSIC_BUS_TARGET_DB, MUSIC_MATCH_RANGE_DB } = loadTs(path.join(here, 'music.ts'));
+const { LOOP_SECONDS, REST_SECONDS, QUIET_PASS_SHARE, restAfter, passIsQuiet, PHRASE_BEATS, PHRASE_LEVEL, PHRASE_PAD_BEATS, phraseGain, gatedRmsDb, fileGain, MUSIC_BUS_TARGET_DB, MUSIC_MATCH_RANGE_DB, harpPan, HARP_SWEEP } = loadTs(path.join(here, 'music.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 /** the pass schedule the live scheduler walks: pass, rest, pass, rest … from one seeded stream */
@@ -164,4 +164,56 @@ test('the placeholder is original: pentatonic, and no Nintendo melody ships', ()
   const allowed = new Set([7, 9, 11, 2, 4]);
   for (const n of notes) assert.ok(allowed.has(n % 12), `midi ${n} (pitch class ${n % 12}) is outside G major pentatonic`);
   assert.match(source, /not the Kokiri Forest theme/, 'the provenance note must stay in the file');
+});
+
+test('the score sits in the middle, on both kinds of pass', () => {
+  // The harp is the only panned voice in the music, and it was panned by its index in the
+  // arpeggio — the same index that decides how hard the note is struck and that every rule
+  // thinning the figure tests. All three correlate and all three lean left: 1.01 dB of it on a
+  // quiet pass and 0.60 on a full one (`art/audio/2026-09-26-mono/`). Nothing caught it because
+  // every measurement this lane makes sums to mono, and a mono sum cannot tell left from right.
+  //
+  // The schedule is read out of the source rather than restated here, so a rule added to the
+  // figure later is covered by this test without anyone remembering to update it.
+  const source = readFileSync(path.join(here, 'music.ts'), 'utf8');
+  const harp = source.match(/const HARP: \[number, number\]\[\] = \[([\s\S]*?)\n\];/);
+  assert.ok(harp, 'the harp table should be readable from the source');
+  const n = [...harp[1].matchAll(/\[/g)].length;
+  assert.equal(n, 8, `the harp figure is ${n} notes; the skip rules below assume eighths`);
+  const bars = Number(source.match(/const BARS = (\d+);/)[1]);
+
+  /** every note the scheduler lets through, exactly as the loop in `setupProcedural` does */
+  const played = (quiet) => {
+    const out = [];
+    for (let bar = 0; bar < bars; bar++) {
+      const phrase = Math.floor((bar * 4) / PHRASE_BEATS);
+      for (let i = 0; i < n; i++) {
+        if (bar === bars - 1) continue;
+        if (phrase === 1 && i !== 0 && i !== 4) continue;
+        if ((bar % 4 === 3 && i >= 6) || (i === 5 && bar % 2 === 1) || (quiet && i % 2 === 1)) continue;
+        out.push({ bar, phrase, i });
+      }
+    }
+    return out;
+  };
+  /** the accent, without the seeded jitter — which is symmetric and averages out */
+  const velocity = (i, quiet) => (quiet ? 0.6 : 1) * (0.55 + 0.35 * (i % 2 === 0 ? 1 : 0.5));
+
+  for (const quiet of [false, true]) {
+    let L = 0;
+    let R = 0;
+    for (const { bar, phrase, i } of played(quiet)) {
+      const a = ((harpPan(i, phrase) + 1) * Math.PI) / 4; // StereoPannerNode's equal-power law
+      const v = velocity(i, quiet) ** 2;
+      L += v * Math.cos(a) ** 2;
+      R += v * Math.sin(a) ** 2;
+    }
+    const lean = 10 * Math.log10(L / R);
+    assert.ok(Math.abs(lean) < 0.3, `a ${quiet ? 'quiet' : 'full'} pass puts ${Math.abs(lean).toFixed(2)} dB more into the ${lean > 0 ? 'left' : 'right'} channel`);
+  }
+  // and the figure still uses the field: a sweep that cancelled by collapsing to the centre
+  // would pass the test above and be a worse tune
+  assert.ok(Math.abs(harpPan(0, 0) - harpPan(n - 1, 0)) > 0.6, 'the harp no longer sweeps across the field');
+  assert.equal(harpPan(0, 0), -harpPan(0, 1), 'the sweep should turn round from one phrase to the next');
+  assert.ok(Math.abs(harpPan(0, 0)) <= HARP_SWEEP / 2 + 1e-9, 'a note sits further out than the sweep allows');
 });

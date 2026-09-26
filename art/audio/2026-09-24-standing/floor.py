@@ -50,45 +50,97 @@ def _font(size, bold=False):
 
 
 def load(path):
+    """the take as it was rendered: (samples, channels), NOT averaged down to one.
+
+    This used to return `.mean(axis=1)`, and so does every other tool in `art/audio/`. That is a
+    mono sum, and a mono sum is not what a player with two ears gets: content that differs
+    between the channels partly cancels in it. Measured on this bed the difference is **2.1 to
+    2.9 dB in every band** (`art/audio/2026-09-26-mono/`), so every always-on number this lane
+    has published for a place is that much under what a headphone listener hears.
+    """
     import wave
 
     with wave.open(path, 'rb') as w:
         n, ch, sr = w.getnframes(), w.getnchannels(), w.getframerate()
         raw = w.readframes(n)
-    return np.frombuffer(raw, dtype='<i2').astype(np.float64).reshape(-1, ch).mean(axis=1) / 32768.0, sr
+    return np.frombuffer(raw, dtype='<i2').astype(np.float64).reshape(-1, ch) / 32768.0, sr
 
 
-def a_weight(x, sr):
+def mono(chans):
+    """the same take through one speaker — a phone, or a laptop's mixed output"""
+    return chans.mean(axis=1, keepdims=True)
+
+
+def a_weight(chans, sr):
     """IEC 61672 A-weighting, applied in the frequency domain (the take is offline, so this is exact)"""
-    X = np.fft.rfft(x)
-    f = np.maximum(np.fft.rfftfreq(len(x), 1.0 / sr), 1e-6)
+    out = np.empty_like(chans)
+    n = chans.shape[0]
+    f = np.maximum(np.fft.rfftfreq(n, 1.0 / sr), 1e-6)
     f2 = f**2
     ra = (12194.0**2 * f2**2) / ((f2 + 20.6**2) * np.sqrt((f2 + 107.7**2) * (f2 + 737.9**2)) * (f2 + 12194.0**2))
-    return np.fft.irfft(X * (ra * 10 ** (1.9997 / 20)), len(x))
+    for c in range(chans.shape[1]):
+        out[:, c] = np.fft.irfft(np.fft.rfft(chans[:, c]) * (ra * 10 ** (1.9997 / 20)), n)
+    return out
 
 
-def short_term(x, sr, win=WIN):
+def short_term(chans, sr, win=WIN):
+    """the short-term level of a take, over its channels.
+
+    Channel POWERS are averaged, not samples. For anything centred the two are identical — which
+    is why this is a correction and not a recalibration — and for anything that differs between
+    the channels the sample average reads low, by up to 3 dB when they are unrelated. `levels.py`
+    already does it this way because BS.1770 says to; the survey did not.
+    """
     n = int(win * sr)
-    m = len(x) // n
-    return 20 * np.log10(np.maximum(np.sqrt((x[: m * n].reshape(m, n) ** 2).mean(axis=1)), 1e-13))
+    m = chans.shape[0] // n
+    p = np.stack([(chans[: m * n, c].reshape(m, n) ** 2).mean(axis=1) for c in range(chans.shape[1])])
+    return 10 * np.log10(np.maximum(p.mean(axis=0), 1e-26))
 
 
-def band(x, sr, lo, hi):
-    X = np.fft.rfft(x)
-    f = np.fft.rfftfreq(len(x), 1.0 / sr)
-    X[(f < lo) | (f >= hi)] = 0
-    return np.fft.irfft(X, len(x))
+def band(chans, sr, lo, hi):
+    out = np.empty_like(chans)
+    n = chans.shape[0]
+    f = np.fft.rfftfreq(n, 1.0 / sr)
+    keep = (f >= lo) & (f < hi)
+    for c in range(chans.shape[1]):
+        X = np.fft.rfft(chans[:, c])
+        X[~keep] = 0
+        out[:, c] = np.fft.irfft(X, n)
+    return out
+
+
+def selftest():
+    """a centred take must read the same either way, and an unrelated pair must read 3 dB higher.
+
+    Cheap enough to run every time, and the alternative is a silent sign-or-axis error in the one
+    number this lane answers the owner's complaint with.
+    """
+    sr = 8000
+    rng = np.random.default_rng(7)
+    a = rng.normal(size=sr * 2)
+    b = rng.normal(size=sr * 2)
+    centred = np.stack([a, a], axis=1)
+    spread = np.stack([a, b], axis=1)
+    same = np.median(short_term(centred, sr)) - np.median(short_term(mono(centred), sr))
+    wide = np.median(short_term(spread, sr)) - np.median(short_term(mono(spread), sr))
+    assert abs(same) < 0.01, f'a centred take reads {same:+.3f} dB differently with two channels'
+    assert abs(wide - 3.01) < 0.2, f'an unrelated pair reads {wide:+.2f} dB over its mono sum, not 3.01'
 
 
 def measure(folder, place_id):
     x, sr = load(os.path.join(folder, f'{place_id}.wav'))
-    st = short_term(a_weight(x, sr), sr)
+    aw = a_weight(x, sr)
+    st = short_term(aw, sr)
     p10, p90 = np.percentile(st, [10, 90])
+    # the same take through one speaker, kept beside it: every survey before 2026-09-26 reported
+    # this number and nothing else, so it is what an older report is comparable with
+    stm = short_term(mono(aw), sr)
+    m10, m90 = np.percentile(stm, [10, 90])
     bands = []
     for _, lo, hi in BANDS:
         b = short_term(band(x, sr, lo, hi), sr)
         bands.append(float(np.percentile(b, 10)))
-    return {'floor': float(p10), 'swing': float(p90 - p10), 'bands': bands}
+    return {'floor': float(p10), 'swing': float(p90 - p10), 'mono': float(m10), 'monoSwing': float(m90 - m10), 'bands': bands}
 
 
 def main():
@@ -98,6 +150,7 @@ def main():
     ap.add_argument('--out')
     ap.add_argument('--json')
     args = ap.parse_args()
+    selftest()
 
     meta = json.load(open(os.path.join(args.takes, 'places.json')))
     rows = []
@@ -110,14 +163,18 @@ def main():
         rows.append(r)
 
     rows.sort(key=lambda r: -r['floor'])
-    head = f'{"place":16s} {"floor":>7s} {"swing":>7s}' + (f' {"was":>7s} {"moved":>7s}' if args.against else '') + '   ' + ' '.join(f'{n:>7s}' for n, _, _ in BANDS)
+    head = f'{"place":16s} {"floor":>7s} {"swing":>7s} {"1 spkr":>7s}' + (f' {"was":>7s} {"moved":>7s}' if args.against else '') + '   ' + ' '.join(f'{n:>7s}' for n, _, _ in BANDS)
     print(head)
     for r in rows:
-        line = f'{r["id"]:16s} {r["floor"]:7.1f} {r["swing"]:7.1f}'
+        line = f'{r["id"]:16s} {r["floor"]:7.1f} {r["swing"]:7.1f} {r["mono"]:7.1f}'
         if args.against:
             line += f' {r["was"]:7.1f} {r["floor"] - r["was"]:+7.1f}' if 'was' in r else f' {"-":>7s} {"new":>7s}'
         print(line + '   ' + ' '.join(f'{v:7.1f}' for v in r['bands']))
     print()
+    # `1 spkr` is the number every survey before 2026-09-26 printed under `floor`, so an older
+    # report is comparable with THAT column and not with this one
+    gap = [r['floor'] - r['mono'] for r in rows]
+    print(f'two ears against one speaker: {min(gap):+.1f} to {max(gap):+.1f} dB across the world, median {float(np.median(gap)):+.1f}')
     print(f'the loudest never-stopping place in the world is {rows[0]["id"]} ({rows[0]["note"]}) at {rows[0]["floor"]:.1f} dBA')
     flat = [r for r in rows if r['swing'] < 10]
     print('places that do not breathe (swing under 10 dB):', ', '.join(r['id'] for r in flat) if flat else 'none')
