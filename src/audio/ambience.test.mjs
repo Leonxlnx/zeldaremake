@@ -141,9 +141,13 @@ function bed(opts = {}) {
   const out = ctx.createGain();
   const reverb = ctx.createGain();
   const madeBefore = { ...ctx.made, osc: [...ctx.made.osc] };
-  const amb = A.createAmbience(ctx, out, reverb, createRng(opts.seed ?? 'bed/test'), 0);
-  return { ctx, amb, out, reverb, oscAtBuild: ctx.made.osc.length - madeBefore.osc.length };
+  const gorge = ctx.createGain();
+  const amb = A.createAmbience(ctx, out, reverb, gorge, createRng(opts.seed ?? 'bed/test'), 0);
+  return { ctx, amb, out, reverb, gorge, oscAtBuild: ctx.made.osc.length - madeBefore.osc.length };
 }
+
+/** every gain feeding `target`, by the value it was built with */
+const sendsInto = (ctx, target) => ctx.made.gain.filter((g) => g.outputs.includes(target)).map((g) => g.gain.value);
 
 /** every gain the bed owns, by the value `update` last aimed it at */
 const gains = (ctx) => ctx.made.gain.map((g) => g.gain.target);
@@ -174,14 +178,14 @@ test('a muted layer is silent, modulation included', () => {
   const ctx = fakeContext();
   const out = ctx.createGain();
   const reverb = ctx.createGain();
-  const amb = A.createAmbience(ctx, out, reverb, createRng('bed/test'), 0, new Set(['wind']));
+  const amb = A.createAmbience(ctx, out, reverb, ctx.createGain(), createRng('bed/test'), 0, new Set(['wind']));
   const loud = { gust: 1, listener: LISTENER, forward: NORTH, pods: [] };
   amb.update(1, loud);
   amb.update(2, loud);
   const live = ctx.made.gain.filter((g) => Math.abs(g.gain.target ?? 0) > 1e-9);
   // the flame and its send are not the wind and are expected to be alive; the wind's are not
   const unmuted = fakeContext();
-  const ambOn = A.createAmbience(unmuted, unmuted.createGain(), unmuted.createGain(), createRng('bed/test'), 0);
+  const ambOn = A.createAmbience(unmuted, unmuted.createGain(), unmuted.createGain(), unmuted.createGain(), createRng('bed/test'), 0);
   ambOn.update(1, loud);
   ambOn.update(2, loud);
   const windGains = unmuted.made.gain
@@ -326,6 +330,41 @@ test('the bed is deterministic and draws only from the seeded stream', () => {
   const other = bed({ seed: 'different' });
   other.amb.scheduleUntil(30);
   assert.notDeepEqual(other.amb.stats(), a.amb.stats());
+});
+
+test('a call out over the cut answers off the rock, and one inland does not', () => {
+  for (const gorge of [0, 0.5, 1]) {
+    const b = bed({ seed: 'ravine-call' });
+    b.amb.update(0, { gust: 0.05, listener: LISTENER, forward: NORTH, pods: [], gorge });
+    b.amb.scheduleUntil(60);
+    const sent = sendsInto(b.ctx, b.gorge);
+    assert.ok(b.amb.stats().birds > 2, `only ${b.amb.stats().birds} calls to judge on`);
+    // The send is built for every call, at zero inland, where a footstep's is not built at all.
+    // A boot is a third of a second and cannot cross the cut's eleven-metre fade while it sounds;
+    // a call is two and a half seconds, which at a walk is three metres of it, so one booked on
+    // the approach has to be able to pick the ravine up as he steps out over it.
+    assert.equal(sent.length, b.amb.stats().birds, `${sent.length} ravine sends for ${b.amb.stats().birds} calls`);
+    for (const v of sent) assert.ok(Math.abs(v - A.GORGE_CALL_SEND * gorge) < 1e-9, `at gorge ${gorge} a call sent ${v}, expected ${A.GORGE_CALL_SEND * gorge}`);
+  }
+});
+
+test('and a call still sounding when he walks off the bridge loses the ravine with it', () => {
+  // The fault this lane has caught twice: a term booked when the voice was built and never moved
+  // again, so a call keeps the place it started in for its whole two and a half seconds. The pan,
+  // the reach, the top and the wet all ride `turning` for that reason and so does this.
+  const b = bed({ seed: 'ravine-leave' });
+  const base = { gust: 0.05, listener: LISTENER, forward: NORTH, pods: [] };
+  b.amb.update(0, { ...base, gorge: 1 });
+  b.amb.scheduleUntil(20);
+  const built = b.ctx.made.gain.filter((g) => g.outputs.includes(b.gorge));
+  assert.ok(built.length > 2, `only ${built.length} calls to judge on`);
+  // he is still out over the cut: the sends hold
+  b.amb.update(1, { ...base, gorge: 1 });
+  for (const g of built) assert.equal(g.gain.target ?? g.gain.value, A.GORGE_CALL_SEND, 'a ravine send moved while he stood still in the ravine');
+  // and now he is not
+  b.amb.update(2, { ...base, gorge: 0 });
+  const held = built.filter((g) => (g.gain.target ?? g.gain.value) !== 0);
+  assert.equal(held.length, 0, `${held.length} of ${built.length} calls kept the ravine after he left it`);
 });
 
 test('the forest is events: birds and leaves are scheduled, and gusts bring more leaves', () => {

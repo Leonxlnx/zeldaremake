@@ -208,6 +208,42 @@ export const OCCLUSION_TOP = 0.18;
  */
 export const FLAME_DUCK = 0.4;
 
+/**
+ * How much of a bird call the ravine gives back, out over the middle of it.
+ *
+ * `2026-09-26-ravine` built the cut its own space and put only the CONTACTS in it, which is the
+ * hut's pattern — `buses.room` serves the footsteps and the bed handles indoors by filtering. It
+ * is the right default and it is wrong here, for a reason that was written down at the time: the
+ * bed's continuous layers are dark, so a bright space has nothing of theirs to return (an earlier
+ * attempt opened the bed's own filter over the gorge and moved 4–8 kHz by +0.3 dB). **A bird call
+ * is not dark.** It is the one thing in this bed with a top end, it is a transient, and standing
+ * out over eight metres of open air with rock either side is exactly where one should come back.
+ *
+ * Louder than the footsteps' `GORGE_SEND` earns, and that is geometry rather than generosity. A
+ * boot is 1.7 m from the ear and the wall is 5 m off, so the reflected path is six times the
+ * direct and the answer is 12.8 dB down. A bird is 5 to 28 m away, and over that distance the
+ * reflected path is barely longer than the direct — at 20 m, bouncing off a wall 5 m to the side
+ * is 22.4 m against 20, which is **1 dB** of spreading. The physics of a canyon is that distant
+ * sounds come back almost as loud as they arrive.
+ *
+ * This sits well under that, for the same reason `ROOM_RETURN` sits twenty decibels under a real
+ * hut: the honest number is exhausting to walk around in. Measured out over mid-span the ravine
+ * answers a call **8 dB under it** — which is more than it gives a boot in the same place (12.8)
+ * and far less than the geometry would allow, and the order of those two matters. A first pass
+ * at this shipped 0.55 and measured −14.7 dB, quieter relative to its source than the footstep's,
+ * which is backwards: the whole point is that a distant source's reflection travels nearly as far
+ * as its direct sound and a boot's travels six times as far.
+ *
+ * The number is a measurement of a rendered take, not an intent. `ConvolverNode.normalize`
+ * rescales an impulse by a rule that has nothing to do with the space, so a send is worth
+ * whatever it is worth and the only way to know is to render and subtract.
+ *
+ * It rides the `turning` registry with the call's pan, reach, top and wet, so a call that is
+ * sounding while he walks off the bridge loses its ravine as he leaves it rather than keeping the
+ * space it was booked in.
+ */
+export const GORGE_CALL_SEND = 1.2;
+
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
 export const LANTERN_REACH_M = 1.3;
 export const LANTERN_LEVEL = 0.055;
@@ -483,7 +519,7 @@ export const BIRD_ANSWERS_LULL: [number, number] = [0.5, 1.8];
  */
 export type AmbienceLayer = 'flutters' | 'birds' | 'wind';
 
-export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0, mute: ReadonlySet<AmbienceLayer> = new Set()): Ambience {
+export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, gorgeSend: AudioNode | null, rng: Rng, startAt = 0, mute: ReadonlySet<AmbienceLayer> = new Set()): Ambience {
   // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
   // closes over the listener, so the wind, the leaves and the birds arrive muffled and quieter.
   // Walking through the arch used to change nothing at all except what was under the boots.
@@ -605,6 +641,8 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   let listenerNow = { x: 0, z: 0 };
   /** the world's occluders as of the last update; null until one arrives, so the bed still runs headless */
   let occludeNow: ((x: number, z: number) => number) | null = null;
+  /** how much of the space around him is the ravine, as of the last update (`gorgeAt`) */
+  let gorgeNow = 0;
 
   /**
    * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
@@ -687,7 +725,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * sang — 4.0 dB of level and 1.8 octaves of top, a bird heard from behind a tree that he had
    * already walked out from behind.
    */
-  const turning: { pan: AudioParam; reach: AudioParam; top: AudioParam; wet: AudioParam; x: number; z: number; until: number }[] = [];
+  const turning: { pan: AudioParam; reach: AudioParam; top: AudioParam; wet: AudioParam; ravine: AudioParam | null; x: number; z: number; until: number }[] = [];
 
   /** the three things a bird's distance and its shadow are worth, in the units the graph wants */
   const birdReach = (distance: number, occlusion: number) => (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
@@ -717,10 +755,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     if (!mute.has('birds')) panner.connect(out);
     const send = gain(ctx, birdWet(distance));
     if (!mute.has('birds')) panner.connect(send).connect(reverbSend);
-    // and all four keep following him until the call is over (see `turning`)
-    turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, x: perch.x, z: perch.z, until: end });
+    // the rock either side of him, when he is out over the cut (see GORGE_CALL_SEND)
+    const ravine = gorgeSend ? gain(ctx, GORGE_CALL_SEND * gorgeNow) : null;
+    if (ravine && gorgeSend && !mute.has('birds')) panner.connect(ravine).connect(gorgeSend);
+    // and all five keep following him until the call is over (see `turning`)
+    turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, ravine: ravine?.gain ?? null, x: perch.x, z: perch.z, until: end });
     cleanupAt(ctx, end + 0.5, () => {
-      for (const n of [g, reach, hp, lp, panner, send]) n.disconnect();
+      for (const n of [g, reach, hp, lp, panner, send, ravine]) n?.disconnect();
     });
     // `voice` is the enveloped input for the oscillator; `air` is the same distance and space
     // without it, for a call built out of noise (the woodpecker's taps)
@@ -1057,6 +1098,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     forwardNow = { x: s.forward.x / fl, z: s.forward.z / fl };
     listenerNow = { x: s.listener.x, z: s.listener.z };
     occludeNow = s.occlude ?? null;
+    gorgeNow = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the birds that are mid-call keep their trees while he turns under them
     for (let i = turning.length - 1; i >= 0; i--) {
       const v = turning[i];
@@ -1070,12 +1112,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       v.reach.setTargetAtTime(birdReach(from.distance, shadow), t, PLACE_TAU);
       v.top.setTargetAtTime(birdTop(from.distance, shadow), t, PLACE_TAU);
       v.wet.setTargetAtTime(birdWet(from.distance), t, PLACE_TAU);
+      v.ravine?.setTargetAtTime(GORGE_CALL_SEND * gorgeNow, t, PLACE_TAU);
     }
     // the wood is drawn once, and after that a bird he has left behind is retired on its own
     if (!perches.length) seedPerches(s.listener);
     else rehomePerches();
     const sw = swell(gust);
-    const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
+    const gorge = gorgeNow;
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
     // `windOff` has to reach the MODULATION as well as the level, and for two days it did not.

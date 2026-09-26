@@ -828,7 +828,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const rng = createRng(seed);
       const buses = createBuses(ctx, rng.fork('buses'));
       buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
-      const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
+      const ambience = createAmbience(ctx, buses.ambience, buses.reverb, buses.gorge, rng.fork('ambience'), ctx.currentTime);
       const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
       live = { ctx, buses, ambience, footsteps, music };
@@ -975,7 +975,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
-  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0, new Set(options.mute ?? []));
+  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, buses.gorge, ambienceRng, 0, new Set(options.mute ?? []));
   const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
