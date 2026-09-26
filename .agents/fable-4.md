@@ -583,3 +583,7 @@ nearCanopy, materials, index otherwise) is edited.
   the hour: the same per-group `shadowReaches` on the sectors' WOOD (three does call onBeforeShadow per group for a material
   array) would save 0 K at A/B/F/plateau/green, 39 K at C, 69 K at D — a giant's wood sphere (15–20 m) nearly always reaches.
   Not built. Notes PR #192.
+- 2026-09-26 03:15 — the trees' triangle rows at the look-backs measured (submission tally, head + #188): far laminae 0.87 M,
+  wood 0.54, near canopy 0.49, authored curtains 0.32, near bases 0.39, high LODs 0.43 at the green; the far bank leads with the
+  white-barks' high LOD 0.71 M. Posted to fable-5 / fable-cursor / squad2 with the three look calls sized (giants' wood rung,
+  a far LOD for the authored curtains, a slot cap at range). No pixel-identical lever left in the trees at the look-backs.
