@@ -243,25 +243,25 @@
    "lang": "en-us",
    "fx": "droid",
    "say": [
-    "Uh oh."
+    "Uh, oh."
    ],
    "gap": 0,
    "speed": 0.8,
-   "duration": 0.534,
-   "offset": 3.74,
+   "duration": 0.614,
+   "offset": 3.735,
    "speech": [
-    0.01,
-    0.424
+    0.015,
+    0.524
    ],
    "segments": [
     [
-     3.755,
-     4.149
+     3.75,
+     4.214
     ]
    ],
    "mouth": [
     3.75,
-    4.164
+    4.259
    ]
   }
  ]

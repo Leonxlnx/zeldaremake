@@ -59,11 +59,11 @@ LINES = [
     dict(id='obiwan-flying', shot='droids', who='Obi-Wan Kenobi', text='Flying is for droids.',
          say=['Flying is for droids.'], speed=0.95, at=0.36, end=2.15),
     dict(id='droid-uh-oh', shot='droids', who='Battle Droid', text='Uh oh.',
-         say=['Uh oh.'], speed=0.8, at=3.75, end=4.95),
+         say=['Uh, oh.'], speed=0.8, at=3.75, end=4.95),
 ]
 
-# the droid read is played back this much faster: pitch and formants up ~5.6 semitones
-DROID_SHIFT = 1.38
+# the droid read is played back this much faster: pitch and formants up ~4.5 semitones
+DROID_SHIFT = 1.3
 
 
 def resample(x, sr_in, sr_out, half=32, beta=8.6):
