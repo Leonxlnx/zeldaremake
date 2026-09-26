@@ -1,4 +1,4 @@
-import { Box3, Euler, Matrix4, Object3D, Quaternion, Vector3, type Mesh } from 'three';
+import { Box3, Color, Euler, Matrix4, Object3D, Quaternion, Vector3, type Mesh } from 'three';
 import { DEFAULT_LENS, type Lens } from '../render/pipeline';
 import { Rng, noise1 } from '../core/rng';
 import type { FaceState, Mouth } from '../assets/prints';
@@ -1167,6 +1167,12 @@ const hangarApproach: Shot = {
     const look = mid.clone().addScaledVector(out, -160).addScaledVector(up, 2).lerp(at([-110, -2, -7]), smooth(0.5, 0.92, u));
     // warm spill from the open bay onto the fighters as they close on it, steep enough that the glossy deck never mirrors it into the lens
     w.keyLight(mid, out.clone().multiplyScalar(-0.35).add(up), 2.2 * smooth(0.3, 0.72, u), 0xffc48a);
+    // as the bay fills the frame, the fill turns from starlight to the bay's own warm light (the landing's interior values)
+    const inBay = smooth(2.3, 3.4, t);
+    w.hemi.color.lerp(new Color(0x6d6258), inBay);
+    w.hemi.groundColor.lerp(new Color(0x2a2622), inBay);
+    w.hemi.intensity = lerp(w.hemi.intensity, 0.4, inBay);
+    w.scene.environmentIntensity = lerp(1, 0.6, inBay);
     // one frustum around the fighters and the whole bay (whose ceiling keeps the sun off the deck), tightening as they close
     const bayC = at([-72, 0, 2]);
     const rb = 135;

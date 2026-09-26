@@ -79,6 +79,8 @@ export class World {
   /** R2's electric zap: a jagged glowing arc, posed per frame by zapArc() */
   zap = new Group();
   hangarLights = new Group();
+  /** the blue wash from the ray-shield line */
+  private shieldLight: PointLight;
   envSpace: Texture;
   envHangar: Texture;
   nebula: CubeTexture;
@@ -159,10 +161,11 @@ export class World {
       p.position.set(x, y, z);
       p.layers.enableAll();
       this.hangarLights.add(p);
+      return p;
     };
     mkPoint(0xfff0d8, 900, -40, 34, -20);
     mkPoint(0xfff0d8, 900, 40, 34, -20);
-    mkPoint(0x5aa8ff, 700, 0, 18, 58, 140);
+    this.shieldLight = mkPoint(0x5aa8ff, 700, 0, 18, 58, 140);
     mkPoint(0xff6a3a, 260, -80, 10, -40, 90);
     s.add(this.hangarLights);
 
@@ -379,6 +382,8 @@ export class World {
       const mm = m as Mesh;
       if (mm.isMesh && !(mm.material instanceof MeshBasicMaterial) && !(mm.material as MeshBasicMaterial).transparent) mm.castShadow = !!pos;
     });
+    // seen from outside, the shield line's blue is an accent in the warm bay, not a flood
+    this.shieldLight.intensity = pos ? 380 : 700;
   }
 
   /** Point the sun's shadow frustum at a subject. */

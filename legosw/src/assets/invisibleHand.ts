@@ -213,7 +213,8 @@ function blisterSpec(q: Q) {
     const zh = zoneHash(c.z, t.th, -146, 2);
     const up = n.y;
     let key: ColorKey = zh < (up < -0.45 ? 0.72 : 0.16) ? 'dbg' : 'lbg';
-    if (hx < 0.04) key = key === 'dbg' ? 'lbg' : 'dbg';
+    // odd plates break up the panel sections, but sparingly around the port hangar, where the portal has to read
+    if (hx < (c.x > 0 && Math.abs(c.y - MY) < 14 ? 0.012 : 0.04)) key = key === 'dbg' ? 'lbg' : 'dbg';
     const stripe = inZ(c.z, BL_BLUE);
     if (stripe && (c.y > SY1 + PM + 0.5 || (c.y < SY0 - PM - 0.5 && c.y > -16))) key = 'sandBlue';
     if (!stripe && up > -0.3 && zh > 0.97) key = 'darkTan';
