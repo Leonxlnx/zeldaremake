@@ -802,13 +802,13 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         if (air > 0.02) {
           // the rising edge is the shove: he is leaving the ground here, and until now that was
           // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
-          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure);
+          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure, s.gorge);
           peakAir = Math.max(peakAir, air);
         } else if (peakAir > 0.05) {
-          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir, s.enclosure);
+          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir, s.enclosure, s.gorge);
           peakAir = 0;
         } else peakAir = 0;
-        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure });
+        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure, gorge: s.gorge });
       }
       lastPos.x = p.x;
       lastPos.z = p.z;
@@ -829,7 +829,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const buses = createBuses(ctx, rng.fork('buses'));
       buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
       const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
-      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, rng.fork('footsteps'), ctx.currentTime);
+      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
@@ -976,7 +976,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
   const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0, new Set(options.mute ?? []));
-  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, footstepsRng, 0);
+  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
@@ -1041,7 +1041,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         gorge: options.gorge ?? here.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
       });
-      footsteps?.drive(t, step, { speed: t > (pass.lead ?? 0) && (pass.loop || u < 1) ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      footsteps?.drive(t, step, { speed: t > (pass.lead ?? 0) && (pass.loop || u < 1) ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure, gorge: options.gorge ?? here.gorge });
       fill(t);
       continue;
     }
@@ -1070,7 +1070,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
     ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, enclosure: options.enclosure, occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
-    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure, gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0) });
     fill(t);
   }
   // and the tail, for anything the last tick's lookahead did not reach

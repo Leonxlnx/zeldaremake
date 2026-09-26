@@ -78,6 +78,8 @@ export interface StepDrive {
   stance?: readonly boolean[];
   /** how enclosed the space is (`surfaceAt`): 0 outdoors, 0.7 in a hut, 1 in the log bore */
   enclosure?: number;
+  /** how much of the space around him is the ravine (`gorgeAt`): 0 inland, 1 out over the cut */
+  gorge?: number;
 }
 
 export interface Footsteps {
@@ -86,9 +88,9 @@ export interface Footsteps {
   /** integrate the player's motion; `t` is the context time the step would sound at */
   drive(t: number, dt: number, d: StepDrive): void;
   /** both boots shoving off as he leaves the ground at `speed` m/s */
-  pushOff(t: number, surface: Surface, speed: number, enclosure?: number): void;
+  pushOff(t: number, surface: Surface, speed: number, enclosure?: number, gorge?: number): void;
   /** both boots arriving at once after a fall of `fallM` metres */
-  land(t: number, surface: Surface, fallM: number, enclosure?: number): void;
+  land(t: number, surface: Surface, fallM: number, enclosure?: number, gorge?: number): void;
   /** what has been heard so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
   stats(): FootstepStats;
   dispose(): void;
@@ -493,7 +495,25 @@ export const ROOM_SEND = 0.85;
 /** below this there is no room worth building a send for, and a step outdoors costs what it did */
 export const ROOM_MIN = 0.02;
 
-export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
+/**
+ * How much of a step the ravine gets back, out over the middle of it.
+ *
+ * The same shape as `ROOM_SEND` and for the same reason: `gorgeAt` has known about the cut since
+ * the south expansion, the bed uses it, and the boots did not — the steps stem at gorge 0 and
+ * gorge 1 differed by −105.7 dB, the renderer's own last bit (`art/audio/2026-09-26-ravine/`).
+ *
+ * It scales with the term, so the ravine fades up over the eleven metres of approach `gorgeAt`
+ * spreads it across rather than switching on at the bridge's first plank, and the shallow ends
+ * where the cut closes to nothing never open at all (the term carries a depth factor).
+ *
+ * The space itself is `buses.gorge` — see `GORGE_*` in graph.ts for the geometry it is built from
+ * and for why its return is calibrated rather than chosen.
+ */
+export const GORGE_SEND = 0.7;
+/** below this the cut is too far or too shallow to answer, and a step costs exactly what it did */
+export const GORGE_MIN = 0.02;
+
+export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, gorgeSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence
   const noise = noiseBuffer(ctx, rng.fork('steps'), 5.3);
@@ -501,7 +521,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   const stepRng = rng.fork('stepjitter');
 
   /** render one designed step at context time `t`, panned toward the boot that landed */
-  const play = (design: StepDesign, t: number, pan: number, enclosure = 0) => {
+  const play = (design: StepDesign, t: number, pan: number, enclosure = 0, gorge = 0) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     panner.connect(out);
@@ -513,6 +533,14 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
       const r = gain(ctx, ROOM_SEND * enclosure);
       panner.connect(r).connect(roomSend);
       nodes.push(r);
+    }
+    // the rock either side answering, 29 ms later. A hut and a ravine are not alternatives — he can
+    // be indoors or out over the cut but not both, and the terms are computed independently, so
+    // neither send excludes the other rather than one being chosen over the other.
+    if (gorgeSend && gorge > GORGE_MIN) {
+      const g = gain(ctx, GORGE_SEND * gorge);
+      panner.connect(g).connect(gorgeSend);
+      nodes.push(g);
     }
     const taps: BiquadFilterNode[] = [];
     for (const p of design.parts) {
@@ -574,7 +602,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   let wasStance: boolean[] = [];
   const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0, scheduledAt: 0 };
 
-  const pushOff = (t: number, surface: Surface, speed: number, enclosure = 0) => {
+  const pushOff = (t: number, surface: Surface, speed: number, enclosure = 0, gorge = 0) => {
     // the shove takes the place of the step he would have taken, so the stride integrator restarts
     // from here and no boot plant lands on top of it
     if (t - lastStepAt < MIN_STEP_GAP) return;
@@ -583,19 +611,19 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     counts.scheduledAt = t;
     lastStepAt = t;
     travelled = 0;
-    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0, enclosure);
+    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0, enclosure, gorge);
   };
 
-  const land = (t: number, surface: Surface, fallM: number, enclosure = 0) => {
+  const land = (t: number, surface: Surface, fallM: number, enclosure = 0, gorge = 0) => {
     counts.landings++;
     counts.lastSurface = surface;
     counts.scheduledAt = t;
     lastStepAt = t;
     travelled = 0;
-    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0, enclosure);
+    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0, enclosure, gorge);
   };
 
-  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false, enclosure = 0) => {
+  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false, enclosure = 0, gorge = 0) => {
     if (t - lastStepAt < MIN_STEP_GAP) return false;
     lastStepAt = t;
     counts.scheduledAt = t;
@@ -607,12 +635,12 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // the two boots never land identically: one is a little heavier than the other
     const asymmetry = pan > 0 ? 1.06 : 0.94;
     const strength = Math.min(1, strengthFor(speed) * asymmetry * (1 + (stepRng() * 2 - 1) * 0.1));
-    play(designStep(surface, strength, speed > RUN_SPEED, stepRng), t, pan, enclosure);
+    play(designStep(surface, strength, speed > RUN_SPEED, stepRng), t, pan, enclosure, gorge);
     return true;
   };
 
   const drive = (t: number, dt: number, d: StepDrive) => {
-    const { speed, onStairs, enclosure = 0 } = d;
+    const { speed, onStairs, enclosure = 0, gorge = 0 } = d;
     if (speed < 0.25) {
       travelled = 0;
       moving = false;
@@ -625,7 +653,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // 1. the gait's own plant, when the character system reports it: the sound lands with the boot
     if (d.stance) {
       for (let i = 0; i < d.stance.length; i++) {
-        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true, enclosure)) gaitUntil = t + 1.2;
+        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true, enclosure, gorge)) gaitUntil = t + 1.2;
       }
       wasStance = d.stance.slice();
       if (t < gaitUntil) return;
@@ -633,7 +661,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // 2. otherwise (or if the flags went quiet) the distance the boot has travelled
     if (first) {
       strideNext = strideFor(speed, onStairs) * (1 + (stepRng() * 2 - 1) * 0.04);
-      if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
+      if (fire(t, speed, surface, side * 0.12, false, enclosure, gorge)) side = -side;
       return;
     }
     travelled += speed * dt;
@@ -645,7 +673,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
       // second, 16 % (`art/audio/2026-09-25-tickrate/`). A stride is a distance, so what is left
       // over belongs to the next one.
       const carry = travelled - strideNext;
-      if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
+      if (fire(t, speed, surface, side * 0.12, false, enclosure, gorge)) side = -side;
       travelled = carry;
       // and the next stride's jitter is drawn HERE rather than every tick: drawn per tick it made
       // the seeded stream depend on the frame rate, so the same walk rendered at 20 Hz and heard at

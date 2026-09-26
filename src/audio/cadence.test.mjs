@@ -68,7 +68,7 @@ const fakeCtx = () => ({
 /** walk `metres` at `speed`, asked every `dt` seconds; returns steps per metre */
 function perMetre(speed, dt, metres = 400, surface = 'stone') {
   const ctx = fakeCtx();
-  const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, createRng('cadence/test'), 0);
+  const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, null, createRng('cadence/test'), 0);
   for (let t = 0; t < metres / speed; t += dt) steps.drive(t, dt, { speed, surface, onStairs: false });
   return steps.stats().steps / metres;
 }
@@ -105,7 +105,7 @@ test('the seeded stream does not depend on how often the audio is asked', () => 
   // rendered at 20 Hz and heard at 30 drew a different number of times and got different steps
   const surfaces = (dt) => {
     const ctx = fakeCtx();
-    const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, createRng('cadence/stream'), 0);
+    const steps = F.createFootsteps(ctx, ctx.createGain(), ctx.createGain(), null, null, createRng('cadence/stream'), 0);
     for (let t = 0; t < 60; t += dt) steps.drive(t, dt, { speed: F.WALK_SPEED, surface: 'stone', onStairs: false });
     return steps.stats().steps;
   };
