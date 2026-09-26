@@ -590,3 +590,8 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-26 03:30 — review of squad2's #191 (the lodFade mask blocked by freed arrays): the cause is my end-of-build sweep
   running after the build's first rebucket; PR #193 `agent/fable-4-keepinstanced` 5572e4ec makes releaseAfterUpload skip
   per-instance attributes (+9/−1, one test; no render change with the flag off). INBOX 03:30 to squad2.
+- 2026-09-26 05:10 — the near-canopy band decision card measured (0.6×: green −348 K / 0 px, far bank −296 K / 2.4 % of the
+  frame — withheld, the sprays at 16–26 m thin visibly) and it exposed a pixel-identical lever: the batched parts' spheres pass
+  three's cull far past their laminae. PR #201 `agent/fable-4-nearbox` ad40ecda — box test (SAT, +0.5 m) before each colour
+  pass on the near-canopy and far-foliage batches: A 8.636 → 8.510 M, far bank −193 K, green −126 K, north −116 K, 0 px.
+  Six views + look-backs running. Also: trees build time 9.05 s → 8.27 s across #151/#171/#188 (no regression).
