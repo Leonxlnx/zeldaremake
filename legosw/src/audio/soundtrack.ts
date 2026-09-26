@@ -31,13 +31,13 @@ const MIX = {
   hall: 0.8,
   space: 0.6,
   /** under each line the bed (music + effects) ducks until it sits snr LU below the voice, within [duckMin, duckMax] dB */
-  snr: 10,
-  duckMin: 5,
-  duckMax: 16,
+  snr: 16,
+  duckMin: 8,
+  duckMax: 24,
   /** effects duck this many dB less than the music */
-  sfxLess: 1.5,
+  sfxLess: 0,
   /** extra cut of the music around 2 kHz while someone speaks (0..1) */
-  dip: 0.45,
+  dip: 0.7,
   target: -14,
   ceiling: -1.5,
 };
