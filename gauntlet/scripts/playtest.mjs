@@ -928,6 +928,21 @@ async function southDwellingProbes(page) {
   probes.push({ where: 'keeper-step-east', th: -20.5, r: 1.86, at: keeperAt(-20.5, 1.86), expect: 'step' });
   // just off the gallery's open end (1° past it), where the walk off the end comes down: the east step, not the ground
   for (const r of [1.6, 1.85, 2.05]) probes.push({ where: 'keeper-step-east-edge', th: -15, r, at: keeperAt(-15, r), expect: 'step' });
+  // round the whole gallery every 0.5°, inside the railing and out to the boards' edge at the
+  // entrance, across every joint of its chords (the davit's foot, 0.16 m round (1.93 m, 102°), left out)
+  {
+    const sweep = [];
+    for (const [r, from, to] of [[1.45, K.from, K.to], [1.74, K.from, K.to], [1.95, K.from, K.to], [2.05, K.railTo + 0.5, K.to]]) {
+      for (let th = from + 0.5; th <= to - 0.5 + 1e-9; th += 0.5) {
+        const at = keeperAt(th, r);
+        if (Math.hypot(at[0] - keeperAt(101.9, 1.93)[0], at[1] - keeperAt(101.9, 1.93)[1]) < 0.2) continue;
+        sweep.push({ r, th: +th.toFixed(1), at });
+      }
+    }
+    const g = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), sweep.map((p) => p.at));
+    const miss = sweep.filter((_, i) => g[i].blocked !== false || Math.abs(g[i].walk - K.deckY) >= 0.03).map((p, i) => [p.r, p.th]);
+    probes.push({ where: 'keeper-gallery-sweep', samples: sweep.length, missed: miss.length, first: miss.slice(0, 10), at: keeperAt(100, 1.74), expect: 'sweep' });
+  }
   for (const [a, s] of [[0.3, 0], [0.3, 0.6], [0.3, -0.5], [0.5, 0.2]]) probes.push({ where: 'waystation-floor', a, s, at: waystationAt(a, s), expect: 'deck', y: W.floorY });
   for (const [a, s] of [[-0.62, 0], [-0.62, 0.5], [-0.38, -0.2]]) probes.push({ where: 'waystation-back-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
   // in front of the bench Link stops 0.64 m from the back wall's inner face (the camera's least distance, 0.6 m, stays inside)
@@ -941,7 +956,7 @@ async function southDwellingProbes(page) {
   const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
   const rows = probes.map((p, i) => {
     const g = got[i];
-    const ok = p.expect === 'blocked' ? g.blocked === true : p.expect === 'deck' ? g.blocked === false && Math.abs(g.walk - p.y) < 0.03 : g.blocked === false && g.walk - g.terrain > 0.08;
+    const ok = p.expect === 'sweep' ? p.missed === 0 : p.expect === 'blocked' ? g.blocked === true : p.expect === 'deck' ? g.blocked === false && Math.abs(g.walk - p.y) < 0.03 : g.blocked === false && g.walk - g.terrain > 0.08;
     const { at, ...rest } = p;
     return { ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, ok };
   });

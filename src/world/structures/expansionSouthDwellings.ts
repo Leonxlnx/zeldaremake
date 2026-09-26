@@ -1150,6 +1150,14 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       const t0 = GAL_FROM + (galArc * k) / chords;
       const t1 = GAL_FROM + (galArc * (k + 1)) / chords;
       walkSurfaces.push(deckSurface(`south-keeper-gallery-${k}`, new Vector3(cx + Math.cos(t0) * rm, kFloor, cz + Math.sin(t0) * rm), new Vector3(cx + Math.cos(t1) * rm, kFloor, cz + Math.sin(t1) * rm), 0.36));
+      // the chords' square ends leave a wedge outside each joint (5 cm wide 0.25 m out); over the
+      // gorge and beside the bridge the ground under it is a drop, so it stopped Link dead on the
+      // boards: a disc of the chords' half width at the joint rounds it off
+      if (k > 0) {
+        const jx = cx + Math.cos(t0) * rm;
+        const jz = cz + Math.sin(t0) * rm;
+        walkSurfaces.push({ id: `south-keeper-gallery-joint-${k}`, disc: { x: jx, z: jz, r: 0.36, y: kFloor }, deck: { a: [jx, kFloor, jz], b: [jx, kFloor, jz], hw: 0 }, wall: noWall });
+      }
     }
   }
   walkSurfaces.push({ id: 'south-keeper-railing', disc: { x: cx, z: cz, r: 0, y: kFloor }, deck: { a: [cx, kFloor, cz], b: [cx, kFloor, cz], hw: 0 }, wall: { r: RAIL_R, half: 0.18, gap: [RAIL_TO, GAL_FROM + TAU] } });
