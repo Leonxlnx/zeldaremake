@@ -10,6 +10,8 @@ export interface Transport {
   seek(t: number): void;
   paused(): boolean;
   setPaused(p: boolean): void;
+  /** the film's soundtrack, when the page can play one (browsers only start sound from a user gesture) */
+  sound?: { available(): boolean; on(): boolean; toggle(): void };
 }
 
 const css = `
@@ -108,6 +110,7 @@ export class Loading {
 export class Controls {
   readonly el: HTMLDivElement;
   private play: HTMLButtonElement;
+  private sound: HTMLButtonElement | null = null;
   private timeEl: HTMLDivElement;
   private shotEl: HTMLDivElement;
   private track: HTMLDivElement;
@@ -160,7 +163,13 @@ export class Controls {
     this.track.append(this.fill, this.knob);
     this.shotEl = document.createElement('div');
     this.shotEl.className = 'shot';
-    el.append(restart, this.play, this.timeEl, this.track, this.shotEl);
+    el.append(restart, this.play);
+    if (tr.sound) {
+      const snd = tr.sound;
+      this.sound = btn('🔇', 'Sound on / off (M)', () => snd.toggle());
+      el.append(this.sound);
+    }
+    el.append(this.timeEl, this.track, this.shotEl);
     if (BUILD) {
       const b = document.createElement('div');
       b.className = 'build';
@@ -202,6 +211,11 @@ export class Controls {
     const p = this.tr.paused();
     const icon = p ? '▶' : '❚❚';
     if (this.play.textContent !== icon) this.play.textContent = icon;
+    if (this.sound && this.tr.sound) {
+      this.sound.style.display = this.tr.sound.available() ? '' : 'none';
+      const si = this.tr.sound.on() ? '🔊' : '🔇';
+      if (this.sound.textContent !== si) this.sound.textContent = si;
+    }
     const idle = performance.now() - this.lastActive > 2500;
     this.el.classList.toggle('hidden', idle && !p && !this.dragging);
   }

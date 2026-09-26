@@ -92,6 +92,21 @@ async function boot(): Promise<void> {
     let last = performance.now();
     let paused = false;
     const seek = (to: number) => (t = Math.max(0, Math.min(f.duration - 1e-3, to)));
+    // the soundtrack is pre-rendered next to a published build (soundtrack.m4a) and optional; it starts from
+    // the sound button (a user gesture), and while it plays its clock drives the picture so a slow GPU
+    // drops frames instead of drifting out of sync
+    const audio = new Audio('./soundtrack.m4a');
+    audio.preload = 'auto';
+    let audioReady = false;
+    let soundOn = false;
+    audio.addEventListener('loadedmetadata', () => (audioReady = true));
+    audio.addEventListener('error', () => (audioReady = soundOn = false));
+    const toggleSound = () => {
+      soundOn = audioReady && !soundOn;
+      if (!soundOn) return audio.pause();
+      audio.currentTime = t;
+      if (!paused) audio.play().catch(() => (soundOn = false));
+    };
     const controls = new Controls({
       duration: f.duration,
       shots: f.shots(),
@@ -99,6 +114,7 @@ async function boot(): Promise<void> {
       seek,
       paused: () => paused,
       setPaused: (p) => (paused = p),
+      sound: { available: () => audioReady, on: () => soundOn, toggle: toggleSound },
     });
     addEventListener('keydown', (e) => {
       if (e.code === 'Space') paused = !paused;
@@ -113,7 +129,8 @@ async function boot(): Promise<void> {
       } else if (e.code === 'Comma') {
         paused = true;
         seek(t - 1 / 24);
-      } else return;
+      } else if (e.code === 'KeyM') toggleSound();
+      else return;
       e.preventDefault();
     });
     addEventListener('click', () => (paused = !paused));
@@ -125,6 +142,15 @@ async function boot(): Promise<void> {
       if (!paused) t += Math.min(0.1, (now - last) / 1000);
       last = now;
       if (t > f.duration) t = 0;
+      if (soundOn) {
+        if (paused) {
+          if (!audio.paused) audio.pause();
+        } else if (audio.paused || audio.ended) {
+          audio.currentTime = t;
+          audio.play().catch(() => (soundOn = false));
+        } else if (Math.abs(audio.currentTime - t) > 0.3) audio.currentTime = t;
+        else t = audio.currentTime;
+      }
       f.renderAt(t);
       controls.update();
       requestAnimationFrame(loop);
