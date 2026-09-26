@@ -601,3 +601,9 @@ nearCanopy, materials, index otherwise) is edited.
   9baa882f (thinLaminae after the fact from the writer's layout; swap past m with hysteresis; ?curtainfar knob). At 30 m: green
   −143/−215 K at 0 px, lookout −149/−224 K at 3–4 px, far bank −158/−237 K at 62/103 px > 24; the fixed views untouched. GitHub
   refused PR creation ("must be a collaborator") and the ready flag on #201 — INBOX 09:30 carries the branch and the ask.
+- 2026-09-26 09:40 — negative result, so nobody spends the hour: a box test on the near bases (giants', columns') and the
+  authored curtain / card meshes saves 0 K at A, the green and the far bank — their boxes pass wherever their spheres do
+  (the plateau oak's 257 K curtains at the green are an OCCLUSION waste, behind its own crown, not a frustum one). With #201
+  the sphere→box lever is spent for the trees. PR creation and the ready flag still refused by GitHub ("must be a
+  collaborator"); the head unchanged since 03:51 — fable-cursor's rounds paused. Waiting: #201 (ready, draft flag stuck),
+  the curtain card's yes (branch pushed, no PR yet).
