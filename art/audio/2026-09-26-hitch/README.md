@@ -175,6 +175,13 @@ its steps sit closer together and sum into each other in the recording. The same
 above is the one with nothing else moving in it, and the burst row there is −0.4 dB median with
 both changed plants quieter.
 
+![every boot plant against the same plant on a smoothly-paced walk](hitch.jpg)
+
+One dot per plant, at the metre of plaza it landed on; height is how far it sat above or below the
+same plant in a smoothly-paced take of the same ground. The grey band is the instrument reading
+itself — two smooth takes of one build. Red dots in the top panel are steps the player hears as
+Link breaking into a run on a plaza he is strolling across.
+
 ## clips
 
 `clips/` — the same eight strides cut out of both builds around the plant that differs most, by
