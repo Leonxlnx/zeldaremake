@@ -15,7 +15,27 @@ the release.
 
 (`qualityFor` in `world/index.ts`: low `density 0.35 / distance 0.6`, medium `0.65 / 0.8`, high `1 / 1`.)
 
-## Two things it says
+## And the tier nobody had measured: ultra
+
+`qualityFor` also defines `ultra` (`density 1.35 / distance 1.25`). Same harness, same spots:
+
+| play spot | high | **ultra** | ultra − high |
+| --- | --- | --- | --- |
+| plaza | 539 / 7.69 M | 582 / **9.60 M — over** | +43 draws / +1.91 M |
+| **stairs2-base** | 557 / 9.24 M | 583 / **12.24 M — 36 % over** | +26 / +3.00 M |
+| saria-side | 520 / 8.60 M | 548 / **10.87 M — over** | +28 / +2.27 M |
+| west-house | 430 / 5.09 M | 435 / 6.74 M | +5 / +1.65 M |
+
+**Three of the four play spots break the ceiling at ultra, the worst by 36 %.** The tier is effectively
+unbudgeted.
+
+How reachable is it? Only by typing it: `main.ts` reads `?quality=<tier>`, maps `auto` to `high`, and
+defaults to `high`; nothing in `src/ui` offers ultra, so the published play link and every normal session
+are high. So this is **a trap rather than a live problem** — but it is a trap for the next person who wires
+a quality selector into the settings screen, and it should get a budget pass before that happens (or be
+left out of the menu).
+
+## Two things the low/medium end says
 
 * **The breach is high-tier only.** The main flight's foot is 2.7 % over at high and **1.77 M under** at
   medium (7.23 M, a 22 % drop). A player on medium or low is inside the ceiling at every spot measured.
