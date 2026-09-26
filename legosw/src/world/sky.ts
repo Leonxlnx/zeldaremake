@@ -81,14 +81,14 @@ export function bakeNebula(renderer: WebGLRenderer, o: { size?: number; seed?: n
           float rift = smoothstep(0.5, 0.66, fbm(dw * 3.2 + vec3(7.0, 1.0, 3.0), 5)) * exp(-pow(lat / (thick * 0.6), 2.0));
           float fil = exp(-pow((fbm(dw * 7.0 + vec3(2.0, 9.0, 4.0), 4) - 0.5) / 0.055, 2.0)) * band;
           T = 1.0 - clamp(0.45 * rift + 0.25 * fil, 0.0, 0.6) * fade;
-          float glow = (band * (0.5 + 0.5 * clouds) * (0.8 + 0.2 * fine) + 0.15 * halo) * (0.75 + 0.75 * coreF);
-          // pale blue star clouds warming to near white at the core (a dim warm glow reads as brown)
-          vec3 sc = mix(tint / dot(tint, vec3(0.2126, 0.7152, 0.0722)) * 0.6 + 0.4, vec3(1.06, 0.98, 0.9), smoothstep(0.15, 0.9, coreF));
-          c += sc * glow * 0.06 * T * fade;
+          float glow = (band * (0.35 + 0.65 * clouds) * (0.8 + 0.2 * fine) + 0.08 * halo) * (0.75 + 0.75 * coreF);
+          // pale blue star clouds, a cool violet-white at the core (dim warm or neutral glow reads as brown or fog)
+          vec3 sc = mix(tint / dot(tint, vec3(0.2126, 0.7152, 0.0722)) * 0.6 + 0.4, vec3(0.98, 0.94, 1.12), smoothstep(0.15, 0.9, coreF));
+          c += sc * glow * 0.065 * T * fade;
           // sparse emission nebulae hugging the band: hydrogen pinks and oxygen teals
-          float em = smoothstep(0.62, 0.8, fbm(dw * 2.6 + vec3(17.0, 3.0, 9.0), 4)) * halo;
+          float em = smoothstep(0.58, 0.8, fbm(dw * 2.6 + vec3(17.0, 3.0, 9.0), 4)) * halo;
           vec3 ec = mix(vec3(0.95, 0.22, 0.48), vec3(0.16, 0.62, 0.7), smoothstep(0.4, 0.6, fbm(dw * 1.3 + vec3(5.0, 5.0, 1.0), 3)));
-          c += ec * em * (0.5 + fine) * 0.06 * mix(1.0, T, 0.6) * fade;
+          c += ec * em * (0.5 + fine) * 0.07 * mix(1.0, T, 0.6) * fade;
         }
         gl_FragColor = vec4(c * strength, T);
       }`,
@@ -206,7 +206,7 @@ export function makeStars(o: { count?: number; seed?: number; radius?: number } 
         // the dust that darkens the band's lanes hides the stars behind it; band stars also ride its glow
         vec4 sky = textureLod(tNeb, normalize(wp.xyz - cameraPosition), 0.0);
         float glow = max(dot(sky.rgb, vec3(0.3, 0.55, 0.15)) - 0.0085, 0.0);
-        e *= mix(sqrt(sky.a), sky.a * min(glow * 36.0, 1.8), band);
+        e *= mix(sqrt(sky.a), sky.a * min(glow * 28.0, 1.5), band);
         #endif
         vSig = s;
         vSize = ceil(s * 6.0 + 1.0);
