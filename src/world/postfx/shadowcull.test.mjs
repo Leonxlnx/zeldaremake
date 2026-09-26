@@ -262,6 +262,56 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
 }
 
 {
+  // a batch spread like a sector: the sphere round all of it reaches the box, but the box rule holds
+  // whatever a caster's size, so it is judged per instance — off when every instance is beyond, on
+  // when one reaches in; the size rule still judges the batch whole (small pieces can make one big
+  // shadow), and without three's instance table only the whole sphere is judged
+  const scene = new THREE.Scene();
+  const mkBatchAt = (size, points) => {
+    const geo = new THREE.BoxGeometry(size, size, size);
+    const b = new THREE.BatchedMesh(points.length, 24, 36, new THREE.MeshBasicMaterial());
+    const id = b.addGeometry(geo);
+    for (const [x, z] of points) b.setMatrixAt(b.addInstance(id), new THREE.Matrix4().makeTranslation(x, 0, z));
+    b.computeBoundingSphere();
+    b.frustumCulled = false;
+    b.castShadow = true;
+    scene.add(b);
+    return b;
+  };
+  const box = { x0: -5, x1: 5, z0: -10, z1: 0 };
+  const reach = { box, minDistanceM: 20 };
+  const spread = mkBatchAt(2, [[30, -5], [30, -65]]);
+  const spreadReaching = mkBatchAt(2, [[30, -65], [22, -5]]);
+  const smallSpread = mkBatchAt(0.5, [[0, -40], [8, -60]]);
+  scene.updateMatrixWorld(true);
+  const whole = spread.boundingSphere;
+  assert.ok(Math.hypot(whole.center.x - box.x1, whole.center.z - box.z0) - whole.radius < reach.minDistanceM, 'the sphere round the spread batch reaches within 20 m of the box');
+
+  const stats = { tested: 0, culled: 0 };
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [reach]);
+  assert.equal(spread.castShadow, false, 'every instance wholly beyond the box: the batch casts nothing');
+  assert.equal(spreadReaching.castShadow, true, 'one instance 15.3 m from the box: the batch keeps casting');
+  assert.equal(smallSpread.castShadow, false, 'small pieces beyond the box are beyond the box rule too');
+  assert.equal(stats.far, 2);
+  restore();
+
+  const restoreSize = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [{ maxRadiusM: 1.5, minDistanceM: 25 }]);
+  assert.equal(smallSpread.castShadow, true, 'the size rule judges the batch whole: the spread of small far pieces keeps casting');
+  assert.equal(spread.castShadow, true);
+  assert.equal(stats.far, 0);
+  restoreSize();
+
+  const table = spread._instanceInfo;
+  assert.ok(Array.isArray(table), "three's instance table is where the rule reads it");
+  spread._instanceInfo = undefined;
+  const restoreNoTable = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [reach]);
+  assert.equal(spread.castShadow, true, 'without the table only the whole sphere is judged, and it reaches in');
+  restoreNoTable();
+  spread._instanceInfo = table;
+  for (const o of [spread, spreadReaching, smallSpread]) assert.equal(o.castShadow, true, 'restored');
+}
+
+{
   // the draw distance by size: small far leaves hide for the frame and come back; big, near, parent
   // and frustumCulled-off objects stay; the stats count what was examined and hidden
   const scene = new THREE.Scene();

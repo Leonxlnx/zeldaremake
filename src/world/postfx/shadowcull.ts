@@ -20,14 +20,16 @@
  * caster size, or from a zone the camera is in — which does change the image; the composer passes
  * them only where a locality asks for them (util/farBankLocality.ts). The rules also judge a
  * `BatchedMesh` whose `frustumCulled` is off because it culls its own instances (the trees'
- * far-foliage batches, one per sector), on the whole batch's world sphere: a batch lying wholly
- * beyond a rule casts nothing, and the batch's own per-instance shadow cull decides the rest.
- * `hideSmallFar` is the same idea for drawing: a draw distance by size, for the frame, again only
- * where a locality asks for it.
+ * far-foliage batches, one per sector): it casts nothing when its whole sphere lies beyond a rule,
+ * or when every one of its instances lies beyond a box rule, and the batch's own per-instance
+ * shadow cull decides the rest. `hideSmallFar` is the same idea for drawing: a draw distance by
+ * size, for the frame, again only where a locality asks for it.
  */
 import { Frustum, Matrix4, Object3D, Plane, Sphere, Vector3, type BatchedMesh, type Camera, type InstancedMesh, type Mesh } from 'three';
 
 const _sphere = new Sphere();
+const _instSphere = new Sphere();
+const _instMatrix = new Matrix4();
 const _proj = new Matrix4();
 const _frustum = new Frustum();
 const _light = new Vector3();
@@ -52,6 +54,34 @@ function beyondRule(rule: ShadowDistanceRule, s: Sphere, eye: Vector3): boolean 
     return Math.hypot(dx, dz) - s.radius > rule.minDistanceM;
   }
   return s.radius <= rule.maxRadiusM && s.center.distanceTo(eye) - s.radius > rule.minDistanceM;
+}
+
+type BatchInstanceTable = { _instanceInfo?: readonly { active: boolean; geometryIndex: number }[] };
+
+/**
+ * A self-culled batch lies beyond the rules when its whole world sphere `whole` does, or when each
+ * of its active instances lies beyond a box rule on its own world sphere. A box rule holds whatever
+ * a caster's size, so a sector's batch whose every lobe is out of reach casts nothing even where
+ * the sphere round the whole sector reaches in; the size rules judge the batch whole, as they judge
+ * an instanced batch (many small pieces can make one big shadow). The instances are read from
+ * three's instance table, a private field (without it only `whole` is judged), and each geometry's
+ * sphere through `getBoundingSphereAt`, which three caches from the geometry's own sphere when it
+ * has one and otherwise computes from the vertex arrays, which must then still be there.
+ */
+function batchBeyond(b: BatchedMesh, rules: readonly ShadowDistanceRule[], eye: Vector3, whole: Sphere): boolean {
+  if (rules.some((r) => beyondRule(r, whole, eye))) return true;
+  const table = (b as unknown as BatchInstanceTable)._instanceInfo;
+  if (!Array.isArray(table) || !rules.some((r) => 'box' in r)) return false;
+  let active = 0;
+  for (let id = 0; id < table.length; id++) {
+    if (table[id].active === false) continue;
+    const s = b.getBoundingSphereAt(table[id].geometryIndex, _instSphere);
+    if (!s) return false;
+    s.applyMatrix4(b.getMatrixAt(id, _instMatrix)).applyMatrix4(b.matrixWorld);
+    if (!rules.some((r) => 'box' in r && beyondRule(r, s, eye))) return false;
+    active++;
+  }
+  return active > 0;
 }
 
 /**
@@ -107,8 +137,9 @@ export interface ShadowCullStats {
  * Switch off `castShadow` on every caster whose swept sphere misses the camera frustum, and with
  * `rules` on every caster beyond one of their distances; call the returned function after the
  * render to restore them. `sunDirection` points toward the sun. A `BatchedMesh` with
- * `frustumCulled` off meets the rules only, never the sweep, and its `boundingSphere` must cover
- * every instance: three computes it once, on demand, and never refreshes it after a change.
+ * `frustumCulled` off meets the rules only (`batchBeyond`), never the sweep, and its
+ * `boundingSphere` must cover every instance: three computes it once, on demand, and never
+ * refreshes it after a change.
  */
 export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: Vector3, marginM: number, stats?: ShadowCullStats, rules?: readonly ShadowDistanceRule[]): () => void {
   const light = _light.copy(sunDirection).multiplyScalar(-1).normalize();
@@ -128,7 +159,7 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
     const s = worldSphere(m, _sphere);
     if (!s) return;
     tested++;
-    if (rules && rules.some((r) => beyondRule(r, s, _eye))) {
+    if (rules && (selfCulledBatch ? batchBeyond(m as unknown as BatchedMesh, rules, _eye, s) : rules.some((r) => beyondRule(r, s, _eye)))) {
       m.castShadow = false;
       off.push(m);
       far++;
