@@ -105,14 +105,13 @@ if (pp) {
   out.push(`fence/rope/stump pushes: closest ${minStop} m; largest drop of any push ${maxDrop} m`);
   out.push('\n### footsteps\n');
   const line = [[45.58, 2.25], [47.33, 2.19], [49.92, 2.1]];
+  const segT = (x, z, a, b) => ((x - a[0]) * (b[0] - a[0]) + (z - a[1]) * (b[1] - a[1])) / ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2);
   const segD = (x, z, a, b) => {
-    const ex = b[0] - a[0];
-    const ez = b[1] - a[1];
-    const t = Math.max(0, Math.min(1, ((x - a[0]) * ex + (z - a[1]) * ez) / (ex * ex + ez * ez)));
-    return Math.hypot(x - a[0] - ex * t, z - a[1] - ez * t);
+    const t = Math.max(0, Math.min(1, segT(x, z, a, b)));
+    return Math.hypot(x - a[0] - (b[0] - a[0]) * t, z - a[1] - (b[1] - a[1]) * t);
   };
   for (const s of pp.steps ?? []) {
-    const onDeck = s.heard.filter((h) => h.at[0] >= 45.8 && h.at[0] <= 50.0 && Math.min(segD(h.at[0], h.at[2], line[0], line[1]), segD(h.at[0], h.at[2], line[1], line[2])) < 0.6);
+    const onDeck = s.heard.filter((h) => segT(h.at[0], h.at[2], line[0], line[1]) >= 0 && segT(h.at[0], h.at[2], line[1], line[2]) <= 1.03 && Math.min(segD(h.at[0], h.at[2], line[0], line[1]), segD(h.at[0], h.at[2], line[1], line[2])) < 0.6);
     const deckTally = {};
     for (const h of onDeck) deckTally[h.surface] = (deckTally[h.surface] ?? 0) + 1;
     out.push(`${s.name}: reached ${s.reached}, ${s.steps} steps ${JSON.stringify(s.tally)}; on the steps or deck: ${JSON.stringify(deckTally)}; off them: ${JSON.stringify(s.heard.filter((h) => !onDeck.includes(h)).reduce((t, h) => ((t[h.surface] = (t[h.surface] ?? 0) + 1), t), {}))}`);
