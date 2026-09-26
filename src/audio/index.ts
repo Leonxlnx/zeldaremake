@@ -21,7 +21,7 @@ import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
-import { createFootsteps, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
+import { contactFor, createFootsteps, paceFrom, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -596,14 +596,31 @@ export function shouldWake(state: AudioContextState, now: number, nextAt: number
  * the world where the forest should sound bigger than the village rather than smaller.
  */
 /**
- * The solid things a player can put between himself and a sound: the thirteen giant boles and the
- * three huts. Circles in xz — every one of them is a barrel, and none is short enough for height to
- * matter (the boles stand 21–28 m and the huts' walls reach 6–14 m, against sources at head height
- * or in a crown eight metres up).
+ * The solid things a player can put between himself and a sound: the giant boles, the two Kokiri
+ * tree-houses and the three huts. Circles in xz — every one of them is a barrel, and none is short
+ * enough for height to matter (the boles stand 21–28 m and the walls reach 6–14 m, against sources
+ * at head height or in a crown eight metres up).
+ *
+ * **This is the world as the sound knows it, and it is not the world.** Anything solid a player
+ * can walk behind belongs here; anything missing is a thing the sound walks straight through.
+ * `LAYOUT.houses` was missing for a day and a half, which is the two largest structures in the
+ * village. A guard in `occlusion.test.mjs` now fails if the layout grows a solid thing this list
+ * does not have, so the next category has to be excluded on purpose or not at all.
  */
-const OCCLUDERS: readonly { x: number; z: number; r: number }[] = (() => {
+export const OCCLUDERS: readonly { x: number; z: number; r: number }[] = (() => {
   const all = [
     ...LAYOUT.giantTrees.map((t) => ({ x: t.position[0], z: t.position[2], r: t.trunkRadius })),
+    // The two Kokiri tree-houses in the middle of the village. `trunkRadius` is the hollow trunk
+    // the house is carved into and it is solid at head height — Saria's is **3.2 m**, six and a
+    // half metres of wood across, wider than every giant bole in the world and second only to the
+    // west house. Neither is a hut standing on a trunk that was already counted: the nearest
+    // listed obstacle to Saria's is 11.5 m away.
+    //
+    // Measured before it was fixed (`art/audio/2026-09-26-houses/`): over 12,638 standing points
+    // and sixteen bearings from each, **23 % of the shadowed bearings in this world were missing**
+    // — 16,832 against 20,663 — and the deepest line through the pair stands 11.63 m of wood
+    // where the sound saw none at all, nearly twice `OCCLUSION_FULL_M`.
+    ...LAYOUT.houses.map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius })),
     { x: EXPANSION.westHouse.host[0], z: EXPANSION.westHouse.host[1], r: EXPANSION.westHouse.radius },
     { x: EXPANSION_NORTH.stilt.host[0], z: EXPANSION_NORTH.stilt.host[1], r: EXPANSION_NORTH.stilt.radius },
     { x: EXPANSION_NORTH.hut.host[0], z: EXPANSION_NORTH.hut.host[1], r: EXPANSION_NORTH.hut.radius },
@@ -714,6 +731,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
   const lastPos = { x: NaN, z: NaN };
   let lastT = 0;
+  /** the simulation clock as of the last tick, and the speed it gave (`paceFrom`) */
+  let lastSim: number | null = null;
+  let lastSpeed = 0;
   let nextWake = 0;
   /**
    * Ask for the clock back, no more often than `WAKE_RETRY_MS`.
@@ -757,8 +777,17 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       wake(now);
       return;
     }
-    const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 1 / 60;
+    const wallElapsed = lastT ? (now - lastT) / 1000 : 1 / 60;
     lastT = now;
+    // How much of the WORLD happened since the last tick, which is not how much of the wall did.
+    // Link moves inside `world.update(dt, simTime)` and `main.ts` clamps that dt at 0.1 s, so a
+    // long frame advances him less than the clock says and every speed read off the wall is wrong
+    // for the one tick that matters (see `paceFrom`). `wind.update` is handed the same `simTime`
+    // and writes it into `uTime`, so the clock is already in this lane's hands; without a wind
+    // there is nothing better than the wall.
+    const simNow = o.wind?.uniforms.uTime.value;
+    const simElapsed = simNow === undefined ? wallElapsed : lastSim === null ? 0 : simNow - lastSim;
+    if (simNow !== undefined) lastSim = simNow;
     const t = ctx.currentTime + 0.03;
     // listener: Link's sole when the character system published him, the camera otherwise
     const player = o.scene.userData.player as PlayerHandle | undefined;
@@ -793,28 +822,26 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     // speed otherwise (see footsteps.ts — a step is heard when a boot lands, not on a stride timer)
     if (p && player?.playMode?.()) {
       if (Number.isFinite(lastPos.x)) {
-        const speed = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-3);
+        const { speed, dt } = paceFrom(Math.hypot(p.x - lastPos.x, p.z - lastPos.z), simElapsed, lastSpeed);
+        lastSpeed = speed;
         const stance = player.feetContact?.()?.map((f) => f.stance);
         gaitDriven = !!stance;
-        // the jump's arc (`airHeight` is 0 whenever a boot is down): the drop's highest point is
-        // how hard he comes back onto whatever is under him
-        const air = player.airHeight?.() ?? 0;
-        if (air > 0.02) {
-          // the rising edge is the shove: he is leaving the ground here, and until now that was
-          // the one contact in the game that made no sound (art/audio/2026-09-24-jump/)
-          if (peakAir === 0) footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure);
-          peakAir = Math.max(peakAir, air);
-        } else if (peakAir > 0.05) {
-          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir, s.enclosure);
-          peakAir = 0;
-        } else peakAir = 0;
-        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure });
+        // the jump's two contacts (`contactFor` in footsteps.ts, where a test can reach it): the
+        // rising edge is the shove, which until 2026-09-24 was the one contact in the game that
+        // made no sound, and the fall it carries is the arc's highest point, which is how hard he
+        // comes back onto whatever is under him
+        const contact = contactFor(player.airHeight?.() ?? 0, peakAir);
+        if (contact.event === 'shove') footsteps.pushOff(t, s.stairs ? 'stair' : s.surface, speed, s.enclosure, s.gorge);
+        else if (contact.event === 'land') footsteps.land(t, s.stairs ? 'stair' : s.surface, contact.fall, s.enclosure, s.gorge);
+        peakAir = contact.peakAir;
+        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance, enclosure: s.enclosure, gorge: s.gorge });
       }
       lastPos.x = p.x;
       lastPos.z = p.z;
     } else {
       lastPos.x = NaN;
-      footsteps.drive(t, dt, { speed: 0, surface: 'grass', onStairs: false });
+      lastSpeed = 0;
+      footsteps.drive(t, simElapsed, { speed: 0, surface: 'grass', onStairs: false });
     }
   };
 
@@ -828,8 +855,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const rng = createRng(seed);
       const buses = createBuses(ctx, rng.fork('buses'));
       buses.master.gain.value = muted ? 0 : MASTER_LEVEL;
-      const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), ctx.currentTime);
-      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, rng.fork('footsteps'), ctx.currentTime);
+      const ambience = createAmbience(ctx, buses.ambience, buses.reverb, buses.gorge, rng.fork('ambience'), ctx.currentTime);
+      const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, rng.fork('footsteps'), ctx.currentTime);
       const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), ctx.currentTime + 0.5);
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
@@ -975,8 +1002,8 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
-  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0, new Set(options.mute ?? []));
-  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, footstepsRng, 0);
+  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, buses.gorge, ambienceRng, 0, new Set(options.mute ?? []));
+  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
@@ -1041,7 +1068,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
         gorge: options.gorge ?? here.gorge,
         windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
       });
-      footsteps?.drive(t, step, { speed: t > (pass.lead ?? 0) && (pass.loop || u < 1) ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure });
+      footsteps?.drive(t, step, { speed: t > (pass.lead ?? 0) && (pass.loop || u < 1) ? pass.speed : 0, surface: here.surface, onStairs: here.stairs, enclosure: options.enclosure ?? here.enclosure, gorge: options.gorge ?? here.gorge });
       fill(t);
       continue;
     }
@@ -1070,7 +1097,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
     ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, enclosure: options.enclosure, occlude: options.occlusion === false ? undefined : (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
-    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs, enclosure: options.enclosure, gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0) });
     fill(t);
   }
   // and the tail, for anything the last tick's lookahead did not reach

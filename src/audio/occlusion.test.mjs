@@ -40,7 +40,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { occlusionAt, OCCLUSION_FULL_M } = loadTs(path.join(here, 'index.ts'));
+const { occlusionAt, OCCLUSION_FULL_M, OCCLUDERS } = loadTs(path.join(here, 'index.ts'));
 const { LAYOUT, EXPANSION } = loadTs(path.join(here, '../world/layout.ts'));
 const A = loadTs(path.join(here, 'ambience.ts'));
 
@@ -104,4 +104,59 @@ test('a shadow takes the top off harder than it takes the level', () => {
   assert.ok(A.OCCLUSION_TOP < 1 - A.OCCLUSION_DUCK, `the top must fall further than the level: ${A.OCCLUSION_TOP} against ${1 - A.OCCLUSION_DUCK}`);
   assert.ok(A.OCCLUSION_DUCK > 0 && A.OCCLUSION_DUCK < 1, 'a bole is not a wall: a shadowed bird is quieter, not gone');
   assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a bird is retired only once it is out past the distance clamp, where swapping it cannot be heard');
+});
+
+/**
+ * Categories of solid thing in `LAYOUT` that the occluder list deliberately does NOT carry, and
+ * why. A category may be left out; it may not be left out by accident, which is how `houses` —
+ * the two largest structures in the village — went missing for a day and a half.
+ */
+const NOT_OCCLUDERS = {
+  heroBoulders: 'too short: the widest is 2.2 m and rounded, and the line from an ear at 1.6 m to a bird in a crown 8 m up has cleared it within a few metres',
+};
+
+test('the sound knows about every solid thing the world has', () => {
+  const RADIUS_FIELDS = ['trunkRadius', 'radius'];
+  const covered = (x, z, r) => OCCLUDERS.some((o) => Math.hypot(o.x - x, o.z - z) < 0.01 + Math.max(0, o.r - r) && o.r >= r - 1e-9);
+  let checked = 0;
+  for (const [name, list] of Object.entries(LAYOUT)) {
+    if (!Array.isArray(list) || !list.length) continue;
+    const first = list[0];
+    if (typeof first !== 'object' || first === null || !Array.isArray(first.position)) continue;
+    const field = RADIUS_FIELDS.find((f) => typeof first[f] === 'number');
+    if (!field) continue;
+    checked++;
+    if (name in NOT_OCCLUDERS) {
+      for (const it of list) assert.ok(!covered(it.position[0], it.position[2], it[field]), `${name} is listed as deliberately excluded (${NOT_OCCLUDERS[name]}) but ${it.id} is in OCCLUDERS — one of the two is wrong`);
+      continue;
+    }
+    for (const it of list) {
+      assert.ok(covered(it.position[0], it.position[2], it[field]), `${name}.${it.id} is ${it[field]} m of solid world at (${it.position[0]}, ${it.position[2]}) and the sound walks straight through it. Add it to OCCLUDERS, or add "${name}" to NOT_OCCLUDERS with the reason.`);
+    }
+  }
+  assert.ok(checked >= 3, `only ${checked} solid categories found in LAYOUT; this guard has stopped reading the layout it is meant to watch`);
+});
+
+test('a wall takes less off a flame than off a bird, because a flame is low', () => {
+  // Barrier attenuation through the median 3.10 m of wood: 20.6 dB at the flame's 320 Hz body
+  // against 28.1 at a distant bird's 1800 Hz. The birds duck 0.5, so the flame's share of that is
+  // 0.40 — a number out of the physics, not a taste, and it must stay under the birds'.
+  assert.ok(A.FLAME_DUCK > 0, 'a lantern behind a wall has to be quieter than one in the open');
+  assert.ok(A.FLAME_DUCK < A.OCCLUSION_DUCK, `a 320 Hz flame cannot be shadowed as hard as a 1800 Hz bird: ${A.FLAME_DUCK} against ${A.OCCLUSION_DUCK}`);
+  const barrier = (n) => 20 * Math.log10(Math.sqrt(2 * Math.PI * n) / Math.tanh(Math.sqrt(2 * Math.PI * n))) + 5;
+  // N = 2 * 3.10 m / lambda, from `2026-09-25-occlusion`'s survey of the wood a player can get between
+  const wanted = A.OCCLUSION_DUCK * (barrier((2 * 3.1 * 320) / 343) / barrier((2 * 3.1 * 1800) / 343));
+  assert.ok(Math.abs(A.FLAME_DUCK - wanted) < 0.05, `the flame's duck should be ${wanted.toFixed(2)} by the barrier physics, not ${A.FLAME_DUCK}`);
+});
+
+test('the flame is ducked per pod, not once for the village', () => {
+  // A village of lanterns is summed into one voice, and the listener can be behind the west house
+  // from five of them while three more are in the open beside him. A single shadow for the whole
+  // sum would take the near ones down with the far, so the test is on the source: the occlusion
+  // lookup has to be inside the loop over pods.
+  const src = readFileSync(path.join(here, 'ambience.ts'), 'utf8');
+  const loop = src.slice(src.indexOf('for (const p of s.pods)'), src.indexOf('const level = Math.min(1, nearest'));
+  assert.ok(loop.length > 0 && loop.length < 900, 'the pod loop moved; this guard is reading the wrong text');
+  assert.match(loop, /occludeNow\(p\.x, p\.z\)/, 'each pod must be shadowed by what stands in front of IT');
+  assert.match(loop, /FLAME_DUCK/, 'the pod loop must apply the flame duck');
 });

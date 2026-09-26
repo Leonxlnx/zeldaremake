@@ -141,9 +141,13 @@ function bed(opts = {}) {
   const out = ctx.createGain();
   const reverb = ctx.createGain();
   const madeBefore = { ...ctx.made, osc: [...ctx.made.osc] };
-  const amb = A.createAmbience(ctx, out, reverb, createRng(opts.seed ?? 'bed/test'), 0);
-  return { ctx, amb, out, reverb, oscAtBuild: ctx.made.osc.length - madeBefore.osc.length };
+  const gorge = ctx.createGain();
+  const amb = A.createAmbience(ctx, out, reverb, gorge, createRng(opts.seed ?? 'bed/test'), 0);
+  return { ctx, amb, out, reverb, gorge, oscAtBuild: ctx.made.osc.length - madeBefore.osc.length };
 }
+
+/** every gain feeding `target`, by the value it was built with */
+const sendsInto = (ctx, target) => ctx.made.gain.filter((g) => g.outputs.includes(target)).map((g) => g.gain.value);
 
 /** every gain the bed owns, by the value `update` last aimed it at */
 const gains = (ctx) => ctx.made.gain.map((g) => g.gain.target);
@@ -161,6 +165,37 @@ function respondsTo(ctx, amb, a, b) {
   const after = gains(ctx);
   return ctx.made.gain.map((g, i) => ({ node: g, before: before[i], after: after[i] })).filter((r) => Math.abs(r.before - r.after) > 1e-12);
 }
+
+test('a muted layer is silent, modulation included', () => {
+  // `mute` is the instrument every "what is this layer worth" measurement on this lane rests on,
+  // and for two days it did not mute the wind. `canopyMod` and `hushMod` are CONNECTED to
+  // `canopyGain.gain` and `hushGain.gain`, and a node connected to an AudioParam is summed with
+  // that param's automation rather than scaling it — so zeroing the level left the gust still
+  // driving the same gain, and a take with the wind "off" still played the wind.
+  //
+  // The test is therefore on every gain the wind owns, not just the two levels: with the layer
+  // muted at a full gust, nothing that answers the wind may aim anywhere but zero.
+  const ctx = fakeContext();
+  const out = ctx.createGain();
+  const reverb = ctx.createGain();
+  const amb = A.createAmbience(ctx, out, reverb, ctx.createGain(), createRng('bed/test'), 0, new Set(['wind']));
+  const loud = { gust: 1, listener: LISTENER, forward: NORTH, pods: [] };
+  amb.update(1, loud);
+  amb.update(2, loud);
+  const live = ctx.made.gain.filter((g) => Math.abs(g.gain.target ?? 0) > 1e-9);
+  // the flame and its send are not the wind and are expected to be alive; the wind's are not
+  const unmuted = fakeContext();
+  const ambOn = A.createAmbience(unmuted, unmuted.createGain(), unmuted.createGain(), unmuted.createGain(), createRng('bed/test'), 0);
+  ambOn.update(1, loud);
+  ambOn.update(2, loud);
+  const windGains = unmuted.made.gain
+    .map((g, i) => ({ i, on: g.gain.target }))
+    .filter(({ i, on }) => Math.abs(on ?? 0) > 1e-9 && Math.abs((ctx.made.gain[i]?.gain.target ?? 0) - on) > 1e-12);
+  assert.ok(windGains.length >= 3, `only ${windGains.length} gains changed when the wind was muted; the two levels and both modulations should`);
+  for (const { i, on } of windGains) {
+    assert.equal(ctx.made.gain[i].gain.target, 0, `gain ${i} aims at ${ctx.made.gain[i].gain.target} with the wind muted (${on} unmuted) — a muted layer that still sounds makes every layer measurement wrong`);
+  }
+});
 
 test('below the gust knee the wind layers are silent, not faint', () => {
   const { ctx, amb } = bed();
@@ -295,6 +330,41 @@ test('the bed is deterministic and draws only from the seeded stream', () => {
   const other = bed({ seed: 'different' });
   other.amb.scheduleUntil(30);
   assert.notDeepEqual(other.amb.stats(), a.amb.stats());
+});
+
+test('a call out over the cut answers off the rock, and one inland does not', () => {
+  for (const gorge of [0, 0.5, 1]) {
+    const b = bed({ seed: 'ravine-call' });
+    b.amb.update(0, { gust: 0.05, listener: LISTENER, forward: NORTH, pods: [], gorge });
+    b.amb.scheduleUntil(60);
+    const sent = sendsInto(b.ctx, b.gorge);
+    assert.ok(b.amb.stats().birds > 2, `only ${b.amb.stats().birds} calls to judge on`);
+    // The send is built for every call, at zero inland, where a footstep's is not built at all.
+    // A boot is a third of a second and cannot cross the cut's eleven-metre fade while it sounds;
+    // a call is two and a half seconds, which at a walk is three metres of it, so one booked on
+    // the approach has to be able to pick the ravine up as he steps out over it.
+    assert.equal(sent.length, b.amb.stats().birds, `${sent.length} ravine sends for ${b.amb.stats().birds} calls`);
+    for (const v of sent) assert.ok(Math.abs(v - A.GORGE_CALL_SEND * gorge) < 1e-9, `at gorge ${gorge} a call sent ${v}, expected ${A.GORGE_CALL_SEND * gorge}`);
+  }
+});
+
+test('and a call still sounding when he walks off the bridge loses the ravine with it', () => {
+  // The fault this lane has caught twice: a term booked when the voice was built and never moved
+  // again, so a call keeps the place it started in for its whole two and a half seconds. The pan,
+  // the reach, the top and the wet all ride `turning` for that reason and so does this.
+  const b = bed({ seed: 'ravine-leave' });
+  const base = { gust: 0.05, listener: LISTENER, forward: NORTH, pods: [] };
+  b.amb.update(0, { ...base, gorge: 1 });
+  b.amb.scheduleUntil(20);
+  const built = b.ctx.made.gain.filter((g) => g.outputs.includes(b.gorge));
+  assert.ok(built.length > 2, `only ${built.length} calls to judge on`);
+  // he is still out over the cut: the sends hold
+  b.amb.update(1, { ...base, gorge: 1 });
+  for (const g of built) assert.equal(g.gain.target ?? g.gain.value, A.GORGE_CALL_SEND, 'a ravine send moved while he stood still in the ravine');
+  // and now he is not
+  b.amb.update(2, { ...base, gorge: 0 });
+  const held = built.filter((g) => (g.gain.target ?? g.gain.value) !== 0);
+  assert.equal(held.length, 0, `${held.length} of ${built.length} calls kept the ravine after he left it`);
 });
 
 test('the forest is events: birds and leaves are scheduled, and gusts bring more leaves', () => {
@@ -783,6 +853,39 @@ test('below the gust knee the leaves are the only thing keeping the wood from si
     worst <= A.QUIET_GAP_MAX + 0.5,
     `the wood was left with nothing for ${worst.toFixed(2)} s below the gust knee, against a ${A.QUIET_GAP_MAX} s cap — with the wind silent there is nothing else to hear`,
   );
+});
+
+test('and the leaves are irregular, not a metronome under the cap', () => {
+  // `QUIET_GAP_MAX` used to be a `Math.min`, and a min against a draw whose range is much wider
+  // than the cap does not shorten the long gaps — it replaces them all with the same number.
+  // Measured on the schedule, in still air under open sky **88 % of the gaps were exactly 2.2 s**
+  // with a tenth-to-ninetieth spread of 0.20: a metronome at 0.45 Hz, in the one condition where
+  // the wind layers are gated silent and the leaves are all there is
+  // (`art/audio/2026-09-26-gaps/`). The cap is an asymptote now, and this is the contract.
+  const { amb } = bed({ seed: 'gaps/irregular' });
+  const gust = A.GUST_KNEE * 0.5;
+  const at = [];
+  let seen = 0;
+  for (let t = 0; t < 600; t += 1 / 30) {
+    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy: 0 });
+    amb.scheduleUntil(t + 4);
+    const n = amb.stats().flutters;
+    while (seen < n) {
+      at.push(t);
+      seen++;
+    }
+  }
+  // the scheduler fires two or three leaves for one turn-over; the gap that matters is between
+  // bursts, so anything inside a tick of the last is the same event
+  const gaps = [];
+  for (let i = 1; i < at.length; i++) if (at[i] - at[i - 1] > 0.05) gaps.push(at[i] - at[i - 1]);
+  gaps.sort((a, b) => a - b);
+  assert.ok(gaps.length > 100, `only ${gaps.length} gaps to judge on`);
+  const atCeiling = gaps.filter((g) => g >= A.QUIET_GAP_MAX - 1 / 30 - 1e-9).length;
+  assert.ok(atCeiling === 0, `${((100 * atCeiling) / gaps.length).toFixed(0)} % of the gaps sit at the ceiling — the cap is clipping again, not saturating`);
+  const spread = gaps[Math.floor(gaps.length * 0.9)] - gaps[Math.floor(gaps.length * 0.1)];
+  assert.ok(spread > 1.0, `the gaps span ${spread.toFixed(2)} s from the tenth percentile to the ninetieth; under a second and an ear starts counting them`);
+  assert.ok(gaps[gaps.length - 1] <= A.QUIET_GAP_MAX, `the longest gap was ${gaps[gaps.length - 1].toFixed(2)} s against a ${A.QUIET_GAP_MAX} s ceiling`);
 });
 
 test('a lantern and a fairy are further off in more than level', () => {

@@ -40,7 +40,7 @@ function loadTs(file) {
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const G = loadTs(path.join(here, 'graph.ts'));
-const { createFootsteps, ROOM_SEND, ROOM_MIN } = loadTs(path.join(here, 'footsteps.ts'));
+const { createFootsteps, ROOM_SEND, ROOM_MIN, GORGE_SEND, GORGE_MIN } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 const param = (value) => ({ value, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {}, setTargetAtTime() {}, cancelScheduledValues() {} });
@@ -132,7 +132,7 @@ test('a step outdoors builds no room at all, and indoors sends it in proportion'
   ]) {
     const ctx = fakeContext();
     const buses = G.createBuses(ctx, createRng('buses/test'));
-    const steps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, createRng('steps/test'), 0);
+    const steps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, createRng('steps/test'), 0);
     steps.drive(1, 0.05, { speed: 1.6, surface: 'wood', onStairs: false, enclosure });
     const sent = sendsInto(ctx, buses.room);
     if (want === null) {
@@ -148,8 +148,69 @@ test('the landing and the shove are in the room too, not only the walk', () => {
   for (const fire of [(s) => s.land(1, 'wood', 1.4, 0.7), (s) => s.pushOff(1, 'wood', 2.2, 0.7)]) {
     const ctx = fakeContext();
     const buses = G.createBuses(ctx, createRng('buses/test'));
-    const steps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, createRng('steps/test'), 0);
+    const steps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, createRng('steps/test'), 0);
     fire(steps);
     assert.deepEqual(sendsInto(ctx, buses.room), [ROOM_SEND * 0.7], 'a boot that is not a walking step still happens in the room');
   }
+});
+
+test('a ravine is not a room and not the wood: late, bright, and its own convolver', () => {
+  const ctx = fakeContext();
+  const buses = G.createBuses(ctx, createRng('buses/test'));
+  assert.ok(buses.gorge && buses.gorgeReturn, 'the buses carry a ravine');
+  assert.notEqual(buses.gorge, buses.reverb, 'the ravine must not be the hall with more send on it — that is what it already was');
+  assert.notEqual(buses.gorge, buses.room, 'a rock cut open to the sky is not a plank box');
+  assert.equal(buses.gorgeReturn.gain.value, G.GORGE_RETURN);
+  // The one number that makes it a place: at mid-span the walls are 5 m off, so the first thing
+  // that comes back does so 29 ms later and NOTHING comes back before it. `2026-09-24-room` found
+  // the opposite fault in the hut — a space starting at sample 0 thickens the boot.
+  const built = buses.gorge.buffer.getChannelData(0);
+  const pre = Math.floor(ctx.sampleRate * G.GORGE_EARLY_AT);
+  assert.ok(
+    built.slice(0, pre).every((v) => v === 0),
+    'the ravine answers before the rock could have — its pre-delay is not the wall distance',
+  );
+  assert.ok(
+    built.slice(pre, pre + 400).some((v) => v !== 0),
+    'the ravine never answers at all',
+  );
+  // 2 × 5 m / 343 m/s, from EXPANSION_SOUTH.ravine.line's half width at mid-span
+  assert.ok(Math.abs(G.GORGE_EARLY_AT - (2 * 5) / 343) < 0.002, 'the pre-delay must be the wall distance, not a taste');
+  assert.ok(G.GORGE_TOP_HZ > G.ROOM_TOP_HZ, 'rock returns the top that planks and leaves take');
+  assert.ok(buses.gorge.buffer.duration < buses.reverb.buffer.duration, 'a cut open to the sky loses its energy upward — it cannot outlast the wood');
+  assert.ok(reaches(buses.gorgeReturn, buses.master), 'the ravine has to reach the master');
+  assert.ok(!reaches(buses.sfx, buses.gorgeReturn), 'the ravine returns through the sfx bus');
+});
+
+test('a step inland builds no ravine at all, and out over the cut sends it in proportion', () => {
+  for (const [gorge, want] of [
+    [0, null],
+    [GORGE_MIN, null],
+    [0.5, GORGE_SEND * 0.5],
+    [1, GORGE_SEND],
+  ]) {
+    const ctx = fakeContext();
+    const buses = G.createBuses(ctx, createRng('buses/test'));
+    const steps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, createRng('steps/test'), 0);
+    steps.drive(1, 0.05, { speed: 1.6, surface: 'bridge', onStairs: false, gorge });
+    const sent = sendsInto(ctx, buses.gorge);
+    if (want === null) {
+      assert.deepEqual(sent, [], `gorge ${gorge} built a ravine around a step that is inland`);
+    } else {
+      assert.equal(sent.length, 1, `gorge ${gorge}: ${sent.length} sends into the ravine, expected one`);
+      assert.ok(Math.abs(sent[0] - want) < 1e-9, `gorge ${gorge}: sent ${sent[0]}, expected ${want}`);
+    }
+  }
+});
+
+test('the two spaces are independent: being over the cut does not put him indoors, or the reverse', () => {
+  // `gorgeAt` and the enclosure term are computed from different geometry and neither excludes the
+  // other, so a boot can be in both, one, or neither. A send that switched between them would make
+  // the south bridge's own hut-side approach jump.
+  const ctx = fakeContext();
+  const buses = G.createBuses(ctx, createRng('buses/test'));
+  const steps = createFootsteps(ctx, buses.sfx, buses.reverb, buses.room, buses.gorge, createRng('steps/test'), 0);
+  steps.drive(1, 0.05, { speed: 1.6, surface: 'wood', onStairs: false, enclosure: 0.7, gorge: 0.4 });
+  assert.deepEqual(sendsInto(ctx, buses.room), [ROOM_SEND * 0.7], 'the room went away because he was near the cut');
+  assert.deepEqual(sendsInto(ctx, buses.gorge), [GORGE_SEND * 0.4], 'the ravine went away because he was under a roof');
 });

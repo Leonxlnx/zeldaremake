@@ -69,6 +69,9 @@ export interface Buses {
   /** the small plank room a hut's interior is (see `ROOM_*` in footsteps.ts) */
   room: ConvolverNode;
   roomReturn: GainNode;
+  /** the rock cut the south bridge crosses (see `GORGE_*` above and in footsteps.ts) */
+  gorge: ConvolverNode;
+  gorgeReturn: GainNode;
 }
 
 /**
@@ -106,6 +109,57 @@ export const ROOM_TOP_HZ = 3000;
  * that honestly would be exhausting to walk around in, so this sits well below it and says so.
  */
 export const ROOM_RETURN = 2.4;
+
+/**
+ * The ravine, as a space rather than as the wood turned up.
+ *
+ * `gorgeAt` has returned 1.00 across the whole bridge since the south expansion was cut, and the
+ * BED uses it — `GORGE_HALL` and `GORGE_WIND` in ambience.ts, +2.7 dB across the bed. His boots
+ * did not: `footsteps.drive` was handed `speed`, `surface`, `onStairs` and `enclosure` and nothing
+ * else, so a player walking out over eight metres of open air with rock either side made the sound
+ * he makes on a veranda. Measured, the steps stem at gorge 0 and gorge 1 differed by −105.7 dB,
+ * which is the renderer's own last bit. Exactly the hole `2026-09-24-room` found for the huts, in
+ * the one place in this world where a contact would obviously answer.
+ *
+ * Its numbers are the cut's own geometry rather than a preset. At mid-span the ravine is 5 m to
+ * each wall and 8.8 m deep (`EXPANSION_SOUTH.ravine.line`), so at 343 m/s a wall answers
+ * **29 ms** after the boot and the floor **51 ms**, and — the part that makes it a place and not a
+ * reverb — *nothing comes back before 29 ms*. That is the pre-delay, and the early spread carries
+ * the reflections out past the floor.
+ *
+ * It is brighter and shorter than the wood. Trunks scatter and leaves absorb the top, which is why
+ * the hall is 1.5 s and rolled off at 3 kHz; rock absorbs almost nothing and returns the top, but a
+ * cut that is open to the sky loses most of its energy upward, so the tail dies sooner than the
+ * wood's even while it stays brighter. Short, bright and late is what tells a ravine from a room.
+ *
+ * (An earlier attempt at the gorge's colour opened the BED's own filter on the same reasoning and
+ * measured +0.3 dB in 4–8 kHz — see `GORGE_HALL`. It failed because the bed has almost nothing up
+ * there to return. A footstep does.)
+ */
+export const GORGE_SECONDS = 0.9;
+/** the walls, 5 m off: 2 × 5 / 343 */
+export const GORGE_EARLY_AT = 0.029;
+/** out past the floor's 51 ms, so the first reflections span the wall and the floor */
+export const GORGE_EARLY_SPREAD = 0.03;
+/** rock returns the top the leaves take; air over a 10–20 m path takes a little of it back */
+export const GORGE_TOP_HZ = 7000;
+/** far less damped than the wood's 0.96 or the hut's 0.9 — this is stone, not foliage */
+export const GORGE_DAMP = 0.45;
+/**
+ * The ravine's return, calibrated and not chosen — `ConvolverNode.normalize` rescales an impulse by
+ * a rule that has nothing to do with the space, so the only way to know what a send of 1.0 produces
+ * is to render and subtract (the same trap `ROOM_RETURN` documents).
+ *
+ * The target is physics. A boot's direct sound reaches the ear about 1.7 m away; a wall 5 m off
+ * returns it over 10 m, which is 15.4 dB of spreading loss and almost nothing absorbed, and the
+ * floor 8.8 m down returns it over 17.6 m. Summed, the first-order field is about **12.6 dB under
+ * the direct**, and higher orders add little because the fourth wall is the sky.
+ *
+ * At 1.5 the ravine answers an isolated boot **12.8 dB under it**, which is that figure and not a
+ * taste. For scale the hut's plank box sits at 10.9 dB under, and it should be the louder of the
+ * two: six surfaces two metres off against two walls at five and a roof made of sky.
+ */
+export const GORGE_RETURN = 1.5;
 
 /**
  * The master's output trim (dB), and the gain it becomes.
@@ -185,7 +239,18 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Bu
   const roomTop = filter(ctx, 'lowpass', ROOM_TOP_HZ, 0.6);
   room.connect(roomTop).connect(roomReturn);
   roomReturn.connect(master);
-  return { master, music, ambience, sfx, reverb, reverbReturn, room, roomReturn };
+  const gorge = ctx.createConvolver();
+  // the pre-delay is the wall's own 29 ms: in a cut this size nothing reaches the ear before it,
+  // and a space that starts answering at sample 0 thickens the boot instead of reflecting it
+  gorge.buffer = impulseResponse(ctx, rng.fork('gorgeir'), GORGE_SECONDS, GORGE_DAMP, GORGE_EARLY_AT, GORGE_EARLY_SPREAD, GORGE_EARLY_AT);
+  const gorgeReturn = ctx.createGain();
+  gorgeReturn.gain.value = GORGE_RETURN;
+  // joins the master for the same reason the other two returns do: the ravine answering a step is
+  // not itself the player's footstep, so the sfx bus's pad does not scale it twice
+  const gorgeTop = filter(ctx, 'lowpass', GORGE_TOP_HZ, 0.6);
+  gorge.connect(gorgeTop).connect(gorgeReturn);
+  gorgeReturn.connect(master);
+  return { master, music, ambience, sfx, reverb, reverbReturn, room, roomReturn, gorge, gorgeReturn };
 }
 
 /** Looping seeded white noise (seconds long). */
