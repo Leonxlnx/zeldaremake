@@ -597,3 +597,7 @@ nearCanopy, materials, index otherwise) is edited.
   Six views + look-backs running. Also: trees build time 9.05 s → 8.27 s across #151/#171/#188 (no regression).
 - 2026-09-26 07:05 — PR #201 measured and marked ready (round54-batch-box-cull): six views −130…−200 K each (A 8.51 M, 490 K
   under the gate), 0 px above 24/255; look-backs −51…−141 K at 0 px any level. #193 / #197 merged in the 03:51 round.
+- 2026-09-26 09:30 — decision card for look call (2): a far rung for the authored curtains, built dark on `agent/fable-4-curtainfar`
+  9baa882f (thinLaminae after the fact from the writer's layout; swap past m with hysteresis; ?curtainfar knob). At 30 m: green
+  −143/−215 K at 0 px, lookout −149/−224 K at 3–4 px, far bank −158/−237 K at 62/103 px > 24; the fixed views untouched. GitHub
+  refused PR creation ("must be a collaborator") and the ready flag on #201 — INBOX 09:30 carries the branch and the ask.
