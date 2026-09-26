@@ -6,8 +6,12 @@ arches, a terrace, and a waterfall into a pool. Branch `agent/fable-cursor-exp-r
 
 ## Results at a glance
 
-Measured at the final head, which has canonical 33e92705 merged (the new legs, the column-lobe and far-foliage
-batches, the audio rounds), against canonical 33e92705 itself; every capture with `views.mjs --settle 6`.
+Measured on the build of fcec1575, whose `src` is unchanged through de701e09 and which has canonical 33e92705 merged
+(the new legs, the column-lobe and far-foliage batches, the audio rounds), against canonical 33e92705 itself; every
+capture with `views.mjs --settle 6`. The branch has since merged canonical 2b15f687 (e76effad: the trees' far-shadow
+depth trim, lodFade 3 and kept instance attributes, the audio's release and step levels; no ruins file). That merge
+passes tsc and the tests (257 / 257) but is not re-measured; fable-5 read the far-shadow trim on canonical as pixel-identical at
+A–F with the same draws and 0.10–0.20 M fewer depth-pass triangles.
 
 - **Rubric: 158 / 200, NOT READY** (ship bar ≥ 170, no check below 2, ★ ≥ 3). Below 3: #44 camera (2) and
   #46★ budget (2).
@@ -80,7 +84,7 @@ character ground and the vegetation. Its sounds are one waterfall and three pods
 Contact sheets made with `sheet.mjs` from the captures (`poses.json`); the trailer frames are for comparison only.
 
 - `sheet-trailer.jpg`: trailer r_036 / r_040 / r_042 / r_043 (left) beside r04–r07 (right) at player height.
-- `sheet-light.jpg`: this pass, before (52ce2047) and after (the final head): r05, r06, r18, r12.
+- `sheet-light.jpg`: this pass, before (52ce2047) and after (fcec1575): r05, r06, r18, r12.
 - `sheet-site.jpg`: the outcrop, the arch, the terrace, the water stair and the fall's foot (r05–r11), with trailer r_038.
 - `sheet-water.jpg`: the pool from the east and south shores (r12, r13) and the three look-backs toward the village
   (r14–r16), with trailer r_039.
@@ -148,7 +152,7 @@ of the trailer's light and lushness stays at 3 or below.
 | 43 | steps even underfoot | 3 | risers 0.2 m on the flight and 0.203 m on the water stair, far inside the 0.55 m step guard; 51 / 51 waypoints over the three routes, 0 stuck; soles p95 2.9 cm (plaza to terrace), 7.2 cm (trail to shore, down the bank into the shallows) and 2.1 cm (water stair). One reading stands out: on the water stair a foot reads 1.18 m under the ground for at most 3 of 678 stance samples, not yet located (see Walking) |
 | 44 | camera | 2 | `camcheck.mjs` (containment): 0 of 2,970 route cameras in stone, rock, ground or water, none nearer a stone face than 0.28 m, the worst jump 0.052 m; but 2 of 360 swung views end inside the wall's coping at the water stair's mid tread (8.7 and 9.7 cm deep, heading 0°) and 5 nearer a face than the near plane (0.9–2.6 cm). The camera's 0.6 m minimum distance carries it there (see Walking) |
 | 45 | footsteps | 4 | `surfaces.test.mjs`: dirt on the trail, stone on the masonry, water in the shallows (a wading step of its own, f9f27f3f); `afae710e` |
-| 46 ★ | budget | 2 | heroes A–F within (max A 574 / 8.746 M), and the ruins' views r01–r19 within (max r16 607 / 8.492 M, where canonical is over at 692 / 10.471 M); but r20, on the trail's east end looking back at the village, is 674 / 9.908 M, over on triangles. Canonical is over there too (661 / 10.142 M) and the ruins draw nothing in that frame, but the check asks for the item's own views as well, and r20 stands on the item's trail |
+| 46 ★ | budget | 2 | heroes A–F within (max A 574 / 8.746 M), and the ruins' views r01–r19 within (max r16 607 / 8.492 M, where canonical is over at 692 / 10.471 M); but r20, on the trail's east end looking back at the village, is 674 / 9.908 M, over on triangles. Canonical is over there too (661 / 10.142 M) and the ruins draw nothing in that frame, but the check asks for the item's own views as well, and r20 stands on the item's trail. The earlier measurement also had the branch over the 700 draws at x −26.4 on the trail, where canonical was not (see Cost) |
 | 47 | hidden when far | 4 | `ruinsVisible` (casters and their shadow footprints); tests "no fixed frame sees the ruins or their shadows, and the zone views do" and "the village hides only from the ruins zone…" |
 | 48 | deterministic | 4 | test "the same seed builds the same stone"; PRNG only; r20's pose drawn twice in one session moves 0 px (probe3), and drawn by the builds before and after the village rule (outside its zone) it also moves 0 px (verify2) |
 | 49 | belongs to this forest | 3 | the trailer's own ruins, in the forest's palette; but past the site the backdrop is flat hazy meadow and bare distant trunks (r09, r12), not the trailer's gorge |
@@ -160,7 +164,7 @@ NOT READY.
 ## Walking (gauntlet/scripts/playtest.mjs)
 
 `node gauntlet/scripts/playtest.mjs --dist <dist> --out <dir> --only walk --walk-routes plaza-to-ruins-terrace,ruins-trail-to-shore,ruins-water-stair`,
-run on the final head's build (the new legs: walk 1.2 / run 2.2 m/s), then `camcheck.mjs` on its output.
+run on fcec1575's build (the new legs: walk 1.2 / run 2.2 m/s), then `camcheck.mjs` on its output.
 
 | route | waypoints | stuck | length | soles off the ground (p50 / p95 / max) | camera: min over ground, worst jump |
 | --- | --- | --- | --- | --- | --- |
@@ -200,8 +204,8 @@ run on the final head's build (the new legs: walk 1.2 / run 2.2 m/s), then `camc
 ## Cost
 
 Draw calls / triangles (M) after a composed frame, the sun's depth pass included (`views.mjs --settle 6`, 960×540,
-`quality=high`). Canonical 33e92705 against the final head, which has 33e92705 merged. ✗ marks a frame over 700 draws
-or 9.0 M triangles.
+`quality=high`). Canonical 33e92705 against fcec1575's build, which has 33e92705 merged. ✗ marks a frame over 700
+draws or 9.0 M triangles.
 
 | view | canonical | branch | | view | canonical | branch |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -231,7 +235,10 @@ or 9.0 M triangles.
   both sides: canonical 661 / 10.142 M, the branch 674 / 9.908 M. It lies east of the rule's line. The ruins and
   their plants draw nothing there (probe3, 2026-09-25: hiding them changes 0 draws and 0 px), and the village is in
   view (hiding it moves 6,848 px), so the frame is the village's own cost. The branch draws 13 more there and
-  0.234 M triangles fewer; the 13 draws are not attributed to a system.
+  0.234 M triangles fewer; the 13 draws are not attributed to a system. In the earlier measurement (52ce2047
+  against canonical 14fda29d, probe3) two more look-backs east of the line were over: at x −26.4 the branch drew
+  704 / 9.992 M against canonical's 694 / 10.204 M (over the 700 draws where canonical was not), and at x −19.6
+  673 / 9.545 M against 668 / 9.746 M. Neither is re-measured on fcec1575.
 - The heroes draw one draw and 0.012 M triangles fewer than canonical (C: two and 0.023 M), and A, B, D, E and F
   move no pixel.
 
@@ -261,8 +268,8 @@ rule nor the branch.
 
 ## Hero frames A–F
 
-Canonical 33e92705 against the final head, `views.mjs --settle 6` on both sides, PNG (`herodiff.mjs`: a pixel "moves"
-when any channel changes by more than 4 of 255).
+Canonical 33e92705 against fcec1575's build, `views.mjs --settle 6` on both sides, PNG (`herodiff.mjs`: a pixel
+"moves" when any channel changes by more than 4 of 255).
 
 | frame | draws / triangles (M), canonical → branch | pixels moved | max Δ | PSNR | where |
 | --- | --- | --- | --- | --- | --- |
@@ -289,7 +296,7 @@ No hero frame sees the ruins or their shadows (test), and the village rule never
 | `src/world/terrain/expansion2.test.mjs`, `expansionSouth.test.mjs` | the older expansion tests skip the ruins' ground, which `ruins.test.mjs` and the vegetation's own rules cover |
 | `src/world/character/ground.ts` | the ruins' flight and water stair in the stair list; `createRuinsBlocked` (pool, walls, cliff, ivy rock, boulders, columns) |
 | `src/camera/collision.ts` | reads every grid in `cameraSolidGrids` beside the structures' solid |
-| `src/world/trees/index.ts` | the grove and the distant layer keep off the trail and the site; boles keep their flare off them (merged beside canonical's column-lobe and far-foliage batches) |
+| `src/world/trees/index.ts` | the grove and the distant layer keep off the trail and the site; boles keep their flare off them (merged beside canonical's column-lobe and far-foliage batches, far-shadow trim, lodFade 3 and kept instance attributes) |
 | `src/world/vegetation/expansion.ts`, `index.ts`, `lodset.ts`, `plants.ts` | the ruins' live sets (`expansionRuins.ts`), their prune last with the sort centres pinned, the butterflies' flower list as it stood before the prune |
 | `src/world/structures/index.ts`, `src/world/util/expansionLocality.ts` | the village hides from the ruins zone at walking height (meshes only); the lantern branch stays drawn there |
 | `src/audio/ambience.ts`, `footsteps.ts`, `index.ts` (+ tests) | the waterfall's roar (silent from 42 m), the trail pods' flames, the wading footstep, the ruins' surfaces |
