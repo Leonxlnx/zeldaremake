@@ -191,6 +191,7 @@ async function playPoses(page, poses, result, out) {
       }
       r.from = { p: c.position.map((v) => +v.toFixed(3)), t: c.position.map((v, i) => +(v + c.direction[i] * 20).toFixed(3)), fov: c.fov };
       result.play.push(row);
+      fs.writeFileSync(path.join(out, 'evidence.json'), JSON.stringify(result, null, 1));
       log(`  ${row.on.draws} draws / ${(row.on.triangles / 1e6).toFixed(2)} M${row.off ? `, off ${row.off.draws} / ${(row.off.triangles / 1e6).toFixed(2)} M, again ${row.again.draws} / ${(row.again.triangles / 1e6).toFixed(2)} M` : ''}${row.cameraInZone ? ' (camera in the far-bank zone)' : ''}`);
     }
     resolved.push(r);
@@ -270,7 +271,7 @@ async function walk(page, name, points, maxFrames) {
   return { reached: wp >= points.length && stuck.length === 0, waypointsReached: wp - 1, of: points.length - 1, frames, stuck, rows };
 }
 
-async function walks(page, result) {
+async function walks(page, result, out) {
   const logFloor = (await ground(page, ...logAt(2))).walk;
   const pick = typeof args.routes === 'string' ? new Set(args.routes.split(',')) : null;
   for (const [name, [points, maxFrames]] of Object.entries(ROUTES)) {
@@ -357,6 +358,7 @@ async function walks(page, result) {
       drawnSamples: drawn.map((r) => [r.calls, r.triangles, +r.link[0].toFixed(2), +r.link[2].toFixed(2)]),
     };
     result.walks.push(row);
+    fs.writeFileSync(path.join(out, 'evidence.json'), JSON.stringify(result, null, 1));
     log(`  reached ${row.reached} (${row.waypointsReached}/${row.of}), stuck ${row.stuck.length}, lowest ground ${row.lowestGroundY}, camera inside ${JSON.stringify(Object.fromEntries(Object.entries(row.cameraInside).map(([k, v]) => [k, v.frames])))}, max ${row.maxDraws?.draws} draws / ${((row.maxTriangles?.triangles ?? 0) / 1e6).toFixed(2)} M over ${row.drawnFrames} drawn frames, ${row.footstepMismatches.length} footstep mismatches`);
   }
 }
@@ -541,7 +543,7 @@ else {
         fs.writeFileSync(path.join(out, 'poses.resolved.json'), JSON.stringify(poses, null, 1));
       }
       fs.writeFileSync(path.join(out, 'evidence.json'), JSON.stringify(result, null, 1));
-      if (args.walks) await walks(page, result);
+      if (args.walks) await walks(page, result, out);
       fs.writeFileSync(path.join(out, 'evidence.json'), JSON.stringify(result, null, 1));
       await page.close();
     }
