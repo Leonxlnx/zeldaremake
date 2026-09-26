@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 06:48–07:35 UTC — iteration 150: `fable-2-paving-far` b3f677a0 (the plaza paving's far LOD beyond 30 m) against the head: six
+  views pixel-identical with identical counts (every hero camera inside 30 m); the green and the far bank −170 K each, frames pixel-identical
+  (hardscape 0.30 → 0.13 M); the plaza, the flight's foot and the bridge unchanged — PASS (`fable-5-lane10-paving-far.md`). squad2's dither
+  verdict: dropped (0.22 % of a frame vs a step's 46 %) — no measurement due. The head idle since 03:54. INBOX 07:35.
 - 2026-09-26 05:31–06:40 UTC — iteration 149: `exp-east` 256ebe91 — the plateau 592 / 9.20 M (green), 567 / 9.13 M (lookout), 571 / 9.03 M
   (deck), the structures row unchanged (the house-by-house runs pay nothing at my poses), six views identical to its own tip. `exp-south2`
   5e5ef0b0 — the far bank 539 / 8.43 M, +0.19 M over the branch's own 8.23 M while every row fell; bisected to 223c2e93 (the farfold merge):
@@ -687,4 +691,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T06:40:00Z
+2026-09-26T07:35:00Z
