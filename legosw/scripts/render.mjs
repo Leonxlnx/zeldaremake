@@ -3,7 +3,7 @@
  * Render the film to PNG frames (+ the synthesised soundtrack) and encode an MP4.
  *
  *   node legosw/scripts/render.mjs [--size 1920x1080] [--fps 24] [--from 0] [--to <end>] [--subframes 1]
- *        [--out legosw/out] [--shards 1 --shard 0] [--audio] [--encode] [--dist legosw/dist] [--step 1]
+ *        [--out legosw/out] [--shards 1 --shard 0] [--audio] [--encode] [--dist legosw/dist] [--step 1] [--msaa 4]
  *
  * Frames already on disk are skipped, so an interrupted render resumes. Run several shards in
  * parallel (--shards 2 --shard 0 / --shard 1) to use more cores, then `--encode` once.
@@ -41,7 +41,7 @@ async function main() {
         if (m.type() === 'error' || m.type() === 'warning') console.error(`[page:${m.type()}] ${m.text()}`);
       });
       page.on('pageerror', (e) => console.error(`[pageerror] ${e.message}`));
-      await page.goto(`${server.url}/?capture=1`, { waitUntil: 'load', timeout: 600000 });
+      await page.goto(`${server.url}/?capture=1&msaa=${Number(args.msaa ?? 4)}`, { waitUntil: 'load', timeout: 600000 });
       await page.waitForFunction(() => !!window.__LSW__, { timeout: 600000 });
       await page.evaluate(() => window.__LSW__.ready);
       const total = await page.evaluate(() => window.__LSW__.duration());
