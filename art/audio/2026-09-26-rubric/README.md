@@ -11,7 +11,8 @@ worse than no scorecard, because the next agent reads it and believes it.
 
 ## The verdict
 
-**184 → 187 / 200.** Three rows move up, five are amended without moving, and the one row that
+**184 → 187 / 200, then 186 once check 24 was looked at properly (see the amendment below).** Three
+rows move up, five are amended without moving, one moves down, and the one row that
 blocks the rubric's own ship rule does not move because it cannot.
 
 Its rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. The total and the ★
@@ -56,6 +57,14 @@ the part that needed fixing.
   10.1 m away, no closer than the lawn's 10.5 and further than the lookout's 6.1**
   (`2026-09-26-houses`). The open places are alike because nothing stands near any of them. These
   stay at 3, and they should not be worked as sound items until the village has something in it.
+
+> **Amended 2026-09-26 — check 24 goes 4 → 3, so the total is 186.**
+> `art/audio/2026-09-26-landing/`. *"Landing after a drop sounds, and scales with the fall"* was
+> scored on the existence of the scaling. Over the falls this game can actually make — every
+> landing is the end of a deliberate jump, because there is no fall state at all — it is worth
+> **1.58 dB**, and above 1.72 m it is worth nothing. The curve is not what is wrong: its output is
+> boxed at 6.9 dB by a floor that keeps a landing louder than a step and a ceiling the master is
+> staged against, and the only real widening costs the 2.9 dB of headroom slack one for one.
 
 ## Check 27, which is the only thing left below 2
 
