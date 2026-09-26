@@ -18,7 +18,7 @@ const css = `
 #film-ui .sub b { color: #f2c33a; font-weight: 600; }
 #film-ui .card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; opacity: 0; }
 #film-ui .card.farfar { color: #4cc3ff; font-family: "Source Sans 3", Inter, Arimo, sans-serif; font-weight: 400; line-height: 1.35; letter-spacing: 0.01em; }
-#film-ui .card.endcard { color: #f5d24a; font-family: "Source Sans 3", Inter, Arimo, sans-serif; font-weight: 700; letter-spacing: 0.18em; }
+#film-ui .card.endcard { color: #f5d24a; font-family: "Source Sans 3", Inter, Arimo, sans-serif; font-weight: 700; letter-spacing: 0.18em; box-sizing: border-box; align-content: start; text-shadow: 0 0 0.4em rgba(0,0,0,0.85), 0 0.05em 0.12em rgba(0,0,0,0.9); }
 #film-ui .fade { position: absolute; background: #000; opacity: 0; }
 `;
 
@@ -68,7 +68,8 @@ export class FilmUI {
     this.placeSub();
     Object.assign(this.fade.style, { left: `${left}px`, top: `${top}px`, width: `${w}px`, height: `${h}px` });
     this.cardFar.style.fontSize = `${Math.round(pageH * 0.042)}px`;
-    this.cardEnd.style.fontSize = `${Math.round(pageH * 0.05)}px`;
+    // the end title sits over the picture, in the stars above the ships
+    Object.assign(this.cardEnd.style, { inset: 'auto', left: `${left}px`, top: `${top}px`, width: `${w}px`, height: `${h}px`, paddingTop: `${Math.round(h * 0.07)}px`, fontSize: `${Math.round(pageH * 0.058)}px` });
     return this.layout;
   }
 

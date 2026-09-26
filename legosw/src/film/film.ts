@@ -129,8 +129,9 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
       fade = 1;
       far = Math.min(1, Math.max(0, (t - 0.4) / 0.8)) * Math.min(1, Math.max(0, (4.1 - t) / 0.7));
     } else if (shot.name === 'endcard') {
-      fade = 1;
-      end = Math.min(1, Math.max(0, (t - 0.3) / 0.8)) * Math.min(1, Math.max(0, (4.4 - t) / 0.6));
+      // the title comes up over the battle, then picture and title go to black together
+      fade = Math.min(1, Math.max(0, (t - 3.5) / 0.9));
+      end = Math.min(1, Math.max(0, (t - 0.6) / 0.9)) * Math.min(1, Math.max(0, (4.45 - t) / 0.6));
     } else {
       // short dips to black at the act changes
       const s = shot.start!;
@@ -318,8 +319,8 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
             return p;
           };
         })(),
-        lasers: w.fx.lasers.events,
-        explosions: w.fx.explosions,
+        lasers: w.fx.lasers.events.filter((e) => !e.silent),
+        explosions: w.fx.explosions.filter((e) => !e.silent),
       }),
   };
 }

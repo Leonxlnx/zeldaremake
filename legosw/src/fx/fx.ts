@@ -43,6 +43,8 @@ export interface LaserEvent {
   color: LaserColor;
   /** part of a featured attack: never hidden by the shot's clearance around the camera */
   hero?: boolean;
+  /** kept out of the soundtrack (the end title plays over the score alone) */
+  silent?: boolean;
   /** optional frame the bolt lives in (e.g. a moving Venator); world if absent */
 }
 
@@ -294,6 +296,8 @@ export interface ExplosionOpts {
   flashes?: number;
   /** a shockwave flash ring (default: kills that throw 60+ pieces) */
   ring?: boolean;
+  /** kept out of the soundtrack */
+  silent?: boolean;
 }
 
 export class FX {
@@ -314,7 +318,7 @@ export class FX {
   private sparkMat?: ShaderMaterial;
   private built = false;
   /** explosion log (for the soundtrack) */
-  explosions: { t0: number; pos: Vector3; size: number; pieces: number }[] = [];
+  explosions: { t0: number; pos: Vector3; size: number; pieces: number; silent?: boolean }[] = [];
 
   constructor() {
     this.group.name = 'fx';
@@ -329,7 +333,7 @@ export class FX {
   explosion(t0: number, pos: Vector3, o: ExplosionOpts): void {
     const rng = new Rng(o.seed ?? Math.floor(t0 * 1000 + pos.x * 7 + pos.y * 13));
     const S = o.size;
-    this.explosions.push({ t0, pos: pos.clone(), size: S, pieces: o.pieces ?? 40 });
+    this.explosions.push({ t0, pos: pos.clone(), size: S, pieces: o.pieces ?? 40, silent: o.silent });
     const inherit = o.inherit ?? new Vector3();
     const flashes = o.flashes ?? 1;
     for (let k = 0; k < flashes; k++) {

@@ -3,7 +3,8 @@ import { DEFAULT_LENS, type Lens } from '../render/pipeline';
 import { Rng, noise1 } from '../core/rng';
 import type { FaceState, Mouth } from '../assets/prints';
 import type { Minifig } from '../assets/minifig';
-import type { BuzzDroid, Eta2 } from '../assets/types';
+import type { BuzzDroid, CapitalShip, Eta2 } from '../assets/types';
+import type { ColorKey } from '../core/palette';
 import type { LaserColor } from '../fx/fx';
 import { World, SUN_DIR, VICTIM_POSE } from './world';
 import { HAND_POS, HAND_YAW, LONG_T0, poseSwarms, scheduleCapitalFire, scheduleDogfights, vFrame } from './battle';
@@ -1631,7 +1632,73 @@ const droids: Shot = {
   },
 };
 
-const endCard: Shot = { name: 'endcard', dur: 4.5, card: true, pose: () => ({ pos: v3(0, 0, 0), target: v3(0, 0, 1), fov: 30 }) };
+/* --- end title: outside, the battle goes on */
+
+/**
+ * Where the end shot stages the hero Venator, in the Invisible Hand's frame (x to its port side, toward the
+ * Republic line; z along its bow): off the port beam, a little above and astern, on a parallel heading —
+ * the two flagships trading broadsides over Coruscant while the title comes up.
+ */
+const END_VENATOR: [number, number, number] = [2150, 260, -420];
+const endFrame = (x: number, y: number, z: number) => v3(x, y, z).applyAxisAngle(v3(0, 1, 0), HAND_YAW).add(HAND_POS);
+
+function poseEndShips(w: World): void {
+  poseHand(w);
+  w.venator.group.visible = true;
+  w.venator.group.position.copy(endFrame(...END_VENATOR));
+  w.venator.group.quaternion.setFromAxisAngle(v3(0, 1, 0), HAND_YAW);
+}
+
+const endCard: Shot = {
+  name: 'endcard',
+  dur: 4.5,
+  blur: 2,
+  schedule(w, T0) {
+    // the broadside, gun to hull on the ships as the shot stages them; scheduled after every other shot's
+    // effects and silent, so the finale's score plays alone and the soundtrack is untouched
+    poseEndShips(w);
+    w.venator.group.updateMatrixWorld(true);
+    w.hand.group.updateMatrixWorld(true);
+    const guns = (s: CapitalShip) => s.turrets.map(anchorWorld);
+    const hull = (s: CapitalShip) => [...guns(s), ...Object.entries(s.anchors).filter(([k]) => k.startsWith('hit')).map(([, a]) => anchorWorld(a))];
+    const side = [
+      { guns: guns(w.venator), hull: hull(w.venator), c: anchorWorld(w.venator.group), color: 'blue' as const, debris: ['lbg', 'white', 'dbg', 'red'] as ColorKey[] },
+      { guns: guns(w.hand), hull: hull(w.hand), c: anchorWorld(w.hand.group), color: 'red' as const, debris: ['tan', 'darkTan', 'lbg', 'reddishBrown'] as ColorKey[] },
+    ];
+    const rng = new Rng(9300);
+    const SPEED = 3200;
+    for (let T = T0 - 0.5; T < T0 + 4.5; T += rng.range(0.05, 0.11)) {
+      const k = rng.chance(0.6) ? 0 : 1;
+      const att = side[k], tgt = side[1 - k];
+      const from = rng.pick(att.guns);
+      const aim = rng.pick(tgt.hull);
+      const dist = aim.distanceTo(from);
+      const len = rng.range(120, 200), wid = rng.range(8, 13);
+      if (rng.chance(0.82)) {
+        w.fx.laser({ t0: T, from, dir: aim.clone().sub(from), speed: SPEED, life: dist / SPEED, length: len, width: wid, color: att.color, silent: true });
+        const ta = T + dist / SPEED;
+        const n = aim.clone().sub(tgt.c).setY(0).normalize();
+        const at = aim.clone().addScaledVector(n, 6);
+        if (rng.chance(0.12)) w.fx.explosion(ta, at, { size: rng.range(60, 110), pieces: 10, brickScale: 7, sparks: 12, smoke: 3, colors: tgt.debris, seed: 9400 + Math.floor(ta * 100), silent: true });
+        else w.fx.impact(ta, at, { size: rng.range(26, 50), normal: n });
+      } else {
+        const miss = aim.clone().add(v3(rng.gauss(), rng.gauss(), rng.gauss()).normalize().multiplyScalar(rng.range(140, 360)));
+        w.fx.laser({ t0: T, from, dir: miss.sub(from), speed: SPEED, life: (dist + 1500) / SPEED, length: len, width: wid, color: att.color, silent: true });
+      }
+    }
+  },
+  pose(w, t, T) {
+    battle(w, T, { swarms: true });
+    poseEndShips(w);
+    crawlerPoses(w, T);
+    // astern of the pair and above, the limb of Coruscant under them: the camera drifts back and up as the title comes in
+    const u = smoother(0, 4.5, t);
+    const pos = endFrame(lerp(1380, 1480, u), lerp(860, 1200, u), lerp(-4050, -4900, u));
+    const target = endFrame(1040, lerp(220, 300, u), 1900);
+    w.aimShadow(endFrame(1075, 0, 0), 2700);
+    return { pos, target, fov: 38, lens: { exposure: 1.05 } };
+  },
+};
 
 export const SHOTS: Shot[] = [farfar, crawl, longTake, track, anakinCockpit, vultures, handReveal, obiCockpit, missiles, buzzClose, obiCockpit2, anakinCockpit2, rescue, hangarApproach, landing, jumpOut, droids, endCard];
 
