@@ -138,7 +138,10 @@ const crawl: Shot = {
     const along = v3(0, 1, 0).applyQuaternion(plane.quaternion);
     plane.position.copy(pos).add(along.multiplyScalar(slide));
     w.crawl.mat.opacity = smooth(0, 1.2, t) * (1 - smooth(12.5, 15, t));
-    return { pos: cam, target: C0_UP_TARGET, fov: 38, lens: { bloom: 0.5, vignette: 0.3 } };
+    // as the text recedes the lens settles into the long take's opening (34 mm-ish, full bloom), so the cut
+    // to the tilt-down lands on the same starfield instead of jumping 12% in scale
+    const u = smoother(12.5, 15, t);
+    return { pos: cam, target: C0_UP_TARGET, fov: lerp(38, 34, u), lens: { bloom: lerp(0.5, DEFAULT_LENS.bloom, u), vignette: lerp(0.3, DEFAULT_LENS.vignette, u) } };
   },
 };
 
