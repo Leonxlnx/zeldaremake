@@ -5,7 +5,10 @@ and *"add more stuff and the structures from the screenshot ... more structures 
 further down"*.
 
 Branch `agent/fable-cursor-exp-south2`. Every image is 960×540 at `quality=high`, simulation time
-12.5 s, character hidden, with the same camera before and after.
+12.5 s, with the same camera before and after. Section 1's sheet was taken with the character
+hidden. In the later capture-mode views the character system stands Link and the kids where the
+reference frames have them in the six hero views, and from any other camera Link idles at his spawn
+spot and the kids at their own. The play-mode views show Link where the follow camera trails him.
 
 ## 1. The end of the hollow log (`01-log-exit.jpg`)
 
