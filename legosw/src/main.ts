@@ -37,6 +37,7 @@ interface Api {
   duration(): number;
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAt(t: number, subframes?: number, shutter?: number, fps?: number): { ms: number };
+  probeHeads(t: number): ReturnType<Film['probeHeads']> | null;
   renderAudio(): Promise<string>;
 }
 
@@ -119,5 +120,6 @@ window.__LSW__ = {
     pipeline.sync();
     return { ms: performance.now() - t0 };
   },
+  probeHeads: (t) => film?.probeHeads(t) ?? null,
   renderAudio: async () => (film ? film.renderAudio() : ''),
 };

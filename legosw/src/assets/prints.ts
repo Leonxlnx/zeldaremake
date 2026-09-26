@@ -266,7 +266,7 @@ function drawEyes(g: CanvasRenderingContext2D, style: FaceStyle, s: FaceState): 
     // one printed catchlight, the same in both eyes
     g.fillStyle = TEETH;
     const gx = cx - s.lookX * 0.15, gy = cy - s.lookY * 0.15;
-    ellipse(g, gx - rx * 0.26, gy + ry * 0.34, rx * 0.46, rx * 0.52);
+    ellipse(g, gx - rx * 0.26, gy + ry * 0.34, rx * 0.42, Math.min(rx, ry) * 0.5);
     g.fill();
     g.restore();
     // lid edges where they cut the eye

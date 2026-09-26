@@ -1,15 +1,31 @@
-import { Quaternion, Vector3 } from 'three';
+import { Mesh, Quaternion, Vector3, type Object3D } from 'three';
 import { DEFAULT_LENS, type Lens, type Pipeline } from '../render/pipeline';
 import type { FilmUI } from '../ui';
 import { World } from './world';
 import { FILM_DURATION, SHOTS, scheduleBattle, shotAt, type Cam } from './shots';
 import { renderSoundtrack } from '../audio/soundtrack';
 
+/** Where a hero's head (with hair) lands in the picture at one instant: NDC, the 2.39:1 frame edge is ±1. */
+export interface HeadProbe {
+  who: string;
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface Film {
   duration: number;
   renderAt(t: number, o?: { subframes?: number; shutter?: number; fps?: number }): void;
+  /** framing QA: pose time T without rendering and project the visible heroes' head + hair vertices */
+  probeHeads(T: number): { shot: string; heads: HeadProbe[] };
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
   renderAudio(): Promise<string>;
+}
+
+function shown(o: Object3D): boolean {
+  for (let p: Object3D | null = o; p; p = p.parent) if (!p.visible) return false;
+  return true;
 }
 
 function halton(i: number, base: number): number {
@@ -136,6 +152,31 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         },
       });
       camera.clearViewOffset();
+    },
+    probeHeads(T) {
+      const p = pose(T);
+      applyCamera(p.cam);
+      w.scene.updateMatrixWorld(true);
+      const heads: HeadProbe[] = [];
+      const v = new Vector3();
+      for (const [who, fig] of [['anakin', w.anakin], ['obiwan', w.obiwan]] as const) {
+        if (!shown(fig.head)) continue;
+        const r = { who, top: -Infinity, bottom: Infinity, left: Infinity, right: -Infinity };
+        fig.head.traverse((o) => {
+          if (!(o instanceof Mesh) || !o.visible) return;
+          const pos = o.geometry.getAttribute('position');
+          for (let i = 0; i < pos.count; i++) {
+            v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld).project(camera);
+            if (v.z > 1) continue;
+            r.top = Math.max(r.top, v.y);
+            r.bottom = Math.min(r.bottom, v.y);
+            r.left = Math.min(r.left, v.x);
+            r.right = Math.max(r.right, v.x);
+          }
+        });
+        if (r.right >= -1 && r.left <= 1 && r.top >= -1 && r.bottom <= 1) heads.push(r);
+      }
+      return { shot: shotAt(T).shot.name, heads };
     },
     shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur, lines: (s.lines ?? []).map((l) => ({ who: l.who, text: l.text })) })),
     renderAudio: () =>
