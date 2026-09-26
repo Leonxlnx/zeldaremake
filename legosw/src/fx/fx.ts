@@ -53,7 +53,7 @@ class LaserSystem {
   group = new Group();
   events: LaserEvent[] = [];
   private meshes = new Map<LaserColor, { core: InstancedMesh; glow: InstancedMesh }>();
-  private max = 900;
+  private max = 1600;
   constructor() {
     this.group.name = 'lasers';
     const geo = new BufferGeometry();
@@ -76,22 +76,31 @@ class LaserSystem {
       this.meshes.set(c, { core, glow });
     }
   }
-  update(t: number): void {
+  update(t: number, cam?: Vector3): void {
     const counts: Record<LaserColor, number> = { red: 0, blue: 0, green: 0 };
     const m = new Matrix4();
     const q = new Quaternion();
     const s = new Vector3();
     const p = new Vector3();
+    const c = new Vector3();
     const Z = new Vector3(0, 1, 0);
     for (const e of this.events) {
       const age = t - e.t0;
       if (age < 0 || age > e.life) continue;
+      p.copy(e.dir).multiplyScalar(e.speed * age).add(e.from);
+      let fade = Math.min(1, age / 0.03) * Math.min(1, (e.life - age) / 0.05);
+      if (cam) {
+        // a bolt grazing the lens would fill the frame for one frame: thin it out before it gets there
+        const along = Math.max(-e.length / 2, Math.min(e.length / 2, c.copy(cam).sub(p).dot(e.dir)));
+        const d = c.copy(e.dir).multiplyScalar(along).add(p).distanceTo(cam);
+        const near = Math.max(0, Math.min(1, (d - 3 - e.width * 2) / (14 + e.width * 6)));
+        fade *= near * near * (3 - 2 * near);
+      }
+      if (fade < 0.02) continue;
       const set = this.meshes.get(e.color)!;
       const i = counts[e.color];
       if (i >= this.max) continue;
       counts[e.color]++;
-      const fade = Math.min(1, age / 0.03) * Math.min(1, (e.life - age) / 0.05);
-      p.copy(e.dir).multiplyScalar(e.speed * age).add(e.from);
       q.setFromUnitVectors(Z, e.dir);
       s.set(e.width * fade, e.length, e.width * fade);
       m.compose(p, q, s);
@@ -292,7 +301,7 @@ export class FX {
         this.puffsFire.push({
           center: pos.clone().add(off),
           t0: t0 + dt + i * 0.025,
-          dur: rng.range(0.55, 1.0) * Math.pow(S / 6, 0.25),
+          dur: rng.range(0.75, 1.25) * Math.pow(S / 6, 0.25),
           size: S * rng.range(0.6, 1.1),
           seed: rng.next(),
           heat: rng.range(0.85, 1.15),
@@ -335,6 +344,23 @@ export class FX {
     for (let i = 0; i < nsp; i++) {
       const dir = new Vector3(rng.gauss(), rng.gauss(), rng.gauss()).normalize();
       this.sparks.push({ t0: t0 + rng.range(0, 0.1), life: rng.range(0.4, 1.1), from: pos.clone(), vel: dir.multiplyScalar(S * rng.range(3, 9)).add(inherit), size: rng.range(2, 5) });
+    }
+  }
+
+  /** A turbolaser strike on a hull: a hot flash, a few sparks, no debris (cheap enough for hundreds). */
+  impact(t0: number, pos: Vector3, o: { size: number; normal?: Vector3; inherit?: Vector3; seed?: number }): void {
+    const rng = new Rng(o.seed ?? Math.floor(t0 * 997 + pos.x * 3 + pos.z * 5));
+    const S = o.size;
+    const n = o.normal ?? new Vector3();
+    const inherit = o.inherit ?? new Vector3();
+    for (let i = 0; i < 3; i++) {
+      const off = new Vector3(rng.gauss(), rng.gauss(), rng.gauss()).multiplyScalar(S * 0.18).add(n.clone().multiplyScalar(S * 0.25));
+      this.puffsFire.push({ center: pos.clone().add(off), t0: t0 + i * 0.03, dur: rng.range(0.45, 0.8), size: S * rng.range(0.55, 0.95), seed: rng.next(), heat: rng.range(0.9, 1.2), vel: n.clone().multiplyScalar(S * 0.4).add(inherit) });
+    }
+    this.puffsSmoke.push({ center: pos.clone().add(n.clone().multiplyScalar(S * 0.3)), t0: t0 + 0.1, dur: rng.range(1.4, 2.2), size: S * rng.range(0.9, 1.3), seed: rng.next(), heat: 1, vel: n.clone().multiplyScalar(S * 0.25).add(inherit) });
+    for (let i = 0; i < 10; i++) {
+      const dir = new Vector3(rng.gauss(), rng.gauss(), rng.gauss()).normalize().add(n).normalize();
+      this.sparks.push({ t0: t0 + rng.range(0, 0.08), life: rng.range(0.3, 0.8), from: pos.clone(), vel: dir.multiplyScalar(S * rng.range(2, 6)).add(inherit), size: rng.range(2, 4) });
     }
   }
 
@@ -415,9 +441,9 @@ export class FX {
     this.group.add(this.sparkPts);
   }
 
-  update(t: number, pixelScale = 1): void {
+  update(t: number, pixelScale = 1, cam?: Vector3): void {
     if (!this.built) this.build();
-    this.lasers.update(t);
+    this.lasers.update(t, cam);
     this.fire!.mat.uniforms.uTime.value = t;
     this.smoke!.mat.uniforms.uTime.value = t;
     this.sparkMat!.uniforms.uTime.value = t;

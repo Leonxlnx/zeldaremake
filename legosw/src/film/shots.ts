@@ -3,8 +3,9 @@ import { DEFAULT_LENS, type Lens } from '../render/pipeline';
 import { Rng, noise1 } from '../core/rng';
 import type { FaceState, Mouth } from '../assets/prints';
 import type { Minifig } from '../assets/minifig';
-import type { Eta2 } from '../assets/types';
-import { World, SUN_DIR, VENATOR_SPEED } from './world';
+import type { BuzzDroid, Eta2 } from '../assets/types';
+import { World, SUN_DIR, VICTIM_POSE } from './world';
+import { HAND_POS, HAND_YAW, LONG_T0, poseSwarms, scheduleCapitalFire, scheduleDogfights, vFrame } from './battle';
 import { basisQuat, clamp, flight, keyed, lerp, local, place, shake, smooth, smoother, v3, type FlightState, type Key } from './motion';
 
 /**
@@ -34,8 +35,10 @@ export interface Shot {
   start?: number;
   /** full-frame card: skip 3D rendering */
   card?: boolean;
-  /** motion-blur sub-frames to use for this shot (capped by the render request) */
+  /** minimum motion-blur sub-frames when the render asks for motion blur at all (very fast shots) */
   blur?: number;
+  /** shutter as a fraction of the frame (default: the render's, 0.5) */
+  shutter?: number;
   lines?: Line[];
   schedule?(w: World, T0: number): void;
   pose(w: World, t: number, T: number): Cam;
@@ -76,72 +79,29 @@ function anchorWorld(o: Object3D): Vector3 {
   return new Vector3().setFromMatrixPosition(o.matrixWorld);
 }
 
-/** Venator frame: the hero cruiser advances along +Z from the origin at the long take's start. */
-const LONG_T0 = 19.5;
-const vFrame = (T: number) => v3(0, 0, VENATOR_SPEED * (T - LONG_T0));
+let swarms: ((T: number) => void) | null = null;
+/** the tracking shot's frigate is gone for good once it blows up */
+const victimDeath = () => track.start! + 4.0;
 
-/** Background battle motion shared by all space shots (fleet drift, dogfight swarms). */
+/** Background battle shared by all space shots: the fleet, and the fighter duels around it. */
 function battle(w: World, T: number, o: { swarms?: boolean; fleet?: boolean; hero?: boolean } = {}): void {
   w.venator.group.visible = (o.fleet ?? true) && (o.hero ?? false);
   w.venator.group.position.copy(vFrame(T));
   w.venator.group.rotation.set(0, 0, 0);
   for (const f of w.fleet) f.root.visible = o.fleet ?? true;
+  w.munis[0].group.visible = (o.fleet ?? true) && T < victimDeath();
   if (o.swarms ?? true) {
-    const m = new Matrix4();
-    const rng = new Rng(77);
-    const furballs = [v3(900, -700, 9000), v3(-1800, -300, 13000), v3(2400, -1200, 17000), v3(-600, -1500, 21000), v3(3200, 200, 6000), v3(-2800, 400, 4000)];
-    const setSwarm = (sw: typeof w.vultureSwarm, n: number, seed: number, speed: number) => {
-      sw.group.visible = true;
-      const r2 = new Rng(seed);
-      for (let i = 0; i < n; i++) {
-        const c = furballs[i % furballs.length];
-        const R = r2.range(120, 520);
-        const w0 = r2.range(0.25, 0.6) * (r2.chance(0.5) ? 1 : -1) * speed;
-        const ph = r2.range(0, Math.PI * 2);
-        const tilt = r2.range(-0.7, 0.7);
-        const path = (t: number) => {
-          const a = ph + w0 * t;
-          return v3(c.x + Math.cos(a) * R, c.y + Math.sin(a * 1.3) * R * 0.35 + Math.sin(a) * R * tilt, c.z + Math.sin(a) * R + VENATOR_SPEED * 0.5 * t);
-        };
-        const st = flight(path, T, { bank: 1.4 });
-        m.compose(st.pos, st.quat, v3(1, 1, 1));
-        sw.set(i, m);
-      }
-      sw.commit(n);
-    };
-    setSwarm(w.vultureSwarm, 60, 11, 1);
-    setSwarm(w.arcSwarm, 24, 12, 0.8);
-    setSwarm(w.triSwarm, 16, 13, 1.2);
-    void rng;
+    (swarms ??= poseSwarms(w))(T);
+    w.vultureSwarm.group.visible = true;
+    w.arcSwarm.group.visible = true;
+    w.triSwarm.group.visible = true;
   }
 }
 
-/** Schedule the capital-ship slugfest: turbolaser salvos and hull hits across the whole battle. */
+/** Every bolt in the background has a target: fighter duels with kills, turbolasers onto real hulls. */
 export function scheduleBattle(w: World, T0: number, T1: number): void {
-  const rng = new Rng(2024);
-  const rep = [w.venator.group, ...w.fleet.filter((f) => f.kind === 'venator').map((f) => f.root)];
-  const sep = [...w.fleet.filter((f) => f.kind === 'muni').map((f) => f.root), w.hand.group];
-  const center = (o: Object3D, T: number) => {
-    const p = o.position.clone();
-    if (o === w.venator.group) p.copy(vFrame(T));
-    return p;
-  };
-  for (let T = T0; T < T1; T += rng.range(0.02, 0.06)) {
-    const fromRep = rng.chance(0.55);
-    const a = fromRep ? rng.pick(rep) : rng.pick(sep);
-    const b = fromRep ? rng.pick(sep) : rng.pick(rep);
-    const pa = center(a, T).add(v3(rng.range(-600, 600), rng.range(-100, 250), rng.range(-1200, 1200)));
-    const pb = center(b, T).add(v3(rng.range(-500, 500), rng.range(-200, 200), rng.range(-900, 900)));
-    const dir = pb.clone().sub(pa);
-    const dist = dir.length();
-    const speed = 3200;
-    w.fx.laser({ t0: T, from: pa, dir, speed, life: Math.min(dist / speed, 6), length: rng.range(120, 220), width: rng.range(9, 14), color: fromRep ? 'blue' : 'red' });
-  }
-  for (let T = T0; T < T1; T += rng.range(0.25, 0.6)) {
-    const tgt = rng.chance(0.5) ? rng.pick(sep) : rng.pick(rep);
-    const p = center(tgt, T).add(v3(rng.range(-500, 500), rng.range(-150, 150), rng.range(-1000, 1000)));
-    w.fx.explosion(T, p, { size: rng.range(60, 140), pieces: 10, brickScale: 7, sparks: 10, smoke: 3, colors: ['lbg', 'dbg', 'white', 'tan'], seed: Math.floor(T * 100) });
-  }
+  scheduleDogfights(w, T0, T1);
+  scheduleCapitalFire(w, T0, T1, { heroUntil: anakinCockpit.start!, victimDeath: victimDeath() });
 }
 
 /* ------------------------------------------------------------------ the shots */
@@ -213,7 +173,10 @@ function flatBasis(fwd: Vector3, damp = 0.35): Quaternion {
 
 const longTake: Shot = {
   name: 'longtake',
-  blur: 2,
+  // the camera threads the bridge towers at ~450 u/s: a shorter shutter and more samples keep the blur
+  // a smear instead of stepped ghost copies
+  blur: 6,
+  shutter: 0.32,
   dur: 16,
   schedule(w, T0) {
     // flak and hits once the dive reveals the battle
@@ -281,44 +244,47 @@ function trackPath(who: 'anakin' | 'obiwan', T0: number) {
 
 const track: Shot = {
   name: 'track',
-  blur: 2,
   dur: 5,
   schedule(w, T0) {
     const victim = w.munis[0];
-    const vpos = v3(3900, -1500, 7600);
+    victim.group.updateMatrixWorld(true);
+    const hits = Object.entries(victim.anchors)
+      .filter(([k]) => k.startsWith('hit'))
+      .map(([, a]) => ({ p: anchorWorld(a), n: v3(0, 0, 1).applyQuaternion(a.getWorldQuaternion(new Quaternion())) }));
+    // the Republic ship doing the killing: the nearest Venator in the fleet
+    const shooter = w.fleet.filter((f) => f.kind === 'venator').sort((a, b) => a.root.position.distanceTo(VICTIM_POSE.pos) - b.root.position.distanceTo(VICTIM_POSE.pos))[0];
+    shooter.root.updateMatrixWorld(true);
+    const muzzles = shooter.ship.turrets.map((m) => anchorWorld(m));
     const rng = new Rng(5);
-    const hits = [0.7, 1.3, 1.9, 2.4, 3.0, 3.4];
-    hits.forEach((h, i) => {
-      const p = vpos.clone().add(v3(rng.range(-250, 250), rng.range(-300, 350), rng.range(-700, 700)));
+    const times = [0.7, 1.3, 1.9, 2.4, 3.0, 3.4];
+    times.forEach((h, i) => {
+      const hit = hits[i % hits.length];
+      const p = hit.p.clone().add(hit.n.clone().multiplyScalar(20));
+      // a salvo that arrives on the hit
+      for (let k = 0; k < 3; k++) {
+        const from = muzzles[(i * 5 + k * 7) % muzzles.length];
+        const dist = from.distanceTo(p);
+        w.fx.laser({ t0: T0 + h - dist / 3200 - k * 0.06, from, dir: p.clone().sub(from), speed: 3200, life: dist / 3200, length: 160, width: 11, color: 'blue' });
+      }
       w.fx.explosion(T0 + h, p, { size: 150 + i * 30, pieces: 26, brickScale: 7, sparks: 20, smoke: 5, colors: ['tan', 'darkTan', 'lbg', 'reddishBrown'], seed: 300 + i, flashes: 2 });
     });
-    w.fx.explosion(T0 + 3.9, vpos.clone().add(v3(0, 50, 0)), { size: 520, pieces: 90, brickScale: 8, sparks: 60, smoke: 10, colors: ['tan', 'darkTan', 'lbg', 'reddishBrown', 'dbg'], seed: 399, flashes: 3 });
-    void victim;
-    for (let t = 0.2; t < 5; t += rng.range(0.18, 0.4)) {
+    w.fx.explosion(T0 + 3.9, VICTIM_POSE.pos.clone().add(v3(0, 50, 0)), { size: 520, pieces: 90, brickScale: 8, sparks: 60, smoke: 10, colors: ['tan', 'darkTan', 'lbg', 'reddishBrown', 'dbg'], seed: 399, flashes: 3 });
+    // flak bursting around the pair
+    for (let t = 0.2; t < 5; t += rng.range(0.35, 0.7)) {
       const st = flight(trackPath('anakin', T0), T0 + t);
       const p = local(st, rng.range(-200, 200), rng.range(-120, 140), rng.range(-60, 500));
       w.fx.explosion(T0 + t, p, { size: rng.range(10, 22), pieces: 10, sparks: 14, smoke: 2, colors: ['dbg', 'black', 'lbg'], seed: Math.floor(t * 131) });
-    }
-    for (let t = 0; t < 5; t += rng.range(0.05, 0.12)) {
-      const st = flight(trackPath('anakin', T0), T0 + t);
-      const from = local(st, rng.range(-900, 900), rng.range(-300, 300), rng.range(400, 1400));
-      const dir = v3(rng.range(-1, 1), rng.range(-0.3, 0.3), rng.range(-1, 0.2));
-      w.fx.laser({ t0: T0 + t, from, dir, speed: 1400, life: 1.2, length: 26, width: 1.8, color: rng.chance(0.5) ? 'red' : 'green' });
     }
   },
   pose(w, t, T) {
     battle(w, T, { hero: true });
     const T0 = T - t;
-    const victim = w.munis[0];
-    victim.group.visible = t < 4.05;
-    victim.group.position.set(3900, -1500, 7600);
-    victim.group.rotation.set(0.05, 2.6, 0.1);
     const a = flight(trackPath('anakin', T0), T, { bank: 1 });
     const o = flight(trackPath('obiwan', T0), T, { bank: 1 });
     const foils = smooth(0.2, 1.1, t);
     fly(w, w.anakinShip, a, foils);
     fly(w, w.obiwanShip, o, foils);
-    face(w.anakin, { mouth: 'grit', brows: -0.7 }, t, 1);
+    face(w.anakin, { mouth: 'smirk', brows: -0.5 }, t, 1);
     face(w.obiwan, { mouth: 'flat', brows: 0.5 }, t, 2);
     const mid = a.pos.clone().lerp(o.pos, 0.5);
     const pos = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -34 + t * 2, 7, 14 - t * 3.5).add(shake(t, 0.8, 1.1, 9));
@@ -349,8 +315,7 @@ function cockpitShot(o: {
       battle(w, T);
       const ship = o.who === 'anakin' ? w.anakinShip : w.obiwanShip;
       const fig = o.who === 'anakin' ? w.anakin : w.obiwan;
-      const base = v3(o.who === 'anakin' ? 300 : 200, -1400, 9000 + T * 30);
-      const path = (tt: number) => base.clone().add(v3(Math.sin(tt * 0.7) * 20, Math.sin(tt * 0.5) * 12, tt * 260));
+      const path = cockpitPath(o.who);
       const st = flight(path, T, { bank: 1.2 });
       // cockpit vibration
       st.pos.add(shake(t, 0.12, 3.5, o.who === 'anakin' ? 21 : 22));
@@ -372,15 +337,27 @@ function cockpitShot(o: {
   };
 }
 
+function cockpitPath(who: 'anakin' | 'obiwan') {
+  const x0 = who === 'anakin' ? 300 : 200;
+  return (tt: number) => v3(x0 + Math.sin(tt * 0.7) * 20, -1400 + Math.sin(tt * 0.5) * 12, 9000 + tt * 290);
+}
+
+/** droids on the hero's tail: bolts aimed at the fighter that zip past the canopy, plus flak ahead */
 function cockpitLasers(who: 'anakin' | 'obiwan', seedBase: number): Shot['schedule'] {
   return (w, T0) => {
     const rng = new Rng(seedBase);
-    for (let t = 0; t < 5; t += rng.range(0.12, 0.3)) {
-      const base = v3(who === 'anakin' ? 300 : 200, -1400, 9000 + (T0 + t) * 30);
-      const p = base.add(v3(0, 0, (T0 + t) * 260));
-      const from = p.clone().add(v3(rng.range(-300, 300), rng.range(-120, 160), rng.range(300, 900)));
-      w.fx.laser({ t0: T0 + t, from, dir: v3(rng.range(-0.5, 0.5), rng.range(-0.2, 0.2), -1), speed: 900, life: 1.5, length: 22, width: 1.4, color: rng.chance(0.6) ? 'red' : 'green' });
-      if (rng.chance(0.35)) w.fx.explosion(T0 + t, from.clone().add(v3(0, 0, 200)), { size: rng.range(18, 40), pieces: 8, sparks: 10, smoke: 2, seed: Math.floor(t * 71 + seedBase) });
+    const ship = cockpitPath(who);
+    for (let t = 0; t < 5; t += rng.range(0.14, 0.3)) {
+      const tf = T0 + t;
+      const from = ship(tf).add(v3(rng.range(-240, 240), rng.range(-90, 140), -rng.range(450, 850)));
+      let ta = tf + from.distanceTo(ship(tf)) / 1000;
+      ta = tf + from.distanceTo(ship(ta)) / 1000;
+      const aim = ship(ta).add(v3(rng.gauss(), rng.gauss() * 0.6, 0).normalize().multiplyScalar(rng.range(7, 22)));
+      w.fx.laser({ t0: tf, from, dir: aim.clone().sub(from), speed: 1000, life: (from.distanceTo(aim) + 400) / 1000, length: 20, width: 1.3, color: rng.chance(0.6) ? 'red' : 'green' });
+    }
+    for (let t = 0.3; t < 5; t += rng.range(0.7, 1.3)) {
+      const p = ship(T0 + t).add(v3(rng.range(-320, 320), rng.range(-120, 180), rng.range(250, 800)));
+      w.fx.explosion(T0 + t, p, { size: rng.range(18, 36), pieces: 8, sparks: 10, smoke: 2, colors: ['dbg', 'black', 'lbg'], seed: Math.floor(t * 71 + seedBase) });
     }
   };
 }
@@ -390,39 +367,58 @@ const anakinCockpit = cockpitShot({
   dur: 4,
   who: 'anakin',
   lines: [{ t0: 1.0, t1: 3.4, who: 'Anakin Skywalker', text: 'This is where the fun begins.' }],
-  faceAt: (t) => ({ mouth: talk(t, 1.05, 2.9, t < 1 ? 'grit' : 'smirk'), brows: t < 1 ? -0.8 : -0.35, squint: t < 1 ? 0.25 : 0.1, lookX: t < 0.9 ? 0.02 : 0 }),
+  faceAt: (t) => ({ mouth: talk(t, 1.05, 2.9, 'smirk'), brows: -0.35, squint: 0.1, lookX: t < 0.9 ? 0.02 : 0 }),
   headAt: (t) => ({ yaw: 0.25 - smooth(0.6, 1.3, t) * 0.35, pitch: -0.05 }),
   schedule: cockpitLasers('anakin', 41),
 });
 
 /* --- shot 5: the vulture droids swarm in; Anakin opens fire */
 
+const VULTURE_KILLS: [number, number][] = [
+  [0, 1.45],
+  [2, 2.1],
+  [4, 2.72],
+];
+const vultureDead = (k: number, t: number) => VULTURE_KILLS.some(([kk, tk]) => kk === k && t > tk);
+
 const vultures: Shot = {
   name: 'vultures',
-  blur: 2,
   dur: 5,
   schedule(w, T0) {
     const pathA = vPath(T0);
     const rng = new Rng(55);
-    // Anakin's cannons
-    for (let t = 0.9; t < 2.6; t += 0.11) {
-      const st = flight(pathA, T0 + t);
-      w.loc.muzzlesA.forEach((mz, k) => {
-        const from = local(st, mz.x, mz.y, mz.z + 0.6);
-        w.fx.laser({ t0: T0 + t + k * 0.05, from, dir: st.fwd.clone().add(v3(rng.range(-0.02, 0.02), rng.range(-0.02, 0.02), 0)), speed: 1500, life: 0.9, length: 9, width: 0.8, color: 'red' });
-      });
+    const SPEED = 1500;
+    const muzzle = (T: number, k: number) => {
+      const st = flight(pathA, T);
+      const mz = w.loc.muzzlesA[k % w.loc.muzzlesA.length];
+      return local(st, mz.x, mz.y, mz.z + 0.6);
+    };
+    const burst = (target: (T: number) => Vector3, ta: number, k: number, miss: number, hits: boolean) => {
+      let tf = ta - 0.3;
+      for (let n = 0; n < 3; n++) tf = ta - muzzle(tf, k).distanceTo(target(ta)) / SPEED;
+      const from = muzzle(tf, k);
+      const aim = target(ta).add(v3(rng.gauss(), rng.gauss(), rng.gauss()).multiplyScalar(miss));
+      const dist = from.distanceTo(aim);
+      w.fx.laser({ t0: tf, from, dir: aim.clone().sub(from), speed: SPEED, life: hits ? dist / SPEED : (dist + 150) / SPEED, length: 9, width: 0.8, color: 'red' });
+    };
+    // Anakin's cannons: each burst walks onto a doomed vulture; the last pair lands on the kill frame
+    for (const [k, tk] of VULTURE_KILLS) {
+      const target = (T: number) => vulturePos(k, T, T0);
+      for (let n = 0; n < 6; n++) burst(target, T0 + tk - (5 - n) * 0.1, n, n < 4 ? (4 - n) * 2.2 : 0, n >= 4);
+      const st = flight(target, T0 + tk);
+      w.fx.explosion(T0 + tk, st.pos, { size: 16, pieces: 45, sparks: 40, smoke: 5, colors: ['tan', 'darkTan', 'reddishBrown', 'dbg', 'black'], seed: 500 + k, inherit: st.vel.clone().multiplyScalar(0.8) });
     }
-    // two kills
-    for (const [k, tk] of [[0, 1.55], [2, 2.35]] as const) {
-      const p = vulturePos(k, T0 + tk, T0);
-      w.fx.explosion(T0 + tk, p, { size: 16, pieces: 45, sparks: 40, smoke: 5, colors: ['tan', 'darkTan', 'reddishBrown', 'dbg', 'black'], seed: 500 + k, inherit: v3(0, 0, -120) });
+    // snap shots at the survivors (near misses)
+    for (let t = 0.7; t < 2.7; t += 0.34) {
+      const k = [1, 3, 5][Math.floor(t * 3) % 3];
+      burst((T) => vulturePos(k, T, T0), T0 + t + 0.15, Math.floor(t * 10), 7, false);
     }
-    // droid return fire
+    // droid return fire, aimed at Anakin
     for (let t = 0.3; t < 3.5; t += rng.range(0.08, 0.16)) {
       const k = rng.int(0, 5);
-      if ((k === 0 && t > 1.55) || (k === 2 && t > 2.35)) continue;
+      if (vultureDead(k, t)) continue;
       const p = vulturePos(k, T0 + t, T0);
-      const target = flight(pathA, T0 + t).pos.clone().add(v3(rng.range(-30, 30), rng.range(-20, 20), rng.range(-40, 40)));
+      const target = flight(pathA, T0 + t + 0.5).pos.clone().add(v3(rng.range(-30, 30), rng.range(-20, 20), rng.range(-40, 40)));
       w.fx.laser({ t0: T0 + t, from: p, dir: target.sub(p), speed: 1300, life: 1.2, length: 9, width: 0.9, color: 'red' });
     }
   },
@@ -430,15 +426,15 @@ const vultures: Shot = {
     battle(w, T);
     const T0 = T - t;
     const pathA = vPath(T0);
-    const roll = smooth(2.8, 3.4, t) * (1 - smooth(3.6, 4.4, t)) * Math.PI * 2 * 0 + (t > 2.8 && t < 4.2 ? smoother(2.8, 4.2, t) * Math.PI * 2 : 0);
+    const roll = t > 2.9 && t < 4.7 ? smoother(2.9, 4.7, t) * Math.PI * 2 : 0;
     const a = flight(pathA, T, { bank: 1.2, extraRoll: roll });
     fly(w, w.anakinShip, a, 1);
     const o = flight((tt) => pathA(tt).add(v3(-38, 14, -60)), T, { bank: 1.2 });
     fly(w, w.obiwanShip, o, 1);
-    face(w.anakin, { mouth: 'grit', brows: -1 }, t, 1);
+    face(w.anakin, { mouth: 'grin', brows: -0.6 }, t, 1);
     for (let k = 0; k < 6; k++) {
       const v = w.vultures[k];
-      const dead = (k === 0 && t > 1.55) || (k === 2 && t > 2.35);
+      const dead = vultureDead(k, t);
       v.group.visible = !dead;
       if (dead) continue;
       const st = flight((tt) => vulturePos(k, tt, T0), T, { bank: 1.5 });
@@ -479,12 +475,11 @@ function vulturePos(k: number, T: number, T0: number): Vector3 {
 
 /* --- shot 6: the Invisible Hand, crawling with vulture droids */
 
-const HAND_POS = v3(-900, -1700, 27500);
 function poseHand(w: World): void {
   const h = w.hand.group;
   h.visible = true;
   h.position.copy(HAND_POS);
-  h.rotation.set(0, Math.PI / 2 + 0.45, 0);
+  h.rotation.set(0, HAND_YAW, 0);
 }
 
 function crawlerPoses(w: World, T: number): void {
@@ -585,8 +580,8 @@ const missiles: Shot = {
   lines: [{ t0: 2.3, t1: 3.9, who: 'Obi-Wan Kenobi', text: 'Buzz droids!' }],
   schedule(w, T0) {
     for (let k = 0; k < 2; k++) {
-      const p = missilePath(k, T0)(T0 + 1.9);
-      w.fx.explosion(T0 + 1.9, p, { size: 5, pieces: 6, sparks: 30, smoke: 2, colors: ['gunmetal', 'dbg'], seed: 800 + k });
+      const st = flight(missilePath(k, T0), T0 + 1.9);
+      w.fx.explosion(T0 + 1.9, st.pos, { size: 5, pieces: 6, sparks: 30, smoke: 2, colors: ['gunmetal', 'dbg'], seed: 800 + k, inherit: flight(obiPath8(T0), T0 + 1.9).vel });
     }
   },
   pose(w, t, T) {
@@ -616,10 +611,11 @@ const missiles: Shot = {
       const slot = m.payloadAnchors[Math.floor(i / 2) % Math.max(1, m.payloadAnchors.length)];
       const rel = slot ? payloadLocal(m.group, slot) : v3(0, 0, 0);
       const from = local(flight(missilePath(k, T0), T0 + tr), rel.x, rel.y, rel.z);
-      const perch = local(o, ...PERCH[i]);
+      const c = crawlLocal(i, T);
+      const perch = local(o, c.p.x, c.p.y, c.p.z);
       const f = smoother(tr, tr + 0.7, t);
       b.group.position.copy(from.lerp(perch, f));
-      b.group.quaternion.copy(o.quat);
+      b.group.quaternion.copy(o.quat).slerp(o.quat.clone().multiply(c.q), f);
       const ps = (m.group.userData.payloadScale as number | undefined) ?? 0.28;
       b.group.scale.setScalar(lerp(ps, 1, smoother(tr, tr + 0.55, t)));
       b.setDeploy(smooth(tr + 0.4, tr + 0.9, t));
@@ -641,6 +637,39 @@ function payloadLocal(missile: Object3D, slot: Object3D): Vector3 {
   return v;
 }
 
+/** each droid's patch of Obi-Wan's fighter (ship-local x/z ranges); the foils slope up outboard */
+const CRAWL: { x: [number, number]; z: [number, number] }[] = [
+  { x: [5.9, 8.9], z: [-0.5, 3.0] },
+  { x: [6.3, 9.2], z: [-4.4, -1.0] },
+  { x: [-8.9, -6.0], z: [-0.8, 2.8] },
+  { x: [-9.2, -6.4], z: [-4.6, -1.2] },
+  { x: [1.6, 2.8], z: [5.6, 6.8] },
+  { x: [4.3, 5.2], z: [-7.6, -6.2] },
+];
+/** A buzz droid wandering over its patch (ship-local), feet on the surface, facing where it walks. */
+function crawlLocal(i: number, T: number): { p: Vector3; q: Quaternion } {
+  const c = CRAWL[i];
+  const ph = i * 1.93, ph2 = i * 2.71 + 0.6;
+  const x = lerp(c.x[0], c.x[1], 0.5 + 0.5 * Math.sin(T * 0.52 + ph));
+  const z = lerp(c.z[0], c.z[1], 0.5 + 0.5 * Math.sin(T * 0.37 + ph2));
+  const dx = (c.x[1] - c.x[0]) * 0.26 * Math.cos(T * 0.52 + ph);
+  const dz = (c.z[1] - c.z[0]) * 0.185 * Math.cos(T * 0.37 + ph2);
+  const surf = i === 4 ? 1.6 : i === 5 ? 0.98 : foilTop(x);
+  const slope = i < 4 && Math.abs(x) > 5.5 ? 0.384 * Math.sign(x) : 0;
+  const p = v3(x, surf + BUZZ_LIFT + Math.abs(Math.sin(T * 6.5 + i * 1.3)) * 0.08, z);
+  const up = v3(-slope, 1, 0).normalize();
+  const heading = v3(dx, 0, dz);
+  if (heading.lengthSq() < 1e-6) heading.set(0, 0, 1);
+  heading.normalize();
+  const fwd = heading.sub(up.clone().multiplyScalar(heading.dot(up))).normalize();
+  return { p, q: basisQuat(fwd, up) };
+}
+function crawlOn(ship: FlightState, i: number, T: number, b: BuzzDroid): void {
+  const c = crawlLocal(i, T);
+  b.group.position.copy(local(ship, c.p.x, c.p.y, c.p.z));
+  b.group.quaternion.copy(ship.quat).multiply(c.q);
+}
+
 /* --- shot 9: buzz droids at work; R4 loses her head */
 
 const R4_POP = 2.55;
@@ -649,7 +678,7 @@ const buzzClose: Shot = {
   dur: 4.5,
   schedule(w, T0) {
     // cutting sparks from each droid's saw
-    for (let i = 0; i < 4; i++) {
+    for (const i of [0, 1, 5]) {
       w.fx.sparkStream(T0 + 0.1, T0 + 4.4, (T) => buzzWorld(w, i, T, T0), () => v3(0, 1, 0), 60, 70 + i, 6);
     }
     w.fx.explosion(T0 + R4_POP, r4World(w, T0 + R4_POP, T0), { size: 1.6, pieces: 6, sparks: 50, smoke: 2, colors: ['red', 'flatSilver', 'white'], seed: 901 });
@@ -664,17 +693,18 @@ const buzzClose: Shot = {
     w.obiwan.pose({ legL: Math.PI / 2, legR: Math.PI / 2, armL: 0.95, armR: 0.95, splayL: 0.08, splayR: 0.08, headYaw: 0.45, headPitch: 0.1 });
     w.buzz.forEach((b, i) => {
       b.group.visible = i === 0 || i === 1 || i === 5;
-      b.group.position.copy(local(o, ...PERCH[i]).add(v3(0, 0, 0)));
-      b.group.quaternion.copy(o.quat);
+      crawlOn(o, i, T, b);
       b.setDeploy(1);
-      b.animate(T * 1.3 + i);
+      b.animate(T * 1.6 + i);
     });
     // droid 0 walks to the socket and slices R4's dome
     const r4 = w.r4;
     const sock = anchorWorld(w.obiwanShip.astromechAnchor);
     const b0 = w.buzz[0];
     const walk = smoother(0.2, 1.8, t);
-    b0.group.position.copy(local(o, ...PERCH[0]).lerp(sock.clone().add(v3(1.6, 0.6, 0.4).applyQuaternion(o.quat)), walk));
+    const c0 = crawlLocal(0, T);
+    b0.group.position.copy(local(o, c0.p.x, c0.p.y, c0.p.z).lerp(sock.clone().add(v3(1.6, 0.6, 0.4).applyQuaternion(o.quat)), walk));
+    b0.group.quaternion.copy(o.quat).multiply(c0.q).slerp(o.quat.clone().multiply(new Quaternion().setFromAxisAngle(v3(0, 1, 0), Math.PI * 0.5)), walk);
     const pop = t - R4_POP;
     if (pop > 0) {
       // the dome flies off, tumbling (it is re-attached by the next shots' reset)
@@ -702,7 +732,8 @@ function r4World(w: World, T: number, T0: number): Vector3 {
 }
 function buzzWorld(w: World, i: number, T: number, T0: number): Vector3 {
   const st = flight(obiPath9(T0), T);
-  return local(st, PERCH[i][0], PERCH[i][1] + 0.3, PERCH[i][2] + 0.8);
+  const c = crawlLocal(i, T);
+  return local(st, c.p.x, c.p.y + 0.3, c.p.z).add(v3(0, 0, 0.8).applyQuaternion(st.quat.clone().multiply(c.q)));
 }
 
 const obiCockpit2 = cockpitShot({
@@ -739,14 +770,18 @@ const rescue: Shot = {
     const pa = (tt: number) => pair11(T0)(tt).add(v3(-30, 6, -26));
     for (let t = 0.45; t < 0.8; t += 0.1) {
       const st = flight(pa, T0 + t);
-      const target = local(flight(pair11(T0), T0 + 0.85), ...PERCH[3]);
+      const ok = flight(pair11(T0), T0 + 0.85);
+      const c3 = crawlLocal(3, T0 + 0.85);
+      const target = local(ok, c3.p.x, c3.p.y, c3.p.z);
       for (const mz of w.loc.muzzlesA) {
         const from = local(st, mz.x, mz.y, mz.z + 0.6);
         w.fx.laser({ t0: T0 + t, from, dir: target.clone().sub(from), speed: 900, life: target.distanceTo(from) / 900, length: 5, width: 0.6, color: 'red' });
       }
     }
-    const pk = local(flight(pair11(T0), T0 + 0.85), ...PERCH[3]);
-    w.fx.explosion(T0 + 0.85, pk, { size: 5, pieces: 26, sparks: 40, smoke: 3, colors: ['flatSilver', 'dbg', 'lbg'], seed: 1101, inherit: v3(0, 0, 150) });
+    const ok = flight(pair11(T0), T0 + 0.85);
+    const c3 = crawlLocal(3, T0 + 0.85);
+    const pk = local(ok, c3.p.x, c3.p.y, c3.p.z);
+    w.fx.explosion(T0 + 0.85, pk, { size: 5, pieces: 26, sparks: 40, smoke: 3, colors: ['flatSilver', 'dbg', 'lbg'], seed: 1101, inherit: ok.vel.clone().multiplyScalar(0.9) });
     // R2's zap: a crackling stream of blue sparks
     const z = w.loc.zapA;
     const r2At = (T: number) => local(flight((tt) => pair11(T0)(tt).add(v3(-30, 6, -26)), T), z.x, z.y + 0.2, z.z + 0.3);
@@ -769,10 +804,9 @@ const rescue: Shot = {
       const b = w.buzz[i];
       const gone = i === 3 && t > 0.85;
       b.group.visible = !gone;
-      b.group.position.copy(local(o, ...PERCH[i]));
-      b.group.quaternion.copy(o.quat);
+      crawlOn(o, i, T, b);
       b.setDeploy(1);
-      b.animate(T + n);
+      b.animate(T * 1.6 + n);
     });
     const b4 = w.buzz[4];
     b4.group.visible = true;
@@ -826,7 +860,7 @@ const hangarApproach: Shot = {
         .add(v3(0, lerp(90, -2, smoother(0, 0.85, u)), 0));
     };
     const a = flight(path, T, { bank: 0.8 });
-    const o = flight((tt) => path(tt - 0.3).add(side.clone().multiplyScalar(-16)).add(v3(0, 5, 0)), T, { bank: 0.8 });
+    const o = flight((tt) => path(tt).add(out.clone().multiplyScalar(20)).add(side.clone().multiplyScalar(22)).add(v3(0, 4, 0)), T, { bank: 0.8 });
     fly(w, w.anakinShip, a, 0.3);
     fly(w, w.obiwanShip, o, 0.3);
     w.r4.head.visible = false;
@@ -922,6 +956,92 @@ function obiSlide(s: ReturnType<typeof hangarSpots>, t: number): Vector3 {
   return p0.lerp(s.A, skid).setY(s.A.y + 1.5);
 }
 
+/** where the Jedi stand to face the droids: the jump-out lands them here, the droids shot starts here */
+function jediMarks(s: ReturnType<typeof hangarSpots>) {
+  const mid = s.A.clone().lerp(s.B, 0.5);
+  const toDroids = s.D.clone().sub(mid).setY(0).normalize();
+  const yaw = Math.atan2(toDroids.x, toDroids.z);
+  const side = v3(toDroids.z, 0, -toDroids.x);
+  const obiPos = mid.clone().add(side.clone().multiplyScalar(3.5)).add(toDroids.clone().multiplyScalar(4));
+  const anaPos = mid.clone().add(side.clone().multiplyScalar(-3.5)).add(toDroids.clone().multiplyScalar(4));
+  return { mid, toDroids, yaw, side, obiPos, anaPos };
+}
+
+/** both fighters parked after the landing (Obi-Wan's wrecked, its broken parts on the deck), canopies 0..1 open */
+function parkFighters(w: World, s: ReturnType<typeof hangarSpots>, canopy: number): void {
+  fly(w, w.obiwanShip, { pos: s.A.clone().setY(s.A.y + 1.5), quat: basisQuat(s.A.clone().sub(s.M).setY(0).normalize(), v3(0, 1, 0)).multiply(new Quaternion().setFromEuler(new Euler(0.05, 0.5, 0.12))) } as FlightState, 0, 0);
+  w.obiwanShip.breakables.forEach((p, i) => {
+    const hm = p.userData.home as { pos: Vector3; quat: Quaternion } | undefined;
+    if (!hm || i >= 3) return;
+    const rng = new Rng(1400 + i);
+    p.position.set(hm.pos.x + rng.range(-1, 1) * 14, -1.2, hm.pos.z + rng.range(0.2, 1) * 12);
+  });
+  w.r4.head.visible = false;
+  fly(w, w.anakinShip, { pos: s.B.clone().setY(s.B.y + 1.8), quat: basisQuat(s.B.clone().sub(s.M).setY(0).normalize(), v3(0, 1, 0)) } as FlightState, 0, 0);
+  w.obiwanShip.canopy.rotation.x = -1.05 * canopy;
+  w.anakinShip.canopy.rotation.x = -0.9 * canopy;
+}
+
+const FLIP_DUR = 0.95;
+/**
+ * A pilot vaulting out of the cockpit: a ballistic arc from the seat to `land` with one tucked front
+ * flip (about the torso, not the hips), a little squash on touchdown, then turning to `yawEnd`.
+ * `tj` is the time since take-off; before it the pilot is still seated, winding up.
+ */
+function flipOut(w: World, fig: Minifig, ship: Eta2, land: Vector3, yawEnd: number, tj: number): void {
+  if (tj <= 0) {
+    const wind = smooth(-0.3, 0, tj);
+    fig.pose({ legL: Math.PI / 2, legR: Math.PI / 2, armL: 0.95 + wind * 1.2, armR: 0.95 + wind * 1.2, splayL: 0.08 + wind * 0.3, splayR: 0.08 + wind * 0.3, headPitch: -0.15 * wind });
+    return;
+  }
+  const hip0 = anchorWorld(ship.cockpitAnchor);
+  const hip1 = land.clone().add(v3(0, 1.25, 0));
+  const travel = hip1.clone().sub(hip0).setY(0);
+  const yawTravel = Math.atan2(travel.x, travel.z);
+  if (tj < FLIP_DUR) {
+    const u = tj / FLIP_DUR;
+    const h = Math.max(hip0.y, hip1.y) + 5.5 - (hip0.y + hip1.y) / 2;
+    const pos = hip0.clone().lerp(hip1, u);
+    pos.y = lerp(hip0.y, hip1.y, u) + 4 * h * u * (1 - u);
+    const q = new Quaternion().setFromAxisAngle(v3(0, 1, 0), yawTravel).multiply(new Quaternion().setFromAxisAngle(v3(1, 0, 0), smoother(0.06, 0.9, u) * Math.PI * 2));
+    const pivot = v3(0, 0.8, 0);
+    w.stand(fig, v3(0, 0, 0), 0);
+    fig.group.quaternion.copy(q);
+    fig.group.position.copy(pos).add(pivot).sub(pivot.clone().applyQuaternion(q));
+    const tuck = Math.pow(Math.sin(Math.PI * u), 0.7);
+    fig.pose({ legL: tuck * 1.35, legR: tuck * 1.35, armL: 0.4 + tuck * 1.9, armR: 0.4 + tuck * 1.9, splayL: 0.25 * tuck, splayR: 0.25 * tuck, headPitch: 0.25 * tuck });
+    return;
+  }
+  const tl = tj - FLIP_DUR;
+  let dy = yawEnd - yawTravel;
+  dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+  w.stand(fig, land, yawTravel + dy * smooth(0.1, 0.55, tl));
+  fig.group.position.y -= 0.22 * Math.sin(Math.PI * clamp(tl / 0.22));
+  const settle = smooth(0, 0.3, tl);
+  fig.pose({ armL: lerp(1.4, 0.15, settle), armR: lerp(1.4, 0.25, settle), splayL: lerp(0.5, 0.1, settle), splayR: lerp(0.5, 0.05, settle) });
+}
+
+const jumpOut: Shot = {
+  name: 'jump-out',
+  dur: 3.4,
+  pose(w, t) {
+    w.interior();
+    const s = hangarSpots(w);
+    w.hangar.setShield(0);
+    parkFighters(w, s, smooth(0, 0.4, t));
+    const J = jediMarks(s);
+    flipOut(w, w.obiwan, w.obiwanShip, J.obiPos, J.yaw - 0.9, t - 0.32);
+    flipOut(w, w.anakin, w.anakinShip, J.anaPos, J.yaw + 0.6, t - 0.78);
+    face(w.obiwan, { mouth: t < 1.3 ? 'o' : 'smile', brows: t < 1.3 ? 0.6 : 0.2 }, t, 2);
+    face(w.anakin, { mouth: 'grin', brows: -0.3 }, t, 1);
+    // wide three-quarter from the droids' side: both flips read in profile against the hangar mouth
+    const camPos = J.mid.clone().add(J.toDroids.clone().multiplyScalar(30)).add(v3(0, 7.5, 0)).add(J.side.clone().multiplyScalar(-4));
+    const look = J.mid.clone().add(J.toDroids.clone().multiplyScalar(-1.5)).add(v3(0, 3.6, 0));
+    w.aimShadow(J.mid, 40, v3(0.2, 1, 0.3).normalize());
+    return { pos: camPos.add(shake(t, 0.04, 1, 47)), target: look, fov: 40, near: 0.1, lens: { exposure: 1.1 } };
+  },
+};
+
 const droids: Shot = {
   name: 'droids',
   dur: 5.2,
@@ -933,25 +1053,9 @@ const droids: Shot = {
     w.interior();
     const s = hangarSpots(w);
     w.hangar.setShield(0);
-    // parked fighters (Obi-Wan's is wrecked)
-    fly(w, w.obiwanShip, { pos: s.A.clone().setY(s.A.y + 1.5), quat: basisQuat(s.A.clone().sub(s.M).setY(0).normalize(), v3(0, 1, 0)).multiply(new Quaternion().setFromEuler(new Euler(0.05, 0.5, 0.12))) } as FlightState, 0, 0);
-    w.obiwanShip.breakables.forEach((p, i) => {
-      const hm = p.userData.home as { pos: Vector3; quat: Quaternion } | undefined;
-      if (!hm) return;
-      if (i < 3) {
-        const rng = new Rng(1400 + i);
-        p.position.set(hm.pos.x + rng.range(-1, 1) * 14, -hm.pos.y * 0 - 1.2, hm.pos.z + rng.range(0.2, 1) * 12);
-      }
-    });
-    w.r4.head.visible = false;
-    fly(w, w.anakinShip, { pos: s.B.clone().setY(s.B.y + 1.8), quat: basisQuat(s.B.clone().sub(s.M).setY(0).normalize(), v3(0, 1, 0)) } as FlightState, 0, 0);
-    // the Jedi stand between the fighters and the droids
-    const mid = s.A.clone().lerp(s.B, 0.5);
-    const toDroids = s.D.clone().sub(mid).setY(0).normalize();
-    const yaw = Math.atan2(toDroids.x, toDroids.z);
-    const side = v3(toDroids.z, 0, -toDroids.x);
-    const obiPos = mid.clone().add(side.clone().multiplyScalar(3.5)).add(toDroids.clone().multiplyScalar(4));
-    const anaPos = mid.clone().add(side.clone().multiplyScalar(-3.5)).add(toDroids.clone().multiplyScalar(4));
+    parkFighters(w, s, 1);
+    // the Jedi stand where they landed, between the fighters and the droids
+    const { mid, toDroids, yaw, side, obiPos, anaPos } = jediMarks(s);
     w.stand(w.obiwan, obiPos, yaw + (t < 2.4 ? -0.9 : 0));
     w.stand(w.anakin, anaPos, yaw + (t < 2.4 ? 0.6 : 0));
     const ign = smooth(2.9, 3.25, t);
@@ -1003,7 +1107,7 @@ const droids: Shot = {
 
 const endCard: Shot = { name: 'endcard', dur: 4.5, card: true, pose: () => ({ pos: v3(0, 0, 0), target: v3(0, 0, 1), fov: 30 }) };
 
-export const SHOTS: Shot[] = [farfar, crawl, longTake, track, anakinCockpit, vultures, handReveal, obiCockpit, missiles, buzzClose, obiCockpit2, anakinCockpit2, rescue, hangarApproach, landing, droids, endCard];
+export const SHOTS: Shot[] = [farfar, crawl, longTake, track, anakinCockpit, vultures, handReveal, obiCockpit, missiles, buzzClose, obiCockpit2, anakinCockpit2, rescue, hangarApproach, landing, jumpOut, droids, endCard];
 
 let acc = 0;
 for (const s of SHOTS) {

@@ -12,6 +12,15 @@ export interface Film {
   renderAudio(): Promise<string>;
 }
 
+function halton(i: number, base: number): number {
+  let f = 1, r = 0;
+  for (let k = i; k > 0; k = Math.floor(k / base)) {
+    f /= base;
+    r += f * (k % base);
+  }
+  return r;
+}
+
 export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> {
   const w = new World(pipeline);
   if (new URLSearchParams(location.search).get('debug') === '1') (window as unknown as { __LSW_WORLD__: World }).__LSW_WORLD__ = w;
@@ -26,8 +35,12 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
   remember(w.r4.head);
   remember(w.r2.head);
   for (const b of w.buzz) remember(b.head);
-  for (const p of w.obiwanShip.breakables) remember(p);
-  for (const p of w.anakinShip.breakables) remember(p);
+  for (const p of [...w.obiwanShip.breakables, ...w.anakinShip.breakables]) {
+    remember(p);
+    p.userData.home = { pos: p.position.clone(), quat: p.quaternion.clone() };
+  }
+  remember(w.obiwanShip.canopy);
+  remember(w.anakinShip.canopy);
 
   const camera = w.camera;
   const lens: Lens = { ...DEFAULT_LENS };
@@ -45,7 +58,7 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
     // animated ray shields (scanlines / flicker)
     if (w.hand.group.visible) (w.hand.group.userData.animate as ((t: number) => void) | undefined)?.(T);
     if (w.hangar.group.visible) (w.hangar.group.userData.animate as ((t: number) => void) | undefined)?.(T);
-    w.fx.update(T, pipeline.height / 804);
+    w.fx.update(T, pipeline.height / 804, cam.pos);
     return { cam, card: !!shot.card };
   }
 
@@ -103,8 +116,9 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         pipeline.renderer.clear();
         return;
       }
-      const n = Math.max(1, Math.min(o.subframes ?? 1, shotAt(T).shot.blur ?? 1));
-      const shutter = o.shutter ?? 0.5;
+      const shot = shotAt(T).shot;
+      const n = (o.subframes ?? 1) > 1 ? Math.max(o.subframes!, shot.blur ?? 1) : 1;
+      const shutter = shot.shutter ?? o.shutter ?? 0.5;
       const fps = o.fps ?? 24;
       pipeline.render(w.scene, camera, lens, {
         time: T,
@@ -113,8 +127,11 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
           const Ts = T + ((k + 0.5) / count - 0.5) * (shutter / fps);
           const p = pose(Ts);
           applyCamera(p.cam);
+          // the shutter sub-frames double as supersampling: jitter each by a sub-pixel Halton offset
+          camera.setViewOffset(pipeline.width, pipeline.height, halton(k + 1, 2) - 0.5, halton(k + 1, 3) - 0.5, pipeline.width, pipeline.height);
         },
       });
+      camera.clearViewOffset();
     },
     shots: () => SHOTS.map((s) => ({ name: s.name, start: s.start!, end: s.start! + s.dur, lines: (s.lines ?? []).map((l) => ({ who: l.who, text: l.text })) })),
     renderAudio: () =>

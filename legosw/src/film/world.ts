@@ -1,6 +1,7 @@
 import {
   Color,
   DirectionalLight,
+  Euler,
   Group,
   HemisphereLight,
   Matrix4,
@@ -45,6 +46,8 @@ export const PLANET_R = 100000;
 export const PLANET_C = new Vector3(0, -104000, 0);
 /** hero Venator cruise velocity (world units / s) along +Z */
 export const VENATOR_SPEED = 40;
+/** the frigate destroyed on camera in the tracking shot sits here for the whole film */
+export const VICTIM_POSE = { pos: new Vector3(3900, -1500, 7600), rot: new Euler(0.05, 2.6, 0.1) };
 
 export interface Ship {
   root: Object3D;
@@ -74,7 +77,7 @@ export class World {
   crawl = new Crawl();
   // capital ships
   venator: CapitalShip;
-  fleet: { root: Object3D; kind: string }[] = [];
+  fleet: { root: Object3D; kind: string; ship: CapitalShip }[] = [];
   hand: InvisibleHand;
   munis: CapitalShip[] = [];
   // heroes
@@ -173,8 +176,12 @@ export class World {
       const ship = kind === 'venator' ? venator({ lod, seed: Math.floor(x) }) : munificent({ lod, seed: Math.floor(z) });
       ship.group.position.set(x, y, z);
       ship.group.rotation.y = yaw;
+      if (kind === 'muni' && this.munis.length === 0) {
+        ship.group.position.copy(VICTIM_POSE.pos);
+        ship.group.rotation.copy(VICTIM_POSE.rot);
+      }
       s.add(ship.group);
-      this.fleet.push({ root: ship.group, kind });
+      this.fleet.push({ root: ship.group, kind, ship });
       if (kind === 'muni') this.munis.push(ship);
     }
     this.hand = invisibleHand({ lod: 0 });
