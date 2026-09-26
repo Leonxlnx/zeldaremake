@@ -38,7 +38,8 @@
   "toward": [
    4.08,
    43.7
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "mid-span-S",
@@ -86,7 +87,8 @@
   "toward": [
    3.72,
    20
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "N-sill-out",
@@ -122,7 +124,8 @@
   "toward": [
    2,
    26.55
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "F0",
@@ -170,7 +173,8 @@
   "toward": [
    4.25,
    46.9
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "L2-in",
@@ -182,7 +186,8 @@
   "toward": [
    4.394,
    51.698
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "L4.8-in",
@@ -194,7 +199,8 @@
   "toward": [
    4.478,
    54.497
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "L3-out",
@@ -206,7 +212,8 @@
   "toward": [
    4.25,
    46.9
-  ]
+  ],
+  "ab": false
  },
  {
   "name": "D1",
@@ -317,8 +324,7 @@
    0.35,
    5.514,
    32.64
-  ],
-  "ab": false
+  ]
  },
  {
   "name": "K-up",
@@ -334,8 +340,7 @@
    4.87,
    5.456,
    31.301
-  ],
-  "ab": false
+  ]
  },
  {
   "name": "K-down",
@@ -364,8 +369,7 @@
    8.8,
    31.5,
    -0.1
-  ],
-  "ab": false
+  ]
  },
  {
   "name": "W-front",
@@ -433,7 +437,8 @@
     26.446
    ],
    "fov": 46
-  }
+  },
+  "ab": false
  },
  {
   "name": "X1",
@@ -450,7 +455,8 @@
    4.31,
    48.899
   ],
-  "exit": true
+  "exit": true,
+  "ab": false
  },
  {
   "name": "X1-f4",
@@ -467,7 +473,8 @@
     52
    ],
    "fov": 46
-  }
+  },
+  "ab": false
  },
  {
   "name": "X2",
@@ -484,7 +491,8 @@
    4.31,
    48.899
   ],
-  "exit": true
+  "exit": true,
+  "ab": false
  },
  {
   "name": "X3",
@@ -503,7 +511,8 @@
    4.31,
    48.899
   ],
-  "exit": true
+  "exit": true,
+  "ab": false
  },
  {
   "name": "X4",
@@ -522,7 +531,8 @@
    4.31,
    48.899
   ],
-  "exit": true
+  "exit": true,
+  "ab": false
  },
  {
   "name": "G1",
@@ -538,7 +548,25 @@
    1.28,
    4.31,
    48.899
-  ]
+  ],
+  "ab": false
+ },
+ {
+  "name": "T-diag",
+  "note": "the slingshot target from the far end, over the roots",
+  "eye": [
+   4.469,
+   54.197,
+   1.4,
+   4.31,
+   48.899
+  ],
+  "look": [
+   3.556,
+   57.125,
+   0.98
+  ],
+  "ab": false
  },
  {
   "name": "E-up",

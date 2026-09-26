@@ -38,6 +38,22 @@ nothing existed beyond the disc.
 
 Walk `south-bridge-to-log` 21/21 and the 41 south probes pass on `bc757dfa`.
 
+### The far rim and the glade (`887e8d8e`, `02-exit-views.jpg`)
+
+The snapped far end no longer stops at a bare ring of bark against the light. The log's moss cap
+and the bank's turf roll over the rim: ⟨LIPMOSS⟩ moss cushions along the crown's last 0.6 m and
+over the rim's outer edge (tipped out toward the glade), ⟨LIPTUFTS⟩ grass and fern tufts standing on
+the crown (those at the edge lean out over it), and ⟨LIPVINES⟩ moss beards and runners off the rim,
+short over the opening and longer down the flanks. From inside, the opening is framed by a soft,
+shaded edge (`X3`, `X4`, `E-up`).
+
+In the glade stands the children's slingshot target: a sawn round of a young trunk (0.27 m radius,
+0.07 m thick) with its bark left on the rim, rings painted on its face in red ochre and cream,
+worn thin, chipped and dented dark where stones struck, pegged with two pegs to a leaning stake.
+It stands 2.6 m past the far end and 1 m west of the axis, facing the log, so it shows from the
+dead end over the roots (`X4`, `T-diag`) and stays out of the look back from the glade (`G1`).
+Face centre ⟨TARGET⟩ (audit `south.log.cleft.target`).
+
 ## 2. Dwellings on the way out
 
 Two structures stand where the path straightens for the bridge (layout.ts `EXPANSION_SOUTH_DWELLINGS`, built by
@@ -61,8 +77,13 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   (91 domed peg heads). It is braced back to the mast (8 braces) where the lip falls away to −8 m, and propped on 3
   footings where it does not. The railing has 12 bark posts under a peeled top rail (polished where hands run along
   it), with a rope midrail. You step onto it from the path at the entrance (193–228°) over a split log bedded on the
-  ground at both ends (0.10 m up from the ground, 0.16–0.21 m up to the boards), and leave it at the east end down a
-  log laid along the slope (0.20 m over the ground at both ends).
+  ground at both ends (0.10 m up from the ground, 0.16–0.21 m up to the boards), and leave it at the open east end
+  down onto a split log laid along the end, its flat top's edge under the boards' ends (`9ea7f06d`, `K-step`). The
+  ground falls 0.39–0.68 m under the deck there, so the log's top sits halfway between the deck and the ground a
+  stride past it: two even risers, ⟨KEASTRISER⟩. It rests on ⟨KSTUMPS⟩ stumps where it clears the ground. Before,
+  a log lay 6.5° past the end with a 5–13 cm strip of bare ground between them: walking off the end, Link dropped
+  0.47 m into the strip and stepped back up onto the log (one stance foot 0.154 m over the ground for a frame),
+  and the log hung 9 cm over the ground along its axis.
 - Use and repair: the 5 boards between the entrance's step and the door are trodden greyer and paler, their moss worn
   off; one board at 78° is a newer, browner replacement; one at ≈ 136° has lost 0.22 m of its outer end (jagged).
 - A davit over the drop: a bent pole socketed through the boards and lashed to the rail, a turned block under its tip,
@@ -115,11 +136,14 @@ the walked line, the bridge corridor, the trees and fable-3's toll pile (the mar
   holds Link 0.64 m or more from the wall's inner face so the clamp leaves the camera inside, under the roof, and the
   north end is a half wall the camera looks over. (Looking down from inside, the camera still rises through the slim
   roof, as it does through the keeper's eave.)
-- Use and repair: 7 floor boards over the step are trodden paler, most at the front edge where feet land, and the
-  step's top is worn too; the north corner board has lost 0.13 m of its front end.
-- The step up from the path: a split log along the front whose top sits halfway between the ground in front of it and
-  the floor at either end (two even risers: 0.19 / 0.19 m at the north end, 0.36 / 0.36 m at the south, where the
-  ground falls away), on two stumps where it clears the ground.
+- Use and repair: 7 floor boards over the steps are trodden paler, most at the front edge where feet land, and the
+  steps' tops are worn too; the north corner board has lost 0.13 m of its front end.
+- The steps up from the path: two split logs along the front (`422c5df9`, `W-step`). The ground in front falls from
+  0.36 m under the floor at the north end to 0.73 m at the south. The upper log's top parts that into even risers,
+  two of ⟨WNORTH⟩ at the north end and three of ⟨WSOUTH⟩ at the south; the lower log, laid in front of its south
+  part, takes the third. Every riser is ⟨WRANGE⟩ (the single log's 0.36 m risers at the south end had one of Link's
+  shoes sunk 0.17 m into it while the other hung 0.59 m over the ground). Both logs rest on stumps where they clear
+  the ground (⟨WSTUMPS⟩).
 - A pod (4.66, 1.82, 26.66) hangs from a hanger under the front plate; it lays a soft pool on the floor and out of the
   open front onto the path, never past the back or the north wall.
 - 32,956 triangles.
@@ -135,14 +159,27 @@ moves.
 
 The integrator measured the look-back from the far bank (camera (4.8, 2.6, 43.6) → (2, 0.8, 24), fov 46) at
 **818 draws / 9.30 M triangles** on the canonical head (cc02a9cf), against the 700 / 9.0 M budget. From
-there the frustum takes in the whole village, 27.7 m and more away (the structures' audit
-`farBank.nearestVillageM`) and seen through haze between the south giants' boles. Hiding the village is
-not an option: it is on screen from all 10 far-bank poses tried, with up to 7,481 pixels changed.
+there the frustum takes in the whole village, seen through haze beyond the gorge and between the south
+giants' boles. Hiding the village is not an option: it is on screen from all 10 far-bank poses tried,
+with up to 7,481 pixels changed. Walking back over the bridge the follow camera has the same view, nearer:
+in play mode (Link drawn, shadow pass included) Link on the bridge facing north drew 700–719 draws /
+9.8–10.2 M, and at the south sill and the log's mouth 711–725 / 10.4–10.8 M, without the LOD.
 
-While the camera is inside `FAR_BANK_ZONE` (`util/farBankLocality.ts`: x −2…11, z 42.5…62, under y 4,
-which covers the bridge's last 1.2 m, the far path, the log and the cleft), four things change. Every
-fixed viewpoint, the bridge, and both dwellings stay outside the zone, and tests pin the box to the
-layout.
+While the camera is inside `FAR_BANK_ZONE` (`util/farBankLocality.ts`: x −2…11, z 30.45…62, under y 4),
+five things change. The zone starts at the bridge's north sill (`56fcd773`; it started 4 m past the
+sill until this session). The follow camera stands 4.3 m behind Link's aim (4.04 m or more in plan at
+up to 20° of pitch), so walking back it stays inside while Link crosses the bridge, steps off the sill
+and walks the path's last straight to its bend, all the while facing the village. With the zone 4 m
+further south the camera left it as Link stepped off the sill, and the walk-back's frames there ran
+over budget: just off the sill 703 draws / 10.08 M, at the bridge head 718 / 10.15 M (play poses
+`N-sill-out`, `B0-N`, LOD off), and 684–715 draws / 9.77–9.92 M on the walk. At the bend the path turns
+him north-west, the camera swings round behind him and soon leaves the zone as the village swings
+out of the frustum (turned at the bend, `P3-N`: 583 / 7.73 M). From the zone the nearest village mesh
+is ⟨NEARESTM⟩ m off (audit `farBank.nearestVillageM`; 27 m from the old edge). Its south part
+`FAR_BANK_SOUTH` (z 42.5 on: the bridge's last 1.2 m, the far path, the log and the cleft) adds a
+shadow reach. The keeper's hut is now inside the zone (the LOD never touches the south group); every
+fixed viewpoint, the path to the bridge head and the waystation stay outside, and tests pin both
+boxes to the layout.
 
 1. **The village's shadows and tufts** (`de967e3d`): the village structures stop casting shadows, and
    their roof and trunk tuft buckets are not drawn.
@@ -158,11 +195,21 @@ layout.
    than 110 m away are not drawn (`FAR_BANK_SMALL_DRAWS`, `postfx/shadowcull.ts` `hideSmallFar`). From
    the zone that is the girl on the upper ledge, 120 m north and 6 px tall in the haze, with her fairy
    and contact decal. Such a sphere spans at most 12 of 540 rows at fov 46.
+5. **The far bank's shadow reach** (`f1494e57`): while the camera is in `FAR_BANK_SOUTH`, a caster
+   whose bounding sphere lies wholly more than 20 m outside that box in plan casts no shadow
+   (`FAR_BANK_SHADOW_REACH`, a box rule in `postfx/shadowcull.ts`). From the log's mouth that is 35
+   casters: the giants' two far sector meshes (the lantern tree, north-west, north-east; the plateau
+   oak, far plateau, east giant and stair-bank giant: 510 k triangles), the far terrain chunks, the
+   east columns, the backside rocks, the west house and its fence, the village's rope and wood props.
+   The sun stands in the north-west, so their shadows fall east and south-east of them, 30 m and more
+   from the far bank, in the haze. The nearest giants (south-centre, plaza-south,
+   south-giant), the white-barks, the ravine's strata and the keeper's hut keep casting. The reach is
+   measured from the box, not the camera, so nothing switches while the camera moves on the far bank.
 
-`globalThis.__KF_FARBANK_OFF__ = true` switches all four off from the next frame, without a reload,
+`globalThis.__KF_FARBANK_OFF__ = true` switches all five off from the next frame, without a reload,
 so the A/B below compares exactly what the LOD changes. It is unset as shipped.
 
-(The A/B table, LOD on / off / on at the look-back, P3, L9, F4, F6 and mid-span, follows with the capture queue.)
+⟨AB⟩
 
 Rejected along the way: hiding the whole village (on screen from every far-bank pose); judging each
 instance of an instanced batch by its own size (it also switched off the ravine strata's shadows at
