@@ -10,8 +10,11 @@ Measured on the build of fcec1575, whose `src` is unchanged through de701e09 and
 (the new legs, the column-lobe and far-foliage batches, the audio rounds), against canonical 33e92705 itself; every
 capture with `views.mjs --settle 6`. The branch has since merged canonical 2b15f687 (e76effad: the trees' far-shadow
 depth trim, lodFade 3 and kept instance attributes, the audio's release and step levels; no ruins file). That merge
-passes tsc and the tests (257 / 257) but is not re-measured; fable-5 read the far-shadow trim on canonical as pixel-identical at
-A–F with the same draws and 0.10–0.20 M fewer depth-pass triangles.
+passes tsc and the tests (257 / 257) but the cost and the heroes are not re-measured on it; fable-5 read the far-shadow
+trim on canonical as pixel-identical at A–F with the same draws and 0.10–0.20 M fewer depth-pass triangles. The walk,
+the probes and the camera check were re-run on e56a4c0f's build (the water stair's span fix, 2b15f687 merged). On all
+three routes Link's path and the follow camera are frame for frame as on fcec1575's build, and the 80 probes read the
+same; only the water stair's feet changed.
 
 - **Rubric: 158 / 200, NOT READY** (ship bar ≥ 170, no check below 2, ★ ≥ 3). Below 3: #44 camera (2) and
   #46★ budget (2).
@@ -21,13 +24,15 @@ A–F with the same draws and 0.10–0.20 M fewer depth-pass triangles.
 - **Heroes against canonical:** A, B, D, E and F pixel-identical, one draw and 0.012 M triangles fewer each; C moves
   839 px (0.16 %, max Δ 44), scattered blade edges at the back of the flower bed right of the plaza.
 - **Walk (new legs, walk 1.2 / run 2.2 m/s):** `plaza-to-ruins-terrace` 26 / 26, `ruins-trail-to-shore` 10 / 10,
-  `ruins-water-stair` 15 / 15, 0 stuck; `ruinsProbes` 80 / 80. Soles p95 2.1–7.2 cm; one reading on the water stair
-  (a foot 1.18 m under the ground, at most 3 of 678 samples) is not yet located.
+  `ruins-water-stair` 15 / 15, 0 stuck; `ruinsProbes` 80 / 80. Soles p95 2.1–7.2 cm. The water stair's 1.18 m
+  reading is found and fixed (e56a4c0f: a boot reaching over the wall beside the paving read the ground under the
+  terrace); its worst sole is now a 15.5 cm float, and no boot corner sinks below the ground.
 - **Camera (`camcheck.mjs`, now a containment test):** none of the 2,970 route cameras in stone, rock, ground or
   water, none nearer a stone face than 0.28 m; of the 360 swung views, 2 end inside the wall's coping at the water
   stair's mid tread (up to 9.7 cm deep) and 5 nearer a face than the near plane.
 - **This pass:** warmer lit stone and cooler shade, a clearer pool and a lighter fall, copings 12 cm proud with
-  closed undersides, the moss's own grain; the camera solid holds the copings' overhangs.
+  closed undersides, the moss's own grain; the camera solid holds the copings' overhangs; the wall's coping is ground
+  for a boot that reaches over it.
 
 ## What is where (world metres; y is absolute height; layout `EXPANSION_RUINS`)
 
@@ -78,6 +83,13 @@ character ground and the vegetation. Its sounds are one waterfall and three pods
   box (its sag included) is recorded from `geom.ts`'s `block`; the lathes and the voussoirs are tested by ray
   parity. The old side-of-the-nearest-face test counted a camera inside the coping as in front of the ashlar face
   just under it (0 inside / 5 near before; 2 inside / 5 near now, on the same run).
+- **The water stair's feet** (e56a4c0f, `ruins/masonry.ts`): the terrace's south walk span runs on over the wall's
+  coping to the ruined parapet's inner face (z −1.94; it stopped at the paving's edge, z −2.32). On the return leg,
+  at frames 699–701, Link walked west on the paving by the west end of the parapet's break (−62.3, 4.5, −2.32). His
+  left boot's toe reached past the crossing over the wall, where the character's ground read the terrain under the
+  terrace (2.28 m). The leg's IK reached for it, clamped, and dropped the root 1.19, 1.74 and 1.95 m, taking the
+  planted right foot 1.18 m under the paving. The coping's top is 4.5 m, and the ground there now says so. Link is
+  still held off the wall from z −2.32 (unchanged).
 
 ## Images
 
@@ -149,8 +161,8 @@ of the trailer's light and lushness stays at 3 or below.
 | 40 | no toggling light | 4 | the ruins add no light; the village rule hides meshes only, never a light (structures audit `villageFromRuins`) |
 | 41 ★ | walks every surface | 4 | playtest with the new legs: `plaza-to-ruins-terrace` 26 / 26, `ruins-trail-to-shore` 10 / 10, `ruins-water-stair` 15 / 15, 0 stuck; the site's walk and water-stair tests |
 | 42 | edges block | 4 | `ruinsProbes` 80 / 80 (50 blocked where they should be: walls, parapet, cliff, ivy rock, gate boulders, columns, piers, lantern posts, offering, deep water, every open edge); test "the ruins hold Link off their stone, their edges and the deep water" |
-| 43 | steps even underfoot | 3 | risers 0.2 m on the flight and 0.203 m on the water stair, far inside the 0.55 m step guard; 51 / 51 waypoints over the three routes, 0 stuck; soles p95 2.9 cm (plaza to terrace), 7.2 cm (trail to shore, down the bank into the shallows) and 2.1 cm (water stair). One reading stands out: on the water stair a foot reads 1.18 m under the ground for at most 3 of 678 stance samples, not yet located (see Walking) |
-| 44 | camera | 2 | `camcheck.mjs` (containment): 0 of 2,970 route cameras in stone, rock, ground or water, none nearer a stone face than 0.28 m, the worst jump 0.052 m; but 2 of 360 swung views end inside the wall's coping at the water stair's mid tread (8.7 and 9.7 cm deep, heading 0°) and 5 nearer a face than the near plane (0.9–2.6 cm). The camera's 0.6 m minimum distance carries it there (see Walking) |
+| 43 | steps even underfoot | 3 | risers 0.2 m on the flight and 0.203 m on the water stair, far inside the 0.55 m step guard; 51 / 51 waypoints over the three routes, 0 stuck; soles p95 2.9 cm (plaza to terrace), 7.2 cm (trail to shore, down the bank into the shallows) and 2.1 cm (water stair). The water stair's 1.18 m reading is fixed (e56a4c0f); no boot corner there is below the ground. Short of 4: brief floats in the stance phase, 10–15.5 cm on treads 6 and 14 of the water stair on the way up (4 and 9 frames), 12–26 cm coming up out of the shallows onto the east bank, 10.2 cm on a village step (see Walking) |
+| 44 | camera | 2 | `camcheck.mjs` (containment, e56a4c0f's run): 0 of 2,970 route cameras in stone, rock, ground or water, none nearer a stone face than 0.28 m, the worst jump 0.052 m; but 2 of 360 swung views end inside the wall's coping at the water stair's mid tread (9.7 and 7.0 cm deep, heading 0°) and 5 nearer a face than the near plane (0.9–3.8 cm). The camera's 0.6 m minimum distance carries it there (see Walking) |
 | 45 | footsteps | 4 | `surfaces.test.mjs`: dirt on the trail, stone on the masonry, water in the shallows (a wading step of its own, f9f27f3f); `afae710e` |
 | 46 ★ | budget | 2 | heroes A–F within (max A 574 / 8.746 M), and the ruins' views r01–r19 within (max r16 607 / 8.492 M, where canonical is over at 692 / 10.471 M); but r20, on the trail's east end looking back at the village, is 674 / 9.908 M, over on triangles. Canonical is over there too (661 / 10.142 M) and the ruins draw nothing in that frame, but the check asks for the item's own views as well, and r20 stands on the item's trail. The earlier measurement also had the branch over the 700 draws at x −26.4 on the trail, where canonical was not (see Cost) |
 | 47 | hidden when far | 4 | `ruinsVisible` (casters and their shadow footprints); tests "no fixed frame sees the ruins or their shadows, and the zone views do" and "the village hides only from the ruins zone…" |
@@ -164,13 +176,16 @@ NOT READY.
 ## Walking (gauntlet/scripts/playtest.mjs)
 
 `node gauntlet/scripts/playtest.mjs --dist <dist> --out <dir> --only walk --walk-routes plaza-to-ruins-terrace,ruins-trail-to-shore,ruins-water-stair`,
-run on fcec1575's build (the new legs: walk 1.2 / run 2.2 m/s), then `camcheck.mjs` on its output.
+run on e56a4c0f's build (the new legs: walk 1.2 / run 2.2 m/s; 2b15f687 merged), then `camcheck.mjs` on its output.
+The run used a copy of playtest.mjs that also lists every stance foot more than 10 cm off the ground, and the
+character audit at any frame with a foot more than 0.3 m off. The steering is the same: on fcec1575's build the copy
+reproduces playtest.mjs's run frame for frame.
 
 | route | waypoints | stuck | length | soles off the ground (p50 / p95 / max) | camera: min over ground, worst jump |
 | --- | --- | --- | --- | --- | --- |
 | `plaza-to-ruins-terrace` (plaza → trail → outcrop → flight → arch → paving) | 26 / 26 | 0 | 77.5 m | 0.3 / 2.9 / 10.2 cm | 1.62 m, 0 m |
 | `ruins-trail-to-shore` (off the trail, down the east shore, round the south bank, into the shallows) | 10 / 10 | 0 | 28.4 m | 1.9 / 7.2 / 26.2 cm | 0.56 m, 0 m |
-| `ruins-water-stair` (paving → parapet break → landing → 18 treads → quay → fall's foot, and back) | 15 / 15 | 0 | 27.5 m | 0.0 / 2.1 / 118.2 cm (the max: at most 3 samples, see below) | 2.03 m, 0.05 m |
+| `ruins-water-stair` (paving → parapet break → landing → 18 treads → quay → fall's foot, and back) | 15 / 15 | 0 | 27.5 m | 0.0 / 2.1 / 15.5 cm (118.2 cm before e56a4c0f, see below) | 2.03 m, 0.05 m |
 
 - `ruinsProbes`: 80 / 80 as expected. 30 walkable spots: the trail, the lantern verges, the outcrop, the stair, the
   arch passage, the paving, inside every open edge, and the water stair's crossing, landing, treads, quay and
@@ -178,11 +193,19 @@ run on fcec1575's build (the new legs: walk 1.2 / run 2.2 m/s), then `camcheck.m
   parapet, the cliff, the gate boulders, the columns, the piers, the lantern posts, the offering and the plunge.
 - Wading (`wade`): from the east shore at 15°, 90° and 345° he wades to the waterline and 0.25–1.1 m past it before
   the depth holds him; at 68° the bank holds him before the water.
-- Soles on the water stair: of 678 stance samples the median gap is 0 and the p95 2.1 cm, but one foot reads 1.18 m
-  under the character's ground (`feetContact`'s gap: the rendered sole against `surface()` under it) for at most 3
-  samples (0.44 % have a boot corner more than 5 mm inside). Offline, the character's ground within 0.6 m of Link
-  rises at most 0.41 m above him at every one of the route's 726 frames, so no tread or wall stands 1.18 m over a
-  planted foot beside him. The frame the reading comes from is not yet located.
+- Soles on the water stair (`feetContact`'s gap: the rendered sole against `surface()` under it): of 678 stance
+  samples the median gap is 0, the p95 2.1 cm and the worst 15.5 cm, and no boot corner is below the ground. Before
+  e56a4c0f one foot read 1.18 m under the paving and 0.44 % of the samples had a boot corner more than 5 mm inside.
+  The character audit placed it at frames 699–701 of the return leg: the left toe over the wall band beside the
+  paving, the ground there read as the terrain under the terrace, the root dropped by the leg's clamped reach (see
+  This pass).
+- The floats left, all short and in the stance phase: on the water stair's way up 10–15.5 cm on tread 6 (4 frames)
+  and 11.4 cm on tread 14 (9 frames), the whole boot that far over the stone under it; 12–26 cm coming up out of the
+  shallows onto the east bank (−55.3, 4.6; 7 frames), where the bank rises at about 35° (0.28 m in 0.4 m) and the
+  whole boot is 12–22 cm up; 10.2 cm on a village step at (−7.1, 8.2), its heel 1.5 cm over the step. Offline, the
+  character's ground reads every one of the 18 treads at its own height across the flight's full width and length
+  (the nosings included, 0 mm off), so the stair floats are the gait's plant on a 0.35 m tread, not the stone. The
+  bank's float is not traced to the gait or the bank's shape.
 - Camera (`camcheck.mjs` on the same run): of the 2,970 route cameras none is inside the stone, the cliff, the ivy
   rock, the ground or the water, and none is nearer a stone face than 0.28 m. The worst jump is 0.052 m (a tread's
   step down on the water stair). Of the 360 swung views (15 spots × 8 headings × 3 pitches), 2 end inside
@@ -314,9 +337,11 @@ No hero frame sees the ruins or their shadows (test), and the village rule never
 - The camera at the water stair's mid tread: 2 of 360 swung views end inside the wall's coping (up to 9.7 cm), 5 more
   nearer a face than the near plane. It is the camera's 0.6 m minimum distance against a 0.55 m stand-off, which the
   lane's stone cannot clear (see Walking for the fix in the camera).
-- The water stair's soles: a foot reads 1.18 m under the ground for at most 3 of 678 stance samples. No ground within
-  0.6 m of Link on that route rises more than 0.41 m above him, so the reading is not a tread or the wall; it is not
-  yet located.
+- Brief stance floats hold #43 at 3: 10–15.5 cm on two of the water stair's treads on the way up (4 and 9 frames),
+  12–26 cm coming up out of the shallows onto the east bank (7 frames), 10.2 cm on a village step. The treads read
+  true under the stair's floats, so those are the character's plant on a 0.35 m tread (the character system); the
+  bank's, on a 35° rise of this lane's shore, are not traced yet. The water stair's 1.18 m sole reading is fixed
+  (e56a4c0f).
 - The east shore's lawn (r12) is soft beside the masonry: the terrain's texture, not the ruins'.
 - No capture shows Link at the ruins: the capture API parks him at the spawn in the village.
 
