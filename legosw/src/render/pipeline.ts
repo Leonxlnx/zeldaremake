@@ -248,9 +248,17 @@ export class Pipeline {
     );
     this.accum = mkPass(
       /* glsl */ `
-      uniform sampler2D tSrc; uniform float weight; varying vec2 vUv;
-      void main() { gl_FragColor = vec4(texture2D(tSrc, vUv).rgb * weight, 1.0); }`,
-      { tSrc: { value: null }, weight: { value: 1 } },
+      uniform sampler2D tSrc; uniform sampler2D tAO; uniform float weight; uniform float ao; uniform vec2 aoPx; varying vec2 vUv;
+      void main() {
+        vec3 c = texture2D(tSrc, vUv).rgb;
+        if (ao > 0.0) {
+          float occl = 0.25 * (texture2D(tAO, vUv + aoPx * vec2(-0.5, -0.5)).r + texture2D(tAO, vUv + aoPx * vec2(0.5, -0.5)).r
+                             + texture2D(tAO, vUv + aoPx * vec2(-0.5, 0.5)).r + texture2D(tAO, vUv + aoPx * vec2(0.5, 0.5)).r);
+          c *= mix(1.0, occl, ao * (1.0 - smoothstep(1.2, 4.0, dot(c, vec3(0.2126, 0.7152, 0.0722)))));
+        }
+        gl_FragColor = vec4(c * weight, 1.0);
+      }`,
+      { tSrc: { value: null }, tAO: { value: null }, weight: { value: 1 }, ao: { value: 0 }, aoPx: { value: new Vector2() } },
       AdditiveBlending,
     );
     this.final = mkPass(FINAL_FRAG, {
@@ -315,6 +323,20 @@ export class Pipeline {
     gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
   }
 
+  /** Ambient occlusion of what sceneRT holds now (its depth), half res, into aoRT. */
+  private occlusion(camera: PerspectiveCamera, lens: Lens): void {
+    const r = this.renderer;
+    const a = this.aoPass.uniforms;
+    a.tDepth.value = this.sceneRT.depthTexture;
+    a.projInv.value.copy(camera.projectionMatrixInverse);
+    a.res.value.set(this.aoRT.width, this.aoRT.height);
+    a.reversed.value = r.capabilities.reversedDepthBuffer ? 1 : 0;
+    a.radius.value = lens.aoRadius * (this.height / 720) * 0.5;
+    this.quad.material = this.aoPass;
+    r.setRenderTarget(this.aoRT);
+    this.quad.render(r);
+  }
+
   /** Render the scene (far layer 1 with its own depth range, then near layer 0) into sceneRT. */
   private renderScene(scene: Scene, camera: PerspectiveCamera, far: { near: number; far: number } | null): void {
     const r = this.renderer;
@@ -360,6 +382,7 @@ export class Pipeline {
     let color: Texture;
     if (n === 1) {
       this.renderScene(scene, camera, o.far ?? null);
+      if (lens.ao > 0) this.occlusion(camera, lens);
       color = this.sceneRT.texture;
     } else {
       r.setRenderTarget(this.accumRT);
@@ -373,7 +396,12 @@ export class Pipeline {
       for (const k of order) {
         o.setSub?.(k, n);
         this.renderScene(scene, camera, o.far ?? null);
+        // occlusion per sub-sample, so it blurs with the motion instead of sitting sharp on a smeared surface
+        if (lens.ao > 0) this.occlusion(camera, lens);
         this.accum.uniforms.tSrc.value = this.sceneRT.texture;
+        this.accum.uniforms.tAO.value = this.aoRT.texture;
+        this.accum.uniforms.ao.value = lens.ao;
+        this.accum.uniforms.aoPx.value.set(1 / this.aoRT.width, 1 / this.aoRT.height);
         this.accum.uniforms.weight.value = 1 / n;
         this.quad.material = this.accum;
         r.setRenderTarget(this.accumRT);
@@ -424,22 +452,11 @@ export class Pipeline {
       r.setRenderTarget(mips[i - 1]);
       this.quad.render(r);
     }
-    // ambient occlusion from the centre sub-sample's depth, half res
-    if (lens.ao > 0) {
-      const a = this.aoPass.uniforms;
-      a.tDepth.value = this.sceneRT.depthTexture;
-      a.projInv.value.copy(camera.projectionMatrixInverse);
-      a.res.value.set(this.aoRT.width, this.aoRT.height);
-      a.reversed.value = r.capabilities.reversedDepthBuffer ? 1 : 0;
-      a.radius.value = lens.aoRadius * (this.height / 720) * 0.5;
-      this.quad.material = this.aoPass;
-      r.setRenderTarget(this.aoRT);
-      this.quad.render(r);
-    }
     // final
     const u = this.final.uniforms;
     u.tAO.value = this.aoRT.texture;
-    u.ao.value = lens.ao;
+    // multi-sample frames carry their occlusion in the accumulated colour already
+    u.ao.value = n === 1 ? lens.ao : 0;
     u.tScene.value = color;
     u.tDepth.value = this.sceneRT.depthTexture;
     u.tBloom.value = mips[0].texture;
