@@ -28,23 +28,25 @@ const fps = Number(args.fps || 24);
 const assetStills = String(args['asset-stills'] || '/opt/cursor/artifacts').split(',').map((d) => path.resolve(d));
 const commit = args.commit || gitHead();
 const framesDir = path.join(renderDir, 'frames');
+const [WIDTH, HEIGHT] = String(args.size || '1280x720').split('x').map(Number);
 
 const SHOT_INFO = {
   farfar: { title: 'A long time ago…', at: 0.5 },
   crawl: { title: 'Opening crawl', note: 'The crawl recedes into a baked nebula and 11,000 live stars.', at: 0.3 },
-  longtake: { title: 'The long take', note: 'Tilt down to Coruscant, then the two Jedi interceptors dive over a Venator, thread its bridge towers, skim the deck and drop off the port edge into the battle.', at: 0.62 },
-  track: { title: 'Through the fleet', note: 'Tracking shot through the battle; a Munificent frigate comes apart in bricks.', at: 0.62 },
+  longtake: { title: 'The long take', note: 'Tilt down to Coruscant, then the two Jedi interceptors dive over a Venator, thread its bridge towers, skim the deck and drop off the port edge into a battle where every bolt has a target.', at: 0.62 },
+  track: { title: 'Through the fleet', note: 'Tracking shot through the battle; a turbolaser salvo takes a Munificent frigate apart in bricks.', at: 0.62 },
   'anakin-cockpit': { title: 'Anakin', at: 0.55 },
-  vultures: { title: 'Vulture droids', note: 'Vultures and tri-fighters dive on the Jedi and the ARC-170 escort.', at: 0.5 },
+  vultures: { title: 'Vulture droids', note: "Anakin's bursts walk onto three vulture droids, which blow apart into bricks as the bolts land.", at: 0.5 },
   'hand-reveal': { title: 'The Invisible Hand', note: "Grievous's flagship, with vulture droids crawling over the hull.", at: 0.55 },
   'obiwan-cockpit': { title: 'Obi-Wan', at: 0.5 },
   missiles: { title: 'Discord missiles', note: 'The missiles split open and release buzz droids.', at: 0.75 },
-  'buzz-close': { title: 'Buzz droids', note: "Buzz droids saw into Obi-Wan's fighter and slice R4-P17's dome off.", at: 0.72 },
+  'buzz-close': { title: 'Buzz droids', note: "Buzz droids crawl over Obi-Wan's fighter, sawing as they go, and slice R4-P17's dome off.", at: 0.72 },
   'obiwan-cockpit-2': { title: 'Obi-Wan', at: 0.5 },
   'anakin-cockpit-2': { title: 'Anakin', at: 0.5 },
   rescue: { title: 'The rescue', note: "Anakin blasts a buzz droid off Obi-Wan's wing; R2-D2 zaps the one that hopped onto Anakin's fighter.", at: 0.3 },
   'hangar-approach': { title: 'Into the hangar', note: 'Straight at the hangar mouth as the ray shield flickers off.', at: 0.5 },
   landing: { title: 'Crash landing', note: "Obi-Wan's fighter skids in and sheds its wings in bricks.", at: 0.52 },
+  'jump-out': { title: 'Flip-out', note: 'Both Jedi vault out of their cockpits with a front flip and land in a puff of deck dust.', at: 0.36 },
   droids: { title: 'Flying is for droids', note: 'Sabers ignite; the battle droids reconsider.', at: 0.9 },
   endcard: { title: 'End card', at: 0.5 },
 };
@@ -73,11 +75,14 @@ const DONE = [
   'Renderer: HDR, bloom, depth of field, motion blur, ACES tonemapping, film grain; reversed-Z depth so a cockpit and the planet share one pass',
   'Anakin and Obi-Wan minifigures: rigged, sculpted hair, printed faces with live expressions and lip flaps',
   'Ships: both Eta-2 interceptors with R2-D2 and R4-P17, Venator, ARC-170, Munificent frigate, the Invisible Hand and its hangar',
-  'Coruscant city-planet shader (street grids, night-side lights, atmosphere), nebula sky, opening crawl',
-  'All 17 shots blocked and animated, synthesised sound design and LEGO mumble voices, Skywalker Saga-style subtitles',
+  'Coruscant city planet: districts, towers, traffic lanes, night-side lights, clouds and atmosphere; nebula sky, opening crawl',
+  'All 18 shots animated, Skywalker Saga-style subtitles, LEGO mumble voices',
+  'Battle: fighter duels that end in kills, turbolasers from real turrets onto real hulls',
+  'Original synthesised orchestral score with a cue for every shot, mixed to be audible on phone speakers (-14 LUFS)',
+  'Detail pass on both Jedi interceptors and the Venator; sculpted minifig hair, faces and prints',
 ];
-const DOING = ['Droid squad final pass (vulture, tri-fighter, buzz droid, battle droid)', 'Shot-by-shot polish: framing, lighting, effects density'];
-const NEXT = ['Final 1080p render with multi-sample motion blur', 'Final sound mix'];
+const DOING = ['Shot-by-shot polish: framing, lighting, effects density'];
+const NEXT = ['1080p master render'];
 
 function gitHead() {
   try {
@@ -160,8 +165,8 @@ function main() {
     const audio = path.join(renderDir, 'audio.wav');
     const argv = ['-framerate', String(fps), '-i', path.join(framesDir, 'f%05d.png')];
     if (fs.existsSync(audio)) argv.push('-i', audio);
-    argv.push('-c:v', 'libx264', '-preset', 'slow', '-crf', '23', '-tune', 'film', '-pix_fmt', 'yuv420p', '-movflags', '+faststart');
-    if (fs.existsSync(audio)) argv.push('-c:a', 'aac', '-b:a', '160k', '-shortest');
+    argv.push('-c:v', 'libx264', '-preset', 'slow', '-crf', String(args.crf ?? 20), '-tune', 'film', '-pix_fmt', 'yuv420p', '-movflags', '+faststart');
+    if (fs.existsSync(audio)) argv.push('-c:a', 'aac', '-b:a', '256k', '-shortest');
     argv.push(path.join(out, video));
     ff(argv);
   } else if (!args['no-video']) {
@@ -249,7 +254,7 @@ function main() {
     <div class="player">
       ${video ? `<video poster="${poster}" controls playsinline preload="metadata">${args['video-url'] ? `<source src="${esc(args['video-url'])}" type="video/mp4" />` : ''}<source src="${video}" type="video/mp4" /></video>` : poster ? `<img src="${poster}" alt="Current cut" />` : ''}
     </div>
-    <p class="note">${video ? 'Work-in-progress render of the current cut at 960×540 (turn the sound on). The final render will be 1080p with full motion blur.' : 'The work-in-progress video is still rendering. Shot stills are below.'}</p>
+    <p class="note">${video ? `Work-in-progress render of the current cut at ${WIDTH}×${HEIGHT} with motion blur (turn the sound on).` : 'The work-in-progress video is still rendering. Shot stills are below.'}</p>
     <div class="btns">
       <a class="btn" href="film/index.html">Play in real time</a>
       <a class="btn alt" href="film/index.html?t=${shotCards.find((c) => c.name === 'longtake')?.start ?? 0}">Jump to the long take</a>
