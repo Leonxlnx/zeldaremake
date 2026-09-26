@@ -855,6 +855,39 @@ test('below the gust knee the leaves are the only thing keeping the wood from si
   );
 });
 
+test('and the leaves are irregular, not a metronome under the cap', () => {
+  // `QUIET_GAP_MAX` used to be a `Math.min`, and a min against a draw whose range is much wider
+  // than the cap does not shorten the long gaps — it replaces them all with the same number.
+  // Measured on the schedule, in still air under open sky **88 % of the gaps were exactly 2.2 s**
+  // with a tenth-to-ninetieth spread of 0.20: a metronome at 0.45 Hz, in the one condition where
+  // the wind layers are gated silent and the leaves are all there is
+  // (`art/audio/2026-09-26-gaps/`). The cap is an asymptote now, and this is the contract.
+  const { amb } = bed({ seed: 'gaps/irregular' });
+  const gust = A.GUST_KNEE * 0.5;
+  const at = [];
+  let seen = 0;
+  for (let t = 0; t < 600; t += 1 / 30) {
+    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy: 0 });
+    amb.scheduleUntil(t + 4);
+    const n = amb.stats().flutters;
+    while (seen < n) {
+      at.push(t);
+      seen++;
+    }
+  }
+  // the scheduler fires two or three leaves for one turn-over; the gap that matters is between
+  // bursts, so anything inside a tick of the last is the same event
+  const gaps = [];
+  for (let i = 1; i < at.length; i++) if (at[i] - at[i - 1] > 0.05) gaps.push(at[i] - at[i - 1]);
+  gaps.sort((a, b) => a - b);
+  assert.ok(gaps.length > 100, `only ${gaps.length} gaps to judge on`);
+  const atCeiling = gaps.filter((g) => g >= A.QUIET_GAP_MAX - 1 / 30 - 1e-9).length;
+  assert.ok(atCeiling === 0, `${((100 * atCeiling) / gaps.length).toFixed(0)} % of the gaps sit at the ceiling — the cap is clipping again, not saturating`);
+  const spread = gaps[Math.floor(gaps.length * 0.9)] - gaps[Math.floor(gaps.length * 0.1)];
+  assert.ok(spread > 1.0, `the gaps span ${spread.toFixed(2)} s from the tenth percentile to the ninetieth; under a second and an ear starts counting them`);
+  assert.ok(gaps[gaps.length - 1] <= A.QUIET_GAP_MAX, `the longest gap was ${gaps[gaps.length - 1].toFixed(2)} s against a ${A.QUIET_GAP_MAX} s ceiling`);
+});
+
 test('a lantern and a fairy are further off in more than level', () => {
   // Rubric checks 42 and 45 both stall on one sentence: "pods and fairies are level-only". A bird
   // has had the other half since it was built — `birdWet` sends 0.2 of it to the hall at arm's

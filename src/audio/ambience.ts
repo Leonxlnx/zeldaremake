@@ -71,6 +71,9 @@ export interface Ambience {
   dispose(): void;
 }
 
+/** one call: its kind, the bearing it is heard from, how far off it is (0..1), and when it began */
+export type BirdSpot = [BirdKind, number, number, number];
+
 export interface AmbienceStats {
   /** bird calls, leaf flutters and fairy glints sounded since the context started */
   birds: number;
@@ -90,7 +93,7 @@ export interface AmbienceStats {
    * recording can answer. `at` is there because a call is booked up to four seconds before it is
    * heard, so "when was this decided" and "when does it sound" are different questions.
    */
-  birdSpots: [BirdKind, number, number, number][];
+  birdSpots: BirdSpot[];
   /** how much wood stood between him and the last bird that called, 0 … 1 */
   birdShadow: number;
   /**
@@ -315,8 +318,44 @@ export function swell(gust: number): number {
 /** the leaf flutters' level range (before the gust scale) and their share into the hall */
 const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
 const FLUTTER_SEND = 0.25;
-/** the longest the wood is ever left with nothing at all in it (s) */
-export const QUIET_GAP_MAX = 2.2;
+/**
+ * The longest the wood is ever left with nothing at all in it (s), and the shape of the approach
+ * to it.
+ *
+ * It used to be 2.2 and it used to be a `Math.min`, and **a min against a draw whose range is
+ * much wider than the cap does not shorten the long gaps — it replaces them all with the same
+ * number.** Measured on the schedule (`art/audio/2026-09-26-gaps/`), in still air under open sky
+ * **88 % of the gaps between leaf flutters were exactly 2.2 s**, with a tenth-to-ninetieth spread
+ * of 0.20 s. A metronome at 0.45 Hz, in the one condition where the wind layers are gated silent
+ * and the leaves are the only thing there is to hear — against rubric check 5, *its events are
+ * sparse and irregular*, and arguably check 4 as well.
+ *
+ * The cap cannot simply be softened, because the constraint is arithmetic: a gap bounded above by
+ * `C` whose mean is 97 % of `C` has nowhere to vary. Being irregular under the old 2.2 s ceiling
+ * would have meant a mean well under it — **more** leaves in the sparsest weather the game has,
+ * which is the opposite of what check 5 asks for. So the ceiling moves out and the mean goes with
+ * it, and the tail is folded toward the ceiling instead of onto it (see `flutterGap`).
+ *
+ * 3.2 s, not five: the sentence this constant was written for is *"the wood could otherwise fall
+ * to nothing for five seconds at a time, which reads as the sound having broken"*. And it is a
+ * schedule bound, not an audibility one — `2026-09-25-layers` measured the longest stretch with
+ * nothing AUDIBLE below the knee at 3.25 s already, with the leaves running at the old 2.2.
+ */
+export const QUIET_GAP_MAX = 3.2;
+
+/**
+ * How long until the next leaf turns over: the weather's own draw, folded into the ceiling.
+ *
+ * `rate` is the gust and the canopy together — a gust crowds the flutters, a roof of leaves adds
+ * more of them. The draw over it is uniform and therefore irregular; all the old code did wrong
+ * was clip it. `C · (1 − e^(−raw / C))` is the same curve for short gaps (it is `raw` to within a
+ * percent while `raw ≪ C`) and asymptotic to the ceiling for long ones, so a still afternoon gets
+ * gaps that vary instead of a gap that repeats.
+ */
+export function flutterGap(u: number, rate: number): number {
+  const raw = (0.5 + u * 3.2) / Math.max(1e-6, rate);
+  return QUIET_GAP_MAX * (1 - Math.exp(-raw / QUIET_GAP_MAX));
+}
 /**
  * A fairy's glint: how close you have to be for half level, its peak, and the gap between glints.
  * Events only, and small ones — the owner's standing complaint is that there is too much sound, so
@@ -693,8 +732,9 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       // QUIET_GAP_MAX. With the bed gated below the gust knee and the tune resting between passes,
       // the wood could otherwise fall to nothing for five seconds at a time, which reads as the
       // sound having broken rather than as a quiet forest. A leaf turning over is the answer to
-      // that, not a floor put back under everything.
-      nextFlutter += Math.min(QUIET_GAP_MAX, (0.5 + eventRng() * 3.2) / ((0.3 + g * 1.1) * (1 + canopyNow * CANOPY_FLUTTER)));
+      // that, not a floor put back under everything. See `flutterGap` for why the ceiling is an
+      // asymptote and not a `Math.min` — the min made a metronome of the sparsest weather.
+      nextFlutter += flutterGap(eventRng(), (0.3 + g * 1.1) * (1 + canopyNow * CANOPY_FLUTTER));
     }
   };
 
@@ -725,7 +765,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * sang — 4.0 dB of level and 1.8 octaves of top, a bird heard from behind a tree that he had
    * already walked out from behind.
    */
-  const turning: { pan: AudioParam; reach: AudioParam; top: AudioParam; wet: AudioParam; ravine: AudioParam | null; x: number; z: number; until: number }[] = [];
+  const turning: { pan: AudioParam; reach: AudioParam; top: AudioParam; wet: AudioParam; ravine: AudioParam | null; spot: BirdSpot | null; x: number; z: number; until: number }[] = [];
 
   /** the three things a bird's distance and its shadow are worth, in the units the graph wants */
   const birdReach = (distance: number, occlusion: number) => (1 - 0.66 * distance) * (1 - OCCLUSION_DUCK * occlusion);
@@ -742,7 +782,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * and cannot be taken back; a gain can be re-aimed every tick, which is what lets a call that
    * was booked four seconds ago arrive at the loudness it should have now.
    */
-  const birdVoice = (t: number, perch: { x: number; z: number }, distance: number, end: number, occlusion = 0) => {
+  const birdVoice = (t: number, perch: { x: number; z: number }, distance: number, end: number, occlusion = 0, spot: BirdSpot | null = null) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = panFor(forwardNow, perchFrom(perch).dir) * PERCH_PAN;
     const hp = filter(ctx, 'highpass', 320, 0.5);
@@ -759,7 +799,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const ravine = gorgeSend ? gain(ctx, GORGE_CALL_SEND * gorgeNow) : null;
     if (ravine && gorgeSend && !mute.has('birds')) panner.connect(ravine).connect(gorgeSend);
     // and all five keep following him until the call is over (see `turning`)
-    turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, ravine: ravine?.gain ?? null, x: perch.x, z: perch.z, until: end });
+    turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, ravine: ravine?.gain ?? null, spot, x: perch.x, z: perch.z, until: end });
     cleanupAt(ctx, end + 0.5, () => {
       for (const n of [g, reach, hp, lp, panner, send, ravine]) n?.disconnect();
     });
@@ -771,7 +811,11 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const birdCall = (kind: BirdKind, t: number, perch: { x: number; z: number }, level: number, distance: number, occlusion = 0) => {
     counts.birds++;
     const pan = panFor(forwardNow, perchFrom(perch).dir) * PERCH_PAN;
-    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3)), Number(t.toFixed(3))]);
+    // the entry is kept and re-written while the call sounds (see `turning`): it says where the
+    // call is heard FROM, which for two and a half seconds of a moving listener is not where it
+    // was booked from
+    const spot: BirdSpot = [kind, Number(pan.toFixed(3)), Number(distance.toFixed(3)), Number(t.toFixed(3))];
+    counts.birdSpots.push(spot);
     if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
     counts.birdShadow = Number(occlusion.toFixed(3));
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
@@ -783,7 +827,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // of attack, against 2.6 dB of level and 1483 Hz of cutoff that no longer do
     const soft = 1 + distance * 1.6;
     let end = t + 1.6;
-    const { voice: g, air } = birdVoice(t, perch, distance, t + 2.6, occlusion);
+    const { voice: g, air } = birdVoice(t, perch, distance, t + 2.6, occlusion, spot);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.connect(g);
@@ -1113,6 +1157,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       v.top.setTargetAtTime(birdTop(from.distance, shadow), t, PLACE_TAU);
       v.wet.setTargetAtTime(birdWet(from.distance), t, PLACE_TAU);
       v.ravine?.setTargetAtTime(GORGE_CALL_SEND * gorgeNow, t, PLACE_TAU);
+      if (v.spot) {
+        v.spot[1] = Number((panFor(forwardNow, from.dir) * PERCH_PAN).toFixed(3));
+        v.spot[2] = Number(from.distance.toFixed(3));
+      }
     }
     // the wood is drawn once, and after that a bird he has left behind is retired on its own
     if (!perches.length) seedPerches(s.listener);
