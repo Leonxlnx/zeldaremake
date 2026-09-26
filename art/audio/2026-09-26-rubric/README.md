@@ -11,7 +11,8 @@ worse than no scorecard, because the next agent reads it and believes it.
 
 ## The verdict
 
-**184 → 187 / 200, then 186 once check 24 was looked at properly (see the amendment below).** Three
+**184 → 187 / 200, then 186 once check 24 was looked at properly, then 189 (see the amendments
+below).** Three
 rows move up, five are amended without moving, one moves down, and the one row that
 blocks the rubric's own ship rule does not move because it cannot.
 
@@ -65,6 +66,20 @@ the part that needed fixing.
 > **1.58 dB**, and above 1.72 m it is worth nothing. The curve is not what is wrong: its output is
 > boxed at 6.9 dB by a floor that keeps a landing louder than a step and a ceiling the master is
 > staged against, and the only real widening costs the 2.9 dB of headroom slack one for one.
+
+> **Amended again, end of 2026-09-26 — 186 → 189.** Three rows whose evidence was gathered after
+> this pass, each deferred here to "the next re-score", and this is it.
+>
+> | # | check | was | now | why |
+> | --- | --- | ---: | ---: | --- |
+> | 5 | sparse, irregular events | 3 | **4** | `-gaps`. The cap on the leaves was a `Math.min` and **88 % of the gaps in still air were exactly 2.2 s apart**; fixed, and all three streams then measured — sparse, nothing at any ceiling, and no clustering on the weather's own 26.4 s clock (0.031 against a 0.096 null) |
+> | 10 | a roof is measurable | 3 | **4** | `-roof`. The cited +2.9 dB was a level. Measured per band it is also **2.75 dB of shape** — against 0.2–1.2 for the pairs `-places` called the same place twice — and **−14.2 dB off the top octave of the events** |
+> | 28 | no double-fire, no misses | 3 | **4** | `-contact`. Both halves now driven at frame rates rather than trusted, and a fault came out of each: a shove with no landing, and 1.60 s of silence at the hand-back between the two step paths |
+>
+> That leaves **nine rows at 3 and one at 0**, and after this branch every one of them is either
+> blocked on another lane (9, 15, 27, 49), cheap bookkeeping (50), or examined and found to be
+> the best it can be under a stated constraint (24, 38, 4) — the last of those being the gust's
+> own periodicity, which is one line in `src/world/wind/wind.ts`.
 
 ## Check 27, which is the only thing left below 2
 
