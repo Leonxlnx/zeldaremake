@@ -269,6 +269,9 @@ function hull(b: Builder, lod: Lod): void {
     for (const z of [-2.6, -3.3, -4.0]) b.cyl('darkRed', 0, 1.25, z, 0.46, 0.18, { axis: 'z', radial: 12 });
     // cooling fins either side of the engine
     for (const s of [1, -1]) for (let k = 0; k < 5; k++) b.box('dbg', s * 1.45, -0.72 + k * 0.26, -3.55, 0.36, 0.08, 1.6, { c: 0.02 });
+    // heat-rusted exhaust collar and scorched tiles behind the rear deck
+    b.add('darkOrange', tube(1.03, 0.96, 0.18, 0.02, 18), new Matrix4().makeTranslation(0, -0.2, -4.68).multiply(new Matrix4().makeRotationX(Math.PI / 2)));
+    for (const s of [1, -1]) b.shape('darkOrange', [[s * 0.35, -3.2], [s * 1.15, -3.2], [s * 1.0, -3.9], [s * 0.35, -3.9]], 0.85, 0.04, { c: 0.01 });
   }
 }
 
