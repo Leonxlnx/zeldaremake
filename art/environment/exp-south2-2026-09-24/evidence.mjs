@@ -5,6 +5,7 @@
  *   node art/environment/exp-south2-2026-09-24/evidence.mjs --dist dist --out /tmp/e --poses art/environment/exp-south2-2026-09-24/poses.json [--play] [--walks] [--capture] [--heroes] [--ab]
  *   node art/environment/exp-south2-2026-09-24/evidence.mjs --compare /tmp/e-canonical/png --with /tmp/e-branch/png [--names A_stairs,...]
  *   node art/environment/exp-south2-2026-09-24/evidence.mjs --sheet /tmp/e/png --names a,b,c --cols 3 --sheet-out sheet.jpg [--labels "x|y|z"]
+ *   node art/environment/exp-south2-2026-09-24/evidence.mjs --exit-stats /tmp/e/evidence.json
  *
  * --play     play mode (`?test=1`). Poses with a `player` placement ([x, z] facing `toward`): Link
  *            placed at rest, 45 frames simulated, 3 drawn, then the renderer's counts (Link drawn,
@@ -26,8 +27,10 @@
  *            12.5 s + `--settle` frames; with `--ab` read
  *            LOD on, off, on again from the same time, the off and again frames compared with the
  *            first on frame. The on frames go to `out/png/`. Poses marked `exit` (their target is the
- *            log's far end) get the luminance of the far end's disc on screen.
+ *            log's far end) get the luminance of the far end's disc on screen, less the HUD's boxes
+ *            (the canvas screenshot takes in the HUD overlay, `ui/hud.ts`).
  * --ab play | --ab capture   the A/B reads in that phase only (a pose's `ab: false` skips both).
+ * --exit-stats  the exit rows of a capture run's evidence.json again, from its saved frames.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -74,6 +77,11 @@ function loadTs(file) {
 const { EXPANSION_SOUTH: S, EXPANSION_SOUTH_DWELLINGS: D } = loadTs(path.join(root, 'src/world/layout.ts'));
 const { inFarBankZone } = loadTs(path.join(root, 'src/world/util/farBankLocality.ts'));
 const { surfaceAt } = loadTs(path.join(root, 'src/audio/index.ts'));
+const HUD_BOXES = [
+  loadTs(path.join(root, 'src/ui/hearts.ts')).HEARTS_BOX,
+  loadTs(path.join(root, 'src/ui/itemSlot.ts')).ITEM_BOX,
+  loadTs(path.join(root, 'src/ui/minimap.ts')).MAP_BOX,
+];
 
 const rad = (d) => (d * Math.PI) / 180;
 const bridgeLen = Math.hypot(S.bridge.south[0] - S.bridge.north[0], S.bridge.south[1] - S.bridge.north[1]);
@@ -396,7 +404,14 @@ async function pixelDiff(a, b) {
   return { changedPx: changed, ofPx: w * h, maxLevels: max, ssim: +s.toFixed(4) };
 }
 
-/** Rec. 709 luminance of the log's far-end disc on screen (the pose's target is its centre) */
+/** the HUD's boxes on a w × h frame (`ui/styles.ts`: placed at fractions of 1280 × 720, sized in
+ * min(w / 1280, h / 720) units), grown 4 px for their antialiased edges */
+function hudRects(w, h) {
+  const u = Math.min(w / 1280, h / 720);
+  return HUD_BOXES.map((b) => [(b.x / 1280) * w - 4, (b.y / 720) * h - 4, (b.x / 1280) * w + b.w * u + 4, (b.y / 720) * h + b.h * u + 4]);
+}
+
+/** Rec. 709 luminance of the log's far-end disc on screen (the pose's target is its centre), less the HUD */
 async function exitStats(png, from) {
   const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const dist = Math.hypot(...from.t.map((v, i) => v - from.p[i]));
@@ -404,12 +419,18 @@ async function exitStats(png, from) {
   const R = (f * S.tunnel.innerRadius) / dist;
   const cx = info.width / 2;
   const cy = info.height / 2;
+  const hud = hudRects(info.width, info.height);
   const lum = [];
   let maxChannel = 0;
   let clipped = 0;
+  let hudPx = 0;
   for (let y = Math.max(0, Math.floor(cy - R)); y < Math.min(info.height, Math.ceil(cy + R)); y++) {
     for (let x = Math.max(0, Math.floor(cx - R)); x < Math.min(info.width, Math.ceil(cx + R)); x++) {
       if ((x - cx) ** 2 + (y - cy) ** 2 > R * R) continue;
+      if (hud.some(([x0, y0, x1, y1]) => x >= x0 && x < x1 && y >= y0 && y < y1)) {
+        hudPx++;
+        continue;
+      }
       const i = (y * info.width + x) * 3;
       const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
       lum.push(0.2126 * r + 0.7152 * g + 0.0722 * b);
@@ -421,7 +442,16 @@ async function exitStats(png, from) {
   const q = (t) => +lum[Math.min(lum.length - 1, Math.floor(t * lum.length))].toFixed(1);
   const mean = lum.reduce((s, v) => s + v, 0) / lum.length;
   const sd = Math.sqrt(lum.reduce((s, v) => s + (v - mean) ** 2, 0) / lum.length);
-  return { discRadiusPx: +R.toFixed(1), px: lum.length, p10: q(0.1), p50: q(0.5), p99: q(0.99), peak: q(1), sd: +sd.toFixed(1), maxChannel, clippedShare: +(clipped / lum.length).toFixed(4) };
+  return { discRadiusPx: +R.toFixed(1), px: lum.length, hudPx, p10: q(0.1), p50: q(0.5), p99: q(0.99), peak: q(1), sd: +sd.toFixed(1), maxChannel, clippedShare: +(clipped / lum.length).toFixed(4) };
+}
+
+async function exitAgain() {
+  const file = path.resolve(args['exit-stats']);
+  const e = JSON.parse(fs.readFileSync(file, 'utf8'));
+  for (const row of e.capture ?? []) {
+    if (!row.exit) continue;
+    console.log(`${row.name.padEnd(6)} ${JSON.stringify(await exitStats(path.join(path.dirname(file), 'png', `${row.name}.png`), row.pose))}`);
+  }
 }
 
 /** the south exit's audit (structures: south, southDwellings, farBank) and any system failures, or null without the capture API */
@@ -548,6 +578,7 @@ function selftest() {
 if (args.selftest) selftest();
 else if (args.compare) await compare();
 else if (args.sheet) await sheet();
+else if (args['exit-stats']) await exitAgain();
 else {
   const dist = path.resolve(args.dist ?? 'dist');
   const out = path.resolve(args.out ?? '/tmp/south2-evidence');
