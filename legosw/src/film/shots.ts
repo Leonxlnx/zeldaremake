@@ -1108,8 +1108,8 @@ const softplus = (x: number, k: number) => (x > 30 * k ? x : k * Math.log1p(Math
 /**
  * Obi-Wan's line into the open bay, as (out of the mouth, toward pad B, up) from the centre of the
  * outer lip, `t` seconds into the shot: braking hard from 900 out, 32 out as the ray shield dies
- * (2.45 s), across the lip at ≈2.8 s and still moving over the forward deck at 4 s, where the landing
- * picks him up coming through the mouth. Anakin trails 24 back, 24 toward his own pad and 5 up.
+ * (2.45 s), across the lip at 2.84 s and still moving (≈50/s) over the forward deck at 4 s, where the
+ * landing picks him up coming through the mouth. Anakin trails 24 back, 24 toward his own pad and 5 up.
  */
 function approachLine(t: number): [number, number, number] {
   const v1 = 45, k = 1.25, d0 = 900, d4 = -70;
