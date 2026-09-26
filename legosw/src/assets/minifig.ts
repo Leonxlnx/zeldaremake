@@ -5,6 +5,7 @@ import {
   Matrix4,
   Mesh,
   MeshPhysicalMaterial,
+  MeshStandardMaterial,
   Object3D,
   Quaternion,
   Vector3,
@@ -12,10 +13,10 @@ import {
   type Texture,
 } from 'three';
 import { Builder } from '../core/builder';
-import { cylinder, mergeMD, prism, sweep, transformMD, type MeshData, type V3 } from '../core/geom';
-import { mat, plasticRoughnessTexture, swatch, type ColorKey } from '../core/palette';
+import { cylinder, mergeMD, MeshAcc, prism, sweep, transformMD, type MeshData, type V3 } from '../core/geom';
+import { mat, MATERIAL_QUALITY, plasticRoughnessTexture, swatch, type ColorKey } from '../core/palette';
 import { hairMesh, type HairSpec } from './hair';
-import { FaceTexture, HEAD_H, legTexture, torsoTexture, type FaceState, type FaceStyle, type TorsoStyle } from './prints';
+import { FACE_PX, FACE_W, FaceTexture, HEAD_H, legTexture, torsoTexture, type FaceState, type FaceStyle, type TorsoStyle } from './prints';
 
 /**
  * LEGO minifigure. Origin = hip joint (legs rotate about local X there); standing soles at
@@ -31,8 +32,10 @@ export interface MinifigSpec {
   handR: ColorKey;
   hips: ColorKey;
   legs: ColorKey;
+  /** `base` is always replaced by the torso plastic so the print meets the brick's sides */
   torsoPrint: TorsoStyle;
-  legPrint: { base: string; boot: string | null; line: string; top?: number };
+  /** `base` is replaced by the leg plastic; `hem` prints the tunic skirt's hem on the thighs */
+  legPrint: { base: string; boot: string | null; line: string; top?: number; hem?: number };
   face: FaceStyle;
   hair: HairSpec;
 }
@@ -77,15 +80,38 @@ export interface Minifig {
   seated(): void;
 }
 
+const roughCache = new Map<string, Texture>();
+/** The shared ABS roughness map at the builder's density (0.11 repeats per unit) over a print spanning w × h units. */
+function printRoughness(w: number, h: number): Texture {
+  const key = `${w}|${h}`;
+  let t = roughCache.get(key);
+  if (!t) {
+    t = plasticRoughnessTexture().clone();
+    t.repeat.set(w * 0.11, h * 0.11);
+    roughCache.set(key, t);
+  }
+  return t;
+}
+
+/** Printed ABS: the palette's plastic finish with a print map. */
+function printMaterial(map: Texture, w: number, h: number, clearcoat = 0.55, clearcoatRoughness = 0.14): Material {
+  const roughnessMap = printRoughness(w, h);
+  return MATERIAL_QUALITY.clearcoat
+    ? new MeshPhysicalMaterial({ map, roughness: 0.5, roughnessMap, metalness: 0, clearcoat, clearcoatRoughness })
+    : new MeshStandardMaterial({ map, roughness: 0.42, roughnessMap, metalness: 0 });
+}
+
 const printedCache = new Map<Texture, Material>();
-function printedMat(map: Texture): Material {
+function printedMat(map: Texture, w: number, h: number): Material {
   let m = printedCache.get(map);
   if (!m) {
-    m = new MeshPhysicalMaterial({ map, roughness: 0.5, roughnessMap: plasticRoughnessTexture(), metalness: 0, clearcoat: 0.55, clearcoatRoughness: 0.14 });
+    m = printMaterial(map, w, h);
     printedCache.set(map, m);
   }
   return m;
 }
+
+const css = (key: ColorKey) => `#${swatch(key).hex.toString(16).padStart(6, '0')}`;
 
 /** MeshData → BufferGeometry with a planar UV projection (u from x, v from y). */
 function planarGeometry(md: MeshData, x0: number, x1: number, y0: number, y1: number): BufferGeometry {
@@ -103,7 +129,10 @@ function planarGeometry(md: MeshData, x0: number, x1: number, y0: number, y1: nu
   return g;
 }
 
-/** Head: lathe with a cylindrical UV (u = 0.5 faces +Z) carrying the face print. */
+/**
+ * Head: lathe with a cylindrical UV carrying the face print — u = 0.5 faces +Z and u runs with the
+ * arc length at the head's radius, so the print covers the front and the back clamps to its skin edge.
+ */
 function headGeometry(): BufferGeometry {
   const r = 0.6, h = HEAD_H, rc = 0.13;
   // profile (r, y) from the neck up; the straight side maps v = y / h
@@ -134,7 +163,7 @@ function headGeometry(): BufferGeometry {
       const [pr, py] = prof[j];
       pos.push(pr * s, py, pr * c);
       nrm.push(pn[j][0] * s, pn[j][1], pn[j][0] * c);
-      uv.push(i / N, Math.max(0.002, Math.min(0.998, py / h)));
+      uv.push(0.5 + (r * th * FACE_PX) / FACE_W, Math.max(0.002, Math.min(0.998, py / h)));
     }
   }
   const M = prof.length;
@@ -176,25 +205,60 @@ function armMD(): MeshData {
   );
 }
 
-/** C-shaped hand in a canonical frame: forearm along +Z, the bar through the C along X. */
+/**
+ * C-shaped hand in a canonical frame: forearm along +Z, the bar through the C along X. The C is a
+ * rounded-rectangle section — thin radially, broad along the bar, heavier at the back of the hand —
+ * swept round (0, 0, 0.3) with domed finger and thumb ends. The gap faces +Z; the inner radius
+ * takes a 0.13 bar.
+ */
 function handMD(): MeshData {
-  const pts: V3[] = [];
-  const R = 0.19, arc = Math.PI * 1.42;
-  const start = -arc / 2;
-  for (let i = 0; i <= 28; i++) {
-    const a = start + (i / 28) * arc;
-    // circle in the YZ plane centred at z = 0.3; the arc wraps the wrist side, the gap faces +Z
-    pts.push([0, Math.sin(a) * R, 0.3 - Math.cos(a) * R]);
+  const RIN = 0.132, W = 0.25, EXP = 2 / 3.4;
+  const half = Math.PI * 0.73, NA = 34, NC = 6, NS = 24;
+  const thick = (a: number) => 0.112 + 0.03 * Math.cos(a);
+  const O = new Vector3(0, 0, 0.3);
+  const spow = (v: number) => Math.sign(v) * Math.pow(Math.abs(v), EXP);
+  // rows along the arc (domed caps past both ends), each a ring of section points
+  const rows: { a: number; sc: number }[] = [];
+  for (let k = NC; k >= 1; k--) rows.push({ a: -half - (k / NC) * (0.055 / 0.2), sc: Math.sqrt(1 - (k / NC) ** 2) });
+  for (let i = 0; i <= NA; i++) rows.push({ a: -half + (i / NA) * 2 * half, sc: 1 });
+  for (let k = 1; k <= NC; k++) rows.push({ a: half + (k / NC) * (0.055 / 0.2), sc: Math.sqrt(1 - (k / NC) ** 2) });
+  const centre = (a: number) => {
+    const t = thick(Math.max(-half, Math.min(half, a)));
+    return { rho: new Vector3(0, Math.sin(a), -Math.cos(a)), rc: RIN + t / 2, t };
+  };
+  const grid = rows.map(({ a, sc }) => {
+    const { rho, rc, t } = centre(a);
+    const out: Vector3[] = [];
+    for (let j = 0; j < NS; j++) {
+      const f = (j / NS) * Math.PI * 2;
+      const r = rc + (t / 2) * sc * spow(Math.cos(f));
+      out.push(O.clone().addScaledVector(rho, r).setX((W / 2) * sc * spow(Math.sin(f))));
+    }
+    return out;
+  });
+  const normals = grid.map((row, i) => {
+    const { rho, rc } = centre(rows[i].a);
+    const c = O.clone().addScaledVector(rho, rc);
+    const tip = rows[i].sc < 1e-6;
+    const tan = new Vector3(0, Math.cos(rows[i].a), Math.sin(rows[i].a)).multiplyScalar(Math.sign(rows[i].a));
+    return row.map((p, j) => {
+      if (tip) return tan.clone();
+      const da = grid[Math.min(grid.length - 1, i + 1)][j].clone().sub(grid[Math.max(0, i - 1)][j]);
+      const df = row[(j + 1) % NS].clone().sub(row[(j + NS - 1) % NS]);
+      const n = new Vector3().crossVectors(da, df).normalize();
+      return n.dot(p.clone().sub(c)) < 0 ? n.negate() : n;
+    });
+  });
+  const acc = new MeshAcc();
+  const v = (p: Vector3): V3 => [p.x, p.y, p.z];
+  for (let i = 0; i < grid.length - 1; i++) {
+    for (let j = 0; j < NS; j++) {
+      const j1 = (j + 1) % NS;
+      acc.quad(v(grid[i][j]), v(grid[i][j1]), v(grid[i + 1][j1]), v(grid[i + 1][j]), v(normals[i][j]), v(normals[i][j1]), v(normals[i + 1][j1]), v(normals[i + 1][j]));
+    }
   }
-  const ring = sweep(pts, (u) => 0.085 * Math.min(1, Math.sqrt(Math.min(u, 1 - u) / 0.04 + 0.2)), 14);
-  const wrist = cylinder(0.1, 0.16, 0.02, 14);
-  const b = new Builder();
-  b.add('white', ring);
-  b.add('white', wrist, new Matrix4().makeTranslation(0, 0, 0.06).multiply(new Matrix4().makeRotationX(Math.PI / 2)));
-  const built = b.build('tmp');
-  const mesh = built.group.children[0] as Mesh;
-  const g = mesh.geometry;
-  return { pos: g.getAttribute('position').array as Float32Array, nrm: g.getAttribute('normal').array as Float32Array };
+  acc.append(cylinder(0.1, 0.16, 0.02, 14), new Matrix4().makeTranslation(0, 0, 0.06).multiply(new Matrix4().makeRotationX(Math.PI / 2)));
+  return acc.done();
 }
 
 function meshFrom(key: ColorKey, md: MeshData, plain = true): Mesh {
@@ -215,14 +279,15 @@ export function minifig(spec: MinifigSpec): Minifig {
   hips.name = 'hips';
   group.add(hips);
 
-  // hips block
-  const hb = new Builder({ seed: 11 });
+  // hips block (untinted: printed parts meet it and must match the palette exactly)
+  const hb = new Builder({ seed: 11, tint: 0 });
   hb.box(spec.hips, 0, 0.16, 0, 1.95, 0.32, 0.9, { c: 0.04 });
   hb.box(spec.hips, 0, -0.1, 0.12, 0.3, 0.3, 0.6, { c: 0.04 });
   hips.add(hb.build('hips').group);
 
-  // legs: shin block with rounded top + foot, printed from the front (boots)
-  const legTex = legTexture(spec.legPrint.base, spec.legPrint.boot, spec.legPrint.line, spec.legPrint.top ?? 0.55);
+  // legs: shin block with rounded top + foot, printed front and back (tunic hem, boots)
+  const lp = spec.legPrint;
+  const legTex = legTexture(css(spec.legs), lp.boot, lp.line, lp.top ?? 0.55, lp.hem === undefined ? {} : { tunic: css(spec.legs), hem: lp.hem });
   const mkLeg = (side: 1 | -1) => {
     const pivot = new Object3D();
     pivot.position.set(side * 0.49, 0, 0);
@@ -247,8 +312,9 @@ export function minifig(spec: MinifigSpec): Minifig {
     );
     // rotY(−90°): profile x (depth) → world +Z (toe forward), extrusion → world X
     const md = transformMD(mergeMD([shin, foot]), new Matrix4().makeRotationY(-Math.PI / 2));
-    const geo = planarGeometry(md, -0.47, 0.47, -1.25, 0.22);
-    const m = new Mesh(geo, printedMat(legTex));
+    // u runs from the inner edge outward on both legs
+    const geo = planarGeometry(md, -0.47 * side, 0.47 * side, -1.25, 0.22);
+    const m = new Mesh(geo, printedMat(legTex, 0.94, 1.47));
     m.castShadow = true;
     m.receiveShadow = true;
     pivot.add(m);
@@ -263,7 +329,7 @@ export function minifig(spec: MinifigSpec): Minifig {
   torso.name = 'torso';
   torso.position.set(0, 0.32, 0);
   hips.add(torso);
-  const tb = new Builder({ seed: 12 });
+  const tb = new Builder({ seed: 12, tint: 0 });
   const tpoly = [
     [-0.975, 0],
     [0.975, 0],
@@ -296,12 +362,13 @@ export function minifig(spec: MinifigSpec): Minifig {
     }
     front.setAttribute('uv', new BufferAttribute(uv, 2));
   }
-  const frontMesh = new Mesh(front, printedMat(torsoTexture(spec.torsoPrint)));
+  const print: TorsoStyle = { ...spec.torsoPrint, base: css(spec.torso) };
+  const frontMesh = new Mesh(front, printedMat(torsoTexture(print), 1.95, 1.52));
   frontMesh.receiveShadow = true;
   torso.add(frontMesh);
   const back = front.clone();
   back.rotateY(Math.PI);
-  const backMesh = new Mesh(back, printedMat(torsoTexture(spec.torsoPrint, true)));
+  const backMesh = new Mesh(back, printedMat(torsoTexture(print, true), 1.95, 1.52));
   backMesh.receiveShadow = true;
   torso.add(backMesh);
 
@@ -343,14 +410,13 @@ export function minifig(spec: MinifigSpec): Minifig {
   head.position.set(0, 1.58, 0);
   torso.add(head);
   const face = new FaceTexture(spec.face);
-  const headMat = new MeshPhysicalMaterial({ map: face.texture, roughness: 0.5, roughnessMap: plasticRoughnessTexture(), metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.12 });
+  const headMat = printMaterial(face.texture, (FACE_W / FACE_PX), HEAD_H, 0.6, 0.12);
   const headMesh = new Mesh(headGeometry(), headMat);
   headMesh.position.y = 0.0;
   headMesh.castShadow = true;
   headMesh.receiveShadow = true;
   head.add(headMesh);
   head.add(hairMesh(spec.hair));
-  void swatch;
 
   const fig: Minifig = {
     group,
@@ -394,9 +460,9 @@ export const ANAKIN_SPEC = (hair: HairSpec): MinifigSpec => ({
   handR: 'black',
   hips: 'reddishBrown',
   legs: 'reddishBrown',
-  torsoPrint: { base: '#5c2b14', robe: '#4a2210', robeDark: '#2c1409', inner: '#1f1a17', belt: '#1a1512', buckle: '#9fa2a6', skin: '#f6d7b3', line: '#140d09', tabard: '#1e1916' },
-  legPrint: { base: '#5c2b14', boot: '#15110e', line: '#0c0907', top: 0.45 },
-  face: { skin: '#f6d7b3', brow: '#4b2412', line: '#a8745a', scar: true, cheekLines: true },
+  torsoPrint: { base: '#5a3120', robe: '#4a2210', robeDark: '#2c1409', inner: '#1f1a17', belt: '#1a1512', buckle: '#9fa2a6', skin: '#f6d7b3', line: '#140d09', tabard: '#1e1916', pouch: '#3b2517' },
+  legPrint: { base: '#5a3120', boot: '#15110e', line: '#0c0907', top: 0.45, hem: 0.42 },
+  face: { skin: '#f6d7b3', brow: '#3f1f10', line: '#a8745a', scar: true, cheekLines: true, lopsided: 0.35 },
   hair,
 });
 
@@ -409,7 +475,7 @@ export const OBIWAN_SPEC = (hair: HairSpec): MinifigSpec => ({
   hips: 'tan',
   legs: 'tan',
   torsoPrint: { base: '#e0c796', robe: '#cdb07a', robeDark: '#9c8358', inner: '#f0e2c2', belt: '#5c2b14', buckle: '#a9abae', skin: '#f6d7b3', line: '#3a2a18' },
-  legPrint: { base: '#e0c796', boot: '#5c2b14', line: '#2b1a0e', top: 0.5 },
-  face: { skin: '#f6d7b3', brow: '#6e3814', line: '#b07c62', beard: { color: '#8e4a1c', dark: '#5c2c0e', light: '#b8733a' }, cheekLines: false },
+  legPrint: { base: '#e0c796', boot: '#3d2616', line: '#2b1a0e', top: 0.5, hem: 0.42 },
+  face: { skin: '#f6d7b3', brow: '#6e3814', line: '#b07c62', beard: { color: '#8e4a1c', dark: '#5c2c0e', light: '#b8733a' }, cheekLines: false, age: true },
   hair,
 });
