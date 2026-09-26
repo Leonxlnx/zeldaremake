@@ -832,7 +832,8 @@ const obiCockpit2 = cockpitShot({
   dur: 2.6,
   who: 'obiwan',
   lines: [{ t0: 0.15, t1: 2.5, who: 'Obi-Wan Kenobi', text: "Get out of here, Anakin! There's nothing more you can do." }],
-  faceAt: (t) => ({ mouth: talk(t, 0.2, 2.3, 'frown', ['shout', 'open', 'talk']), brows: -0.2, lookX: -0.03 }),
+  // urgent, pleading: brows up at the inner ends, a tense squint, every open shape with its corners dragged down
+  faceAt: (t) => ({ mouth: talk(t, 0.2, 2.3, 'frown', ['yell', 'worry', 'yell', 'o', 'worry']), brows: 0.8, squint: 0.18, lookX: -0.03 }),
   // Anakin flies off his starboard side: from the port camera Obi-Wan looks screen left, Anakin's
   // reverse (below) looks screen right, so the two singles face each other across the cut
   headAt: () => ({ yaw: -0.5, pitch: 0.02 }),
@@ -864,6 +865,17 @@ const anakinCockpit2 = cockpitShot({
 
 /** droid #4's leap from Obi-Wan's fighter to Anakin's, seconds into the rescue */
 const RESCUE_LEAP = [1.35, 1.85] as const;
+/**
+ * Where droid #4 lands on Anakin's port S-foil: outboard of R2 and level with him, facing him, so the
+ * camera (ahead of the fighters) sees R2 in front of the droid and the zap crossing open wing between them.
+ */
+const ZAP_SPOT = (() => {
+  const x = 6.6, z = 0.4;
+  const up = v3(-0.384, 1, 0).normalize();
+  const h = v3(-1, 0, 0);
+  const fwd = h.sub(up.clone().multiplyScalar(h.dot(up))).normalize();
+  return { p: v3(x, foilTop(x) + BUZZ_LIFT, z), q: basisQuat(fwd, up) };
+})();
 
 function pair11(T0: number) {
   const base = v3(1500, -1100, 24500);
@@ -894,7 +906,7 @@ const rescue: Shot = {
     }
     w.fx.explosion(T0 + 0.85, pk, { size: 5, pieces: 26, sparks: 40, smoke: 3, colors: ['flatSilver', 'dbg', 'lbg'], seed: 1101, inherit: ok.vel.clone().multiplyScalar(0.9) });
     // R2's zap lands on the droid that jumped ship (the arc itself is posed per frame): hit sparks, then its head pops
-    const droidAt = (T: number) => local(flight(pa, T, { bank: 0.6 }), 4.6, 2.1, 4.5);
+    const droidAt = (T: number) => local(flight(pa, T, { bank: 0.6 }), ZAP_SPOT.p.x, ZAP_SPOT.p.y + 0.6, ZAP_SPOT.p.z);
     w.fx.sparkStream(T0 + 2.0, T0 + 2.7, droidAt, () => v3(0.3, 0.8, -0.2), 220, 1102, 7, (T) => flight(pa, T).vel);
     w.fx.explosion(T0 + 2.65, droidAt(T0 + 2.65).add(v3(0, 0.5, 0)), { size: 1.4, pieces: 5, sparks: 30, smoke: 1, colors: ['flatSilver', 'dbg'], seed: 1103, inherit: flight(pa, T0 + 2.65).vel.clone().multiplyScalar(0.9) });
   },
@@ -922,13 +934,14 @@ const rescue: Shot = {
     const b4 = w.buzz[4];
     b4.group.visible = true;
     const leap = smoother(RESCUE_LEAP[0], RESCUE_LEAP[1], t);
-    const onA = local(a, 4.6, 1.5, 4.5);
+    const onA = local(a, ZAP_SPOT.p.x, ZAP_SPOT.p.y, ZAP_SPOT.p.z);
+    const qA = a.quat.clone().multiply(ZAP_SPOT.q);
     if (leap <= 0) crawlOn(o, 4, T, b4);
     else {
       const c4 = crawlLocal(4, T0 + RESCUE_LEAP[0]);
       const from = local(o, c4.p.x, c4.p.y, c4.p.z);
       b4.group.position.copy(from.lerp(onA, leap)).add(v3(0, 4 * leap * (1 - leap) * 3.5, 0));
-      b4.group.quaternion.copy(o.quat).multiply(c4.q).slerp(a.quat, leap);
+      b4.group.quaternion.copy(o.quat).multiply(c4.q).slerp(qA, leap);
     }
     b4.setDeploy(1);
     b4.animate(T);
