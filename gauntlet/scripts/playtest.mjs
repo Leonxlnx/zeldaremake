@@ -910,8 +910,9 @@ async function southProbes(page) {
 
 /**
  * exp-south2: the dwellings hold Link where they are built — the keeper's gallery walks at its
- * boards' height all round the gorge side, its railing, the hut and the gorge past the railing
- * block, both steps walk; the waystation's floor walks at its boards' height, its back wall, the
+ * boards' height all round the gorge side (to their ends at the entrance and at either end line),
+ * its railing, the hut and the gorge past the railing block, both steps walk and in off the west
+ * step the entrance never refuses him; the waystation's floor walks at its boards' height, its back wall, the
  * bench in front of it, its north wall and the firewood outside block, both its steps walk, and
  * straight out of the floor over both steps the walk never drops to the ground or rises more than a
  * stair's riser.
@@ -928,15 +929,22 @@ async function southDwellingProbes(page) {
   probes.push({ where: 'keeper-step-east', th: -20.5, r: 1.86, at: keeperAt(-20.5, 1.86), expect: 'step' });
   // just off the gallery's open end (1° past it), where the walk off the end comes down: the east step, not the ground
   for (const r of [1.6, 1.85, 2.05]) probes.push({ where: 'keeper-step-east-edge', th: -15, r, at: keeperAt(-15, r), expect: 'step' });
-  // round the whole gallery every 0.5°, inside the railing and out to the boards' edge at the
-  // entrance, across every joint of its chords (the davit's foot, 0.16 m round (1.93 m, 102°), left out)
+  // round the whole gallery every 0.5°, inside the railing and at the entrance out to the boards'
+  // ends, across every joint of its chords, and 1 cm inside either end line every 2 cm (the davit's
+  // foot, 0.16 m round (1.93 m, 102°), left out)
   {
     const sweep = [];
-    for (const [r, from, to] of [[1.45, K.from, K.to], [1.74, K.from, K.to], [1.95, K.from, K.to], [2.05, K.railTo + 0.5, K.to]]) {
+    for (const [r, from, to] of [[1.45, K.from, K.to], [1.74, K.from, K.to], [1.95, K.from, K.to], [2.05, K.railTo + 0.5, K.to], [2.2, K.railTo + 0.5, K.to], [2.24, K.railTo + 0.5, K.to]]) {
       for (let th = from + 0.5; th <= to - 0.5 + 1e-9; th += 0.5) {
         const at = keeperAt(th, r);
         if (Math.hypot(at[0] - keeperAt(101.9, 1.93)[0], at[1] - keeperAt(101.9, 1.93)[1]) < 0.2) continue;
         sweep.push({ r, th: +th.toFixed(1), at });
+      }
+    }
+    for (const [end, side, rOut] of [[K.from, 1, K.railR - K.railHalf - 0.04], [K.to, -1, K.railR + 0.03]]) {
+      for (let r = K.hut + 0.05; r <= rOut + 1e-9; r += 0.02) {
+        const th = end + side * deg(0.01 / r);
+        sweep.push({ r: +r.toFixed(2), th: +th.toFixed(2), at: keeperAt(th, r) });
       }
     }
     const g = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), sweep.map((p) => p.at));
@@ -973,6 +981,21 @@ async function southDwellingProbes(page) {
     for (let i = 1; i < g.length; i++) maxRise = Math.max(maxRise, g[i - 1].walk - g[i].walk);
     const at = waystationAt(0.3, s);
     rows.push({ where: 'waystation-floor-to-steps', a: [0.3, +lineEnd.toFixed(2)], s, x: +at[0].toFixed(2), z: +at[1].toFixed(2), heights: [...new Set(g.map((q) => +q.walk.toFixed(2)))], maxRiseM: +maxRise.toFixed(3), offBuiltAt: pit.slice(0, 8), ok: pit.length === 0 && maxRise <= 0.28 });
+  }
+  // in off the keeper's west step across the entrance's boards, every 1 cm: never refused (beside
+  // the bridge the ground between the step and the boards is the gorge's), never below the step
+  // (a pit), no rise over a stair's 0.28 m, onto the deck
+  for (const th of [200, 205, 210, 215, 220]) {
+    const rs = [];
+    for (let r = 2.45; r >= 1.7 - 1e-9; r -= 0.01) rs.push(+r.toFixed(2));
+    const g = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), rs.map((r) => keeperAt(th, r)));
+    const refused = rs.filter((_, i) => g[i].blocked !== false);
+    const pit = rs.filter((_, i) => g[i].walk < g[0].walk - 0.03);
+    let maxRise = 0;
+    for (let i = 1; i < g.length; i++) maxRise = Math.max(maxRise, g[i].walk - g[i - 1].walk);
+    const end = g[g.length - 1].walk;
+    const at = keeperAt(th, 2.45);
+    rows.push({ where: 'keeper-step-to-entrance', th, r: [2.45, 1.7], x: +at[0].toFixed(2), z: +at[1].toFixed(2), heights: [...new Set(g.map((q) => +q.walk.toFixed(2)))], maxRiseM: +maxRise.toFixed(3), refusedAt: refused.slice(0, 8), pitAt: pit.slice(0, 8), ok: refused.length === 0 && pit.length === 0 && maxRise <= 0.28 && Math.abs(end - K.deckY) < 0.03 });
   }
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }

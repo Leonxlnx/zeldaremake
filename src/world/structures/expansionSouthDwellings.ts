@@ -1012,7 +1012,12 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     // bedded on the ground at either end (its round underside 2 cm in), sunk deeper into the rise between
     const ta = terrain.height(a.x, a.z) + 0.1;
     const tb = terrain.height(b.x, b.z) + 0.1;
-    kSteps.push(deckSurface('south-keeper-step-west', a.clone().setY(ta), b.clone().setY(tb), 0.15));
+    // its walk reaches in under the boards' edge, over the strip of ground between them and the log:
+    // beside the bridge that strip is the gorge's (refused), and Link stood on it short of the deck
+    const reach = 0.07;
+    const ar = new Vector3(cx + Math.cos(e0) * (rS - reach), ta, cz + Math.sin(e0) * (rS - reach));
+    const br = new Vector3(cx + Math.cos(e1) * (rS - reach), tb, cz + Math.sin(e1) * (rS - reach));
+    kSteps.push(deckSurface('south-keeper-step-west', ar, br, 0.15 + reach));
     const halfLog = (p: Vector3, q: Vector3, topY: number, topQ: number, r: number, name: string, tag: string) => {
       const ax = q.clone().sub(p).setY(0);
       const len = ax.length();
@@ -1158,6 +1163,31 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         const jz = cz + Math.sin(t0) * rm;
         walkSurfaces.push({ id: `south-keeper-gallery-joint-${k}`, disc: { x: jx, z: jz, r: 0.36, y: kFloor }, deck: { a: [jx, kFloor, jz], b: [jx, kFloor, jz], hw: 0 }, wall: noWall });
       }
+    }
+    // the entrance has no railing, so its boards run on to their ends 0.15 m past the chords' walk,
+    // over ground the bridge's side rule refuses: four short chords (and their joints) walk them out
+    // to the ends, where the west step's walk reaches in under them
+    const edge = 4;
+    const rE = GAL_OUT - 0.14;
+    const hwE = 0.17;
+    const onEdge = (t: number) => new Vector3(cx + Math.cos(t) * rE, kFloor, cz + Math.sin(t) * rE);
+    for (let k = 0; k < edge; k++) {
+      const t0 = RAIL_TO + ((GAL_TO - RAIL_TO) * k) / edge;
+      const t1 = RAIL_TO + ((GAL_TO - RAIL_TO) * (k + 1)) / edge;
+      walkSurfaces.push(deckSurface(`south-keeper-entrance-${k}`, onEdge(t0), onEdge(t1), hwE));
+      if (k > 0) {
+        const j = onEdge(t0);
+        walkSurfaces.push({ id: `south-keeper-entrance-joint-${k}`, disc: { x: j.x, z: j.z, r: hwE, y: kFloor }, deck: { a: [j.x, kFloor, j.z], b: [j.x, kFloor, j.z], hw: 0 }, wall: noWall });
+      }
+    }
+    // the chords' square ends stand 8.6° off the gallery's end lines, short of them outside the
+    // chords' axis (a sliver 3 cm wide at the railing): a strip just inside each end line
+    for (const [id, t, side] of [['east', GAL_FROM, 1], ['north', GAL_TO, -1]] as const) {
+      const out = new Vector3(Math.cos(t), 0, Math.sin(t));
+      const inside = new Vector3(-Math.sin(t), 0, Math.cos(t)).multiplyScalar(side * 0.03);
+      const p = new Vector3(cx, kFloor, cz).addScaledVector(out, platR).add(inside);
+      const q = new Vector3(cx, kFloor, cz).addScaledVector(out, GAL_OUT - 0.03).add(inside);
+      walkSurfaces.push(deckSurface(`south-keeper-gallery-end-${id}`, p, q, 0.03));
     }
   }
   walkSurfaces.push({ id: 'south-keeper-railing', disc: { x: cx, z: cz, r: 0, y: kFloor }, deck: { a: [cx, kFloor, cz], b: [cx, kFloor, cz], hw: 0 }, wall: { r: RAIL_R, half: 0.18, gap: [RAIL_TO, GAL_FROM + TAU] } });
