@@ -30,4 +30,19 @@ and her — the harness view is the honest one.
 
 ## Six fixed views
 
-SIX_VIEW_PLACEHOLDER
+`capture.mjs --quality high --settle 12`, the head `33e92705` (`dist-head02`) vs the branch (`dist-skirt`), SSIM against
+`reference/frames` at 256 × 144, changed pixels at 1280 × 720:
+
+| view | head | seated-skirt | Δ | SSIM head ↔ branch | changed px |
+| --- | --- | --- | --- | --- | --- |
+| A | 0.1948 | 0.1948 | 0.0000 | 1.0000 | 0 |
+| B | 0.1767 | 0.1771 | **+0.0004** | 0.9982 | 1 095 |
+| C | 0.1852 | 0.1852 | 0.0000 | 1.0000 | 0 |
+| D | 0.2503 | 0.2503 | 0.0000 | 1.0000 | 0 |
+| E | 0.1997 | 0.2000 | **+0.0003** | 0.9982 | 1 095 |
+| F | 0.2191 | 0.2191 | 0.0000 | 1.0000 | 0 |
+
+B and E (the same camera) move only where she sits at the frame's left edge — the changed pixels' box is x 15–123,
+y 548–660, her lap (`view-B-left-edge-3x-head-vs-shells.jpg`) — and both move toward the reference. A, C, D and F
+are pixel-identical. No geometry beyond her two shells, so draws are the head's at every view.
+
