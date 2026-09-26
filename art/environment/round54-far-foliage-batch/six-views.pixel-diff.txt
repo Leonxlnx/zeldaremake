@@ -1,0 +1,13 @@
+{"a":"/tmp/f4/r208-cap-base/A_stairs.png","b":"/tmp/f4/r208-cap-farfold/A_stairs.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/A_stairs.png","b":"/tmp/f4/r208-cap-farfold/A_stairs.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/B_house.png","b":"/tmp/f4/r208-cap-farfold/B_house.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/B_house.png","b":"/tmp/f4/r208-cap-farfold/B_house.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/C_lookback.png","b":"/tmp/f4/r208-cap-farfold/C_lookback.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/C_lookback.png","b":"/tmp/f4/r208-cap-farfold/C_lookback.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/D_log.png","b":"/tmp/f4/r208-cap-farfold/D_log.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/D_log.png","b":"/tmp/f4/r208-cap-farfold/D_log.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/E_ground.png","b":"/tmp/f4/r208-cap-farfold/E_ground.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/E_ground.png","b":"/tmp/f4/r208-cap-farfold/E_ground.png","changedShare":0.009,"changedPx":87,"meanAbs":0,"bbox":[175,20,1090,399]}
+{"a":"/tmp/f4/r208-cap-base/F_canopy.png","b":"/tmp/f4/r208-cap-farfold/F_canopy.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r208-cap-base/F_canopy.png","b":"/tmp/f4/r208-cap-farfold/F_canopy.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+R208_DONE

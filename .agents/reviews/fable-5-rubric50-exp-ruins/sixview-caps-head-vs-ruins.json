@@ -1,0 +1,78 @@
+{
+ "head": {
+  "A_stairs": {
+   "draws": 639,
+   "triangles": 8874633,
+   "sceneTriangles": 12345481,
+   "sceneInstances": 606057
+  },
+  "B_house": {
+   "draws": 628,
+   "triangles": 8291522,
+   "sceneTriangles": 12025359,
+   "sceneInstances": 571100
+  },
+  "C_lookback": {
+   "draws": 571,
+   "triangles": 7928403,
+   "sceneTriangles": 12423295,
+   "sceneInstances": 573667
+  },
+  "D_log": {
+   "draws": 562,
+   "triangles": 8633934,
+   "sceneTriangles": 12444826,
+   "sceneInstances": 592445
+  },
+  "E_ground": {
+   "draws": 628,
+   "triangles": 8291522,
+   "sceneTriangles": 12088037,
+   "sceneInstances": 576190
+  },
+  "F_canopy": {
+   "draws": 599,
+   "triangles": 8011167,
+   "sceneTriangles": 12163144,
+   "sceneInstances": 585933
+  }
+ },
+ "ruins": {
+  "A_stairs": {
+   "draws": 638,
+   "triangles": 8866360,
+   "sceneTriangles": 12412828,
+   "sceneInstances": 599594
+  },
+  "B_house": {
+   "draws": 627,
+   "triangles": 8283249,
+   "sceneTriangles": 12092706,
+   "sceneInstances": 564637
+  },
+  "C_lookback": {
+   "draws": 569,
+   "triangles": 7912410,
+   "sceneTriangles": 12493389,
+   "sceneInstances": 567269
+  },
+  "D_log": {
+   "draws": 561,
+   "triangles": 8625661,
+   "sceneTriangles": 12522055,
+   "sceneInstances": 586048
+  },
+  "E_ground": {
+   "draws": 627,
+   "triangles": 8283249,
+   "sceneTriangles": 12165266,
+   "sceneInstances": 569793
+  },
+  "F_canopy": {
+   "draws": 598,
+   "triangles": 8002894,
+   "sceneTriangles": 12243969,
+   "sceneInstances": 579536
+  }
+ }
+}

@@ -8,7 +8,7 @@
  * and loose fragments, and a material variant whose 2.6 m texture tile, wet band and crack grime
  * fade in under 6 m (material.ts). The six fixed hero cameras always render the far meshes.
  */
-import { BufferAttribute, Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
+import { BufferAttribute, Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { northBox, northVisible } from '../util/northLocality';
@@ -198,6 +198,13 @@ interface NearRock {
   centre: Vector3;
   far: Mesh;
   near: Mesh;
+  /**
+   * the near kit's shadow caster: the far mesh's geometry under a colour-less material, drawn only
+   * while the kit is active — the kit's 65–107 K triangles then cast nothing, the 15–17 K far skin
+   * casts in their place (a play frame at the flight's foot pays 0.15 M for the stair-foot kit's
+   * two passes; the shadow is the boulder's, the cushions' 6–12 cm swell aside). null without shadows
+   */
+  castProxy: Mesh | null;
   inM: number;
   outM: number;
   /** distance (m) of the nearest hero camera that frames the rock, Infinity when none does */
@@ -446,6 +453,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, fade: HERO_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   const dressingMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: DRESSING_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
+  /** the near kits' shadow casters' colour-pass material: writes neither colour nor depth (the trees' shadow proxies do the same) */
+  const castOnlyMaterial = new MeshBasicMaterial({ colorWrite: false, depthWrite: false });
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
   const nearLod = ctx.quality.tier !== 'low';
@@ -1216,13 +1225,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const nearMesh = new Mesh(kit, mesh.material);
         nearMesh.position.copy(mesh.position);
         nearMesh.rotation.y = yaw;
-        nearMesh.castShadow = true;
+        // the kit does not cast: its shadow comes from `castProxy` (the far skin) while it is active
+        nearMesh.castShadow = false;
         nearMesh.receiveShadow = true;
         nearMesh.visible = false;
         nearMesh.name = `boulder-${b.id}-near`;
         nearMesh.updateMatrixWorld(true);
         group.add(nearMesh);
-        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, lichenShare: Math.round((nearStats.lichenShare ?? 0) * 1000) / 1000, fragments: fragmentCount, shards, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length, strataSkirt, strataCompanions });
+        let castProxy: Mesh | null = null;
+        if (mesh.castShadow) {
+          castProxy = new Mesh(mesh.geometry, castOnlyMaterial);
+          castProxy.position.copy(mesh.position);
+          castProxy.rotation.copy(mesh.rotation);
+          castProxy.scale.copy(mesh.scale);
+          castProxy.castShadow = true;
+          castProxy.receiveShadow = false;
+          castProxy.visible = false;
+          castProxy.name = `boulder-${b.id}-cast`;
+          castProxy.updateMatrixWorld(true);
+          group.add(castProxy);
+        }
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, castProxy, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, lichenShare: Math.round((nearStats.lichenShare ?? 0) * 1000) / 1000, fragments: fragmentCount, shards, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length, strataSkirt, strataCompanions });
       }
     }
   }
@@ -1435,6 +1458,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else nr.active = nr.dist < nr.inM;
       nr.far.visible = !nr.active;
       nr.near.visible = nr.active;
+      if (nr.castProxy) nr.castProxy.visible = nr.active;
       // round 45: the far skirt stones collapse to nothing while the kit carries them (a
       // zero-scale instance rasterises no fragment and casts no shadow), and come back with the
       // matrices they were built with; only on a change of state, and only those instances
@@ -1570,6 +1594,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     dispose() {
       for (const nr of nearRocks) nr.near.geometry.dispose();
+      castOnlyMaterial.dispose();
     },
   };
 }
