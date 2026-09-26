@@ -46,8 +46,10 @@ import {
  * tiles, cropped wedge pieces along the angled edges) on top of a dark core. Livery: red bands
  * along the dorsal bow edges (wrapping over the rim), a red forward deck that forks into the red
  * outline of the grey dorsal hangar doors, red nose, Open Circle emblems amidships. Eight domed
- * DBY-827 turrets flank the superstructure; three main thrusters and four auxiliaries sit under a
- * housing on the stern.
+ * DBY-827 turrets flank the superstructure, six medium turrets stand on the forward dorsal wings and
+ * point-defence mounts line both rims; three main thrusters and four auxiliaries sit under a
+ * housing on the stern, below lit window bands. The hero LOD's underside carries running lights
+ * along both ventral edges, a keel rib and guide lights around the ventral bay.
  *
  * LOD 0 is built in one routed pass: base parts go to a few spatial chunks (frustum culling), studs
  * and small greebles to near-only chunks, grille bars and hairline parts to closest-range chunks,
