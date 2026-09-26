@@ -2609,6 +2609,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const mesh = new InstancedMesh(w.lods[l].geometry, material, n);
         mesh.name = `${label}-${(w.params as { seed: string }).seed}-${DETAILS[l]}`;
         mesh.customDepthMaterial = depth;
+        // lodFade.ts: the rung band's per-instance drop fraction, attached HERE rather than on first
+        // fill. Every tree attribute is told to free its CPU array once three uploads it
+        // (`releaseAfterUpload`, the policy behind the trees' resident-array bill), and a per-frame
+        // attribute cannot live under that — after the first upload its `array` is null and the next
+        // write throws. Attaching it with the mesh lets it carry its own no-op `onUpload`, which
+        // replaces the sweep's callback if the sweep has already run over this geometry.
+        if (TREE_LOD_DITHER) {
+          const drop = (w.lods[l].geometry.getAttribute('aLodDrop') as InstancedBufferAttribute | undefined) ?? new InstancedBufferAttribute(new Float32Array(n), 1);
+          drop.setUsage(DynamicDrawUsage);
+          drop.onUpload(function () {});
+          w.lods[l].geometry.setAttribute('aLodDrop', drop);
+        }
         // near and mid LODs cast shadows (dappled light on the paths); the far LOD only receives.
         // Round 51 (W38; fable-2's triangle map: the shadow pass is a third of every frame and the
         // trees' casters 1.3 M of it whichever way the camera looks): the WHITE-BARKS' mid meshes no
@@ -4202,21 +4214,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * therefore be colour-pass only — the depth pass keeps the outgoing rung's silhouette across the
    * band, which for 2.5 m of walking is the right trade anyway.
    */
-  const fadeAttribute = (mesh: InstancedMesh): InstancedBufferAttribute => {
-    const existing = mesh.geometry.getAttribute('aLodDrop') as InstancedBufferAttribute | undefined;
-    if (existing) return existing;
-    const attr = new InstancedBufferAttribute(new Float32Array(mesh.instanceMatrix.count), 1);
-    attr.setUsage(DynamicDrawUsage);
-    mesh.geometry.setAttribute('aLodDrop', attr);
-    return attr;
+  const fadeAttribute = (mesh: InstancedMesh): InstancedBufferAttribute | null => {
+    const attr = mesh.geometry.getAttribute('aLodDrop') as InstancedBufferAttribute | undefined;
+    // attached in `familyMeshes` with the mesh; a geometry without it (a mesh no bucket fills) has
+    // nothing to write, and writing into a freed array is the crash this indirection exists to avoid
+    return attr && attr.array ? attr : null;
   };
   const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[], mainCount = list.length) => {
     const mesh = w.meshes[l];
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
     if (TREE_LOD_DITHER) {
       const attr = fadeAttribute(mesh);
-      for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1));
-      attr.needsUpdate = true;
+      if (attr) {
+        for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1));
+        attr.needsUpdate = true;
+      }
     }
     mesh.count = list.length;
     mesh.visible = list.length > 0;
