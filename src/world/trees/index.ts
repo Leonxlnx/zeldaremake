@@ -1527,6 +1527,13 @@ const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
  * measured 710–714 calls / 9.08–9.13 M before.
  */
 const CULL_PAD_M = 4;
+/**
+ * The batched tree parts' own boxes carry this much around their vertices for the colour pass's
+ * box test (NearCanopyBatch / FarFoliageBatch): the giants' sway at lobe height is ≤ 3 cm (stiffness
+ * 0.97), the twiglets' flex ≤ 10 cm, the laminae's flutter a few cm — half a metre covers them all
+ * with room; the sphere three culls by keeps its CULL_PAD_M / GROUP_PAD_M.
+ */
+const BATCH_BOX_PAD_M = 0.5;
 /** lowest world height a shadow receiver can have (the capsule is swept down to it) */
 const SHADOW_FLOOR_Y = -20;
 /**
@@ -2114,6 +2121,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     private vertices = 0;
     private indices = 0;
     private instances = 0;
+    /**
+     * Each resident part's own box (its vertices' bounds, BATCH_BOX_PAD_M around) and whether the
+     * near-canopy LOD shows it. three culls a batch instance by its SPHERE — a lobe's padded sphere
+     * (CULL_PAD_M on a 3–6 m crown lobe) reaches far past the laminae, so a lobe above or beside the
+     * frame is drawn for no pixel; before each colour pass the box says which shown parts can reach
+     * the frame at all (measured on the head + #188 at camera A: 15 shown lobes pass the sphere,
+     * 3 the box — 115 K triangles; the far bank 210 K; the green 136 K).
+     */
+    private readonly boxes = new Map<number, Box3>();
+    private readonly shown = new Set<number>();
     constructor(material: Material, name: string, kind: string, maxInstances = 96, maxVertices = 300_000, maxIndices = 900_000) {
       this.maxInstances = maxInstances;
       this.maxVertices = maxVertices;
@@ -2126,11 +2143,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       this.mesh.perObjectFrustumCulled = true;
       this.mesh.sortObjects = false;
       this.mesh.userData.kind = kind;
+      const mesh = this.mesh;
+      const proto = BatchedMesh.prototype;
+      mesh.onBeforeRender = (renderer, scene, camera, geometry, mat, group) => {
+        for (const [id, box] of this.boxes) mesh.setVisibleAt(id, this.shown.has(id) && boxMeetsFrustum(box));
+        proto.onBeforeRender.call(mesh, renderer, scene, camera, geometry, mat, group);
+      };
     }
     /** copies the part in (one geometry, one instance at the identity), hidden; the caller disposes its own copy */
     add(geometry: BufferGeometry): { geomId: number; instId: number } {
       const v = geometry.getAttribute('position').count;
       const i = geometry.index ? geometry.index.count : v;
+      const box = new Box3().setFromBufferAttribute(geometry.getAttribute('position') as BufferAttribute).expandByScalar(BATCH_BOX_PAD_M);
       this.reserve(v, i);
       let geomId: number;
       try {
@@ -2148,6 +2172,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const instId = this.mesh.addInstance(geomId);
       this.mesh.setMatrixAt(instId, IDENTITY_M4);
       this.mesh.setVisibleAt(instId, false);
+      this.boxes.set(instId, box);
       this.vertices += v;
       this.indices += i;
       this.instances++;
@@ -2156,6 +2181,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     remove(ids: { geomId: number; instId: number }, vertices: number, indices: number) {
       this.mesh.deleteInstance(ids.instId);
       this.mesh.deleteGeometry(ids.geomId);
+      this.boxes.delete(ids.instId);
+      this.shown.delete(ids.instId);
       this.vertices -= vertices;
       this.indices -= indices;
       this.instances--;
@@ -2178,7 +2205,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       this.mesh.optimize();
       this.grow(Math.max(65_536, this.vertices * 1.25), Math.max(196_608, this.indices * 1.25));
     }
+    /** the near-canopy LOD's verdict for a part; the colour pass narrows it to the parts whose box meets the frame */
     setVisible(instId: number, visible: boolean) {
+      if (visible) this.shown.add(instId);
+      else this.shown.delete(instId);
       this.mesh.setVisibleAt(instId, visible);
     }
     private reserve(v: number, i: number) {
@@ -3578,6 +3608,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     private readonly hidden = new Set<number>();
     /** each instance's padded sphere, with CULL_PAD_M on top for the shadow sweep (the sector meshes' margin) */
     private readonly shadowSpheres: Sphere[] = [];
+    /** each instance's vertices' box, BATCH_BOX_PAD_M around, for the colour pass's box test */
+    private readonly colourBoxes: Box3[] = [];
     private readonly triangles: number[] = [];
     /** the depth list of the last shadow pass: instances drawn and their triangles */
     casting = 0;
@@ -3605,12 +3637,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.sortObjects = false;
       mesh.userData.kind = 'giant-far-foliage';
       for (const p of parts) {
+        const colourBox = p.geometry.boundingBox!.clone().expandByScalar(BATCH_BOX_PAD_M);
         p.geometry.boundingSphere!.radius += GROUP_PAD_M;
         p.geometry.boundingBox!.expandByScalar(GROUP_PAD_M);
         const geomId = mesh.addGeometry(p.geometry);
         const instId = mesh.addInstance(geomId);
         mesh.setMatrixAt(instId, IDENTITY_M4);
         this.instanceOf.set(p.key, instId);
+        this.colourBoxes[instId] = colourBox;
         const shadowSphere = p.geometry.boundingSphere!.clone();
         shadowSphere.radius += CULL_PAD_M;
         this.shadowSpheres[instId] = shadowSphere;
@@ -3626,7 +3660,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const count = parts.length;
       // each pass sets every instance from its own rule before three builds that pass's list
       mesh.onBeforeRender = (renderer, scene, camera, geometry, mat, group) => {
-        for (let id = 0; id < count; id++) mesh.setVisibleAt(id, !this.hidden.has(id));
+        // the fold, then the box: a lobe whose laminae cannot reach the frame is not drawn (three's own test is its wider sphere)
+        for (let id = 0; id < count; id++) mesh.setVisibleAt(id, !this.hidden.has(id) && boxMeetsFrustum(this.colourBoxes[id]));
         proto.onBeforeRender.call(mesh, renderer, scene, camera, geometry, mat, group);
       };
       mesh.onBeforeShadow = (renderer, _object, _camera, shadowCamera, geometry, depthMaterial) => {
