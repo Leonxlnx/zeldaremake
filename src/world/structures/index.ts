@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Camera, type Mesh, type Object3D, type PointLight } from 'three';
+import { Group, Mesh, type Camera, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -226,7 +226,39 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // wood), so a lit soffit costs no draw of its own; kept in the village group it was a bucket of
   // one in every view that sees a hut (distantHouse.ts).
   if (distant.soffit) group.add(distant.soffit);
+  // 2026-09-26 (exp-ruins): the lantern branch is the one village structure the waterfall ruins'
+  // zone sees (its dressing on the lantern tree's limb, down the trail), but its moss sheets, tufts
+  // and vines share the houses' materials and fold into their buckets here. Each part the merge
+  // takes is copied first; the copies are merged apart and drawn only while the rest of the
+  // village is hidden from the ruins (showVillage below).
+  branch.group.updateMatrixWorld(true);
+  const branchParts = new Map<Mesh, Mesh>();
+  branch.group.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh || m.name === 'pod-lantern') return;
+    const copy = new Mesh(m.geometry.clone(), m.material);
+    copy.name = m.name;
+    copy.castShadow = m.castShadow;
+    copy.receiveShadow = m.receiveShadow;
+    copy.renderOrder = m.renderOrder;
+    copy.visible = m.visible;
+    copy.frustumCulled = m.frustumCulled;
+    copy.layers.mask = m.layers.mask;
+    copy.customDepthMaterial = m.customDepthMaterial;
+    copy.customDistanceMaterial = m.customDistanceMaterial;
+    branchParts.set(m, copy);
+  });
   const draws = consolidateStaticMeshes(group, (m) => m.name === 'pod-lantern');
+  const branchZone = new Group();
+  branchZone.name = 'lantern-branch-zone';
+  // a part still under the branch was not merged (a bucket of one, or not in world space) and draws as built
+  for (const [m, copy] of branchParts) {
+    if (m.parent) copy.geometry.dispose();
+    else branchZone.add(copy);
+  }
+  consolidateStaticMeshes(branchZone);
+  branchZone.visible = false;
+  group.add(branchZone);
   const distantDraws = consolidateStaticMeshes(distant.group);
   group.add(distant.group);
   draws.before += distantDraws.before;
@@ -260,10 +292,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     draws.merged += d.merged;
   }
   // 2026-09-25 (exp-ruins): the village's own drawables — everything outside the four localities'
-  // groups — are hidden while the camera stands in the waterfall ruins' zone, where none of them
-  // reaches a pixel (util/expansionLocality.ts villageHiddenFromRuins). Meshes only: the lights
-  // stay (a light leaving the scene recompiles every lit program), and a mesh built hidden stays so.
-  const localities = new Set<Object3D>([north, expansion.group, south.group, grove.group]);
+  // groups and the lantern branch — are hidden while the camera stands in the waterfall ruins'
+  // zone, where none of them reaches a pixel (util/expansionLocality.ts villageHiddenFromRuins);
+  // the branch keeps what the merge left it and shows its merged parts' copies. Meshes only: the
+  // lights stay (a light leaving the scene recompiles every lit program), and a mesh built hidden stays so.
+  const localities = new Set<Object3D>([north, expansion.group, south.group, grove.group, branch.group, branchZone]);
   const villageDrawables: Object3D[] = [];
   for (const c of group.children) {
     if (localities.has(c)) continue;
@@ -279,6 +312,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (show === villageShown) return;
     villageShown = show;
     for (const o of villageDrawables) o.visible = show;
+    branchZone.visible = !show;
   };
   showVillage(ctx.camera);
   /**
@@ -293,7 +327,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       root.traverse((o) => {
         const m = o as Mesh;
         if (!m.isMesh) return;
-        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || south.group.getObjectById(m.id) || grove.group.getObjectById(m.id))) return;
+        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || south.group.getObjectById(m.id) || grove.group.getObjectById(m.id) || branchZone.getObjectById(m.id))) return;
         const g = m.geometry;
         if (!g.boundingSphere) g.computeBoundingSphere();
         const s = g.boundingSphere!;
@@ -415,8 +449,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
     /** 2026-09-24 (expansion-north): the grove hamlet — trunk house, stilt house, tree hut, gangway, rope walk, nest, yard (expansionNorth.ts); drawn only within `visibleWithinM` of the grove, in the frustum */
     grove: { ...grove.audit, draws: groveDraws.after, visibleWithinM: GROVE_VISIBLE_M, visible: grove.group.visible },
-    /** 2026-09-25 (exp-ruins): the village's drawables, hidden while the camera stands in the waterfall ruins' zone */
-    villageFromRuins: { drawables: villageDrawables.length, shown: villageShown },
+    /**
+     * 2026-09-25 (exp-ruins): the village's drawables, hidden while the camera stands in the waterfall
+     * ruins' zone; `branchCopies` are the lantern branch's merged parts drawn there in their place
+     */
+    villageFromRuins: { drawables: villageDrawables.length, shown: villageShown, branchCopies: branchZone.children.length, branchCopiesShown: branchZone.visible },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,

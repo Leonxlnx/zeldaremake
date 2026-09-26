@@ -196,10 +196,12 @@ export function ruinsVisible(camera: Camera, spheres: Sphere[]): boolean {
  * 2026-09-25 (exp-ruins, the look-backs' budget): the village as seen from the waterfall ruins.
  * From the site and from the trail west of RUINS_VILLAGE_ZONE_X, at walking height, the plaza's
  * houses, posts, fences and kids lie 35–95 m east behind the west giant, the trail's white-barks
- * and the forest. Hidden by hand at the three look-backs and at six trail look-backs 3–7 m apart
- * (each camera turned on the village), none of them moved a pixel, yet all of them were drawn:
- * frustum culling passes the whole village from there, and the sun's 46 m shadow window, 18 m
- * ahead of a look-back, covers its west half. The eye limit keeps the rule to the play camera
+ * and the forest, yet all of them were drawn: frustum culling passes the whole village from
+ * there, and the sun's 46 m shadow window, 18 m ahead of a look-back, covers its west half
+ * (~105 draws, ~1.8 M triangles). Hidden at the three look-backs and at fifteen trail, forest and
+ * site poses, each against the same frame drawn in full, the one structure that reached a pixel
+ * was the lantern branch on the lantern tree's limb, down the trail (200–6,600 px of a 960 × 540
+ * frame) — so structures/index.ts keeps it. The eye limit keeps the rule to the play camera
  * (≤ 3.8 m over the ground under Link on the ruins' routes and swung views); a camera lifted
  * over the forest sees the village again.
  */
