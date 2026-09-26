@@ -308,3 +308,24 @@ mid-height (x 867–1279, y 150–396 of 1280 × 720, +9 luma), the trail side o
 **Scores:** #44 2 → **3** (no pop on any route; the standing pull-in keeps it from 4), #46 ★ **4** (every pose of the site's own and every
 look-back under 700 / 9.0 M). **176 / 200 with no check under 3** — shippable by the rubric's letter; the standing pull-in floor is the
 polish item, shared with the grove, the keeper's hut and the east lane.
+
+## Re-read of `exp-ruins` @ `fcec1575` (02:59 — the stone's firmer split of sun and shade: key ×1.32 / 1.18 / 0.98, fill ×0.9 / 0.97 / 1.1, the moss's grain ±20 % instead of ±8 %, "so it reads in the wall's shade on the water stair's treads (r10)") — 03:23–03:50 UTC
+
+A look change, on the ruins' stone only, measured as the branch's own before / after (`931472c9` → `fcec1575`, the same play poses):
+
+| pose | SSIM | pixels over 8/255 | what moved |
+| --- | --- | --- | --- |
+| the terrace look-back (−68, −4.6) → E | 0.9936 | 44 % | the columns' lit sides warmer, their shade cooler, the paving's slabs a step more contrast (`it147-ruins-stone-terrace-look-back.jpg`) |
+| the quay, looking back east (−70.5, −0.9) | 0.9843 | 21 % | the wall's face cooler in shade, the flight's lit treads warmer, the moss lines on the nosings legible |
+| the water stair, five treads up facing up (−67.5, −0.76) | 0.9826 | 9 % | **the r10 case: the treads under the wall's shade now carry the moss's grain**; the lit treads above warmer (`it147-ruins-stone-water-stair-up.jpg`) |
+| the water stair from its head, facing down (−64.5, −0.9) | 0.9767 | 19 % | the same, the whole flight in shade |
+| the outcrop, close (−57, −4.3) → W | 0.9942 | 9 % | the rock's lit / shade split |
+| the gate (−51.4, −4.1) → W | 0.9957 | 2.7 % | little stone in frame |
+| the trail's middle look-back (−33.4, 0.6) → E | 1.0000 | 0.00 % | no ruins stone in view — the change is scoped as stated |
+
+The split does what it says: the sun side reads warmer and a touch brighter, the shade cooler, and the moss's grain is visible where the
+sun's normal detail cannot show (the wall's shade). Nothing goes hard — the shade is not crushed, the lit stone is not blown; the
+columns at the terrace keep their reading against the paving. Draws and triangles unchanged at every pose (461 / 6.79 M at the terrace,
+575 / 8.56 M at the trail). **The six fixed views are out of the ruins zone by construction (identical on every read of this branch); not
+re-rendered for a material change scoped to the ruins' stone.** #12 (materials read as their material) holds at 4; the r10 item the
+commit names is answered at the water stair. No score moves from the 176 / 200 of `e37b1777`.

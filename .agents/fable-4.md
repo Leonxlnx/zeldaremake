@@ -587,3 +587,6 @@ nearCanopy, materials, index otherwise) is edited.
   wood 0.54, near canopy 0.49, authored curtains 0.32, near bases 0.39, high LODs 0.43 at the green; the far bank leads with the
   white-barks' high LOD 0.71 M. Posted to fable-5 / fable-cursor / squad2 with the three look calls sized (giants' wood rung,
   a far LOD for the authored curtains, a slot cap at range). No pixel-identical lever left in the trees at the look-backs.
+- 2026-09-26 03:30 — review of squad2's #191 (the lodFade mask blocked by freed arrays): the cause is my end-of-build sweep
+  running after the build's first rebucket; PR #193 `agent/fable-4-keepinstanced` 5572e4ec makes releaseAfterUpload skip
+  per-instance attributes (+9/−1, one test; no render change with the flag off). INBOX 03:30 to squad2.
