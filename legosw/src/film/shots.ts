@@ -514,7 +514,7 @@ const anakinCockpit = cockpitShot({
   dur: 4,
   who: 'anakin',
   lines: [{ t0: 1.0, t1: 3.4, who: 'Anakin Skywalker', text: 'This is where the fun begins.' }],
-  faceAt: (t) => ({ mouth: talk(t, 1.05, 2.9, 'smirk'), brows: -0.35, squint: 0.1, lookX: -0.02 }),
+  faceAt: (t) => ({ mouth: talk(t, 1.05, 2.3, 'smirk'), brows: -0.35, squint: 0.1, lookX: -0.02 }),
   headAt: (t) => ({ yaw: -0.05 - smooth(0.4, 1.0, t) * 0.22, pitch: 0.16 - smooth(0.3, 0.9, t) * 0.2 }),
   cam: [[1.4, 2.85, 4.0], [1.3, 2.9, 3.88]],
   fov: [36, 32.5],
@@ -690,7 +690,7 @@ const obiCockpit = cockpitShot({
   who: 'obiwan',
   lines: [{ t0: 0.5, t1: 3.2, who: 'Obi-Wan Kenobi', text: 'Oh, I have a bad feeling about this.' }],
   // worried, not amused: brows up at the inner ends, the mouth pulled down between words, a nervous glance aside
-  faceAt: (t) => ({ mouth: talk(t, 0.55, 2.7, 'frown', ['worry', 'frown', 'worry', 'o']), brows: 1, lookX: t < 1.2 ? 0.02 : t < 1.75 ? -0.018 : 0.012, lookY: 0.005 }),
+  faceAt: (t) => ({ mouth: talk(t, 0.55, 2.9, 'frown', ['worry', 'frown', 'worry', 'o']), brows: 1, lookX: t < 1.2 ? 0.02 : t < 1.75 ? -0.018 : 0.012, lookY: 0.005 }),
   headAt: (t) => ({ yaw: 0.3 - smooth(1.6, 2.4, t) * 0.16, pitch: 0.04 }),
   cam: [[-1.4, 2.85, 4.0], [-1.3, 2.9, 3.8]],
   fov: [34, 31],
@@ -952,10 +952,11 @@ const obiCockpit2 = cockpitShot({
   name: 'obiwan-cockpit-2',
   dur: 2.6,
   who: 'obiwan',
-  // the natural urgent read runs ~3.2 s against a 2.6 s shot: it starts over the end of buzz-close
-  lines: [{ t0: -0.75, t1: 2.5, who: 'Obi-Wan Kenobi', text: "Get out of here, Anakin! There's nothing more you can do." }],
+  // the natural urgent read runs ~3.4 s against a 2.6 s shot: it starts over the end of buzz-close
+  lines: [{ t0: -0.95, t1: 2.5, who: 'Obi-Wan Kenobi', text: "Get out of here, Anakin! There's nothing more you can do." }],
   // urgent, pleading: brows up at the inner ends, a tense squint, every open shape with its corners dragged down
-  faceAt: (t) => ({ mouth: talk(t, 0.0, 2.4, 'frown', ['yell', 'worry', 'yell', 'o', 'worry']), brows: 0.8, squint: 0.18, lookX: -0.03 }),
+  // the recording breathes between 'Anakin!' and 'There's nothing more…' (0.64-0.93 s)
+  faceAt: (t) => ({ mouth: t > 0.66 && t < 0.92 ? 'frown' : talk(t, 0.0, 2.4, 'frown', ['yell', 'worry', 'yell', 'o', 'worry']), brows: 0.8, squint: 0.18, lookX: -0.03 }),
   // Anakin flies off his starboard side: from the port camera Obi-Wan looks screen left, Anakin's
   // reverse (below) looks screen right, so the two singles face each other across the cut
   headAt: () => ({ yaw: -0.5, pitch: 0.02 }),
@@ -973,7 +974,7 @@ const anakinCockpit2 = cockpitShot({
   dur: 2.6,
   who: 'anakin',
   lines: [{ t0: 0.2, t1: 2.5, who: 'Anakin Skywalker', text: "I'm not leaving without you, Master." }],
-  faceAt: (t) => ({ mouth: talk(t, 0.25, 2.2, 'grit'), brows: -0.9, squint: 0.2, lookX: 0.03 }),
+  faceAt: (t) => ({ mouth: talk(t, 0.24, 1.82, 'grit'), brows: -0.9, squint: 0.2, lookX: 0.03 }),
   headAt: () => ({ yaw: 0.45, pitch: 0 }),
   cam: [[-1.35, 2.85, 3.95], [-1.25, 2.9, 3.8]],
   fov: [34, 32],

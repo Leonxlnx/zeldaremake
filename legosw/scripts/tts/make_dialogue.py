@@ -53,7 +53,8 @@ LINES = [
     dict(id='obiwan-buzz-droids', shot='missiles', who='Obi-Wan Kenobi', text='Buzz droids!',
          say=['Buzz droids!'], speed=1.0, at=2.35, end=3.8),
     dict(id='obiwan-get-out', shot='obiwan-cockpit-2', who='Obi-Wan Kenobi', text="Get out of here, Anakin! There's nothing more you can do.",
-         say=[('Get out of here, Anakin!', 0.9), ("There's nothing more you can do.", 1.08)], gap=0.02, speed=1.6, max_speed=1.7, at=0.10, end=2.48),
+         # the natural urgent read (~3.4 s) is longer than the 2.6 s shot: it starts 0.95 s before the cut, over buzz-close
+         say=["Get out of here, Anakin! There's nothing more you can do."], speed=1.06, max_speed=1.12, at=-0.95, end=2.45),
     dict(id='anakin-not-leaving', shot='anakin-cockpit-2', who='Anakin Skywalker', text="I'm not leaving without you, Master.",
          say=["I'm not leaving without you, Master."], speed=1.0, at=0.24, end=2.42),
     dict(id='obiwan-flying', shot='droids', who='Obi-Wan Kenobi', text='Flying is for droids.',

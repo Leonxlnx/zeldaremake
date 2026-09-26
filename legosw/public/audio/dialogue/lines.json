@@ -143,32 +143,29 @@
    "lang": "en-gb",
    "fx": "",
    "say": [
-    [
-     "Get out of here, Anakin!",
-     0.9
-    ],
-    [
-     "There's nothing more you can do.",
-     1.08
-    ]
+    "Get out of here, Anakin! There's nothing more you can do."
    ],
-   "gap": 0.02,
-   "speed": 1.7,
-   "duration": 2.445,
-   "offset": 0.09,
+   "gap": 0,
+   "speed": 1.06,
+   "duration": 3.46,
+   "offset": -0.965,
    "speech": [
-    0.01,
-    2.395
+    0.015,
+    3.402
    ],
    "segments": [
     [
-     0.105,
-     2.475
+     -0.95,
+     0.636
+    ],
+    [
+     0.936,
+     2.407
     ]
    ],
    "mouth": [
-    0.1,
-    2.485
+    -0.95,
+    2.437
    ]
   },
   {
