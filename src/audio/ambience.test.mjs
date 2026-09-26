@@ -162,6 +162,37 @@ function respondsTo(ctx, amb, a, b) {
   return ctx.made.gain.map((g, i) => ({ node: g, before: before[i], after: after[i] })).filter((r) => Math.abs(r.before - r.after) > 1e-12);
 }
 
+test('a muted layer is silent, modulation included', () => {
+  // `mute` is the instrument every "what is this layer worth" measurement on this lane rests on,
+  // and for two days it did not mute the wind. `canopyMod` and `hushMod` are CONNECTED to
+  // `canopyGain.gain` and `hushGain.gain`, and a node connected to an AudioParam is summed with
+  // that param's automation rather than scaling it — so zeroing the level left the gust still
+  // driving the same gain, and a take with the wind "off" still played the wind.
+  //
+  // The test is therefore on every gain the wind owns, not just the two levels: with the layer
+  // muted at a full gust, nothing that answers the wind may aim anywhere but zero.
+  const ctx = fakeContext();
+  const out = ctx.createGain();
+  const reverb = ctx.createGain();
+  const amb = A.createAmbience(ctx, out, reverb, createRng('bed/test'), 0, new Set(['wind']));
+  const loud = { gust: 1, listener: LISTENER, forward: NORTH, pods: [] };
+  amb.update(1, loud);
+  amb.update(2, loud);
+  const live = ctx.made.gain.filter((g) => Math.abs(g.gain.target ?? 0) > 1e-9);
+  // the flame and its send are not the wind and are expected to be alive; the wind's are not
+  const unmuted = fakeContext();
+  const ambOn = A.createAmbience(unmuted, unmuted.createGain(), unmuted.createGain(), createRng('bed/test'), 0);
+  ambOn.update(1, loud);
+  ambOn.update(2, loud);
+  const windGains = unmuted.made.gain
+    .map((g, i) => ({ i, on: g.gain.target }))
+    .filter(({ i, on }) => Math.abs(on ?? 0) > 1e-9 && Math.abs((ctx.made.gain[i]?.gain.target ?? 0) - on) > 1e-12);
+  assert.ok(windGains.length >= 3, `only ${windGains.length} gains changed when the wind was muted; the two levels and both modulations should`);
+  for (const { i, on } of windGains) {
+    assert.equal(ctx.made.gain[i].gain.target, 0, `gain ${i} aims at ${ctx.made.gain[i].gain.target} with the wind muted (${on} unmuted) — a muted layer that still sounds makes every layer measurement wrong`);
+  }
+});
+
 test('below the gust knee the wind layers are silent, not faint', () => {
   const { ctx, amb } = bed();
   const wind = respondsTo(ctx, amb, { gust: 0 }, { gust: 1 }).map((r) => r.node);

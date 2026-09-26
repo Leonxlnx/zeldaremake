@@ -179,6 +179,35 @@ export const PINK_DRIFT_HZ = 0.03;
 export const OCCLUSION_DUCK = 0.5;
 export const OCCLUSION_TOP = 0.18;
 
+/**
+ * How much of a lantern flame a bole or a wall takes, at full occlusion.
+ *
+ * `2026-09-25-occlusion` built the birds' shadow and left a plan: *"occlude the birds first, the
+ * flame second"*, on the strength of the west house giving N = 12.7 to a pod behind it. A Fresnel
+ * number says a shadow would be DEEP. It does not say the thing being shadowed is contributing
+ * anything — and a pod is at half level 1.3 m away, so one seven metres off is down to 3 % before
+ * anything gets in the way.
+ *
+ * So the number that decided this was not N but the SHADOWED SHARE: over 12,638 standing points on
+ * real ground, of the flame level actually arriving, how much comes from behind something
+ * (`art/audio/2026-09-26-shadow2/`). It is 0.037 at the median and **0.974 at its worst**, with
+ * 893 places over a quarter — the west house and the giant it is built around, which is where the
+ * plan said to look.
+ *
+ * Smaller than the birds' 0.5 because the flame is low. Through the median 3.10 m of wood the
+ * barrier attenuation at its 320 Hz body is 20.6 dB against a distant bird's 28.1 at 1800 Hz, and
+ * the birds ship 0.5 — 20.6 / 28.1 of that is 0.40.
+ *
+ * Level only, and that is measured rather than lazy. The flame is two bands, a 132 Hz husk and a
+ * 320 Hz body, and the barrier difference between them is **3.8 dB** — which through the flame's
+ * existing one-pole would move its corner from 320 Hz to 271. Under a decibel of colour on a
+ * source that has almost no colour to lose. What a wall does to a flame is make it quieter, and
+ * the wetness follows for free: the duck goes into the attenuation `flameWet` reads, so a
+ * shadowed lantern is heard more as the village's own hall and less as itself, which is what
+ * hearing something round a corner is.
+ */
+export const FLAME_DUCK = 0.4;
+
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
 export const LANTERN_REACH_M = 1.3;
 export const LANTERN_LEVEL = 0.055;
@@ -1049,11 +1078,19 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
+    // `windOff` has to reach the MODULATION as well as the level, and for two days it did not.
+    // `canopyMod` and `hushMod` are connected to `canopyGain.gain` and `hushGain.gain`, and a node
+    // connected to an AudioParam is SUMMED with that param's automation rather than scaling it —
+    // so zeroing the level left the gust's own depth still driving the same gain, and a take with
+    // `mute: ['wind']` still played the wind, swelling and falling with the gust. Found by
+    // accident: the pod flames measured with everything else muted had 16 dB of swell in them that
+    // no change to the flame could move (`art/audio/2026-09-26-shadow2/`). `flutters` and `birds`
+    // were never wrong — those mute by not connecting the voice at all.
     const windOff = mute.has('wind') ? 0 : 1;
     canopyGain.gain.setTargetAtTime(windOff * (CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
-    canopyMod.gain.setTargetAtTime(sw, t, 0.9);
+    canopyMod.gain.setTargetAtTime(windOff * sw, t, 0.9);
     hushGain.gain.setTargetAtTime(windOff * (HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST), t, 0.55);
-    hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
+    hushMod.gain.setTargetAtTime(windOff * Math.pow(sw, 1.5), t, 0.55);
     // pods: the NEAREST lantern sets the level; the rest of the village adds a fifth each
     let sum = 0;
     let nearest = 0;
@@ -1064,7 +1101,11 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const dy = p.y - s.listener.y;
       const dz = p.z - s.listener.z;
       const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const a = 1 / (1 + (d / LANTERN_REACH_M) ** 2);
+      let a = 1 / (1 + (d / LANTERN_REACH_M) ** 2);
+      // What stands between him and THIS pod (see FLAME_DUCK). The test is skipped once the pod is
+      // too far to matter: at a reach of 1.3 m most of the village is already under a thousandth,
+      // and `occlusionAt` walks every occluder in the world each time it is asked.
+      if (a > 1e-4 && occludeNow) a *= 1 - FLAME_DUCK * occludeNow(p.x, p.z);
       sum += a;
       if (a > nearest) nearest = a;
       px += dx * a;
