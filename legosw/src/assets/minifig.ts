@@ -477,6 +477,6 @@ export const OBIWAN_SPEC = (hair: HairSpec): MinifigSpec => ({
   legs: 'tan',
   torsoPrint: { base: '#e0c796', robe: '#cdb07a', robeDark: '#9c8358', inner: '#f0e2c2', belt: '#5c2b14', buckle: '#a9abae', skin: '#f6d7b3', line: '#3a2a18' },
   legPrint: { base: '#e0c796', boot: '#3d2616', line: '#2b1a0e', top: 0.5, hem: 0.42 },
-  face: { skin: '#f6d7b3', brow: '#6e3814', line: '#b07c62', beard: { color: '#8e4a1c', dark: '#5c2c0e', light: '#b8733a' }, cheekLines: false, age: true, eye: [0.061, 0.074] },
+  face: { skin: '#f6d7b3', brow: '#6e3814', line: '#b07c62', beard: { color: '#7a3d1c', dark: '#5c2c0e', light: '#b8733a' }, cheekLines: false, age: true, eye: [0.061, 0.074] },
   hair,
 });

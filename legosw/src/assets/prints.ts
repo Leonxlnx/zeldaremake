@@ -435,17 +435,10 @@ function drawMouth(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthGeo, 
       g.beginPath();
       g.roundRect(tx, ty, ux - tx, uy - ty, px(0.012));
       g.fill();
+      // a plain outlined tooth band split by one line, as printed; no per-tooth grid
       g.fillStyle = INK;
       path(g, [[x0, y0 - 0.009], [x1, y0 - 0.009], [x1, y0 - 0.003], [x0, y0 - 0.003]], true);
       g.fill();
-      g.globalAlpha = 0.55;
-      const tooth = (x: number, ya: number, yz: number) => {
-        path(g, [[x - 0.0025, ya], [x + 0.0025, ya], [x + 0.0025, yz], [x - 0.0025, yz]], true);
-        g.fill();
-      };
-      for (const x of [-0.078, 0, 0.078]) tooth(x, yt, y0 - 0.006);
-      for (const x of [-0.039, 0.039]) tooth(x, y0 - 0.006, yb);
-      g.globalAlpha = 1;
       g.restore();
       shape();
       g.strokeStyle = INK;
@@ -557,7 +550,11 @@ function beardOutline(rng: Rng): { outline: Pt[]; jaw: Pt[] } {
   return { outline: [...right, ...mirror(right).reverse().slice(1, -1)], jaw };
 }
 
-/** The beard (everything but the moustache), strand-textured, cached per beard colouring. */
+/**
+ * The beard (everything but the moustache), cached per beard colouring. Pad-printed like the licensed
+ * Obi-Wan head: one flat colour inside a hair-tip silhouette, the skin left bare on the cheeks and round
+ * the mouth; no strand texture.
+ */
 function beardLayer(style: FaceStyle): HTMLCanvasElement {
   const b = style.beard!;
   const key = `${b.color}|${b.dark}|${b.light}`;
@@ -566,39 +563,11 @@ function beardLayer(style: FaceStyle): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = FACE_W;
   c.height = FACE_H;
-  // willReadFrequently keeps this canvas on the CPU rasterizer: ~2k small clipped strokes take ~60 ms
-  // there but seconds on an accelerated canvas over a software GL (headless SwiftShader renders)
   const g = c.getContext('2d', { willReadFrequently: true })!;
-  const rng = new Rng(4242);
-  const { outline, jaw } = beardOutline(rng);
+  const { outline } = beardOutline(new Rng(4242));
   path(g, outline, true);
   g.fillStyle = b.color;
   g.fill();
-  g.save();
-  path(g, outline, true);
-  g.clip();
-  // strands flowing down the sideburns and in toward the chin, in staggered rows
-  for (let row = 0; row * 0.026 < 0.82; row++) {
-    const y = 0.03 + row * 0.026;
-    for (let x = -0.73 + (row % 2) * 0.011; x < 0.73; x += 0.022) {
-      const jx = x + rng.range(-0.004, 0.004), jy = y + rng.range(-0.005, 0.005);
-      const dx = -jx * 0.5 * (1 - clamp((jy - 0.3) / 0.4, 0, 1)), dy = -1;
-      const l = Math.hypot(dx, dy), len = rng.range(0.045, 0.07);
-      const ux = (dx / l) * len, uy = (dy / l) * len;
-      const light = rng.chance(0.22);
-      g.fillStyle = light ? b.light : b.dark;
-      g.globalAlpha = light ? 0.24 : 0.3;
-      const bend = rng.range(-0.007, 0.007);
-      brush(g, [jx - ux / 2, jy - uy / 2], [jx + bend, jy], [jx + ux / 2, jy + uy / 2], 0.0, rng.range(0.0048, 0.0066), 0.0);
-    }
-  }
-  g.restore();
-  g.globalAlpha = 0.7;
-  g.strokeStyle = b.dark;
-  g.lineWidth = px(0.006);
-  path(g, [...mirror(jaw).reverse(), ...jaw.slice(1)], false);
-  g.stroke();
-  g.globalAlpha = 1;
   beardCache.set(key, c);
   return c;
 }
@@ -625,10 +594,6 @@ function lipPatch(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthGeo): 
   const yb = ly - 0.024;
   path(g, [[-0.026, yb + 0.01], [0.026, yb + 0.01], [0.014, yb - 0.056], [-0.014, yb - 0.056]], true);
   g.fill();
-  g.fillStyle = b.dark;
-  g.globalAlpha = 0.55;
-  for (const x of [-0.014, 0, 0.014]) brush(g, [x, yb + 0.004], [x * 1.1, yb - 0.02], [x * 0.7, yb - 0.05], 0, 0.005, 0);
-  g.globalAlpha = 1;
 }
 
 /** The moustache, printed over the top of the mouth. */
@@ -644,27 +609,6 @@ function drawMoustache(g: CanvasRenderingContext2D, style: FaceStyle, mg: MouthG
   path(g, outline, true);
   g.fillStyle = b.color;
   g.fill();
-  g.save();
-  path(g, outline, true);
-  g.clip();
-  for (let i = 0; i < 44; i++) {
-    const sgn = i % 2 ? 1 : -1;
-    const x = sgn * rng.range(0.005, 0.2), y = y0 + rng.range(0.01, 0.09);
-    const len = rng.range(0.028, 0.045);
-    const dx = sgn * 0.8, dy = -0.75;
-    const l = Math.hypot(dx, dy);
-    const light = rng.chance(0.3);
-    g.fillStyle = light ? b.light : b.dark;
-    g.globalAlpha = light ? 0.28 : 0.36;
-    brush(g, [x - (dx / l) * len * 0.5, y - (dy / l) * len * 0.5], [x, y + 0.003], [x + (dx / l) * len * 0.5, y + (dy / l) * len * 0.5], 0, 0.0055, 0);
-  }
-  g.restore();
-  g.globalAlpha = 0.8;
-  g.strokeStyle = b.dark;
-  g.lineWidth = px(0.006);
-  path(g, [...mirror(low).reverse(), ...low.slice(1)], false);
-  g.stroke();
-  g.globalAlpha = 1;
 }
 
 /** A face texture whose expression can be changed cheaply (redraws only when the state changes). */
