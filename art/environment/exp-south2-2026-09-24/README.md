@@ -9,6 +9,8 @@ Branch `agent/fable-cursor-exp-south2`. Every image is 960×540 at `quality=high
 hidden. In the later capture-mode views the character system stands Link and the kids where the
 reference frames have them in the six hero views, and from any other camera Link idles at his spawn
 spot and the kids at their own. The play-mode views show Link where the follow camera trails him.
+The capture-mode frames also carry canonical's HUD in their corners (hearts, item slot, map), on
+canonical's frames as on the branch's; section 1's sheet and the play-mode views have none.
 
 ## 1. The end of the hollow log (`01-log-exit.jpg`)
 
