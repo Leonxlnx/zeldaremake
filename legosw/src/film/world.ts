@@ -54,7 +54,7 @@ export const PLANET_C = new Vector3(0, -104000, 0);
 /** hero Venator cruise velocity (world units / s) along +Z */
 export const VENATOR_SPEED = 40;
 /** the frigate destroyed on camera in the tracking shot sits here for the whole film */
-export const VICTIM_POSE = { pos: new Vector3(3658, -1896, 6467), rot: new Euler(0.05, 2.6, 0.1) };
+export const VICTIM_POSE = { pos: new Vector3(3685, -1589, 6577), rot: new Euler(0.05, 2.6, 0.1) };
 
 export interface Ship {
   root: Object3D;

@@ -349,7 +349,7 @@ function trackPath(who: 'anakin' | 'obiwan', T0: number) {
 }
 
 /** the shooter Venator keeps station with the pair, upper left of the tracking frame */
-const TRACK_SHOOTER = v3(3933, -682, -1177);
+const TRACK_SHOOTER = v3(3999, -471, -1050);
 const trackShooter = (T0: number) => (T: number) => trackPath('anakin', T0)(T).add(TRACK_SHOOTER);
 
 const track: Shot = {
@@ -363,7 +363,7 @@ const track: Shot = {
       .filter(([k]) => k.startsWith('hit'))
       .map(([, a]) => ({ p: anchorWorld(a), n: v3(0, 0, 1).applyQuaternion(a.getWorldQuaternion(new Quaternion())) }));
     // the Republic ship doing the killing: the hero Venator cruising alongside the pair in the upper left
-    // of frame, its salvos crossing the sky onto the frigate, which enters from the right at t≈1.6
+    // of frame, its salvos crossing the sky above the fighters onto the frigate, which enters from the right at t≈1.9
     const g = w.venator.group;
     g.position.set(0, 0, 0);
     g.rotation.set(0, 0, 0);
@@ -371,7 +371,7 @@ const track: Shot = {
     const offs = w.venator.turrets.map((m) => anchorWorld(m));
     const shooterAt = trackShooter(T0);
     const rng = new Rng(5);
-    const times = [2.0, 2.4, 2.75, 3.1, 3.4, 3.65];
+    const times = [2.1, 2.45, 2.8, 3.1, 3.4, 3.65];
     times.forEach((h, i) => {
       const hit = hits[i % hits.length];
       const p = hit.p.clone().add(hit.n.clone().multiplyScalar(20));
