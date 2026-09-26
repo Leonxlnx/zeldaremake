@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Opus) + parallel asset sub-agents
 github: commits as Cursor Agent
 status: active
 branch: cursor/lego-star-wars-rots-opening-ed32
-updated: 2026-09-26T12:55:00Z
+updated: 2026-09-26T14:45:00Z
 ---
 
 # lego-film — work log
@@ -22,6 +22,11 @@ Pass 4 (owner, 26 Sep 10:37 UTC: "make it look spectacular, every inch of the Ve
 ships, seamless angles and animation, stunning backgrounds"): lens/camera/animation work on this branch;
 Venator, ship and background upgrades in parallel worktrees, integrated into one commit for the final
 render (all 2335 frames from that commit, gated by `final-v5.sh`).
+
+Pass 5 (same window, from 14:00 UTC): the hangar finale and the end title, the weakest stretch of the
+cut once the space shots were final. Changes are confined to those shots (every other frame checked
+byte-identical, soundtrack hash unchanged), so the running render continues on each new build and
+`SOURCES.txt` in the render directory records which commit rendered which frames.
 
 ## Files / systems being touched
 Only `legosw/` (self-contained: own `index.html`, `vite.config.ts`, `tsconfig.json`, scripts) and five
@@ -54,6 +59,11 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
   `135921f2`/`2e59b317` no bolt smears across the lens (kill B fires from a forward medium turret);
   `527b74b1`/`bd451a4f` no tower pincushion on Coruscant (fewer, lower towers; they sink into the city
   as the view grazes the ground, so the limb is clean). Final 720p render of `fdff6bf0` running.
+- Pass 5: `8dd18df1` hangar lit as a bay (open-mouth reflection environment once the shield is down,
+  shield light down to a faint spill, warm gantry pool, deck plated as four dark worn tiles per cell);
+  `df0a34dd` end title over the battle (hero Venator and Invisible Hand trading broadsides over the
+  limb, title in the stars, silent fx so the soundtrack is byte-identical); `5df72f16` bay haze and an
+  eleven-droid squad in three ranks with the commander front and centre.
 
 ## Important decisions
 - Everything procedural (no downloaded models/textures/audio). Units are LEGO studs.
@@ -72,4 +82,4 @@ site is published to its own branch, `cursor/lsw-wip-site-ed32`.
 None for other agents — this lane does not interact with the Kokiri world.
 
 ## Last updated
-2026-09-26T12:55:00Z
+2026-09-26T14:45:00Z
