@@ -227,10 +227,15 @@ void main() {
       n = normalize(r - up * dot(r, up));
     }
   }
+  // towers sink into the city as the view ray grazes the ground (whole towers, by their base), so the limb
+  // stays a clean curve instead of a row of needles at any camera altitude
+  float mu = dot(normalize((modelMatrix * vec4(aAxis.xyz, 1.0)).xyz - cameraPosition), up);
+  float sq = smoothstep(0.04, 0.2, -mu);
+  p -= up * dot(p - aAxis.xyz, up) * (1.0 - sq);
   vec4 w = modelMatrix * vec4(p, 1.0);
   vWorld = w.xyz;
   vNormal = mat3(modelMatrix) * n;
-  vTop = aAxis.w;
+  vTop = aAxis.w * sq;
   gl_Position = projectionMatrix * viewMatrix * w;
 }
 `;

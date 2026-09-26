@@ -225,10 +225,12 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
         mine.push(T);
       };
       const style = (k: number) => Math.floor(hash3(si, sj, k) * TOWER_STYLES.length) % TOWER_STYLES.length;
-      if (hash3(si, sj, 201) <= 0.04 + 0.5 * hs * hs) {
-        const tall = hs > 0.72 && hash3(si, sj, 209) < 0.3;
-        const half = tall ? 90 + 30 * hash3(si, sj, 202) : 44 + 52 * hash3(si, sj, 202);
-        const h = tall ? 1500 + 700 * hash3(si, sj, 203) : (330 + 600 * Math.pow(hash3(si, sj, 203), 1.6)) * (0.55 + 0.45 * hs);
+      // seen from the fleet's ~4000 up, lone towers spread evenly over the quiet districts read as a field of
+      // pins and anything much over a tenth of that altitude as a pillar: the skyline gathers in the dense cores
+      if (hash3(si, sj, 201) <= 0.012 + 0.45 * hs * hs * hs) {
+        const tall = hs > 0.72 && hash3(si, sj, 209) < 0.16;
+        const half = tall ? 80 + 26 * hash3(si, sj, 202) : 44 + 46 * hash3(si, sj, 202);
+        const h = tall ? 1000 + 380 * hash3(si, sj, 203) : (270 + 380 * Math.pow(hash3(si, sj, 203), 1.6)) * (0.6 + 0.4 * hs);
         const room = SUPERW / 2 - 70 - half;
         add({
           cx: (si + 0.5) * SUPERW + (hash3(si, sj, 204) * 2 - 1) * room,
@@ -252,7 +254,7 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
           cx: si * SUPERW + (bi + 0.5) * BLOCK + (hash3(si, sj, 260 + k) * 2 - 1) * room,
           cy: sj * SUPERW + (bj + 0.5) * BLOCK + (hash3(si, sj, 280 + k) * 2 - 1) * room,
           hs: half,
-          h: (240 + 520 * Math.pow(hash3(si, sj, 300 + k), 1.4)) * (0.6 + 0.4 * hs),
+          h: (230 + 350 * Math.pow(hash3(si, sj, 300 + k), 1.4)) * (0.6 + 0.4 * hs),
           round: hash3(si, sj, 320 + k) < 0.3,
           style: style(340 + k),
           pal: Math.floor(hash3(si, sj, 360 + k) * 4) % 4,
