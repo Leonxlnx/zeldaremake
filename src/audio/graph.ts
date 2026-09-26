@@ -94,7 +94,7 @@ export const MASTER_TRIM_DB = 9;
 export const MASTER_LEVEL = dB(MASTER_TRIM_DB);
 
 /** master ← music (−12 dB under the ambience) / ambience / sfx; a shared hall on a send. */
-export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
+export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Buses {
   const master = ctx.createGain();
   master.gain.value = MASTER_LEVEL;
   master.connect(ctx.destination);
@@ -134,7 +134,11 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   // offline steps stem rather than guessed.
   const sfxTrim = ctx.createGain();
   sfxTrim.gain.value = SFX_TRIM;
-  sfx.connect(sfxLimit).connect(sfxTrim).connect(master);
+  // `limiter: false` takes the compressor out of the path for an offline take, so what it is worth
+  // can be measured rather than asserted. Its makeup gain goes with it, so the trim comes out too:
+  // the bypassed stem is the steps as the designs make them, at the level the designs ask for.
+  if (limiter) sfx.connect(sfxLimit).connect(sfxTrim).connect(master);
+  else sfx.connect(master);
   const reverb = ctx.createConvolver();
   // 2026-09-23: 2.6 s was a stone hall — every footstep grew an indoor tail (the offline steps stem
   // stayed within 25 dB of its peak for the whole 250 ms window on four of five surfaces). A wood
