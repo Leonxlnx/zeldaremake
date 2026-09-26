@@ -7,8 +7,10 @@
  * tan / orange, the reference's ruins a pale grey-cream stone — broken by a broad tone noise; the
  * vertex colour (per-block tint, grime) on top; `aMoss` blends to a moss that is greener and
  * brighter than the village's olive palette (the reference's ruins carry vivid yellow-green
- * cushions, r_043) and darker, damper on the faces turned from the sun; `aWet` a darker, glossier
- * band (the waterline, the fall's spray).
+ * cushions, r_043) and darker, damper on the faces turned from the sun, with its own grain (the
+ * set's maps at MOSS_GRAIN × the stone's density); `aWet` a darker, glossier band (the waterline,
+ * the fall's spray). The lit faces take the key warmer and the shade the sky's fill cooler
+ * (STONE_KEY_GAIN / STONE_FILL_GAIN).
  *
  * `createTiles` — the parapet's glazed band (a row of small blue-teal tiles in pale grout, some
  * lost, the glaze crazed) and `createCarving` — the parapet's carved interlace panel; both are
@@ -49,6 +51,12 @@ export const RUINS_MOSS = {
   deep: new Color(0.1, 0.14, 0.032),
   damp: new Color(0.066, 0.098, 0.029),
 };
+
+/** the moss's grain: the stone's own maps at this multiple of the stone's texel density */
+export const MOSS_GRAIN = 4.7;
+/** the stone's response to the sun (direct diffuse) and to the sky's fill (indirect diffuse), linear rgb */
+export const STONE_KEY_GAIN: [number, number, number] = [1.24, 1.13, 0.97];
+export const STONE_FILL_GAIN: [number, number, number] = [0.92, 0.98, 1.08];
 
 export function sunDirOf(config: WorldConfig): Vector3 {
   const az = (config.sun.azimuthDeg * Math.PI) / 180;
@@ -133,6 +141,7 @@ export async function createStone(textures: TextureLibrary, config: WorldConfig,
         '#include <color_fragment>',
         /* glsl */ `
         #include <color_fragment>
+        float rnMossCov = 0.0;
         {
           // moss: the stone's own grain picks deep → bright, the lit side is the yellow-green
           // cushion, the side turned from the sun the damp dark green
@@ -140,9 +149,16 @@ export async function createStone(textures: TextureLibrary, config: WorldConfig,
           float grain = clamp(rnL, 0.2, 1.8);
           float clump = rnNoise3(vRnPos * 2.7) * 0.6 + rnNoise3(vRnPos * 7.3 + 2.0) * 0.4;
           cov *= smoothstep(0.18, 0.5, clump + 0.45 * clamp(vRnMoss, 0.0, 1.0));
+          rnMossCov = cov;
           vec3 moss = mix(${vec3(RUINS_MOSS.deep)}, ${vec3(RUINS_MOSS.bright)}, smoothstep(0.35, 1.3, grain) * smoothstep(0.25, 0.9, clamp(vRnMoss, 0.0, 1.0)) * (0.55 + 0.45 * clump));
           float sunSide = smoothstep(-0.3, 0.55, dot(normalize(vRnNrm), uRnSun));
           moss = mix(${vec3(RUINS_MOSS.damp)} * (0.8 + 0.3 * grain), moss * (0.8 + 0.3 * grain), sunSide);
+          // the moss's own grain, the stone's map at MOSS_GRAIN × its density: at 1–3 m a cushion
+          // shows fibres and pits instead of a smooth wash beside the crisp blocks (sampled
+          // outside any branch: the mip level needs the quad's derivatives)
+          float mk = uRnTile * ${f(MOSS_GRAIN)};
+          vec3 mf = texture2D(map, vRnPos.zy * mk).rgb * rnW.x + texture2D(map, vRnPos.xz * mk).rgb * rnW.y + texture2D(map, vRnPos.xy * mk).rgb * rnW.z;
+          moss *= 0.6 + 0.4 * clamp(dot(mf, vec3(0.299, 0.587, 0.114)) / ${f(o.meanL)}, 0.35, 1.8);
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, cov);
           // the damp band: darker, a touch cooler
           float wet = clamp(vRnWet, 0.0, 1.0);
@@ -161,7 +177,16 @@ export async function createStone(textures: TextureLibrary, config: WorldConfig,
           mat3 tx = getTangentFrame(-vViewPosition, normal, vRnPos.zy);
           mat3 ty = getTangentFrame(-vViewPosition, normal, vRnPos.xz);
           mat3 tz = getTangentFrame(-vViewPosition, normal, vRnPos.xy);
-          normal = normalize(tx * normalize(nx) * rnW.x + ty * normalize(ny) * rnW.y + tz * normalize(nz) * rnW.z);
+          vec3 nStone = normalize(tx * normalize(nx) * rnW.x + ty * normalize(ny) * rnW.y + tz * normalize(nz) * rnW.z);
+          // under the moss the same map at the moss's grain (the tangent frames are scale-free)
+          float mk = uRnTile * ${f(MOSS_GRAIN)};
+          vec3 mx = texture2D(normalMap, vRnPos.zy * mk).xyz * 2.0 - 1.0;
+          vec3 my = texture2D(normalMap, vRnPos.xz * mk).xyz * 2.0 - 1.0;
+          vec3 mz = texture2D(normalMap, vRnPos.xy * mk).xyz * 2.0 - 1.0;
+          float ms = normalScale.x * 0.75;
+          mx.xy *= ms; my.xy *= ms; mz.xy *= ms;
+          vec3 nMoss = normalize(tx * normalize(mx) * rnW.x + ty * normalize(my) * rnW.y + tz * normalize(mz) * rnW.z);
+          normal = normalize(mix(nStone, nMoss, 0.85 * rnMossCov));
         }`,
       )
       .replace(
@@ -175,9 +200,19 @@ export async function createStone(textures: TextureLibrary, config: WorldConfig,
         }
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vRnMoss, 0.0, 1.0));
         roughnessFactor *= 1.0 - 0.5 * clamp(vRnWet, 0.0, 1.0);`,
+      )
+      .replace(
+        '#include <lights_fragment_end>',
+        /* glsl */ `
+        #include <lights_fragment_end>
+        // the trailer's ruins stand in open sun (r_036–r_043): the key lays a warmer cream on the
+        // lit faces and the shade takes the open sky's cooler fill (the site's own split of the one
+        // sun and sky; no light of its own)
+        reflectedLight.directDiffuse *= ${vec3(STONE_KEY_GAIN)};
+        reflectedLight.indirectDiffuse *= ${vec3(STONE_FILL_GAIN)};`,
       );
   };
-  mat.customProgramCacheKey = () => `ruins-stone-${o.name}-v1`;
+  mat.customProgramCacheKey = () => `ruins-stone-${o.name}-v2`;
   return mat;
 }
 
