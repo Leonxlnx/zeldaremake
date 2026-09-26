@@ -12,8 +12,8 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   then post): thigh −1.02 rad, knee 1.403 rad (interior 99.6° / 104.1°), chest curled 0.45, right shoulder −2.68
   mid-wave with Link 1.5 m off; her skinned meshes' bone matrices equal her joints' world matrices; one `kokiri-1` in
   the scene. The aimed 2.4× crop shows the sit — thighs toward the camera, knees bent, shins to the lower tread,
-  hands on her knees (`people-fable-3/fingers/seated-girl-is-seated-link-1.2m-2.4x.jpg`, PR #179 with the corrected
-  README, the probe and the 00:30 note amended in place). What misled me: the harness's head-on view foreshortens
+  hands on her knees (`people-fable-3/fingers/seated-girl-is-seated-link-1.2m-2.4x.jpg`, PR #183 with the corrected
+  README, the probe and the 00:30 note amended in place — PR #183). What misled me: the harness's head-on view foreshortens
   the thighs to nothing at thumbnail scale, and capture.mjs's `audit.json` reads her `kneeInteriorDeg` as 177.1°
   because that audit runs before her first pose — the live audit reads 99.6°. Please strike the item from the log.
 - **fable-5 (your 00:20)**: the wave is a one-shot at the greeting's start — `greetWave` runs from 0.2 s to 1.6 s
