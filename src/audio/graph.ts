@@ -12,52 +12,51 @@ export { createRng };
 export const dB = (v: number) => Math.pow(10, v / 20);
 
 /**
- * The step compressor's own makeup gain, measured rather than documented: with the settings in
- * `createBuses` the node put the offline footsteps stem 8.1 dB LOUDER than before it was added.
+ * How far the footsteps are held under the designs — the answer to the owner's *"the music kind of
+ * still shakes whenever I run"* (2026-09-24, 23:00), and the whole of it.
+ *
+ * The footsteps are the loudest transients in the game and at a run they arrive 3.67 times a
+ * second, so in the mix's envelope the strongest rhythm stops being the music's 1.2 Hz beat and
+ * becomes the step rate — a pulse at a few Hz laid over sustained notes, which is what shaking
+ * sounds like. Measured on the plaza spine, untouched, the step rate stands **7.6 dB over the
+ * music's beat** at a run.
+ *
+ * For two days this was a `DynamicsCompressorNode` on the bus. Four measurements retired it:
+ *
+ *   every step is in full four-to-one compression, standing, walking or running, on every surface
+ *     (`-perstep`) — so it was never a limiter catching overshoot;
+ *   its release does nothing — modelled from 60 ms to 1000 ms the step line moves 0.4 dB
+ *     (`-release`), so it was a fixed pad with a wobble, and the wobble was inaudible;
+ *   it charged 2.4 dB of the difference between a walk and a run for that (`-limiter`), squeezing
+ *     out the one thing the player's own feet tell him about his own speed;
+ *   and set the same task, a plain gain does it at the same step level with 2 dB of that
+ *     difference handed back (`-pad`).
+ *
+ * So: a plain gain. How far the step rate stands over the music's beat, against the pad — priced
+ * exactly rather than guessed, since the path is linear and the dry steps are rendered once, so
+ * every candidate is arithmetic on takes already made (`art/audio/2026-09-26-pad/pad.py`):
+ *
+ *      pad      run       walk
+ *     −0 dB   +7.6 dB   +1.8 dB
+ *     −4 dB   +1.9 dB   −2.0 dB
+ *     −6 dB   −1.2 dB   −2.1 dB
+ *     −7 dB   −2.9 dB   −2.1 dB      <- here
+ *     −8 dB   −4.5 dB   −2.1 dB
+ *
+ * A walk saturates at −2.1 dB: past a 6 dB pad its step rate is no longer the tallest thing near
+ * 2.73 Hz and stops falling. 7 dB is the smallest whole decibel where a run reaches the margin a
+ * walk already has, rather than a number chosen for how far it goes.
+ *
+ * What it costs is measured, not argued. A gain scales both gaits alike, so the gait difference is
+ * whatever the designs make it — +3.83 dB, against +1.77 through the compressor. The one thing the
+ * compressor did that a gain cannot is hold a pile-up, so the worst case was built on purpose and
+ * recorded both ways: running and jumping under the lantern bough with the score playing peaks
+ * 1.3 dB higher without it, which still leaves **8 dB free** where `level.test.mjs` asks for 6.
  */
-export const SFX_MAKEUP_DB = 8.1;
+export const SFX_PAD_DB = 7;
 
-/**
- * How far under the designs the footsteps are then held — and the answer to the owner's *"the music
- * kind of still shakes whenever I run"* (2026-09-24, 23:00).
- *
- * The compressor above was the first answer to that sentence and it is only half of one. Measured
- * on the plaza spine at 2.2 m/s, the step rate stands **4.4 dB over the music's beat** in the
- * mix's envelope spectrum with the compressor in, down from 7.6 with it out: the strongest rhythm
- * in the mix is still the player's feet. `2026-09-26-release` then ruled out the compressor's
- * release as the cause — modelled from 60 ms to 1000 ms the step line moves 21.3 → 21.7 dB, so the
- * pump is not the gain moving between steps, it is the residual transient itself — which leaves
- * level, and this is it.
- *
- * Priced exactly rather than guessed. The trim is a plain gain on one linear part of the mix, so
- * with the dry steps rendered once (`art/audio/2026-09-26-release/dry.mjs`) every candidate is
- * arithmetic on takes already made. How far the step rate then stands over the music's beat:
- *
- *      cut      run       walk
- *     +0 dB   +4.4 dB   +1.1 dB      <- the compressor alone
- *     +2 dB   +1.4 dB   −1.7 dB
- *     +3 dB   −0.2 dB   −2.0 dB
- *     +4 dB   −1.8 dB   −2.0 dB      <- here
- *     +6 dB   −5.3 dB   −2.1 dB
- *
- * A walk saturates at −2 dB: past a 3 dB cut its step rate is no longer the tallest thing near
- * 2.73 Hz and stops falling. 4 dB is where a run joins it — the smallest cut that buys a run the
- * margin a walk already has, rather than a number chosen for how far it goes.
- *
- * It costs nothing it was asked to protect. A trim on the bus scales both gaits alike, so the run's
- * audible lead over a walk is untouched; the steps are the loudest transient in the game, so the
- * worst case the master is staged against (`level.test.mjs`) can only fall; and a step still peaks
- * **26 dB over the always-on level of the bed and the music together**, which is not a footstep in
- * danger of being lost under the background the owner has twice asked to be quieter.
- *
- * It has to be HERE, downstream of the compressor, and that is not a detail. Every step the game
- * makes is in full four-to-one compression (`art/audio/2026-09-26-perstep/`), so the same decibels
- * taken off the step designs instead would come back out of the ratio and change almost nothing.
- */
-export const STEP_CUT_DB = 6;
-
-/** the sfx bus's output trim: the compressor's makeup taken back off, and the step cut on top */
-export const SFX_TRIM = dB(-(SFX_MAKEUP_DB + STEP_CUT_DB));
+/** the sfx bus's output pad — one gain, no dynamics, nothing to undo */
+export const SFX_TRIM = dB(-SFX_PAD_DB);
 
 export interface Buses {
   master: GainNode;
@@ -138,7 +137,7 @@ export const ROOM_RETURN = 2.4;
 export const MASTER_TRIM_DB = 9;
 export const MASTER_LEVEL = dB(MASTER_TRIM_DB);
 
-/** master ← music (−12 dB under the ambience) / ambience / sfx; a shared hall on a send. */
+/** master ← music (−12 dB under the ambience) / ambience / sfx (padded); a shared hall on a send. */
 export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Buses {
   const master = ctx.createGain();
   master.gain.value = MASTER_LEVEL;
@@ -151,42 +150,17 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Bu
   sfx.gain.value = 1;
   music.connect(master);
   ambience.connect(master);
-  /**
-   * 2026-09-24, owner 23:00: "the music kind of still shakes whenever I run".
-   *
-   * The music is steady — measured on the offline stems its own 1.2 Hz beat (76 bpm) stands 17×
-   * over the background of its envelope spectrum whether he is standing, walking or running. What
-   * changes when he runs is the FOOTSTEPS: they are the loudest transients in the game, and at a
-   * running cadence they arrive 3.67 times a second (PR #59's controller; it was five a second when
-   * he said this). In the mix's envelope the strongest rhythm then stops being the music's beat and
-   * becomes the step rate — a pulse at a few Hz laid over sustained notes, which is what shaking
-   * sounds like.
-   *
-   * So the steps get a compressor of their own. It is on the sfx bus, NOT the master: the music is
-   * never touched, ducked or side-chained — only the thing that was punching through it comes down.
-   *
-   * It does not do what this used to claim. "Quiet steps pass untouched, a run's are held" reads
-   * like a threshold set between the two gaits, and the threshold is under BOTH: measured step by
-   * step, every footstep the game makes — standing, walking, running, on every surface — is in full
-   * four-to-one compression (`art/audio/2026-09-26-perstep/`). What it actually is, is a fixed pad
-   * with a wobble, and it is worth 3.2 dB of the complaint. The rest is `STEP_CUT_DB`.
-   */
-  const sfxLimit = ctx.createDynamicsCompressor();
-  sfxLimit.threshold.value = -30;
-  sfxLimit.knee.value = 12;
-  sfxLimit.ratio.value = 4;
-  sfxLimit.attack.value = 0.003;
-  sfxLimit.release.value = 0.12;
-  // DynamicsCompressorNode applies its own makeup gain, which is not optional and not documented
-  // as a number: with these settings it put the footsteps stem 8.1 dB LOUDER than before it was
-  // added (peak −14.3 → −10.1 dBFS). SFX_TRIM takes that back, measured on the offline steps stem
-  // rather than guessed, and carries the step cut that finishes the job the compressor started.
+  // The footsteps' own level, and the whole of what keeps them from being the mix's rhythm — see
+  // SFX_PAD_DB for the measurements, and for the DynamicsCompressorNode that used to be here and
+  // could not show it was worth its cost. It is on the sfx bus, NOT the master: the music is never
+  // touched, ducked or side-chained; only the thing that was punching through it comes down.
   const sfxTrim = ctx.createGain();
   sfxTrim.gain.value = SFX_TRIM;
-  // `limiter: false` takes the compressor out of the path for an offline take, so what it is worth
-  // can be measured rather than asserted. Its makeup gain goes with it, so the trim comes out too:
-  // the bypassed stem is the steps as the designs make them, at the level the designs ask for.
-  if (limiter) sfx.connect(sfxLimit).connect(sfxTrim).connect(master);
+  // `limiter: false` takes the pad out for an offline take, so what it is worth can be measured
+  // rather than asserted: the bypassed stem is the steps as the designs make them, at the level
+  // the designs ask for. (The flag is named for the compressor it used to bypass — three committed
+  // evidence scripts pass it, and renaming it would cost their reports their reproducibility.)
+  if (limiter) sfx.connect(sfxTrim).connect(master);
   else sfx.connect(master);
   const reverb = ctx.createConvolver();
   // 2026-09-23: 2.6 s was a stone hall — every footstep grew an indoor tail (the offline steps stem
