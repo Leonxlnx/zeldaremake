@@ -168,6 +168,11 @@ view but the one that says how far out of line the hitched walk was:
 | **before**, burst against smooth | 57 | +0.8 | +5.2 | +8.2 | 7 / 57 (12 %) |
 | **after**, burst against smooth | 57 | +0.1 | +3.0 | +7.4 | 6 / 57 (11 %) |
 
+The direction matters as much as the count. Of the ten plants outside the band before, **nine were
+louder** than their smooth twin and one quieter — which is the signature of the fault, not of a
+noisy measurement. After, it is one above and two below. (The commit message on the sheet says
+eight above; it is nine.)
+
 The instrument's own repeatability is 0 / 57 over 3 dB on both builds, so the hitched take's 18 %
 was real and its 5 % is most of the way back to it. **The burst row barely moves and that is not
 the fix failing** — a burst take fits the same 57 plants into two-thirds of the context time, so
