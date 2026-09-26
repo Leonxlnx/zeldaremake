@@ -51,7 +51,7 @@ export const dB = (v: number) => Math.pow(10, v / 20);
  * whatever the designs make it — +3.83 dB, against +1.77 through the compressor. The one thing the
  * compressor did that a gain cannot is hold a pile-up, so the worst case was built on purpose and
  * recorded both ways: running and jumping under the lantern bough with the score playing peaks
- * 1.3 dB higher without it, which still leaves **8 dB free** where `level.test.mjs` asks for 6.
+ * **0.4 dB** higher without it, leaving 8.9 dB free where `level.test.mjs` asks for 6.
  */
 export const SFX_PAD_DB = 7;
 

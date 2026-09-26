@@ -43,9 +43,10 @@ const { MASTER_TRIM_DB, MASTER_LEVEL, SFX_PAD_DB, SFX_TRIM } = loadTs(path.join(
  * with the compressor replaced by a plain pad (−17.6). **Re-measure this before raising the trim.**
  *
  * This used to say the figure was stable *because* the bus was compressed, "so stacking events
- * cannot get past it". Measured, the compressor was worth 1.3 dB of that stability and cost 2.4 dB
- * of the difference between a walk and a run (`art/audio/2026-09-26-pad/`), which is why it is
- * gone. What keeps the figure stable now is that this is a hard number with a guard under it.
+ * cannot get past it". Measured on the same deliberate worst case, the compressor was worth
+ * **0.4 dB** of that stability and cost 2.4 dB of the difference between a walk and a run
+ * (`art/audio/2026-09-26-pad/`), which is why it is gone. What keeps the figure honest now is that
+ * it is a measured number with a guard under it.
  */
 const WORST_CASE_PEAK_DBFS = -16.7;
 /** what must still be free above the worst case after the trim, for sources nobody has measured */
@@ -138,7 +139,7 @@ test('the sfx bus carries a gain and nothing else', () => {
 test('the pad cannot spend headroom, because it only ever takes level away', () => {
   // The worst case the master is staged against is a run-and-jump take, which is the sfx bus at
   // full tilt — so an attenuation on that bus can only lower it. Measured at this pad the worst
-  // case is 17.6 dB under full scale before the trim, inside the constant above.
+  // case is 17.9 dB under full scale before the trim, inside the constant above.
   assert.ok(SFX_TRIM < 1, 'SFX_TRIM must attenuate; a pad over unity would invalidate the worst case');
   assert.ok(SFX_PAD_DB > 0, 'and it must be a pad, not a boost');
 });
