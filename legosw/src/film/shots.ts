@@ -277,7 +277,7 @@ const longTake: Shot = {
   // a smear instead of stepped ghost copies
   blur: 6,
   shutter: 0.32,
-  laserClear: 420,
+  laserClear: 900,
   dur: 16,
   schedule(w, T0) {
     scheduleLongTakeKills(w, T0);
@@ -355,7 +355,7 @@ const trackShooter = (T0: number) => (T: number) => trackPath('anakin', T0)(T).a
 const track: Shot = {
   name: 'track',
   dur: 5,
-  laserClear: 300,
+  laserClear: 900,
   schedule(w, T0) {
     const victim = w.munis[0];
     victim.group.updateMatrixWorld(true);
@@ -534,7 +534,7 @@ const vultureDead = (k: number, t: number) => VULTURE_KILLS.some(([kk, tk]) => k
 const vultures: Shot = {
   name: 'vultures',
   dur: 5,
-  laserClear: 250,
+  laserClear: 1200,
   schedule(w, T0) {
     const pathA = vPath(T0);
     const rng = new Rng(55);
@@ -603,7 +603,7 @@ function vPath(T0: number) {
 }
 
 /** where each doomed vulture is (Anakin-relative x, y) when it is hit: inside the frame, clear of his fighter */
-const VULTURE_KILL_AT: Record<number, [number, number]> = { 0: [62, 30], 2: [-58, 38], 4: [30, 24] };
+const VULTURE_KILL_AT: Record<number, [number, number]> = { 0: [62, 30], 2: [-64, 18], 4: [30, 24] };
 
 function vulturePos(k: number, T: number, T0: number): Vector3 {
   const t = T - T0;
