@@ -9,8 +9,8 @@
  * share (light scattered inside the aerated water), capped well under white.
  *
  * - pool: a grid over the basin (terrain/ruins.ts POOL_BOX) out to where the live ground has risen
- *   over the waterline; per-vertex depth (waterline − ground) drives the colour (a peaty green over
- *   the shallows to a dark teal), the opacity (the bed shows through the shelf, the edge fades out
+ *   over the waterline; per-vertex depth (waterline − ground) drives the colour (a clear green over
+ *   the shallows to a teal), the opacity (the bed shows through the shelf, the edge fades out
  *   on the bank) and the shore foam; the normal is gentle wind ripples, a fine breakup and the
  *   plunge's rings; the scene's environment is its reflection (Fresnel lifts the opacity at a
  *   grazing view).
@@ -301,7 +301,7 @@ function particleGeometry(rng: Rng, landX: number, ground: Ground): BufferGeomet
 // ---------------------------------------------------------------------------------------------
 
 function poolMaterial(time: { value: number }, plunge: Vector2): MeshStandardMaterial {
-  const mat = new MeshStandardMaterial({ color: 0xffffff, roughness: 0.14, metalness: 0, transparent: true, envMapIntensity: 0.9 });
+  const mat = new MeshStandardMaterial({ color: 0xffffff, roughness: 0.14, metalness: 0, transparent: true, envMapIntensity: 1.25 });
   mat.name = 'ruins-pool';
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uTime = time;
@@ -325,7 +325,8 @@ function poolMaterial(time: { value: number }, plunge: Vector2): MeshStandardMat
         float wTr = (1.0 - smoothstep(1.8, 7.5, wR)) * smoothstep(0.6, 0.82, wCell) * 0.7;
         float wSh = (1.0 - smoothstep(0.015, 0.1, vWDepth)) * smoothstep(0.5, 0.75, wNoise(wP * 3.1 + uTime * 0.05)) * 0.5;
         float wFoam = clamp(max(max(wPl, wTr), wSh), 0.0, 1.0);
-        vec3 wCol = mix(vec3(0.075, 0.112, 0.085), vec3(0.012, 0.04, 0.038), smoothstep(0.05, 1.2, vWDepth));
+        // the trailer's pool is clear and bright (r_036, r_040): a green over the shallows to a teal, not a peat-dark sheet
+        vec3 wCol = mix(vec3(0.09, 0.15, 0.125), vec3(0.02, 0.075, 0.08), smoothstep(0.05, 1.2, vWDepth));
         float wEdge = smoothstep(0.0, 0.05, vWDepth);
         diffuseColor.rgb = mix(wCol, vec3(0.6, 0.625, 0.615), wFoam);
         diffuseColor.a = mix(mix(0.34, 0.93, smoothstep(0.0, 1.0, vWDepth)), 0.95, wFoam) * wEdge;`,
@@ -361,7 +362,7 @@ function poolMaterial(time: { value: number }, plunge: Vector2): MeshStandardMat
         '#include <lights_fragment_end>\nreflectedLight.directSpecular = min(reflectedLight.directSpecular, vec3(1.3));\nreflectedLight.indirectSpecular = min(reflectedLight.indirectSpecular, vec3(0.8));',
       );
   };
-  mat.customProgramCacheKey = () => 'ruins-pool-v1';
+  mat.customProgramCacheKey = () => 'ruins-pool-v2';
   return mat;
 }
 
@@ -395,8 +396,8 @@ function sheetMaterial(time: { value: number }, lipY: number, runS0: number): Me
         // aeration: glassy over the brow, white once it has broken over the lip
         float fAir = smoothstep(-0.25, 0.3, vFUv.y);
         float fWhite = fAir * smoothstep(0.3 + 0.08 * vFLayer, 0.78 - 0.1 * vFLayer, fDens) * (0.65 + 0.35 * fFall);
-        vec3 fCol = mix(vec3(0.1, 0.15, 0.14), vec3(0.34, 0.43, 0.43), fAir);
-        fCol = mix(fCol, vec3(0.7, 0.735, 0.725), fWhite);
+        vec3 fCol = mix(vec3(0.12, 0.18, 0.17), vec3(0.38, 0.48, 0.48), fAir);
+        fCol = mix(fCol, vec3(0.76, 0.79, 0.78), fWhite);
         float fAlpha = fBody * mix(mix(0.72, 0.5, fAir), 0.93, fWhite) * mix(1.0, 0.85, vFLayer);
         // fade in at the run-in's start (the front layer just under the lip) and out into the plunge's foam
         fAlpha *= smoothstep(${f(runS0)}, ${f(runS0 + 0.3)}, vFUv.y) * mix(1.0, smoothstep(0.0, 0.14, vFUv.y), vFLayer);
@@ -409,7 +410,7 @@ function sheetMaterial(time: { value: number }, lipY: number, runS0: number): Me
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += fCol * (0.05 + 0.13 * fWhite);')
       .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular = min(reflectedLight.directSpecular, vec3(1.0));');
   };
-  mat.customProgramCacheKey = () => 'ruins-fall-v2';
+  mat.customProgramCacheKey = () => 'ruins-fall-v3';
   return mat;
 }
 
@@ -454,11 +455,12 @@ function particleMaterial(time: { value: number }): MeshBasicMaterial {
           if (vPKind < 0.5) {
             // a ragged speck that thins as it spreads (round soft discs stack into white balls where they overlap)
             float n = wNoise(vPCorner * 2.3 + vec2(vPShade * 23.0, vPLife * 2.0));
-            a = (1.0 - smoothstep(0.0, 0.85, r + 0.45 * (n - 0.5))) * mix(0.28, 0.06, vPLife);
+            a = (1.0 - smoothstep(0.0, 0.85, r + 0.45 * (n - 0.5))) * mix(0.24, 0.05, vPLife);
             c = vec3(0.55, 0.6, 0.6);
           } else {
             float n = wNoise(vPCorner * 1.3 + vec2(vPShade * 17.0, vPLife * 1.5)) * 0.6 + wNoise(vPCorner * 3.1 - vec2(vPLife, vPShade * 9.0)) * 0.4;
-            a = (1.0 - smoothstep(0.1, 1.0, r)) * smoothstep(0.2, 0.75, n + 0.25 * (1.0 - r)) * 0.15;
+            // thin enough that the fall and the pool read through it (the trailer's plunge is clear air)
+            a = (1.0 - smoothstep(0.1, 1.0, r)) * smoothstep(0.2, 0.75, n + 0.25 * (1.0 - r)) * 0.1;
             c = mix(vec3(0.46, 0.51, 0.51), vec3(0.55, 0.6, 0.6), vPShade);
           }
           // never under the water's skin
@@ -467,7 +469,7 @@ function particleMaterial(time: { value: number }): MeshBasicMaterial {
         }`,
       );
   };
-  mat.customProgramCacheKey = () => 'ruins-spray-v2';
+  mat.customProgramCacheKey = () => 'ruins-spray-v3';
   return mat;
 }
 
