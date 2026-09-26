@@ -1374,10 +1374,12 @@ const landing: Shot = {
     const bdir = s.B.clone().sub(s.M).setY(0).normalize();
     const u = smoother(0, 4.4, t);
     const pad = s.B.clone().add(v3(0, 1.8, 0));
+    // brake into a hover 5 over the pad, then set down between 3.0 and 4.4 s
+    const hover = pad.clone().add(v3(0, 5, 0));
     const k = 2.0;
-    const c1 = h.ana.p.clone().sub(pad), c2 = h.ana.v.clone().addScaledVector(c1, k);
+    const c1 = h.ana.p.clone().sub(hover), c2 = h.ana.v.clone().addScaledVector(c1, k);
     const brake = c1.addScaledVector(c2, t).multiplyScalar(Math.exp(-k * t) * (1 - smoother(3.4, 4.4, t)));
-    const ap = pad.clone().add(brake);
+    const ap = hover.clone().add(brake).add(v3(0, -5 * smoother(3.0, 4.4, t), 0));
     const aq = h.ana.q.clone().slerp(basisQuat(bdir, v3(0, 1, 0)), smoother(0, 3.0, t));
     fly(w, w.anakinShip, { pos: ap, quat: aq } as FlightState, 0.3 * (1 - u), 1 - u * 0.8);
     face(w.anakin, { mouth: 'smirk', brows: -0.2 }, t, 1);
