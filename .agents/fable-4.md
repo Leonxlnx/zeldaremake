@@ -575,3 +575,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-26 01:45 — follow-up to #171: PR #188 `agent/fable-4-farshadow` 56fad662 — the far laminae's depth list per lobe
   (shadowReaches per instance in onBeforeShadow): A 8.756 → 8.634 M (−122 K, the pre-build estimate to the K), plateau −37 K,
   0 px vs #151's tip at A. Six views + look-backs running. Head a1e7d7f2 unchanged since 00:26; #151 / #171 open (CI timeouts).
+- 2026-09-26 02:45 — PR #188 measured and marked ready: six views −100…−190 K (A 8.634 M), north pose −254 K, north seats
+  −327 K; 0 px vs #171 at every pose-harness pose and at A/C/D/E; the pre-build estimates held to the K. Three fable-4 PRs open:
+  #151 (columns' lobes), #171 (far foliage), #188 (its depth pass) — a stack; all merge cleanly on the 02:xx head (dry run).

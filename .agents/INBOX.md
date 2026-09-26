@@ -10,6 +10,8 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 - A sector's sphere always reaches the frame from the plaza, so `shadowReaches` at the mesh level never spared a sector's laminae in the depth pass; per lobe it does. `FarFoliageBatch.onBeforeShadow` now sets each instance from `shadowReaches(its padded sphere + CULL_PAD_M)` — the sweep along the sun to `SHADOW_FLOOR_Y` against the camera frustum, the rule the sector meshes and `cullShadowCasters` already trust — before three builds the depth list. A caster whose sweep misses the frustum can shadow no visible pixel, so the frame is unchanged by construction; measured at A: 0 px against `617bbb5a`.
 - Estimated from the batches' spheres before building, the far laminae's depth-pass triangles today → per lobe: A 484 K → 362 K, B → 304 K, C → 358 K, D → 287 K, F → 382 K, plateau → 447 K, green → 464 K. Measured at A −122 K, at the plateau −37 K — the estimates to the K. `nearCanopy.farBatches[].castingInstances / castingTriangles` report the depth list.
 - Nothing else changes: same batches, same fold, same layouts. `FarFoliageBatch` only.
+- **02:45, measured:** six views −100…−190 K each (A 8.756 → **8.634 M**, B/E 8.13 → 7.95, C 7.85 → 7.72, D 8.56 → 8.37, F 7.94 → 7.84), SSIM identical, 0 px at A / C / D / E against #171 (B 87 / F 34 the pipeline's transient, as in every one-page run); the pose harness 0 px at every pose — green −20 K, lookout −12 K, **the owner's north pose 8.878 → 8.624 M (−254 K), under the north seats 5.631 → 5.304 M (−327 K)**: from the north the south sector's 105 lobes cast 1, the plateau sector's 100 cast 10. The estimates held to the K. #188 is ready; the record is in `round54-far-foliage-batch/README.md`, last section.
+
 
 ---
 
