@@ -20,8 +20,10 @@
  *            `--feet-detail` adds the character audit's `linkFeetContact` on every frame where a
  *            stance sole is more than 5 cm off its ground (where each sole is, the ground and the
  *            support under it).
- * --capture  capture mode (character hidden): the six fixed viewpoints (`--heroes`) and every pose
- *            with a `from`, each from simulation time 12.5 s + `--settle` frames; with `--ab` read
+ * --capture  capture mode (the character system stands Link and the kids where the reference frames
+ *            have them in the six hero views, and elsewhere at their spawn and layout spots): the six
+ *            fixed viewpoints (`--heroes`) and every pose with a `from`, each from simulation time
+ *            12.5 s + `--settle` frames; with `--ab` read
  *            LOD on, off, on again from the same time, the off and again frames compared with the
  *            first on frame. The on frames go to `out/png/`. Poses marked `exit` (their target is the
  *            log's far end) get the luminance of the far end's disc on screen.
