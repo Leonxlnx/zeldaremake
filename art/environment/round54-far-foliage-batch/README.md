@@ -123,3 +123,39 @@ row 218 → 164 draws at the green and 200 → 162 at the far bank; PASS for mer
 (three new: the fold-group decode, the kept / extracted partition with attributes travelling and a
 mixed triangle staying, the untagged giant keeping its geometry object; `farFoliage` supplied to
 the `nearCanopyUpdate` sandbox).
+
+## The depth pass per lobe — PR #188 `agent/fable-4-farshadow` `56fad662` (stacked on #171)
+
+A sector's sphere always reaches the frame from the plaza, so `shadowReaches` at the mesh level
+never spared a sector's laminae in the depth pass; per lobe it does. `FarFoliageBatch.onBeforeShadow`
+now sets every instance from `shadowReaches(its padded sphere + CULL_PAD_M)` — the sweep along the
+sun from the caster down to `SHADOW_FLOOR_Y`, against the camera frustum: the rule the sector meshes
+and `cullShadowCasters` already trust — before three builds the depth list; `onBeforeRender` sets
+every instance from the fold. A caster whose sweep misses the frustum can shadow no visible pixel.
+`nearCanopy.farBatches[].castingInstances / castingTriangles` report what the last depth pass drew.
+
+Estimated from the batches' spheres before building (the far laminae's depth-pass triangles, today →
+per lobe): A 484 K → 362 K, B → 304 K, C → 358 K, D → 287 K, F → 382 K, the plateau → 447 K, the
+green → 464 K. Measured (`5392cb5d` vs `56fad662`, the same harnesses as above):
+
+| view / pose | #171 draws / M tris | #188 draws / M tris | Δ triangles | px vs #171 (> 24 / > 0) | px vs `617bbb5a` (> 0) |
+|---|---|---|---|---|---|
+| A_stairs (six-view run) | 575 / 8.756 | **575 / 8.634** | **−122 K** | 0 / 0 | **0** |
+| B_house | 557 / 8.13 | 557 / 7.95 | −180 K | 0 / 87 | 87 |
+| C_lookback | 494 / 7.85 | 494 / 7.72 | −130 K | 0 / 0 | 0 |
+| D_log | 484 / 8.56 | 484 / 8.37 | −190 K | 0 / 0 | 0 |
+| E_ground | 557 / 8.13 | 557 / 7.95 | −180 K | 0 / 0 | 87 |
+| F_canopy | 516 / 7.94 | 516 / 7.84 | −100 K | 0 / 34 | 34 |
+| plateau-lookback-south (harness) | 538 / 8.879 | 538 / 8.842 | −37 K | 0 / 360 | 5 |
+| green-west | 649 / 9.850 | 649 / 9.830 | −20 K | **0 / 0** | 0 |
+| lookout-fence-west | 646 / 9.924 | 646 / 9.912 | −12 K | **0 / 0** | 0 |
+| owner-0650-north | 457 / 8.878 | **457 / 8.624** | **−254 K** | **0 / 0** | 165 |
+| north-seats | 296 / 5.631 | **296 / 5.304** | **−327 K** | **0 / 0** | 627 |
+
+SSIM identical to four decimals at all six views; `A_stairs.det` 0.00 %. The six-view run's B 87 /
+F 34 pixels are the pipeline's transient again (the same counts and boxes as in #151's and #171's
+runs; 0 px at both poses in a fresh page — see above); the pose harness is 0 px at every pose against
+#171, and against `617bbb5a` exactly the residuals #171 had. The depth lists at the north poses say
+where the saving is: under the north seats the south sector's 105 lobes cast 1 (their sweep along
+the sun lands south of the frame), the plateau sector's 100 cast 10, the north sector's 100 cast 77.
+**Camera A: 8.634 M, 366 K under the 9 M gate** (30 K before #171).

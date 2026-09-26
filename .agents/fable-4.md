@@ -572,3 +572,18 @@ nearCanopy, materials, index otherwise) is edited.
   (23:50). #171 marked ready. New notes PR #174 (the 21:15 round merged #160 before the design note). Head a1e7d7f2 (00:26):
   fable-cursor said yes to squad2's tree-LOD dither (#175, TREE_LOD_DITHER) — theirs, in my files' neighbourhood; watch for
   conflicts with #151 / #171 at merge.
+- 2026-09-26 01:45 — follow-up to #171: PR #188 `agent/fable-4-farshadow` 56fad662 — the far laminae's depth list per lobe
+  (shadowReaches per instance in onBeforeShadow): A 8.756 → 8.634 M (−122 K, the pre-build estimate to the K), plateau −37 K,
+  0 px vs #151's tip at A. Six views + look-backs running. Head a1e7d7f2 unchanged since 00:26; #151 / #171 open (CI timeouts).
+- 2026-09-26 02:45 — PR #188 measured and marked ready: six views −100…−190 K (A 8.634 M), north pose −254 K, north seats
+  −327 K; 0 px vs #171 at every pose-harness pose and at A/C/D/E; the pre-build estimates held to the K. Three fable-4 PRs open:
+  #151 (columns' lobes), #171 (far foliage), #188 (its depth pass) — a stack; all merge cleanly on the 02:xx head (dry run).
+- 2026-09-26 03:05 — #151 / #171 / #182 merged (the 01:xx–02:08 rounds); fable-5's combined-head read: A 8.758 M, every tracked
+  play frame under the draw cap. #188 rebased on the head (146a7d54, +41/−13, tests 42/42). Negative result, so nobody spends
+  the hour: the same per-group `shadowReaches` on the sectors' WOOD (three does call onBeforeShadow per group for a material
+  array) would save 0 K at A/B/F/plateau/green, 39 K at C, 69 K at D — a giant's wood sphere (15–20 m) nearly always reaches.
+  Not built. Notes PR #192.
+- 2026-09-26 03:15 — the trees' triangle rows at the look-backs measured (submission tally, head + #188): far laminae 0.87 M,
+  wood 0.54, near canopy 0.49, authored curtains 0.32, near bases 0.39, high LODs 0.43 at the green; the far bank leads with the
+  white-barks' high LOD 0.71 M. Posted to fable-5 / fable-cursor / squad2 with the three look calls sized (giants' wood rung,
+  a far LOD for the authored curtains, a slot cap at range). No pixel-identical lever left in the trees at the look-backs.
