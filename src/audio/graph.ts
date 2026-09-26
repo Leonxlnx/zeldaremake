@@ -11,8 +11,53 @@ export { createRng };
 
 export const dB = (v: number) => Math.pow(10, v / 20);
 
-/** undoes the step compressor's built-in makeup gain (see `createBuses`) and 2 dB besides */
-export const SFX_TRIM = dB(-10.1);
+/**
+ * The step compressor's own makeup gain, measured rather than documented: with the settings in
+ * `createBuses` the node put the offline footsteps stem 8.1 dB LOUDER than before it was added.
+ */
+export const SFX_MAKEUP_DB = 8.1;
+
+/**
+ * How far under the designs the footsteps are then held — and the answer to the owner's *"the music
+ * kind of still shakes whenever I run"* (2026-09-24, 23:00).
+ *
+ * The compressor above was the first answer to that sentence and it is only half of one. Measured
+ * on the plaza spine at 2.2 m/s, the step rate stands **4.4 dB over the music's beat** in the
+ * mix's envelope spectrum with the compressor in, down from 7.6 with it out: the strongest rhythm
+ * in the mix is still the player's feet. `2026-09-26-release` then ruled out the compressor's
+ * release as the cause — modelled from 60 ms to 1000 ms the step line moves 21.3 → 21.7 dB, so the
+ * pump is not the gain moving between steps, it is the residual transient itself — which leaves
+ * level, and this is it.
+ *
+ * Priced exactly rather than guessed. The trim is a plain gain on one linear part of the mix, so
+ * with the dry steps rendered once (`art/audio/2026-09-26-release/dry.mjs`) every candidate is
+ * arithmetic on takes already made. How far the step rate then stands over the music's beat:
+ *
+ *      cut      run       walk
+ *     +0 dB   +4.4 dB   +1.1 dB      <- the compressor alone
+ *     +2 dB   +1.4 dB   −1.7 dB
+ *     +3 dB   −0.2 dB   −2.0 dB
+ *     +4 dB   −1.8 dB   −2.0 dB      <- here
+ *     +6 dB   −5.3 dB   −2.1 dB
+ *
+ * A walk saturates at −2 dB: past a 3 dB cut its step rate is no longer the tallest thing near
+ * 2.73 Hz and stops falling. 4 dB is where a run joins it — the smallest cut that buys a run the
+ * margin a walk already has, rather than a number chosen for how far it goes.
+ *
+ * It costs nothing it was asked to protect. A trim on the bus scales both gaits alike, so the run's
+ * audible lead over a walk is untouched; the steps are the loudest transient in the game, so the
+ * worst case the master is staged against (`level.test.mjs`) can only fall; and a step still peaks
+ * **26 dB over the always-on level of the bed and the music together**, which is not a footstep in
+ * danger of being lost under the background the owner has twice asked to be quieter.
+ *
+ * It has to be HERE, downstream of the compressor, and that is not a detail. Every step the game
+ * makes is in full four-to-one compression (`art/audio/2026-09-26-perstep/`), so the same decibels
+ * taken off the step designs instead would come back out of the ratio and change almost nothing.
+ */
+export const STEP_CUT_DB = 6;
+
+/** the sfx bus's output trim: the compressor's makeup taken back off, and the step cut on top */
+export const SFX_TRIM = dB(-(SFX_MAKEUP_DB + STEP_CUT_DB));
 
 export interface Buses {
   master: GainNode;
@@ -111,16 +156,20 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Bu
    *
    * The music is steady — measured on the offline stems its own 1.2 Hz beat (76 bpm) stands 17×
    * over the background of its envelope spectrum whether he is standing, walking or running. What
-   * changes when he runs is the FOOTSTEPS: they are the loudest transients in the game (peak
-   * −14.3 dBFS against the music's −19.1, about 16 dB over the music's average), and at a running
-   * cadence they arrive two to five times a second. In the mix's envelope the strongest rhythm then
-   * stops being the music's beat and becomes the step rate — a pulse at a few Hz laid over sustained
-   * notes, which is what shaking sounds like.
+   * changes when he runs is the FOOTSTEPS: they are the loudest transients in the game, and at a
+   * running cadence they arrive 3.67 times a second (PR #59's controller; it was five a second when
+   * he said this). In the mix's envelope the strongest rhythm then stops being the music's beat and
+   * becomes the step rate — a pulse at a few Hz laid over sustained notes, which is what shaking
+   * sounds like.
    *
    * So the steps get a compressor of their own. It is on the sfx bus, NOT the master: the music is
-   * never touched, ducked or side-chained — only the crest of the thing that was punching through
-   * it comes down. Quiet steps pass untouched (the threshold is below a walk's peak); a run's are
-   * held.
+   * never touched, ducked or side-chained — only the thing that was punching through it comes down.
+   *
+   * It does not do what this used to claim. "Quiet steps pass untouched, a run's are held" reads
+   * like a threshold set between the two gaits, and the threshold is under BOTH: measured step by
+   * step, every footstep the game makes — standing, walking, running, on every surface — is in full
+   * four-to-one compression (`art/audio/2026-09-26-perstep/`). What it actually is, is a fixed pad
+   * with a wobble, and it is worth 3.2 dB of the complaint. The rest is `STEP_CUT_DB`.
    */
   const sfxLimit = ctx.createDynamicsCompressor();
   sfxLimit.threshold.value = -30;
@@ -130,8 +179,8 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Bu
   sfxLimit.release.value = 0.12;
   // DynamicsCompressorNode applies its own makeup gain, which is not optional and not documented
   // as a number: with these settings it put the footsteps stem 8.1 dB LOUDER than before it was
-  // added (peak −14.3 → −10.1 dBFS). SFX_TRIM takes that back and a little more, measured on the
-  // offline steps stem rather than guessed.
+  // added (peak −14.3 → −10.1 dBFS). SFX_TRIM takes that back, measured on the offline steps stem
+  // rather than guessed, and carries the step cut that finishes the job the compressor started.
   const sfxTrim = ctx.createGain();
   sfxTrim.gain.value = SFX_TRIM;
   // `limiter: false` takes the compressor out of the path for an offline take, so what it is worth

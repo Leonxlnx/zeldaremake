@@ -1829,8 +1829,17 @@ const compactAttributes = (g: BufferGeometry, only?: string) => {
 const dropArray = function (this: { array: ArrayLike<number> | null }) {
   this.array = null;
 };
+/**
+ * Every attribute of a static tree geometry drops its CPU array once three has uploaded it (round 51,
+ * the tab at 3.6 GB) — every attribute but a PER-INSTANCE one: those are per-frame data the buckets
+ * rewrite (lodFade.ts `aLodDrop`, attached by the build's first `rebucket`, before this sweep runs
+ * over the group), a few KB each, and a released one is a crash at the next `setX` (squad2's #191).
+ */
 const releaseAfterUpload = (g: BufferGeometry) => {
-  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  for (const a of Object.values(g.attributes)) {
+    if ((a as InstancedBufferAttribute).isInstancedBufferAttribute) continue;
+    (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  }
   if (g.index) g.index.onUpload(dropArray as unknown as () => void);
 };
 /**
