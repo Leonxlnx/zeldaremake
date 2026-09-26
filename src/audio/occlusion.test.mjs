@@ -40,7 +40,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { occlusionAt, OCCLUSION_FULL_M } = loadTs(path.join(here, 'index.ts'));
+const { occlusionAt, OCCLUSION_FULL_M, OCCLUDERS } = loadTs(path.join(here, 'index.ts'));
 const { LAYOUT, EXPANSION } = loadTs(path.join(here, '../world/layout.ts'));
 const A = loadTs(path.join(here, 'ambience.ts'));
 
@@ -104,6 +104,37 @@ test('a shadow takes the top off harder than it takes the level', () => {
   assert.ok(A.OCCLUSION_TOP < 1 - A.OCCLUSION_DUCK, `the top must fall further than the level: ${A.OCCLUSION_TOP} against ${1 - A.OCCLUSION_DUCK}`);
   assert.ok(A.OCCLUSION_DUCK > 0 && A.OCCLUSION_DUCK < 1, 'a bole is not a wall: a shadowed bird is quieter, not gone');
   assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a bird is retired only once it is out past the distance clamp, where swapping it cannot be heard');
+});
+
+/**
+ * Categories of solid thing in `LAYOUT` that the occluder list deliberately does NOT carry, and
+ * why. A category may be left out; it may not be left out by accident, which is how `houses` —
+ * the two largest structures in the village — went missing for a day and a half.
+ */
+const NOT_OCCLUDERS = {
+  heroBoulders: 'too short: the widest is 2.2 m and rounded, and the line from an ear at 1.6 m to a bird in a crown 8 m up has cleared it within a few metres',
+};
+
+test('the sound knows about every solid thing the world has', () => {
+  const RADIUS_FIELDS = ['trunkRadius', 'radius'];
+  const covered = (x, z, r) => OCCLUDERS.some((o) => Math.hypot(o.x - x, o.z - z) < 0.01 + Math.max(0, o.r - r) && o.r >= r - 1e-9);
+  let checked = 0;
+  for (const [name, list] of Object.entries(LAYOUT)) {
+    if (!Array.isArray(list) || !list.length) continue;
+    const first = list[0];
+    if (typeof first !== 'object' || first === null || !Array.isArray(first.position)) continue;
+    const field = RADIUS_FIELDS.find((f) => typeof first[f] === 'number');
+    if (!field) continue;
+    checked++;
+    if (name in NOT_OCCLUDERS) {
+      for (const it of list) assert.ok(!covered(it.position[0], it.position[2], it[field]), `${name} is listed as deliberately excluded (${NOT_OCCLUDERS[name]}) but ${it.id} is in OCCLUDERS — one of the two is wrong`);
+      continue;
+    }
+    for (const it of list) {
+      assert.ok(covered(it.position[0], it.position[2], it[field]), `${name}.${it.id} is ${it[field]} m of solid world at (${it.position[0]}, ${it.position[2]}) and the sound walks straight through it. Add it to OCCLUDERS, or add "${name}" to NOT_OCCLUDERS with the reason.`);
+    }
+  }
+  assert.ok(checked >= 3, `only ${checked} solid categories found in LAYOUT; this guard has stopped reading the layout it is meant to watch`);
 });
 
 test('a wall takes less off a flame than off a bird, because a flame is low', () => {

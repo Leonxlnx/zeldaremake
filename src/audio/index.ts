@@ -596,14 +596,31 @@ export function shouldWake(state: AudioContextState, now: number, nextAt: number
  * the world where the forest should sound bigger than the village rather than smaller.
  */
 /**
- * The solid things a player can put between himself and a sound: the thirteen giant boles and the
- * three huts. Circles in xz — every one of them is a barrel, and none is short enough for height to
- * matter (the boles stand 21–28 m and the huts' walls reach 6–14 m, against sources at head height
- * or in a crown eight metres up).
+ * The solid things a player can put between himself and a sound: the giant boles, the two Kokiri
+ * tree-houses and the three huts. Circles in xz — every one of them is a barrel, and none is short
+ * enough for height to matter (the boles stand 21–28 m and the walls reach 6–14 m, against sources
+ * at head height or in a crown eight metres up).
+ *
+ * **This is the world as the sound knows it, and it is not the world.** Anything solid a player
+ * can walk behind belongs here; anything missing is a thing the sound walks straight through.
+ * `LAYOUT.houses` was missing for a day and a half, which is the two largest structures in the
+ * village. A guard in `occlusion.test.mjs` now fails if the layout grows a solid thing this list
+ * does not have, so the next category has to be excluded on purpose or not at all.
  */
-const OCCLUDERS: readonly { x: number; z: number; r: number }[] = (() => {
+export const OCCLUDERS: readonly { x: number; z: number; r: number }[] = (() => {
   const all = [
     ...LAYOUT.giantTrees.map((t) => ({ x: t.position[0], z: t.position[2], r: t.trunkRadius })),
+    // The two Kokiri tree-houses in the middle of the village. `trunkRadius` is the hollow trunk
+    // the house is carved into and it is solid at head height — Saria's is **3.2 m**, six and a
+    // half metres of wood across, wider than every giant bole in the world and second only to the
+    // west house. Neither is a hut standing on a trunk that was already counted: the nearest
+    // listed obstacle to Saria's is 11.5 m away.
+    //
+    // Measured before it was fixed (`art/audio/2026-09-26-houses/`): over 12,638 standing points
+    // and sixteen bearings from each, **23 % of the shadowed bearings in this world were missing**
+    // — 16,832 against 20,663 — and the deepest line through the pair stands 11.63 m of wood
+    // where the sound saw none at all, nearly twice `OCCLUSION_FULL_M`.
+    ...LAYOUT.houses.map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius })),
     { x: EXPANSION.westHouse.host[0], z: EXPANSION.westHouse.host[1], r: EXPANSION.westHouse.radius },
     { x: EXPANSION_NORTH.stilt.host[0], z: EXPANSION_NORTH.stilt.host[1], r: EXPANSION_NORTH.stilt.radius },
     { x: EXPANSION_NORTH.hut.host[0], z: EXPANSION_NORTH.hut.host[1], r: EXPANSION_NORTH.hut.radius },
