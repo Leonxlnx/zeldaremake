@@ -13,6 +13,7 @@ import {
   Scene,
   ShaderMaterial,
   SphereGeometry,
+  Vector2,
   Vector3,
   Vector4,
   WebGLCubeRenderTarget,
@@ -20,6 +21,7 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { Rng } from '../core/rng';
+import { DEFAULT_LENS } from '../render/pipeline';
 
 /**
  * Deep space: a baked nebula cube (soft, low-frequency — cheap to sample every frame) and a live
@@ -38,6 +40,8 @@ const BAND_CORE = (() => {
 const BAND_THICK = 0.15;
 /** reference frame height (px) the star sizes and energies are authored for */
 const REF_H = 804;
+/** the final pass's lateral chromatic aberration per unit of `Lens.ca` (uv of shift per uv from the centre) */
+const LENS_CA_UV = 0.0045;
 
 const vec3 = (v: Vector3) => `vec3(${v.x.toFixed(5)}, ${v.y.toFixed(5)}, ${v.z.toFixed(5)})`;
 
@@ -188,17 +192,18 @@ export function makeStars(o: { count?: number; seed?: number; radius?: number } 
     depthWrite: false,
     blending: AdditiveBlending,
     defines: { NEB: baked ? 1 : 0 },
-    uniforms: { scale: { value: 1 }, uH: { value: REF_H }, tNeb: { value: baked } },
+    uniforms: { scale: { value: 1 }, uRes: { value: new Vector2(REF_H * 2.39, REF_H) }, uCA: { value: 0 }, tNeb: { value: baked } },
     vertexShader: /* glsl */ `
       attribute float size; attribute vec3 color; attribute float band;
-      uniform float scale; uniform float uH;
+      uniform float scale; uniform vec2 uRes; uniform float uCA;
       #if NEB
       uniform samplerCube tNeb;
       #endif
-      varying vec3 vCol; varying float vSig; varying float vSize;
+      varying vec3 vCol; varying float vSig; varying float vSize; varying vec2 vOff;
       void main(){
         vec4 wp = modelMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * viewMatrix * wp;
+        float uH = uRes.y;
         float k = uH / ${REF_H.toFixed(1)};
         float s = max(0.6, size * k * scale);
         vec3 e = color * k * k;
@@ -208,17 +213,23 @@ export function makeStars(o: { count?: number; seed?: number; radius?: number } 
         float glow = max(dot(sky.rgb, vec3(0.3, 0.55, 0.15)) - 0.0085, 0.0);
         e *= mix(sqrt(sky.a), sky.a * min(glow * 28.0, 1.5), band);
         #endif
+        // the lens's lateral colour shift at this point (px, y up): red and blue are drawn this far the other
+        // way so each star lands as one point instead of a red-green-blue triplet
+        vOff = clamp(gl_Position.xy / max(gl_Position.w, 1e-6) * 0.5 * uCA * uRes, -12.0, 12.0);
         vSig = s;
-        vSize = ceil(s * 6.0 + 1.0);
+        vSize = ceil(s * 6.0 + 1.0 + 2.0 * max(abs(vOff.x), abs(vOff.y)));
         gl_PointSize = vSize;
         vCol = e / (6.2831853 * s * s);
       }`,
     fragmentShader: /* glsl */ `
-      varying vec3 vCol; varying float vSig; varying float vSize;
+      varying vec3 vCol; varying float vSig; varying float vSize; varying vec2 vOff;
       void main(){
         vec2 p = (gl_PointCoord - 0.5) * vSize;
-        float a = exp(-dot(p, p) / (2.0 * vSig * vSig));
-        if (a < 0.003) discard;
+        p.y = -p.y;
+        float k = -0.5 / (vSig * vSig);
+        vec2 pr = p + vOff, pb = p - vOff;
+        vec3 a = exp(vec3(dot(pr, pr), dot(p, p), dot(pb, pb)) * k);
+        if (max(a.r, max(a.g, a.b)) < 0.003) discard;
         gl_FragColor = vec4(vCol * a, 1.0);
       }`,
   });
@@ -228,7 +239,9 @@ export function makeStars(o: { count?: number; seed?: number; radius?: number } 
   const vp = new Vector4();
   pts.onBeforeRender = (renderer) => {
     renderer.getCurrentViewport(vp);
-    m.uniforms.uH.value = vp.w;
+    m.uniforms.uRes.value.set(vp.z, vp.w);
+    // the final pass samples red at uv - d * ca * LENS_CA_UV and blue at uv + d * ca * LENS_CA_UV (d = uv - 0.5)
+    m.uniforms.uCA.value = DEFAULT_LENS.ca * LENS_CA_UV;
   };
   const grp = new Group();
   grp.name = 'stars';
