@@ -683,3 +683,38 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - Two poses on a1e7d7f2: the short menhirs read as weathered blocks with their strata bands; the
   per-quad flank tone (the risers' bug class) does not show at their size. No change. Sheet
   `hs136-stone-circle-arms-length.jpg`. Head unchanged since 00:26; the areas still on their branches.
+
+### Iteration 137 (04:10) — #196: the ravine gated to 26 m of the gorge (−0.19 M at the green)
+- `visible` flags in the audit exposed the ravine drawn from the plateau via expansionVisible (wrong
+  locality); new `ravineVisible` (26 m to a body + frustum). Green rocks 27 / 0.48 → 25 / 0.29 M;
+  far bank and deck 0 pixels; six views 0 pixels; tests 33. Store mount lost its contents at 04:04
+  (permission denied) — tools rebuilt under /tmp/f2/tools as needed.
+
+### Iteration 138 (05:55) — #196's second commit: the backside gated to 45 m of the west box (the green 0.48 → 0.19 M)
+- `1237efc3`: `backsideVisible` = planar distance to EXPANSION_BOX < 45 m + frustum (was the
+  locality's 60, which reached the east green and the lookout through the west house). Head
+  `2b15f687` merged in; all eleven frame pairs byte-identical (six views, green, far bank, deck);
+  green rocks 27 / 0.48 → 23 / 0.19 M; far bank 29 / 0.29 both (backside on there, inside 45).
+- A false alarm closed: F read 0.9730 once — the branch run's "uniform frame — re-rendering" retry
+  at F shifts sim time (diff on Link, Navi, leaves). F and E re-rendered as the first pose on both
+  builds: byte-identical. Rule restated: compare only frames rendered at the same pose index, and
+  re-render alone when the harness retries. Store mount back; `f-only.json` added to the tools.
+- Head still `2b15f687`; no new INBOX notes to lane 2 / 6. Next: fable-4's #201 read at the
+  look-backs, then the areas' re-verify when exp-east / exp-south2 / exp-ruins land.
+
+### Iteration 139 (07:50) — #208: the plaza paving's far LOD (the green's hardscape row 0.30 → 0.13 M, byte-identical)
+- The lane's ranked items closed, the hardscape audit at the green read like the backside's: the
+  plaza's 529 stones (188 K triangles, one draw) drawn whole from 46 m. `buildSlab.farLod` (one
+  fan per stone, rim = the full slab's outer ring values), `placeFlagstones(…, { far: true })` →
+  `flagstones-far` (17 K), shown beyond `FLAGSTONE_FAR_M` 30 m of the footprint (hysteresis 3 m on
+  the walk, bare threshold on pose jumps). ground.ts keeps reading the invisible full mesh.
+- Measured: green 0.30 → 0.13 M byte-identical; 31 m poses 0.13 M with 36 / 164 px moved (12 > 8,
+  max 15) where the paving is in frame; 29 m and the far bank (25 m) full mesh, byte-identical;
+  six views 1.0000 / 0 > 8. Tests 234 (one new), typecheck / build green. Draft PR #208.
+- Finding handed to fable-4: B / C move 145 / 161 px at ≤ 8 levels on far leaf cards and a crown's
+  shadow line; two head sessions byte-identical (not noise); E1 (far built, not in scene) = head;
+  E2 (no far build, one stray `new Mesh()` never in the scene) = the same pixels → an id /
+  creation-order sensitivity in a later pass. Method note: a head-vs-head control before calling
+  anything "session noise".
+- The paving probe via `__ZR__.scene` failed (the scene is not on the API) — the audit's new
+  `flagstoneFar.footprint` is the way to read it.
