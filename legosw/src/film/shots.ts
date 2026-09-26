@@ -1600,16 +1600,19 @@ const droids: Shot = {
       sb.setIgnite(i === 0 ? ign : smooth(3.0, 3.35, t), Math.sin(T * 70 + i) * 0.5);
     });
     // droid line
-    // two staggered ranks a few metres in front of the Jedi (the anchor marks the back line)
+    // staggered ranks a few metres in front of the Jedi, deep rather than wide so the whole squad shows between
+    // them, each filled from the middle out: the commander, whose "Uh oh" it is, stands front and centre
     const front = mid.clone().add(toDroids.clone().multiplyScalar(17));
     const facing = new Quaternion().setFromAxisAngle(v3(0, 1, 0), yaw + Math.PI);
-    const perRow = Math.ceil(w.droids.length / 2);
+    const RANKS = [4, 4, 3];
+    const centreOut = (n: number) => Array.from({ length: n }, (_, j) => j).sort((a, b) => Math.abs(a - (n - 1) / 2) - Math.abs(b - (n - 1) / 2) || a - b);
     w.droids.forEach((d, i) => {
       d.group.visible = true;
-      const row = i < perRow ? 0 : 1;
-      const k = row === 0 ? i : i - perRow;
-      const off = (k - (perRow - 1) / 2) * 3.4 + row * 1.7;
-      d.group.position.copy(front).add(side.clone().multiplyScalar(off)).add(toDroids.clone().multiplyScalar(row * 3.4));
+      let row = 0, j = i;
+      while (row < RANKS.length - 1 && j >= RANKS[row]) j -= RANKS[row++];
+      const n = RANKS[row];
+      const off = (centreOut(n)[j] - (n - 1) / 2) * 3.4 + (row % 2) * 0.9;
+      d.group.position.copy(front).add(side.clone().multiplyScalar(off)).add(toDroids.clone().multiplyScalar(row * 3.6));
       d.group.quaternion.copy(facing);
       const aim = smooth(1.2 + i * 0.08, 1.8 + i * 0.08, t);
       d.pose({ aim, headTilt: t > 3.5 ? Math.sin(t * 6 + i) * 0.15 : 0, lookYaw: t > 3.4 && i === 0 ? -0.4 : 0 });

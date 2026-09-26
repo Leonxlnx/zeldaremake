@@ -4,6 +4,7 @@ import {
   CylinderGeometry,
   DirectionalLight,
   Euler,
+  FogExp2,
   Group,
   HemisphereLight,
   Matrix4,
@@ -79,6 +80,7 @@ export class World {
   /** R2's electric zap: a jagged glowing arc, posed per frame by zapArc() */
   zap = new Group();
   hangarLights = new Group();
+  haze = new FogExp2(0x6a6155, 0.0058);
   /** the blue wash from the ray-shield line */
   private shieldLight: PointLight;
   /** warm light in the throat, seen from outside: lit only while the set is fitted into the ship */
@@ -270,7 +272,7 @@ export class World {
     // --- hangar
     this.hangar = hangarInterior();
     s.add(this.hangar.group);
-    const variants = ['commander', 'standard', 'standard', 'security', 'standard', 'pilot', 'standard'] as const;
+    const variants = ['commander', 'standard', 'standard', 'security', 'standard', 'pilot', 'standard', 'standard', 'security', 'standard', 'standard'] as const;
     for (let i = 0; i < variants.length; i++) {
       const d = battleDroid({ variant: variants[i], seed: i + 3 });
       s.add(d.group);
@@ -344,6 +346,7 @@ export class World {
   }
 
   space(): void {
+    this.scene.fog = null;
     this.scene.environment = this.envSpace;
     this.scene.environmentIntensity = 1;
     this.scene.background = this.nebula;
@@ -359,6 +362,8 @@ export class World {
   }
 
   interior(): void {
+    // the bay's air: a faint warm haze that sets the far walls back behind the fighters (space beyond the open mouth stays clear)
+    this.scene.fog = this.haze;
     this.scene.environment = this.envHangar;
     this.scene.environmentIntensity = 1;
     this.scene.background = this.nebula;
