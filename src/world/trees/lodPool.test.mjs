@@ -717,3 +717,28 @@ test('a giant without tagged laminae keeps its geometry object', () => {
   assert.equal(out.kept, g);
   assert.deepEqual(out.groups, []);
 });
+
+// releaseAfterUpload (round 51): the static attributes' arrays go on upload; a per-instance attribute's stays
+test('releaseAfterUpload drops static arrays on upload and leaves per-instance attributes alone', () => {
+  const file = path.join(here, 'index.ts'), ast = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+  const found = {};
+  const visit = node => {
+    if (ts.isVariableDeclaration(node) && ['dropArray', 'releaseAfterUpload'].includes(node.name.getText(ast))) found[node.name.getText(ast)] = node.initializer.getText(ast);
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  assert.ok(found.dropArray && found.releaseAfterUpload);
+  const js = ts.transpileModule(`const dropArray = ${found.dropArray};\nconst releaseAfterUpload = ${found.releaseAfterUpload};\nreturn releaseAfterUpload;`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  const releaseAfterUpload = new Function(js)();
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3));
+  g.setAttribute('aLodDrop', new THREE.InstancedBufferAttribute(new Float32Array(4), 1));
+  g.setIndex(new THREE.BufferAttribute(new Uint16Array([0, 1, 2]), 1));
+  releaseAfterUpload(g);
+  // what three does after each buffer's first upload
+  for (const a of [...Object.values(g.attributes), g.index]) a.onUploadCallback.call(a);
+  assert.equal(g.getAttribute('position').array, null, 'a static attribute frees its array');
+  assert.equal(g.index.array, null, 'the index frees its array');
+  assert.ok(g.getAttribute('aLodDrop').array instanceof Float32Array, 'a per-instance attribute keeps its array');
+  assert.equal(g.getAttribute('aLodDrop').array.length, 4);
+});
