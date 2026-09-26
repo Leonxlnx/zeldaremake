@@ -138,6 +138,7 @@ function dummyBall(b: Builder): void {
   b.add('lbg', cylBand(1.34, 0.22), undefined, { shade: 0.45 });
   b.add('lbg', cylinder(0.55, 0.36, 0.03, 10), new Matrix4().makeTranslation(0, 0.05, 1.12).multiply(new Matrix4().makeRotationX(Math.PI / 2)), { shade: 0.12 });
   cylAt(b, 'glowRed', [0, 0.12, 1.32], [0, 0, 1], 0.17, 0.06, { radial: 8 });
+  for (const s of [1, -1]) b.cyl('dbg', s * 1.315, 0, 0, 0.2, 0.08, { axis: 'x', radial: 10 });
 }
 
 /** The raised seam band between the two shells of the dummy ball (a disc along X). */

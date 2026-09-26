@@ -27,6 +27,7 @@ const SHELL_C = new Vector3(1.72, 0.72, -0.12); // deployed shell centre (port)
 const SHELL_BETA = 63 * DEG; // deployed shell roll (pole up and out)
 const STRUT_H = new Vector3(0.44, 0.52, -0.12); // strut hinge on the body (port)
 const STRUT_A = new Vector3(RI - 0.2, 0, 0); // strut end inside the shell (port shell frame)
+const SEAM_HW = 0.016; // half-width of the quarter-dome seams on the shells
 const HEAD_Y0 = 0.5, HEAD_Y1 = 0.68;
 const TAIL_Y0 = -0.52, TAIL_Y1 = -0.8;
 
@@ -117,6 +118,26 @@ function shell(b: Builder, rng: Rng, alt: boolean): void {
   // strut bracket at the inner pole
   b.cyl('dbg', RI - 0.06, 0, 0, 0.17, 0.12, { axis: 'x', radial: 12 });
   ball(b, 'flatSilver', [STRUT_A.x, 0, 0], 0.075, 8, 5);
+  // the shell is four quarter-dome elements: seams on the diagonals (clear of the eye notch) meet
+  // under a hinge boss on the pole, the outer end of the strut bracket
+  const seams = new MeshAcc();
+  for (let k = 0; k < 4; k++) {
+    const th = Math.PI / 4 + (k * Math.PI) / 2;
+    const off: V3 = [0, -Math.cos(th) * SEAM_HW, -Math.sin(th) * SEAM_HW];
+    const at = (psi: number, s: number): V3 => {
+      const p = shellP(R + 0.005, th, psi);
+      return [p[0] + off[0] * s, p[1] + off[1] * s, p[2] + off[2] * s];
+    };
+    const n = 14, p0 = 0.15, p1 = Math.PI / 2 - 0.012;
+    for (let i = 0; i < n; i++) {
+      const pa = p0 + ((p1 - p0) * i) / n, pb = p0 + ((p1 - p0) * (i + 1)) / n;
+      const na = shellP(1, th, pa), nb = shellP(1, th, pb);
+      seams.quad(at(pa, 1), at(pb, 1), at(pb, -1), at(pa, -1), na, nb, nb, na);
+    }
+  }
+  b.add('dbg', seams.done());
+  b.cyl('dbg', R + 0.015, 0, 0, 0.2, 0.08, { axis: 'x', radial: 16 });
+  b.cyl('flatSilver', R + 0.075, 0, 0, 0.075, 0.04, { axis: 'x', radial: 10 });
 }
 
 // ---------------------------------------------------------------------------------------------
