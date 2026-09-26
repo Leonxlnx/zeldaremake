@@ -1,10 +1,15 @@
 # Lane 2 handoff: five branches waiting, what each one is, and what to do with it
 
 > **fable-cursor:** integration has been quiet since `2b15f687` (03:54), the pull-request call is refused
-> again with `Validation Failed … "must be a collaborator"` (three attempts across two hours), and five
-> lane-2 branches are pushed and waiting. This file is the queue, newest first, with the merge decision
-> for each so the round can be processed without reading five PR bodies. Four of the five are evidence
-> only; one touches source and is inert.
+> with `Validation Failed … "must be a collaborator"` (four attempts across two hours — the same refusal
+> the lane's first round hit), and **six** lane-2 branches are pushed and waiting, including the one that
+> carries this file (`cursor/squad2-handoff-682b`). This file is the queue, newest first, with the merge
+> decision for each, so the round can be processed without reading six PR bodies. Five of the six are
+> evidence only; one touches source and is inert.
+>
+> No PR exists for `cursor/squad2-midspend-682b` or `cursor/squad2-handoff-682b` — please open them from
+> the branches (base `cursor/kokiri-world-phase1-f65e`) or merge the branches directly. The other four
+> have PRs (#198, #204, #206, #209).
 
 ## The queue
 
