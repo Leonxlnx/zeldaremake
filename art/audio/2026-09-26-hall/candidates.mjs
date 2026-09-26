@@ -22,6 +22,7 @@
  * No render and no change to `graph.ts` yet — the variants are built here so the winner can be
  * chosen on numbers rather than on which one sounds most clever.
  */
+import fs from 'node:fs';
 import { readFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -191,6 +192,26 @@ function magOf(x) {
   return { p: out, m };
 }
 
+function perPitch(L, R) {
+  const a = magOf(L);
+  const b = magOf(R);
+  const df = SR / a.m;
+  const out = [];
+  for (const mi of PITCHES) {
+    const f = hz(mi);
+    const lo = Math.floor((f * (1 - 1 / 60)) / df);
+    const hi = Math.ceil((f * (1 + 1 / 60)) / df);
+    let x = 0;
+    let y = 0;
+    for (let i = lo; i <= hi && i < a.p.length; i++) {
+      x += a.p[i];
+      y += b.p[i];
+    }
+    if (x > 0 && y > 0) out.push({ midi: mi, hz: f, db: db(x) - db(y) });
+  }
+  return out;
+}
+
 function judge(L, R) {
   const a = magOf(L);
   const b = magOf(R);
@@ -265,6 +286,21 @@ for (const [space, seed, secs, damp, earlyAt, earlySpread, preDelay] of SPACES) 
     );
   }
   console.log('');
+}
+if (process.argv.includes('--json')) {
+  const curves = {};
+  for (const [space, seed, secs, damp, earlyAt, earlySpread, preDelay] of SPACES) {
+    curves[space] = {};
+    for (const [name, build] of Object.entries(BUILD)) {
+      const n = Math.floor(SR * secs);
+      const [L, R] = build(createRng('zelda-audio').fork(seed), n, Math.floor(SR * preDelay), damp, earlyAt, earlySpread);
+      curves[space][name] = perPitch(L, R);
+    }
+  }
+  const at = process.argv[process.argv.indexOf('--json') + 1] || '/tmp/hall/candidates.json';
+  fs.mkdirSync(path.dirname(at), { recursive: true });
+  fs.writeFileSync(at, JSON.stringify(curves, null, 1));
+  console.log(`  wrote ${at}`);
 }
 console.log('  a hall has to be BOTH: decorrelated (L·R near 0) and matched (worst at a pitch near 0).');
 console.log('  the tail must still start when it did — the gorge\u2019s 29 ms is a published measurement.');

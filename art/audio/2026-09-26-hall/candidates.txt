@@ -1,0 +1,21 @@
+
+four ways to build a two-channel impulse
+
+  space  construction    worst at a pitch   spread     L·R  broadband   tail starts L/R      T60
+  hall   independent              6.80 dB   3.12 dB   0.003     0.07 dB       0.8 / 0.7 ms  1322 ms
+  hall   reversed                 7.29 dB   2.73 dB   0.003    -0.00 dB       0.8 / 0.6 ms  1321 ms
+  hall   quadrature               0.19 dB   0.06 dB   0.000    -0.00 dB       0.8 / 1.0 ms  1321 ms
+  hall   phased                   6.55 dB   3.04 dB   0.006    -0.02 dB       0.8 / 0.7 ms  1320 ms
+
+  room   independent              8.04 dB   3.83 dB  -0.014    -0.10 dB       7.5 / 7.6 ms   538 ms
+  room   reversed                 8.46 dB   3.99 dB   0.007     0.10 dB       7.5 / 7.5 ms   539 ms
+  room   quadrature               0.33 dB   0.15 dB  -0.001     0.00 dB       7.5 / 7.5 ms   537 ms
+  room   phased                   6.83 dB   3.06 dB   0.009    -0.11 dB       8.0 / 7.7 ms   541 ms
+
+  gorge  independent             11.03 dB   3.38 dB   0.013    -0.15 dB     29.6 / 29.6 ms   859 ms
+  gorge  reversed                 7.21 dB   3.35 dB   0.011    -0.12 dB     29.6 / 29.7 ms   859 ms
+  gorge  quadrature               0.52 dB   0.14 dB   0.000    -0.00 dB     29.6 / 29.7 ms   859 ms
+  gorge  phased                   7.76 dB   4.04 dB  -0.024    -0.00 dB     30.0 / 30.2 ms   859 ms
+
+  a hall has to be BOTH: decorrelated (L·R near 0) and matched (worst at a pitch near 0).
+  the tail must still start when it did — the gorge’s 29 ms is a published measurement.

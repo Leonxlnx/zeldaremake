@@ -1,0 +1,67 @@
+--- after ---
+
+1. does anything happen (the term forced the whole way, one take minus the other)
+
+   on the bridge       -6.2 dB under the take   the ravine
+
+2. does it stay where the cut is (the shipped term, leg by leg)
+
+                         shipped minus no-ravine
+   grass                             -195.8 dB   unchanged
+   dirt                              -197.6 dB   unchanged
+   flagstones                        -109.8 dB   unchanged
+   the stair flight                  -104.5 dB   unchanged
+   deck planks                       -200.3 dB   unchanged
+   the log bore                      -112.6 dB   unchanged
+   leaves                            -196.0 dB   unchanged
+   a run on stone                    -106.4 dB   unchanged
+   the bridge                          -6.2 dB   the ravine
+
+3. what it did to the walk
+
+                         p95 (the steps)   p50 (between them)
+   the bridge                      -0.03 dB            +10.32 dB
+   the stair flight                +0.00 dB             +0.00 dB
+   (a space moves the second and not the first; a fader moves both)
+
+4. where the rock is -- one boot, with nothing sounding behind it
+
+   the boot at 3.05 s peaks at -25.8 dB; the ravine answers -12.9 dB under it
+
+      0 ms  silence  
+      2 ms  silence  
+      4 ms  silence  
+      6 ms  silence  
+      8 ms  silence  
+     10 ms  silence  
+     12 ms  silence  
+     14 ms  silence  
+     16 ms  silence  
+     18 ms  silence  
+     20 ms  silence  
+     22 ms  silence  
+     24 ms  silence  
+     26 ms  silence  
+     28 ms    -70.6 dB  
+     30 ms    -49.7 dB  ##########   <- the walls, 5 m off
+     32 ms    -46.0 dB  ############
+     34 ms    -31.4 dB  ###################
+     36 ms    -31.3 dB  ###################
+     38 ms    -21.2 dB  ########################
+     40 ms    -20.8 dB  ########################
+     42 ms    -18.0 dB  ##########################
+     44 ms    -15.6 dB  ###########################
+     46 ms    -17.5 dB  ##########################
+     48 ms    -20.1 dB  ########################
+     50 ms    -13.1 dB  ############################
+     52 ms    -13.5 dB  ############################   <- the floor, 8.8 m down
+     54 ms    -18.3 dB  #########################
+     56 ms    -14.6 dB  ###########################
+     58 ms    -16.4 dB  ##########################
+     60 ms    -20.3 dB  ########################
+     62 ms    -20.7 dB  ########################
+     64 ms    -20.5 dB  ########################
+     66 ms    -20.5 dB  ########################
+     68 ms    -20.3 dB  ########################
+
+   silent for the first 28 ms; the rock at mid-span cannot answer before 29
