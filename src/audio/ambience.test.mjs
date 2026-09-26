@@ -914,3 +914,84 @@ test('a lantern and a fairy are further off in more than level', () => {
   const quieter = overhead.filter((v, i) => across[i] < v - 1e-9).length;
   assert.ok(quieter >= 1, 'the flame must also be quieter across the plaza');
 });
+
+test('the bed is filled as far ahead as the next tick and no further', () => {
+  // Four seconds was never a number the leaves asked for. It is what a BACKGROUND TAB needs,
+  // whose timers Chrome clamps to 1 Hz — and in the foreground the tick runs at 30 Hz, so the bed
+  // was being written a hundred and twenty times further ahead than anything needed it.
+  //
+  // The horizon has one job: be at least as long as the gap to the next tick, or an event falls
+  // due before anyone writes it down.
+  for (const gap of [1 / 120, 1 / 60, 1 / 30, 1 / 20, 0.1, 0.3, 0.5, 1, 1.3, 2, 4]) {
+    const ahead = A.aheadFor(gap);
+    assert.ok(ahead >= gap, `a caller ticking every ${gap.toFixed(3)} s is only filled ${ahead.toFixed(3)} s ahead`);
+    assert.ok(ahead >= A.AHEAD_FLOOR, `${ahead} is under the floor`);
+    assert.ok(ahead <= A.AHEAD_CEILING, `${ahead} is over the four seconds that shipped, so a throttled tab is worse off than before`);
+  }
+  // and the floor has to cover a foreground stall outright, because the horizon can only grow
+  // after a long gap has been seen, never during the first one (`art/audio/2026-09-26-hitch/`
+  // measures 300 ms as the longest this lane has induced)
+  assert.ok(A.AHEAD_FLOOR >= 0.3, `the floor is ${A.AHEAD_FLOOR} s and a blocking frame is 0.3`);
+  // monotone, so a slower caller is never filled less far ahead than a faster one
+  let last = 0;
+  for (let g = 0; g <= 5; g += 0.05) {
+    const a = A.aheadFor(g);
+    assert.ok(a >= last - 1e-9, `the horizon fell from ${last} to ${a} as the tick got slower`);
+    last = a;
+  }
+  // and the two callers have to be asking for it. `aheadFor` is a pure function, so nothing above
+  // can tell whether the live tick and the offline render use it or go back to the flat ceiling —
+  // that half is wiring, and this reads the call sites the way footsteps.test.mjs reads CLIP_SPEC.
+  const src = readFileSync(path.join(here, 'index.ts'), 'utf8');
+  const calls = src.match(/ambience\??\.scheduleUntil\([^\n]*\)/g) ?? [];
+  assert.ok(calls.length >= 2, `expected the live tick and the offline render to fill the bed; found ${calls.length}`);
+  const flat = calls.filter((c) => !c.includes('aheadFor(') && !c.includes('scheduleUntil(seconds)'));
+  assert.equal(flat.length, 0, `these fill the bed on a fixed horizon instead of the tick's: ${flat.join(' · ')}`);
+});
+
+test('a leaf is booked with the wind it will sound in, not the wind four seconds before', () => {
+  // `scheduleFlutters` reads `gustNow` for the leaf's LEVEL (`0.35 + g · 0.9`, 11.1 dB end to end)
+  // and for the gap to the next one, at the moment it writes the event down. On the four-second
+  // horizon that was the wind of four seconds earlier: measured over ten minutes of the game's own
+  // gust, a median level error of 2.34 dB, p90 5.62, worst 9.34, and 38 % of leaves out by more
+  // than 3 dB (`art/audio/2026-09-26-early/`).
+  //
+  // The gust here is a plain ramp rather than a copy of `wind.ts`'s two sines: the property is
+  // about the horizon, and a constant copied out of another lane's file goes stale.
+  const RAMP_S = 30; // 0 to 1 over thirty seconds, comfortably faster than the game's weather
+  const weather = (g) => 0.35 + g * 0.9;
+  const worstFor = (ahead) => {
+    const { ctx, amb } = bed({ seed: 'early/leaf' });
+    let seenG = ctx.made.gain.length;
+    let birds = 0;
+    let glints = 0;
+    let worst = 0;
+    for (let t = 0; t < RAMP_S; t += 1 / 30) {
+      const g = Math.max(0, Math.min(1, t / RAMP_S));
+      amb.update(t, { gust: g, listener: LISTENER, forward: NORTH, pods: [], canopy: 0, fairies: [] });
+      const n0 = ctx.made.gain.length;
+      amb.scheduleUntil(t + ahead);
+      const s = amb.stats();
+      const madeThisTick = ctx.made.gain.slice(n0);
+      // only ticks that booked leaves and nothing else, so the envelopes read here are all flutters
+      if (s.birds === birds && s.glints === glints) {
+        for (const node of madeThisTick) {
+          const peak = node.gain.events.find((e) => e[0] === 'lin' && e[1] > 0);
+          if (!peak) continue;
+          const heard = Math.max(0, Math.min(1, peak[2] / RAMP_S));
+          worst = Math.max(worst, Math.abs(20 * Math.log10(weather(heard) / weather(g))));
+        }
+      }
+      birds = s.birds;
+      glints = s.glints;
+      seenG = ctx.made.gain.length;
+    }
+    assert.ok(seenG > 0, 'no leaves were booked at all');
+    return worst;
+  };
+  const shipped = worstFor(A.aheadFor(1 / 30));
+  assert.ok(shipped < 1, `a leaf was booked ${shipped.toFixed(2)} dB away from the wind it sounds in`);
+  // and the guard is only worth having if it fails on the horizon that shipped before
+  const old = worstFor(4);
+  assert.ok(old > 2, `the four-second horizon should be plainly worse, and it measured ${old.toFixed(2)} dB`);
+});

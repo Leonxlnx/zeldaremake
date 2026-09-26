@@ -356,6 +356,53 @@ export function flutterGap(u: number, rate: number): number {
   const raw = (0.5 + u * 3.2) / Math.max(1e-6, rate);
   return QUIET_GAP_MAX * (1 - Math.exp(-raw / QUIET_GAP_MAX));
 }
+
+/**
+ * How far ahead of the clock the bed is written down — the floor, the margin, and the ceiling.
+ *
+ * `scheduleFlutters` reads `gustNow` for a leaf's LEVEL (`0.35 + g · 0.9`, 11.1 dB end to end) and
+ * for the gap to the next one, **at the moment it writes the event down**. So the horizon is not
+ * free: every second of it is a second of weather the leaf is out of date by before it sounds.
+ *
+ * Four seconds was never a number the leaves asked for. It is what a **background tab** needs,
+ * whose timers Chrome clamps to 1 Hz — measured at 1.39 callbacks a second under the clamp
+ * (`art/audio/2026-09-25-hidden/`). In the foreground the tick runs at 30 Hz, so the bed was being
+ * written a hundred and twenty times further ahead than anything needed, and paying for all of it.
+ *
+ * Measured over ten minutes of the game's own gust, open sky (`art/audio/2026-09-26-early/`):
+ *
+ *     horizon   leaves   |level error| median    p90    worst   the loudness lags the wind by
+ *      0.5 s       614                0.34 dB   0.87     1.81                          1.0 s
+ *      1.5 s       596                0.96 dB   2.37     4.11                          2.0 s
+ *      4.0 s       608                2.34 dB   5.62     9.34                          4.0 s
+ *
+ * The leaf count does not move across the sweep, so this is only ever about *when* the weather is
+ * read and never about how much leaf there is.
+ *
+ * The lane has been here once and did half of it. `2026-09-25-stale` found the same staleness in
+ * the BIRD calls — level out by a median 0.9 dB at a walk, one call carrying 0.73 of a shadow it
+ * no longer had — and built the `turning` registry to re-aim them every tick. Flutters got no
+ * registry and were never measured, and there are forty times as many of them.
+ *
+ * **0.5 s floor**: the horizon can only grow *after* a long gap has been seen, never during the
+ * first one, so the floor has to cover a foreground stall outright. 300 ms is the longest this
+ * lane has induced (`art/audio/2026-09-26-hitch/`).
+ *
+ * **4 s ceiling**: what shipped unconditionally, so a throttled tab is never worse off than it was.
+ */
+export const AHEAD_FLOOR = 0.5;
+export const AHEAD_TICKS = 3;
+export const AHEAD_CEILING = 4;
+
+/**
+ * How far ahead to fill the bed, for a caller ticking every `tickGap` seconds.
+ *
+ * Monotone in the tick gap and clamped at both ends, so no caller is ever filled less far ahead
+ * than the gap it has to bridge, and none is ever filled further than what shipped.
+ */
+export function aheadFor(tickGap: number): number {
+  return Math.max(AHEAD_FLOOR, Math.min(AHEAD_CEILING, tickGap * AHEAD_TICKS));
+}
 /**
  * A fairy's glint: how close you have to be for half level, its peak, and the gap between glints.
  * Events only, and small ones — the owner's standing complaint is that there is too much sound, so

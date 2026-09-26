@@ -20,7 +20,7 @@ import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, MASTER_LEVEL, type Buses } from './graph';
-import { createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
+import { aheadFor, AHEAD_CEILING, createAmbience, type Ambience, type AmbienceLayer, type AmbienceStats, type Vec3 } from './ambience';
 import { contactFor, createFootsteps, paceFrom, RUN_GROUND_SPEED, WALK_SPEED, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
@@ -563,7 +563,7 @@ export const TICK_MS = 1000 / 30;
  * minutes, and the bird gaps follow the gust — so the twin was not scheduling the same forest the
  * game does.
  */
-export const AMBIENCE_AHEAD = 4;
+export const AMBIENCE_AHEAD = AHEAD_CEILING;
 export const MUSIC_AHEAD = 6;
 
 /**
@@ -816,7 +816,10 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     }
     lastGust = o.wind?.uniforms.uGust.value ?? 0.4;
     ambience.update(t, { gust: lastGust, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, occlude: (ox, oz) => occlusionAt(listener.x, listener.z, ox, oz), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
-    ambience.scheduleUntil(ctx.currentTime + AMBIENCE_AHEAD);
+    // the bed only has to be filled as far ahead as the next tick (see `aheadFor`); the wall
+    // clock is the right gap to size it by, because that is the clock the scheduler's own
+    // `ctx.currentTime` runs on
+    ambience.scheduleUntil(ctx.currentTime + aheadFor(wallElapsed));
     music.scheduleUntil(ctx.currentTime + MUSIC_AHEAD);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
     // speed otherwise (see footsteps.ts — a step is heard when a boot lands, not on a stride timer)
@@ -1040,7 +1043,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
    * was booking the whole take out of one instant of weather.
    */
   const fill = (t: number) => {
-    ambience?.scheduleUntil(Math.min(seconds, t + AMBIENCE_AHEAD));
+    ambience?.scheduleUntil(Math.min(seconds, t + aheadFor(step)));
     music?.scheduleUntil(Math.min(seconds, t + MUSIC_AHEAD));
   };
   for (let t = 0; t < seconds; t += step) {
