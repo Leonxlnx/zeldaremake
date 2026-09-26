@@ -689,3 +689,15 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   locality); new `ravineVisible` (26 m to a body + frustum). Green rocks 27 / 0.48 → 25 / 0.29 M;
   far bank and deck 0 pixels; six views 0 pixels; tests 33. Store mount lost its contents at 04:04
   (permission denied) — tools rebuilt under /tmp/f2/tools as needed.
+
+### Iteration 138 (05:55) — #196's second commit: the backside gated to 45 m of the west box (the green 0.48 → 0.19 M)
+- `1237efc3`: `backsideVisible` = planar distance to EXPANSION_BOX < 45 m + frustum (was the
+  locality's 60, which reached the east green and the lookout through the west house). Head
+  `2b15f687` merged in; all eleven frame pairs byte-identical (six views, green, far bank, deck);
+  green rocks 27 / 0.48 → 23 / 0.19 M; far bank 29 / 0.29 both (backside on there, inside 45).
+- A false alarm closed: F read 0.9730 once — the branch run's "uniform frame — re-rendering" retry
+  at F shifts sim time (diff on Link, Navi, leaves). F and E re-rendered as the first pose on both
+  builds: byte-identical. Rule restated: compare only frames rendered at the same pose index, and
+  re-render alone when the harness retries. Store mount back; `f-only.json` added to the tools.
+- Head still `2b15f687`; no new INBOX notes to lane 2 / 6. Next: fable-4's #201 read at the
+  look-backs, then the areas' re-verify when exp-east / exp-south2 / exp-ruins land.
