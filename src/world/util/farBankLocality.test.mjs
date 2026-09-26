@@ -33,7 +33,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { FAR_BANK_ZONE, FAR_BANK_BEND, FAR_BANK_SOUTH, FAR_BANK_SMALL_SHADOWS, FAR_BANK_SHADOW_REACH, FAR_BANK_SMALL_DRAWS, inFarBankZone, inFarBankSouth, farBankDistance, farBankShadowRules, farBankDrawRule, farBankLodAt } = loadTs(path.join(here, 'farBankLocality.ts'));
+const { FAR_BANK_ZONE, FAR_BANK_BEND, FAR_BANK_BEND_EAST, FAR_BANK_SOUTH, FAR_BANK_SMALL_SHADOWS, FAR_BANK_SHADOW_REACH, FAR_BANK_SMALL_DRAWS, inFarBankZone, inFarBankSouth, farBankDistance, farBankShadowRules, farBankDrawRule, farBankLodAt } = loadTs(path.join(here, 'farBankLocality.ts'));
 const { LAYOUT, EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS } = loadTs(path.join(here, '../layout.ts'));
 const { FOLLOW } = loadTs(path.join(here, '../../camera/follow.ts'));
 
@@ -68,6 +68,34 @@ test('turning off the path onto the waystation’s steps, the camera’s swing w
   for (const [x, , z] of last) assert.ok(x - FAR_BANK_BEND.x1 > 0.08, `the path’s last straight (${x}, ${z}) east of the corner`);
   const W = EXPANSION_SOUTH_DWELLINGS.waystation;
   assert.ok(W.centre[1] < FAR_BANK_BEND.z0 - 2 && W.centre[0] > FAR_BANK_BEND.x1 + 1.5, 'the waystation south-east of the corner');
+});
+
+// camera positions from the play-test's `south-log-to-village` trace (the same frames in exp-south2's evidence
+// walk on a64948bf), where the bridge's east post held the camera in as Link turned toward the village and the
+// frame went over 9.0 M outside the zone: from leaving the zone, over the two drawn frames, to leaving the corner
+test('walking back and turning toward the village at the bend, the camera the bridge’s east post holds in is inside the zone', () => {
+  for (const [x, y, z] of [[4.42, 1.28, 30.3], [4.06, 1.27, 29.62], [3.98, 1.3, 29.48], [4.62, 1.39, 29.44], [4.19, 1.43, 28.95]]) {
+    assert.equal(inFarBankZone(x, y, z), true, `camera (${x}, ${y}, ${z})`);
+    assert.equal(inFarBankSouth(x, y, z), false, `not the far bank (${x}, ${z})`);
+  }
+  assert.equal(inFarBankZone(4.2, 1.43, 28.89), false, 'turned 42° west of north, the village swinging out of the frame, it has left');
+  assert.equal(FAR_BANK_BEND_EAST.z1, FAR_BANK_ZONE.z0, 'the east corner meets the zone at the north sill');
+  const path = EXPANSION_SOUTH.path;
+  for (const [x, , z] of path.slice(-3)) assert.ok(FAR_BANK_BEND_EAST.x0 - x > 0.08, `the path’s last straight (${x}, ${z}) west of the east corner`);
+  const W = EXPANSION_SOUTH_DWELLINGS.waystation;
+  assert.ok(W.centre[1] < FAR_BANK_BEND_EAST.z0 - 2, 'the waystation north of the east corner');
+  const K = EXPANSION_SOUTH_DWELLINGS.keeper;
+  const rimX = K.centre[0] + Math.cos((K.gallery.to * Math.PI) / 180) * K.gallery.outer;
+  assert.ok(FAR_BANK_BEND_EAST.x1 < rimX, `the east corner stops short of the keeper’s gallery (its west end’s rim at x ${rimX.toFixed(2)})`);
+  // walking out (the play-test's `south-bridge-to-log`), the camera trails him onto the bridge at x 3.9, facing
+  // south with the village behind it: into the corner and straight on into the zone, one switch
+  for (const [x, y, z] of [[3.9, 1.23, 28.94], [3.9, 1.16, 29.58], [3.9, 1.08, 30.42], [3.9, 1.08, 30.46]]) {
+    assert.equal(inFarBankZone(x, y, z), true, `walking out: camera (${x}, ${y}, ${z})`);
+  }
+  // the dwellings' measured views (exp-south2 README: K-down, W-step, W-roof, W-up, D3) keep their numbers
+  for (const [x, y, z] of [[3.3, 1.346, 29.2], [2.869, 0.93, 27.533], [3.033, 0.952, 27.381], [4.068, 1.28, 26.252], [5.907, 1.61, 27.509]]) {
+    assert.equal(inFarBankZone(x, y, z), false, `measured view (${x}, ${y}, ${z})`);
+  }
 });
 
 test('off the keeper’s gallery’s east end and back west, the trailing camera is inside the zone', () => {
@@ -176,7 +204,8 @@ test('farBankDistance: 0 for a box over the zone, the horizontal gap otherwise',
   assert.equal(farBankDistance(box(3, 50, 5, 52)), 0, 'inside');
   assert.equal(farBankDistance(box(-30, 40, 30, 70)), 0, 'spanning');
   assert.ok(Math.abs(farBankDistance(box(0, -20, 4, 1.5)) - (FAR_BANK_BEND.z0 - 1.5)) < 1e-9, 'north of the corner: the z gap to the corner');
-  assert.ok(Math.abs(farBankDistance(box(14, -20, 15, 1.5)) - (FAR_BANK_ZONE.z0 - 1.5)) < 1e-9, 'north of the zone, far enough east that the corner is further: the z gap to the zone');
+  assert.ok(Math.abs(farBankDistance(box(14, -20, 15, 20)) - (FAR_BANK_ZONE.z0 - 20)) < 1e-9, 'north of the zone, far enough east that the corners are further: the z gap to the zone');
+  assert.ok(Math.abs(farBankDistance(box(4.5, 20, 4.9, 27)) - (FAR_BANK_BEND_EAST.z0 - 27)) < 1e-9, 'north of the east corner: the z gap to it');
   assert.ok(Math.abs(farBankDistance(box(17, 20, 19, 30)) - Math.hypot(17 - FAR_BANK_ZONE.x1, FAR_BANK_ZONE.z0 - 30)) < 1e-9, 'north-east of it: the corner gap');
   assert.ok(Math.abs(farBankDistance(box(-9, 26, -5, 28)) - Math.hypot(FAR_BANK_BEND.x0 - -5, FAR_BANK_BEND.z0 - 28)) < 1e-9, 'north-west of the corner: its corner gap');
 });

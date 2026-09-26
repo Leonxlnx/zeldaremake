@@ -18,7 +18,7 @@ import { buildExpansionSouth } from './expansionSouth';
 import { buildSouthDwellings } from './expansionSouthDwellings';
 import { buildExpansionNorth, GROVE_VISIBLE_M } from './expansionNorth';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
-import { FAR_BANK_BEND, FAR_BANK_ZONE, farBankDistance, farBankLodAt } from '../util/farBankLocality';
+import { FAR_BANK_BEND, FAR_BANK_BEND_EAST, FAR_BANK_ZONE, farBankDistance, farBankLodAt } from '../util/farBankLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { restPodMeshes, swingLanterns, type LanternRig } from './lantern';
@@ -451,6 +451,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     farBank: {
       zone: FAR_BANK_ZONE,
       bend: FAR_BANK_BEND,
+      bendEast: FAR_BANK_BEND_EAST,
       casters: farCasters.length,
       detail: farDetail.map((m) => m.name),
       pods: { rigs: farPodRigs.length, folds: farPods.length, triangles: farPods.reduce((n, m) => n + Math.floor((m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3), 0) },

@@ -1,8 +1,9 @@
 /**
  * The far-bank locality (exp-south2) — the camera south of the rope bridge's north sill: over the
  * bridge head and the bridge, round the keeper's hut, the far bank's path, the hollow log and the
- * cleft past it, at play-camera height, and in the corner west of the path's last straight where
- * it swings as Link turns onto the waystation's steps. Looking north from there the frustum takes
+ * cleft past it, at play-camera height, and in the corners either side of the path's last straight
+ * where it swings as Link turns onto the waystation's steps or, walking back, toward the village at
+ * the bend. Looking north from there the frustum takes
  * in the whole village, which shows, where it shows at all, through the haze beyond the gorge and
  * in the gaps between the south
  * giants' boles (the far-bank look-back: 818 draws / 9.30 M on cc02a9cf against the 700 / 9.0 M
@@ -45,6 +46,21 @@ export const FAR_BANK_ZONE = { x0: -2, x1: 15, z0: 30.45, z1: 62, yMax: 4 } as c
  */
 export const FAR_BANK_BEND = { x0: FAR_BANK_ZONE.x0, x1: 3.2, z0: 28.5, z1: FAR_BANK_ZONE.z0 } as const;
 
+/**
+ * The zone's corner east of the path's last straight (plan bounds, north of the zone, under its cap):
+ * walking back off the bridge Link turns north-west at the bend toward the village, and the line
+ * from him to the trailing camera passes the bridge's east post, which holds the camera in 2.4 m
+ * behind him, south-east of him and out of the zone, while the village fills the frame (on
+ * a64948bf's return walk: at (4.06, 29.62) 663 draws / 9.26 M, at (3.98, 29.48) 663 / 9.28 M). The
+ * camera passes from the zone into the corner and leaves it at z 28.9 heading 42° west of north,
+ * the village swinging out of the frame. Walking out, it trails Link onto the bridge at x 3.9
+ * through the corner into the zone, facing south with the village behind it: the LOD still
+ * switches once per route. East it stops short of the keeper's gallery (its west end's rim at
+ * x 5.59). The path's nodes (x 3.68–3.705 there), the waystation and every measured dwelling view
+ * stay outside.
+ */
+export const FAR_BANK_BEND_EAST = { x0: 3.85, x1: 5.5, z0: 28.9, z1: FAR_BANK_ZONE.z0 } as const;
+
 /** the zone from the bridge's last 1.2 m on, over the far path's x band: the far bank itself, where `FAR_BANK_SHADOW_REACH` applies */
 export const FAR_BANK_SOUTH = { x0: FAR_BANK_ZONE.x0, x1: 11, z0: 42.5, z1: FAR_BANK_ZONE.z1 } as const;
 
@@ -54,12 +70,13 @@ export function inFarBankSouth(x: number, y: number, z: number): boolean {
   return x > Z.x0 && x < Z.x1 && z > Z.z0 && z < Z.z1 && y < FAR_BANK_ZONE.yMax;
 }
 
-/** true while a camera at (x, y, z) is inside `FAR_BANK_ZONE` or its corner `FAR_BANK_BEND` */
+/** true while a camera at (x, y, z) is inside `FAR_BANK_ZONE` or one of its corners `FAR_BANK_BEND`, `FAR_BANK_BEND_EAST` */
 export function inFarBankZone(x: number, y: number, z: number): boolean {
   const Z = FAR_BANK_ZONE;
   const B = FAR_BANK_BEND;
+  const E = FAR_BANK_BEND_EAST;
   if (y >= Z.yMax) return false;
-  return (x > Z.x0 && x < Z.x1 && z > Z.z0 && z < Z.z1) || (x > B.x0 && x < B.x1 && z > B.z0 && z <= B.z1);
+  return (x > Z.x0 && x < Z.x1 && z > Z.z0 && z < Z.z1) || (x > B.x0 && x < B.x1 && z > B.z0 && z <= B.z1) || (x > E.x0 && x < E.x1 && z > E.z0 && z <= E.z1);
 }
 
 declare global {
@@ -122,9 +139,9 @@ export function farBankDrawRule(p: { x: number; y: number; z: number }): typeof 
   return farBankLodAt(p) ? FAR_BANK_SMALL_DRAWS : undefined;
 }
 
-/** horizontal distance (m) from the zone (`FAR_BANK_ZONE` or `FAR_BANK_BEND`, the nearer) to a world box; 0 where they overlap */
+/** horizontal distance (m) from the zone (`FAR_BANK_ZONE` or a corner, the nearest) to a world box; 0 where they overlap */
 export function farBankDistance(box: Box3): number {
   const gap = (Z: { x0: number; x1: number; z0: number; z1: number }) =>
     Math.hypot(Math.max(0, box.min.x - Z.x1, Z.x0 - box.max.x), Math.max(0, box.min.z - Z.z1, Z.z0 - box.max.z));
-  return Math.min(gap(FAR_BANK_ZONE), gap(FAR_BANK_BEND));
+  return Math.min(gap(FAR_BANK_ZONE), gap(FAR_BANK_BEND), gap(FAR_BANK_BEND_EAST));
 }
