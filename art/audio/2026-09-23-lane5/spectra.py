@@ -65,7 +65,40 @@ def load(path):
 
 
 def mono(a):
+    """the two channels averaged as SAMPLES — what one speaker gives you.
+
+    Right for a question about timing or shape (where a step's onset is, what its envelope looks
+    like) and wrong for a question about level: content that differs between the channels partly
+    cancels here, and this bed is nearly decorrelated. Measured, the mono sum reads **1.6 to
+    2.9 dB under what two ears get**, band by band (`art/audio/2026-09-26-mono/`). Use `power` for
+    anything that is going to be quoted as a level.
+    """
     return a.mean(axis=1)
+
+
+ONE_SPEAKER = False
+
+
+def ears(a):
+    """the reduction a level question wants: both channels, unless asked for the phone's answer.
+
+    `--one-speaker` forces the old mono sum, which is what every sheet before 2026-09-26 reported
+    and is a real question in its own right — it is what a phone, a single Bluetooth speaker or a
+    laptop's mixed output gives. It is simply not the same question as "how loud is this".
+    """
+    return mono(a) if ONE_SPEAKER else a
+
+
+def power(a):
+    """the per-sample power a listener with two ears receives, as a 1-D signal.
+
+    Channel POWERS averaged, not samples — the same reduction `levels.py` uses because BS.1770
+    says to, and the same one `floor.py` was corrected to on 2026-09-26. For anything centred it
+    is identical to `mono(a) ** 2`, which is why this is a correction and not a recalibration.
+    """
+    if a.ndim == 1:
+        return a.astype(np.float64) ** 2
+    return (a.astype(np.float64) ** 2).mean(axis=1)
 
 
 def db(v, floor=1e-7):
@@ -73,12 +106,17 @@ def db(v, floor=1e-7):
 
 
 def stft(x, sr, win=2048, hop=512):
+    """magnitudes per frame. Given two channels, their POWER spectra are averaged, not their
+    samples — see `power` for why, and `art/audio/2026-09-26-mono/` for what it is worth."""
     w = np.hanning(win).astype(np.float32)
+    chans = x if x.ndim > 1 else x[:, None]
     frames = 1 + max(0, (len(x) - win) // hop)
-    out = np.empty((frames, win // 2 + 1), dtype=np.float32)
-    for i in range(frames):
-        seg = x[i * hop:i * hop + win] * w
-        out[i] = np.abs(np.fft.rfft(seg)) / (win / 4)
+    acc = np.zeros((frames, win // 2 + 1), dtype=np.float64)
+    for c in range(chans.shape[1]):
+        for i in range(frames):
+            seg = chans[i * hop:i * hop + win, c] * w
+            acc[i] += np.abs(np.fft.rfft(seg)) ** 2
+    out = (np.sqrt(acc / chans.shape[1]) / (win / 4)).astype(np.float32)
     freqs = np.fft.rfftfreq(win, 1.0 / sr)
     return out, freqs, hop
 
@@ -88,26 +126,26 @@ BANDS = [(20, 60), (60, 125), (125, 250), (250, 500), (500, 1000), (1000, 2000),
 
 def metrics(x, sr):
     mag, freqs, hop = stft(x, sr)
-    power = mag ** 2
+    spec_power = mag ** 2
     out = {}
-    out['rms_db'] = float(db(np.sqrt(np.mean(x ** 2))))
+    out['rms_db'] = float(db(np.sqrt(np.mean(power(x)))))
     out['peak_db'] = float(db(np.max(np.abs(x))))
     bands = {}
     always = {}
     for lo, hi in BANDS:
         sel = (freqs >= lo) & (freqs < hi)
-        bands[f'{lo}-{hi}'] = float(db(np.sqrt(np.mean(power[:, sel].sum(axis=1)))) if sel.any() else -120.0)
+        bands[f'{lo}-{hi}'] = float(db(np.sqrt(np.mean(spec_power[:, sel].sum(axis=1)))) if sel.any() else -120.0)
         # the level present in nine frames out of ten: what never stops, which is what a listener
         # ends up calling white noise however quiet it is
-        always[f'{lo}-{hi}'] = float(db(np.sqrt(np.percentile(power[:, sel], 10, axis=0).sum())) if sel.any() else -120.0)
+        always[f'{lo}-{hi}'] = float(db(np.sqrt(np.percentile(spec_power[:, sel], 10, axis=0).sum())) if sel.any() else -120.0)
     out['band_db'] = bands
     out['always_db'] = always
     # spectral flatness of the whole stem (geometric / arithmetic mean of the mean spectrum)
     sel = (freqs >= 100) & (freqs <= 10000)
-    spec = power[:, sel].mean(axis=0) + 1e-12
+    spec = spec_power[:, sel].mean(axis=0) + 1e-12
     out['flatness'] = float(np.exp(np.mean(np.log(spec))) / np.mean(spec))
     # drone: the level that is there ALL the time (10th percentile over time, per bin)
-    floor = np.percentile(power[:, sel], 10, axis=0)
+    floor = np.percentile(spec_power[:, sel], 10, axis=0)
     out['drone_db'] = float(db(np.sqrt(floor.sum())))
     out['drone_under_rms_db'] = float(out['rms_db'] - out['drone_db'])
     # tone: how far the most stubborn narrow peak stands over its own neighbourhood. A sine held
@@ -124,7 +162,7 @@ def metrics(x, sr):
     # broadband envelope modulation (how much it breathes), 40 ms windows
     win = max(1, int(0.04 * sr))
     n = len(x) // win
-    env = np.sqrt((x[: n * win].reshape(n, win) ** 2).mean(axis=1))
+    env = np.sqrt(power(x)[: n * win].reshape(n, win).mean(axis=1))
     e = db(env)
     out['mod_db'] = float(np.percentile(e, 90) - np.percentile(e, 10))
     out['env_p10_db'] = float(np.percentile(e, 10))
@@ -171,7 +209,8 @@ def spectrogram_image(mag, freqs, hop, sr, width, height, fmax=8000, dyn=60, top
 def envelope_image(x, sr, width, height):
     n = len(x)
     step = max(1, n // width)
-    env = np.array([np.max(np.abs(x[i * step:(i + 1) * step])) if (i + 1) * step <= n else 0.0 for i in range(width)])
+    amp = np.abs(x).max(axis=1) if x.ndim > 1 else np.abs(x)
+    env = np.array([np.max(amp[i * step:(i + 1) * step]) if (i + 1) * step <= n else 0.0 for i in range(width)])
     img = Image.new('RGB', (width, height), (14, 16, 20))
     d = ImageDraw.Draw(img)
     mid = height // 2
@@ -186,7 +225,7 @@ def level_image(x, sr, width, height, top_db=-14.0, bot_db=-74.0, win=0.08):
     """level over time in dBFS — the picture for a score that rests and a forest that does not"""
     n = int(win * sr)
     m = len(x) // n
-    e = db(np.sqrt((x[: m * n].reshape(m, n) ** 2).mean(axis=1)))
+    e = db(np.sqrt(power(x)[: m * n].reshape(m, n).mean(axis=1)))
     img = Image.new('RGB', (width, height), (14, 16, 20))
     d = ImageDraw.Draw(img)
     for level in (-20, -30, -40, -50, -60, -70):
@@ -215,7 +254,9 @@ def levels(args):
     rows = []
     for name, folder in (('BEFORE', args.before), ('AFTER', args.after)):
         a, sr = load(os.path.join(folder, f'{args.stem}.wav'))
-        x = mono(a)
+        # both channels: this sheet is about LEVEL over time, and a mono sum reads a decorrelated
+        # bed 1.6-2.9 dB low (`art/audio/2026-09-26-mono/`)
+        x = ears(a)
         img = level_image(x, sr, width, cell)
         m, _, _, _ = metrics(x, sr)
         label(img, f'{name} — {args.stem}: plays {m["duty_pct"]:.0f} % of the time, longest gap {m["longest_quiet_s"]:.1f} s, rms {m["rms_db"]:.1f} dBFS', xy=(8, 6), font=SMALL)
@@ -258,7 +299,8 @@ def sheet(args):
     for name, folder in (('BEFORE', args.before), ('AFTER', args.after)):
         path = os.path.join(folder, f'{args.stem}.wav')
         a, sr = load(path)
-        x = mono(a)
+        # both channels, for the same reason as the level sheet above
+        x = ears(a)
         secs = len(x) / sr
         m, mag, freqs, hop = metrics(x, sr)
         stats[name.lower()] = m
@@ -409,6 +451,8 @@ def steps_report(args):
     stats = {}
     for name, folder in (('before', args.before), ('after', args.after)):
         a, sr = load(os.path.join(folder, 'steps.wav'))
+        # a step's ONSET and its SHAPE are questions about timing, not level, so the mono sum is
+        # the right reduction here and the only one `find_steps` can work on
         x = mono(a)
         found = find_steps(x, sr)
         per = {}
@@ -475,6 +519,7 @@ def step_sheet(args, stats):
     curves = {}
     for name, folder in (('before', args.before), ('after', args.after)):
         a, sr = load(os.path.join(folder, 'steps.wav'))
+        # timing and shape again: see the note in the steps sheet above
         x = mono(a)
         found = find_steps(x, sr)
         for lbl, t0, t1 in labels:
@@ -537,6 +582,7 @@ def step_sheet(args, stats):
 
 
 def main():
+    global ONE_SPEAKER
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('sheet')
@@ -562,7 +608,11 @@ def main():
     t.add_argument('--out')
     t.add_argument('--json')
     t.set_defaults(func=steps_report)
+    for sp in (s, l, t):
+        sp.add_argument('--one-speaker', action='store_true', help='measure the mono sum, as every sheet before 2026-09-26 did')
     args = p.parse_args()
+    ONE_SPEAKER = bool(getattr(args, 'one_speaker', False))
+    globals()['ONE_SPEAKER'] = ONE_SPEAKER
     args.func(args)
 
 
