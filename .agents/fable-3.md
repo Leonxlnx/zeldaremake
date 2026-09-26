@@ -630,3 +630,20 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Lessons: (1) a follow camera eases back behind a moving player — hold the view every step, and move him with the
   key perpendicular to it; (2) a "flat plaza" start is in somebody's flowerbed until you have looked — the stones
   run x −3.5…−1.5 at z 3–6; five strips to find that. (3) `gh` lost its token again at 21:20 (401); git was fine.
+
+## 2026-09-25 22:20 + 23:20 ticks — the Kokiri hands get fingers (PR #169); the seated girl found standing
+
+- #165 merged 22:05 (Astra's #59 in via my branch; fable-cursor's footsteps followed, `RUN_SPEED` at the midpoint).
+  Lane 7's next: fingers on the Kokiri hands — Link has them now and every kid waves a mitten at 1.7–2.6 m.
+  `buildThumbs` → `buildHands`: four capsules from the ball's lower front, roots inside the ball, splayed / curled;
+  skin material → baked into the skin's SkinnedMesh, draws identical, +2 K tris at A. Geometry checked in node
+  first (roots inside, tips 1.7–2.5 cm below). Six views inside the band; wave and rest-hand crops. PR #169 opened
+  held at 22:30, lifted 00:30 with the evidence (`people-fable-3/fingers/`). INBOX 00:30.
+- Found on the way: **the seated girl stands in play** (legs straight, arms bent toward absent knees) — on the
+  branch, the head, and the 18:46 / 14:22 / 08:26 heads; the 06:55 sitter-gaze frames show it too. The seat's
+  numbers allow a sit (knee ≈ 97° by `twoBone`); the audit's `kneeInteriorDeg` has read 177.1° since 09-23. Not
+  the fingers' doing; lane 7's next item. Two live-probe attempts timed out waiting for `__ZR_PLAY__` at
+  `quality=low` — use `quality=high` like the harnesses do.
+- Lessons: the follow camera makes "2 m from Link" mean "6 m from the lens" — judge a hand-sized change at the
+  lens distance, and say so; an audit number that never moves across days (177.1°) is a reading of the wrong
+  moment or the wrong state, and it was telling me for two days.
