@@ -408,14 +408,19 @@ async function exitStats(png, from) {
   return { discRadiusPx: +R.toFixed(1), px: lum.length, p10: q(0.1), p50: q(0.5), p99: q(0.99), peak: q(1), sd: +sd.toFixed(1), maxChannel, clippedShare: +(clipped / lum.length).toFixed(4) };
 }
 
-async function capture(browser, url, poses, result, out) {
-  const { page } = await openWorld(browser, url, { width: W, height: H, log });
-  const canvas = await page.$('canvas');
-  result.audit = await page.evaluate(() => {
-    const a = window.__ZR__.audit();
+/** the south exit's audit (structures: south, southDwellings, farBank) and any system failures, or null without the capture API */
+const readAudit = (page) =>
+  page.evaluate(() => {
+    const a = window.__ZR__?.audit?.();
+    if (!a) return null;
     const s = a.systems.structures ?? {};
     return { south: s.south, southDwellings: s.southDwellings, farBank: s.farBank, systemFailures: a.systemFailures };
   });
+
+async function capture(browser, url, poses, result, out) {
+  const { page } = await openWorld(browser, url, { width: W, height: H, log });
+  const canvas = await page.$('canvas');
+  result.audit = await readAudit(page);
   const heroes = args.heroes ? await page.evaluate(() => window.__ZR__.viewpoints().filter((v) => !v.diagnostic).map((v) => v.id)) : [];
   const only = typeof args.only === 'string' ? new Set(args.only.split(',')) : null;
   const shots = [...heroes.map((id) => ({ name: id, viewpoint: id })), ...poses.filter((p) => p.from && (!only || only.has(p.name)))];
@@ -538,6 +543,7 @@ else {
   try {
     if (args.play || args.walks) {
       const page = await openPlay(browser, server.url);
+      result.audit = await readAudit(page);
       if (args.play) {
         poses = await playPoses(page, poses, result, out);
         fs.writeFileSync(path.join(out, 'poses.resolved.json'), JSON.stringify(poses, null, 1));
