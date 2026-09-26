@@ -21,6 +21,8 @@ export interface Film {
   probeHeads(T: number): { shot: string; heads: HeadProbe[] };
   /** contact QA: the hangar deck height and the lowest world-space point of each visible hero, ship, droid, wreck part */
   probeContact(T: number): { shot: string; deck: number | null; low: Record<string, number> };
+  /** laser QA: the bolts alive at T, largest on screen first */
+  probeLasers(T: number): { shot: string; clear: number; bolts: { i: number; px: number; dist: number; hero: boolean; color: string; length: number; width: number; t0: number; from: number[] }[] };
   /** motion QA: every actor's world transform at T (no rendering) */
   probeActors(T: number): { shot: string; cam: { pos: number[]; target: number[]; fov: number }; actors: Record<string, [number, number, number, number, number, number, number, number]> };
   /** camera QA: the pose the shot asks for at T (no rendering) */
@@ -201,6 +203,25 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         if (r.right >= -1 && r.left <= 1 && r.top >= -1 && r.bottom <= 1) heads.push(r);
       }
       return { shot: shotAt(T).shot.name, heads };
+    },
+    probeLasers(T) {
+      const p = pose(T);
+      const cam = p.cam.pos, fwd = p.cam.target.clone().sub(cam).normalize();
+      const f = 536 / (2 * Math.tan(((p.cam.fov ?? 34) * Math.PI) / 360));
+      const { shot } = shotAt(T);
+      const bolts = w.fx.lasers.events
+        .map((e, i) => ({ e, i, age: T - e.t0 }))
+        .filter(({ e, age }) => age >= 0 && age <= e.life)
+        .map(({ e, i, age }) => {
+          const head = e.from.clone().addScaledVector(e.dir, e.speed * age);
+          const z = head.clone().sub(cam).dot(fwd);
+          const dist = head.distanceTo(cam);
+          return { i, px: z > 1 ? (e.length / z) * f : 0, dist, hero: !!e.hero, color: e.color, length: e.length, width: e.width, t0: e.t0, from: e.from.toArray() };
+        })
+        .filter((b) => b.px > 0)
+        .sort((a, b) => b.px - a.px)
+        .slice(0, 8);
+      return { shot: shot.name, clear: shot.laserClear ?? 0, bolts };
     },
     probeActors(T) {
       const p = pose(T);

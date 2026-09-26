@@ -243,6 +243,41 @@ function ltVultureC(T: number): Vector3 {
 }
 const ltArcC = (T: number) => ltVultureC(T - 0.2).add(v3(0, 8, 0));
 
+/** the long take's camera as a pure function of time (the kills are staged against it) */
+function ltCamera(T: number): { pos: Vector3; target: Vector3; follow: number; dive: number } {
+  const t = T - LONG_T0;
+  const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
+  const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3, headWindow: LT_HEAD });
+  // hold C0 while tilting down from the stars
+  const tilt = smoother(0.0, 4.2, t);
+  const lookDown = v3(0, 120, -900).add(vFrame(LONG_T0 + 4.2));
+  let pos = C0.clone();
+  let target = C0_UP_TARGET.clone().lerp(lookDown, tilt);
+  // then chase the pair over the hull
+  const follow = smoother(4.2, 6.2, t);
+  if (follow > 0) {
+    const lagT = T - 0.12;
+    const lag = flight(ltPath(lagT, 'anakin'), lagT, { headWindow: LT_HEAD });
+    const lagO = flight(ltPath(lagT, 'obiwan'), lagT, { headWindow: LT_HEAD });
+    const behind = local({ pos: lag.pos.clone().lerp(lagO.pos, 0.5), quat: flatBasis(ltHeading(lagT)) }, 0, 30, -104);
+    pos = pos.lerp(behind, follow);
+    const mid = a.pos.clone().lerp(o.pos, 0.35);
+    const ahead = mid.clone().add(v3(0, 0, 1).applyQuaternion(flatBasis(ltHeading(T))).multiplyScalar(90));
+    target = target.lerp(ahead, follow);
+  }
+  // over the port edge: swing out to port, keep the horizon and the battle in frame
+  const dive = smoother(11.0, 13.4, t);
+  if (dive > 0) {
+    const q = flatBasis(ltHeading(T), 0.25);
+    const d = local({ pos: a.pos.clone().lerp(o.pos, 0.4), quat: q }, 44, 34, -88);
+    pos = pos.lerp(d, dive);
+    const look = a.pos.clone().add(v3(0, 0, 1).applyQuaternion(q).multiplyScalar(340)).add(v3(0, -30, 0));
+    target = target.lerp(look, dive);
+  }
+  pos.add(shake(t, follow * 0.35, 1.3, 3));
+  return { pos, target, follow, dive };
+}
+
 function scheduleLongTakeKills(w: World, T0: number): void {
   const gunA = (T: number, n: number) => {
     const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
@@ -257,16 +292,31 @@ function scheduleLongTakeKills(w: World, T0: number): void {
   g.position.copy(vFrame(kB));
   g.rotation.set(0, 0, 0);
   g.updateMatrixWorld(true);
+  // of the turrets nearest the spot ahead of the pair, the one whose bolts keep farthest from the camera: a bolt
+  // passing the lens at ~100 units smeared into a giant blue capsule instead of reading as a shot
   const near = local(ltBasis(kB), 60, -60, 200);
-  let off = new Vector3(), bd = Infinity;
-  for (const a of w.venator.turrets) {
-    const p = a.getWorldPosition(new Vector3());
-    if (p.distanceTo(near) < bd) {
-      bd = p.distanceTo(near);
-      off = p.sub(g.position);
+  const arrivalsB = [9.7, 9.86, 10.02, 10.18, 10.34, 10.5].map((t) => T0 + t);
+  const clearance = (off: Vector3) => {
+    let m = Infinity;
+    for (const ta of arrivalsB) {
+      const gun = (T: number) => vFrame(T).add(off).add(v3(0, 5, 0));
+      let tf = ta - 0.3;
+      for (let i = 0; i < 4; i++) tf = ta - gun(tf).distanceTo(ltVultureB(ta)) / 2600;
+      const from = gun(tf), dir = ltVultureB(ta).sub(from).normalize();
+      for (let k = 0; k <= 8; k++) {
+        const tau = tf + ((ta - tf) * k) / 8;
+        m = Math.min(m, from.clone().addScaledVector(dir, 2600 * (tau - tf)).distanceTo(ltCamera(tau).pos));
+      }
     }
-  }
-  burstOnto(w, (T) => vFrame(T).add(off).add(v3(0, 5, 0)), ltVultureB, [9.7, 9.86, 10.02, 10.18, 10.34, 10.5].map((t) => T0 + t), { speed: 2600, length: 44, width: 3.4, color: 'blue', spread: 24, seed: 72 });
+    return m;
+  };
+  const offB = w.venator.turrets
+    .map((a) => a.getWorldPosition(new Vector3()).sub(g.position))
+    .sort((p, q) => p.clone().add(g.position).distanceTo(near) - q.clone().add(g.position).distanceTo(near))
+    .slice(0, 6)
+    .map((off) => ({ off, c: clearance(off) }))
+    .sort((p, q) => q.c - p.c)[0].off;
+  burstOnto(w, (T) => vFrame(T).add(offB).add(v3(0, 5, 0)), ltVultureB, arrivalsB, { speed: 2600, length: 44, width: 3.4, color: 'blue', spread: 24, seed: 72 });
   breakUp(w, kB, ltVultureB, 32, 702, 0.7);
   burstOnto(w, (T) => ltArcC(T), ltVultureC, [13.5, 13.66, 13.82, 13.98, 14.14, 14.3].map((t) => T0 + t), { speed: 1800, length: 16, width: 1.4, color: 'red', spread: 12, seed: 73 });
   // the wreck keeps the droid's speed: the camera closes on the pair at dive speed and flew through the fireball
@@ -320,33 +370,7 @@ const longTake: Shot = {
       face(w.obiwan, { mouth: 'flat', brows: 0.3 }, t, 2);
     }
     const V = vFrame(T);
-    // hold C0 while tilting down from the stars
-    const tilt = smoother(0.0, 4.2, t);
-    const lookDown = v3(0, 120, -900).add(vFrame(LONG_T0 + 4.2));
-    let pos = C0.clone();
-    let target = C0_UP_TARGET.clone().lerp(lookDown, tilt);
-    // then chase the pair over the hull
-    const follow = smoother(4.2, 6.2, t);
-    if (follow > 0) {
-      const lagT = T - 0.12;
-      const lag = flight(ltPath(lagT, 'anakin'), lagT, { headWindow: LT_HEAD });
-      const lagO = flight(ltPath(lagT, 'obiwan'), lagT, { headWindow: LT_HEAD });
-      const behind = local({ pos: lag.pos.clone().lerp(lagO.pos, 0.5), quat: flatBasis(ltHeading(lagT)) }, 0, 30, -104);
-      pos = pos.lerp(behind, follow);
-      const mid = a.pos.clone().lerp(o.pos, 0.35);
-      const ahead = mid.clone().add(v3(0, 0, 1).applyQuaternion(flatBasis(ltHeading(T))).multiplyScalar(90));
-      target = target.lerp(ahead, follow);
-    }
-    // over the port edge: swing out to port, keep the horizon and the battle in frame
-    const dive = smoother(11.0, 13.4, t);
-    if (dive > 0) {
-      const q = flatBasis(ltHeading(T), 0.25);
-      const d = local({ pos: a.pos.clone().lerp(o.pos, 0.4), quat: q }, 44, 34, -88);
-      pos = pos.lerp(d, dive);
-      const look = a.pos.clone().add(v3(0, 0, 1).applyQuaternion(q).multiplyScalar(340)).add(v3(0, -30, 0));
-      target = target.lerp(look, dive);
-    }
-    pos.add(shake(t, follow * 0.35, 1.3, 3));
+    const { pos, target, follow, dive } = ltCamera(T);
     // shadows: one box fixed to the whole hull while the pair skims the Venator (no pop, no crawl); once
     // they have dropped below the port edge it eases down onto the fighters for their self-shadows
     const handover = smoother(13.0, 13.8, t);

@@ -52,6 +52,7 @@ interface Api {
   probeContact(t: number): ReturnType<Film['probeContact']> | null;
   probeCamera(t: number): ReturnType<Film['probeCamera']> | null;
   probeActors(t: number): ReturnType<Film['probeActors']> | null;
+  probeLasers(t: number): ReturnType<Film['probeLasers']> | null;
   captionAt(t: number): ReturnType<Film['captionAt']> | null;
   renderAudio(): Promise<string>;
 }
@@ -201,6 +202,7 @@ window.__LSW__ = {
   probeContact: (t) => film?.probeContact(t) ?? null,
   probeCamera: (t) => film?.probeCamera(t) ?? null,
   probeActors: (t) => film?.probeActors(t) ?? null,
+  probeLasers: (t) => film?.probeLasers(t) ?? null,
   captionAt: (t) => film?.captionAt(t) ?? null,
   renderAudio: async () => (film ? film.renderAudio() : ''),
 };
