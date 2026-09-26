@@ -585,7 +585,10 @@ const vultures: Shot = {
       const dead = vultureDead(k, t);
       v.group.visible = !dead;
       if (dead) continue;
-      const st = flight((tt) => vulturePos(k, tt, T0), T, { bank: 1.5 });
+      // steer by the motion relative to Anakin (what the camera riding with him sees): a doomed droid checks its
+      // closing speed for its last second, which reverses its world velocity and flipped it tail-first
+      const lead = pathA(T);
+      const st = flight((tt) => vulturePos(k, tt, T0).sub(pathA(tt)).add(lead), T, { bank: 1.5 });
       place(v.group, st);
       v.setMode(0);
       v.animate?.(T);

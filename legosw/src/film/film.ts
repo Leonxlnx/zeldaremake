@@ -21,6 +21,8 @@ export interface Film {
   probeHeads(T: number): { shot: string; heads: HeadProbe[] };
   /** contact QA: the hangar deck height and the lowest world-space point of each visible hero, ship, droid, wreck part */
   probeContact(T: number): { shot: string; deck: number | null; low: Record<string, number> };
+  /** motion QA: every actor's world transform at T (no rendering) */
+  probeActors(T: number): { shot: string; cam: { pos: number[]; target: number[]; fov: number }; actors: Record<string, [number, number, number, number, number, number, number, number]> };
   /** camera QA: the pose the shot asks for at T (no rendering) */
   probeCamera(T: number): { shot: string; pos: number[]; target: number[]; fov: number; roll: number; ships: Record<string, { pos: number[]; quat: number[]; visible: boolean }> };
   /** caption QA: apply the overlays for time T (no rendering) and report the caption box against the page and picture */
@@ -199,6 +201,31 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
         if (r.right >= -1 && r.left <= 1 && r.top >= -1 && r.bottom <= 1) heads.push(r);
       }
       return { shot: shotAt(T).shot.name, heads };
+    },
+    probeActors(T) {
+      const p = pose(T);
+      const named: [string, Object3D][] = [
+        ['venator', w.venator.group], ['hand', w.hand.group], ['anakinShip', w.anakinShip.group], ['obiwanShip', w.obiwanShip.group],
+        ['anakin', w.anakin.group], ['obiwan', w.obiwan.group], ['zap', w.zap],
+        ...w.vultures.map((v, i) => [`vulture${i}`, v.group] as [string, Object3D]),
+        ...w.crawlers.map((v, i) => [`crawler${i}`, v.group] as [string, Object3D]),
+        ...w.arcs.map((v, i) => [`arc${i}`, v.group] as [string, Object3D]),
+        ...w.missiles.map((v, i) => [`missile${i}`, v.group] as [string, Object3D]),
+        ...w.buzz.map((v, i) => [`buzz${i}`, v.group] as [string, Object3D]),
+        ...w.droids.map((v, i) => [`droid${i}`, v.group] as [string, Object3D]),
+        ...w.sabers.map((v, i) => [`saber${i}`, v.group] as [string, Object3D]),
+        ...w.fleet.map((v, i) => [`fleet${i}`, v.root] as [string, Object3D]),
+      ];
+      const actors: Record<string, [number, number, number, number, number, number, number, number]> = {};
+      const pv = new Vector3(), qv = new Quaternion();
+      for (const [k, o] of named) {
+        let vis = o.visible;
+        for (let q = o.parent; q && vis; q = q.parent) vis = q.visible;
+        o.updateWorldMatrix(true, false);
+        o.matrixWorld.decompose(pv, qv, new Vector3());
+        actors[k] = [pv.x, pv.y, pv.z, qv.x, qv.y, qv.z, qv.w, vis ? 1 : 0];
+      }
+      return { shot: shotAt(T).shot.name, cam: { pos: p.cam.pos.toArray(), target: p.cam.target.toArray(), fov: p.cam.fov }, actors };
     },
     probeCamera(T) {
       const p = pose(T);
