@@ -76,6 +76,32 @@ layer, with the audit's `nearCanopy.farBatches`. `quick-base.stats.json` / `quic
 
 (`plateau-lookback.base-branch-heat.jpg`: head | branch | differences, none.)
 
+## Look-backs, the owner's north pose, under the north seats — and the small pool tier
+
+The same harness, t = 12.5. `lookbacks-*.stats.json`, `small-*.stats.json`.
+
+| pose | base draws / M tris | branch draws / M tris | Δ | batches' draws / K tris (both passes) | folded instances / triangles | px > 24/255 (> 0) |
+|---|---|---|---|---|---|---|
+| green-west (43, 4) → plaza | 687 / 9.923 | **649 / 9.850** | −38 / −73 K | 6 / 870 K | 35 / 47,220 | **0 (0)** |
+| lookout-fence-west (47.5, 8) → plaza | 684 / 9.966 | **646 / 9.924** | −38 / −42 K | 6 / 916 K | 17 / 23,036 | **0 (0)** |
+| owner-0650-north (1.4, −10.2) → N | 497 / 9.013 | **457 / 8.878** | −40 / −135 K | 4 / 480 K | 56 / 132,676 | 0 (165) |
+| north-seats (2, −18 → −3.5, −28) | 335 / 5.861 | **296 / 5.631** | −39 / −230 K | 5 / 507 K | 50 / 133,356 | 2 (627) |
+| small tier: A_stairs | 611 / 8.881 | 572 / 8.670 | −39 / −211 K | 5 / 608 K | 61 / 88,140 | **0 (0)** |
+| small tier: plateau-lookback-south | 574 / 9.008 | 536 / 8.814 | −38 / −194 K | 6 / 652 K | 50 / 91,460 | 0 (5) |
+
+The green's look-back — 704 on the 17:27 head, 687 with #151 — is **649** with both; the batches' own
+triangles at the look-backs are large (870–916 K over both passes) because from the green the whole
+plaza's crowns are in frame and in the shadow box, and every lamina is drawn once per pass exactly as
+the sector bands drew them. north-seats' 2 pixels above 24/255 are two adjacent pixels at the
+frame's top edge (1090, 8–9), a gap in the crown against the sky; the 627 at 1/255 are the two
+sessions' 1-level noise seen in every pose harness pair (`green-west.base-branch-heat.jpg`: head |
+branch | differences, none). On the small tier (`?pool=small`, evictions live) the static batches are
+untouched by the pool; the fold follows the shown set as on the large tier.
+
+fable-5 (lane 10) measured the same `5392cb5d` independently (INBOX 23:50, `.agents/reviews/fable-5-lane10-farfold.md`):
+pixel-identical A–F, −39 draws at every fixed view, A 8.967 → 8.756 M, the play look-backs' trees
+row 218 → 164 draws at the green and 200 → 162 at the far bank; PASS for merge.
+
 ## Two things the first cut got wrong, kept here so the record is honest
 
 1. **One layout for all three sectors.** The first cut compacted every batch's colours and wind
