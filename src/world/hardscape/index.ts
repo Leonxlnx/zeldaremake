@@ -46,6 +46,17 @@ const JOINT_TUFT_TINT: Record<string, number> = {
   'north-cushions': 0.45,
 };
 
+/**
+ * The plaza paving's far LOD (fable-2, lane 6): beyond this planar distance (m) from the paving's
+ * footprint the `flagstones-far` mesh (every stone's top as one fan, geometry.ts `farLod`) draws
+ * instead of the full `flagstones`. At 30 m a stone's 1.6–3 cm rolled shoulder is 0.6 px and its
+ * 6 mm crown nothing; the joints (7.5 cm, the fill's own mesh) stay. The six fixed cameras stand
+ * on or beside the paving; the east green (46 m), the lookout (52 m) and the far bank pass it.
+ */
+export const FLAGSTONE_FAR_M = 30;
+/** the walk's hysteresis (m) under FLAGSTONE_FAR_M before the full mesh comes back */
+export const FLAGSTONE_LOD_HYSTERESIS_M = 3;
+
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'hardscape';
@@ -132,7 +143,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // (round 47: this is the `legacy` pass — it reads the path mask as it was before the north
   // extension, so nothing it lays moves; the extension beyond the arch is the second pass below)
   const pc: PavingContext = { terrain: T, frames, rng: rng.fork('paving'), seed: ctx.config.seed, bbox, density: ctx.quality.density, steppingStones: houseSteppingStones(), region: 'legacy' };
-  const paving = placeFlagstones(pc, stoneMat);
+  // (the plaza paving builds its far LOD too — `flagstones-far`, shown beyond FLAGSTONE_FAR_M below)
+  const paving = placeFlagstones(pc, stoneMat, { far: true });
   group.add(paving.mesh);
   ctx.progress('hardscape', 0.6);
 
@@ -938,6 +950,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The lookout dais lives on the PLATEAU (21.6, 2.2), 55 m from the north box: it goes into the
   // always-drawn legacy mesh (fable-3 caught the round-47 split hiding it — the player stood 0.35 m
   // up on invisible stone), the north paving alone into the distance-hidden one.
+  // The plaza paving's footprint (its stones alone, before the dais joins the mesh): the far LOD's
+  // distance is measured to this box, so the dais 20 m east on the plateau does not hold the
+  // plaza near from the east green.
+  const pavingBox = paving.mesh.geometry.boundingBox ?? paving.mesh.geometry.computeBoundingBox()!;
+  const pavingFoot = { x0: pavingBox.min.x, x1: pavingBox.max.x, z0: pavingBox.min.z, z1: pavingBox.max.z };
   {
     const withDais = mergeGeometries([paving.mesh.geometry, dais.build()], false);
     if (withDais) {
@@ -945,6 +962,41 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       paving.mesh.geometry = withDais;
     }
   }
+  // fable-2 (lane 6): the plaza paving's far LOD — `flagstones-far`, every stone's top as one fan
+  // (geometry.ts `farLod`), the dais in full beside it so the two meshes cover the same ground.
+  // Beyond FLAGSTONE_FAR_M of the paving's footprint the far mesh draws instead of the near one:
+  // the 529 stones' walls, rolled shoulders and dished rings are 233 K triangles that from the
+  // east green (46 m) or the far bank were 1 px of joint line and no shading — the hardscape row
+  // there was 0.30 M, most of it this mesh. character/ground.ts keeps reading `flagstones` (the
+  // near mesh, visible or not) for the walk grid.
+  const farMesh = paving.farMesh!;
+  {
+    const farWithDais = mergeGeometries([farMesh.geometry, dais.build()], false);
+    if (farWithDais) {
+      farMesh.geometry.dispose();
+      farMesh.geometry = farWithDais;
+    }
+  }
+  farMesh.frustumCulled = paving.mesh.frustumCulled;
+  group.add(farMesh);
+  let pavingFar = false;
+  /**
+   * near ↔ far by the camera's planar distance to the paving's footprint: on the walk (`update`)
+   * with a 3 m hysteresis so nothing flickers on the line; on a pose jump (`onCameraMove`, the
+   * captures) by the far threshold alone, so a frame at a pose does not depend on the pose before
+   */
+  const pavingLod = (camera: Camera, jump: boolean) => {
+    const x = camera.position.x;
+    const z = camera.position.z;
+    const dx = Math.max(pavingFoot.x0 - x, 0, x - pavingFoot.x1);
+    const dz = Math.max(pavingFoot.z0 - z, 0, z - pavingFoot.z1);
+    const d = Math.hypot(dx, dz);
+    if (jump) pavingFar = d > FLAGSTONE_FAR_M;
+    else if (pavingFar ? d < FLAGSTONE_FAR_M - FLAGSTONE_LOD_HYSTERESIS_M : d > FLAGSTONE_FAR_M) pavingFar = !pavingFar;
+    paving.mesh.visible = !pavingFar;
+    farMesh.visible = pavingFar;
+  };
+  pavingLod(ctx.camera, true);
   const northMesh = new Mesh(pavingN.mesh.geometry, stoneMat);
   northMesh.name = 'flagstones-north';
   northMesh.castShadow = paving.mesh.castShadow;
@@ -1211,6 +1263,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // (round 47: the legacy paving, the north extension and the lookout dais are one merged `flagstones` mesh)
     flagstoneTriangles: paving.triangles + pavingN.triangles + daisTriangles,
     flagstoneDrawCalls: 1,
+    /** the plaza paving's far LOD: its threshold, the footprint the distance is measured to, whether it is showing now, and the two meshes' triangles */
+    flagstoneFar: {
+      farM: FLAGSTONE_FAR_M,
+      hysteresisM: FLAGSTONE_LOD_HYSTERESIS_M,
+      footprint: [round(pavingFoot.x0), round(pavingFoot.z0), round(pavingFoot.x1), round(pavingFoot.z1)],
+      active: pavingFar,
+      nearTriangles: paving.triangles + daisTriangles,
+      farTriangles: paving.farTriangles + daisTriangles,
+    },
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass + discTufts - discPads,
@@ -1434,6 +1495,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansionGroup.visible = expansionVisible(c.camera);
       southGroup.visible = southPavingVisible(c.camera);
       groveGroup.visible = grovePavingVisible(c.camera);
+      pavingLod(c.camera, false);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
@@ -1444,6 +1506,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansionGroup.visible = expansionVisible(camera);
       southGroup.visible = southPavingVisible(camera);
       groveGroup.visible = grovePavingVisible(camera);
+      pavingLod(camera, true);
     },
     dispose() {
       if (disposed) return;

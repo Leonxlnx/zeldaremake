@@ -23,7 +23,7 @@ import { expansionDiscMask, legacyPathMask, southRouteSurface, standingStoneMask
 import { northDiscMask } from '../terrain/north';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
+import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2, type SlabOptions } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
 import { B_FOREGROUND_SLABS, archInside, dForeground, dampBand, discField, earthPatch, hollowPath, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza, stairFoot, troddenStrip } from './zones';
@@ -739,6 +739,13 @@ export interface PavingResult {
   stones: PlacedStone[];
   mesh: Mesh;
   triangles: number;
+  /**
+   * the paving's far LOD (`flagstones-far`, built when `placeFlagstones` is asked for it): every
+   * stone's top as one fan (geometry.ts `SlabOptions.farLod`), the same material and attributes;
+   * hardscape/index.ts shows it instead of `mesh` beyond `FLAGSTONE_FAR_M`. null when not built.
+   */
+  farMesh: Mesh | null;
+  farTriangles: number;
   grid: Grid;
   /** true if the world point is on a stone's top face */
   onStone(x: number, z: number): boolean;
@@ -798,7 +805,7 @@ const LAWN_SPACING = 1.15;
 /** soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder */
 const FLANK_STAIN_AT_FILL = 0.7;
 
-export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
+export function placeFlagstones(pc: PavingContext, material: Material, lod: { far?: boolean } = {}): PavingResult {
   const { terrain, rng, bbox } = pc;
   const tintNoise = new Noise2D(`${pc.seed}/flag-tint`);
   const wearN = new Noise2D(`${pc.seed}/flag-wear`);
@@ -997,6 +1004,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pos = new Vector3();
   const stoneGrid = new Grid(1.0);
   const all = new MeshBuilder();
+  // the far LOD's builder: each stone's top fan, built from the same options as the full stone and
+  // placed by the same matrix, so the two meshes agree stone for stone (null = not asked for)
+  const far = lod.far ? new MeshBuilder() : null;
   const one = new Matrix4();
 
   const cellFor = (si: number): P2[] => {
@@ -1723,8 +1733,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // flank-coloured shoulder was a 1.6–3 cm dark band on both sides of every seam, and a dark
     // ring round every stepping-stone disc
     const shoulderMix = 0;
-    all.currentRough = roughDelta;
-    buildSlab(all, outline.outer, {
+    const slab: SlabOptions = {
       thickness,
       bevel,
       topRing: outline.inner,
@@ -1787,12 +1796,21 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
               return [mottleMoss * side * (0.2 + 0.8 * smoothstep(0.1, 0.95, edge)), mottleGrey, mottleGreen];
             }
           : undefined,
-    });
+    };
+    all.currentRough = roughDelta;
+    buildSlab(all, outline.outer, slab);
     all.currentRough = 0;
     q.setFromUnitVectors(up, nAcc);
     pos.set(s.x, bottomY, s.z);
     one.compose(pos, q, new Vector3(1, 1, 1));
     all.transform(one, from);
+    if (far) {
+      const farFrom = far.vertexCount;
+      far.currentRough = roughDelta;
+      buildSlab(far, outline.outer, { ...slab, farLod: true });
+      far.currentRough = 0;
+      far.transform(one, farFrom);
+    }
 
     const poly = outline.outer.map((p) => ({ x: p.x + s.x, z: p.z + s.z }));
     const stone: PlacedStone = {
@@ -1840,6 +1858,14 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   mesh.castShadow = false;
   mesh.receiveShadow = true;
   mesh.name = 'flagstones';
+  let farMesh: Mesh | null = null;
+  if (far) {
+    farMesh = new Mesh(far.build(), material);
+    farMesh.castShadow = false;
+    farMesh.receiveShadow = true;
+    farMesh.name = 'flagstones-far';
+    farMesh.visible = false;
+  }
 
   const onStone = (x: number, z: number) => {
     let hit = false;
@@ -1863,5 +1889,5 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   };
 
   const seedAudit = seeds.map((s, i) => ({ x: s.x, z: s.z, lawn: s.lawn, active: active[i] === 1, phantom: !!s.phantom }));
-  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, edgeGap, steppingStones: discs, seeds: seedAudit, stats };
+  return { stones, mesh, triangles: all.vertexCount / 3, farMesh, farTriangles: far ? far.vertexCount / 3 : 0, grid: stoneGrid, onStone, edgeGap, steppingStones: discs, seeds: seedAudit, stats };
 }
