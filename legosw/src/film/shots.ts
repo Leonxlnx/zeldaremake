@@ -213,23 +213,33 @@ function ltBasis(T: number): { pos: Vector3; quat: Quaternion } {
   const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
   return { pos: st.pos, quat: flatBasis(st.fwd) };
 }
+/** the attack pairs' droids fly in from outside the frame over LT_ENTRY s instead of appearing in it */
+const LT_ENTRY = 1.4;
+function ltEntry(t: number, from: number, off: [number, number, number]): Vector3 {
+  const u = 1 - smoother(from - LT_ENTRY, from, t);
+  return v3(off[0] * u, off[1] * u, off[2] * u);
+}
+const LT_FROM_A = 5.8, LT_FROM_B = 8.6, LT_FROM_C = 11.8;
 /** A: a vulture flees ahead of the pair across the hull; Anakin runs it down */
 function ltVultureA(T: number): Vector3 {
   const t = T - LONG_T0;
   const k = smooth(6.0, LT_KILL_A, t);
-  return local(ltBasis(T), lerp(70, 24, k) + Math.sin(t * 2.3) * 6, lerp(44, 22, k) + Math.cos(t * 1.9) * 4, lerp(330, 90, k));
+  const e = ltEntry(t, LT_FROM_A, [1300, 220, 200]);
+  return local(ltBasis(T), lerp(70, 24, k) + Math.sin(t * 2.3) * 6 + e.x, lerp(44, 22, k) + Math.cos(t * 1.9) * 4 + e.y, lerp(330, 90, k) + e.z);
 }
 /** B: a vulture dives on the hull from starboard; a dorsal point-defence turret takes it */
 function ltVultureB(T: number): Vector3 {
   const t = T - LONG_T0;
   const k = smooth(8.8, LT_KILL_B, t);
-  return local(ltBasis(T), lerp(-260, -46, k), lerp(170, 40, k), lerp(520, 115, k));
+  const e = ltEntry(t, LT_FROM_B, [-520, 140, 160]);
+  return local(ltBasis(T), lerp(-260, -46, k) + e.x, lerp(170, 40, k) + e.y, lerp(520, 115, k) + e.z);
 }
 /** C: in the dive a vulture crosses below the pair with an ARC-170 on its tail */
 function ltVultureC(T: number): Vector3 {
   const t = T - LONG_T0;
   const k = smooth(12.0, LT_KILL_C, t);
-  return local(ltBasis(T), lerp(-260, 34, k), lerp(-4, -12, k), lerp(330, 85, k));
+  const e = ltEntry(t, LT_FROM_C, [-520, 70, 90]);
+  return local(ltBasis(T), lerp(-260, 34, k) + e.x, lerp(-4, -12, k) + e.y, lerp(330, 85, k) + e.z);
 }
 const ltArcC = (T: number) => ltVultureC(T - 0.2).add(v3(0, 8, 0));
 
@@ -272,11 +282,11 @@ function poseLongTakeKills(w: World, T: number): void {
     v.setMode(0);
     v.animate?.(T);
   };
-  put(w.vultures[6], ltVultureA, 5.8, LT_KILL_A);
-  put(w.vultures[7], ltVultureB, 8.6, LT_KILL_B);
-  put(w.vultures[5], ltVultureC, 11.8, LT_KILL_C);
+  put(w.vultures[6], ltVultureA, LT_FROM_A - LT_ENTRY, LT_KILL_A);
+  put(w.vultures[7], ltVultureB, LT_FROM_B - LT_ENTRY, LT_KILL_B);
+  put(w.vultures[5], ltVultureC, LT_FROM_C - LT_ENTRY, LT_KILL_C);
   const arc = w.arcs[0];
-  arc.group.visible = t >= 11.8 && t < 15.4;
+  arc.group.visible = t >= LT_FROM_C - LT_ENTRY + 0.2 && t < 15.4;
   if (arc.group.visible) place(arc.group, flight(ltArcC, T, { bank: 1.4 }));
 }
 
@@ -596,7 +606,8 @@ const vultures: Shot = {
     // ARC-170s cross behind at t≈3
     for (let k = 0; k < 4; k++) {
       const arc = w.arcs[k];
-      arc.group.visible = t > 2.2;
+      // already beyond the right edge early on: they fly into frame instead of appearing in it
+      arc.group.visible = true;
       const p0 = a.pos.clone().add(v3(700 - k * 30, 60 + k * 18, 500 + k * 40));
       const st = flight((tt) => p0.clone().add(v3(-(tt - T0 - 2.2) * 520, 0, (tt - T0) * 180)), T);
       place(arc.group, st);
@@ -1551,7 +1562,8 @@ const droids: Shot = {
     face(w.anakin, { mouth: t < 2.4 ? 'grin' : 'smirk', brows: -0.4 }, t, 1);
     w.sabers.forEach((sb, i) => {
       const fig = i === 0 ? w.obiwan : w.anakin;
-      sb.group.visible = t > 2.5;
+      // there from the cut to the wide (they appeared three frames into it)
+      sb.group.visible = t >= 2.4;
       if (sb.group.parent !== fig.gripR) fig.gripR.add(sb.group);
       sb.group.position.set(0, 0, 0);
       sb.group.rotation.set(0, 0, -Math.PI / 2);
