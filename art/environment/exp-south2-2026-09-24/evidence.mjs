@@ -20,7 +20,9 @@
  *            footstep surface (audio `surfaceAt`) along his trace against what he stands on.
  *            `--feet-detail` adds the character audit's `linkFeetContact` on every frame where a
  *            stance sole is more than 5 cm off its ground (where each sole is, the ground and the
- *            support under it).
+ *            support under it). Each route's `drawnSamples` are [draws, triangles, Link x, z,
+ *            camera x, y, z, 1 while the camera is in the far-bank zone], its `cameraPath` every
+ *            third frame's [Link x, z, camera x, y, z, in the zone].
  * --capture  capture mode (the character system stands Link and the kids where the reference frames
  *            have them in the six hero views, and elsewhere at their spawn and layout spots): the six
  *            fixed viewpoints (`--heroes`) and every pose with a `from`, each from simulation time
@@ -378,7 +380,8 @@ async function walks(page, result, out) {
       overBudget: drawn.filter((r) => r.calls > 700 || r.triangles > 9e6).map((r) => ({ draws: r.calls, triangles: r.triangles, link: r.link.map((v) => +v.toFixed(2)), cam: r.cam.map((v) => +v.toFixed(2)) })),
       footsteps: runs,
       footstepMismatches: wrong,
-      drawnSamples: drawn.map((r) => [r.calls, r.triangles, +r.link[0].toFixed(2), +r.link[2].toFixed(2)]),
+      drawnSamples: drawn.map((r) => [r.calls, r.triangles, +r.link[0].toFixed(2), +r.link[2].toFixed(2), ...r.cam.map((v) => +v.toFixed(2)), inFarBankZone(...r.cam) ? 1 : 0]),
+      cameraPath: w.rows.filter((_, i) => i % 3 === 0).map((r) => [+r.link[0].toFixed(2), +r.link[2].toFixed(2), ...r.cam.map((v) => +v.toFixed(2)), inFarBankZone(...r.cam) ? 1 : 0]),
       ...(FEET_DETAIL ? { feetDetail: w.rows.filter((r) => r.feetDetail).map((r) => ({ link: r2(r.link), heading: +(r.heading ?? 0).toFixed(3), feet: r.feetDetail })) } : {}),
     };
     result.walks.push(row);
