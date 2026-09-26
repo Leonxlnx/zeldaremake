@@ -181,8 +181,9 @@ void main(){
   float a = shape * smoothstep(0.0, 0.12, vAge) * pow(1.0 - vAge, 1.5) * 0.75;
   if (a <= 0.004) discard;
   vec3 col = mix(vec3(0.05, 0.05, 0.055), vec3(0.28, 0.26, 0.25), n);
-  // embers glow inside young smoke
-  col += vec3(0.9, 0.3, 0.05) * (1.0 - smoothstep(0.0, 0.35, vAge)) * (1.0 - r) * 0.8;
+  // embers glow inside young smoke; negative heat marks pale deck dust instead
+  if (vHeat < 0.0) col = mix(vec3(0.32, 0.34, 0.38), vec3(0.62, 0.64, 0.68), n);
+  else col += vec3(0.9, 0.3, 0.05) * (1.0 - smoothstep(0.0, 0.35, vAge)) * (1.0 - r) * 0.8;
   gl_FragColor = vec4(col, a);
 }`;
 
@@ -361,6 +362,25 @@ export class FX {
     for (let i = 0; i < 10; i++) {
       const dir = new Vector3(rng.gauss(), rng.gauss(), rng.gauss()).normalize().add(n).normalize();
       this.sparks.push({ t0: t0 + rng.range(0, 0.08), life: rng.range(0.3, 0.8), from: pos.clone(), vel: dir.multiplyScalar(S * rng.range(2, 6)).add(inherit), size: rng.range(2, 4) });
+    }
+  }
+
+  /** A low ring of pale dust kicked up where something lands on a deck (`up` = deck normal). */
+  dust(t0: number, pos: Vector3, o: { size: number; seed?: number; up?: Vector3 }): void {
+    const rng = new Rng(o.seed ?? Math.floor(t0 * 331 + pos.x * 7));
+    const up = o.up ?? new Vector3(0, 1, 0);
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2 + rng.range(-0.3, 0.3);
+      const out = new Vector3(Math.cos(a), 0, Math.sin(a));
+      this.puffsSmoke.push({
+        center: pos.clone().add(out.clone().multiplyScalar(o.size * 0.3)).add(up.clone().multiplyScalar(o.size * 0.15)),
+        t0: t0 + rng.range(0, 0.05),
+        dur: rng.range(0.7, 1.2),
+        size: o.size * rng.range(0.45, 0.75),
+        seed: rng.next(),
+        heat: -1,
+        vel: out.multiplyScalar(o.size * rng.range(0.9, 1.6)).add(up.clone().multiplyScalar(o.size * 0.25)),
+      });
     }
   }
 

@@ -983,6 +983,8 @@ function parkFighters(w: World, s: ReturnType<typeof hangarSpots>, canopy: numbe
 }
 
 const FLIP_DUR = 0.95;
+/** take-off times in the jump-out shot */
+const JUMP_OBI = 0.32, JUMP_ANA = 0.78;
 /**
  * A pilot vaulting out of the cockpit: a ballistic arc from the seat to `land` with one tucked front
  * flip (about the torso, not the hips), a little squash on touchdown, then turning to `yawEnd`.
@@ -1024,14 +1026,19 @@ function flipOut(w: World, fig: Minifig, ship: Eta2, land: Vector3, yawEnd: numb
 const jumpOut: Shot = {
   name: 'jump-out',
   dur: 3.4,
+  schedule(w, T0) {
+    const J = jediMarks(hangarSpots(w));
+    w.fx.dust(T0 + JUMP_OBI + FLIP_DUR, J.obiPos, { size: 2.2, seed: 1601 });
+    w.fx.dust(T0 + JUMP_ANA + FLIP_DUR, J.anaPos, { size: 2.2, seed: 1602 });
+  },
   pose(w, t) {
     w.interior();
     const s = hangarSpots(w);
     w.hangar.setShield(0);
     parkFighters(w, s, smooth(0, 0.4, t));
     const J = jediMarks(s);
-    flipOut(w, w.obiwan, w.obiwanShip, J.obiPos, J.yaw - 0.9, t - 0.32);
-    flipOut(w, w.anakin, w.anakinShip, J.anaPos, J.yaw + 0.6, t - 0.78);
+    flipOut(w, w.obiwan, w.obiwanShip, J.obiPos, J.yaw - 0.9, t - JUMP_OBI);
+    flipOut(w, w.anakin, w.anakinShip, J.anaPos, J.yaw + 0.6, t - JUMP_ANA);
     face(w.obiwan, { mouth: t < 1.3 ? 'o' : 'smile', brows: t < 1.3 ? 0.6 : 0.2 }, t, 2);
     face(w.anakin, { mouth: 'grin', brows: -0.3 }, t, 1);
     // wide three-quarter from the droids' side: both flips read in profile against the hangar mouth
