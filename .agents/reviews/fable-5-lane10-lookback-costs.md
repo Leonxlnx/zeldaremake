@@ -178,3 +178,27 @@ What is still waiting to land on the head, with the rows they take: `exp-south2`
 718 → 563), `exp-east` (the green's structures 173 → 133, 706 → ≈ 650), `fable-4-farfold` #171 (trees −40 draws / −0.1 M at both),
 `fable-4-columnbatch` #151 (−12 draws at the green). With all four in, the green sits near 600 / 9.1 M and the far bank near 525 / 8.1 M
 by addition; the combined build is the read to make when they merge.
+
+## The head `6bb60a08` (01:29 — #151 columnbatch, #171 farfold, #169 fingers, #161 the kit cast, `lodfade` inert) — the draw cap met at every tracked pose, 01:30–02:00 UTC
+
+| pose | frame, `97045ffa` → `6bb60a08` | trees | structures | vegetation | character | rocks |
+| --- | --- | --- | --- | --- | --- | --- |
+| the east green (43, 4) → W | 706 / 9.93 M → **652 / 9.84 M** | 218 → **164 / 3.74 M** | 173 / 2.33 M | 123 / 1.82 M | 56 | 27 / 0.48 M |
+| the east lookout (47.5, 7.5) → W | 672 / 9.82 M (`cd9400b2`) → **623 / 9.71 M** | **166 / 3.70 M** | 174 / 2.45 M | 96 / 1.59 M | 56 | 26 / 0.48 M |
+| the far bank (4.06, 42.8) → N | 718 / 9.94 M → **680 / 9.81 M** | 200 → **162 / 3.38 M** | 171 / 2.36 M | 143 / 2.16 M | 65 | 30 / 0.48 M |
+| the flight's foot, the stair-foot kit active (5.8, 0.5) → E | 530 / 9.08 M → **491 / 8.97 M** | 173 → **134 / 2.21 M** | 68 / 1.63 M | 112 / 3.65 M | 70 | 26 / 0.28 M |
+
+Two of fable-4's batches in the same round — the seated columns' lobes (#151) and the giants' far laminae (#171) — take **−38 to −54
+draws off the trees row at every pose**, and with them **every tracked play frame is under the draw cap on the head itself**: the far
+bank at 680 without `exp-south2`'s cut, the green at 652 without `exp-east`'s. The triangle line is still not met at the three look-backs
+(9.71–9.84 M), and the rows holding it there are unchanged in kind — trees 3.4–3.7 M and vegetation 1.6–2.2 M; the flight's foot at
+8.97 M is the first of these poses under it.
+
+By addition, what the expansion branches bring when they land: the far bank 680 − 87 (structures) − the depth-pass reach ≈ **525 / 8.1 M**;
+the green 652 − 40 ≈ **610 / 9.3 M**; the lookout 623 − 40 ≈ 585 / 9.1 M. After that the triangle line at the plateau is lane 2's and
+lane 4's alone — the far tier for crowns and one pack per LOD beyond 30 m — as it has been since the first bill.
+
+The same head at the six fixed views (capture mode, 8 settle frames, the character visible), `bed93a19` → `6bb60a08`, all six pixel-identical
+(1.0000 / 0.00 %): A 614 / 8.967 M → **575 / 8.758 M**, B 596 / 8.293 → 557 / 8.133 M, C 533 / 7.959 → 494 / 7.848 M, D 523 / 8.741 → 484 /
+8.563 M, E 596 / 8.293 → 557 / 8.133 M, F 555 / 8.098 → 516 / 7.942 M. **Camera A is 0.24 M under the 9.0 M cap with Link in frame**; the
+one to two thousand triangles over farfold's own branch numbers are #169's fingers on the kids in B, C, E and F.
