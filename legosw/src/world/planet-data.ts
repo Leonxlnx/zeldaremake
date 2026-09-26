@@ -243,7 +243,7 @@ export function bakePlanet(R: number, sunDir: Vector3): PlanetData {
           seed: hash2(si * 17 + 3, sj * 29 + 7),
         });
       }
-      const extra = hs < 0.42 ? 0 : Math.floor(Math.pow((hs - 0.42) / 0.58, 1.3) * 7 * (0.5 + hash3(si, sj, 210)));
+      const extra = hs < 0.5 ? 0 : Math.floor(Math.pow((hs - 0.5) / 0.5, 1.3) * 5 * (0.5 + hash3(si, sj, 210)));
       for (let k = 0; k < extra; k++) {
         const b = Math.floor(hash3(si, sj, 220 + k) * 16);
         const bi = b & 3;
