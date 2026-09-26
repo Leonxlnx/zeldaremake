@@ -148,11 +148,13 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
       const n = (o.subframes ?? 1) > 1 ? Math.max(o.subframes!, shot.blur ?? 1) : 1;
       const shutter = shot.shutter ?? o.shutter ?? 0.5;
       const fps = o.fps ?? 24;
+      const s0 = shot.start ?? 0, s1 = s0 + shot.dur;
       pipeline.render(w.scene, camera, lens, {
         time: T,
         subframes: n,
         setSub: (k, count) => {
-          const Ts = T + ((k + 0.5) / count - 0.5) * (shutter / fps);
+          // samples stay inside this frame's shot, or the first frame after a cut is a double exposure
+          const Ts = Math.min(s1 - 1e-6, Math.max(s0, T + ((k + 0.5) / count - 0.5) * (shutter / fps)));
           const p = pose(Ts);
           applyCamera(p.cam);
           // the shutter sub-frames double as supersampling: jitter each by a sub-pixel Halton offset
