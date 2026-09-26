@@ -77,7 +77,9 @@ export class Crawl {
     tex.colorSpace = SRGBColorSpace;
     tex.anisotropy = 16;
     this.mat = new MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: DoubleSide, toneMapped: false });
-    this.plane = new Mesh(new PlaneGeometry(1, H / W), this.mat);
+    // the near end of the plane passes through the camera as it slides away (10.45 s into the film); as one quad
+    // the triangle holding that vertex rasterised half the text displaced, in 64 rows it is a sliver off screen
+    this.plane = new Mesh(new PlaneGeometry(1, H / W, 1, 64), this.mat);
     this.plane.renderOrder = 10;
     this.group.add(this.plane);
   }
