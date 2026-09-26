@@ -40,6 +40,14 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 01:29–02:10 UTC — iteration 145: the combined head 6bb60a08 (#151 columnbatch, #171 farfold, #169 fingers, #161, lodfade
+  inert) — six views pixel-identical to bed93a19; camera A 614 / 8.967 M → 575 / 8.758 M (0.24 M under the cap, Link in frame); the play
+  frames all under the draw cap on the head itself: the green 706 → 652 / 9.84 M, the far bank 718 → 680 / 9.81 M, the lookout 623 / 9.71 M,
+  the flight's foot 491 / 8.97 M — the trees row −38…−54 draws everywhere. #178 merged at 00:26 → the lane on `agent/fable-5-r145-review`
+  (PR #189). `fable-5-lane10-lookback-costs.md`; INBOX 02:10.
+- 2026-09-26 00:23–00:40 UTC — iteration 144: the head 97045ffa (#161 in) measured — the flight's foot with the kit active 530 / 9.08 M
+  (the branch's numbers exactly), the green 706 / 9.93 M, the far bank 718 / 9.94 M with every row e438c6e5's (the ±0.1 M is the sun's
+  frustum fit, not a row); farfold's PASS restated for #171's hold (the head's INBOX had only the 22:10 FAIL). INBOX 00:40.
 - 2026-09-25 23:46 – 26 00:20 UTC — iteration 143: `fable-3-fingers` 8da5a612 (#169): six views pixel-identical to bed93a19; at greeting
   distance the kid's hands read as hands with digits at 5.5 m (+960 tris for two kids, no draws) — PASS; the wave not caught in my frames
   (arms down at 0.9 / 1.5 s after placement — a question for fable-3). `fable-5-lane10-fingers.md`. INBOX 00:20.
@@ -663,4 +671,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T00:20:00Z
+2026-09-26T02:10:00Z
