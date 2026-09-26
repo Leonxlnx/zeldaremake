@@ -1,10 +1,14 @@
 import {
+  AdditiveBlending,
   Color,
+  CylinderGeometry,
   DirectionalLight,
   Euler,
   Group,
   HemisphereLight,
   Matrix4,
+  Mesh,
+  MeshBasicMaterial,
   Object3D,
   PerspectiveCamera,
   PointLight,
@@ -38,6 +42,9 @@ import type { Astromech, BattleDroid, BuzzDroid, CapitalShip, Eta2, Hangar, Invi
 import { Swarm } from './instancing';
 import { Crawl } from './crawl';
 
+/** segments in R2's zap arc */
+const ZAP_SEGS = 7;
+
 /** Light comes from the upper port side, slightly behind the fleet's heading. */
 export const SUN_DIR = new Vector3(0.55, 0.62, -0.38).normalize();
 /** The planet's own (lower) sun so a terminator and city lights show below the battle. */
@@ -69,6 +76,8 @@ export class World {
   hemi: HemisphereLight;
   /** close-up key (off unless a shot aims it with `keyLight`); shadowless, so it reaches faces inside canopies */
   key: DirectionalLight;
+  /** R2's electric zap: a jagged glowing arc, posed per frame by zapArc() */
+  zap = new Group();
   hangarLights = new Group();
   envSpace: Texture;
   envHangar: Texture;
@@ -260,8 +269,17 @@ export class World {
 
     s.add(this.crawl.group);
     s.add(this.fx.group);
+    // HDR colour (not tone-mapped) so the bloom pass makes the arc glow: a hot core inside a soft halo
+    const zapCore = new MeshBasicMaterial({ color: new Color(3.0, 4.6, 8.0), blending: AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false });
+    const zapHalo = new MeshBasicMaterial({ color: new Color(0.35, 0.75, 1.9), blending: AdditiveBlending, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false });
+    const coreSeg = new CylinderGeometry(0.11, 0.11, 1, 6, 1, true);
+    const haloSeg = new CylinderGeometry(0.32, 0.32, 1, 8, 1, true);
+    for (let i = 0; i < ZAP_SEGS; i++) this.zap.add(new Mesh(coreSeg, zapCore));
+    for (let i = 0; i < ZAP_SEGS; i++) this.zap.add(new Mesh(haloSeg, zapHalo));
+    s.add(this.zap);
 
     this.actors = [
+      this.zap,
       this.venator.group,
       ...this.fleet.map((f) => f.root),
       this.hand.group,
@@ -283,6 +301,27 @@ export class World {
       ...this.sabers.map((sb) => sb.group),
     ];
     this.space();
+  }
+
+  /** Show R2's zap as a jagged arc from `from` to `to`; `seed` picks the jag (change it per frame to crackle). */
+  zapArc(from: Vector3, to: Vector3, seed: number): void {
+    const segs = this.zap.children;
+    const d = to.clone().sub(from);
+    const len = d.length();
+    let s = seed * 9301 + 49297;
+    const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280) * 2 - 1;
+    const pts = [from.clone()];
+    for (let i = 1; i < ZAP_SEGS; i++) pts.push(from.clone().addScaledVector(d, i / ZAP_SEGS).add(new Vector3(rnd(), rnd(), rnd()).multiplyScalar(len * 0.16)));
+    pts.push(to.clone());
+    const up = new Vector3(0, 1, 0);
+    segs.forEach((seg, j) => {
+      const i = j % ZAP_SEGS;
+      const a = pts[i], b = pts[i + 1];
+      seg.position.copy(a).add(b).multiplyScalar(0.5);
+      seg.scale.set(1, Math.max(1e-3, a.distanceTo(b)), 1);
+      seg.quaternion.setFromUnitVectors(up, b.clone().sub(a).normalize());
+    });
+    this.zap.visible = true;
   }
 
   /** Hide every actor (shots then show what they need). */

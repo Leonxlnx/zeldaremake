@@ -736,6 +736,30 @@ function crawlOn(ship: FlightState, i: number, T: number, b: BuzzDroid): void {
   b.group.quaternion.copy(ship.quat).multiply(c.q);
 }
 
+/** where droid #0 ends up after slicing R4's dome (ship-local, beside the socket), and how it faces */
+const R4_CUTTER = v3(1.6, 0.6, 0.4);
+function cutterAtSocket(w: World, ship: FlightState, T: number): void {
+  const b = w.buzz[0];
+  const k = w.loc.socketO;
+  b.group.visible = true;
+  b.group.position.copy(local(ship, k.x + R4_CUTTER.x, k.y + R4_CUTTER.y, k.z + R4_CUTTER.z));
+  b.group.quaternion.copy(ship.quat).multiply(new Quaternion().setFromAxisAngle(v3(0, 1, 0), Math.PI * 0.5));
+  b.setDeploy(1);
+  b.animate(T * 1.6);
+}
+
+/** the buzz droids still on Obi-Wan's fighter after the rescue (#3 was blasted, #4 jumped ship and was zapped) */
+function survivorsOn(w: World, ship: FlightState, T: number): void {
+  cutterAtSocket(w, ship, T);
+  [1, 2, 5].forEach((i, n) => {
+    const b = w.buzz[i];
+    b.group.visible = true;
+    crawlOn(ship, i, T, b);
+    b.setDeploy(1);
+    b.animate(T * 1.6 + n);
+  });
+}
+
 /* --- shot 9: buzz droids at work; R4 loses her head */
 
 const R4_POP = 2.55;
@@ -743,11 +767,12 @@ const buzzClose: Shot = {
   name: 'buzz-close',
   dur: 4.5,
   schedule(w, T0) {
-    // cutting sparks from each droid's saw
+    // cutting sparks from each droid's saw, and R4's dome popping: both travel with the fighter (200 u/s)
+    const shipVel = (T: number) => flight(obiPath9(T0), T).vel;
     for (const i of [0, 1, 5]) {
-      w.fx.sparkStream(T0 + 0.1, T0 + 4.4, (T) => buzzWorld(w, i, T, T0), () => v3(0, 1, 0), 60, 70 + i, 6);
+      w.fx.sparkStream(T0 + 0.1, T0 + 4.4, (T) => buzzWorld(w, i, T, T0), () => v3(0, 1, 0), 60, 70 + i, 6, shipVel);
     }
-    w.fx.explosion(T0 + R4_POP, r4World(w, T0 + R4_POP, T0), { size: 1.6, pieces: 6, sparks: 50, smoke: 2, colors: ['red', 'flatSilver', 'white'], seed: 901 });
+    w.fx.explosion(T0 + R4_POP, r4World(w, T0 + R4_POP, T0), { size: 1.6, pieces: 6, sparks: 50, smoke: 2, colors: ['red', 'flatSilver', 'white'], seed: 901, inherit: shipVel(T0 + R4_POP).clone().multiplyScalar(0.95) });
   },
   pose(w, t, T) {
     battle(w, T);
@@ -769,7 +794,7 @@ const buzzClose: Shot = {
     const b0 = w.buzz[0];
     const walk = smoother(0.2, 1.8, t);
     const c0 = crawlLocal(0, T);
-    b0.group.position.copy(local(o, c0.p.x, c0.p.y, c0.p.z).lerp(sock.clone().add(v3(1.6, 0.6, 0.4).applyQuaternion(o.quat)), walk));
+    b0.group.position.copy(local(o, c0.p.x, c0.p.y, c0.p.z).lerp(sock.clone().add(R4_CUTTER.clone().applyQuaternion(o.quat)), walk));
     b0.group.quaternion.copy(o.quat).multiply(c0.q).slerp(o.quat.clone().multiply(new Quaternion().setFromAxisAngle(v3(0, 1, 0), Math.PI * 0.5)), walk);
     const pop = t - R4_POP;
     if (pop > 0) {
@@ -837,48 +862,53 @@ const anakinCockpit2 = cockpitShot({
 
 /* --- shot 11: Anakin blasts one droid off; R2 zaps another */
 
+/** droid #4's leap from Obi-Wan's fighter to Anakin's, seconds into the rescue */
+const RESCUE_LEAP = [1.35, 1.85] as const;
+
 function pair11(T0: number) {
   const base = v3(1500, -1100, 24500);
   return (tt: number) => base.clone().add(v3(Math.sin((tt - T0) * 0.7) * 5, 0, (tt - T0) * 210));
+}
+/** Anakin in the rescue: off Obi-Wan's port quarter, closing in from 1.2 s. Effects and pose share it, so zaps land on R2. */
+function anakin11(T0: number) {
+  return (tt: number) => {
+    const s = smooth(1.2, 2.0, tt - T0);
+    return pair11(T0)(tt).add(v3(-30 + s * 12, 6 - s * 3, -26 + s * 16));
+  };
 }
 const rescue: Shot = {
   name: 'rescue',
   blur: 2,
   dur: 4,
   schedule(w, T0) {
-    const pa = (tt: number) => pair11(T0)(tt).add(v3(-30, 6, -26));
-    for (let t = 0.45; t < 0.8; t += 0.1) {
-      const st = flight(pa, T0 + t);
-      const ok = flight(pair11(T0), T0 + 0.85);
-      const c3 = crawlLocal(3, T0 + 0.85);
-      const target = local(ok, c3.p.x, c3.p.y, c3.p.z);
-      for (const mz of w.loc.muzzlesA) {
-        const from = local(st, mz.x, mz.y, mz.z + 0.6);
-        w.fx.laser({ t0: T0 + t, from, dir: target.clone().sub(from), speed: 900, life: target.distanceTo(from) / 900, length: 5, width: 0.6, color: 'red' });
-      }
-    }
-    const ok = flight(pair11(T0), T0 + 0.85);
+    const pa = anakin11(T0);
+    const ok = flight(pair11(T0), T0 + 0.85, { bank: 0.6 });
     const c3 = crawlLocal(3, T0 + 0.85);
     const pk = local(ok, c3.p.x, c3.p.y, c3.p.z);
+    for (let t = 0.45; t < 0.8; t += 0.1) {
+      const st = flight(pa, T0 + t, { bank: 0.6 });
+      for (const mz of w.loc.muzzlesA) {
+        const from = local(st, mz.x, mz.y, mz.z + 0.6);
+        w.fx.laser({ t0: T0 + t, from, dir: pk.clone().sub(from), speed: 900, life: pk.distanceTo(from) / 900, length: 5, width: 0.6, color: 'red' });
+      }
+    }
     w.fx.explosion(T0 + 0.85, pk, { size: 5, pieces: 26, sparks: 40, smoke: 3, colors: ['flatSilver', 'dbg', 'lbg'], seed: 1101, inherit: ok.vel.clone().multiplyScalar(0.9) });
-    // R2's zap: a crackling stream of blue sparks
-    const z = w.loc.zapA;
-    const r2At = (T: number) => local(flight((tt) => pair11(T0)(tt).add(v3(-30, 6, -26)), T), z.x, z.y + 0.2, z.z + 0.3);
-    w.fx.sparkStream(T0 + 2.0, T0 + 2.7, r2At, () => v3(0.4, 0.6, 0.2), 140, 1102, 4);
-    w.fx.explosion(T0 + 2.65, r2At(T0 + 2.65).add(v3(1, 1, 0)), { size: 1.4, pieces: 5, sparks: 30, smoke: 1, colors: ['flatSilver', 'dbg'], seed: 1103 });
+    // R2's zap lands on the droid that jumped ship (the arc itself is posed per frame): hit sparks, then its head pops
+    const droidAt = (T: number) => local(flight(pa, T, { bank: 0.6 }), 4.6, 2.1, 4.5);
+    w.fx.sparkStream(T0 + 2.0, T0 + 2.7, droidAt, () => v3(0.3, 0.8, -0.2), 220, 1102, 7, (T) => flight(pa, T).vel);
+    w.fx.explosion(T0 + 2.65, droidAt(T0 + 2.65).add(v3(0, 0.5, 0)), { size: 1.4, pieces: 5, sparks: 30, smoke: 1, colors: ['flatSilver', 'dbg'], seed: 1103, inherit: flight(pa, T0 + 2.65).vel.clone().multiplyScalar(0.9) });
   },
   pose(w, t, T) {
     battle(w, T);
     const T0 = T - t;
     const o = flight(pair11(T0), T, { bank: 0.6 });
-    const pa = (tt: number) => pair11(T0)(tt).add(v3(-30 + smooth(1.2, 2.0, tt - T0) * 12, 6 - smooth(1.2, 2.0, tt - T0) * 3, -26 + smooth(1.2, 2.0, tt - T0) * 16));
-    const a = flight(pa, T, { bank: 0.6 });
+    const a = flight(anakin11(T0), T, { bank: 0.6 });
     fly(w, w.obiwanShip, o, 1);
     fly(w, w.anakinShip, a, 1);
     w.r4.head.visible = false;
     face(w.anakin, { mouth: t < 2 ? 'grit' : 'smirk', brows: -0.7 }, t, 1);
     face(w.obiwan, { mouth: 'frown', brows: 0.6 }, t, 2);
-    // remaining droids on Obi-Wan's wings; #3 is blasted, #4 hopped to Anakin's ship
+    // droids on Obi-Wan's wings; #3 is blasted, #0 keeps working at R4's socket
     [1, 2, 3, 5].forEach((i, n) => {
       const b = w.buzz[i];
       const gone = i === 3 && t > 0.85;
@@ -887,12 +917,32 @@ const rescue: Shot = {
       b.setDeploy(1);
       b.animate(T * 1.6 + n);
     });
+    cutterAtSocket(w, o, T);
+    // #4 leaps from Obi-Wan's fuselage to Anakin's wing as the fighters close up, and R2 zaps it there
     const b4 = w.buzz[4];
     b4.group.visible = true;
-    b4.group.position.copy(local(a, 4.6, 1.5, 4.5));
-    b4.group.quaternion.copy(a.quat);
+    const leap = smoother(RESCUE_LEAP[0], RESCUE_LEAP[1], t);
+    const onA = local(a, 4.6, 1.5, 4.5);
+    if (leap <= 0) crawlOn(o, 4, T, b4);
+    else {
+      const c4 = crawlLocal(4, T0 + RESCUE_LEAP[0]);
+      const from = local(o, c4.p.x, c4.p.y, c4.p.z);
+      b4.group.position.copy(from.lerp(onA, leap)).add(v3(0, 4 * leap * (1 - leap) * 3.5, 0));
+      b4.group.quaternion.copy(o.quat).multiply(c4.q).slerp(a.quat, leap);
+    }
     b4.setDeploy(1);
     b4.animate(T);
+    // R2's zap: a crackling arc from his dome into the droid
+    if (t >= 2.0 && t <= 2.72) {
+      const k = Math.floor(T * 48);
+      if ((k * 7919) % 10 !== 4) w.zapArc(local(a, w.loc.zapA.x, w.loc.zapA.y, w.loc.zapA.z), b4.group.position.clone().add(v3(0, 0.6, 0)), k);
+    }
+    // headless after the zap, it lets go and tumbles away behind the fighter
+    const fall = t - 2.8;
+    if (fall > 0) {
+      b4.group.position.add(a.fwd.clone().multiplyScalar(-fall * fall * 45)).add(v3(0, -fall * 7, 0));
+      b4.group.quaternion.multiply(new Quaternion().setFromAxisAngle(v3(1, 0.3, 0.2).normalize(), fall * 7));
+    }
     const hp = t - 2.65;
     b4.head.visible = true;
     if (hp > 0) {
@@ -943,6 +993,7 @@ const hangarApproach: Shot = {
     fly(w, w.anakinShip, a, 0.3);
     fly(w, w.obiwanShip, o, 0.3);
     w.r4.head.visible = false;
+    survivorsOn(w, o, T);
     // chase at a fixed distance, but stop at the mouth: the fighters fly on into the bay
     const outDist = a.pos.clone().sub(mouth).dot(out);
     const camOut = Math.max(outDist + 58, 26);
@@ -1105,6 +1156,8 @@ const landing: Shot = {
     // from the slam-down on, the belly rides the deck (it pivots on its lowest point as it bucks)
     hullOnDeck(w.obiwanShip, s.A.y, t < 1 ? 0.2 : 0, (i) => i < 3 && t > wreckBreak(i), t < 1.0);
     w.r4.head.visible = false;
+    // the last buzz droids ride the fighter in until the slam-down blast takes them
+    if (t < 1.05) survivorsOn(w, { pos: w.obiwanShip.group.position.clone(), quat: w.obiwanShip.group.quaternion.clone() } as FlightState, T);
     // the first three wing parts tear off on impact and tumble to rest on the deck
     for (let i = 0; i < 3; i++) wreckPose(w.obiwanShip, i, t - wreckBreak(i), s.A.y);
     face(w.obiwan, { mouth: t < 1.0 ? 'shout' : 'o', brows: 0.9 }, t, 2);
