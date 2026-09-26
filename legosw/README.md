@@ -21,13 +21,16 @@ npm run lsw:dev  → /?lab=eta2-anakin&bg=space    # turntable of any asset (see
 
 ```bash
 npm run lsw:build
-node legosw/scripts/render.mjs --size 1920x1080 --fps 24 --audio     # frames → legosw/out/frames, soundtrack → legosw/out/audio.wav
-node legosw/scripts/render.mjs --encode-only                          # → legosw/out/lego-rots-battle-over-coruscant.mp4
+node legosw/scripts/render.mjs --size 1280x720 --subframes 4 --msaa 1 --audio   # frames → legosw/out/frames, soundtrack → legosw/out/audio.wav
+node legosw/scripts/render.mjs --encode-only                                     # → legosw/out/lego-rots-battle-over-coruscant.mp4
 ```
 
 Rendering runs headless Chrome (software WebGL works). Frames already on disk are skipped, so an
-interrupted render resumes; `--shards 2 --shard 0|1` splits the work across processes.
-`node legosw/scripts/still.mjs --film --times 25,42` renders individual stills.
+interrupted render resumes; `--shards 3 --shard 0|1|2` splits the work across processes.
+`--subframes 4` averages four shutter samples per frame, each offset by a sub-pixel Halton jitter, so
+the same pass gives motion blur and anti-aliasing (MSAA is then redundant, hence `--msaa 1`); shots
+can ask for more samples and a shorter shutter (the long take uses 6 at 0.32).
+`node legosw/scripts/still.mjs --film --times 25,42 --subframes 4 --msaa 1` renders individual stills.
 
 ## How it is built
 
@@ -36,10 +39,10 @@ interrupted render resumes; `--shards 2 --shard 0|1` splits the work across proc
 | `src/core/` | The brick kit: chamfered moulded-brick primitives (`geom.ts`), the LEGO colour palette and ABS plastic materials (`palette.ts`), and the `Builder` that assembles models stud by stud and merges them per colour (`builder.ts`). |
 | `src/assets/` | Every model: Jedi interceptors, astromechs, Venator, ARC-170, vulture droids, tri-fighters, discord missiles, buzz droids, battle droids, Munificent, the Invisible Hand and its hangar, minifigures with printed faces and sculpted hair, lightsabers. |
 | `src/render/` | Reversed-Z HDR pipeline with MSAA, bloom, depth of field, optional shutter motion blur, ACES tone mapping, grading and grain; image-based lighting studios. |
-| `src/world/` | Star field, nebula and the procedural city-planet Coruscant. |
-| `src/fx/` | Time-pure effects: laser bolts, fireballs, smoke, bursts of real LEGO pieces, sparks. |
-| `src/film/` | The shot list (`shots.ts`), the world (`world.ts`), the crawl and the timeline. The film is a pure function of time, so any frame renders identically on its own. |
-| `src/audio/` | The soundtrack, synthesised offline with WebAudio: engines, cannons, turbolasers, explosions with plastic-brick clatter, buzz saws, astromech chatter, lightsabers, LEGO-game "mumble" dialogue and an original score. |
+| `src/world/` | Star field, nebula and Coruscant: a city of LEGO blocks ray-traced per pixel on a carrier cap under the camera (`planet.ts`), with facades, roofs, streets and parks close up and an area-averaged version far away, brick-built mega-towers, a cloud deck that casts shadows, a gold terminator, night windows and traffic lanes. District data, shadow maps and clouds are baked once at start-up (`planet-data.ts`). |
+| `src/fx/` | Time-pure effects: laser bolts (faded near the lens), fireballs that move with their target, smoke, bursts of real LEGO pieces, hull impacts, sparks, landing dust. |
+| `src/film/` | The shot list (`shots.ts`), the world (`world.ts`), the battle (`battle.ts`: fighter duels where every bolt has a target and every kill explodes on its frame, turbolaser salvos from real turrets onto real hulls), shared picture/sound timings (`choreo.ts`), the crawl and the timeline. The film is a pure function of time, so any frame renders identically on its own. |
+| `src/audio/` | The soundtrack, synthesised offline with WebAudio: an original orchestral score (brass, strings, choir, timpani, one cue per shot around a recurring theme), engines, cannons, turbolasers, explosions with plastic-brick clatter, buzz saws, astromech chatter, lightsabers and LEGO-game "mumble" dialogue, mixed for phone speakers and mastered to -14 LUFS. |
 
 Units are LEGO studs (1 = 8 mm): a plate is 0.4, a brick 1.2, a minifigure about 4.75 tall. Capital
 ships are built from the same bricks at 8× scale, so their studs read at film scale.
