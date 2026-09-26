@@ -2,6 +2,7 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { Rng } from '../core/rng';
 import type { ColorKey } from '../core/palette';
 import type { CapitalShip } from '../assets/types';
+import { makeDeepBattle } from '../world/deep-battle';
 import { World, VENATOR_SPEED, VICTIM_POSE } from './world';
 import { flight, lerp, local, smooth, v3 } from './motion';
 
@@ -118,7 +119,12 @@ const ONE = v3(1, 1, 1);
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 
 export function poseSwarms(w: World): (T: number) => void {
+  // the battle beyond the fleet, 30-60 km out; an actor, so every frame that does not pose it has it hidden
+  const deep = makeDeepBattle({ t0: 18, t1: 82 });
+  w.scene.add(deep.group);
+  w.actors.push(deep.group);
   return (T: number) => {
+    deep.pose(T);
     const m = new Matrix4();
     const sc = new Vector3();
     for (const d of DUELS) {
