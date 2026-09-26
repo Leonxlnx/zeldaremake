@@ -2,7 +2,8 @@
 // A caster is switched off only when its bounding sphere, swept from it along the light, can never
 // enter the camera frustum; the sweep direction matters (a caster beside the frustum on the sun's
 // side casts INTO it), the margin inflates the sphere, spheres/frustumCulled-off objects are left
-// alone, and the restore puts every flag back.
+// alone (a self-culling BatchedMesh meets the distance rules only), and the restore puts every flag
+// back.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
@@ -203,6 +204,61 @@ const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().
   assert.equal(m.castShadow, true, 'a spread batch of small far pieces keeps casting');
   assert.equal(stats.far, 0);
   restore();
+}
+
+{
+  // a BatchedMesh that culls its own instances (frustumCulled off, like the trees' far-foliage
+  // batches) meets the distance rules on its whole batch's sphere and never the sweep: wholly beyond
+  // the box it is off, reaching within the distance it keeps casting even behind the camera, where a
+  // plain mesh is swept away; without rules it is left alone, and other frustumCulled-off casters
+  // are left alone under rules too
+  const scene = new THREE.Scene();
+  const geo = new THREE.BoxGeometry(2, 2, 2);
+  const mkBatch = (x, z) => {
+    const b = new THREE.BatchedMesh(2, 48, 72, new THREE.MeshBasicMaterial());
+    const id = b.addGeometry(geo);
+    b.setMatrixAt(b.addInstance(id), new THREE.Matrix4().makeTranslation(x, 0, z));
+    b.setMatrixAt(b.addInstance(id), new THREE.Matrix4().makeTranslation(x + 6, 0, z));
+    b.computeBoundingSphere();
+    b.frustumCulled = false;
+    b.perObjectFrustumCulled = true;
+    b.castShadow = true;
+    scene.add(b);
+    return b;
+  };
+  const r = 3 + Math.sqrt(3);
+  const box = { x0: -5, x1: 5, z0: -10, z1: 0 };
+  const farBatch = mkBatch(5 + 20 + r + 0.5 - 3, -5);
+  const reachingBatch = mkBatch(5 + 20 + r - 0.5 - 3, -5);
+  const behindBatch = mkBatch(-3, 8);
+  const behindMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial());
+  behindMesh.position.set(0, 0, 8);
+  behindMesh.castShadow = true;
+  scene.add(behindMesh);
+  const farUnculled = new THREE.Mesh(geo, new THREE.MeshBasicMaterial());
+  farUnculled.position.set(60, 0, -5);
+  farUnculled.frustumCulled = false;
+  farUnculled.castShadow = true;
+  scene.add(farUnculled);
+  scene.updateMatrixWorld(true);
+  assert.ok(Math.abs(farBatch.boundingSphere.radius - r) < 1e-6, 'the batch sphere spans both instances');
+
+  const stats = { tested: 0, culled: 0 };
+  const restore = cullShadowCasters(scene, camera, sunDirection, 1.0, stats, [{ box, minDistanceM: 20 }]);
+  assert.equal(farBatch.castShadow, false, 'a batch wholly 20.5 m outside the box casts nothing');
+  assert.equal(reachingBatch.castShadow, true, 'a batch reaching 19.5 m from the box keeps casting');
+  assert.equal(behindBatch.castShadow, true, 'a batch is never swept: behind the camera it keeps casting');
+  assert.equal(behindMesh.castShadow, false, 'a plain mesh in the same place is swept away');
+  assert.equal(farUnculled.castShadow, true, 'a plain mesh with frustumCulled off keeps casting under rules');
+  assert.equal(stats.tested, 4, 'the three batches and the culled mesh');
+  assert.equal(stats.far, 1);
+  assert.equal(stats.culled, 2);
+  restore();
+  for (const o of [farBatch, reachingBatch, behindBatch, behindMesh, farUnculled]) assert.equal(o.castShadow, true, 'restored');
+
+  cullShadowCasters(scene, camera, sunDirection, 1.0, stats)();
+  assert.equal(stats.tested, 1, 'without rules the batches are not examined');
+  assert.equal(farBatch.castShadow, true);
 }
 
 {

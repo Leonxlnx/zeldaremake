@@ -89,7 +89,9 @@ export const FAR_BANK_SMALL_SHADOWS = { maxRadiusM: 1.5, minDistanceM: 25 } as c
  * The far bank's shadow reach (postfx/shadowcull.ts ShadowDistanceRule with a box): while the camera
  * is in `FAR_BANK_SOUTH`, a caster whose bounding sphere lies wholly more than 20 m outside it in
  * plan casts nothing, whatever its size — from there the giants of the village's north and east
- * sectors (their merged sector meshes), the village's far terrain chunks and rocks. The sun stands
+ * sectors (their merged sector meshes' wood and the sectors' far-foliage batches, judged whole:
+ * 172 K + 113 K shadow triangles over the bridge's south end on b34f66a5, where the batches
+ * escaped the rule), the village's far terrain chunks and rocks. The sun stands
  * in the north-west, so their shadows fall east and south-east of them, 30 m and more from the far
  * bank, in the haze. It is measured from the box, not the camera, so the same casters are off from
  * anywhere on the far bank and nothing switches as the camera moves there.

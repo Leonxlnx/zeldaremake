@@ -12,15 +12,20 @@
  * 0.45 m + blocker search 0.3 m, shadowfilter.ts) and the god-ray march's samples along rays at the
  * frame's edge still find every occluder they read, and the near plane is not used (the ray march
  * samples the air in front of it). Objects without a bounding sphere, or with `frustumCulled` off,
- * keep casting. The image is unchanged by construction — the six fixed captures are byte-identical
- * — while the shadow pass draws only the casters whose shadows are in frame.
+ * are never swept and keep casting. The image is unchanged by construction — the six fixed
+ * captures are byte-identical — while the shadow pass draws only the casters whose shadows are in
+ * frame.
  *
  * Optional `ShadowDistanceRule`s also switch off casters far from the camera — a shadow distance by
  * caster size, or from a zone the camera is in — which does change the image; the composer passes
- * them only where a locality asks for them (util/farBankLocality.ts). `hideSmallFar` is the same
- * idea for drawing: a draw distance by size, for the frame, again only where a locality asks for it.
+ * them only where a locality asks for them (util/farBankLocality.ts). The rules also judge a
+ * `BatchedMesh` whose `frustumCulled` is off because it culls its own instances (the trees'
+ * far-foliage batches, one per sector), on the whole batch's world sphere: a batch lying wholly
+ * beyond a rule casts nothing, and the batch's own per-instance shadow cull decides the rest.
+ * `hideSmallFar` is the same idea for drawing: a draw distance by size, for the frame, again only
+ * where a locality asks for it.
  */
-import { Frustum, Matrix4, Object3D, Plane, Sphere, Vector3, type Camera, type InstancedMesh, type Mesh } from 'three';
+import { Frustum, Matrix4, Object3D, Plane, Sphere, Vector3, type BatchedMesh, type Camera, type InstancedMesh, type Mesh } from 'three';
 
 const _sphere = new Sphere();
 const _proj = new Matrix4();
@@ -90,7 +95,7 @@ function worldSphere(obj: Object3D, target: Sphere): Sphere | null {
 }
 
 export interface ShadowCullStats {
-  /** casters examined (visible, castShadow, frustumCulled, with a sphere) */
+  /** casters examined (visible, castShadow, with a sphere; frustumCulled, or a batch under distance rules) */
   tested: number;
   /** casters switched off for the frame */
   culled: number;
@@ -101,7 +106,9 @@ export interface ShadowCullStats {
 /**
  * Switch off `castShadow` on every caster whose swept sphere misses the camera frustum, and with
  * `rules` on every caster beyond one of their distances; call the returned function after the
- * render to restore them. `sunDirection` points toward the sun.
+ * render to restore them. `sunDirection` points toward the sun. A `BatchedMesh` with
+ * `frustumCulled` off meets the rules only, never the sweep, and its `boundingSphere` must cover
+ * every instance: three computes it once, on demand, and never refreshes it after a change.
  */
 export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: Vector3, marginM: number, stats?: ShadowCullStats, rules?: readonly ShadowDistanceRule[]): () => void {
   const light = _light.copy(sunDirection).multiplyScalar(-1).normalize();
@@ -116,7 +123,8 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
   root.traverseVisible((obj) => {
     const m = obj as Mesh;
     if (!m.castShadow || !(m.isMesh || (m as unknown as { isPoints?: boolean }).isPoints || (m as unknown as { isLine?: boolean }).isLine)) return;
-    if (!m.frustumCulled) return;
+    const selfCulledBatch = !m.frustumCulled && rules !== undefined && (m as unknown as BatchedMesh).isBatchedMesh === true;
+    if (!m.frustumCulled && !selfCulledBatch) return;
     const s = worldSphere(m, _sphere);
     if (!s) return;
     tested++;
@@ -126,6 +134,7 @@ export function cullShadowCasters(root: Object3D, camera: Camera, sunDirection: 
       far++;
       return;
     }
+    if (selfCulledBatch) return;
     s.radius += marginM;
     if (sweptSphereMissesFrustum(s, light, planes)) {
       m.castShadow = false;
