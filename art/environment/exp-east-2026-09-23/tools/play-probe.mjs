@@ -173,6 +173,7 @@ try {
       let wp = 1;
       let frames = 0;
       const heard = [];
+      const soles = [];
       let lastSteps = await page.evaluate(() => window.__ZR_AUDIO__.stats().steps);
       while (wp < pts.length && frames < 1800) {
         const st = await page.evaluate(() => window.__ZR_PLAY__.state());
@@ -191,20 +192,26 @@ try {
             P.step(1, dt, false);
             await new Promise((res) => requestAnimationFrame(res));
             const s = A.stats();
-            got.push({ steps: s.steps, last: s.lastSurface, link: P.state().link });
+            const ps = P.state();
+            got.push({ steps: s.steps, last: s.lastSurface, link: ps.link, gaps: (ps.feet ?? []).filter((f) => f.stance).map((f) => [f.gapM, f.minShoeGapM]) });
           }
           return got;
         }, DT);
         for (const g of r) {
           if (g.steps > lastSteps) heard.push({ at: g.link.map((v) => +v.toFixed(2)), surface: g.last });
           lastSteps = g.steps;
+          for (const [gap, shoe] of g.gaps) soles.push({ gap: Math.abs(gap), shoe, at: g.link.map((v) => +v.toFixed(2)) });
         }
         frames += 2;
       }
       await setKeys(new Set());
       const tally = {};
       for (const h of heard) tally[h.surface] = (tally[h.surface] ?? 0) + 1;
-      results.steps.push({ name, reached: wp >= pts.length, steps: heard.length, tally, heard });
+      // the stance feet's sole gaps (playtest feetStats' measure) with where Link stood for the worst
+      const sorted = soles.map((s) => s.gap).sort((a, b) => a - b);
+      const q = (u) => (sorted.length ? +sorted[Math.min(sorted.length - 1, Math.floor(u * sorted.length))].toFixed(4) : null);
+      const feet = { samples: sorted.length, p50: q(0.5), p95: q(0.95), max: q(1), worst: [...soles].sort((a, b) => b.gap - a.gap).slice(0, 5).map((s) => ({ gap: +s.gap.toFixed(4), shoe: +s.shoe.toFixed(4), at: s.at })) };
+      results.steps.push({ name, reached: wp >= pts.length, steps: heard.length, tally, feet, heard });
       log(`steps ${name}: ${JSON.stringify(tally)}`);
       fs.writeFileSync(path.join(out, 'east-play.json'), JSON.stringify(results, null, 1));
     }

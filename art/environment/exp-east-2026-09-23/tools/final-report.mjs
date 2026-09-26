@@ -116,6 +116,7 @@ if (pp) {
     const deckTally = {};
     for (const h of onDeck) deckTally[h.surface] = (deckTally[h.surface] ?? 0) + 1;
     out.push(`${s.name}: reached ${s.reached}, ${s.steps} steps ${JSON.stringify(s.tally)}; on the steps or deck: ${JSON.stringify(deckTally)}; off them: ${JSON.stringify(s.heard.filter((h) => !onDeck.includes(h)).reduce((t, h) => ((t[h.surface] = (t[h.surface] ?? 0) + 1), t), {}))}`);
+    if (s.feet) out.push(`  sole gap (stance feet, ${s.feet.samples} samples): p50 ${(s.feet.p50 * 100).toFixed(2)} / p95 ${(s.feet.p95 * 100).toFixed(2)} / max ${(s.feet.max * 100).toFixed(2)} cm; worst at ${s.feet.worst.map((w) => `(${w.at[0]}, ${w.at[2]}) ${(w.gap * 100).toFixed(1)} cm`).join(', ')}`);
   }
   out.push(`audio state: ${pp.audioState}`);
   if (pp.camWalks) {
