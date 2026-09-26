@@ -55,8 +55,8 @@ export const RUINS_MOSS = {
 /** the moss's grain: the stone's own maps at this multiple of the stone's texel density */
 export const MOSS_GRAIN = 4.7;
 /** the stone's response to the sun (direct diffuse) and to the sky's fill (indirect diffuse), linear rgb */
-export const STONE_KEY_GAIN: [number, number, number] = [1.24, 1.13, 0.97];
-export const STONE_FILL_GAIN: [number, number, number] = [0.92, 0.98, 1.08];
+export const STONE_KEY_GAIN: [number, number, number] = [1.32, 1.18, 0.98];
+export const STONE_FILL_GAIN: [number, number, number] = [0.9, 0.97, 1.1];
 
 export function sunDirOf(config: WorldConfig): Vector3 {
   const az = (config.sun.azimuthDeg * Math.PI) / 180;
@@ -158,7 +158,7 @@ export async function createStone(textures: TextureLibrary, config: WorldConfig,
           // outside any branch: the mip level needs the quad's derivatives)
           float mk = uRnTile * ${f(MOSS_GRAIN)};
           vec3 mf = texture2D(map, vRnPos.zy * mk).rgb * rnW.x + texture2D(map, vRnPos.xz * mk).rgb * rnW.y + texture2D(map, vRnPos.xy * mk).rgb * rnW.z;
-          moss *= 0.6 + 0.4 * clamp(dot(mf, vec3(0.299, 0.587, 0.114)) / ${f(o.meanL)}, 0.35, 1.8);
+          moss *= 0.35 + 0.65 * clamp(dot(mf, vec3(0.299, 0.587, 0.114)) / ${f(o.meanL)}, 0.35, 1.8);
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, cov);
           // the damp band: darker, a touch cooler
           float wet = clamp(vRnWet, 0.0, 1.0);
