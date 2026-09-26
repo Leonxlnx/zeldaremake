@@ -678,3 +678,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 ### Iteration 135 (00:40) — #161 merged; the lane clear; waiting on the areas
 - #161 merged 23:46 (fable-cursor's settle-6 pair + fable-5's PASS). All lane branches on the head.
   Next: the areas' post-merge re-verify (areas-poses.json).
+
+### Iteration 136 (01:35) — the stone circle's standing stones read at arm's length (fine)
+- Two poses on a1e7d7f2: the short menhirs read as weathered blocks with their strata bands; the
+  per-quad flank tone (the risers' bug class) does not show at their size. No change. Sheet
+  `hs136-stone-circle-arms-length.jpg`. Head unchanged since 00:26; the areas still on their branches.

@@ -191,6 +191,17 @@ export interface OfflineOptions {
    * differ in the layer and in nothing else.
    */
   mute?: AmbienceLayer[];
+  /**
+   * Take the sfx bus's compressor out of the path.
+   *
+   * It was added because the owner said the music *"kind of still shakes whenever I run"*, and its
+   * own comment says "quiet steps pass untouched (the threshold is below a walk's peak); a run's
+   * are held". Measured on 2026-09-26 neither half of that is true — compression begins 16 dB under
+   * a walk's peak, so every step in the game is in full four-to-one. Bypassing it is the only way
+   * to ask what it is worth, and whether the complaint it answers still exists on a controller
+   * that runs at 2.2 m/s instead of 4.6.
+   */
+  limiter?: boolean;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -985,7 +996,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   if (!Ctor) throw new Error('OfflineAudioContext unavailable');
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
-  const buses = createBuses(ctx, rng.fork('buses'));
+  const buses = createBuses(ctx, rng.fork('buses'), options.limiter ?? true);
   if (options.reverb === false) {
     buses.reverbReturn.gain.value = 0;
     buses.roomReturn.gain.value = 0;
