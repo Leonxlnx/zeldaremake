@@ -170,14 +170,31 @@ export function cadence(speed: number): number {
 }
 
 /**
- * How hard the step lands: a stroll is soft, a full run is not — but the curve is flatter than it
- * was (0.14 per m/s → 0.10). Running already multiplies the steps by cadence as well as by weight,
- * and at 0.14 a run's steps were the loudest thing in the game by a clear margin, pulsing over the
- * music at the step rate (owner, 23:00: "the music … shakes whenever I run"). A run is still
- * plainly heavier than a walk; it just no longer out-punches everything else.
+ * How hard the step lands at a standstill, at the controller's walk, and at its run.
+ *
+ * These are anchored to `WALK_SPEED` and `RUN_GROUND_SPEED` rather than being a slope, because a
+ * slope is a number about a controller and controllers change. It was `0.3 + speed × 0.1` — flat
+ * enough that a run stopped out-punching the music (owner, 23:00: *"the music … shakes whenever I
+ * run"*), and tuned when the game ran at 4.6 m/s. PR #59 brought the run down to 2.2 on 2026-09-25
+ * and the slope quietly took the level difference between the gaits **from 4.35 dB to 1.86**: at
+ * 4.6 m/s it gave 0.76 against a walk's 0.46, and at 2.2 it gives 0.52 against 0.42.
+ *
+ * The walk is left exactly where it was, so nothing about walking moves. The run is put back to a
+ * 4.3 dB gap — the difference the design was tuned against — and 0.69 is still **under the 0.76 the
+ * game made at the old run speed**, so it asks nothing new of the headroom.
+ *
+ * A run has three cues: its cadence, its level, and its shape. The cadence survived PR #59 (the run
+ * stride came down with the speed, so the step rate only fell from 5.05 to 3.67 a second against a
+ * walk's 2.73) and the shape is a boolean and cannot drift. The level was the one that went.
  */
+export const STEP_FORCE_STILL = 0.3;
+export const STEP_FORCE_WALK = 0.42;
+export const STEP_FORCE_RUN = 0.69;
+
 export function strengthFor(speed: number): number {
-  return Math.max(0.3, Math.min(1, 0.3 + speed * 0.1));
+  if (speed <= WALK_SPEED) return STEP_FORCE_STILL + (STEP_FORCE_WALK - STEP_FORCE_STILL) * Math.max(0, speed / WALK_SPEED);
+  const over = (speed - WALK_SPEED) / Math.max(0.1, RUN_GROUND_SPEED - WALK_SPEED);
+  return Math.min(1, STEP_FORCE_WALK + (STEP_FORCE_RUN - STEP_FORCE_WALK) * over);
 }
 
 const body = (at: number, f0: number, f1: number, glide: number, peak: number, attack: number, decay: number, wave: OscillatorType = 'sine'): BodyPart => ({

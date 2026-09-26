@@ -39,6 +39,7 @@ function loadTs(file) {
 const here = path.dirname(new URL(import.meta.url).pathname);
 const A = loadTs(path.join(here, 'ambience.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
+const { RUN_GROUND_SPEED } = loadTs(path.join(here, 'footsteps.ts'));
 
 // ---- a recording stand-in for WebAudio ---------------------------------------------------------
 // Only what the bed touches. Every AudioParam keeps the last value each method aimed it at, so a
@@ -525,7 +526,7 @@ test('a term that moved because HE did arrives at his pace, not the weather\u201
   for (const { id, p } of moved) {
     const last = [...p.events].reverse().find((e) => e[0] === 'tgt');
     assert.ok(last, `${id} moved with him but was not aimed with setTargetAtTime`);
-    assert.equal(last[3], A.PLACE_TAU, `${id} moved because the listener did and was smoothed over ${last[3]} s — at a run that is ${(last[3] * 4.2).toFixed(2)} m of ground behind him`);
+    assert.equal(last[3], A.PLACE_TAU, `${id} moved because the listener did and was smoothed over ${last[3]} s — at the player's run that is ${(last[3] * RUN_GROUND_SPEED).toFixed(2)} m of ground behind him`);
   }
   // and the weather's own terms are left where they were: the gust is two sines whose fastest
   // component has a seventeen-second period, so their longer times smooth nothing that moves
