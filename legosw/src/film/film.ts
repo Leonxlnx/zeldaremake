@@ -22,7 +22,7 @@ export interface Film {
   /** contact QA: the hangar deck height and the lowest world-space point of each visible hero, ship, droid, wreck part */
   probeContact(T: number): { shot: string; deck: number | null; low: Record<string, number> };
   /** camera QA: the pose the shot asks for at T (no rendering) */
-  probeCamera(T: number): { shot: string; pos: number[]; target: number[]; fov: number; roll: number };
+  probeCamera(T: number): { shot: string; pos: number[]; target: number[]; fov: number; roll: number; ships: Record<string, { pos: number[]; quat: number[]; visible: boolean }> };
   /** caption QA: apply the overlays for time T (no rendering) and report the caption box against the page and picture */
   captionAt(T: number): { text: string; box: number[]; pic: number[]; page: number[]; font: number };
   shots(): { name: string; start: number; end: number; lines: { who: string; text: string }[] }[];
@@ -203,7 +203,12 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
     probeCamera(T) {
       const p = pose(T);
       const c = p.cam;
-      return { shot: shotAt(T).shot.name, pos: c.pos.toArray(), target: c.target.toArray(), fov: c.fov, roll: c.roll ?? 0 };
+      const ships: Record<string, { pos: number[]; quat: number[]; visible: boolean }> = {};
+      for (const [k, sh] of [['anakin', w.anakinShip], ['obiwan', w.obiwanShip]] as const) {
+        sh.group.updateMatrixWorld(true);
+        ships[k] = { pos: sh.group.getWorldPosition(new Vector3()).toArray(), quat: sh.group.getWorldQuaternion(new Quaternion()).toArray(), visible: sh.group.visible };
+      }
+      return { shot: shotAt(T).shot.name, pos: c.pos.toArray(), target: c.target.toArray(), fov: c.fov, roll: c.roll ?? 0, ships };
     },
     probeContact(T) {
       pose(T);

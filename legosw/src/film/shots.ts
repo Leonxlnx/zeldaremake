@@ -177,12 +177,10 @@ function flatBasis(fwd: Vector3, damp = 0.35): Quaternion {
   return basisQuat(f, v3(0, 1, 0));
 }
 
-/** the long take's heading, low-passed over ±0.3 s: the keyed path is only C1, so a camera aimed along the raw
- * heading changes pan rate abruptly at every key */
+/** the long take's key spline is only C1: its fighters (and the camera riding them) steer by a heading low-passed over ±0.3 s */
+const LT_HEAD = 0.3;
 function ltHeading(T: number, who: 'anakin' | 'obiwan' = 'anakin'): Vector3 {
-  const f = new Vector3();
-  for (const [dt, wgt] of [[-0.3, 1], [-0.15, 2], [0, 3], [0.15, 2], [0.3, 1]] as const) f.addScaledVector(flight(ltPath(T + dt, who), T + dt).fwd, wgt);
-  return f.normalize();
+  return flight(ltPath(T, who), T, { headWindow: LT_HEAD }).fwd;
 }
 
 /* --- attack pairs the audience can follow: shooter and target in the same frame, bolts that end on the
@@ -212,7 +210,7 @@ function breakUp(w: World, T: number, path: (T: number) => Vector3, size: number
 
 const LT_KILL_A = 8.3, LT_KILL_B = 10.5, LT_KILL_C = 14.3;
 function ltBasis(T: number): { pos: Vector3; quat: Quaternion } {
-  const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
+  const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
   return { pos: st.pos, quat: flatBasis(st.fwd) };
 }
 /** A: a vulture flees ahead of the pair across the hull; Anakin runs it down */
@@ -237,7 +235,7 @@ const ltArcC = (T: number) => ltVultureC(T - 0.2).add(v3(0, 8, 0));
 
 function scheduleLongTakeKills(w: World, T0: number): void {
   const gunA = (T: number, n: number) => {
-    const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
+    const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
     const mz = w.loc.muzzlesA[n % w.loc.muzzlesA.length];
     return local(st, mz.x, mz.y, mz.z + 0.6);
   };
@@ -295,7 +293,7 @@ const longTake: Shot = {
     // a little flak once the dive reveals the battle (kept sparse so the three kills read)
     const rng = new Rng(31);
     for (let t = 11.8; t < 16; t += rng.range(0.4, 0.7)) {
-      const st = flight(ltPath(T0 + t, 'anakin'), T0 + t);
+      const st = flight(ltPath(T0 + t, 'anakin'), T0 + t, { headWindow: LT_HEAD });
       const p = local({ pos: st.pos, quat: flatBasis(st.fwd) }, rng.range(-300, 300), rng.range(-140, 160), rng.range(450, 950));
       w.fx.explosion(T0 + t, p, { size: rng.range(12, 24), pieces: 14, sparks: 16, smoke: 3, colors: ['dbg', 'lbg', 'black'], seed: Math.floor(t * 97) });
     }
@@ -303,8 +301,8 @@ const longTake: Shot = {
   pose(w, t, T) {
     battle(w, T, { hero: true });
     poseLongTakeKills(w, T);
-    const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
-    const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3 });
+    const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
+    const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3, headWindow: LT_HEAD });
     if (t > 2.3) {
       fly(w, w.anakinShip, a, 0, 1);
       fly(w, w.obiwanShip, o, 0, 1);
@@ -321,8 +319,8 @@ const longTake: Shot = {
     const follow = smoother(4.2, 6.2, t);
     if (follow > 0) {
       const lagT = T - 0.12;
-      const lag = flight(ltPath(lagT, 'anakin'), lagT);
-      const lagO = flight(ltPath(lagT, 'obiwan'), lagT);
+      const lag = flight(ltPath(lagT, 'anakin'), lagT, { headWindow: LT_HEAD });
+      const lagO = flight(ltPath(lagT, 'obiwan'), lagT, { headWindow: LT_HEAD });
       const behind = local({ pos: lag.pos.clone().lerp(lagO.pos, 0.5), quat: flatBasis(ltHeading(lagT)) }, 0, 30, -104);
       pos = pos.lerp(behind, follow);
       const mid = a.pos.clone().lerp(o.pos, 0.35);
@@ -1019,10 +1017,11 @@ function pair11(T0: number) {
   const base = v3(1500, -1100, 24500);
   return (tt: number) => base.clone().add(v3(Math.sin((tt - T0) * 0.7) * 5, 0, (tt - T0) * 210));
 }
-/** Anakin in the rescue: off Obi-Wan's port quarter, closing in from 1.2 s. Effects and pose share it, so zaps land on R2. */
+/** Anakin in the rescue: off Obi-Wan's port quarter, closing in over 1.0-2.3 s. Effects and pose share it, so zaps land on R2. */
 function anakin11(T0: number) {
   return (tt: number) => {
-    const s = smooth(1.2, 2.0, tt - T0);
+    // C2 ease: with smoothstep the heading's turn rate snapped from 26 to 0 deg/s as the close-in ended
+    const s = smoother(1.0, 2.3, tt - T0);
     return pair11(T0)(tt).add(v3(-30 + s * 12, 6 - s * 3, -26 + s * 16));
   };
 }
