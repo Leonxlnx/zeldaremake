@@ -1,0 +1,65 @@
+{
+ "pageErrors": [],
+ "look": [
+  {
+   "id": "plaza",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-base",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-mid",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-top",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-base",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-top",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "saria-side",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "upper-house",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "west-house",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "open-north",
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  }
+ ]
+}
