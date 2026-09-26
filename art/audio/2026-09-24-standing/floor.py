@@ -189,7 +189,7 @@ def main():
     im = Image.new('RGB', (W, H), BG)
     d = ImageDraw.Draw(im)
     d.text((18, 12), 'What never stops, place by place', font=_font(21, True), fill=INK)
-    d.text((18, 40), '90 s standing still in each, the ambience alone. The bar is the A-weighted level present in nine frames out of ten; the number after it is how far the place swings between its quietest and its loudest.', font=_font(12), fill=DIM)
+    d.text((18, 40), '90 s standing still in each, the ambience alone. The bar is the A-weighted level present in nine frames out of ten, as two ears hear it; the notch is the same place through one speaker.', font=_font(12), fill=DIM)
     # scaled to the places, not to a round number: the whole world sits inside about 12 dB and a
     # fixed axis hides that the quietest place and the loudest are not far apart
     vals = [r['floor'] for r in rows] + [r['was'] for r in rows if 'was' in r]
@@ -209,6 +209,10 @@ def main():
         if 'was' in r:
             wx = x0 + (x1 - x0) * (np.clip(r['was'], lo, hi) - lo) / (hi - lo)
             d.line([(wx, y + 1), (wx, y + 18)], fill=OLD, width=2)
+        # where the same place lands through ONE speaker — the number every survey before
+        # 2026-09-26 reported, and the one an older report is comparable with
+        mx = x0 + (x1 - x0) * (np.clip(r['mono'], lo, hi) - lo) / (hi - lo)
+        d.line([(mx, y + 4), (mx, y + 15)], fill=BG, width=2)
         d.text((x1 + 44, y + 3), f'swings {r["swing"]:.0f} dB', font=_font(12), fill=DIM)
         y += 30
     im.save(args.out, quality=92)

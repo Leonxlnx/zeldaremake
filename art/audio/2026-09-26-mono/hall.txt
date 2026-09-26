@@ -1,0 +1,35 @@
+
+the shared spaces, broadband and at a note
+
+  space     broadband at the score’s pitches: worst left  worst right  spread (sd)
+  hall         0.07 dB                           5.22 dB      -6.79 dB       3.11 dB
+  room        -0.11 dB                           9.75 dB      -8.46 dB       4.69 dB
+  gorge       -0.13 dB                           9.36 dB      -6.93 dB       3.73 dB
+
+  positive is left. Broadband every space is inside a tenth of a decibel; at a single
+  pitch they are out by several, and which way round depends on the pitch. A bed of noise
+  averages that away. A tune cannot — it only has the pitches it has.
+
+  the hall, pitch by pitch (the score's own notes)
+    midi  38     73.4 Hz  -3.79
+    midi  40     82.4 Hz  +5.22
+    midi  43     98.0 Hz  -2.02
+    midi  45    110.0 Hz  -5.15
+    midi  47    123.5 Hz  +3.60
+    midi  50    146.8 Hz  -0.03
+    midi  52    164.8 Hz  +3.54
+    midi  55    196.0 Hz  -3.00
+    midi  57    220.0 Hz  +0.72
+    midi  59    246.9 Hz  +2.94
+    midi  62    293.7 Hz  +4.89
+    midi  64    329.6 Hz  +4.43
+    midi  67    392.0 Hz  +0.11
+    midi  69    440.0 Hz  -6.79
+    midi  71    493.9 Hz  +2.07
+    midi  74    587.3 Hz  +0.75
+    midi  76    659.3 Hz  -1.02
+    midi  79    784.0 Hz  +1.12
+    midi  81    880.0 Hz  +0.37
+    midi  83    987.8 Hz  -1.31
+    midi  86   1174.7 Hz  -0.27
+    midi  88   1318.5 Hz  +0.76

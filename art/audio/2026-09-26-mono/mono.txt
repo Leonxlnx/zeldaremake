@@ -1,0 +1,59 @@
+
+/tmp/mono — what each stem loses when the two speakers become one
+
+  stem       on headphones   on one speaker   the collapse     L·R  side−mid    lean
+  mix              -27.8 dB          -28.3 dB        -0.48 dB    0.80     -9.3  -0.130
+  bed              -38.7 dB          -41.0 dB        -2.27 dB    0.18     -1.6  +0.025
+  steps            -34.7 dB          -35.4 dB        -0.72 dB    0.69     -7.4  -0.004
+  music            -29.3 dB          -29.5 dB        -0.25 dB    0.90    -12.2  -0.183
+
+  lean is where the stem sits: 0 is centred, ±1 is hard against one speaker (check 43)
+
+  the balance, and whether it holds through the speakers
+                           headphones   one speaker   moves by
+  steps over the bed            4.0 dB         5.5 dB    +1.55 dB
+  music over the bed            9.4 dB        11.4 dB    +2.02 dB
+  mix over the bed             10.9 dB        12.7 dB    +1.79 dB
+
+  the collapse per band (0 dB is dead centre, −3 dB is fully decorrelated)
+  band (Hz)              mix       bed     steps     music
+      20-60            -1.53     -2.10     -0.93     -0.36
+      60-250           -0.60     -2.43     -0.74     -0.31
+     250-1000          -0.34     -2.47     -0.46     -0.24
+    1000-2000          -1.03     -2.45     -2.03     -0.20
+    2000-4000          -1.28     -1.37     -2.34     -0.26
+    4000-8000          -2.27     -2.35     -2.35     -0.26
+    8000-16000         -2.09     -2.09     -2.29     -0.71
+
+/tmp/mono-after — what each stem loses when the two speakers become one
+
+  stem       on headphones   on one speaker   the collapse     L·R  side−mid    lean
+  mix              -27.8 dB          -28.3 dB        -0.48 dB    0.80     -9.3  -0.129
+  bed              -38.7 dB          -41.0 dB        -2.27 dB    0.18     -1.6  +0.025
+  steps            -34.7 dB          -35.4 dB        -0.72 dB    0.69     -7.4  -0.004
+  music            -29.3 dB          -29.5 dB        -0.26 dB    0.90    -12.2  -0.182
+
+  lean is where the stem sits: 0 is centred, ±1 is hard against one speaker (check 43)
+
+  the balance, and whether it holds through the speakers
+                           headphones   one speaker   moves by
+  steps over the bed            4.0 dB         5.5 dB    +1.55 dB
+  music over the bed            9.4 dB        11.4 dB    +2.02 dB
+  mix over the bed             10.9 dB        12.7 dB    +1.79 dB
+
+  the collapse per band (0 dB is dead centre, −3 dB is fully decorrelated)
+  band (Hz)              mix       bed     steps     music
+      20-60            -1.53     -2.10     -0.93     -0.35
+      60-250           -0.60     -2.43     -0.74     -0.31
+     250-1000          -0.34     -2.47     -0.46     -0.24
+    1000-2000          -1.03     -2.45     -2.03     -0.19
+    2000-4000          -1.28     -1.37     -2.34     -0.27
+    4000-8000          -2.27     -2.35     -2.35     -0.26
+    8000-16000         -2.09     -2.09     -2.29     -0.71
+
+  where each stem sits, before and after — 0 is centred, negative is left
+  stem        before     after     moved     as dB of L over R, before → after
+  mix         -0.130    -0.129    +0.001                       +1.14 → +1.13
+  bed         +0.025    +0.025    +0.000                       -0.21 → -0.21
+  steps       -0.004    -0.004    +0.000                       +0.03 → +0.03
+  music       -0.183    -0.182    +0.002                       +1.61 → +1.60
