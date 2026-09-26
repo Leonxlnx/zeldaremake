@@ -214,3 +214,57 @@ test('the two spaces are independent: being over the cut does not put him indoor
   assert.deepEqual(sendsInto(ctx, buses.room), [ROOM_SEND * 0.7], 'the room went away because he was near the cut');
   assert.deepEqual(sendsInto(ctx, buses.gorge), [GORGE_SEND * 0.4], 'the ravine went away because he was under a roof');
 });
+
+test('a space answers a tone with both ears, not just with both channels', () => {
+  // Both channels of every space used to be their own noise stream. Summed over the spectrum
+  // they matched to a tenth of a decibel — the number anyone would check, and it passed. But the
+  // balance a source gets is the balance AT ITS OWN FREQUENCIES, and at one frequency two
+  // independent noise spectra are two independent draws. The three spaces were out by up to 6.8,
+  // 8.0 and 11.0 dB at the score's pitches, and the music sat 1.6 dB left of centre in every
+  // ten-second window of a two-minute take but one (`art/audio/2026-09-26-mono/`).
+  //
+  // A bed of leaves excites thousands of bins and averages that away, which is why nothing had
+  // caught it. This drives the impulse with TONES, because that is the case that fails.
+  const SR = 44100;
+  const ctx = fakeContext(SR);
+  const spaces = [
+    ['hall', G.impulseResponse(ctx, createRng('ir/hall'), 1.5, 0.96)],
+    ['room', G.impulseResponse(ctx, createRng('ir/room'), G.ROOM_SECONDS, 0.9, G.ROOM_EARLY_AT, G.ROOM_EARLY_SPREAD, G.ROOM_EARLY_AT)],
+    ['gorge', G.impulseResponse(ctx, createRng('ir/gorge'), G.GORGE_SECONDS, G.GORGE_DAMP, G.GORGE_EARLY_AT, G.GORGE_EARLY_SPREAD, G.GORGE_EARLY_AT)],
+  ];
+  /** how much of a sine at `hz` the impulse hands back, per channel — a Goertzel, so no FFT here */
+  const answer = (d, hz) => {
+    const w = (2 * Math.PI * hz) / SR;
+    let re = 0;
+    let im = 0;
+    for (let i = 0; i < d.length; i++) {
+      re += d[i] * Math.cos(w * i);
+      im += d[i] * Math.sin(w * i);
+    }
+    return re * re + im * im;
+  };
+  // the score's own pitches, which is where it was measured to go wrong
+  const pitches = [50, 52, 55, 57, 59, 62, 64].flatMap((n) => [n - 12, n, n + 12, n + 24]);
+  for (const [name, buf] of spaces) {
+    const L = buf.getChannelData(0);
+    const R = buf.getChannelData(1);
+    let worst = 0;
+    for (const midi of pitches) {
+      const hz = 440 * 2 ** ((midi - 69) / 12);
+      const d = 10 * Math.log10(Math.max(answer(L, hz), 1e-30) / Math.max(answer(R, hz), 1e-30));
+      if (Math.abs(d) > Math.abs(worst)) worst = d;
+    }
+    assert.ok(Math.abs(worst) < 1.5, `the ${name} answers a held note ${Math.abs(worst).toFixed(2)} dB louder in one ear than the other`);
+    // and it still has to be a SPACE: two channels that are the same signal are a delay, not a hall
+    let ll = 0;
+    let rr = 0;
+    let lr = 0;
+    for (let i = 0; i < L.length; i++) {
+      ll += L[i] * L[i];
+      rr += R[i] * R[i];
+      lr += L[i] * R[i];
+    }
+    const corr = lr / Math.sqrt(ll * rr);
+    assert.ok(Math.abs(corr) < 0.2, `the ${name}'s two channels correlate at ${corr.toFixed(3)} — it has collapsed to a point`);
+  }
+});

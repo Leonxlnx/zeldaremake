@@ -146,9 +146,15 @@ for (const [name, seed, secs, damp, extra] of SPACES) {
   rows.push({ name, broadband: db(el) - db(er), per, sd });
   console.log(`  ${name.padEnd(8)}${(db(el) - db(er)).toFixed(2).padStart(9)} dB${Math.max(...v).toFixed(2).padStart(31)} dB${Math.min(...v).toFixed(2).padStart(11)} dB${sd.toFixed(2).padStart(11)} dB`);
 }
-console.log('\n  positive is left. Broadband every space is inside a tenth of a decibel; at a single');
-console.log('  pitch they are out by several, and which way round depends on the pitch. A bed of noise');
-console.log("  averages that away. A tune cannot — it only has the pitches it has.\n");
+const worstSd = Math.max(...rows.map((r) => r.sd));
+console.log('\n  positive is left. Broadband every space matches to a tenth of a decibel, which is the');
+console.log('  number anyone would check. What matters is the column beside it: the balance a source');
+console.log('  gets is the balance AT ITS OWN PITCHES, and a tune only has the pitches it has.');
+console.log(
+  worstSd > 1
+    ? `\n  the worst spread is ${worstSd.toFixed(2)} dB — the channels are independent noise and a tone lands wherever they happen to disagree.\n`
+    : `\n  the worst spread is ${worstSd.toFixed(2)} dB — the channels share a magnitude spectrum, so a tone lands where it was put.\n`,
+);
 const hall = rows[0];
 console.log(`  the hall, pitch by pitch (the score's own notes)`);
 for (const p of hall.per) console.log(`    midi ${String(p.midi).padStart(3)}  ${p.hz.toFixed(1).padStart(7)} Hz  ${(p.db >= 0 ? '+' : '') + p.db.toFixed(2)}`);

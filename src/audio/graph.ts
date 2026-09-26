@@ -459,9 +459,16 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
   const n = Math.floor(ctx.sampleRate * seconds);
   const pre = Math.floor(ctx.sampleRate * preDelay);
   const buf = ctx.createBuffer(2, n, ctx.sampleRate);
+  const noise = new Float64Array(n);
+  const r0 = rng.fork('ir0');
+  for (let i = 0; i < n; i++) noise[i] = r0() * 2 - 1;
+  const sides = [noise, quadrature(noise)];
   for (let c = 0; c < 2; c++) {
     const d = buf.getChannelData(c);
-    const r = rng.fork(`ir${c}`);
+    const src = sides[c];
+    // the early reflections stay each channel's own: two ears really do get different first
+    // bounces, and being sparse they are not what a tone sits on
+    const r = rng.fork(`irearly${c}`);
     let lp = 0;
     for (let i = pre; i < n; i++) {
       const j = i - pre;
@@ -469,7 +476,7 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
       const env = Math.exp(-t * 6.5) * (j < 400 ? j / 400 : 1);
       // one-pole low-pass whose cutoff falls as the tail decays
       const k = 0.15 + damp * 0.8 * t;
-      lp += (r() * 2 - 1 - lp) * (1 - k);
+      lp += (src[i] - lp) * (1 - k);
       d[i] = lp * env;
     }
     // early reflections
@@ -480,6 +487,108 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
     }
   }
   return buf;
+}
+
+/**
+ * The second channel of a space: the same sound, a quarter turn of phase later at every frequency.
+ *
+ * Both channels used to be their own noise stream, drawn from `ir0` and `ir1`. Summed over the
+ * whole spectrum that matched to a tenth of a decibel, which is the number anyone would check and
+ * it passed. But **the balance a source gets is the balance at the frequencies the source has**,
+ * and at one frequency two independent noise spectra are two independent draws. Measured at the
+ * score's own pitches (`art/audio/2026-09-26-mono/hall.mjs`), the three spaces were out by up to
+ * 6.8, 8.0 and 11.0 dB with a spread of 3.1 to 4.7 — and the score sat **1.6 dB left of centre**,
+ * every ten-second window of a two-minute take but one. A bed of leaves excites thousands of bins
+ * and averages that away, which is why nothing had ever caught it. A tune only has the pitches it
+ * has.
+ *
+ * A hall has to be two things at once and they pull against each other: **decorrelated**, or it is
+ * not a space, and **matched in magnitude**, or every tone put through it lands off-centre. The
+ * Hilbert transform is both exactly — unit gain at every frequency, so the magnitudes are
+ * identical, and a quarter turn of phase, so the two channels are orthogonal.
+ *
+ * It is also the only candidate that SURVIVES what happens next. Three were built and measured
+ * (`art/audio/2026-09-26-hall/candidates.mjs`): the second channel as the first reversed, as one
+ * magnitude with two random phase sets, and as this. The first two match in magnitude when they
+ * are made and stop matching the moment the decay envelope and the closing low-pass are applied,
+ * because those are time-domain operations and the two sequences hold their energy at different
+ * moments — they measured 2.7 to 4.0 dB of spread, no better than independent noise. The Hilbert
+ * transform preserves the instantaneous ENVELOPE as well as the spectrum, so the shaping treats
+ * both channels identically and the match holds through it: **0.19, 0.33 and 0.52 dB worst across
+ * the three spaces, with a correlation of 0.000**.
+ *
+ * Nothing else about the spaces moves: the tail still starts where it did (the gorge's wall at
+ * 29.6 ms, which is a published measurement) and the decay is the same to the millisecond.
+ */
+export function quadrature(x: Float64Array): Float64Array {
+  const n = x.length;
+  const m = 1 << Math.ceil(Math.log2(n));
+  const re = new Float64Array(m);
+  const im = new Float64Array(m);
+  re.set(x);
+  fft(re, im, false);
+  // +90° on the positive frequencies and −90° on the negative, which is a real output
+  for (let k = 1; k < m / 2; k++) {
+    const a = re[k];
+    const b = im[k];
+    re[k] = b;
+    im[k] = -a;
+    const c = re[m - k];
+    const d = im[m - k];
+    re[m - k] = -d;
+    im[m - k] = c;
+  }
+  re[0] = im[0] = 0;
+  re[m / 2] = im[m / 2] = 0;
+  fft(re, im, true);
+  return re.slice(0, n) as Float64Array;
+}
+
+/**
+ * In-place radix-2 FFT, and the only signal processing in this file that is not a WebAudio node.
+ *
+ * It exists for `quadrature` above and runs three times at start-up, on impulses of a second or
+ * two — a couple of milliseconds each, once, before anything is heard.
+ */
+function fft(re: Float64Array, im: Float64Array, inverse: boolean): void {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      const tr = re[i];
+      re[i] = re[j];
+      re[j] = tr;
+      const ti = im[i];
+      im[i] = im[j];
+      im[j] = ti;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = ((inverse ? 2 : -2) * Math.PI) / len;
+    const half = len >> 1;
+    for (let i = 0; i < n; i += len) {
+      for (let k = 0; k < half; k++) {
+        const c = Math.cos(ang * k);
+        const s = Math.sin(ang * k);
+        const ur = re[i + k];
+        const ui = im[i + k];
+        const vr = re[i + k + half] * c - im[i + k + half] * s;
+        const vi = re[i + k + half] * s + im[i + k + half] * c;
+        re[i + k] = ur + vr;
+        im[i + k] = ui + vi;
+        re[i + k + half] = ur - vr;
+        im[i + k + half] = ui - vi;
+      }
+    }
+  }
+  if (inverse) {
+    for (let i = 0; i < n; i++) {
+      re[i] /= n;
+      im[i] /= n;
+    }
+  }
 }
 
 export function filter(ctx: BaseAudioContext, type: BiquadFilterType, frequency: number, Q = 1, gain = 0): BiquadFilterNode {
