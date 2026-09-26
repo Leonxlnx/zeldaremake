@@ -13,7 +13,7 @@ in lane; move it if the squad would rather it sat beside the structures one).
 
 ## The verdict
 
-**173 / 200 when first scored on 2026-09-25. 181 / 200 by 08:50, 182 by 17:40, 183 by 21:40 the same day** (check 48 moved to 4 once suspend and resume were tested at last: `2026-09-25-suspend`).
+**173 / 200 when first scored on 2026-09-25. 181 / 200 by 08:50, 182 by 17:40, 183 by 21:40; 184 / 200 on 2026-09-26** (check 48 moved to 4 once suspend and resume were tested at last: `2026-09-25-suspend`).
 
 Its own rule is *ships at ≥ 170 with no check below 2, and the ★ checks at ≥ 3*. On the first pass
 it cleared the total and failed the rest — three checks below 2 and one ★ at 2. Since then #88 built
@@ -46,7 +46,7 @@ not a mis-score, and it is the only thing between the sound and the rubric's own
 | --- | --- | ---: | --- |
 | A | the background bed | **30 / 32** | the owner's complaint, answered |
 | B | place | 24 / 28 | was 22; ★9 and 15 re-scored on colour rather than level |
-| C | footsteps | **30 / 32** | |
+| C | footsteps | **31 / 32** | |
 | D | contact and events | 15 / 20 | **#27 scores 0 — the only check still under 2** |
 | E | music | **24 / 24** | |
 | F | mix and level | 23 / 24 | |
@@ -153,7 +153,7 @@ score is a judgement and is marked as such.
 | 18 | every surface reachable and classified | **4** | `surfaces.test.mjs`, both directions |
 | 19 | cadence matches the animation | **4** | derived from `CLIP_SPEC` with a guard that fails if the clip is re-authored |
 | 20 | believable level | 3 | steps peak −14.3 against the music's −19.1; the sfx compressor holds a run without touching the music |
-| 21 | walk and run differ in more than rate | 3 | measured, and it was not: a run's centroid was 1 Hz from a walk's. Now +36 Hz (`2026-09-25-gait`). Not a 4 — the per-step instrument does not work at a running cadence |
+| 21 | walk and run differ in more than rate | **4** | measured, and it was not: a run's centroid was 1 Hz from a walk's. The design was fixed in `2026-09-25-gait`, and on 2026-09-26 it was measured **in the rendered audio** at last — PR #59's slower run made the per-step instrument work (found/expected 1.00, onset gaps scattering 2 ms). A run's body is 30 % brighter and its tail 28 % shorter than a walk's, distributions barely overlapping (`2026-09-26-perstep`). The level cue is only +1.7 dB of a designed 4.31, because the sfx compressor squashes every step 4:1 — recorded there as the next thing |
 | 22 | stairs, bridges, hollow each own a body | **4** | separate designs, each guarded |
 | 23 | steps vary | **4** | 5.3 s noise loop, per-step jitter, tested |
 | 24 | landing scales with the fall | **4** | `landingStrength(fallM)`, tested |

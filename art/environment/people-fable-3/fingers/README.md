@@ -39,12 +39,13 @@ rounds, 1280 × 720, crops at 3×. **Top / left = head, bottom / right = fingers
 
 Draws identical at every view; the kids in frame add ≤ 2 K triangles. The changed pixels are their hands at 20 m+.
 
-## Found on the way, not this PR's
+## Found on the way — and withdrawn
 
-**The girl on the flight (slot 1) is not seated in play.** `people.mjs` at Link 1.2 and 3.0 m, on this branch, the
-head, the 18:46 head, the 14:22 head and the 08:26 head alike: she stands on her tread, legs straight, arms bent
-toward where her knees would be — `poseSeated`'s arm solve over straight legs, or the standing idle. The seat's
-numbers allow a sit (hips 0.605, ankle targets 0.33, reach 0.16 → knee ≈ 97° by `twoBone`), and the audit's
-`kneeInteriorDeg` has read 177.1° in every capture since 09-23. The 06:55 sitter-gaze frames show the same straight
-legs, so this is older than today's lane-7 work, and it is not the hands. Lane 7's next item: find where her
-`poseSeated` is lost (or overwritten) and get her sitting.
+At 00:30 I reported the seated girl (slot 1) as standing in play. **She is seated.** Read live in the page with Link
+1.5 m off (`sitter-live.mjs`, this folder's probe): thigh −1.02 rad, knee 1.403 rad (interior 99.6° / 104.1°), chest
+curled 0.45, right shoulder −2.68 mid-wave; the skinned meshes' bone matrices match her joints' world matrices, and
+the aimed 2.4× crop (`seated-girl-is-seated-link-1.2m-2.4x.jpg`) shows the sit — thighs toward the camera, knees
+bent, shins down to the lower tread, hands on her knees. What misled me: the harness's head-on view foreshortens
+the thighs to nothing at thumbnail scale, and capture.mjs's `audit.json` reads her `kneeInteriorDeg` as 177.1°
+because that audit runs before her first pose (the bind pose's knee) — the live audit reads 99.6°. No lane-7 defect;
+the one small thing is that a capture-time audit number should not be trusted as a pose reading.
