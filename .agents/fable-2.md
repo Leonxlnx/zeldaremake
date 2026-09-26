@@ -683,3 +683,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - Two poses on a1e7d7f2: the short menhirs read as weathered blocks with their strata bands; the
   per-quad flank tone (the risers' bug class) does not show at their size. No change. Sheet
   `hs136-stone-circle-arms-length.jpg`. Head unchanged since 00:26; the areas still on their branches.
+
+### Iteration 137 (04:10) — #196: the ravine gated to 26 m of the gorge (−0.19 M at the green)
+- `visible` flags in the audit exposed the ravine drawn from the plateau via expansionVisible (wrong
+  locality); new `ravineVisible` (26 m to a body + frustum). Green rocks 27 / 0.48 → 25 / 0.29 M;
+  far bank and deck 0 pixels; six views 0 pixels; tests 33. Store mount lost its contents at 04:04
+  (permission denied) — tools rebuilt under /tmp/f2/tools as needed.
