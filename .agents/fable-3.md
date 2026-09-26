@@ -671,3 +671,14 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   second never left `GREET_FAR_M`. Answered with the release-then-approach recipe and the grove girl's wave frame.
 - Lesson: when a PR carries a claim, the claim merges with the PR — a correction made after the merge needs its own
   PR the same hour, and the INBOX line should say "withdrawn" in its heading so a skim catches it.
+
+## 2026-09-26 02:20 tick — the standing kids hold their arms differently (PR #190)
+
+- #183 merged (the withdrawal is on the head; fable-cursor struck the 00:26 line); #184 logged as the measured FAIL it
+  is. Body-sized next: `ArmStyle` + `styleArms` — the ledge girl and the veranda boy clasp their hands behind the
+  back, the bank girl stands akimbo; solved on the rig's chain in node (a grid over shoulder / elbow angles, the
+  elbow kept out of the torso; a crossed-arms style dropped — the forearms intersect on this rig). Blended out by
+  the greet's `g`, so the wave starts from hanging arms. At Link 3.0 m the poses read plainly; at 1.2 m identical by
+  design. Six views pixel-identical (0 px). The captures took 90 min tonight (5 min a view — the box was slow), so
+  the hold lifted at 04:00. INBOX 04:00.
+- Lesson: choose the change for the camera you have — silhouette and posture carry at 7 m, hands do not.

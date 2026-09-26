@@ -35,4 +35,19 @@ before him, `veranda-shot.mjs`, camera ≈ 7 m):
 
 ## Six fixed views
 
-SIX_VIEW_PLACEHOLDER
+`capture.mjs --quality high --settle 12` on the head `33e92705` (`dist-head02`) and the branch (`dist-arms`), SSIM
+against `reference/frames` at 256 × 144, changed pixels at 1280 × 720:
+
+| view | head | idle-arms | Δ | SSIM head ↔ branch | changed px |
+| --- | --- | --- | --- | --- | --- |
+| A | 0.1948 | 0.1948 | 0.0000 | 1.0000 | 0 |
+| B | 0.1767 | 0.1767 | 0.0000 | 1.0000 | 0 |
+| C | 0.1852 | 0.1852 | 0.0000 | 1.0000 | 0 |
+| D | 0.2503 | 0.2503 | 0.0000 | 1.0000 | 0 |
+| E | 0.1997 | 0.1997 | 0.0000 | 1.0000 | 0 |
+| F | 0.2191 | 0.2191 | 0.0000 | 1.0000 | 0 |
+
+**Pixel-identical at all six**: the three re-posed kids stand outside the fixed frames (the ledge girl is shown only
+off them; the bank girl and the veranda boy are beyond their reach), and the wanderer and the sitter are untouched.
+No geometry changed, so draws and triangles are the head's at every view.
+
