@@ -38,6 +38,7 @@
  */
 import {
   BoxGeometry,
+  CapsuleGeometry,
   BufferGeometry,
   CanvasTexture,
   Color,
@@ -772,16 +773,41 @@ function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
 }
 
 /**
- * A thumb on each mitten hand (owner 23:00, "make the other characters look a bit better" at
- * 2–6 m): `buildArms`' hand is a flattened ball; a small ellipsoid on the palm's inner side,
- * angled forward, makes it read as a hand at 2–3 m. Skin material, shadows on, so it rides in the
- * skin's skinned submission — no extra draw.
+ * The four fingers of a hand, inner to outer: [x from the hand's centre-line (m, toward the little
+ * finger), capsule body length (m)]. The tips fall 2–2.5 cm below `buildArms`' ball, a child's
+ * palm-to-finger proportion; the little finger shortest.
  */
-function buildThumbs(rig: Rig, skin: MeshStandardMaterial): void {
+const FINGERS: readonly [number, number][] = [
+  [-0.016, 0.03],
+  [-0.005, 0.034],
+  [0.006, 0.032],
+  [0.017, 0.026],
+];
+const FINGER_R = 0.0072;
+/** the fingers' curl toward the palm's front (rad about the wrist's x) and the outermost's splay (rad) */
+const FINGER_CURL = -0.22;
+const FINGER_SPLAY = 0.07;
+
+/**
+ * Digits on each mitten hand (owner 23:00, "make the other characters look a bit better" at
+ * 2–6 m): `buildArms`' hand is a flattened ball. A thumb — a small ellipsoid on the palm's inner
+ * side, angled forward — made it read as a hand at 2–3 m; four fingers hang from the ball's lower
+ * front, splayed a little and curled toward the palm, so the hand the greeting raises beside the
+ * head (the wave, 1.7–2.6 m from Link) is an open hand and not a paddle, and the hands at rest read
+ * as hands beside the skirt. Their roots sit inside the ball, so the joint is hidden. Skin material,
+ * shadows on, so they ride in the skin's skinned submission — no extra draw (skin.ts bakes every
+ * mesh under a joint into one SkinnedMesh per material).
+ */
+function buildHands(rig: Rig, skin: MeshStandardMaterial): void {
   const p = rig.props;
+  const ballY = -p.forearm - 0.02;
   for (const side of [1, -1] as const) {
     const elbow = side > 0 ? rig.elbowL : rig.elbowR;
     part(elbow, place(new SphereGeometry(0.012, 8, 6), -side * 0.03, -p.forearm - 0.008, 0.016, [0.35, 0, side * 0.55], [1, 1.6, 0.9]), skin, 'thumb');
+    const fingers = FINGERS.map(([x, len]) =>
+      place(new CapsuleGeometry(FINGER_R, len, 2, 6), side * x, ballY - 0.03 - len / 2, 0.006, [FINGER_CURL, 0, (side * x) / 0.017 * FINGER_SPLAY]),
+    );
+    part(elbow, merge(fingers), skin, 'fingers');
   }
 }
 
@@ -987,7 +1013,7 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   const p = rig.props;
   const tunic = clothMaterial('boy', BOY_TUNIC);
   buildArms(rig, { skin, sleeve: null });
-  buildThumbs(rig, skin);
+  buildHands(rig, skin);
   const hl = (y: number) => y - p.hipY;
   const cl = (y: number) => y - p.chestY;
   part(
@@ -1075,7 +1101,7 @@ export function createKokiri(variant: number): Character {
   // (0.81 m) and the bob's hem covers the back — the cylinder link.ts's buildNeck would add is enclosed
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
-    buildThumbs(rig, skin);
+    buildHands(rig, skin);
     buildWristbands(rig, beltMaterial());
     buildGirlTunic(rig, girlCloth(look));
     buildGirlFace(rig, look);
