@@ -43,9 +43,11 @@ import {
  * The hull is the real "double wedge": one stern cross-section (flight deck, dorsal wings, rim,
  * side trench, lower side band, ventral wedge, keel) coned to the bow tip, so every hull face is a
  * planar triangle. Each face is tiled in its own frame by the b-kit packer (tiles, plates, grille
- * tiles, cropped wedge pieces along the angled edges) on top of a dark core. Livery: dark red
- * hangar doors from bow to superstructure, four red stripes on each aft wing, red nose, Open Circle
- * emblems amidships.
+ * tiles, cropped wedge pieces along the angled edges) on top of a dark core. Livery: red bands
+ * along the dorsal bow edges (wrapping over the rim), a red forward deck that forks into the red
+ * outline of the grey dorsal hangar doors, red nose, Open Circle emblems amidships. Eight domed
+ * DBY-827 turrets flank the superstructure; three main thrusters and four auxiliaries sit under a
+ * housing on the stern.
  *
  * LOD 0 is built in one routed pass: base parts go to a few spatial chunks (frustum culling), studs
  * and small greebles to near-only chunks, grille bars and hairline parts to closest-range chunks,
@@ -270,6 +272,10 @@ const BAND_U1 = (() => {
 })();
 const EMB: P2 = toLocal(FD, [EMBLEM_XZ[0], dorsalY(EMBLEM_XZ[0], EMBLEM_XZ[1]), EMBLEM_XZ[1]]);
 const TURRET_L: P2[] = TURRETS.map(([x, z]) => toLocal(FD, [x, dorsalY(x, z), z]));
+/** medium dual turbolasers forward of the heavy battery, midway between the rim and the deck edge (dorsal-wing frame u, v) */
+const D1_L: P2 = toLocal(FD, st(D1));
+const MEDIUM_L: P2[] = [118, 168, 232].map((u) => [u, (0.45 * u * D1_L[1]) / D1_L[0]] as P2);
+const MEDIUM_SCALE = 0.55;
 
 // ─── styles ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -1081,8 +1087,9 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
     // flush margins: raised plates beside a band would shade it and hide it at grazing angles
     if (onBand(bands, u, v, 2)) return L.trimW;
     for (const [pu, pv] of PD_EDGE) if (Math.abs(u - pu) < 1.6 && Math.abs(v - pv) < 1.6) return D ? L.pad : L.panelD;
-    // pads around the heavy turrets
+    // pads around the heavy and medium turrets
     for (const [tu, tv] of TURRET_L) if (Math.abs(u - tu) < 5 && Math.abs(v - tv) < 5) return D ? L.plateD : L.panelD;
+    for (const [tu, tv] of MEDIUM_L) if (Math.abs(u - tu) < 3 && Math.abs(v - tv) < 3) return D ? L.plateD : L.panelD;
     if (mod(u, 32) < 1 && u > 24) return L.seam;
     if (D) return strakes(u, v - 2, seed + 3, 16, 6, WS) ?? L.field;
     return aztec(u, v - 2, seed + 3, 16, 6, (r) => (r < 0.52 ? L.panelL : r < 0.66 ? L.raisedL : r < 0.8 ? L.plateL : r < 0.9 ? L.raisedW : L.panelD)) ?? L.field;
@@ -1092,6 +1099,7 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
     if (underNose(w.z) || inL1(w.x, w.y + 0.4, w.z, 0.2)) return true;
     if (Math.hypot(u - EMB[0], v - EMB[1]) < 7.49) return true;
     for (const [tu, tv] of TURRET_L) if (Math.hypot(u - tu, v - tv) < 3.6) return true;
+    for (const [tu, tv] of MEDIUM_L) if (Math.hypot(u - tu, v - tv) < 3.6 * MEDIUM_SCALE) return true;
     const [bu, bv] = toBand(u, v);
     if (D && bu > BAND_U0 - 0.7 && bu < BAND_U1 && bv < BAND_W - 0.8) return true;
     return bv < 0.45;
@@ -1114,7 +1122,12 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
           return u > 150 ? 0.42 : 0.36;
         },
         style: wingStyle,
-        mask: (u, v) => wingMask(u, v) || Math.hypot(u - EMB[0], v - EMB[1]) < 9.5 || onBand(bands, u, v, 3) || PD_EDGE.some(([pu, pv]) => Math.abs(u - pu) < 3 && Math.abs(v - pv) < 3),
+        mask: (u, v) =>
+          wingMask(u, v) ||
+          Math.hypot(u - EMB[0], v - EMB[1]) < 9.5 ||
+          onBand(bands, u, v, 3) ||
+          PD_EDGE.some(([pu, pv]) => Math.abs(u - pu) < 3 && Math.abs(v - pv) < 3) ||
+          MEDIUM_L.some(([tu, tv]) => Math.abs(u - tu) < 4.5 && Math.abs(v - tv) < 4.5),
         seed: seed + 40,
       });
     }
@@ -1135,6 +1148,15 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
     if (side > 0) out.turretMuzzles.push([x + 1.1, y + 1.95, z + 10.4], [x - 1.1, y + 1.95, z + 10.4]);
     else out.turretMuzzles.push([-x + 1.1, y + 1.95, z + 10.4], [-x - 1.1, y + 1.95, z + 10.4]);
     b.at(x, y, z, () => heavyTurret(b, D, side));
+  }
+  // medium turrets: the same gunhouse at a smaller scale (no battle anchors, so the volleys stay as they were)
+  for (const [mu, mv] of MEDIUM_L) {
+    const w = toWorld(FD, mu, mv);
+    b.push();
+    b.translate(w.x, dorsalY(w.x, w.z) + 0.4 * MEDIUM_SCALE, w.z);
+    b.scale(MEDIUM_SCALE);
+    heavyTurret(b, D, side);
+    b.pop();
   }
   // ── rim (upper hull side face) ──
   const rimPts: V3[] = [TIP, st(R0), st(R1)];
