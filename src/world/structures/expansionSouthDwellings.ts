@@ -1656,12 +1656,15 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
 
   /** audit: the steps' tops and risers at either end (m) — the upper log's, and the lower log's in front of its south part — and the stumps under them */
   const waystationStep = { top: [0, 0], floorRiser: [0, 0], groundRiser: [0, 0], low: { top: [0, 0], riser: [0, 0], groundRiser: [0, 0] }, stumps: 0 };
-  // ---- the step up from the path: split logs along the front. The ground in front falls from 0.36 m
-  // under the floor at the north end to 0.73 m at the south, so the upper log's top parts that into
-  // even risers, two at the north end (0.18 m) and three at the south (0.24 m); the lower log in front
-  // of its south part takes the third (Link's feet cannot bridge a 0.36 m riser into ground falling
-  // away: one shoe sank 0.17 m into the log and the other hung 0.59 m over the ground). Both lie on
-  // stumps where they clear the ground ----
+  // ---- the step up from the path: split logs along the front, the upper one's back edge 3.5 cm under
+  // the floor boards' ends (they end 0.645–0.71 m out), the lower one against its front edge. The
+  // ground in front falls from 0.37 m under the floor at the north end to 0.67 m at the south, so the
+  // upper log's top parts that into even risers, two at the north end (0.19 m) and three at the south
+  // (0.22 m); the lower log in front of its south part takes the third (Link's feet cannot bridge a
+  // 0.36 m riser into ground falling away: one shoe sank 0.17 m into the log and the other hung 0.59 m
+  // over the ground). Both lie on stumps where they clear the ground. The floor's walk, the upper
+  // log's and the lower log's overlap: the ground between them lies deeper under the floor than the
+  // 0.55 m step guard, so any gap between the walks is a pit Link cannot climb out of toward the floor ----
   {
     const sr = wRng.fork('step');
     const frontY = (a: number, s: number) => {
@@ -1708,8 +1711,9 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         bases.push([c.x, gy, c.z]);
       }
     };
-    const SA = HD + 0.24;
-    const [s0, s1] = [-0.78, 0.58];
+    const SA = HD + 0.115;
+    // the north end stops 0.18 m short of the root that stands as the front-north post
+    const [s0, s1] = [-0.7, 0.58];
     const tp = FT - (FT - frontY(SA, s0)) / 2;
     const tq = FT - (FT - frontY(SA, s1)) / 3;
     const upperTop = (s: number) => lerp(tp, tq, clamp((s - s0) / (s1 - s0), 0, 1));
@@ -1717,8 +1721,8 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     waystationStep.floorRiser = [+(FT - tp).toFixed(2), +(FT - tq).toFixed(2)];
     waystationStep.groundRiser = [+(tp - frontY(SA, s0)).toFixed(2), +(tq - frontY(SA, s1)).toFixed(2)];
     splitLog(SA, s0, s1, tp, tq, '', 0);
-    walkSurfaces.push(deckSurface('south-waystation-step', at(SA, s0 + 0.06, tp), at(SA, s1 - 0.06, tq), 0.13));
-    // the lower log from where the upper one stands 0.3 m over the ground to past its south end,
+    walkSurfaces.push(deckSurface('south-waystation-step', at(SA, s0, tp), at(SA, s1, tq), 0.15));
+    // the lower log from where the upper one stands a quarter metre over the ground to past its south end,
     // where the walk off the floor's south half comes down; its top the straight line nearest the
     // midpoints between the upper log and the ground along it (the ground dips in the middle)
     const LA = SA + 0.3;
@@ -1737,14 +1741,14 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     waystationStep.low.riser = [+(upperTop(l0) - lp).toFixed(2), +(upperTop(l1) - lq).toFixed(2)];
     waystationStep.low.groundRiser = [+(lp - frontY(LA, l0)).toFixed(2), +(lq - frontY(LA, l1)).toFixed(2)];
     splitLog(LA, l0, l1, lp, lq, 'low-', 1);
-    walkSurfaces.push(deckSurface('south-waystation-step-low', at(LA, l0 + 0.06, lp), at(LA, l1 - 0.06, lq), 0.13));
+    walkSurfaces.push(deckSurface('south-waystation-step-low', at(LA - 0.01, l0, lp), at(LA - 0.01, l1, lq), 0.16));
   }
 
   // ---- the waystation's walk: the floor; the back wall with the bench and basket along it, the
   // north wall and the front-south post blocked with a body's margin. Link stops in front of the
   // bench 0.64 m or more from the back wall's inner face, so the play camera, which keeps 0.6 m
   // from his aim, stays inside the wall when he faces out ----
-  walkSurfaces.push(deckSurface('south-waystation-floor', at(0, -HW + 0.05, FT), at(0, HW - 0.05, FT), HD - 0.055));
+  walkSurfaces.push(deckSurface('south-waystation-floor', at(0, -HW + 0.05, FT), at(0, HW - 0.05, FT), HD));
   for (let i = 0; i < 6; i++) {
     const c = at(-HD + 0.12, lerp(-HW + 0.1, HW - 0.1, i / 5), FT);
     walkSurfaces.push(solidDisc(`south-waystation-back-${i}`, c.x, c.z, 0.48, FT));

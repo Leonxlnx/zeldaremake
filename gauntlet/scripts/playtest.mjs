@@ -85,6 +85,8 @@ const DWELLINGS = {
   keeper: { centre: [7.1, 31.9], deckY: -0.07, hut: 1.4, railR: 2.17, railHalf: 0.18, from: -14, to: 228, railTo: 193.4 },
   waystation: { centre: [5.12, 25.95], facingDeg: -74, floorY: 0.22, width: 2.0, depth: 1.35, backHeight: 1.65, northHeight: 0.95 },
 };
+/** the waystation's split-log steps (structures/expansionSouthDwellings.ts): their axes' distance out of the front (a), their ends (s) and half-width */
+const WAYSTATION_STEPS = { upper: { a: 0.79, s: [-0.7, 0.58] }, lower: { a: 1.09, s: [-0.5, 0.78] }, halfWidth: 0.15 };
 const keeperAt = (thetaDeg, r) => [DWELLINGS.keeper.centre[0] + Math.cos(rad(thetaDeg)) * r, DWELLINGS.keeper.centre[1] + Math.sin(rad(thetaDeg)) * r];
 const waystationLocal = ([x, , z]) => {
   const W = DWELLINGS.waystation;
@@ -676,9 +678,11 @@ async function walkRoute(page, name, points, maxFrames = 900) {
   while (wp < points.length && frames < maxFrames) {
     const st = await state(page);
     const [x, , z] = st.link;
-    const [tx, tz] = points[wp];
+    const [tx, tz, need] = points[wp];
     const dist = Math.hypot(tx - x, tz - z);
-    if (dist < 0.5) {
+    // a waypoint may ask for more than passing within 0.5 m: nearer (`within`) and at a height (`y`,
+    // standing on a floor rather than in the pit in front of it)
+    if (dist < (need?.within ?? 0.5) && (need?.y === undefined || Math.abs(st.link[1] - need.y) < 0.06)) {
       wp++;
       best = Infinity;
       lastProgressAt = frames;
@@ -784,10 +788,11 @@ async function walkScenario(page, results) {
     // round 56 (expansion-south): out of the plaza down the south approach, between the giants'
     // roots to the ravine, over the rope bridge on its axis and into the hollow log to near its glow
     ['south-bridge-to-log', [[0.5, 3], [0.8, 10], [1, 16], [-0.5, 17.2], [-1.2, 19.4], [-1.32, 21.6], [-0.8, 23.55], [0.4, 25.15], [2.0, 26.55], [3.3, 27.9], [3.68, 28.95], sf.bridge(-0.6), sf.bridge(1.4), sf.bridge(4.1), sf.bridge(6.9), sf.bridge(9.8), sf.bridge(12.2), sf.bridge(sf.len + 0.5), [4.14, 45.2], sf.log(0), sf.log(2), sf.log(4.8)], 2400],
-    // exp-south2: off the path up the waystation's step onto its floor and out again, along the verge
-    // north of the toll pile to the bridge head, onto the keeper's gallery at its entrance, round the
-    // hut over the gorge, down the east step and back round the hut's north side to the path
-    ['south-dwellings', [[3.3, 27.9], [3.9, 26.6], waystationAt(0.915, 0), waystationAt(0.3, 0), waystationAt(0.3, 0.5), waystationAt(0.94, 0.3), [3.9, 27.4], [4.3, 29.0], [5.1, 30.1], keeperAt(221, 2.0), keeperAt(200, 1.7), keeperAt(170, 1.7), keeperAt(135, 1.7), keeperAt(100, 1.7), keeperAt(60, 1.7), keeperAt(20, 1.7), keeperAt(-8, 1.7), keeperAt(-20.5, 1.86), [9.35, 31.0], [9.0, 30.0], [8.0, 29.35], [6.6, 29.2], [5.6, 28.55], [3.68, 28.95]], 2400],
+    // exp-south2: off the path up the waystation's steps onto its floor (standing on it, at its
+    // height) and out again, along the verge north of the toll pile to the bridge head, onto the
+    // keeper's gallery at its entrance, round the hut over the gorge, down the east step and back
+    // round the hut's north side to the path
+    ['south-dwellings', [[3.3, 27.9], [3.9, 26.6], waystationAt(WAYSTATION_STEPS.upper.a, 0), [...waystationAt(0.3, 0), { within: 0.2, y: DWELLINGS.waystation.floorY }], [...waystationAt(0.3, 0.5), { within: 0.25, y: DWELLINGS.waystation.floorY }], waystationAt(WAYSTATION_STEPS.lower.a, 0.3), [3.9, 27.4], [4.3, 29.0], [5.1, 30.1], keeperAt(221, 2.0), keeperAt(200, 1.7), keeperAt(170, 1.7), keeperAt(135, 1.7), keeperAt(100, 1.7), keeperAt(60, 1.7), keeperAt(20, 1.7), keeperAt(-8, 1.7), keeperAt(-20.5, 1.86), [9.35, 31.0], [9.0, 30.0], [8.0, 29.35], [6.6, 29.2], [5.6, 28.55], [3.68, 28.95]], 2400],
     // exp-south2: the way back — from the log's dead end (the exit's glade beyond the roots) out of
     // the mouth, over the bridge, round plaza-south's foot and up the south approach to the plaza
     ['south-log-to-village', [sf.log(4.8), sf.log(2), sf.log(0), [4.14, 45.2], sf.bridge(sf.len + 0.5), sf.bridge(12.2), sf.bridge(9.8), sf.bridge(6.9), sf.bridge(4.1), sf.bridge(1.4), sf.bridge(-0.6), [3.68, 28.95], [3.3, 27.9], [2.0, 26.55], [0.4, 25.15], [-0.8, 23.55], [-1.32, 21.6], [-1.2, 19.4], [-0.5, 17.2], [1, 16], [0.8, 10], [0.5, 3]], 2400],
@@ -907,7 +912,9 @@ async function southProbes(page) {
  * exp-south2: the dwellings hold Link where they are built — the keeper's gallery walks at its
  * boards' height all round the gorge side, its railing, the hut and the gorge past the railing
  * block, both steps walk; the waystation's floor walks at its boards' height, its back wall, the
- * bench in front of it, its north wall and the firewood outside block, both its steps walk.
+ * bench in front of it, its north wall and the firewood outside block, both its steps walk, and
+ * straight out of the floor over both steps the walk never drops to the ground or rises more than a
+ * stair's riser.
  */
 async function southDwellingProbes(page) {
   const K = DWELLINGS.keeper;
@@ -928,8 +935,9 @@ async function southDwellingProbes(page) {
   probes.push({ where: 'waystation-floor', a: 0.2, s: 0, at: waystationAt(0.2, 0), expect: 'deck', y: W.floorY });
   for (const [a, s] of [[0, -0.95], [0.4, -0.95]]) probes.push({ where: 'waystation-north-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
   probes.push({ where: 'waystation-firewood', a: 0, s: -1.28, at: waystationAt(0, -1.28), expect: 'blocked' });
-  probes.push({ where: 'waystation-step', a: 0.915, s: 0, at: waystationAt(0.915, 0), expect: 'step' });
-  for (const s of [-0.3, 0.3, 0.7]) probes.push({ where: 'waystation-step-low', a: 1.215, s, at: waystationAt(1.215, s), expect: 'step' });
+  const WS = WAYSTATION_STEPS;
+  for (const s of [-0.5, 0, 0.4]) probes.push({ where: 'waystation-step', a: WS.upper.a, s, at: waystationAt(WS.upper.a, s), expect: 'step' });
+  for (const s of [-0.3, 0.3, 0.7]) probes.push({ where: 'waystation-step-low', a: WS.lower.a, s, at: waystationAt(WS.lower.a, s), expect: 'step' });
   const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
   const rows = probes.map((p, i) => {
     const g = got[i];
@@ -937,6 +945,20 @@ async function southDwellingProbes(page) {
     const { at, ...rest } = p;
     return { ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, ok };
   });
+  // straight out of the waystation's floor over both steps to the ground, every 1 cm: built all the
+  // way to the lower log's front edge (never the ground in a gap: it lies deeper under the floor
+  // than the step guard, a pit), and no rise going in taller than a stair's 0.28 m
+  const lineEnd = WS.lower.a + WS.halfWidth - 0.01;
+  for (const s of [-0.4, 0, 0.3, 0.55]) {
+    const as = [];
+    for (let a = 0.3; a <= lineEnd + 1e-9; a += 0.01) as.push(+a.toFixed(2));
+    const g = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), as.map((a) => waystationAt(a, s)));
+    const pit = as.filter((_, i) => g[i].blocked || g[i].walk - g[i].terrain < 0.08);
+    let maxRise = 0;
+    for (let i = 1; i < g.length; i++) maxRise = Math.max(maxRise, g[i - 1].walk - g[i].walk);
+    const at = waystationAt(0.3, s);
+    rows.push({ where: 'waystation-floor-to-steps', a: [0.3, +lineEnd.toFixed(2)], s, x: +at[0].toFixed(2), z: +at[1].toFixed(2), heights: [...new Set(g.map((q) => +q.walk.toFixed(2)))], maxRiseM: +maxRise.toFixed(3), offBuiltAt: pit.slice(0, 8), ok: pit.length === 0 && maxRise <= 0.28 });
+  }
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }
 

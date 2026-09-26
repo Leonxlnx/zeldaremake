@@ -74,7 +74,8 @@ function standingPlaces() {
   const wYaw = (W.facingDeg * Math.PI) / 180;
   const onWaystation = (a, s) => [W.centre[0] + Math.sin(wYaw) * a + Math.cos(wYaw) * s, W.centre[1] + Math.cos(wYaw) * a - Math.sin(wYaw) * s];
   for (const [a, s] of [[0, 0], [-0.4, 0.6], [0.3, -0.7]]) p.push([`the waystation's floor at (${a}, ${s}) in its own frame`, ...onWaystation(a, s), 'wood']);
-  p.push(["the waystation's step", ...onWaystation(0.915, 0), 'wood']);
+  p.push(["the waystation's step", ...onWaystation(0.79, 0), 'wood']);
+  for (const s of [-0.3, 0.3, 0.7]) p.push([`the waystation's lower step at s ${s}`, ...onWaystation(1.09, s), 'wood']);
 
   p.push(["the log arch's bore on the north path", 4.84, -55.4, 'hollow']);
   p.push(['the main stone flight', 9.2, -1.4, 'stone']);

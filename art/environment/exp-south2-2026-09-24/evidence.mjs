@@ -87,7 +87,7 @@ const waystationAt = (a, s) => [WS.centre[0] + wF[0] * a + wF[1] * s, WS.centre[
 /** the routes playtest.mjs walks through the south exit (the same waypoints) */
 const ROUTES = {
   'south-bridge-to-log': [[[0.5, 3], [0.8, 10], [1, 16], [-0.5, 17.2], [-1.2, 19.4], [-1.32, 21.6], [-0.8, 23.55], [0.4, 25.15], [2.0, 26.55], [3.3, 27.9], [3.68, 28.95], bridgeAt(-0.6), bridgeAt(1.4), bridgeAt(4.1), bridgeAt(6.9), bridgeAt(9.8), bridgeAt(12.2), bridgeAt(bridgeLen + 0.5), [4.14, 45.2], logAt(0), logAt(2), logAt(4.8)], 2400],
-  'south-dwellings': [[[3.3, 27.9], [3.9, 26.6], waystationAt(0.915, 0), waystationAt(0.3, 0), waystationAt(0.3, 0.5), waystationAt(0.94, 0.3), [3.9, 27.4], [4.3, 29.0], [5.1, 30.1], keeperAt(221, 2.0), keeperAt(200, 1.7), keeperAt(170, 1.7), keeperAt(135, 1.7), keeperAt(100, 1.7), keeperAt(60, 1.7), keeperAt(20, 1.7), keeperAt(-8, 1.7), keeperAt(-20.5, 1.86), [9.35, 31.0], [9.0, 30.0], [8.0, 29.35], [6.6, 29.2], [5.6, 28.55], [3.68, 28.95]], 2400],
+  'south-dwellings': [[[3.3, 27.9], [3.9, 26.6], waystationAt(0.79, 0), [...waystationAt(0.3, 0), { within: 0.2, y: WS.floorY }], [...waystationAt(0.3, 0.5), { within: 0.25, y: WS.floorY }], waystationAt(1.09, 0.3), [3.9, 27.4], [4.3, 29.0], [5.1, 30.1], keeperAt(221, 2.0), keeperAt(200, 1.7), keeperAt(170, 1.7), keeperAt(135, 1.7), keeperAt(100, 1.7), keeperAt(60, 1.7), keeperAt(20, 1.7), keeperAt(-8, 1.7), keeperAt(-20.5, 1.86), [9.35, 31.0], [9.0, 30.0], [8.0, 29.35], [6.6, 29.2], [5.6, 28.55], [3.68, 28.95]], 2400],
   'south-log-to-village': [[logAt(4.8), logAt(2), logAt(0), [4.14, 45.2], bridgeAt(bridgeLen + 0.5), bridgeAt(12.2), bridgeAt(9.8), bridgeAt(6.9), bridgeAt(4.1), bridgeAt(1.4), bridgeAt(-0.6), [3.68, 28.95], [3.3, 27.9], [2.0, 26.55], [0.4, 25.15], [-0.8, 23.55], [-1.32, 21.6], [-1.2, 19.4], [-0.5, 17.2], [1, 16], [0.8, 10], [0.5, 3]], 2400],
 };
 
@@ -218,9 +218,9 @@ async function walk(page, name, points, maxFrames) {
   while (wp < points.length && frames < maxFrames) {
     const st = await page.evaluate(() => window.__ZR_PLAY__.state());
     const [x, , z] = st.link;
-    const [gx, gz] = points[wp];
+    const [gx, gz, need] = points[wp];
     const dist = Math.hypot(gx - x, gz - z);
-    if (dist < 0.5) {
+    if (dist < (need?.within ?? 0.5) && (need?.y === undefined || Math.abs(st.link[1] - need.y) < 0.06)) {
       wp++;
       best = Infinity;
       lastProgressAt = frames;
@@ -230,7 +230,7 @@ async function walk(page, name, points, maxFrames) {
       best = dist;
       lastProgressAt = frames;
     } else if (frames - lastProgressAt > 90) {
-      stuck.push({ at: st.link.map((v) => +v.toFixed(2)), toward: points[wp].map((v) => +v.toFixed(2)), frame: frames });
+      stuck.push({ at: st.link.map((v) => +v.toFixed(2)), toward: points[wp].slice(0, 2).map((v) => +v.toFixed(2)), frame: frames });
       wp++;
       best = Infinity;
       lastProgressAt = frames;

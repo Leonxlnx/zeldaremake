@@ -533,7 +533,12 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     const fz = Math.cos(f);
     const a = (x - W.centre[0]) * fx + (z - W.centre[1]) * fz;
     const s = (x - W.centre[0]) * fz - (z - W.centre[1]) * fx;
-    if (a > -W.depth / 2 && a < W.depth / 2 + 0.4 && Math.abs(s) < W.width / 2) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+    const hd = W.depth / 2;
+    // the floor, then its two split-log steps along the front (structures/expansionSouthDwellings.ts):
+    // the upper out to 0.265 m past the floor across s −0.74…0.62, the lower to 0.565 m across −0.54…0.82
+    const onFloor = a > -hd && a < hd && Math.abs(s) < W.width / 2;
+    const onStep = (a >= hd && a < hd + 0.265 && s > -0.74 && s < 0.62) || (a >= hd + 0.265 && a < hd + 0.565 && s > -0.54 && s < 0.82);
+    if (onFloor || onStep) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
   }
   return null;
 }
