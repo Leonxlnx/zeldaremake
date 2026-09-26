@@ -17,6 +17,7 @@ import {
   Points,
   Quaternion,
   ShaderMaterial,
+  Vector2,
   Vector3,
 } from 'three';
 import { Builder } from '../core/builder';
@@ -167,37 +168,58 @@ varying vec2 vUv; varying float vAge; varying float vSeed; varying float vHeat;
 ${PUFF_NOISE}
 void main(){
   float r = length(vUv);
-  float n = fbm2(vUv * 2.2 + vSeed * 17.0 + vAge * 1.8);
-  float shape = smoothstep(1.0, 0.35, r + (n - 0.5) * 0.75);
+  // domain-warped billows, so a fireball reads as rolling flame rather than a soft disc
+  vec2 q = vUv * 2.0 + vSeed * 17.0;
+  vec2 warp = vec2(fbm2(q + vAge * 1.3), fbm2(q + 5.2 - vAge * 1.1));
+  float n = fbm2(q + warp * 1.7 + vAge * 1.6);
+  float shape = smoothstep(1.0, 0.5, r + (n - 0.5) * 0.95);
   if (shape <= 0.001) discard;
-  float temp = clamp((1.0 - vAge * 1.25) * (1.15 - r) * 1.6 + (n - 0.5) * 0.5, 0.0, 1.0) * vHeat;
-  vec3 col = mix(vec3(0.5, 0.06, 0.01), vec3(1.0, 0.45, 0.08), smoothstep(0.1, 0.45, temp));
-  col = mix(col, vec3(1.0, 0.85, 0.5), smoothstep(0.45, 0.8, temp));
-  col = mix(col, vec3(1.0, 0.93, 0.75), smoothstep(0.85, 1.0, temp));
-  float inten = mix(0.9, 5.5, temp) * pow(1.0 - vAge, 1.3);
+  // only the fresh centre is white-hot; the body is saturated orange that keeps its colour through the tone curve
+  float temp = clamp((1.0 - vAge * 1.45) * (1.1 - r * 1.25) * 1.55 + (n - 0.5) * 0.75, 0.0, 1.0) * vHeat;
+  vec3 col = mix(vec3(0.32, 0.025, 0.004), vec3(0.95, 0.26, 0.025), smoothstep(0.04, 0.34, temp));
+  col = mix(col, vec3(1.0, 0.58, 0.1), smoothstep(0.34, 0.68, temp));
+  col = mix(col, vec3(1.0, 0.88, 0.6), smoothstep(0.84, 1.0, temp));
+  float inten = mix(0.7, 3.2, temp) * pow(1.0 - vAge, 1.2);
   gl_FragColor = vec4(col * inten * shape, 1.0);
 }`;
 
 const SMOKE_FRAG = /* glsl */ `
 varying vec2 vUv; varying float vAge; varying float vSeed; varying float vHeat;
+uniform vec2 uSun;
 ${PUFF_NOISE}
 void main(){
   float r = length(vUv);
-  float n = fbm2(vUv * 1.8 + vSeed * 11.0 + vAge * 0.9);
+  vec2 q = vUv * 1.8 + vSeed * 11.0 + vAge * 0.9;
+  float n = fbm2(q);
   float shape = smoothstep(1.0, 0.25, r + (n - 0.5) * 0.9);
   float a = shape * smoothstep(0.0, 0.12, vAge) * pow(1.0 - vAge, 1.5) * 0.75;
   if (a <= 0.004) discard;
-  vec3 col = mix(vec3(0.05, 0.05, 0.055), vec3(0.28, 0.26, 0.25), n);
+  // lit from the sun's side: density rising toward the sun shadows a point, the sunward rim catches light
+  float ns = fbm2(q + uSun * 0.35);
+  float lit = clamp(0.5 + (n - ns) * 2.6 + dot(vUv, uSun) * 0.32, 0.0, 1.0);
+  vec3 col = mix(vec3(0.035, 0.035, 0.04), vec3(0.44, 0.42, 0.4), lit * (0.55 + 0.45 * n));
   // embers glow inside young smoke; negative heat marks pale deck dust instead
-  if (vHeat < 0.0) col = mix(vec3(0.32, 0.34, 0.38), vec3(0.62, 0.64, 0.68), n);
+  if (vHeat < 0.0) col = mix(vec3(0.25, 0.27, 0.31), vec3(0.7, 0.72, 0.76), lit * (0.6 + 0.4 * n));
   else col += vec3(0.9, 0.3, 0.05) * (1.0 - smoothstep(0.0, 0.35, vAge)) * (1.0 - r) * 0.8;
   gl_FragColor = vec4(col, a);
+}`;
+
+const RING_FRAG = /* glsl */ `
+varying vec2 vUv; varying float vAge; varying float vSeed; varying float vHeat;
+void main(){
+  float r = length(vUv);
+  float R = mix(0.2, 1.0, sqrt(vAge));
+  float w = mix(0.055, 0.018, vAge);
+  float a = exp(-pow((r - R) / w, 2.0)) * pow(1.0 - vAge, 2.6);
+  if (a < 0.003) discard;
+  gl_FragColor = vec4(vec3(0.72, 0.84, 1.0) * a * 1.25 * vHeat, 1.0);
 }`;
 
 class PuffSystem {
   mesh: Mesh;
   mat: ShaderMaterial;
-  constructor(puffs: Puff[], additive: boolean) {
+  constructor(puffs: Puff[], kind: 'fire' | 'smoke' | 'ring') {
+    const additive = kind !== 'smoke';
     const n = Math.max(1, puffs.length);
     const g = new InstancedBufferGeometry();
     const quad = new PlaneGeometry(1, 1);
@@ -218,15 +240,15 @@ class PuffSystem {
     g.instanceCount = n;
     this.mat = new ShaderMaterial({
       vertexShader: PUFF_VERT,
-      fragmentShader: additive ? FIRE_FRAG : SMOKE_FRAG,
-      uniforms: { uTime: { value: 0 } },
+      fragmentShader: kind === 'fire' ? FIRE_FRAG : kind === 'ring' ? RING_FRAG : SMOKE_FRAG,
+      uniforms: { uTime: { value: 0 }, uSun: { value: new Vector2(0.6, 0.8) } },
       transparent: true,
       depthWrite: false,
       blending: additive ? AdditiveBlending : NormalBlending,
     });
     this.mesh = new Mesh(g, this.mat);
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = additive ? 6 : 4;
+    this.mesh.renderOrder = kind === 'fire' ? 6 : kind === 'ring' ? 7 : 4;
   }
 }
 
@@ -267,6 +289,8 @@ export interface ExplosionOpts {
   inherit?: Vector3;
   seed?: number;
   flashes?: number;
+  /** a shockwave flash ring (default: kills that throw 60+ pieces) */
+  ring?: boolean;
 }
 
 export class FX {
@@ -274,6 +298,10 @@ export class FX {
   lasers = new LaserSystem();
   private puffsFire: Puff[] = [];
   private puffsSmoke: Puff[] = [];
+  private puffsRing: Puff[] = [];
+  private ring?: PuffSystem;
+  /** world-space direction toward the sun (smoke is lit from this side) */
+  sunDir = new Vector3(0.55, 0.62, -0.38).normalize();
   private pieces: Piece[] = [];
   private sparks: Spark[] = [];
   private fire?: PuffSystem;
@@ -331,6 +359,7 @@ export class FX {
       });
     }
     const np = o.pieces ?? 40;
+    if (o.ring ?? np >= 60) this.puffsRing.push({ center: pos.clone(), t0: t0 + 0.03, dur: 0.5 * Math.pow(S / 6, 0.2), size: S * 2.2, seed: rng.next(), heat: 1, vel: inherit.clone() });
     const colors = o.colors ?? ['lbg', 'dbg', 'white'];
     const bs = o.brickScale ?? 1;
     for (let i = 0; i < np; i++) {
@@ -411,9 +440,18 @@ export class FX {
   build(): void {
     if (this.built) return;
     this.built = true;
-    this.smoke = new PuffSystem(this.puffsSmoke, false);
-    this.fire = new PuffSystem(this.puffsFire, true);
-    this.group.add(this.smoke.mesh, this.fire.mesh);
+    this.smoke = new PuffSystem(this.puffsSmoke, 'smoke');
+    this.fire = new PuffSystem(this.puffsFire, 'fire');
+    this.ring = new PuffSystem(this.puffsRing, 'ring');
+    this.group.add(this.smoke.mesh, this.fire.mesh, this.ring.mesh);
+    const sunView = new Vector3();
+    const uSun = this.smoke.mat.uniforms.uSun.value as Vector2;
+    this.smoke.mesh.onBeforeRender = (_r, _s, camera) => {
+      sunView.copy(this.sunDir).transformDirection(camera.matrixWorldInverse);
+      uSun.set(sunView.x, sunView.y);
+      if (uSun.lengthSq() < 1e-6) uSun.set(0, 1);
+      uSun.normalize();
+    };
     // debris pieces: 1x1 brick, 1x2 plate, 2x2 tile, 1x1 round
     const shapes = [box(0.96, 1.16, 0.96, 0.04), box(1.96, 0.38, 0.96, 0.04), box(1.96, 0.38, 1.96, 0.04), cylinder(0.48, 0.38, 0.04, 12)];
     const counts = [0, 0, 0, 0];
@@ -478,6 +516,7 @@ export class FX {
     this.lasers.update(t, cam, laserClear);
     this.fire!.mat.uniforms.uTime.value = t;
     this.smoke!.mat.uniforms.uTime.value = t;
+    this.ring!.mat.uniforms.uTime.value = t;
     this.sparkMat!.uniforms.uTime.value = t;
     this.sparkMat!.uniforms.uScale.value = pixelScale;
     const counts = [0, 0, 0, 0];

@@ -137,6 +137,7 @@ export class World {
     this.stars = makeStars({ count: 11000 });
     s.add(this.stars);
     this.planet = makeCoruscant({ radius: PLANET_R, center: PLANET_C, sunDir: PLANET_SUN });
+    this.fx.sunDir.copy(SUN_DIR);
     s.add(this.planet.group);
 
     this.sun = new DirectionalLight(0xfff1e0, 3.1);
