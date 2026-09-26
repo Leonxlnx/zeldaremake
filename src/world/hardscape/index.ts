@@ -49,12 +49,14 @@ const JOINT_TUFT_TINT: Record<string, number> = {
 /**
  * The plaza paving's far LOD (fable-2, lane 6): a tile of the paving (`flagstones-batch`,
  * pavingTiles.ts) farther than this planar distance (m) from the camera draws its stones as top
- * fans (geometry.ts `farLod`) instead of full slabs. At 30 m a stone's 1.6–3 cm rolled shoulder is
- * 0.6 px and its 6 mm crown nothing; the joints (7.5 cm, the fill's own mesh) stay. The six fixed
- * cameras stand on or beside the plaza; its far tiles are the north path up camera A's frame, the
- * plaza from the far bank (40 m) and everything from the east green (46 m).
+ * fans (geometry.ts `farLod`) instead of full slabs. The roll and the crown are under a pixel well
+ * before this; what the fan cannot keep is the stones' interior shading (the rings' per-quad tones
+ * and mottle), and at camera A's 46° a 0.9 m stone is still 34 px wide at 40 m. Measured against
+ * the head at 30 m the hero frames moved 259 / 91 / 31 / 79 px over 8 levels (A / B / D / E, the
+ * path receding in frame); at 40 m 37 / 20 / — / — with the far bank still 0.30 → 0.18 M and the
+ * east green 0.16 M (all of it far at 46 m). The joints (7.5 cm) are the fill's own mesh and stay.
  */
-export const FLAGSTONE_FAR_M = 30;
+export const FLAGSTONE_FAR_M = 40;
 /** the walk's hysteresis (m) under FLAGSTONE_FAR_M before a tile's full slabs come back */
 export const FLAGSTONE_LOD_HYSTERESIS_M = 3;
 /** the paving tiles' grid pitch (m): ~20 tiles over the plaza and its paths, each culled and LOD-switched on its own */
