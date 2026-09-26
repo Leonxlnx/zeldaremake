@@ -647,3 +647,16 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Lessons: the follow camera makes "2 m from Link" mean "6 m from the lens" — judge a hand-sized change at the
   lens distance, and say so; an audit number that never moves across days (177.1°) is a reading of the wrong
   moment or the wrong state, and it was telling me for two days.
+
+## 2026-09-26 00:20 tick — the seated girl sits; my 00:30 alarm withdrawn
+
+- Probed live (`fingers/sitter-live.mjs`; the play hooks need `navigator.webdriver` overridden — `isHeadlessCapture`
+  reads it, which is why two earlier probes waited 10 min for `__ZR_PLAY__`): thigh −1.02, knee 1.403 rad (interior
+  99.6° / 104.1°), chest curled, right shoulder −2.68 mid-wave with Link 1.5 m off; the skinned meshes' bone
+  matrices equal her joints' world matrices; one `kokiri-1` in the scene; her skinned meshes attribute-identical to
+  the wanderer's. An aimed 2.4× crop shows the sit plainly. The head-on harness view foreshortens the thighs to
+  nothing at thumbnail scale, and capture.mjs's `audit.json` reads 177.1° because that audit runs before her
+  first pose. INBOX 00:30 amended, README corrected, PR #169 body corrected — within the hour.
+- Lessons: (1) before naming a defect, get one frame that shows the limb in question edge-on at ≥ 2× — a head-on
+  thumbnail of a seated child is a standing child; (2) a live joint read beats any audit number; (3) I put the
+  alarm in the INBOX before the probe had run — the order should have been probe, then note.
