@@ -60,7 +60,7 @@ export interface FlightState {
  * Orientation of a craft following `path(t)`: +Z along the velocity, banked into turns
  * (roll from lateral acceleration), plus optional extra roll.
  */
-export function flight(path: (t: number) => Vector3, t: number, o: { bank?: number; extraRoll?: number; worldUp?: Vector3; dt?: number; accWindow?: number } = {}): FlightState {
+export function flight(path: (t: number) => Vector3, t: number, o: { bank?: number; extraRoll?: number; worldUp?: Vector3; dt?: number; accWindow?: number; headWindow?: number } = {}): FlightState {
   const dt = o.dt ?? 1 / 30;
   const p0 = path(t - dt), p1 = path(t), p2 = path(t + dt);
   const vel = p2.clone().sub(p0).divideScalar(2 * dt);
@@ -69,6 +69,15 @@ export function flight(path: (t: number) => Vector3, t: number, o: { bank?: numb
   const h = o.accWindow ?? 0.22;
   const acc = path(t + h).add(path(t - h)).sub(p1.clone().multiplyScalar(2)).divideScalar(h * h);
   const fwd = vel.clone().normalize();
+  if (o.headWindow) {
+    // heading low-passed over ±headWindow: on a C1 key spline the raw heading's turn rate steps at every key
+    const f = fwd.clone().multiplyScalar(3);
+    for (const [k, wgt] of [[-1, 1], [-0.5, 2], [0.5, 2], [1, 1]] as const) {
+      const tt = t + k * o.headWindow;
+      f.addScaledVector(path(tt + dt).sub(path(tt - dt)).normalize(), wgt);
+    }
+    fwd.copy(f.normalize());
+  }
   const worldUp = o.worldUp ?? new Vector3(0, 1, 0);
   const lat = acc.clone().sub(fwd.clone().multiplyScalar(acc.dot(fwd)));
   // right-hand side of the craft (−X is starboard)

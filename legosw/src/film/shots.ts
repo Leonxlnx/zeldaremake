@@ -43,6 +43,8 @@ export interface Shot {
   shutter?: number;
   /** background bolts nearer the camera than this are hidden so crossing traffic cannot bury the featured attacks */
   laserClear?: number;
+  /** shot-relative times of cuts inside the shot (a second camera setup): motion-blur samples never cross them */
+  cuts?: number[];
   lines?: Line[];
   schedule?(w: World, T0: number): void;
   pose(w: World, t: number, T: number): Cam;
@@ -175,6 +177,12 @@ function flatBasis(fwd: Vector3, damp = 0.35): Quaternion {
   return basisQuat(f, v3(0, 1, 0));
 }
 
+/** the long take's key spline is only C1: its fighters (and the camera riding them) steer by a heading low-passed over ±0.3 s */
+const LT_HEAD = 0.3;
+function ltHeading(T: number, who: 'anakin' | 'obiwan' = 'anakin'): Vector3 {
+  return flight(ltPath(T, who), T, { headWindow: LT_HEAD }).fwd;
+}
+
 /* --- attack pairs the audience can follow: shooter and target in the same frame, bolts that end on the
    target, a brick break-up, and debris the camera flies through */
 
@@ -202,7 +210,7 @@ function breakUp(w: World, T: number, path: (T: number) => Vector3, size: number
 
 const LT_KILL_A = 8.3, LT_KILL_B = 10.5, LT_KILL_C = 14.3;
 function ltBasis(T: number): { pos: Vector3; quat: Quaternion } {
-  const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
+  const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
   return { pos: st.pos, quat: flatBasis(st.fwd) };
 }
 /** A: a vulture flees ahead of the pair across the hull; Anakin runs it down */
@@ -227,7 +235,7 @@ const ltArcC = (T: number) => ltVultureC(T - 0.2).add(v3(0, 8, 0));
 
 function scheduleLongTakeKills(w: World, T0: number): void {
   const gunA = (T: number, n: number) => {
-    const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
+    const st = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
     const mz = w.loc.muzzlesA[n % w.loc.muzzlesA.length];
     return local(st, mz.x, mz.y, mz.z + 0.6);
   };
@@ -285,7 +293,7 @@ const longTake: Shot = {
     // a little flak once the dive reveals the battle (kept sparse so the three kills read)
     const rng = new Rng(31);
     for (let t = 11.8; t < 16; t += rng.range(0.4, 0.7)) {
-      const st = flight(ltPath(T0 + t, 'anakin'), T0 + t);
+      const st = flight(ltPath(T0 + t, 'anakin'), T0 + t, { headWindow: LT_HEAD });
       const p = local({ pos: st.pos, quat: flatBasis(st.fwd) }, rng.range(-300, 300), rng.range(-140, 160), rng.range(450, 950));
       w.fx.explosion(T0 + t, p, { size: rng.range(12, 24), pieces: 14, sparks: 16, smoke: 3, colors: ['dbg', 'lbg', 'black'], seed: Math.floor(t * 97) });
     }
@@ -293,8 +301,8 @@ const longTake: Shot = {
   pose(w, t, T) {
     battle(w, T, { hero: true });
     poseLongTakeKills(w, T);
-    const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3 });
-    const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3 });
+    const a = flight(ltPath(T, 'anakin'), T, { bank: 1.3, headWindow: LT_HEAD });
+    const o = flight(ltPath(T, 'obiwan'), T, { bank: 1.3, headWindow: LT_HEAD });
     if (t > 2.3) {
       fly(w, w.anakinShip, a, 0, 1);
       fly(w, w.obiwanShip, o, 0, 1);
@@ -311,24 +319,24 @@ const longTake: Shot = {
     const follow = smoother(4.2, 6.2, t);
     if (follow > 0) {
       const lagT = T - 0.12;
-      const lag = flight(ltPath(lagT, 'anakin'), lagT);
-      const lagO = flight(ltPath(lagT, 'obiwan'), lagT);
-      const behind = local({ pos: lag.pos.clone().lerp(lagO.pos, 0.5), quat: flatBasis(lag.fwd) }, 0, 30, -104);
+      const lag = flight(ltPath(lagT, 'anakin'), lagT, { headWindow: LT_HEAD });
+      const lagO = flight(ltPath(lagT, 'obiwan'), lagT, { headWindow: LT_HEAD });
+      const behind = local({ pos: lag.pos.clone().lerp(lagO.pos, 0.5), quat: flatBasis(ltHeading(lagT)) }, 0, 30, -104);
       pos = pos.lerp(behind, follow);
       const mid = a.pos.clone().lerp(o.pos, 0.35);
-      const ahead = mid.clone().add(v3(0, 0, 1).applyQuaternion(flatBasis(a.fwd)).multiplyScalar(90));
+      const ahead = mid.clone().add(v3(0, 0, 1).applyQuaternion(flatBasis(ltHeading(T))).multiplyScalar(90));
       target = target.lerp(ahead, follow);
     }
     // over the port edge: swing out to port, keep the horizon and the battle in frame
     const dive = smoother(11.0, 13.4, t);
     if (dive > 0) {
-      const q = flatBasis(a.fwd, 0.25);
+      const q = flatBasis(ltHeading(T), 0.25);
       const d = local({ pos: a.pos.clone().lerp(o.pos, 0.4), quat: q }, 44, 34, -88);
       pos = pos.lerp(d, dive);
       const look = a.pos.clone().add(v3(0, 0, 1).applyQuaternion(q).multiplyScalar(340)).add(v3(0, -30, 0));
       target = target.lerp(look, dive);
     }
-    pos.add(shake(t, follow * 0.8, 1.3, 3));
+    pos.add(shake(t, follow * 0.35, 1.3, 3));
     // shadows: one box fixed to the whole hull while the pair skims the Venator (no pop, no crawl); once
     // they have dropped below the port edge it eases down onto the fighters for their self-shadows
     const handover = smoother(13.0, 13.8, t);
@@ -409,7 +417,7 @@ const track: Shot = {
     face(w.anakin, { mouth: 'smirk', brows: -0.5 }, t, 1);
     face(w.obiwan, { mouth: 'flat', brows: 0.5 }, t, 2);
     const mid = a.pos.clone().lerp(o.pos, 0.5);
-    const pos = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -34 + t * 2, 7, 14 - t * 3.5).add(shake(t, 0.8, 1.1, 9));
+    const pos = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -34 + t * 2, 7, 14 - t * 3.5).add(shake(t, 0.35, 1.1, 9));
     w.aimShadow(mid, 60);
     return { pos, target: mid.clone().add(v3(0, -2, 6)), fov: 30, lens: { exposure: 1.05 } };
   },
@@ -477,7 +485,8 @@ function cockpitShot(o: {
         target: neck.add(rot(o.aim)),
         fov: lerp(o.fov[0], o.fov[1], k),
         near: 0.05,
-        lens: { focus: cam.distanceTo(faceC), aperture: 7, exposure: 1.0, bloom: 0.85 },
+        // faces stay clean: full-strength occlusion smudges the cheek beside the hair piece
+        lens: { focus: cam.distanceTo(faceC), aperture: 7, exposure: 1.0, bloom: 0.85, ao: 0.35 },
       };
     },
   };
@@ -589,7 +598,7 @@ const vultures: Shot = {
       const st = flight((tt) => p0.clone().add(v3(-(tt - T0 - 2.2) * 520, 0, (tt - T0) * 180)), T);
       place(arc.group, st);
     }
-    const cam = local({ pos: a.pos, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -9, 6.5, -36).add(shake(t, 0.8, 1.6, 12));
+    const cam = local({ pos: a.pos, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, -9, 6.5, -36).add(shake(t, 0.35, 1.6, 12));
     w.aimShadow(a.pos, 40);
     return { pos: cam, target: a.pos.clone().add(a.fwd.clone().multiplyScalar(120)).add(v3(0, 2, 0)), fov: 32, lens: { exposure: 1.05 } };
   },
@@ -678,10 +687,14 @@ const handReveal: Shot = {
     fly(w, w.obiwanShip, o, 1);
     face(w.anakin, { mouth: 'smirk', brows: -0.3 }, t, 1);
     const mid = a.pos.clone().lerp(o.pos, 0.5);
-    const cam = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, 24, 30, -78).add(shake(t, 0.5, 1, 14));
-    const look = HAND_POS.clone().add(v3(-150, 120, -350)).lerp(mid, 0.3);
+    // the reveal: from tight behind the pair (the command ship dead ahead beyond them) the camera cranes up and
+    // out to starboard while the lens tightens, and the aim slides from the bow to the hull the droids crawl on
+    const u = smoother(0, 4.5, t);
+    const cam = local({ pos: mid, quat: basisQuat(a.fwd, v3(0, 1, 0)) }, lerp(8, 30, u), lerp(11, 27, u), lerp(-44, -76, u)).add(shake(t, 0.2, 1, 14));
+    const bow = HAND_POS.clone().add(v3(-420, 110, -520)), hull = HAND_POS.clone().add(v3(-120, 150, -280));
+    const look = bow.lerp(hull, smoother(1.8, 4.3, t)).lerp(mid, lerp(0.3, 0.2, u));
     w.aimShadow(mid, 60);
-    return { pos: cam, target: look, fov: 32, roll: 0.05, lens: { exposure: 1.05 } };
+    return { pos: cam, target: look, fov: lerp(34, 29, u), roll: lerp(0.02, 0.06, u), lens: { exposure: 1.05 } };
   },
 };
 
@@ -809,7 +822,7 @@ const missiles: Shot = {
       b.setDeploy(smooth(tr + 0.35, tr + 0.85, t));
       b.animate(T + i);
     });
-    const cam = local({ pos: o.pos, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, -16, 6, -30).add(shake(t, 0.5, 1.4, 17));
+    const cam = local({ pos: o.pos, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, -16, 6, -30).add(shake(t, 0.25, 1.4, 17));
     w.aimShadow(o.pos, 30);
     return { pos: cam, target: o.pos.clone().add(o.fwd.clone().multiplyScalar(25)), fov: 30, lens: { exposure: 1.05 } };
   },
@@ -1005,10 +1018,11 @@ function pair11(T0: number) {
   const base = v3(1500, -1100, 24500);
   return (tt: number) => base.clone().add(v3(Math.sin((tt - T0) * 0.7) * 5, 0, (tt - T0) * 210));
 }
-/** Anakin in the rescue: off Obi-Wan's port quarter, closing in from 1.2 s. Effects and pose share it, so zaps land on R2. */
+/** Anakin in the rescue: off Obi-Wan's port quarter, closing in over 1.0-2.3 s. Effects and pose share it, so zaps land on R2. */
 function anakin11(T0: number) {
   return (tt: number) => {
-    const s = smooth(1.2, 2.0, tt - T0);
+    // C2 ease: with smoothstep the heading's turn rate snapped from 26 to 0 deg/s as the close-in ended
+    const s = smoother(1.0, 2.3, tt - T0);
     return pair11(T0)(tt).add(v3(-30 + s * 12, 6 - s * 3, -26 + s * 16));
   };
 }
@@ -1094,7 +1108,7 @@ const rescue: Shot = {
     const mid = o.pos.clone().lerp(a.pos, 0.5);
     const zapFocus = local(a, w.loc.zapA.x, w.loc.zapA.y, w.loc.zapA.z);
     const look = mid.clone().lerp(zapFocus, smooth(1.4, 2.2, t) * 0.8);
-    const cam = local({ pos: mid, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, lerp(-24, -12, smooth(1.4, 2.2, t)), lerp(10, 6, smooth(1.4, 2.2, t)), lerp(30, 16, smooth(1.4, 2.2, t))).add(shake(t, 0.35, 1.2, 19));
+    const cam = local({ pos: mid, quat: basisQuat(o.fwd, v3(0, 1, 0)) }, lerp(-24, -12, smooth(1.4, 2.2, t)), lerp(10, 6, smooth(1.4, 2.2, t)), lerp(30, 16, smooth(1.4, 2.2, t))).add(shake(t, 0.2, 1.2, 19));
     w.aimShadow(mid, 30);
     return { pos: cam, target: look, fov: 30, lens: { exposure: 1.05 } };
   },
@@ -1162,7 +1176,7 @@ const hangarApproach: Shot = {
     const camOut = 44 + softplus(al[0] + 52 - 44, 14);
     const camSide = lerp(50, 4, smoother(0.05, 0.85, u));
     const camUp = lerp(al[2] + 13, 3, smoother(0.5, 0.9, u));
-    const camPos = at([camOut, camSide, camUp]).add(shake(t, 0.35 * (1 - 0.6 * smooth(2.8, 3.6, t)), 1.2, 23));
+    const camPos = at([camOut, camSide, camUp]).add(shake(t, 0.2 * (1 - 0.6 * smooth(2.8, 3.6, t)), 1.2, 23));
     const mid = a.pos.clone().lerp(o.pos, 0.5);
     const look = mid.clone().addScaledVector(out, -160).addScaledVector(up, 2).lerp(at([-110, -2, -7]), smooth(0.5, 0.92, u));
     // warm spill from the open bay onto the fighters as they close on it, steep enough that the glossy deck never mirrors it into the lens
@@ -1387,7 +1401,8 @@ const landing: Shot = {
     const camPos = s.A.clone().add(v3(-26, 3.2, -30));
     const look = op.clone().lerp(s.A, 0.3).add(v3(0, 2, 0));
     w.aimShadow(s.A, 70, v3(0.2, 1, 0.3).normalize());
-    return { pos: camPos.add(shake(t, t > 1 && t < 2 ? 0.35 : 0.06, 3, 41)), target: look, fov: 34, near: 0.1, lens: { exposure: 1.1, bloom: 1.1 } };
+    // the slam-down shake eases in on impact and dies away over the skid instead of switching on and off
+    return { pos: camPos.add(shake(t, 0.05 + 0.3 * smooth(0.96, 1.06, t) * (1 - smooth(1.5, 2.3, t)), 3, 41)), target: look, fov: 34, near: 0.1, lens: { exposure: 1.1, bloom: 1.1 } };
   },
 };
 
@@ -1500,6 +1515,7 @@ const jumpOut: Shot = {
 
 const droids: Shot = {
   name: 'droids',
+  cuts: [2.4],
   dur: 5.2,
   lines: [
     { t0: 0.3, t1: 2.2, who: 'Obi-Wan Kenobi', text: 'Flying is for droids.' },
@@ -1552,7 +1568,7 @@ const droids: Shot = {
       look = head.clone().add(v3(0, -0.4, 0));
       fov = 26;
       w.aimShadow(obiPos, 20, v3(0.2, 1, 0.3).normalize());
-      return { pos: camPos, target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(head), aperture: 7, exposure: 1.12 } };
+      return { pos: camPos, target: look, fov, near: 0.05, lens: { focus: camPos.distanceTo(head), aperture: 7, exposure: 1.12, ao: 0.35 } };
     }
     camPos = mid.clone().sub(toDroids.clone().multiplyScalar(lerp(6.2, 5.2, smooth(2.4, 5.2, t)))).add(v3(0, 3.4, 0)).add(side.clone().multiplyScalar(0.8));
     look = front.clone().lerp(mid, 0.3).add(v3(0, 2.5, 0));
