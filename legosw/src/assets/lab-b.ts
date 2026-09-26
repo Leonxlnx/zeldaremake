@@ -46,6 +46,9 @@ export const LAB_B: Record<string, () => Object3D> = {
     const [x, z] = VENATOR_DIMS.mediumXZ[1];
     return venatorSpot(0, x, VENATOR_DIMS.dorsalY(x, z) + 1.5, z, 5);
   },
+  // underside (view with a negative pitch): the whole belly, and the keel around the ventral bay
+  'venator-ventral': () => venatorSpot(0, 0, -24, 0, 120),
+  'venator-keel': () => venatorSpot(0, 0, -15, 23, 40),
   'venator-lod1-stern': () => venatorSpot(1, 0, 5, -150, 110),
   'venator-lod1-port': () => venatorSpot(1, rimX(-100), 5, -100, 45),
   'venator-lod2-port': () => venatorSpot(2, rimX(-100), 5, -100, 45),

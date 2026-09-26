@@ -1248,20 +1248,19 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
   const venPts: V3[] = [TIP, st(L1), st(K1)];
   const fV = faceFrame(venPts, [0.3, -1, 0]);
   inFrame(b, fV, () => {
-    packPanel(b, venPts.map((p) => toLocal(fV, p)), {
-      seed: seed + 9,
-      module: 24,
-      period: 5,
-      minArea,
-      mask: (u, v) => underNose(toWorld(fV, u, v).z),
-      style: (u, v) => {
-        if (v < 1) return L.trim;
-        if (u < 34) return L.red;
-        if (mod(u, 48) < 1) return L.seamD;
-        const a = aztec(u, v, seed + 10, 24, 8, (r) => (r < 0.55 ? L.ventralW : r < 0.8 ? L.ventralD : L.raisedL));
-        return a ?? L.ventral;
-      },
-    });
+    const vp = venPts.map((p) => toLocal(fV, p));
+    const venStyle = (u: number, v: number): TStyle | null => {
+      if (v < 1) return L.trim;
+      if (u < 34) return L.red;
+      // flush strip carrying the running lights
+      if (D && v < 3.2) return L.trimD;
+      if (mod(u, 48) < 1) return L.seamD;
+      const a = aztec(u, v, seed + 10, 24, 8, (r) => (r < 0.55 ? L.ventralW : r < 0.8 ? L.ventralD : L.raisedL));
+      return a ?? L.ventral;
+    };
+    const venMask = (u: number, v: number) => underNose(toWorld(fV, u, v).z);
+    packPanel(b, vp, { seed: seed + 9, module: 24, period: 5, minArea, mask: venMask, style: venStyle });
+    if (D) ventralWingDecor(b, vp, venStyle, venMask, seed, side);
   });
   // ── stern face (three convex pieces of the port half) ──
   const zf = ZS;
@@ -1334,26 +1333,58 @@ function keel(b: Builder, cfg: Cfg, L: Styles): void {
   const hangar: [number, number] = [150, 205];
   inFrame(b, f, () => {
     const poly = pts.map((p) => toLocal(f, p));
-    packPanel(b, poly, {
-      seed: cfg.seed * 31 + 5,
-      module: 24,
-      period: 4,
-      studs: D,
-      minArea: D ? 0.3 : 0.08,
-      mask: (u, v) => underNose(toWorld(f, u, v).z),
-      style: (u, v) => {
-        const av = Math.abs(v);
-        if (u < 34) return L.red;
-        if (u > hangar[0] && u < hangar[1] && av < 7) {
-          if (u < hangar[0] + 1 || u > hangar[1] - 1 || av > 6) return L.raisedD;
-          return av < 0.5 ? L.black : L.panelD;
-        }
-        if (u > hangar[1] && u < hangar[1] + 12 && av < 6) return L.grilleDv;
-        if (av < 3) return L.trimD;
-        return L.ventral;
-      },
-    });
+    const style = (u: number, v: number): TStyle | null => {
+      const av = Math.abs(v);
+      if (u < 34) return L.red;
+      if (u > hangar[0] && u < hangar[1] && av < 7) {
+        if (u < hangar[0] + 1 || u > hangar[1] - 1 || av > 6) return L.raisedD;
+        return av < 0.5 ? L.black : L.panelD;
+      }
+      if (u > hangar[1] && u < hangar[1] + 12 && av < 6) return L.grilleDv;
+      if (av < 3) return L.trimD;
+      return L.ventral;
+    };
+    const mask = (u: number, v: number) => underNose(toWorld(f, u, v).z);
+    packPanel(b, poly, { seed: cfg.seed * 31 + 5, module: 24, period: 4, studs: D, minArea: D ? 0.3 : 0.08, mask, style });
+    if (D) keelDecor(b, poly, style, mask, hangar, cfg.seed);
   });
+}
+
+/** ventral greebles: low modules only (no masts or turrets hanging off the belly) */
+const G_VENTRAL: GKind[] = ['box', 'box', 'vent', 'vent', 'hatch', 'hatch', 'panel', 'panel', 'panel', 'fins', 'pipes', 'tank', 'cap', 'dome'];
+
+/** lod-0 underside of a ventral wing (frame fV): sparse greebles and running lights along the outer edge, red to port */
+function ventralWingDecor(b: Builder, poly: P2[], style: (u: number, v: number) => TStyle | null, mask: (u: number, v: number) => boolean, seed: number, side: 1 | -1): void {
+  const len = poly[1][0];
+  const vMax = Math.max(...poly.map((p) => p[1]));
+  scatter(b, { poly, u0: 40, u1: len, v0: 3, v1: vMax, cell: 8, p: (u) => (u > 120 ? 0.34 : 0.24), style, mask, seed: seed + 60, kinds: G_VENTRAL });
+  const light: ColorKey = side > 0 ? 'glowRed' : 'glowGreen';
+  for (let u = 56; u < len - 6; u += 32) {
+    slab(b, 'dbg', u, PLATE, 2.2, 1.4, 1.4, 0.3);
+    lamp(b, light, u, PLATE + 0.3, 2.2, 0.32, 0.26);
+  }
+}
+
+/** lod-0 keel (frame: u aft along the centreline, v across): a raised rib with white lamps, the ventral bay's guide lights, sensor domes, greebles */
+function keelDecor(b: Builder, poly: P2[], style: (u: number, v: number) => TStyle | null, mask: (u: number, v: number) => boolean, hangar: [number, number], seed: number): void {
+  const len = Math.max(...poly.map((p) => p[0]));
+  const ribs: [number, number][] = [
+    [40, hangar[0] - 3],
+    [hangar[1] + 14, len - 3],
+  ];
+  for (const [u0, u1] of ribs) {
+    slab(b, 'dbg', (u0 + u1) / 2, PLATE, 0, u1 - u0, 2.6, 0.6);
+    slab(b, 'lbg', (u0 + u1) / 2, PLATE + 0.6, 0, u1 - u0 - 1.2, 1.4, 0.3);
+    for (let u = u0 + 6; u < u1 - 3; u += 24) lamp(b, 'glowWhite', u, PLATE + 0.9, 0, 0.28, 0.2);
+  }
+  for (let u = hangar[0] + 3; u < hangar[1] - 2; u += 4) for (const s of [-1, 1]) lamp(b, 'glowYellow', u, PLATE, s * 5.2, 0.22, 0.16);
+  for (const s of [-1, 1]) sensorDome(b, hangar[0] - 9, PLATE, s * 8, 1.3, 1.0);
+  const nearBay = (u: number, v: number) => u > hangar[0] - 14 && u < hangar[1] + 14 && Math.abs(v) < 12;
+  for (const [v0, v1] of [
+    [-40, -3.5],
+    [3.5, 40],
+  ] as const)
+    scatter(b, { poly, u0: 40, u1: len, v0, v1, cell: 8, p: (u) => (u > 120 ? 0.34 : 0.24), style, mask: (u, v) => mask(u, v) || nearBay(u, v), seed: seed * 31 + 70, kinds: G_VENTRAL });
 }
 
 /** red nose cap: stands 0.6 proud of the hull faces at its foot (the tiles under it are left out) */
