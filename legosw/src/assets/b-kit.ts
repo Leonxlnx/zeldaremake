@@ -240,9 +240,16 @@ export function rawBox(acc: MeshAcc, x0: number, y0: number, z0: number, x1: num
 export function grilleMD(w: number, d: number, h: number, c: number): MeshData {
   return cached(`bg|${w.toFixed(3)}|${d.toFixed(3)}|${h.toFixed(3)}|${c.toFixed(4)}`, () => {
     const acc = new MeshAcc();
-    const along = w >= d; // bars run along X if the tile is longer in X
-    const L = along ? w : d, W = along ? d : w;
-    const base = slabMD(
+    acc.append(grilleBaseMD(w, d, h, c));
+    acc.append(grilleBarsMD(w, d, h));
+    return acc.done();
+  });
+}
+
+/** The body of a grille tile without its bars (what a grille reads as from far away). */
+export function grilleBaseMD(w: number, d: number, h: number, c: number): MeshData {
+  return cached(`bgb|${w.toFixed(3)}|${d.toFixed(3)}|${h.toFixed(3)}|${c.toFixed(4)}`, () =>
+    slabMD(
       [
         [-w / 2, -d / 2],
         [w / 2, -d / 2],
@@ -251,8 +258,16 @@ export function grilleMD(w: number, d: number, h: number, c: number): MeshData {
       ],
       h * 0.62,
       c,
-    );
-    acc.append(base);
+    ),
+  );
+}
+
+/** Just the bars of a grille tile (sub-stud detail: belongs in a near-only detail tier). */
+export function grilleBarsMD(w: number, d: number, h: number): MeshData {
+  return cached(`bgr|${w.toFixed(3)}|${d.toFixed(3)}|${h.toFixed(3)}`, () => {
+    const acc = new MeshAcc();
+    const along = w >= d; // bars run along X if the tile is longer in X
+    const L = along ? w : d, W = along ? d : w;
     const nb = Math.max(2, Math.round(W * 4));
     const pitch = (W - 0.16) / nb;
     const bw = pitch * 0.55;
@@ -420,6 +435,79 @@ export function wants(b: Builder, x: number, y: number, z: number): boolean {
   return !(b instanceof ZoneBuilder) || b.accepts(x, y, z);
 }
 
+// ─── routed builder: spatial chunks × detail tiers in a single construction pass ─────────────────
+
+/**
+ * Detail tiers: base parts are always drawn; fine parts (studs, small greebles) only up close;
+ * micro parts (grille bars, hairline rods) only very close, where they are several pixels wide.
+ */
+export const TIER_BASE = 0;
+export const TIER_FINE = 1;
+export const TIER_MICRO = 2;
+
+const _rm = new Matrix4();
+const _rp = new Vector3();
+
+/**
+ * A Builder that forwards every part (fully transformed) to one of several target builders, picked
+ * by the part's world centroid and the current detail tier. One deterministic pass splits a huge
+ * model into frustum-cullable chunks and into near-only detail layers. Targets must have an
+ * identity transform stack.
+ */
+export class RouteBuilder extends Builder {
+  tier = TIER_BASE;
+  constructor(o: BuilderOpts, readonly route: (x: number, y: number, z: number, tier: number) => Builder) {
+    super(o);
+  }
+  override add(key: ColorKey, md: MeshData, local?: Matrix4, o: { tint?: number; shade?: number } = {}): this {
+    if (!md.pos.length) return this;
+    _rm.copy(this.m);
+    if (local) _rm.multiply(local);
+    const c = mdCentroid(md);
+    _rp.set(c[0], c[1], c[2]).applyMatrix4(_rm);
+    this.route(_rp.x, _rp.y, _rp.z, this.tier).add(key, md, _rm, o);
+    return this;
+  }
+  override studs(key: ColorKey, x: number, yP: number, z: number, sx: number, sz: number): this {
+    const t = this.tier;
+    this.tier = Math.max(t, TIER_FINE);
+    super.studs(key, x, yP, z, sx, sz);
+    this.tier = t;
+    return this;
+  }
+  override stud(key: ColorKey, x: number, y: number, z: number): this {
+    const t = this.tier;
+    this.tier = Math.max(t, TIER_FINE);
+    super.stud(key, x, y, z);
+    this.tier = t;
+    return this;
+  }
+}
+
+function inTier(b: Builder, tier: number, fn: () => void): void {
+  if (!(b instanceof RouteBuilder)) {
+    fn();
+    return;
+  }
+  const t = b.tier;
+  b.tier = Math.max(t, tier);
+  try {
+    fn();
+  } finally {
+    b.tier = t;
+  }
+}
+
+/** Run fn with every part it adds in the near-only detail tier (plain builders just add them). */
+export function fine(b: Builder, fn: () => void): void {
+  inTier(b, TIER_FINE, fn);
+}
+
+/** Run fn with every part it adds in the closest-range detail tier (plain builders just add them). */
+export function micro(b: Builder, fn: () => void): void {
+  inTier(b, TIER_MICRO, fn);
+}
+
 // ─── panel tiling ───────────────────────────────────────────────────────────────────────────────
 
 export type TileKind = 'tile' | 'plate' | 'grille' | 'raised' | 'tall';
@@ -436,6 +524,10 @@ export interface TStyle {
   mottleP?: number;
   /** far LOD: flush tiles are top faces only, raised ones have walls but no chamfer */
   flat?: boolean;
+  /** inset of each tile from its cells (default GAP); 0 butts tiles together, so no seam shows the core */
+  gap?: number;
+  /** extra lift of this style's tiles along the panel normal (negative = sunk into the core) */
+  lift?: number;
 }
 
 export interface PackOpts {
@@ -597,12 +689,21 @@ function emitTile(
   const kind = s.kind ?? 'tile';
   const hP = s.hP ?? (kind === 'raised' ? 2 : kind === 'tall' ? 3 : 1);
   const h = hP * PLATE;
+  lift += s.lift ?? 0;
   if (!wants(b, u + su / 2, lift + h / 2, v + sv / 2)) return false;
   const flush = kind === 'tile' || kind === 'plate' || kind === 'grille';
+  const gap = s.gap ?? GAP;
   if (allFull) {
-    const w = su - 2 * GAP, d = sv - 2 * GAP;
+    const w = su - 2 * gap, d = sv - 2 * gap;
+    const at = T(u + su / 2, lift, v + sv / 2);
+    if (kind === 'grille' && !s.flat && b instanceof RouteBuilder) {
+      // the bars are sub-stud detail: closest tier only, the recessed body is always there
+      b.add(key, grilleBaseMD(w, d, h, c), at);
+      micro(b, () => b.add(key, grilleBarsMD(w, d, h), at));
+      return true;
+    }
     const md = s.flat ? (flush ? tileTopMD(w, d, h) : tileMD(w, d, h, 0)) : kind === 'grille' ? grilleMD(w, d, h, c) : tileMD(w, d, h, c);
-    b.add(key, md, T(u + su / 2, lift, v + sv / 2));
+    b.add(key, md, at);
     if (kind === 'plate' && studs && !s.flat) b.studs(key, u, hP + lift / PLATE, v, su, sv);
     return true;
   }
@@ -616,7 +717,7 @@ function emitTile(
     P,
   );
   if (cl.length < 3 || area2(cl) < minArea) return false;
-  const ins = insetConvex(ccw(cl), GAP) ?? cl;
+  const ins = gap > 0 ? (insetConvex(ccw(cl), gap) ?? cl) : ccw(cl);
   b.add(key, s.flat ? (flush ? topMD(ins, h) : slabMD(ins, h, 0)) : slabMD(ins, h, c), lift ? T(0, lift, 0) : undefined);
   if (kind === 'plate' && studs && !s.flat) {
     for (let jj = 0; jj < sv; jj++)

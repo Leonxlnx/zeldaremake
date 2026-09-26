@@ -226,7 +226,10 @@ const longTake: Shot = {
       target = target.lerp(look, dive);
     }
     pos.add(shake(t, follow * 0.8, 1.3, 3));
-    w.aimShadow(follow > 0.5 ? a.pos : V.clone().add(v3(0, 150, -900)), follow > 0.5 ? 70 : 1800);
+    // shadows: one box fixed to the whole hull while the pair skims the Venator (no pop, no crawl); once
+    // they have dropped below the port edge it eases down onto the fighters for their self-shadows
+    const handover = smoother(13.0, 13.8, t);
+    w.aimShadow(V.clone().add(v3(0, 150, 60)).lerp(a.pos, handover), Math.exp(lerp(Math.log(1700), Math.log(90), handover)));
     return { pos, target, fov: lerp(34, 38, follow) + dive * 4, roll: -0.1 * dive * (1 - smooth(14, 16, t)), lens: { exposure: 1.0 } };
   },
 };
