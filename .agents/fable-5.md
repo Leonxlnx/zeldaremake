@@ -40,6 +40,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 05:31–06:40 UTC — iteration 149: `exp-east` 256ebe91 — the plateau 592 / 9.20 M (green), 567 / 9.13 M (lookout), 571 / 9.03 M
+  (deck), the structures row unchanged (the house-by-house runs pay nothing at my poses), six views identical to its own tip. `exp-south2`
+  5e5ef0b0 — the far bank 539 / 8.43 M, +0.19 M over the branch's own 8.23 M while every row fell; bisected to 223c2e93 (the farfold merge):
+  the batches' one sphere defeats the zone's mesh-level shadow reach (SSIM 0.9998 — perf only); the corner zone pays −0.73 M at the
+  waystation turn; the trailing-camera pose not reproduced (three tries). Six views C 0.9998, the rest identical. INBOX 06:40.
 - 2026-09-26 04:26–05:25 UTC — iteration 148: `fable-4-nearbox` ad40ecda (the batched parts cull by their own boxes in the colour pass) against
   its base 896c2d6d: six views pixel-identical; fixed views −126…−198 K at identical draws (camera A 8.636 → 8.510 M); four play frames
   pixel-identical with −68…−190 K — PASS (`fable-5-lane10-nearbox.md`). #195 merged 03:51 → the lane on `agent/fable-5-r148-review` (PR #205). INBOX 05:25.
@@ -682,4 +687,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T05:25:00Z
+2026-09-26T06:40:00Z
