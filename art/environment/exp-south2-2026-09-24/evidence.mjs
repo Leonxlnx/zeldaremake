@@ -17,6 +17,9 @@
  *            camera checked every frame against the log's bark shell, the keeper's hut, the space
  *            under his gallery and the waystation's walls and floor, Link's height (falls), and the
  *            footstep surface (audio `surfaceAt`) along his trace against what he stands on.
+ *            `--feet-detail` adds the character audit's `linkFeetContact` on every frame where a
+ *            stance sole is more than 5 cm off its ground (where each sole is, the ground and the
+ *            support under it).
  * --capture  capture mode (character hidden): the six fixed viewpoints (`--heroes`) and every pose
  *            with a `from`, each from simulation time 12.5 s + `--settle` frames; with `--ab` read
  *            LOD on, off, on again from the same time, the off and again frames compared with the
@@ -40,6 +43,7 @@ const args = Object.fromEntries(
 const [W, H] = String(args.size ?? '960x540').split('x').map(Number);
 const SETTLE = Number(args.settle ?? 6);
 const DRAW_EVERY = Number(args['draw-every'] ?? 24);
+const FEET_DETAIL = !!args['feet-detail'];
 const AB = { play: args.ab === true || args.ab === 'play', capture: args.ab === true || args.ab === 'capture' };
 const DT = 1 / 30;
 const log = (...m) => console.error(`[south2 ${new Date().toISOString().slice(11, 19)}]`, ...m);
@@ -251,18 +255,22 @@ async function walk(page, name, points, maxFrames) {
     await setKeys(want);
     rows.push(
       ...(await page.evaluate(
-        ([n, dt, drawFirst]) => {
+        ([n, dt, drawFirst, feetDetail]) => {
           const P = window.__ZR_PLAY__;
           const out = [];
           for (let i = 0; i < n; i++) {
             const drawn = drawFirst && i === 0;
             P.step(1, dt, drawn);
             const s = P.state();
-            out.push({ link: s.link, air: s.air, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet, slimPush: s.follow?.slimPush ?? 0, drawn, calls: drawn ? s.render.calls : null, triangles: drawn ? s.render.triangles : null });
+            // the character's own record of both soles (where each is, the ground and support under it), only
+            // on the frames where a stance sole is off its ground: the whole audit is too slow for every frame
+            const off = feetDetail && (s.feet ?? []).some((f) => f.stance && Math.abs(f.gapM) > 0.05);
+            const detail = off ? (window.__ZR__?.audit?.()?.systems?.character?.linkFeetContact ?? null) : undefined;
+            out.push({ link: s.link, air: s.air, heading: s.heading, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet, feetDetail: detail, slimPush: s.follow?.slimPush ?? 0, drawn, calls: drawn ? s.render.calls : null, triangles: drawn ? s.render.triangles : null });
           }
           return out;
         },
-        [3, DT, frames % DRAW_EVERY === 0],
+        [3, DT, frames % DRAW_EVERY === 0, FEET_DETAIL],
       )),
     );
     frames += 3;
@@ -361,6 +369,7 @@ async function walks(page, result, out) {
       footsteps: runs,
       footstepMismatches: wrong,
       drawnSamples: drawn.map((r) => [r.calls, r.triangles, +r.link[0].toFixed(2), +r.link[2].toFixed(2)]),
+      ...(FEET_DETAIL ? { feetDetail: w.rows.filter((r) => r.feetDetail).map((r) => ({ link: r2(r.link), heading: +(r.heading ?? 0).toFixed(3), feet: r.feetDetail })) } : {}),
     };
     result.walks.push(row);
     fs.writeFileSync(path.join(out, 'evidence.json'), JSON.stringify(result, null, 1));
