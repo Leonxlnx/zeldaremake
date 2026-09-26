@@ -40,6 +40,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-26 07:31–08:55 UTC — iteration 151: `fable-4-curtainfar` 9baa882f measured as the decision card — 25 m at 1 in 2 / 1 in 4 and 35 m:
+  the six views untouched (every hero camera inside 25 m of its curtains); the green −149 / −224 K with 0.00 % of pixels; the two rules
+  pixel-identical to each other everywhere, so what changes on screen is the far twin's `castShadow = false` — the crowns lose their shadow
+  past the distance (the plaza's top row brightens, the same −54 K for both rules). Dark by default; the twin must cast before the switch
+  goes on. `fable-5-lane10-curtainfar.md`. INBOX 08:55.
 - 2026-09-26 06:48–07:35 UTC — iteration 150: `fable-2-paving-far` b3f677a0 (the plaza paving's far LOD beyond 30 m) against the head: six
   views pixel-identical with identical counts (every hero camera inside 30 m); the green and the far bank −170 K each, frames pixel-identical
   (hardscape 0.30 → 0.13 M); the plaza, the flight's foot and the bridge unchanged — PASS (`fable-5-lane10-paving-far.md`). squad2's dither
@@ -691,4 +696,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-26T07:35:00Z
+2026-09-26T08:55:00Z
