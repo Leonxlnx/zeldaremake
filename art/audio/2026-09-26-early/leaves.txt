@@ -1,0 +1,21 @@
+
+the leaves alone, standing on the plaza, against the wind the game is running
+  (a copy of the gust delayed three seconds reads +3.00 s, so the sign is right)
+
+  take        leaves behind the wind    match   leaf rms   bed rms   bed peak
+  before                     3.75 s    0.234      -57.3     -40.8      -18.5
+  after                      0.50 s    0.201      -57.4     -41.2      -17.6
+
+  the lag closes from 3.75 s to 0.50 s.
+  the leaves themselves move -0.09 dB and the whole bed -0.42 dB:
+  the same leaves, in different places.
+
+  the whole bed, per band — the always-on level and the breathing
+        band (Hz)           always-on     move       swing p90−p10     move
+      20-60            2.6 →    2.6    -0.01         13.6 → 13.6    +0.01
+      60-250           7.3 →    7.3    +0.00         18.4 → 18.4    -0.01
+     250-1000          4.5 →    4.3    -0.15         24.3 → 24.2    -0.15
+    1000-2000         -6.1 →   -7.7    -1.63         28.5 → 30.4    +1.94
+    2000-4000        -11.9 →  -12.5    -0.61         31.9 → 32.4    +0.48
+    4000-8000        -26.7 →  -27.5    -0.81         33.2 → 34.1    +0.92
+    8000-16000       -35.8 →  -36.0    -0.26         26.8 → 27.0    +0.18

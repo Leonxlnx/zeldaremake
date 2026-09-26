@@ -1,0 +1,30 @@
+
+614 leaf flutters over 600 s, open sky, the game's own gust
+the live tick runs at 33.3 ms, so the bed is filled 0.50 s ahead
+
+  how far ahead of itself the bed is booked
+    lead       median     0.53 s   p90     0.69 s   longest     0.91 s
+
+  the wind it was booked with against the wind when it sounds
+    |error|    median     0.34 dB  p90     0.87 dB  worst     1.81 dB
+    over 1 dB  6 %    over 2 dB  0 %    over 3 dB  0 %
+
+  the leaf stream against the gust (a delayed copy of the gust reads +3.0 s, so the sign is right)
+    how many leaves                    behind by   1.0 s   r = 0.240
+    how loud they are, as it ships     behind by   1.0 s   r = 0.388
+    …with the weather read when heard  behind by   0.5 s   r = 0.384
+
+  what the lookahead is buying, and what it costs
+      horizon   leaves  |level err| median     p90    worst  loudness behind
+        0.5 s      614             0.34 dB    0.87     1.81           1.0 s
+        1.0 s      633             0.67 dB    1.65     2.88           1.5 s
+        1.5 s      596             0.96 dB    2.37     4.11           2.0 s
+        2.0 s      612             1.22 dB    3.20     5.88           2.5 s
+        3.0 s      604             1.94 dB    4.74     7.87           3.0 s
+        4.0 s      608             2.34 dB    5.62     9.34           4.0 s
+
+  and the width of the field, walking under a canopy edge every 40 s
+    |error|    median    0.000     p90    0.032     worst    0.380  pan units
+    the field is 0.72 wide in the open and 0.34 under closed crowns
+
+wrote /tmp/early/early.json
