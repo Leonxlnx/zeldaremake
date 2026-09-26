@@ -1439,6 +1439,13 @@ const landing: Shot = {
     const brake = c1.addScaledVector(c2, t).multiplyScalar(Math.exp(-k * t) * (1 - smoother(3.4, 4.4, t)));
     const ap = hover.clone().add(brake).add(v3(0, -5 * smoother(3.0, 4.4, t), 0));
     const aq = h.ana.q.clone().slerp(basisQuat(bdir, v3(0, 1, 0)), smoother(0, 3.0, t));
+    // never dead still in the hover: nose-up flare while braking, then a bob, drift and rock on the thrusters,
+    // all zero at the hand-off and from 3.6 s on, so both cuts still match
+    const hov = smooth(0.3, 1.2, t) * (1 - smooth(2.8, 3.6, t));
+    ap.add(shake(t, 0.55 * hov, 0.3, 57)).add(v3(0, 0.5 * hov * Math.sin(t * 4.4), 0));
+    const rock = shake(t, hov, 0.35, 91);
+    const flare = 0.16 * smooth(0, 0.45, t) * (1 - smooth(0.7, 2.0, t));
+    aq.multiply(new Quaternion().setFromEuler(new Euler(-flare + 0.035 * rock.x, 0.025 * rock.z, 0.07 * rock.y)));
     fly(w, w.anakinShip, { pos: ap, quat: aq } as FlightState, 0.3 * (1 - u), 1 - u * 0.8);
     face(w.anakin, { mouth: 'smirk', brows: -0.2 }, t, 1);
     // camera: floor level, watching the skid come toward us
