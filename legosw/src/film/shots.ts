@@ -951,9 +951,10 @@ const obiCockpit2 = cockpitShot({
   name: 'obiwan-cockpit-2',
   dur: 2.6,
   who: 'obiwan',
-  lines: [{ t0: 0.15, t1: 2.5, who: 'Obi-Wan Kenobi', text: "Get out of here, Anakin! There's nothing more you can do." }],
+  // the natural urgent read runs ~3.2 s against a 2.6 s shot: it starts over the end of buzz-close
+  lines: [{ t0: -0.75, t1: 2.5, who: 'Obi-Wan Kenobi', text: "Get out of here, Anakin! There's nothing more you can do." }],
   // urgent, pleading: brows up at the inner ends, a tense squint, every open shape with its corners dragged down
-  faceAt: (t) => ({ mouth: talk(t, 0.2, 2.3, 'frown', ['yell', 'worry', 'yell', 'o', 'worry']), brows: 0.8, squint: 0.18, lookX: -0.03 }),
+  faceAt: (t) => ({ mouth: talk(t, 0.0, 2.4, 'frown', ['yell', 'worry', 'yell', 'o', 'worry']), brows: 0.8, squint: 0.18, lookX: -0.03 }),
   // Anakin flies off his starboard side: from the port camera Obi-Wan looks screen left, Anakin's
   // reverse (below) looks screen right, so the two singles face each other across the cut
   headAt: () => ({ yaw: -0.5, pitch: 0.02 }),

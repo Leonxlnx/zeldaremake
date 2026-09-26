@@ -103,11 +103,16 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
   }
 
   function overlays(T: number): void {
-    const { shot, t } = shotAt(T);
-    // subtitles
+    const { shot, t, index } = shotAt(T);
+    // subtitles; a line with t0 < 0 starts over the end of the previous shot (its caption with it)
     let sub: { who: string; text: string; a: number } | null = null;
     for (const l of shot.lines ?? []) {
       if (t >= l.t0 && t <= l.t1) sub = { who: l.who, text: l.text, a: Math.min(1, (t - l.t0) / 0.08, (l.t1 - t) / 0.08) };
+    }
+    const next = SHOTS[index + 1];
+    for (const l of next?.lines ?? []) {
+      const tn = T - next.start!;
+      if (l.t0 < 0 && tn >= l.t0) sub = { who: l.who, text: l.text, a: Math.min(1, (tn - l.t0) / 0.08) };
     }
     ui.setSubtitle(sub?.who ?? null, sub?.text ?? null, sub?.a ?? 0);
     // cards and fades
