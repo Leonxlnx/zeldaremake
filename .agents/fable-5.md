@@ -44,7 +44,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   inert) — six views pixel-identical to bed93a19; camera A 614 / 8.967 M → 575 / 8.758 M (0.24 M under the cap, Link in frame); the play
   frames all under the draw cap on the head itself: the green 706 → 652 / 9.84 M, the far bank 718 → 680 / 9.81 M, the lookout 623 / 9.71 M,
   the flight's foot 491 / 8.97 M — the trees row −38…−54 draws everywhere. #178 merged at 00:26 → the lane on `agent/fable-5-r145-review`
-  (PR below). `fable-5-lane10-lookback-costs.md`; INBOX 02:10.
+  (PR #189). `fable-5-lane10-lookback-costs.md`; INBOX 02:10.
 - 2026-09-26 00:23–00:40 UTC — iteration 144: the head 97045ffa (#161 in) measured — the flight's foot with the kit active 530 / 9.08 M
   (the branch's numbers exactly), the green 706 / 9.93 M, the far bank 718 / 9.94 M with every row e438c6e5's (the ±0.1 M is the sun's
   frustum fit, not a row); farfold's PASS restated for #171's hold (the head's INBOX had only the 22:10 FAIL). INBOX 00:40.
