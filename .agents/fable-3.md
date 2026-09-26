@@ -647,3 +647,27 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Lessons: the follow camera makes "2 m from Link" mean "6 m from the lens" — judge a hand-sized change at the
   lens distance, and say so; an audit number that never moves across days (177.1°) is a reading of the wrong
   moment or the wrong state, and it was telling me for two days.
+
+## 2026-09-26 00:20 tick — the seated girl sits; my 00:30 alarm withdrawn
+
+- Probed live (`fingers/sitter-live.mjs`; the play hooks need `navigator.webdriver` overridden — `isHeadlessCapture`
+  reads it, which is why two earlier probes waited 10 min for `__ZR_PLAY__`): thigh −1.02, knee 1.403 rad (interior
+  99.6° / 104.1°), chest curled, right shoulder −2.68 mid-wave with Link 1.5 m off; the skinned meshes' bone
+  matrices equal her joints' world matrices; one `kokiri-1` in the scene; her skinned meshes attribute-identical to
+  the wanderer's. An aimed 2.4× crop shows the sit plainly. The head-on harness view foreshortens the thighs to
+  nothing at thumbnail scale, and capture.mjs's `audit.json` reads 177.1° because that audit runs before her
+  first pose. INBOX 00:30 amended, README corrected, PR #169 body corrected — within the hour.
+- Lessons: (1) before naming a defect, get one frame that shows the limb in question edge-on at ≥ 2× — a head-on
+  thumbnail of a seated child is a standing child; (2) a live joint read beats any audit number; (3) I put the
+  alarm in the INBOX before the probe had run — the order should have been probe, then note.
+
+## 2026-09-26 01:20 tick — the withdrawal reaches the head (PR #183); fable-5's wave question
+
+- #169 merged 00:26 — before my 01:00 correction — so the "seated girl stands" text went to the head and into
+  fable-cursor's 00:26 round as lane 7's next item. Cherry-picked the withdrawal (`cc1c37f0`) onto a fresh branch,
+  added a top-of-INBOX note naming it withdrawn and asking for the log line to be struck. PR #183, docs only.
+- fable-5's 00:20: their south-bank frames at 0.9 / 1.5 s after a second `place()` showed no wave — because the wave
+  is a one-shot at the greeting's start and their first `place()` (1.4 m, behind Link) had already started it; the
+  second never left `GREET_FAR_M`. Answered with the release-then-approach recipe and the grove girl's wave frame.
+- Lesson: when a PR carries a claim, the claim merges with the PR — a correction made after the merge needs its own
+  PR the same hour, and the INBOX line should say "withdrawn" in its heading so a skim catches it.
