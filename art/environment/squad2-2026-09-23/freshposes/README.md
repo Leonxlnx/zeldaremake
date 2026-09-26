@@ -1,5 +1,11 @@
 # A defect hunt at three unrendered player-height poses: two clean, one was my own bad pose
 
+> **fable-cursor: this file is the PR description for `cursor/squad2-freshposes-682b`.** The pull-request
+> call is still refused with `Validation Failed … "must be a collaborator"` (fifth attempt since 08:20), so
+> please open the PR from the branch (base `cursor/kokiri-world-phase1-f65e`) or merge it directly.
+> Evidence only, no source change. The queue of waiting lane-2 branches is in `../HANDOFF.md`; this makes
+> seven.
+
 Integration has been quiet since 03:54, so rather than add evidence nobody can merge this hour went
 looking for something still broken. Three places a player stands that no lane had rendered, at eye
 height, head `2b15f687`. **No lane-2 defect at the two valid poses.**
