@@ -145,7 +145,7 @@ const offL2 = (k: EdgeKind) => (k === 'front' ? 7 : k === 'rear' ? 0 : 3);
 const offNeck = (k: EdgeKind) => (k === 'front' ? 3 : k === 'rear' ? 0 : 1.2);
 const offTower = (k: EdgeKind) => (k === 'rear' ? 1.4 : k === 'side' ? 1.2 : k === 'front' ? 9 : 6.5);
 /** window-band rows (v in studs up each face) per level and face kind; shared by every LOD */
-const BANDS_L1 = (k: EdgeKind) => (k === 'rear' ? [] : k === 'front' ? [8, 14, 20] : [7, 12]);
+const BANDS_L1 = (k: EdgeKind) => (k === 'rear' ? [3, 8, 13] : k === 'front' ? [8, 14, 20] : [7, 12]);
 const BANDS_TOWER = (k: EdgeKind) => (k === 'rear' ? [6, 14] : [5, 11, 17]);
 
 function inSuper(x: number, z: number, margin = 0): boolean {
@@ -1268,8 +1268,13 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
   // the superstructure's rear face stands on this plane from SUP_Y0 up: the stern grid is shifted so a
   // row boundary falls exactly there, and every cell behind the rear face is left out
   const behindL1 = (x: number, y: number) => y > SUP_Y0 && Math.abs(x) < SUP_REAR_HW - (offL1('side') * (y - SUP_Y0)) / (SUP_Y1 - SUP_Y0);
+  // over the engine housing: sill, lit crew-deck band, header, trim (the rows land on HOUSING.y1);
+  // outboard of the engines the trench level carries vent columns
+  const yBand = HOUSING.y1 + 1;
+  const pilX = (x: number) => mod(x - 5.5, 12) < 1;
   sternParts.forEach((pts, i) => {
-    tileFace(b, pts, {
+    const y0 = pts[0][1];
+    const f = tileFace(b, pts, {
       seed: seed + 20 + i,
       outward: [0, 0, -1],
       uDir: [1, 0, 0],
@@ -1278,12 +1283,25 @@ function hullHalf(b: Builder, cfg: Cfg, L: Styles, side: 1 | -1, out: HullOut): 
       studs: D,
       minArea,
       gridV: 0.6,
-      worldMask: (p) => behindL1(p.x, p.y) || Math.abs(p.x) < 5,
+      worldMask: (p) => behindL1(p.x, p.y),
       style: (u, v) => {
+        const y = v + y0;
+        if (y > HOUSING.y1 && y < HOUSING.y1 + 4) {
+          const r = Math.floor(y - HOUSING.y1);
+          if (D && r < 3 && pilX(u)) return L.pilaster;
+          return r === 0 ? L.sill : r === 1 ? (D ? L.winBand : L.black) : r === 2 ? (D ? L.header : L.trimD) : L.trim;
+        }
+        if (D && y < HOUSING.y1 && y > HOUSING.y0 - 5 && pilX(u)) return L.pilaster;
+        if (i === 1 && u > HOUSING.hw && y > -8.4 && y < -4.4 && mod(u, 6) < 2) return L.grilleDv;
         const a = aztec(u, v, seed + 30, 12, 4, (r) => (r < 0.6 ? L.panelL : L.panelD));
         return a ?? (i === 1 ? L.trench : L.fieldL);
       },
     });
+    if (D && i === 0) {
+      const yTop = (x: number) => R0[1] + (R0[0] - x) * SLOPE;
+      const u1 = R0[0] - (yBand + 1 - R0[1]) / SLOPE - 1;
+      inFrame(b, f, () => litWindows(b, 1, u1, yBand + 0.5 - y0, 2, 0.8, seed + 0.61, 'windowWarm', { h: 0.3, skip: (u) => Math.abs(mod(u - 5.5 + 6, 12) - 6) < 0.9 || yTop(u) < yBand + 1.2 }));
+    }
   });
 }
 
@@ -1434,54 +1452,84 @@ function litWindows(b: Builder, u0: number, u1: number, vc: number, step: number
 
 // ─── turrets ────────────────────────────────────────────────────────────────────────────────────
 
+/** DBY-827 gunhouse dome, top → bottom (r, y) */
+const TURRET_DOME: number[][] = [
+  [0, 3.15],
+  [1.3, 3.08],
+  [2.2, 2.82],
+  [2.85, 2.2],
+  [3.1, 1.45],
+  [3.1, 1.0],
+];
+/** armoured mantlet side profile (z, y), extruded across x */
+const TURRET_MANTLET: number[][] = [
+  [1.2, 1.0],
+  [3.1, 1.0],
+  [3.55, 1.45],
+  [3.55, 2.45],
+  [3.1, 2.95],
+  [1.2, 2.95],
+];
+/** raked side armour plate profile (z, y) */
+const TURRET_FENDER: number[][] = [
+  [-2.3, 0.95],
+  [2.5, 0.95],
+  [2.0, 2.15],
+  [-1.9, 2.15],
+];
+
 function heavyTurret(b: Builder, D: boolean, side: 1 | -1): void {
-  const rad = D ? 28 : 12;
-  // pedestal: level column sunk into the sloped wing, turntable ring
-  b.cyl('dbg', 0, -1.3, 0, 3.4, 2.6, { radial: rad, bottom: false });
-  b.cyl('lbg', 0, 0.2, 0, 3.05, 0.4, { radial: rad });
-  // housing: bevelled side profile (z, y) extruded across x, dark cheeks
-  const prof: number[][] = [
-    [-3.5, 0.4],
-    [2.5, 0.4],
-    [3.1, 1.3],
-    [1.9, 2.9],
-    [-2.7, 2.9],
-    [-3.5, 2.1],
-  ];
+  const rad = D ? 32 : 12;
+  // armoured barbette: level drum sunk into the sloped wing, collar with buttresses, turntable ring
+  b.cyl('dbg', 0, -1.4, 0, 3.6, 2.8, { radial: rad, bottom: false });
+  b.cyl('lbg', 0, 0.15, 0, 3.75, 0.7, { radial: rad });
+  b.cyl('dbg', 0, 0.6, 0, 3.25, 0.2, { radial: rad });
+  for (let k = 0; k < 4; k++) {
+    b.push();
+    b.rotateY(Math.PI / 4 + (k * Math.PI) / 2);
+    b.box('lbg', 0, -0.05, 3.85, 1.3, 0.9, 0.8);
+    if (D) b.box('dbg', 0, 0.42, 3.95, 0.7, 0.12, 0.4);
+    b.pop();
+  }
+  // domed gunhouse on a dark skirt band
+  b.cyl('dbg', 0, 0.85, 0, 3.12, 0.3, { radial: rad });
+  b.lathe('white', profile(TURRET_DOME, 30), { radial: rad, cacheKey: 'vturretDome' });
   b.push();
   b.rotateY(Math.PI / 2);
-  b.prism('white', prof.map(([z, y]) => [-z, y]), 5.4);
-  const cheek: number[][] = [
-    [-3.2, 0.5],
-    [2.3, 0.5],
-    [2.8, 1.25],
-    [1.8, 2.5],
-    [-2.5, 2.5],
-    [-3.2, 1.9],
-  ];
-  b.prism('dbg', cheek.map(([z, y]) => [-z, y]), 5.9);
+  b.prism('white', TURRET_MANTLET.map(([z, y]) => [-z, y]), 4.6);
+  for (const x of [2.95, -2.95]) b.prism('lbg', TURRET_FENDER.map(([z, y]) => [-z, y]), 0.5, { zc: x });
   b.pop();
-  // mantlet and twin barrels (muzzles at x = ±1.1, y = 1.95, z = 10.4: the battle's turret anchors)
-  b.box('dbg', 0, 1.95, 2.7, 4.0, 1.6, 1.0);
+  // gun ports and twin barrels (muzzles at x = ±1.1, y = 1.95, z = 10.4: the battle's turret anchors)
+  b.box('dbg', 0, 1.95, 3.5, 3.9, 1.15, 0.2);
   for (const x of [1.1, -1.1]) {
-    b.cyl('dbg', x, 1.95, 3.9, 0.62, 2.0, { axis: 'z', radial: D ? 14 : 8 });
-    b.cyl('gunmetal', x, 1.95, 7.0, 0.32, 6.6, { axis: 'z', radial: D ? 12 : 6 });
+    b.cyl('dbg', x, 1.95, 4.3, 0.62, 1.8, { axis: 'z', radial: D ? 16 : 8 });
+    b.cyl('gunmetal', x, 1.95, 7.2, 0.32, 6.2, { axis: 'z', radial: D ? 12 : 6 });
     b.cyl('flatSilver', x, 1.95, 10.1, 0.44, 0.6, { axis: 'z', radial: D ? 12 : 6 });
   }
+  // power unit behind the gunhouse
+  b.box('dbg', 0, 1.3, -3.3, 3.4, 1.6, 1.4);
   if (!D) return;
-  // roof deck with a sensor block, a round hatch and an exhaust grille (footprints never overlap)
-  const yr = 2.9 + PLATE;
-  slab(b, 'lbg', 0, 2.9, -0.4, 3.4, 4.0, PLATE);
-  slab(b, 'dbg', 1.0 * side, yr, 0.6, 1.0, 1.2, 0.6);
-  b.cyl('lbg', -0.9 * side, yr + 0.11, -0.2, 0.55, 0.22, { radial: 14 });
-  grille(b, 'dbg', 0, yr, -1.85, 2.4, 0.9, 0.35);
-  // power unit behind the housing
-  b.box('dbg', 0, 1.3, -3.9, 3.6, 1.8, 1.0);
-  slab(b, 'lbg', 0, 2.2, -3.9, 2.8, 0.7, 0.3);
+  slab(b, 'lbg', 0, 2.1, -3.3, 2.8, 1.0, PLATE);
+  // roof: raised plate, commander's hatch, rangefinder with a lens, sensor pods on the fenders
+  b.cyl('lbg', 0, 3.2, -0.3, 1.45, 0.2, { radial: 24 });
+  b.cyl('dbg', -0.7 * side, 3.38, -0.7, 0.55, 0.16, { radial: 16 });
+  b.box('dbg', 0.75 * side, 3.55, 0.1, 0.9, 0.5, 1.1);
+  b.cyl('flatSilver', 0.75 * side, 3.55, 0.7, 0.18, 0.1, { axis: 'z', radial: 10 });
+  for (const s of [1, -1]) {
+    b.cyl('dbg', s * 3.3, 1.55, 1.3, 0.34, 0.3, { axis: 'x', radial: 12 });
+    b.cyl('glowRed', s * 3.47, 1.55, 1.3, 0.14, 0.05, { axis: 'x', radial: 8 });
+  }
   fine(b, () => {
-    for (const x of [1.1, -1.1]) for (const z of [5.4, 6.4, 7.4]) b.cyl('dbg', x, 1.95, z, 0.42, 0.3, { axis: 'z', radial: 12 });
-    for (const s of [-1, 1]) b.cyl('gunmetal', s * 2.3, 1.0, -3.4, 0.16, 1.4, { axis: 'z', radial: 8 });
-    b.cyl('flatSilver', 1.0 * side, yr + 1.2, 0.9, 0.07, 1.2, { radial: 6 });
+    for (const x of [1.1, -1.1]) {
+      b.cyl('gunmetal', x, 1.95, 5.6, 0.45, 0.8, { axis: 'z', radial: 14 });
+      for (const z of [6.6, 7.6, 8.6]) b.cyl('dbg', x, 1.95, z, 0.4, 0.26, { axis: 'z', radial: 12 });
+    }
+    for (let k = 0; k < 16; k++) {
+      const a = ((k + 0.5) * Math.PI) / 8;
+      b.cyl('flatSilver', Math.sin(a) * 3.52, 0.52, Math.cos(a) * 3.52, 0.11, 0.08, { radial: 6 });
+    }
+    for (let k = 0; k < 5; k++) b.box('lbg', -1.2 + k * 0.6, 1.3, -4.1, 0.14, 1.2, 0.5);
+    b.cyl('flatSilver', 0.75 * side, 4.3, -0.3, 0.06, 1.1, { radial: 6 });
   });
 }
 
@@ -1696,10 +1744,13 @@ function superstructure(b: Builder, cfg: Cfg, L: Styles, anchors: Record<string,
   const c1: V3 = [0, (SUP_Y0 + SUP_Y1) / 2, (SUP_FRONT_Z + ZS) / 2];
   L1f.faces.forEach((face, i) => {
     const k = k1[i];
+    const rear = k === 'rear';
     const bands = BANDS_L1(k);
-    const top = k === 'front' ? 23 : 17;
+    const top = k === 'front' ? 23 : rear ? 16 : 17;
     const pil = k === 'front' ? 8 : 12;
-    const isPil = (u: number) => D && k !== 'rear' && u > 2 && mod(u, pil) < 1;
+    // the rear face's pilasters pair up about the centreline (u = SUP_REAR_HW), clear of the windows
+    const isPil = (u: number) => D && (rear ? mod(Math.abs(u - SUP_REAR_HW) - 5.5, pil) < 0.5 : u > 2 && mod(u, pil) < 1);
+    const skip = rear ? (u: number) => Math.abs(mod(Math.abs(u - SUP_REAR_HW) - 5.5 + pil / 2, pil) - pil / 2) < 0.95 : (u: number) => mod(u + 0.45, pil) < 1.9;
     bandedFace(b, face, {
       seed: seed + i,
       outward: faceOut(face, c1),
@@ -1713,16 +1764,16 @@ function superstructure(b: Builder, cfg: Cfg, L: Styles, anchors: Record<string,
       lit: D,
       step: 2,
       w: 0.8,
-      win: { h: 0.3, skip: (u) => mod(u + 0.45, pil) < 1.9 },
+      win: { h: 0.3, skip },
       style: (u, v) => {
         if (v < 1.5) return L.trimD;
-        if (k === 'rear') return aztec(u, v, seed + 9, 12, 4, (r) => (r < 0.6 ? L.panelL : L.panelD)) ?? L.fieldL;
         const r = Math.floor(v);
         if (v < top && isPil(u)) return L.pilaster;
         if (bands.includes(r)) return D ? L.winBand : L.black;
         if (bands.includes(r - 1)) return D ? L.header : L.trimD;
         if (D && bands.includes(r + 1)) return L.sill;
         if (v >= top) return L.trim;
+        if (rear) return aztec(u, v, seed + 9, 12, 4, (q) => (q < 0.6 ? L.panelL : L.panelD)) ?? L.fieldL;
         if (D) return plating(u, v, seed + 10 + i, 12, 5, FP) ?? L.field;
         return aztec(u, v, seed + 10 + i, 12, 5, (q) => (q < 0.55 ? L.panelL : q < 0.75 ? L.raisedL : L.plateL)) ?? L.field;
       },
@@ -1758,8 +1809,10 @@ function superstructure(b: Builder, cfg: Cfg, L: Styles, anchors: Record<string,
   const c2: V3 = [0, (SUP_Y1 + SUP2_Y1) / 2, -150];
   L2f.faces.forEach((face, i) => {
     const k = k2[i];
-    const bands = k === 'rear' ? [] : [3];
-    const isPil = (u: number) => D && k !== 'rear' && u > 1 && mod(u, 6) < 1;
+    const rear = k === 'rear';
+    const bands = [3];
+    const isPil = (u: number) => D && (rear ? mod(Math.abs(u - 34) - 2.5, 6) < 0.5 : u > 1 && mod(u, 6) < 1);
+    const skip = rear ? (u: number) => Math.abs(mod(Math.abs(u - 34) - 2.5 + 3, 6) - 3) < 0.8 : (u: number) => mod(u + 0.35, 6) < 1.7;
     bandedFace(b, face, {
       seed: seed + 30 + i,
       outward: faceOut(face, c2),
@@ -1773,7 +1826,7 @@ function superstructure(b: Builder, cfg: Cfg, L: Styles, anchors: Record<string,
       winKey: 'windowCool',
       step: 1.5,
       w: 0.6,
-      win: { h: 0.3, skip: (u) => mod(u + 0.35, 6) < 1.7 },
+      win: { h: 0.3, skip },
       style: (u, v) => {
         if (v < 1) return L.trimD;
         if (isPil(u)) return L.pilaster;
@@ -1781,7 +1834,7 @@ function superstructure(b: Builder, cfg: Cfg, L: Styles, anchors: Record<string,
         if (bands.includes(r)) return D ? L.winBand : L.black;
         if (D && bands.includes(r - 1)) return L.header;
         if (D && bands.includes(r + 1)) return L.sill;
-        return k === 'rear' ? L.fieldL : aztec(u, v, seed + 31 + i, 8, 3, (q) => (q < 0.6 ? L.panelL : L.raisedW)) ?? L.field;
+        return aztec(u, v, seed + 31 + i, 8, 3, (q) => (q < 0.6 ? L.panelL : L.raisedW)) ?? (rear ? L.fieldL : L.field);
       },
     });
   });
