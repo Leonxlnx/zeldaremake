@@ -60,3 +60,7 @@ without opening all of them. Newest first within each group.
 * `isolate()` bypasses the composer, so its frames carry no post pass — its numbers are the material's
   own output, not the finished image.
 * `?shadow=0` prices the whole depth pass; `?veg=<lodScale>,<grassDensity>` prices the ground cover.
+* Pose a **platform** from its walk surface, never from a guessed absolute height (`playtest.mjs`'s
+  `lookSpots()` gives `[x, z]` and lets the harness resolve y). A black frame with one bright corner —
+  band mean ~32 with within-column sd under 5 — is the camera inside a mesh, not a dark world
+  (`freshposes/`).
