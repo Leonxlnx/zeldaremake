@@ -160,3 +160,21 @@ A method note: the far-bank rows on `exp-south2` sum 54 **over** the frame (617 
 shadow reach is applied in the composer's caster cull for the whole frame, so each system alone still shows the casters the whole
 frame has culled. From here on the frame is the cap number and the rows the attribution, and a rows-over-frame gap is itself a
 reading: that much of the branch's cut is in the depth pass.
+
+## The head `97045ffa` (23:47 — #161 the kit cast proxy, PR #59's rig, footsteps) — 00:25–00:35 UTC
+
+| pose | frame | trees | structures | vegetation | rocks |
+| --- | --- | --- | --- | --- | --- |
+| the east green | 706 / 9.93 M (was 701 / 9.80 M on `e438c6e5`) | 218 / 3.84 M | 173 / 2.33 M | 123 / 1.82 M | 27 / 0.48 M |
+| the far bank | 718 / 9.94 M (was 718 / 10.06 M) | 200 / 3.51 M | 171 / 2.36 M | 143 / 2.16 M | 30 / 0.48 M |
+| the flight's foot, the stair-foot kit active (Link (5.8, 0.5) → E) | **530 / 9.08 M** (was 529 / 9.13 M) | 173 / 2.33 M | 68 / 1.63 M | 112 / 3.65 M | **26 / 0.28 M** (was 25 / 0.32 M) |
+
+#161's −0.04 M carried onto the head exactly as measured on the branch. Every other row is `e438c6e5`'s to the draw; the frames still
+moved — +5 draws / +0.13 M at the green, −0.12 M at the far bank — with nothing in the rows to show for it. The one thing in every play
+frame that changed is Link's rig (PR #59), and the sun's frustum fit follows the visible bounds: a whole-frame shadow-pass shift of
+±0.1 M that no system owns. Worth knowing when reading a frame to the last 0.1 M; not worth chasing.
+
+What is still waiting to land on the head, with the rows they take: `exp-south2` (the far bank's structures 171 → 84 and the depth pass,
+718 → 563), `exp-east` (the green's structures 173 → 133, 706 → ≈ 650), `fable-4-farfold` #171 (trees −40 draws / −0.1 M at both),
+`fable-4-columnbatch` #151 (−12 draws at the green). With all four in, the green sits near 600 / 9.1 M and the far bank near 525 / 8.1 M
+by addition; the combined build is the read to make when they merge.
