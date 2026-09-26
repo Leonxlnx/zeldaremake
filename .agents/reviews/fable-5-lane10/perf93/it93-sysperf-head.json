@@ -1,0 +1,261 @@
+{
+ "dist": "/tmp/f5/wt-h93/dist",
+ "spots": {
+  "plaza": {
+   "pools": {
+    "nearCanopyPool": {
+     "tier": "large",
+     "poolMB": 67.6,
+     "capMB": 256,
+     "resident": 197,
+     "wanted": 374,
+     "pending": 192,
+     "building": 1,
+     "built": 87,
+     "evicted": 0,
+     "syncBuilds": 63,
+     "buildMsP50": 6.8,
+     "buildMsP95": 12.1,
+     "buildMsMax": 59.6,
+     "workMsTotal": 267,
+     "steps": 898
+    },
+    "nearBasePool": {
+     "tier": "large",
+     "poolMB": 26.7,
+     "capMB": 48,
+     "resident": 23,
+     "wanted": 23,
+     "pending": 0,
+     "building": 0,
+     "built": 0,
+     "evicted": 0,
+     "syncBuilds": 0,
+     "buildMsP50": 0,
+     "buildMsP95": 0,
+     "buildMsMax": 0,
+     "workMsTotal": 0,
+     "steps": 0
+    }
+   },
+   "systems": {
+    "wind": 0.002,
+    "lighting": 0.005,
+    "atmosphere": 0.025,
+    "terrain": 0.005,
+    "hardscape": 0.015,
+    "rocks": 0.013,
+    "trees": 2.642,
+    "canopy": 0,
+    "structures": 0.033,
+    "props": 0.005,
+    "vegetation": 0.055,
+    "character": 0.813
+   },
+   "updateMs": 3.61,
+   "renderMs": 6.52,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1237.7,
+    1237.9
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  },
+  "stairs2-base": {
+   "pools": {
+    "nearCanopyPool": {
+     "tier": "large",
+     "poolMB": 82.5,
+     "capMB": 256,
+     "resident": 237,
+     "wanted": 384,
+     "pending": 159,
+     "building": 1,
+     "built": 127,
+     "evicted": 0,
+     "syncBuilds": 63,
+     "buildMsP50": 6.7,
+     "buildMsP95": 12.5,
+     "buildMsMax": 59.6,
+     "workMsTotal": 570,
+     "steps": 2629
+    },
+    "nearBasePool": {
+     "tier": "large",
+     "poolMB": 26.7,
+     "capMB": 48,
+     "resident": 23,
+     "wanted": 22,
+     "pending": 0,
+     "building": 0,
+     "built": 0,
+     "evicted": 0,
+     "syncBuilds": 0,
+     "buildMsP50": 0,
+     "buildMsP95": 0,
+     "buildMsMax": 0,
+     "workMsTotal": 0,
+     "steps": 0
+    }
+   },
+   "systems": {
+    "wind": 0.002,
+    "lighting": 0.012,
+    "atmosphere": 0.048,
+    "terrain": 0,
+    "hardscape": 0.007,
+    "rocks": 0.007,
+    "trees": 2.207,
+    "canopy": 0,
+    "structures": 0.018,
+    "props": 0.01,
+    "vegetation": 0.072,
+    "character": 1.775
+   },
+   "updateMs": 4.16,
+   "renderMs": 13969.35,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1259.7,
+    1274.1
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  },
+  "saria-side": {
+   "pools": {
+    "nearCanopyPool": {
+     "tier": "large",
+     "poolMB": 111.3,
+     "capMB": 256,
+     "resident": 308,
+     "wanted": 418,
+     "pending": 116,
+     "building": 1,
+     "built": 198,
+     "evicted": 0,
+     "syncBuilds": 63,
+     "buildMsP50": 6.8,
+     "buildMsP95": 12.1,
+     "buildMsMax": 59.6,
+     "workMsTotal": 1099,
+     "steps": 5691
+    },
+    "nearBasePool": {
+     "tier": "large",
+     "poolMB": 26.7,
+     "capMB": 48,
+     "resident": 23,
+     "wanted": 22,
+     "pending": 0,
+     "building": 0,
+     "built": 0,
+     "evicted": 0,
+     "syncBuilds": 0,
+     "buildMsP50": 0,
+     "buildMsP95": 0,
+     "buildMsMax": 0,
+     "workMsTotal": 1,
+     "steps": 0
+    }
+   },
+   "systems": {
+    "wind": 0.002,
+    "lighting": 0.005,
+    "atmosphere": 0.02,
+    "terrain": 0.003,
+    "hardscape": 0.013,
+    "rocks": 0.01,
+    "trees": 5.985,
+    "canopy": 0.003,
+    "structures": 0.038,
+    "props": 0.003,
+    "vegetation": 0.075,
+    "character": 2.193
+   },
+   "updateMs": 8.35,
+   "renderMs": 8.08,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1229.8,
+    1267.4
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  },
+  "west-house": {
+   "pools": {
+    "nearCanopyPool": {
+     "tier": "large",
+     "poolMB": 136.9,
+     "capMB": 256,
+     "resident": 374,
+     "wanted": 364,
+     "pending": 8,
+     "building": 0,
+     "built": 264,
+     "evicted": 0,
+     "syncBuilds": 63,
+     "buildMsP50": 7,
+     "buildMsP95": 11.3,
+     "buildMsMax": 59.6,
+     "workMsTotal": 1580,
+     "steps": 8450
+    },
+    "nearBasePool": {
+     "tier": "large",
+     "poolMB": 26.7,
+     "capMB": 48,
+     "resident": 23,
+     "wanted": 22,
+     "pending": 0,
+     "building": 0,
+     "built": 0,
+     "evicted": 0,
+     "syncBuilds": 0,
+     "buildMsP50": 0,
+     "buildMsP95": 0,
+     "buildMsMax": 0,
+     "workMsTotal": 1,
+     "steps": 0
+    }
+   },
+   "systems": {
+    "wind": 0.003,
+    "lighting": 0.005,
+    "atmosphere": 0.03,
+    "terrain": 0.005,
+    "hardscape": 0.002,
+    "rocks": 0.017,
+    "trees": 6.135,
+    "canopy": 0.003,
+    "structures": 0.02,
+    "props": 0.002,
+    "vegetation": 0.05,
+    "character": 0.563
+   },
+   "updateMs": 6.84,
+   "renderMs": 5.85,
+   "draws": null,
+   "triangles": null,
+   "heapMB": [
+    1249.7,
+    1301.8
+   ],
+   "systemPerfKeys": [
+    "trees",
+    "vegetation"
+   ]
+  }
+ }
+}

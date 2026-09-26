@@ -39,6 +39,7 @@ function loadTs(file) {
 const here = path.dirname(new URL(import.meta.url).pathname);
 const A = loadTs(path.join(here, 'ambience.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
+const { RUN_GROUND_SPEED } = loadTs(path.join(here, 'footsteps.ts'));
 
 // ---- a recording stand-in for WebAudio ---------------------------------------------------------
 // Only what the bed touches. Every AudioParam keeps the last value each method aimed it at, so a
@@ -226,8 +227,12 @@ test('a village of lanterns does not sum to a drone', () => {
   // 39 pods is what the real scene has, on every house, post and bough
   const village = Array.from({ length: 39 }, (_, i) => ({ x: Math.cos(i) * (8 + i * 0.4), y: 3, z: Math.sin(i) * (8 + i * 0.4) }));
   const moved = respondsTo(ctx, amb, { pods: [] }, { pods: one });
-  assert.equal(moved.length, 1, `${moved.length} gains follow the lanterns, expected the flame alone`);
-  const flame = moved[0].node;
+  // two follow the lanterns since 2026-09-25: the flame, and the share of it that goes to the hall
+  // — a lantern across the plaza is mostly reflection and one at arm's length is almost all flame
+  assert.equal(moved.length, 2, `${moved.length} gains follow the lanterns, expected the flame and its send`);
+  const lit = moved.filter((r) => r.after > r.before);
+  assert.equal(lit.length, 1, 'exactly one of them should come UP when a lantern arrives: the flame itself');
+  const flame = lit[0].node;
   const level = (pods) => {
     amb.update(9, { gust: 0.5, listener: LISTENER, forward: NORTH, pods });
     return flame.gain.target;
@@ -547,7 +552,7 @@ test('a term that moved because HE did arrives at his pace, not the weather\u201
   for (const { id, p } of moved) {
     const last = [...p.events].reverse().find((e) => e[0] === 'tgt');
     assert.ok(last, `${id} moved with him but was not aimed with setTargetAtTime`);
-    assert.equal(last[3], A.PLACE_TAU, `${id} moved because the listener did and was smoothed over ${last[3]} s — at a run that is ${(last[3] * 4.2).toFixed(2)} m of ground behind him`);
+    assert.equal(last[3], A.PLACE_TAU, `${id} moved because the listener did and was smoothed over ${last[3]} s — at the player's run that is ${(last[3] * RUN_GROUND_SPEED).toFixed(2)} m of ground behind him`);
   }
   // and the weather's own terms are left where they were: the gust is two sines whose fastest
   // component has a seventeen-second period, so their longer times smooth nothing that moves
@@ -738,4 +743,97 @@ test('crossing the village retires the birds one at a time, not all six at once'
   // and the ones still in earshot must not have moved at all while that happened
   assert.ok(amb.stats().rehomed >= 3, `only ${amb.stats().rehomed} birds were retired over a hundred and twenty metres`);
   assert.ok(A.PERCH_DROP_M > A.PERCH_FAR_M, 'a retired bird must already be out past the distance clamp, where the swap cannot be heard');
+});
+
+test('a leaf never sits further out than a bird, and the crowns bring it in', () => {
+  // `PERCH_PAN` caps a bird at 0.85 and says why: "a call hard against one channel does not read as
+  // 'over there', it reads as a fault in the mix". The flutters were drawn over ±0.9 with a further
+  // ±0.15 per leaf, so a leaf — the most diffuse thing in the bed — could land at ±1.0, harder than
+  // the most localised thing is allowed to. They also took no notice of the canopy, which is the
+  // term that describes these very leaves.
+  //
+  // The panners are told apart by what answers a change of CANOPY with the weather and the facing
+  // held: a bird's pan is a bearing and does not, the flame has no pods to follow, and the wind's
+  // lean needs a windDir that is not given here.
+  const widths = {};
+  for (const canopy of [0, 1]) {
+    const { ctx, amb } = bed({ seed: 'flutter/width' });
+    for (let t = 0; t < 60; t += 1 / 30) {
+      amb.update(t, { gust: 0.9, listener: LISTENER, forward: NORTH, pods: [], canopy });
+      amb.scheduleUntil(t + 4);
+    }
+    const pans = ctx.made.panner.map((p) => Math.abs(p.pan.value)).filter((v) => v > 1e-9);
+    assert.ok(pans.length > 40, `only ${pans.length} panned voices at canopy ${canopy}`);
+    for (const v of pans) assert.ok(v <= A.PERCH_PAN + 1e-9, `something in the bed sits at ${v.toFixed(3)}, past the ${A.PERCH_PAN} a bird is held to`);
+    widths[canopy] = pans.sort((a, b) => a - b)[Math.floor(pans.length * 0.9)];
+  }
+  assert.ok(A.FLUTTER_PAN_OPEN < A.PERCH_PAN, 'a leaf is diffuse and a bird is a point: the leaf must sit inside the bird');
+  assert.ok(A.FLUTTER_PAN_CLOSED < A.FLUTTER_PAN_OPEN, 'leaves overhead are nearer centre than a ring of trees around him');
+  assert.ok(
+    widths[1] < widths[0] - 0.1,
+    `the field is ${widths[0].toFixed(3)} wide under open sky and ${widths[1].toFixed(3)} under closed crowns — the canopy must bring the leaves in`,
+  );
+  assert.equal(A.flutterPan(0), A.FLUTTER_PAN_OPEN);
+  assert.equal(A.flutterPan(1), A.FLUTTER_PAN_CLOSED);
+});
+
+test('below the gust knee the leaves are the only thing keeping the wood from silence', () => {
+  // `QUIET_GAP_MAX` caps the flutter scheduler and says why: below the knee the wind layers are
+  // silent by design, "and the wood could otherwise fall to nothing for five seconds at a time,
+  // which reads as the sound having broken rather than as a quiet forest. A leaf turning over is
+  // the answer to that, not a floor put back under everything."
+  //
+  // Rendered and measured (`art/audio/2026-09-25-layers/`), that is true and only there: below the
+  // knee, muting the leaves takes the longest stretch with nothing audible from 3.25 s to 8.43 s,
+  // and above it they change nothing at all. Nothing guarded the claim, so this does — at the
+  // schedule, which is where the cap lives.
+  const { amb } = bed({ seed: 'quiet/gap' });
+  const gust = A.GUST_KNEE * 0.5;
+  assert.equal(A.swell(gust), 0, 'this test needs a gust under the knee, where the wind layers are silent');
+  const at = [];
+  let seen = 0;
+  for (let t = 0; t < 300; t += 1 / 30) {
+    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+    amb.scheduleUntil(t + 4);
+    const now = amb.stats();
+    const total = now.flutters + now.birds + now.glints;
+    if (total > seen) {
+      at.push(t);
+      seen = total;
+    }
+  }
+  assert.ok(at.length > 60, `only ${at.length} events in five minutes below the knee`);
+  let worst = 0;
+  for (let i = 1; i < at.length; i++) worst = Math.max(worst, at[i] - at[i - 1]);
+  assert.ok(
+    worst <= A.QUIET_GAP_MAX + 0.5,
+    `the wood was left with nothing for ${worst.toFixed(2)} s below the gust knee, against a ${A.QUIET_GAP_MAX} s cap — with the wind silent there is nothing else to hear`,
+  );
+});
+
+test('a lantern and a fairy are further off in more than level', () => {
+  // Rubric checks 42 and 45 both stall on one sentence: "pods and fairies are level-only". A bird
+  // has had the other half since it was built — `birdWet` sends 0.2 of it to the hall at arm's
+  // length and 0.75 deep in the wood — and measured with the hall's return muted so the reverb
+  // could be subtracted exactly (`art/audio/2026-09-25-wet/`), the flame's reflected share was
+  // −26.6 dB at 0.6 m and −26.9 dB at 5 m. Two tenths of a decibel across its whole range.
+  assert.ok(A.flameWet(1) < A.flameWet(0), 'a lantern at arm\u2019s length must be drier than one across the plaza');
+  assert.ok(A.glintWet(1) < A.glintWet(0), 'and so must a fairy beside him');
+  assert.ok(A.FLAME_WET_NEAR > 0 && A.FLAME_WET_FAR < 1, 'a flame is never wholly dry nor wholly hall');
+  // the flame's send has to answer the pods, and answer them the right way round
+  const { ctx, amb } = bed({ seed: 'wet/flame' });
+  const base = { gust: 0.5, listener: LISTENER, forward: NORTH };
+  const sendAt = (pods) => {
+    amb.update(1, { ...base, pods });
+    const before = ctx.made.gain.map((g) => g.gain.target);
+    amb.update(2, { ...base, pods });
+    return { before, node: ctx.made.gain, targets: ctx.made.gain.map((g) => g.gain.target) };
+  };
+  const overhead = sendAt([{ x: LISTENER.x, y: LISTENER.y + 0.4, z: LISTENER.z }]).targets;
+  const across = sendAt([{ x: LISTENER.x + 9, y: LISTENER.y + 1, z: LISTENER.z }]).targets;
+  const wetter = overhead.filter((v, i) => across[i] > v + 1e-9).length;
+  assert.ok(wetter >= 1, 'nothing in the bed got wetter when the only lantern moved nine metres away');
+  // …and the flame itself got quieter, so this is not a level change wearing a send's clothes
+  const quieter = overhead.filter((v, i) => across[i] < v - 1e-9).length;
+  assert.ok(quieter >= 1, 'the flame must also be quieter across the plaza');
 });

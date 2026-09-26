@@ -1,0 +1,321 @@
+{
+ "local": {
+  "parts": 0,
+  "withArrays": 0,
+  "minY": null,
+  "maxY": null,
+  "scales": []
+ },
+ "rows": [
+  {
+   "name": "green-west",
+   "draws": 687,
+   "trisM": 9.923,
+   "objects": 0,
+   "shownBefore": 0,
+   "drawsWithout": 687,
+   "trisMWithout": 9.923,
+   "audit": {
+    "farBatches": null,
+    "giantWoodFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 1508970
+    },
+    "farFamily": null,
+    "pool": {
+     "capBytes": 268435456,
+     "poolBytes": 148884855,
+     "items": 426,
+     "resident": 386,
+     "pinned": 73,
+     "wanted": 233,
+     "pinnedBytes": 29386866,
+     "wantedBytes": 100016361,
+     "pending": 10,
+     "building": 1,
+     "built": 276,
+     "evicted": 0,
+     "syncBuilds": 64,
+     "hits": 1417,
+     "buildMsP50": 5.9,
+     "buildMsP95": 7.6,
+     "buildMsMax": 29.5,
+     "stepMsMax": 13.2,
+     "workMsMax": 1437.4,
+     "workMsTotal": 1519.5,
+     "steps": 8970,
+     "stepMsP50": 0.1,
+     "stepMsP95": 1,
+     "longSteps": 1,
+     "workOverBudget": 0,
+     "workMsP95": 6.7
+    },
+    "parts": 426,
+    "residentVertices": 2691090,
+    "residentMB": 142,
+    "batch": {
+     "instances": 309,
+     "vertices": 2313245,
+     "indices": 7619469,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 291.7,
+    "cpuByChild": {
+     "white-bark": 23.3,
+     "understory": 0.5,
+     "columns": 56.9,
+     "giants": 210.8,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "lookout-fence-west",
+   "draws": 684,
+   "trisM": 9.966,
+   "objects": 0,
+   "shownBefore": 0,
+   "drawsWithout": 684,
+   "trisMWithout": 9.966,
+   "audit": {
+    "farBatches": null,
+    "giantWoodFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 1508970
+    },
+    "farFamily": null,
+    "pool": {
+     "capBytes": 268435456,
+     "poolBytes": 151304553,
+     "items": 426,
+     "resident": 391,
+     "pinned": 41,
+     "wanted": 182,
+     "pinnedBytes": 17813370,
+     "wantedBytes": 73519029,
+     "pending": 0,
+     "building": 0,
+     "built": 281,
+     "evicted": 0,
+     "syncBuilds": 64,
+     "hits": 2114,
+     "buildMsP50": 5.9,
+     "buildMsP95": 9.2,
+     "buildMsMax": 29.5,
+     "stepMsMax": 13.2,
+     "workMsMax": 1437.4,
+     "workMsTotal": 1590.5,
+     "steps": 9167,
+     "stepMsP50": 0.1,
+     "stepMsP95": 1.1,
+     "longSteps": 1,
+     "workOverBudget": 3,
+     "workMsP95": 8.2
+    },
+    "parts": 426,
+    "residentVertices": 2735680,
+    "residentMB": 144.3,
+    "batch": {
+     "instances": 314,
+     "vertices": 2357835,
+     "indices": 7759158,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 279.8,
+    "cpuByChild": {
+     "white-bark": 13.6,
+     "understory": 0.2,
+     "columns": 56.2,
+     "giants": 209.6,
+     "distant": 0.2
+    }
+   }
+  },
+  {
+   "name": "owner-0650-north",
+   "draws": 497,
+   "trisM": 9.013,
+   "objects": 0,
+   "shownBefore": 0,
+   "drawsWithout": 497,
+   "trisMWithout": 9.013,
+   "audit": {
+    "farBatches": null,
+    "giantWoodFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 1508970
+    },
+    "farFamily": null,
+    "pool": {
+     "capBytes": 268435456,
+     "poolBytes": 154482057,
+     "items": 426,
+     "resident": 398,
+     "pinned": 79,
+     "wanted": 415,
+     "pinnedBytes": 33164805,
+     "wantedBytes": 175378815,
+     "pending": 27,
+     "building": 1,
+     "built": 288,
+     "evicted": 0,
+     "syncBuilds": 64,
+     "hits": 3457,
+     "buildMsP50": 5.9,
+     "buildMsP95": 10.5,
+     "buildMsMax": 29.5,
+     "stepMsMax": 13.2,
+     "workMsMax": 1437.4,
+     "workMsTotal": 1675.2,
+     "steps": 9509,
+     "stepMsP50": 0.1,
+     "stepMsP95": 1,
+     "longSteps": 1,
+     "workOverBudget": 5,
+     "workMsP95": 7.4
+    },
+    "parts": 426,
+    "residentVertices": 2794217,
+    "residentMB": 147.3,
+    "batch": {
+     "instances": 321,
+     "vertices": 2416372,
+     "indices": 7943022,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 264.5,
+    "cpuByChild": {
+     "white-bark": 13.1,
+     "columns": 44,
+     "giants": 207.3,
+     "distant": 0.1
+    }
+   }
+  },
+  {
+   "name": "north-seats",
+   "draws": 335,
+   "trisM": 5.861,
+   "objects": 0,
+   "shownBefore": 0,
+   "drawsWithout": 335,
+   "trisMWithout": 5.861,
+   "audit": {
+    "farBatches": null,
+    "giantWoodFamily": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 1508970
+    },
+    "farFamily": null,
+    "pool": {
+     "capBytes": 268435456,
+     "poolBytes": 156883551,
+     "items": 426,
+     "resident": 404,
+     "pinned": 79,
+     "wanted": 396,
+     "pinnedBytes": 31603638,
+     "wantedBytes": 165255345,
+     "pending": 21,
+     "building": 1,
+     "built": 294,
+     "evicted": 0,
+     "syncBuilds": 64,
+     "hits": 4800,
+     "buildMsP50": 5.9,
+     "buildMsP95": 11.2,
+     "buildMsMax": 29.5,
+     "stepMsMax": 13.2,
+     "workMsMax": 1437.4,
+     "workMsTotal": 1763.6,
+     "steps": 9737,
+     "stepMsP50": 0.1,
+     "stepMsP95": 1,
+     "longSteps": 1,
+     "workOverBudget": 9,
+     "workMsP95": 8.2
+    },
+    "parts": 426,
+    "residentVertices": 2838477,
+    "residentMB": 149.6,
+    "batch": {
+     "instances": 327,
+     "vertices": 2460632,
+     "indices": 8081529,
+     "maxVertices": 2793975,
+     "maxIndices": 8381912,
+     "wideParts": 37,
+     "heapBytes": 209548073,
+     "heapMB": 199.8
+    },
+    "columnBatch": {
+     "instances": 77,
+     "vertices": 377845,
+     "indices": 1193226,
+     "maxVertices": 476842,
+     "maxIndices": 1430515,
+     "wideParts": 0,
+     "heapBytes": 35763106,
+     "heapMB": 34.1
+    },
+    "cpuArraysMB": 262.7,
+    "cpuByChild": {
+     "white-bark": 12.3,
+     "columns": 43,
+     "giants": 207.3,
+     "distant": 0.1
+    }
+   }
+  }
+ ]
+}

@@ -194,6 +194,29 @@ export const LANTERN_LEVEL = 0.055;
 export const LANTERN_CROWD_SHARE = 0.2;
 
 /**
+ * How much of a lantern flame and a fairy's glint arrives as reflection, close up and far off.
+ *
+ * A bird has had this since it was built — `birdWet` sends 0.2 of it to the hall at arm's length
+ * and 0.75 deep in the wood, so a far call is wetter as well as quieter, which is most of what
+ * tells a listener how far away something is once he has stopped trusting its loudness. The flame
+ * sent a flat 0.45 and the glint a flat 0.3, at any distance at all: measured with the hall's
+ * return muted so the reverb could be subtracted exactly (`art/audio/2026-09-25-wet/`), the flame's
+ * reflected share was **−26.6 dB at 0.6 m and −26.9 dB at 5 m** — two tenths of a decibel across
+ * its whole range. That is the sentence holding rubric checks 42 and 45 at 3: *pods and fairies are
+ * level-only*.
+ *
+ * The near values sit under the old flat ones and the far values over them, so the mid of each
+ * range is about where the mix already was.
+ */
+export const FLAME_WET_NEAR = 0.25;
+export const FLAME_WET_FAR = 0.7;
+export const GLINT_WET_NEAR = 0.18;
+export const GLINT_WET_FAR = 0.6;
+/** `close` is 1 with his nose against it and 0 far off — the attenuation the level is cut from */
+export const flameWet = (close: number) => FLAME_WET_NEAR + (FLAME_WET_FAR - FLAME_WET_NEAR) * (1 - Math.max(0, Math.min(1, close)));
+export const glintWet = (close: number) => GLINT_WET_NEAR + (GLINT_WET_FAR - GLINT_WET_NEAR) * (1 - Math.max(0, Math.min(1, close)));
+
+/**
  * The wind bed's levels.
  *
  * 2026-09-23, owner 20:08: "LOWER THE WHITE NOISE" — after the bed had already been cut 11 dB that
@@ -319,10 +342,12 @@ export const WIND_LEAN = 0.35;
  * A smoothing time is a distance once the listener has a speed, and every one of these constants
  * had been chosen for weather: 0.9 s on the leaf roll's level, 0.6 on the hall sends, 0.35 on the
  * bed's top, 0.3 on the lantern flame and its pan, 0.12 on the bore's duck. At the run the player
- * actually has (4.2 m/s) that is between half a metre and four metres of ground before the sound
- * gets to where he is — measured along five real journeys in `art/audio/2026-09-25-lag/`: walking
- * out of the village in under the crowns, the roll's level arrived **2.8 m** behind him and the
- * hall 2.2 m; in through the log arch's mouth it was over four metres.
+ * has that is between a quarter of a metre and two metres of ground before the sound gets to where
+ * he is — measured along five real journeys in `art/audio/2026-09-25-lag/`: walking out of the
+ * village in under the crowns, the roll's level arrived **1.76 m** behind him and the hall 1.32 m;
+ * in through the log arch's mouth the roll was 2.22 m back. (Those were 2.8, 2.2 and over four
+ * metres when first measured, against the controller PR #59 replaced later the same day — the fault
+ * halved with the player's legs and none of it went away.)
  *
  * Nothing before this could see it. Every `at` render stands still, so a space term is a constant;
  * the scripted walk crosses surfaces but never a doorway, a bore mouth, a canopy edge or a lantern.
@@ -350,6 +375,30 @@ export const PLACE_TAU = 0.05;
  * again, and deliberately: a bird is a point and the air is not.
  */
 export const PERCH_PAN = 0.85;
+
+/**
+ * How far out a leaf is allowed to sit, under open sky and under closed crowns.
+ *
+ * The flutters were drawn uniformly over ±0.9 with a further ±0.15 per leaf in the group, so a leaf
+ * could land at ±1.0 — hard against a speaker, which is the one thing `PERCH_PAN` above exists to
+ * forbid, and for a point source at that. A leaf turning over is the most diffuse thing in this bed
+ * and it was sitting further out than the most localised.
+ *
+ * It also took no notice of the canopy, which is the term that describes *these very leaves*.
+ * Measured standing for two minutes on the plaza and two under closed crowns
+ * (`art/audio/2026-09-25-leaves/`), the width of the leaf field was **0.811 and 0.819** — eight
+ * thousandths apart, in two places whose whole difference is whether there are leaves overhead.
+ *
+ * So: in the open the leaves are the ring of trees around him, which is wide but still narrower
+ * than a bird is allowed to be; under closed crowns they are above him, which is nearly centre —
+ * the same reasoning, and nearly the same number, as `WIND_LEAN`.
+ */
+export const FLUTTER_PAN_OPEN = 0.72;
+export const FLUTTER_PAN_CLOSED = 0.34;
+/** how far out a leaf may sit with the crowns this closed over him */
+export function flutterPan(canopy: number): number {
+  return FLUTTER_PAN_OPEN + (FLUTTER_PAN_CLOSED - FLUTTER_PAN_OPEN) * Math.max(0, Math.min(1, canopy));
+}
 
 /**
  * Where something lying in world direction `to` sits for a listener facing `forward` (both xz):
@@ -420,7 +469,17 @@ export const BIRD_GAP_TRIM = 1.42;
  */
 export const BIRD_ANSWERS_LULL: [number, number] = [0.5, 1.8];
 
-export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
+/**
+ * Layers an offline take can switch off, so the lane can ask what each one is worth.
+ *
+ * Every random draw still happens and every node is still built — a muted layer is simply not
+ * connected to the output. A take with one layer off is therefore the SAME forest with one thing
+ * silent, rather than a different forest: the birds call at the same moments whether the leaves are
+ * heard or not, which is the only way the difference between two takes is the layer and not the seed.
+ */
+export type AmbienceLayer = 'flutters' | 'birds' | 'wind';
+
+export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0, mute: ReadonlySet<AmbienceLayer> = new Set()): Ambience {
   // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
   // closes over the listener, so the wind, the leaves and the birds arrive muffled and quieter.
   // Walking through the arch used to change nothing at all except what was under the boots.
@@ -505,7 +564,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const flameGain = gain(ctx, 0);
   const flamePan = ctx.createStereoPanner();
   flameGain.connect(flamePan).connect(out);
-  const flameSend = gain(ctx, 0.45);
+  const flameSend = gain(ctx, flameWet(0));
   flameGain.connect(flameSend).connect(reverbSend);
   // the third tap of the same buffer, and the one that matters most for a repeat: standing a metre
   // from a pod the flame is the loudest never-stopping thing in the world. Its own rate and its own
@@ -576,18 +635,21 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * cluster read as a branch shaking; a continuous band of the same noise reads as hiss.
    */
   const flutter = (t: number, centre: number, level: number, pan: number, decay: number) => {
+    // drawn before anything can return, so a muted take draws the same stream as a full one
+    const attack = 0.018 + eventRng() * 0.03;
     counts.flutters++;
+    const heard = !mute.has('flutters');
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
-    panner.connect(out);
+    if (heard) panner.connect(out);
     const send = gain(ctx, FLUTTER_SEND);
-    panner.connect(send).connect(reverbSend);
+    if (heard) panner.connect(send).connect(reverbSend);
     const bp = filter(ctx, 'bandpass', centre, 1.1);
     const lp = filter(ctx, 'lowpass', centre * 2.6, 0.7);
     const g = gain(ctx, 0);
     leafSrc.connect(bp);
     bp.connect(lp).connect(g).connect(panner);
-    adEnvelope(g.gain, t, level, 0.018 + eventRng() * 0.03, decay);
+    adEnvelope(g.gain, t, level, attack, decay);
     cleanupAt(ctx, t + decay + 0.4, () => {
       try {
         leafSrc.disconnect(bp);
@@ -604,11 +666,14 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       const t = nextFlutter;
       const g = gustNow;
       const n = 1 + Math.floor(eventRng() * (1 + g * 2));
-      const pan = (eventRng() * 2 - 1) * 0.9;
+      // the group sits somewhere in the field and its leaves scatter around that, and the two
+      // together are held inside `flutterPan` — 0.85 of it for the group, 0.15 for the scatter
+      const wide = flutterPan(canopyNow);
+      const pan = (eventRng() * 2 - 1) * wide * 0.85;
       for (let i = 0; i < n; i++) {
         const centre = 950 + eventRng() * 1900;
         const level = (FLUTTER_LEVEL[0] + eventRng() * (FLUTTER_LEVEL[1] - FLUTTER_LEVEL[0])) * (0.35 + g * 0.9);
-        flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
+        flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * wide * 0.3, 0.07 + eventRng() * 0.16);
       }
       // gusts crowd the flutters together; still air leaves long gaps — but never longer than
       // QUIET_GAP_MAX. With the bed gated below the gust knee and the tune resting between passes,
@@ -672,9 +737,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const g = gain(ctx, 0);
     g.connect(reach);
     reach.connect(hp);
-    hp.connect(lp).connect(panner).connect(out);
+    hp.connect(lp).connect(panner);
+    if (!mute.has('birds')) panner.connect(out);
     const send = gain(ctx, birdWet(distance));
-    panner.connect(send).connect(reverbSend);
+    if (!mute.has('birds')) panner.connect(send).connect(reverbSend);
     // and all four keep following him until the call is over (see `turning`)
     turning.push({ pan: panner.pan, reach: reach.gain, top: lp.frequency, wet: send.gain, x: perch.x, z: perch.z, until: end });
     cleanupAt(ctx, end + 0.5, () => {
@@ -809,13 +875,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
    * A fairy at `pan`, `level` loud: two or three tiny bell partials climbing over about 120 ms.
    * Short and sparse on purpose — the ear should catch a glint of light beside it, not a chime.
    */
-  const glint = (t: number, pan: number, level: number) => {
+  const glint = (t: number, pan: number, level: number, close: number) => {
     counts.glints++;
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     const hp = filter(ctx, 'highpass', 1200, 0.6);
     hp.connect(panner).connect(out);
-    const send = gain(ctx, 0.3);
+    const send = gain(ctx, glintWet(close));
     panner.connect(send).connect(reverbSend);
     const notes = 2 + Math.floor(eventRng() * 2);
     let end = t;
@@ -1036,9 +1102,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
     // leaves out over the cut)
-    canopyGain.gain.setTargetAtTime((CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
+    const windOff = mute.has('wind') ? 0 : 1;
+    canopyGain.gain.setTargetAtTime(windOff * (CANOPY_FLOOR + sw * CANOPY_GUST) * (1 - CANOPY_SHARE + CANOPY_SHARE * canopyNow) * (1 + gorge * GORGE_WIND), t, PLACE_TAU);
     canopyMod.gain.setTargetAtTime(sw, t, 0.9);
-    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
+    hushGain.gain.setTargetAtTime(windOff * (HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST), t, 0.55);
     hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
     // pods: the NEAREST lantern sets the level; the rest of the village adds a fifth each
     let sum = 0;
@@ -1058,6 +1125,9 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     }
     const level = Math.min(1, nearest + (sum - nearest) * LANTERN_CROWD_SHARE) * LANTERN_LEVEL;
     flameGain.gain.setTargetAtTime(level, t, PLACE_TAU);
+    // …and how much of it is reflection rather than the flame itself: a lantern across the plaza is
+    // mostly the village's own hall, one at arm's length is almost all flame
+    flameSend.gain.setTargetAtTime(flameWet(nearest), t, PLACE_TAU);
     let pan = 0;
     if (sum > 1e-4) {
       // right = forward × up
@@ -1120,7 +1190,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
         const rx = -s.forward.z;
         const rz = s.forward.x;
         const len = Math.hypot(bx, bz) || 1;
-        glint(t, Math.max(-1, Math.min(1, ((bx * rx + bz * rz) / len) * 0.85)), best * FAIRY_LEVEL);
+        glint(t, Math.max(-1, Math.min(1, ((bx * rx + bz * rz) / len) * 0.85)), best * FAIRY_LEVEL, best);
         nextGlint = t + FAIRY_GAP[0] + eventRng() * (FAIRY_GAP[1] - FAIRY_GAP[0]);
       } else {
         nextGlint = t + 0.5;

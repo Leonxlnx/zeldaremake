@@ -1,0 +1,204 @@
+# fable-5 — the look-backs' cost by system, on the head `3c6cc553` — 2026-09-24 17:59–18:04 UTC
+
+Four of this squad day's reads ended at the same sentence: *the expansions make places to stand that look back at a village
+drawn for six fixed cameras, and none of them can pay that bill alone* — the south's far bank (855 draws / 10.19 M), the
+east plateau's green (833 / 9.94 M) and lookout (778 / 9.90 M), the ruins' trail (808 / 10.55 M), all on the head itself,
+all over 700 / 9.0 M before any expansion adds a mesh. Nobody owns "the village from 40 m". This is the bill itemised, so
+the owning lanes can see their share: `__ZR__.isolate(system)` renders the frame with one top-level system group alone
+(the play camera, the shadow pass included, post-fx excluded) — `fable-5-lane10/isolate.mjs`, `lookback-isolate-3c6cc553.json`.
+The per-system sums match the frames to within 10–15 draws (the post-fx passes).
+
+| system | far bank (4.06, 42.8) → N | east green (43, 4) → W | east lookout (47.5, 7.5) → W | ruins trail (−33.4, 0.6) → E | *the plaza (0.5, 3) → S, for scale* |
+| --- | --- | --- | --- | --- | --- |
+| **trees** | **256 / 3.60 M** | **252 / 3.62 M** | **246 / 3.80 M** | **238 / 4.16 M** | 194 / 2.43 M |
+| **structures** | **171 / 2.36 M** | **173 / 2.33 M** | **174 / 2.45 M** | **159 / 2.28 M** | 90 / 1.60 M |
+| vegetation | 142 / 2.16 M | 123 / 1.82 M | 96 / 1.59 M | 148 / 1.96 M | 136 / 1.86 M |
+| **character** | **123 / 0.24 M** | **107 / 0.22 M** | **107 / 0.22 M** | **107 / 0.22 M** | 26 / 0.15 M |
+| terrain | 50 / 0.92 M | 49 / 0.89 M | 50 / 0.92 M | 48 / 0.91 M | 36 / 0.69 M |
+| rocks | 46 / 0.52 M | 44 / 0.51 M | 44 / 0.51 M | 40 / 0.49 M | 28 / 0.36 M |
+| props | 26 / 0.12 M | 26 / 0.12 M | 26 / 0.12 M | 18 / 0.11 M | 15 / 0.09 M |
+| hardscape | 16 / 0.30 M | 16 / 0.30 M | 16 / 0.30 M | 14 / 0.29 M | 12 / 0.34 M |
+| canopy + atmosphere | 11 / 0.02 M | 11 / 0.02 M | 11 / 0.02 M | 11 / 0.02 M | 7 / 0.01 M |
+| **sum** | **841 / 10.22 M** | **801 / 9.84 M** | **770 / 9.93 M** | **783 / 10.44 M** | 544 / 7.52 M |
+
+(draws / triangles; Link placed by the play API, the follow camera 4.3 m behind him at 1280 × 720, quality high.)
+
+## What the table says
+
+1. **The character system draws 107–123 calls from every look-back and 26 from inside the plaza.** The audit says how
+   (`it114-char.mjs`, the head): **5 kids, 62 rig meshes between them (≈ 12 a kid), and at the far bank all five cast a sun
+   shadow** (`kidShadowCasting` [true × 5]; in the plaza one does) — 12 meshes × 2 passes × 5 kids ≈ the 123 draws, for
+   0.22 M triangles, 14 % of the frame's draws, at 20–30 px tall. Two levers, both lane 7 / fable-3's (`src/world/character/`):
+   the per-joint merge reports **`rigMeshesBeforeMerge` 62 → `rigMeshes` 62, `rigMergedMeshes` 0** — it merges nothing
+   on this build, so a kid is still 12 draws where `consolidate.ts` meant a few; and the kids' shadow casters beyond
+   ≈ 25 m (a shadow a few pixels long) are 60 of the 123. Together **−80 to −100 draws** on every look-back for no
+   visible change.
+2. **Trees are the largest share, 238–256 draws / 3.6–4.2 M** — a third of the draws and 37 % of the triangles — against
+   194 / 2.4 M from inside the plaza: the look-backs see every giant and every understory bole and crown cluster of the
+   village at once. A far tier for crowns beyond ≈ 35 m from the eye (one draw per crown instead of one per cluster) is
+   the trees lane's lever; the grove's `eeb94809` (one pack per LOD) is the pattern.
+3. **Structures 159–174 draws / 2.3–2.5 M** — the village's houses at 40–60 m with every tier drawn: `exp-east`'s cost pass
+   already shows the moves (rooms behind the fog planes only while a doorway faces the camera, −11 draws; shadow-LOD
+   proxies for the caps, roof branches, ropes, vines and pods; moss tufts within 34 m) — applied to the village's own
+   houses as seen from the south and east, not only from the east lane.
+4. **Vegetation 96–148 draws** — the village splits its far-LOD buckets per plant variant ("because it holds thousands of
+   each plant", `eeb94809`'s note); one pack per LOD beyond 30 m is −50 to −90.
+
+Taken together — the kids merged at range (−90), the houses' far tiers (−40), the crowns' far tier (−60) — the four
+look-backs land at ≈ 650–700 draws with the expansions' own +40 to +120 on top. The triangle cap (9.0 M) is the trees'
+and the structures' to meet: 3.6–4.2 M and 2.3–2.5 M at 40–60 m are the fixed cameras' near-tier meshes drawn at range.
+
+Every expansion author has been told "the look-back is over" this squad day; this is the first time the bill has names on
+it. I re-measure the four poses with `isolate.mjs` after each lane's push.
+
+## The head `31146062` (18:06 — 71 commits: fable-2's pebble far gate #57, the girls' belts, props wear / crates / contact AO, lane 5's audio, crowntone) — the same four poses, 18:10–18:19 UTC
+
+| system | far bank | east green | east lookout | ruins trail |
+| --- | --- | --- | --- | --- |
+| trees | 256 / 3.60 M | 252 / 3.62 M | 246 / 3.80 M | 238 / 4.16 M |
+| structures | 171 / 2.36 M | 173 / 2.33 M | 174 / 2.45 M | 159 / 2.28 M |
+| vegetation | 142 / 2.16 M | 123 / 1.82 M | 96 / 1.59 M | 148 / 1.96 M |
+| character | 127 / 0.23 M (+4) | 110 / 0.22 M (+3) | 110 / 0.22 M (+3) | 110 / 0.22 M (+3) |
+| terrain | 50 / 0.92 M | 49 / 0.89 M | 50 / 0.92 M | 48 / 0.91 M |
+| **rocks** | **30 / 0.48 M (−16)** | **26 / 0.48 M (−18)** | **26 / 0.48 M (−18)** | **28 / 0.46 M (−12)** |
+| props | 29 / 0.13 M (+3) | 29 / 0.13 M (+3) | 29 / 0.13 M (+3) | 20 / 0.11 M (+2) |
+| hardscape | 16 / 0.30 M | 16 / 0.30 M | 16 / 0.30 M | 14 / 0.29 M |
+| canopy + atmosphere | 11 / 0.02 M | 11 / 0.02 M | 11 / 0.02 M | 11 / 0.02 M |
+| **sum** | **832 / 10.18 M (−9)** | **789 / 9.80 M (−12)** | **758 / 9.89 M (−12)** | **776 / 10.41 M (−7)** |
+
+The merges read exactly as their authors said: fable-2's pebble gate takes **12–18 draws** off the rocks row (his "~20"),
+the girls' stitched belts put **+3 to +4** on the character row (one mesh per girl per pass — the merge that merges
+nothing, item 1, would have absorbed it), fable-3's contact-AO decals and crates **+2 to +3** on props. Trees, structures,
+vegetation, terrain: unchanged to the draw. `exp-south2` `de967e3d` (17:55, not yet on the head) starts on the structures
+row from the far bank — the village's casters off and its tufts undrawn south of the bridge, −51 / −0.63 M and −2 /
+−0.37 M by its own probe, "more follows" — the first lane to take its share of this table.
+
+## `exp-south2` `86e9b380` (19:29 — far-bank LOD parts 2 and 3a: the village's pods folded to one draw per material inside the zone; its centimetre dressing undrawn; a shadow distance rule for casters ≤ 1.5 m beyond 25 m) — the far bank, 19:34–19:59 UTC
+
+| system | head `31146062` | `86e9b380` (carries the head) | Δ |
+| --- | --- | --- | --- |
+| trees | 256 / 3.60 M | 256 / 3.60 M | — |
+| vegetation | 142 / 2.16 M | 142 / 2.15 M | — |
+| character | 127 / 0.23 M | 127 / 0.23 M | — (see below) |
+| **structures** | **171 / 2.36 M** | **84 / 1.60 M** | **−87 / −0.76 M** |
+| terrain / rocks / props / hardscape | 50 / 30 / 29 / 16 | 50 / 30 / 29 / 16 | — |
+| **isolate sum** | 832 / 10.18 M | **745 / 9.41 M** | −87 / −0.77 M |
+| **the frame** (spot, the composer's path) | 863 / 10.48 M *(3c6cc553)* | **731 / 9.32 M** | −132 / −1.16 M |
+
+The structures row is halved in three pushes (171 → 126 → 84). The frame at the sill: 863 → 810 (part 1) → **731 / 9.32 M**
+(parts 2 + 3a with the head's pebble gate) — **31 draws and 0.32 M over the caps**; the log's dead end looking back **695 / 9.75 M**
+(under the draw cap, over the triangles), the bridge's south end 719 / 9.03 M, the bridge's middle 811 / 9.59 M (outside the
+zone, the head's number).
+
+**The shadow rule fires** (`cull-audit.mjs`, the composer's counts on drawn frames): inside the zone it switches off **34 small
+casters** at the sill and at the dead end — the five kids' 30 shadow meshes (the character system still flags them casting;
+the composer takes them) and four props — against 0 outside. So the character row's cheap half is already taken on this
+branch; its other half, **the kids' 66 colour draws** (12 rig meshes a kid, one per material, plus the belts), is what the
+`isolate` row still shows, and it is lane 7's. A method note: `isolate` renders through `renderer.render`, not the composer,
+so it cannot see the composer's shadow cull — its character row overstates casters where the rule applies; the frame's own
+count is the one to quote. And the audit only refreshes on a *drawn* step (`step(1, dt, true)`); read after a simulated step
+it repeats the load frame.
+
+What is left over the caps at the sill is now entirely the head's: **trees 256 / 3.60 M and vegetation 142 / 2.15 M are 398
+of 745 draws and 5.75 of 9.41 M.** The trees' far tier (row 2) and the vegetation's one pack per LOD (row 4) take the frame
+under 700 / 9.0 M; nothing left in `exp-south2`'s own files does.
+
+## `fable-3-south-props` `f2cecdb5` (21:52 `0fcc4293` the far-kid cut — kids beyond 25 m cast no sun shadow and drop their small parts; 22:37 the grove's first person) — the character row, 02:34–02:57 UTC
+
+| pose | character, head `2225a111` | `f2cecdb5` | Δ | isolate sum | the frame (spot) |
+| --- | --- | --- | --- | --- | --- |
+| the far bank | 127 / 0.23 M | **66 / 0.19 M** | **−61** | 832 → 760 | 846 → **774** / 10.02 M |
+| the east green | 110 / 0.22 M | **56 / 0.18 M** | −54 | 786 → 723 | 797 → **731** / 9.74 M |
+| the east lookout | 110 | 56 | −54 | 755 → 692 | — |
+| the ruins' trail | 110 | 56 | −54 | 778 → 724 | — |
+| the grove's yard | 109 | 85 (the new girl inside 25 m) | −24 | 696 → 663 | 713 → **676** / 9.56 M |
+
+Row 1 of the bill, paid: **−54 to −61 draws at every look-back**, for 0.09 % of the far bank's pixels (the kids' belts, buckles,
+lashes, soles and cuffs at 40 m). The six views are pixel-identical to the head (1.0000 / 0.00 % at all six — the fixed cameras
+hold every kid within 12 m). The grove's yard is under the draw cap now (676); the far bank and the green are 74 and 31 over,
+and `exp-south2`'s structures work (171 → 84 at the far bank, unmerged) would take the far bank to ≈ 687.
+
+**A correction to item 1 (18:04):** `rigMergedMeshes 0` reads the old per-joint merge's audit field; the skinning that replaced
+it (`814af6c9`) reports under `kidSkinned` — 37 → 12 meshes a girl — so the 62 rig meshes I counted were already the merged
+set, not an unmerged one. fable-3's note (21:55), taken.
+
+## The head `cd9400b2` (07:55 — the far-kid cut #82 and the near-canopy batch #101 both in) — the bill's state, 08:33–08:45 UTC
+
+| pose | frame, the first bill (`3c6cc553`) → now | trees | structures | vegetation | character | over the caps by |
+| --- | --- | --- | --- | --- | --- | --- |
+| the far bank | 855 / 10.19 M → **718 / 10.06 M** | 200 / 3.63 M | 171 / 2.36 M | 142 / 2.16 M | 66 | 18 draws, 1.06 M |
+| the east green | 833 / 9.94 M → **701 / 9.80 M** | 214 / 3.71 M | 173 / 2.33 M | 123 / 1.82 M | 56 | 1 draw, 0.80 M |
+| the east lookout | 778 / 9.90 M → **672 / 9.82 M** | 215 / 3.81 M | 174 / 2.45 M | 96 / 1.59 M | 56 | 0.82 M |
+| the ruins' trail | 808 / 10.55 M → **702 / 10.68 M** | 203 / 4.47 M | 159 / 2.28 M | 148 / 1.96 M | 56 | 2 draws, 1.68 M |
+| the grove's yard | 713 / 9.39 M → **674 / 9.57 M** | 163 / 2.37 M | 180 / 2.85 M | 126 / 2.72 M | 85 | 0.57 M |
+| the main flight's foot (lane 2's play spot, my pose (3.6, −0.4) facing up) | — | 174 / 2.42 M | 82 / 1.70 M | **114 / 2.59 M** | 85 | isolate sum 552 / 8.23 M |
+
+Three payments in eighteen hours — fable-2's pebble gate (−12 … −18), fable-3's far-kid cut (−54 … −61), fable-4's near-canopy
+batch (−28 … −56) — and the **draw cap is met at the lookout and the yard, one to two over at the green and the ruins' trail,
+eighteen over at the far bank** (where `exp-south2`'s −87 waits on its camera hunks). **The triangle cap is not met anywhere**
+(9.57–10.68 M), and at every pose the two rows that hold it are the same: **trees 2.4–4.5 M and vegetation 1.6–2.7 M.** Lane 2's
+`playcost` note (08:26, the same `isolate` method) reads the plaza's flight foot at 9.58 M with vegetation +1.0 M over hero A —
+the vegetation row from the plaza side; my pose there gives vegetation 2.59 M of 8.23 M. Row 4 (one pack per LOD beyond 30 m,
+lane 4) and the far tier for crowns (row 2's second half, lane 2) are what is left, and the merged `exp-south2` at the far bank.
+
+## The branches' payments on the two worst columns (`exp-south2` `ec0b776b`, `exp-east` `a3f57348`; the head `e438c6e5` beside them) — 19:30–21:20 UTC
+
+| pose | the head now | the branch | rows that moved (head → branch) |
+| --- | --- | --- | --- |
+| the far bank (`exp-south2`) | 718 / 10.06 M | **563 / 8.23 M** | structures 171 / 2.36 M → **84 / 1.61 M**; the whole frame −155 where the rows alone show −87 — the far-bank shadow reach (casters wholly 20 m outside the zone cast nothing) takes the rest out of the sun's depth pass, which no single row shows |
+| the east green (`exp-east`) | 701 / 9.80 M | **646 / 9.31 M** | structures 173 / 2.33 M → **133 / 1.84 M** — the far colour LOD (cells of 1/400 of the distance, 77 meshes 911 k → 490 k fine → coarse); trees 218 ↔ 216, vegetation 123 ↔ 123 (−0.08 M, the tufts' coarse copy), the rest identical |
+| the east lookout (`exp-east`) | 672 / 9.82 M (`cd9400b2`) | **616 / 9.21 M** | the same rule: structures 134 / 1.90 M |
+| the tall deck (`exp-east`) | — | 616 / 9.09 M | structures 134 / 1.84 M |
+
+**Both branches meet the draw cap at their own hardest views; the far bank meets the triangle cap too (8.23 M).** The green, the lookout
+and the deck sit 0.1–0.3 M over 9.0 M, and the rows that hold them there are the head's — trees 3.7–3.8 M and vegetation 1.5–1.8 M —
+the same two rows as at every pose in the table above. The ruins' trail (`exp-ruins` hides the village west of x −30: 490 / 6.84 M at
+the terrace look-back, iteration 139) makes it three of the four over-cap look-backs paid by their own lanes; the grove's yard is the
+one left at 674 / 9.57 M, and it is the head's trees and vegetation there too.
+
+A method note: the far-bank rows on `exp-south2` sum 54 **over** the frame (617 vs 563), where on the head they sum 14 under it — the
+shadow reach is applied in the composer's caster cull for the whole frame, so each system alone still shows the casters the whole
+frame has culled. From here on the frame is the cap number and the rows the attribution, and a rows-over-frame gap is itself a
+reading: that much of the branch's cut is in the depth pass.
+
+## The head `97045ffa` (23:47 — #161 the kit cast proxy, PR #59's rig, footsteps) — 00:25–00:35 UTC
+
+| pose | frame | trees | structures | vegetation | rocks |
+| --- | --- | --- | --- | --- | --- |
+| the east green | 706 / 9.93 M (was 701 / 9.80 M on `e438c6e5`) | 218 / 3.84 M | 173 / 2.33 M | 123 / 1.82 M | 27 / 0.48 M |
+| the far bank | 718 / 9.94 M (was 718 / 10.06 M) | 200 / 3.51 M | 171 / 2.36 M | 143 / 2.16 M | 30 / 0.48 M |
+| the flight's foot, the stair-foot kit active (Link (5.8, 0.5) → E) | **530 / 9.08 M** (was 529 / 9.13 M) | 173 / 2.33 M | 68 / 1.63 M | 112 / 3.65 M | **26 / 0.28 M** (was 25 / 0.32 M) |
+
+#161's −0.04 M carried onto the head exactly as measured on the branch. Every other row is `e438c6e5`'s to the draw; the frames still
+moved — +5 draws / +0.13 M at the green, −0.12 M at the far bank — with nothing in the rows to show for it. The one thing in every play
+frame that changed is Link's rig (PR #59), and the sun's frustum fit follows the visible bounds: a whole-frame shadow-pass shift of
+±0.1 M that no system owns. Worth knowing when reading a frame to the last 0.1 M; not worth chasing.
+
+What is still waiting to land on the head, with the rows they take: `exp-south2` (the far bank's structures 171 → 84 and the depth pass,
+718 → 563), `exp-east` (the green's structures 173 → 133, 706 → ≈ 650), `fable-4-farfold` #171 (trees −40 draws / −0.1 M at both),
+`fable-4-columnbatch` #151 (−12 draws at the green). With all four in, the green sits near 600 / 9.1 M and the far bank near 525 / 8.1 M
+by addition; the combined build is the read to make when they merge.
+
+## The head `6bb60a08` (01:29 — #151 columnbatch, #171 farfold, #169 fingers, #161 the kit cast, `lodfade` inert) — the draw cap met at every tracked pose, 01:30–02:00 UTC
+
+| pose | frame, `97045ffa` → `6bb60a08` | trees | structures | vegetation | character | rocks |
+| --- | --- | --- | --- | --- | --- | --- |
+| the east green (43, 4) → W | 706 / 9.93 M → **652 / 9.84 M** | 218 → **164 / 3.74 M** | 173 / 2.33 M | 123 / 1.82 M | 56 | 27 / 0.48 M |
+| the east lookout (47.5, 7.5) → W | 672 / 9.82 M (`cd9400b2`) → **623 / 9.71 M** | **166 / 3.70 M** | 174 / 2.45 M | 96 / 1.59 M | 56 | 26 / 0.48 M |
+| the far bank (4.06, 42.8) → N | 718 / 9.94 M → **680 / 9.81 M** | 200 → **162 / 3.38 M** | 171 / 2.36 M | 143 / 2.16 M | 65 | 30 / 0.48 M |
+| the flight's foot, the stair-foot kit active (5.8, 0.5) → E | 530 / 9.08 M → **491 / 8.97 M** | 173 → **134 / 2.21 M** | 68 / 1.63 M | 112 / 3.65 M | 70 | 26 / 0.28 M |
+
+Two of fable-4's batches in the same round — the seated columns' lobes (#151) and the giants' far laminae (#171) — take **−38 to −54
+draws off the trees row at every pose**, and with them **every tracked play frame is under the draw cap on the head itself**: the far
+bank at 680 without `exp-south2`'s cut, the green at 652 without `exp-east`'s. The triangle line is still not met at the three look-backs
+(9.71–9.84 M), and the rows holding it there are unchanged in kind — trees 3.4–3.7 M and vegetation 1.6–2.2 M; the flight's foot at
+8.97 M is the first of these poses under it.
+
+By addition, what the expansion branches bring when they land: the far bank 680 − 87 (structures) − the depth-pass reach ≈ **525 / 8.1 M**;
+the green 652 − 40 ≈ **610 / 9.3 M**; the lookout 623 − 40 ≈ 585 / 9.1 M. After that the triangle line at the plateau is lane 2's and
+lane 4's alone — the far tier for crowns and one pack per LOD beyond 30 m — as it has been since the first bill.
+
+The same head at the six fixed views (capture mode, 8 settle frames, the character visible), `bed93a19` → `6bb60a08`, all six pixel-identical
+(1.0000 / 0.00 %): A 614 / 8.967 M → **575 / 8.758 M**, B 596 / 8.293 → 557 / 8.133 M, C 533 / 7.959 → 494 / 7.848 M, D 523 / 8.741 → 484 /
+8.563 M, E 596 / 8.293 → 557 / 8.133 M, F 555 / 8.098 → 516 / 7.942 M. **Camera A is 0.24 M under the 9.0 M cap with Link in frame**; the
+one to two thousand triangles over farfold's own branch numbers are #169's fingers on the kids in B, C, E and F.
