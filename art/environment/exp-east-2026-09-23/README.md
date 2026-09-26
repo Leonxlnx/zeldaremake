@@ -18,7 +18,7 @@ Branch `agent/fable-cursor-exp-east`, based on `746f1d39`. Everything is authore
 | Tall ("bossy kid") house | trunk (48.6, −1.6), radius 3.0, dome 7.6 m (the tallest), door facing −84° | Side deck on the south face: planks at 6.86 m (1.15 m above the door floor). A railed walk strip runs (47.25, 2.19) → (49.92, 2.10), 0.8 m wide and 0.25 m inside the outer and far railings, and 5 plank steps climb from (45.59, 2.45) to (47.33, 2.40). 6 posts, 8 boards, and a 5-rung ladder at the far end, footed at (50.78, 2.28). |
 | Small cosy house | trunk (37.2, 6.0), radius 2.1, low dome 4.1 m, door facing 200° (toward the lane) | Round window, two flower boxes with 16 flowers each, 1 door pod. A doorstep block stops Link at the threshold, because the arch hangs only 1.5–1.6 m over it. |
 | Pod lantern posts | (41.2, 0.4) orange, 1.95 m; (46.4, 6.55) lime, 1.8 m | Emissive pods. |
-| Lookout | rope fence on the south lip, 5 posts from (45.3, 8.85) to (50.3, 8.55); log bench at (48.3, 7.55), yaw −132°, 1.9 m long | The bench faces back over the lane. The fence stops Link 0.25 m short of its rope. |
+| Lookout | rope fence on the south lip, 5 posts from (45.3, 8.85) to (50.3, 8.55), its ends wrapped round two sawn stumps at (44.72, 8.98) and (50.88, 8.36); a west run of 5 posts from the west stump to the small house's back roots at (38.95, 8.45); an east run of 3 posts turned inland from the east stump to a smaller stump at (50.78, 5.3); log bench at (48.3, 7.55), yaw −132°, 1.9 m long | The bench faces back over the lane. The ropes and stumps stop Link 0.25 m short of them. Every run end but the west run's last stands inside a stump's stop ring, and that one stands on the small house's pad, so the barrier has no gap from the small house to the inland stump. |
 
 The doors are dark recessed openings with a lit room behind (shelves, pots, hanging pods, a table). They
 cannot be entered, like the rest of the village. All three houses use the shared house builder
@@ -62,6 +62,16 @@ moves.
   `lookoutFenceBlocked` in `character/ground.ts`, not a structure pad, so the grass under the rope stays and
   nothing drawn changes. The test asserts the rope line and 0.2 m in front of it are walls, and half a metre
   in is open ground (except where the bench stands).
+- The lookout's ends (`9de40b0e`, `24cdb3c1`). After canonical's slide-along-edges movement, a walker pressing
+  along the rope at a slant slid round either end stump and down the bank. Two drawn rope runs close that.
+  The west run carries the rope from inside the west stump's ring along the lip to the small house's back
+  roots, its last post on the house's pad. The east run turns the rope inland from inside the east stump's
+  ring to a third, smaller stump 3 m in, so a slanted press ends in the corner. The test checks all three
+  runs (a wall on the line and 0.2 m short of it, open ground 0.5 m in), all three stumps, every run end in
+  its stump's ring with no gap to the stump, and a flood by the movement rule from the bench that never
+  reaches the bank side of the rope between the small house and the east stump. East of the east run and
+  west of the small house the lip stays the plateau's own open edge, as before the lane: a 41° bank that is
+  walkable both ways, reached only by walking round the runs on purpose.
 - Play camera: the camera's collision treats an entrance arch's right side (jamb leg, shoulder knot, buttress)
   as a solid shell. The lane therefore passes the shop's door at least 5.3 m from its axis, and the deck is
   turned to 1.5 rad so its steps start 1.7 m right of the tall house's arch. The previous build (v10) passed

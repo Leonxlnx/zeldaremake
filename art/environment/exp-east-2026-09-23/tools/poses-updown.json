@@ -1,0 +1,5 @@
+[
+ { "name": "x_tall_up60", "at": [44.3, 1.2], "look": [48.6, -1.6], "pitch": 60, "camH": 0.5 },
+ { "name": "x_small_down35", "at": [40.0, 2.5], "look": [37.2, 6.0], "pitch": -35 },
+ { "name": "x_deck_down35", "at": [45.0, 2.45], "look": [49.9, 2.2], "pitch": -35 }
+]
