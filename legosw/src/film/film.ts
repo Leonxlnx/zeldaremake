@@ -204,7 +204,7 @@ export async function createFilm(pipeline: Pipeline, ui: FilmUI): Promise<Film> 
       const p = pose(T);
       const c = p.cam;
       const ships: Record<string, { pos: number[]; quat: number[]; visible: boolean }> = {};
-      for (const [k, sh] of [['anakin', w.anakinShip], ['obiwan', w.obiwanShip]] as const) {
+      for (const [k, sh] of [['anakin', w.anakinShip], ['obiwan', w.obiwanShip], ['anakinFig', w.anakin], ['obiwanFig', w.obiwan]] as const) {
         sh.group.updateMatrixWorld(true);
         ships[k] = { pos: sh.group.getWorldPosition(new Vector3()).toArray(), quat: sh.group.getWorldQuaternion(new Quaternion()).toArray(), visible: sh.group.visible };
       }

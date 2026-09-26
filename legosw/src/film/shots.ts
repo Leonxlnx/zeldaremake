@@ -1469,13 +1469,22 @@ function flipOut(w: World, fig: Minifig, ship: Eta2, land: Vector3, yawEnd: numb
     const h = Math.max(hip0.y, hip1.y) + 5.5 - (hip0.y + hip1.y) / 2;
     const pos = hip0.clone().lerp(hip1, u);
     pos.y = lerp(hip0.y, hip1.y, u) + 4 * h * u * (1 - u);
-    const q = new Quaternion().setFromAxisAngle(v3(0, 1, 0), yawTravel).multiply(new Quaternion().setFromAxisAngle(v3(1, 0, 0), smoother(0.06, 0.9, u) * Math.PI * 2));
+    // leave the seat facing the way the fighter points and turn toward the landing mark during the flip
+    // (standing straight onto the travel heading snapped the figure 95-124 degrees in one frame)
+    const qSeat = ship.cockpitAnchor.getWorldQuaternion(new Quaternion());
+    const qBase = qSeat.slerp(new Quaternion().setFromAxisAngle(v3(0, 1, 0), yawTravel), smoother(0, 0.4, u));
+    const q = qBase.multiply(new Quaternion().setFromAxisAngle(v3(1, 0, 0), smoother(0.06, 0.9, u) * Math.PI * 2));
     const pivot = v3(0, 0.8, 0);
     w.stand(fig, v3(0, 0, 0), 0);
     fig.group.quaternion.copy(q);
     fig.group.position.copy(pos).add(pivot).sub(pivot.clone().applyQuaternion(q));
+    // the seated, wound-up pose unfolds into the tuck, and the arms reach the landing pose as the feet arrive
     const tuck = Math.pow(Math.sin(Math.PI * u), 0.7);
-    fig.pose({ legL: tuck * 1.35, legR: tuck * 1.35, armL: 0.4 + tuck * 1.9, armR: 0.4 + tuck * 1.9, splayL: 0.25 * tuck, splayR: 0.25 * tuck, headPitch: 0.25 * tuck });
+    const off = smoother(0, 0.3, u), land = smoother(0.8, 1, u);
+    const leg = Math.max(tuck * 1.35, (Math.PI / 2) * (1 - off));
+    const arm = lerp(2.15, 0.4 + tuck * 1.9, off) + land;
+    const splay = lerp(0.38, 0.25 * tuck, off) + 0.5 * land;
+    fig.pose({ legL: leg, legR: leg, armL: arm, armR: arm, splayL: splay, splayR: splay, headPitch: lerp(-0.15, 0.25 * tuck, off) });
     return;
   }
   const tl = tj - FLIP_DUR;
