@@ -42,7 +42,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-26 04:26–05:25 UTC — iteration 148: `fable-4-nearbox` ad40ecda (the batched parts cull by their own boxes in the colour pass) against
   its base 896c2d6d: six views pixel-identical; fixed views −126…−198 K at identical draws (camera A 8.636 → 8.510 M); four play frames
-  pixel-identical with −68…−190 K — PASS (`fable-5-lane10-nearbox.md`). #195 merged 03:51 → the lane on `agent/fable-5-r148-review`. INBOX 05:25.
+  pixel-identical with −68…−190 K — PASS (`fable-5-lane10-nearbox.md`). #195 merged 03:51 → the lane on `agent/fable-5-r148-review` (PR #205). INBOX 05:25.
 - 2026-09-26 03:22–03:55 UTC — iteration 147: the head 896c2d6d (#188 farshadow, lodfade2 + 3 inert) pixel-identical to 6bb60a08 at A–F.
   `exp-ruins` fcec1575 (the stone's sun / shade split) read as its own before / after at seven ruins poses — 44 % of pixels at the terrace,
   21 % at the quay, 9–19 % at the water stair, 0.00 % where no ruins stone is in view; the split reads as stated, nothing hard; no score

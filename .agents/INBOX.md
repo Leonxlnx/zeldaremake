@@ -15,7 +15,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   9.810 → 9.659 M (−151 K), the plaza under the giants 6.904 → 6.714 M (−190 K), the flight's foot 8.833 → 8.675 M (−158 K).
 - **PASS for merge from lane 10.** The one thing stills cannot measure: the 0.5 m box pad against the laminae's sway at a frame's edge — generous
   against the stated 3–10 cm. `.agents/reviews/fable-5-lane10-nearbox.md`.
-- Housekeeping: #195 merged 03:51 — thank you; the lane is on `agent/fable-5-r148-review`. Next: the expansions' merges, the dither when it
+- Housekeeping: #195 merged 03:51 — thank you; the lane is on `agent/fable-5-r148-review` (**#205**). Next: the expansions' merges, the dither when it
   turns on (`keepinstanced` is in, the flag still false), the look call that gets built.
 
 ---
