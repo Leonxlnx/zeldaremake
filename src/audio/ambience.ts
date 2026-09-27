@@ -250,6 +250,32 @@ export const GORGE_CALL_SEND = 1.2;
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
 export const LANTERN_REACH_M = 1.3;
 export const LANTERN_LEVEL = 0.055;
+/**
+ * The bottom of the flame's body (Hz).
+ *
+ * The body is pink noise through a lowpass at 320 Hz, and pink noise rises toward DC, so it had
+ * no bottom at all: isolated, **the flame's loudest frequency was 43 Hz** and it put **+24.9 dB
+ * into the 20–60 Hz band of the floor** a metre from a pod (`art/audio/2026-09-27-flame/`). A
+ * pod lantern's flame is a few centimetres across and radiates essentially nothing three and a
+ * half metres below its own size; what was down there was the noise generator, not a fire.
+ *
+ * **This is a headroom and correctness change and not an audibility one**, and the measurement
+ * says so rather than hiding it. Applied to the rendered stem at a pod:
+ *
+ *     high-pass   A-weighted floor   unweighted floor   peak    20–60 Hz
+ *        40 Hz             −0.07 dB           −2.66 dB  −3.43       −6.9 dB
+ *        80 Hz             −0.26              −3.98     −3.73      −21.4
+ *       100 Hz             −0.46              −4.63     −5.28      −28.2
+ *       140 Hz             −1.15              −6.22     −7.24      −39.3
+ *
+ * 80 Hz is where the last column has done its work and the first has barely started. Above it the
+ * A-weighted level begins to fall, which would be turning the lantern down rather than taking out
+ * what it should never have been making — and 140 would eat the husk, whose resonance sits at
+ * 132 Hz with a Q of 5 and is deliberate.
+ *
+ * It is on the BODY only. The husk taps the same noise separately and keeps everything it had.
+ */
+export const FLAME_BOTTOM_HZ = 80;
 /** share of a non-nearest pod's attenuation that is added — a village of pods must not sum to a drone */
 export const LANTERN_CROWD_SHARE = 0.2;
 
@@ -715,9 +741,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   flameSrc.start(startAt, pink.duration * 0.66);
   nodes.push(flameSrc);
   drift(flameSrc, 'flamedrift');
+  const flameHp = filter(ctx, 'highpass', FLAME_BOTTOM_HZ, 0.7);
   const flameLp = filter(ctx, 'lowpass', 320, 0.8);
   const flameBody = gain(ctx, 0.35);
-  flameSrc.connect(flameLp).connect(flameBody).connect(flameGain);
+  flameSrc.connect(flameHp).connect(flameLp).connect(flameBody).connect(flameGain);
   // the flutter: an irregular envelope at a few Hz, the breath of a flame inside the husk
   rides(flameBody.gain, 2.6, 1.3, 0.9, 'flame', 240);
   // the husk's own resonance gives a lit pod a pitch — a narrow band of the SAME noise, not an
