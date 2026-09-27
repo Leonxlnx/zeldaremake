@@ -2930,6 +2930,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.receiveShadow = true;
     mesh.visible = false;
     mesh.userData.kind = 'column-near-base';
+    mesh.userData.staticCasts = mesh.castShadow;
     columnGroup.add(mesh);
     const [item, first] = poolItem(`column-near-base/${p.id}`, mesh, asset.nearBaseBuild!, () => {});
     nearBasePool.add(item, first);
@@ -3071,6 +3072,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.name = `giant-near-base-${g.def.id}`;
       mesh.customDepthMaterial = mats.giantTreeDepth;
       mesh.castShadow = ctx.quality.shadows;
+      mesh.userData.staticCasts = mesh.castShadow;
       mesh.receiveShadow = true;
       mesh.visible = false;
       mesh.userData.kind = 'giant-near-base';
@@ -3398,10 +3400,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   step('giants-loop-total', loopT0);
   /**
-   * Per-group colour-pass culling for a merged world-space mesh: `groupBoxes[i]` bounds group i
-   * (materialIndex i). `cull()` marks each box against the camera frustum (GROUP_PAD_M for wind);
-   * the colour pass draws a marked-out group with count 0 (onBeforeRender / onAfterRender run per
-   * group), the shadow pass — rendered first, hook-free — draws them all.
+   * Per-group culling for a merged world-space mesh, in both passes: `groupBoxes[i]` bounds group i
+   * (materialIndex i). `cull()` marks each box against the camera frustum (GROUP_PAD_M for wind)
+   * and each group's shadow sweep against the same frustum; a marked-out group is drawn with count
+   * 0 — `onBeforeRender` / `onAfterRender` per group for the colour pass, `onBeforeShadow` /
+   * `onAfterShadow` (three r163+, called per group the same way) for the sun's depth pass.
    */
   const GROUP_PAD_M = 1.5;
   /** height bands a giant's leaves split into for the colour-pass cull (draws: 1 wood + bands per giant) */
@@ -3414,6 +3417,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       return out;
     });
     mesh.userData.groupInView = bounds.boxes.map(() => true);
+    /** per group: its shadow sweep meets the frustum, so the sun's depth pass must draw it */
+    mesh.userData.groupCasts = bounds.boxes.map(() => true);
     // three types the hook's last argument as an Object3D Group; at runtime it is the geometry
     // group record ({ start, count, materialIndex }) of the draw being issued
     type GeometryGroup = { start: number; count: number; materialIndex: number };
@@ -3434,6 +3439,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (count === undefined) return;
       g.count = count;
       saved[g.materialIndex] = undefined;
+    };
+    // The same trick for the sun's depth pass. A group whose shadow capsule (its padded sphere
+    // swept to the shadow floor along the sun) lies wholly outside one frustum plane cannot darken
+    // a visible pixel, so its triangles are pure cost: at the main flight's foot the south sector's
+    // four giants were 86 K of depth for a frame their shade never enters.
+    const savedShadow: (number | undefined)[] = [];
+    mesh.onBeforeShadow = (_r, _o, _c, _sc, _g, _m, group) => {
+      const g = group as unknown as GeometryGroup | null;
+      if (!g) return;
+      const casts = mesh.userData.groupCasts as boolean[];
+      if (casts[g.materialIndex] === false) {
+        savedShadow[g.materialIndex] = g.count;
+        g.count = 0;
+      }
+    };
+    mesh.onAfterShadow = (_r, _o, _c, _sc, _g, _m, group) => {
+      const g = group as unknown as GeometryGroup | null;
+      if (!g) return;
+      const count = savedShadow[g.materialIndex];
+      if (count === undefined) return;
+      g.count = count;
+      savedShadow[g.materialIndex] = undefined;
     };
   };
   /**
@@ -4441,11 +4468,38 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       sphere.copy(mesh.geometry.boundingSphere!);
       sphere.radius += CULL_PAD_M;
       mesh.castShadow = shadowReaches(sphere);
+      // then per giant, for the sectors that carry groups: the sector's own sphere spans ~50 × 55 m
+      // and reaches nearly every frame, while a single giant's crown or wood often does not
+      const casts = mesh.userData.groupCasts as boolean[] | undefined;
+      const spheres = mesh.userData.groupSpheres as Sphere[] | undefined;
+      if (!casts || !spheres) continue;
+      let any = false;
+      if (mesh.castShadow) {
+        for (let i = 0; i < spheres.length; i++) {
+          casts[i] = shadowReaches(spheres[i]);
+          if (casts[i]) any = true;
+        }
+        // nothing left to draw: drop the mesh instead of issuing count-0 draws per group
+        if (!any) mesh.castShadow = false;
+      } else casts.fill(true);
     }
     for (const batch of farFoliage) {
       sphere.copy(batch.mesh.boundingSphere!);
       sphere.radius += CULL_PAD_M;
       batch.mesh.castShadow = shadowReaches(sphere);
+    }
+    // the pooled near parts: the build arms them (`staticCasts`) and this narrows them per frame.
+    // They are the last casters with no shadow test — at the main flight's foot the four giant
+    // bases and two column bases shown were 155 K of depth for a frame their shade never enters.
+    for (const nb of nearBoles) {
+      const mesh = nb.mesh;
+      if (!mesh.visible || mesh.userData.staticCasts !== true) continue;
+      const bs = mesh.geometry.boundingSphere;
+      if (!bs) continue;
+      mesh.updateMatrixWorld();
+      sphere.copy(bs).applyMatrix4(mesh.matrixWorld);
+      sphere.radius += CULL_PAD_M;
+      mesh.castShadow = shadowReaches(sphere);
     }
   };
   /** trim every bucket for `camera`; skipped while the view-projection is unchanged (unless forced) */
@@ -4750,6 +4804,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       columnLodSubmitted: [0, 1, 2].map((l) => seatedColumns.reduce((n, c) => n + c.submitted[l].length, 0)),
       distantSubmitted: [0, 1].map((l) => distantSets.reduce((n, d) => n + d.submitted[l].length, 0)),
       giantSectorsCasting: sectorMeshes.filter((m) => m.castShadow).length,
+      /** of the sectors' per-giant groups, how many the last depth pass drew (the rest: shade outside the frame) */
+      giantGroupsCasting: groupMeshes.reduce((n, m) => n + ((m.userData.groupCasts as boolean[] | undefined)?.filter((c, i) => c && m.castShadow && (m.userData.groupCasts as boolean[]).length > i).length ?? 0), 0),
+      giantGroupsTotal: groupMeshes.reduce((n, m) => n + ((m.userData.groupCasts as boolean[] | undefined)?.length ?? 0), 0),
+      /** of the pooled near bases shown, how many cast: the rest's shade never enters the frame */
+      nearBolesCasting: nearBoles.filter((nb) => nb.mesh.visible && nb.mesh.castShadow).length,
       /**
        * round 50 (trees-32): the detached boughs (DETACHED_BOUGHS) — per giant, their geometry and
        * lobes as built (world centres), whether the gate shows them for the current camera, and
@@ -5213,6 +5272,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   ctx.progress('trees', 1);
   phase('distant-mid-and-publish');
+  // TEMP squad2 depth probe (removed before commit)
+  (window as unknown as { __ZR_TREES__?: unknown }).__ZR_TREES__ = group;
 
   let prebuilt = false;
   return {
