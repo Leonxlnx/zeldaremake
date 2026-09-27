@@ -2017,6 +2017,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
   /**
+   * Wall-clock per build phase, for the load question the owner's first priority asks ("make all the trees
+   * load in ASAP"): `buildMs` in `__ZR__.perf()` gives this system 8.3 s of a 42.7 s build
+   * (art/environment/squad2-2026-09-23/buildtime/) but not where inside it. The boundaries are the
+   * `ctx.progress` checkpoints that already exist, so the split costs one `performance.now()` each.
+   *
+   * It is wall clock, `await yieldFrame()` included: that is what a player waits, and the yields are part
+   * of the load rather than an artefact of measuring it.
+   */
+  const buildPhases: Record<string, number> = {};
+  let phaseAt = performance.now();
+  const phase = (name: string) => {
+    const now = performance.now();
+    buildPhases[name] = Math.round((buildPhases[name] ?? 0) + (now - phaseAt));
+    phaseAt = now;
+  };
+  /**
    * Near-bole LOD (giant.ts NEAR_BASE_CUT_Y): every giant and seated column has a near-base mesh
    * (relief bole, buttress fins, plant ring) that is shown — and its plain lower bole collapsed
    * through `mats.nearBole` — only while the live camera stands within NEAR_BASE_IN_M of the
@@ -2673,6 +2689,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
+  phase('white-barks');
   await yieldFrame();
 
   // ------------------------------------------------------------------ understory (round 53)
@@ -2781,6 +2798,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }),
   ];
   ctx.progress('trees', 0.52);
+  phase('understory');
   await yieldFrame();
 
   // ------------------------------------------------------------------ column trees
@@ -2981,6 +2999,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.shared.trunkSeats = trunkSeats;
   ctx.progress('trees', 0.55);
+  phase('columns');
   await yieldFrame();
 
   // ------------------------------------------------------------------ giants
@@ -4064,6 +4083,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   group.add(distantGroup);
   ctx.progress('trees', 0.95);
+  phase('giants');
 
   // ------------------------------------------------------------------ LOD bucketing
   const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[0], TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE[1]];
@@ -4756,6 +4776,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantWildLimbs: Object.fromEntries(giants.map((g) => [g.def.id, g.asset.wildLimbs.map((l) => `${l.azimuthDeg}${l.ghost ? 'g' : ''}`)])),
       giantLeaves,
       /**
+       * Wall-clock ms per build phase (the `ctx.progress` checkpoints): white-barks, understory, columns,
+       * giants, then the distant / mid layers with the pools and the publish. `buildMs.trees` in
+       * `__ZR__.perf()` is their sum, and this says which of them a load pass should attack.
+       */
+      buildPhases: { ...buildPhases },
+      /**
        * Where a giant's WOOD triangles are, one row per giant, heaviest first — the question the
        * family total (`submission.byFamily['giant-wood']`, 1.51 M) cannot answer and the reason a rung
        * for it could not be designed (art/environment/squad2-2026-09-23/giantwood/CORRECTION.md).
@@ -5137,6 +5163,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     releaseAfterUpload(g);
   });
   ctx.progress('trees', 1);
+  phase('distant-mid-and-publish');
 
   let prebuilt = false;
   return {
