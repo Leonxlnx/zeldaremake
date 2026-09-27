@@ -19,7 +19,8 @@ import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
 import { buildRavineRocks } from './ravine';
-import { expansionVisible, sunVector } from '../util/expansionLocality';
+import { frustumMeets, sunVector } from '../util/expansionLocality';
+import { EXPANSION_BOX } from '../layout';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { NORTH_Z1 } from '../util/northLocality';
@@ -310,6 +311,16 @@ export const PEBBLE_LOD_BAND_M = 1;
  * (structures, `09110730`), so the village's small dressing fades at one distance.
  */
 export const PEBBLE_FAR_M = 34;
+/** the ravine rock's draw distance (m, camera to the nearest body): the deck, the sills and the banks see it; the plateau does not */
+export const RAVINE_DRAW_M = 26;
+/**
+ * the plaza backside's dressing (the pale boulder pair, the step stones, the kerb and the scree
+ * under the west house) draws within this of the west expansion's box: 45 m instead of the
+ * locality's 60 — from the east plateau's green (48 m off) and lookout (52 m) it stood behind the
+ * west house, 50 K triangles twice for nothing in frame; the plaza, the west house and the bridge
+ * path are all inside 45
+ */
+export const BACKSIDE_DRAW_M = 45;
 /** icosahedron subdivision of the far looks: 20·(detail+1)² triangles → 20 */
 export const PEBBLE_LOW_DETAIL = 0;
 
@@ -1348,8 +1359,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // merged mesh under the hero (near) material; positions from the layout's northClearing /
   // stairs.ledge / ledgeTerrace, own fork
   const clearing = buildClearingRocks(ctx.layout as unknown as ClearingLayout, T, rng.fork('north-clearing'), seed, shadeDir);
+  let clearingMesh: Mesh | null = null;
   if (clearing) {
-    const clearingMesh = new Mesh(clearing.geometry, dressingMaterial);
+    clearingMesh = new Mesh(clearing.geometry, dressingMaterial);
     clearingMesh.castShadow = true;
     clearingMesh.receiveShadow = true;
     clearingMesh.name = 'north-clearing-rocks';
@@ -1381,6 +1393,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
 
   mark('backside');
+  /**
+   * The ravine's rock draws only from where the gorge can be looked into: within RAVINE_DRAW_M of
+   * one of its bodies (the bridge deck, the sills, the banks — the walls are 3.5–8 m under the
+   * banks' lips), and with a body in the frustum. It was gated by `expansionVisible` (the plaza's
+   * west box within 60 m): from the east plateau's green, 50 m off with the village between, that
+   * drew its 95 K triangles twice (+0.19 M of the look-back's rocks row) while from the far bank
+   * itself the box test failed and the walls were missing.
+   */
+  const ravineVisible = (camera: Camera, spheres: Sphere[]) => {
+    camera.getWorldPosition(_cam);
+    let near = false;
+    for (const sp of spheres) {
+      if (_cam.distanceTo(sp.center) - sp.radius < RAVINE_DRAW_M) {
+        near = true;
+        break;
+      }
+    }
+    return near && frustumMeets(camera, spheres);
+  };
+  const backsideVisible = (camera: Camera, spheres: Sphere[]) => {
+    camera.updateMatrixWorld();
+    camera.getWorldPosition(_cam);
+    const b = EXPANSION_BOX;
+    const dx = Math.max(b.x0 - _cam.x, 0, _cam.x - b.x1);
+    const dz = Math.max(b.z0 - _cam.z, 0, _cam.z - b.z1);
+    if (Math.hypot(dx, dz) >= BACKSIDE_DRAW_M) return false;
+    return frustumMeets(camera, spheres);
+  };
   // --- the south ravine's rock (ravine.ts, the owner's 06:07 rubric for the new area): bedded
   // outcrops half-sunk into both walls and moss-capped boulders on the floor — seated on the LIVE
   // terrain (the gorge exists only there), one mesh under the near material, toggled with the same
@@ -1518,11 +1558,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** rock ledge faces (ledge.ts): from `layout.rockLedges`, or the `?rockLedgePreview=1` preview (never in a take) */
     ledges: ledgeInfo,
     /** the north clearing's dressing (clearing.ts): boulder pair / scree / slabs, one mesh */
-    northClearing: clearing ? clearing.stats : null,
+    northClearing: clearing ? { ...clearing.stats, visible: clearingMesh ? clearingMesh.visible : false } : null,
     /** the plaza's backside (backside.ts): the south bank's pair / toe step / flight scree, one mesh */
-    backside: backside ? backside.stats : null,
+    backside: backside ? { ...backside.stats, visible: backsideMesh ? backsideMesh.visible : false } : null,
     /** the south ravine's rock (ravine.ts): wall outcrops + floor boulders, one mesh */
-    ravine: ravine ? ravine.stats : null,
+    ravine: ravine ? { ...ravine.stats, visible: ravineMesh ? ravineMesh.visible : false } : null,
     ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
@@ -1579,8 +1619,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(c.camera, false);
       const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
-      if (backsideMesh) backsideMesh.visible = expansionVisible(c.camera, backsideSpheres);
-      if (ravineMesh) ravineMesh.visible = expansionVisible(c.camera, ravineSpheres);
+      if (backsideMesh) backsideMesh.visible = backsideVisible(c.camera, backsideSpheres);
+      if (ravineMesh) ravineMesh.visible = ravineVisible(c.camera, ravineSpheres);
       // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
       plants.cull(c.camera);
     },
@@ -1588,8 +1628,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(camera, true);
       const show = northVisible(nBox, camera.position.x, camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
-      if (backsideMesh) backsideMesh.visible = expansionVisible(camera, backsideSpheres);
-      if (ravineMesh) ravineMesh.visible = expansionVisible(camera, ravineSpheres);
+      if (backsideMesh) backsideMesh.visible = backsideVisible(camera, backsideSpheres);
+      if (ravineMesh) ravineMesh.visible = ravineVisible(camera, ravineSpheres);
       plants.cull(camera, true);
     },
     dispose() {
