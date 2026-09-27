@@ -66,3 +66,34 @@ commit in this window touched.
 the +436 ms total sits inside it. That bounds every single-sample build comparison, including the table
 above this section: it can rank systems (the shares are stable and large) but it cannot resolve a change
 smaller than about half a second, and a load claim at that scale needs three runs a side.
+
+## Correction: three samples on one head, and the first run is the outlier
+
+The section above bounded this VM's noise at **±0.5 s per system** from two runs. That was pessimistic and
+partly wrong, because those two runs were on **different heads** and the first of them was the first boot
+after a fresh build. Three runs on one head (`1232f1d3`), nothing else changed:
+
+| system | run 1 | run 2 | run 3 | mean | spread |
+| --- | --- | --- | --- | --- | --- |
+| vegetation | 10,666 | 10,579 | 10,605 | 10,617 | **87** |
+| trees | 8,585 | 8,232 | 8,288 | 8,368 | 353 |
+| structures | 7,882 | 7,783 | 7,799 | 7,821 | 99 |
+| rocks | 6,727 | 6,545 | 6,500 | 6,591 | 227 |
+| terrain | 4,117 | 4,412 | 4,115 | 4,215 | 297 |
+| hardscape | 3,234 | 3,099 | 3,110 | 3,148 | 135 |
+| atmosphere | 1,030 | 747 | 969 | 916 | 283 |
+| character | 570 | 562 | 571 | **567** | **9** |
+| **total** | **43,323** | **42,391** | **42,456** | **42,723** | **932 (2.2 %)** |
+
+Three things follow:
+
+* **the real same-head spread is 1–4 % per system**, not half a second flat — 87 ms on vegetation, 99 on
+  structures, 353 on trees (the noisiest of the big ones);
+* **run 1 is the outlier every time** (43.3 s against 42.4 s twice): it is the first boot after a fresh
+  `npm run build`, so the assets are cold. Discard it, or take the median;
+* the **character at 567 ± 9 ms** puts the 2K model's saving (999 → 567 ms) an order of magnitude outside
+  the noise, so that one stands as measured.
+
+So the rule for a load claim on this VM is: three runs, drop the first, and treat anything under ~150 ms
+per system or ~1 s on the total as unresolvable. The share ranking — vegetation, trees, structures, rocks
+at 78 % between them — is stable across all three runs and remains the usable part.

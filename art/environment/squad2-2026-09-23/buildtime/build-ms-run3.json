@@ -1,0 +1,31 @@
+{
+ "buildMs": {
+  "lighting": 98.59999999403954,
+  "atmosphere": 969,
+  "terrain": 4115.299999982119,
+  "hardscape": 3109.5,
+  "rocks": 6500.4000000059605,
+  "trees": 8288,
+  "canopy": 48.5,
+  "structures": 7798.799999982119,
+  "props": 351.5,
+  "vegetation": 10605.199999988079,
+  "character": 570.8000000119209
+ },
+ "systems": {
+  "wind": 0.09999999403953552,
+  "lighting": 0.20000001788139343,
+  "atmosphere": 0.699999988079071,
+  "terrain": 0.20000001788139343,
+  "hardscape": 1.5999999940395355,
+  "rocks": 0.29999998211860657,
+  "trees": 1456,
+  "canopy": 0,
+  "structures": 0.20000001788139343,
+  "props": 0.09999999403953552,
+  "vegetation": 0.4000000059604645,
+  "character": 7.299999982118607
+ },
+ "tier": "high",
+ "warmup": null
+}
