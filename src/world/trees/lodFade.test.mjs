@@ -97,13 +97,20 @@ test('the weight attribute is written only behind the flag', () => {
   assert.match(body, /1 - \(w\.lodWeights\?\.get\(l \* w\.placements\.length \+ list\[k\]\) \?\? 1\)/, 'the attribute carries the DROP fraction, so an unrecorded tree writes 0 and draws whole');
 });
 
-test('the attribute is lazily attached and marked dynamic', () => {
-  const at = indexSource.indexOf('const fadeAttribute');
-  assert.notEqual(at, -1, 'fadeAttribute is gone');
-  const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
-  assert.match(body, /getAttribute\('aLodDrop'\)/, 'it must reuse an attribute it already attached');
-  assert.match(body, /new Float32Array\(mesh\.instanceMatrix\.count\)(?!\.fill)/, 'a zeroed buffer is "draw whole" for every slot, which is also what WebGL feeds a mesh without the attribute');
+test('the attribute is attached with the mesh and exempt from the array release', () => {
+  const at = indexSource.indexOf('if (TREE_LOD_DITHER) {', indexSource.indexOf('const familyMeshes'));
+  assert.notEqual(at, -1, 'familyMeshes no longer attaches the drop attribute');
+  const body = indexSource.slice(at, at + 700);
+  assert.match(body, /new InstancedBufferAttribute\(new Float32Array\(n\), 1\)/, 'one float per instance slot, zeroed — every tree draws whole until a band says otherwise');
   assert.match(body, /setUsage\(DynamicDrawUsage\)/, 'it is rewritten on every bucket change');
+  assert.match(body, /drop\.onUpload\(function \(\) \{\}\)/, "it must carry its own no-op onUpload: releaseAfterUpload's callback nulls the array after the first upload and the next write throws");
+  assert.match(body, /setAttribute\('aLodDrop', drop\)/, 'and be attached to the rung geometry');
+});
+
+test('fillFamily refuses to write into a freed or missing array', () => {
+  const at = indexSource.indexOf('const fadeAttribute');
+  const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
+  assert.match(body, /attr && attr\.array \? attr : null/, 'a null array is the crash this guard exists for');
 });
 
 test('the shared-geometry constraint is recorded where the attribute is made', () => {
