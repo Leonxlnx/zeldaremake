@@ -70,6 +70,15 @@ export interface PoolReport {
   /** pending = wanted, not built, not building; building = chunked builds in progress */
   pending: number;
   building: number;
+  /**
+   * Of the items this frame PINNED — the parts actually shown — how many are not built yet. This is
+   * the only one of these numbers that says whether the frame is finished: `pending` counts the
+   * pre-fetch radius, which stays busy for a minute after a re-pose and never reaches 0 in a
+   * capture, while a shown part that is still queued is drawn in its far form until its geometry
+   * lands. A harness that wants a reproducible frame settles until this is 0 (see
+   * art/environment/squad2-2026-09-23/settle).
+   */
+  pinnedPending: number;
   /** builds completed (chunked + synchronous), evictions, synchronous builds (a pinned item that was not ready), pins served from the pool */
   built: number;
   evicted: number;
@@ -296,11 +305,13 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     let wantedBytes = 0;
     let pending = 0;
     let building = 0;
+    let pinnedPending = 0;
     for (const s of this.slots.values()) {
       if (s.built) resident++;
       if (s.pinned) {
         pinned++;
         pinnedBytes += s.item.bytes;
+        if (!s.built) pinnedPending++;
       }
       if (s.wanted) {
         wanted++;
@@ -323,6 +334,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       wantedBytes,
       pending,
       building,
+      pinnedPending,
       built: this.builtCount,
       evicted: this.evictedCount,
       syncBuilds: this.syncCount,

@@ -681,6 +681,25 @@ test('the fold group decodes as the shader does: 3 + group, a flat lobe 1000 + g
   assert.equal(foldGroupOf(1000 + 12), 12);
 });
 
+test('pinnedPending separates "a shown part is not ready" from "the pre-fetch is busy"', () => {
+  const log = [];
+  const pool = new LodPool(100, clock());
+  const items = ['a', 'b', 'c'].map((id) => fakeItem(id, 40, log));
+  for (const it of items) pool.add(it);
+  // one part shown, two more wanted that cannot fit beside it
+  pool.begin();
+  pool.pin(items[0]);
+  pool.want(items[1], 20);
+  pool.want(items[2], 30);
+  pool.work(10);
+  const r = pool.report();
+  // a pin that was not resident is built synchronously, so what is SHOWN is never unbuilt: this is
+  // the invariant the capture contract rests on (the same pose draws the same parts, warm or cold)
+  assert.equal(r.pinnedPending, 0, 'a pinned part is built before the frame draws');
+  assert.ok(r.pending > 0, 'while the pre-fetch behind it is still busy');
+  assert.equal(r.pinned, 1);
+});
+
 test('a giant\'s tagged far laminae leave for one sub-geometry per lobe group; wood, ordinary leaves and mixed triangles stay', () => {
   const { extractTaggedFoliage } = foliageSplitters();
   // quads: wood, ordinary leaf, group 2 (×2), group 0 (flat), group 2 again, ordinary leaf
