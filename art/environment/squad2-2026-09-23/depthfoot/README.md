@@ -222,3 +222,34 @@ layers are 34 K between them; the families' rungs are at the gates round 53/54 p
 The rows that remain are in-frame detail at the range the owner asked for it. Closing the foot's last
 0.13 M is a look decision (the vegetation row, 3.3 M there, or this near-canopy tier), not another
 geometric trim.
+
+## 7. The same culls at the walk and look-up poses — where they pay most
+
+The fixed views are the budget's gate, but the player is not standing in them, and a cull that keys
+on the camera has to be checked where the camera actually goes. These are this lane's own walk poses
+(`walk-poses.json`) plus the two look-up poses (`look-up-poses.json`) — six cameras that had never
+been measured against the depth work — rendered with the clock frozen on `a9308730` (the branch
+before any of it) and on the branch head:
+
+| pose | before | after | triangles | draws | sector groups casting | near bases casting | frame |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| plaza-west | 485 / 6 224 678 | 484 / 6 049 665 | **−175 013** | −1 | 7 of 14 | 3 | identical |
+| plaza-east | 440 / 9 635 502 | 434 / 9 556 777 | **−78 725** | −6 | 14 of 14 | 6 | identical |
+| plaza-south | 397 / 6 227 228 | 397 / 6 114 234 | **−112 994** | 0 | 8 of 14 | 5 | identical |
+| clearing-north | 468 / 5 765 970 | 462 / 5 572 935 | **−193 035** | −6 | 2 of 14 | 2 | identical |
+| up-open-north | 246 / 3 683 298 | 241 / 3 519 960 | **−163 338** | −5 | 2 of 14 | 3 | identical |
+| owner-0650-north | 457 / 8 624 308 | 457 / 8 504 699 | **−119 609** | 0 | 8 of 14 | 6 | identical |
+
+**Every frame is byte-identical** (md5 per pose in `walk-before.json` / `walk-after.json`), and the
+six poses shed 0.84 M triangles between them — 79–193 K each, two to four times what the fixed views
+gave. The reason is in the "groups casting" column: from the plaza's middle every giant throws shade
+into the frame (14 of 14 at plaza-east), but a few steps out most of them stop (2 of 14 at
+clearing-north and at the north look-up), and that is exactly where the walkable build was over the
+W38 envelope before fable-4's sweep. Play mode is where this work pays.
+
+The two look-up poses are the ones I most wanted to see: the frustum points at sky, so a shadow test
+that was too eager would drop shade that still lands on the ground in the lower frame. They are
+identical, at 163 K and 2-of-14 groups — the test is tight without being wrong.
+
+`clearing-north.jpg` is the after frame at the biggest saving, for the record: 462 draws, 5.57 M,
+twelve of fourteen giant groups not casting, and not a pixel different from the 5.77 M version.

@@ -1,0 +1,50 @@
+{
+ "plaza-west": {
+  "draws": 484,
+  "triangles": 6049665,
+  "groupsCasting": 7,
+  "groupsTotal": 14,
+  "nearBolesCasting": 3,
+  "md5": "371e8eee1c807bf88274debe6472faf6"
+ },
+ "plaza-east": {
+  "draws": 434,
+  "triangles": 9556777,
+  "groupsCasting": 14,
+  "groupsTotal": 14,
+  "nearBolesCasting": 6,
+  "md5": "f7437b38a2e48b95684f46011dd0c8fa"
+ },
+ "plaza-south": {
+  "draws": 397,
+  "triangles": 6114234,
+  "groupsCasting": 8,
+  "groupsTotal": 14,
+  "nearBolesCasting": 5,
+  "md5": "014f77d21990a7fdbadb6cdda772e6ae"
+ },
+ "clearing-north": {
+  "draws": 462,
+  "triangles": 5572935,
+  "groupsCasting": 2,
+  "groupsTotal": 14,
+  "nearBolesCasting": 2,
+  "md5": "246d654c57ad9a3a9d365d077117ef5b"
+ },
+ "up-open-north": {
+  "draws": 241,
+  "triangles": 3519960,
+  "groupsCasting": 2,
+  "groupsTotal": 14,
+  "nearBolesCasting": 3,
+  "md5": "75818e762ff422abeafacb0fbd650d55"
+ },
+ "owner-0650-north": {
+  "draws": 457,
+  "triangles": 8504699,
+  "groupsCasting": 8,
+  "groupsTotal": 14,
+  "nearBolesCasting": 6,
+  "md5": "4f493dea95f432d34d5cb224b73b517b"
+ }
+}
