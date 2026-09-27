@@ -2,6 +2,7 @@
  * Third-person follow camera for the walkable build (Phase 2). Reference constants
  * (reference/ANALYSIS.md §1): 4.3 m behind the player at 1.75 m eye height, aimed ≈ 3° down.
  * WASD / arrows move Link relative to the camera, Shift runs, Space (gamepad A) jumps — round 47;
+ * T (gamepad Y) raises or lowers the sign he holds over his head (character/signPose.ts);
  * the left stick moves and the right stick looks when a gamepad is connected — drag /
  * pointer-lock looks. Toggled from main.ts (`?mode=play` or the P key); the default headless
  * behaviour is untouched.
@@ -307,8 +308,8 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     return (next - goal) * e > 0 ? [goal, 0] : [next, rate];
   };
 
-  /** the first connected gamepad's left stick (x, y), right stick and A button, or null */
-  const readGamepad = (): { lx: number; ly: number; rx: number; ry: number; a: boolean; run: boolean } | null => {
+  /** the first connected gamepad's left stick (x, y), right stick, A and Y buttons, or null */
+  const readGamepad = (): { lx: number; ly: number; rx: number; ry: number; a: boolean; y: boolean; run: boolean } | null => {
     const pads = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : null;
     if (!pads) return null;
     for (const gp of pads) {
@@ -320,6 +321,7 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
         rx: dz(gp.axes[2] ?? 0),
         ry: dz(gp.axes[3] ?? 0),
         a: !!gp.buttons[0]?.pressed,
+        y: !!gp.buttons[3]?.pressed,
         // B (Zelda's roll / run button) or a left-stick push past ¾ runs
         run: !!gp.buttons[1]?.pressed || Math.hypot(dz(gp.axes[0] ?? 0), dz(gp.axes[1] ?? 0)) > 0.75,
       };
@@ -497,6 +499,7 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
       if (keys.has('KeyA') || keys.has('ArrowLeft')) (mx -= rx), (mz -= rz);
       let run = keys.has('ShiftLeft') || keys.has('ShiftRight');
       let jump = keys.has('Space');
+      let sign = keys.has('KeyT');
       const gp = readGamepad();
       const stickLook = !!gp && (gp.rx !== 0 || gp.ry !== 0);
       if (gp) {
@@ -505,11 +508,12 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
         mz += fz * -gp.ly + rz * gp.lx;
         run ||= gp.run;
         jump ||= gp.a;
+        sign ||= gp.y;
         if (stickLook) look(-gp.rx * STICK_ORBIT * dt, -gp.ry * STICK_PITCH * ySign * dt);
       }
       const l = Math.hypot(mx, mz);
       if (l > 1) (mx /= l), (mz /= l);
-      player.setInput({ moveX: mx, moveZ: mz, run, jump });
+      player.setInput({ moveX: mx, moveZ: mz, run, jump, sign });
       // the camera eases behind the player's heading while he moves (drag / the right stick override),
       // and after RECENTRE_AFTER s of walking without look input the pitch settles back to rest
       following = l > 0 && !dragging && document.pointerLockElement !== host && !stickLook;
