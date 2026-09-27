@@ -340,10 +340,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   let speed = 0;
   const moveDir = new Vector3(0, 0, -1);
   let jumpHeld = false;
+  /** the sign toggle (T): held state for the press edge, and whether the sign is up — kept across a clock-jump reset, cleared on entering play */
+  let signHeld = false;
+  let signUp = false;
   const resetLocomotion = () => {
     loco = createLocomotion();
     speed = 0;
     jumpHeld = false;
+    signHeld = false;
     velocity.set(0, 0, 0);
   };
   const player: PlayerHandle = {
@@ -357,6 +361,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mode = 'play';
         view = null;
         camPose = null;
+        signUp = false;
         resetLocomotion();
       } else {
         mode = 'free';
@@ -370,6 +375,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       input.moveZ = i.moveZ;
       input.run = i.run;
       input.jump = !!i.jump;
+      input.sign = !!i.sign;
     },
     groundHeight: (x, z) => ground.height(x, z),
     surfaceHeight: (x, z) => ground.surface(x, z),
@@ -431,6 +437,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // a jump starts on the press (never repeats while held) from the ground, crouch first
     if (input.jump && !jumpHeld && !j) loco.jump = { phase: 'crouch', t0: t, y0: 0, y: 0, v0: 0, vx: 0, vz: 0, vLand: 0, flightS: 0, air: 0 };
     jumpHeld = !!input.jump;
+    if (input.sign && !signHeld) signUp = !signUp;
+    signHeld = !!input.sign;
+    loco.sign = signUp;
     let ds = 0;
     if (j && j.phase === 'air') {
       // ballistic: the take-off velocity carried, gravity on the root; the arc meets the ground.
@@ -568,6 +577,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       triangles: countTriangles(),
       linkTriangles: link.puppet.triangles,
       linkHeight: link.puppet.height,
+      /** the held sign (T, play mode): toggled up, and the raise clock the arms and the sign follow (0 down … 1 up) */
+      linkSign: { up: signUp, raise: Number(loco.signRaise.toFixed(3)) },
       /** rig meshes before / after the per-joint merge (consolidate.ts), and the merged meshes made */
       rigMeshesBeforeMerge: rigDraws.before,
       rigMeshes: rigDraws.after,

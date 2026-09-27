@@ -91,10 +91,13 @@ export interface Locomotion {
   offZ: [number, number];
   /** the jump in progress, or null on the ground */
   jump: JumpState | null;
+  /** the sign held up (T toggles it; signPose.ts) and the raise clock the puppet eases toward it, 0 down … 1 up */
+  sign: boolean;
+  signRaise: number;
 }
 
 export function createLocomotion(): Locomotion {
-  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], offX: [NaN, NaN], offZ: [NaN, NaN], jump: null };
+  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], offX: [NaN, NaN], offZ: [NaN, NaN], jump: null, sign: false, signRaise: 0 };
 }
 
 /**
