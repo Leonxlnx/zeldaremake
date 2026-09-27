@@ -18,7 +18,10 @@ const DT = 1 / 60;
 const START = [Number(arg('--x', -4)), Number(arg('--z', 3)), Number(arg('--yaw', 0))];
 fs.mkdirSync(out, { recursive: true });
 
-const server = await serveStatic(path.resolve(dist));
+// --url <page>: drive a published build (e.g. the play link) instead of serving --dist
+const pageUrl = arg('--url', null);
+const server = pageUrl ? { url: null, close: async () => {} } : await serveStatic(path.resolve(dist));
+const QUERY = '?test=1&dev=0&hud=0&warmup=0&quality=high';
 const browser = await launchBrowser({ width: W, height: H });
 const t0 = Date.now();
 const log = (...a) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...a);
@@ -41,7 +44,7 @@ try {
   await page.evaluateOnNewDocument(() => {
     Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false, configurable: true });
   });
-  await page.goto(`${server.url}/?test=1&dev=0&hud=0&warmup=0&quality=high`, { waitUntil: 'load', timeout: 600000 });
+  await page.goto(pageUrl ? `${pageUrl}${QUERY}` : `${server.url}/${QUERY}`, { waitUntil: 'load', timeout: 600000 });
   await page.waitForFunction(() => !!window.__ZR__, { timeout: 600000, polling: 250 });
   await page.evaluate(() => {
     window.__zrReadyState = 'pending';
@@ -110,6 +113,9 @@ try {
     await page.keyboard.up('KeyW');
     log('frames', f);
   }
+} catch (e) {
+  console.error(e);
+  process.exitCode = 1;
 } finally {
   await browser.close();
   await server.close();

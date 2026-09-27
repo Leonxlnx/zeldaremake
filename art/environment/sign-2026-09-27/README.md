@@ -28,3 +28,10 @@ the press and `{"up":true,"raise":1}` after).
 node art/environment/sign-2026-09-27/sign-shots.mjs --dist dist --out <dir>          # stills
 node art/environment/sign-2026-09-27/sign-shots.mjs --dist dist --out <dir> --take   # the running take (frames)
 ```
+
+The published play link (`5af5d697`) boots (url-check: ready in 68.5 s, no page error) and serves the face
+(`textures/sign/readers-note.jpg`, byte-identical to the committed file). The play-test flow needs `?test=1`, which
+raw.githack answers with a redirect to raw.githubusercontent.com (not a page), so `--url` only works against a host
+that serves `index.html` with a query string; a plain visit runs the shader warm-up first, which SwiftShader does
+not finish in 15 minutes. The first raise compiles the sign's material once (the sign is built on first use so the
+fixed captures never contain it).
