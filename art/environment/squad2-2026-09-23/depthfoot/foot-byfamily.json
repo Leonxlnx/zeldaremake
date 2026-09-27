@@ -1,0 +1,220 @@
+{
+ "frame": {
+  "draws": 545,
+  "triangles": 9129877
+ },
+ "byFamily": {
+  "whitebark-lod0": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "whitebark-lod1": {
+   "meshes": 4,
+   "instances": 7,
+   "calls": 4,
+   "triangles": 31167
+  },
+  "whitebark-lod2": {
+   "meshes": 5,
+   "instances": 6,
+   "calls": 5,
+   "triangles": 15595
+  },
+  "column-lod0": {
+   "meshes": 7,
+   "instances": 7,
+   "calls": 14,
+   "triangles": 550078
+  },
+  "column-lod1": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 5,
+   "triangles": 53190
+  },
+  "column-lod2": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "giant-wood": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 541250
+  },
+  "giant-cards": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 23236
+  },
+  "giant-authored-leaves": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 3,
+   "triangles": 286692
+  },
+  "giant-authored-cards": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 2,
+   "triangles": 1972
+  },
+  "distant-near": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "distant-far": {
+   "meshes": 6,
+   "instances": 210,
+   "calls": 6,
+   "triangles": 5040
+  },
+  "mid-near": {
+   "meshes": 5,
+   "instances": 36,
+   "calls": 5,
+   "triangles": 18945
+  },
+  "mid-far": {
+   "meshes": 5,
+   "instances": 53,
+   "calls": 5,
+   "triangles": 10513
+  },
+  "column-near-base": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 3,
+   "triangles": 92017
+  },
+  "giant-near-base": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 3,
+   "triangles": 95761
+  },
+  "giant-near-canopy-batch": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 675673
+  },
+  "column-near-canopy-batch": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 4864
+  },
+  "giant-far-foliage-batch": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 779592
+  }
+ },
+ "nearCanopyKeys": [
+  "giantCanopyCards",
+  "midCanopy",
+  "nearCanopy"
+ ],
+ "nearCanopy": {
+  "inM": 26,
+  "outM": 30,
+  "builtInM": 26,
+  "builtOutM": 30,
+  "heroMargin": 0,
+  "minInM": 0,
+  "maxY": null,
+  "columnMaxY": 25,
+  "distanceTo": "crown-envelope",
+  "slots": 64,
+  "limbsMax": 12,
+  "leafFloor": [
+   3.2,
+   0.75
+  ],
+  "leafNearM": [
+   7,
+   18
+  ],
+  "sunThrough": 0.3,
+  "parts": 426,
+  "heroPass": {
+   "limited": 0,
+   "dropped": 0
+  },
+  "deferredParts": 44,
+  "builtTriangles": 2916334,
+  "residentTriangles": 2916334,
+  "residentVertices": 2670539,
+  "residentBytes": 147771021,
+  "batch": {
+   "instances": 305,
+   "vertices": 2292694,
+   "indices": 7555776,
+   "maxVertices": 2793975,
+   "maxIndices": 8381912,
+   "wideParts": 37,
+   "heapBytes": 209548073
+  },
+  "columnBatch": {
+   "instances": 77,
+   "vertices": 377845,
+   "indices": 1193226,
+   "maxVertices": 476842,
+   "maxIndices": 1430515,
+   "wideParts": 0,
+   "heapBytes": 35763106
+  },
+  "farBatches": [
+   {
+    "name": "giant-far-foliage-0-lantern-tree+north-west-near+north-west+north-east",
+    "instances": 100,
+    "vertices": 225179,
+    "indices": 562308,
+    "layout": {
+     "color": true,
+     "aWind": true
+    },
+    "folded": 8,
+    "foldedTriangles": 16320,
+    "heapBytes": 2249232,
+    "casting": true,
+    "castingInstances": 100,
+    "castingTriangles": 187436
+   },
+   {
+    "name": "giant-far-foliage-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+    "instances": 100,
+    "vertices": 173120,
+    "indices": 415488,
+    "layout": {
+     "color": false,
+     "aWind": false
+    },
+    "folded": 30,
+    "foldedTriangles": 48652,
+    "heapBytes": 1661952,
+    "casting": true,
+    "castingInstances": 88,
+    "castingTriangles": 125608
+   },
+   {
+    "name": "giant-far-foliage-2-south-giant+plaza-south+south-centre+southwest-giant",
+    "instances": 105,
+    "vertices": 197410,
+    "indices": 473784,
+    "layout": {
+     "color": true,
+     "aWind": true
+    },
+    "folded": 21,
+    "foldedTriangles": 29092,
+    "hea

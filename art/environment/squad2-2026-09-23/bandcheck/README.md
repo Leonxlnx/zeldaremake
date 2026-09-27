@@ -90,14 +90,28 @@ that guess is wrong. At the owner's north pose, `?treelod=1,<k>,1` with `diffmap
 it. Moving this gate costs either triangles for no frame or frame for a few triangles. The rationale
 comment on `TREE_LOD_MID_M` now carries both sides so the next round does not re-litigate it.
 
-## 4. Flagged, not fixed: the pole with confetti at ~55 m
+## 4. The pole with confetti at ~55 m — and the correction that it is not a tree
 
-At (0.46, 0.13) of this pose a tree reads as a bare pale pole with a scatter of small dark specks
-where its crown should be (`pole-confetti.jpg`, 7×). It survives hiding the distant ring and the mid
-layer, so it is a white-bark or column at ~55 m, and §3 shows it is **not** a rung artifact — its
-medium and low rungs are the same picture at that range. So it is the crown geometry itself at
-distance, which is the tree authoring rather than this lane's LOD and pools; whoever owns the
-white-bark crown may want it, with this frame as the evidence.
+At (0.46, 0.13) of this pose something reads as a bare pale pole with a scatter of small dark specks
+where a crown would be (`pole-confetti.jpg`, 7×). My first note here flagged it as white-bark crown
+authoring. **That was wrong, and the follow-up is worth more than the flag:**
+
+- Forcing every tree to its highest LOD (`?treelod=10`) leaves that region **pixel for pixel the
+  same**, so no rung of any instanced family draws it.
+- Hiding, one at a time, the white-barks (13 meshes), the columns (12), the giants (21), the
+  far-foliage batches (3) and the understory (13) — screenshotting while each set is hidden — leaves
+  the pole in place every time. It is not in the trees group at all.
+
+So it belongs to another system (the north grove's trunk house and the vegetation there are the
+candidates) and this lane has nothing to fix. Whoever picks it up should know it reads as a pole
+with confetti at this range.
+
+**The instrument that misled me, for everyone's benefit:** `__ZR__.isolate(system)` renders one
+frame internally and then **restores every child's visibility before it returns**, so a
+`page.screenshot()` taken after it shows the *full* frame, not the isolated system. Itscounts are
+real (it reads `renderer.info` while the scene is isolated — `playcost.mjs` is unaffected), but it
+cannot be used to capture a picture of one system. To attribute a pixel to a system you have to hide
+the meshes yourself and screenshot while they are hidden, which is what the probes above do.
 
 ## Files
 
@@ -105,3 +119,6 @@ white-bark crown may want it, with this frame as the evidence.
 - `strips.py` — the per-strip breakdown in §1 (fable-5's `hls` with the same thresholds).
 - `bands-runs.txt` — the raw metric output for every frame in §1–§3.
 - `pole-confetti.jpg` — §4, the region at 7×, base / distant hidden / mid hidden.
+- `pole-not-a-tree.jpg` — §4's correction: the same region with, in turn, nothing hidden, the
+  white-barks, the columns, the giants, the far-foliage batches and the understory hidden. The pole
+  is in all six.

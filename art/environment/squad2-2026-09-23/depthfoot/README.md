@@ -183,3 +183,42 @@ visible casters and the vegetation row that the owner's `veg=0.96` decision woul
 - `counts-before.json` / `counts-after.json` — the seven-pose table in §3.
 - `depthfoot.json` — the per-group table in §1 with each group's mesh names.
 - `frames/` — the baseline, the control and one frame per caster group switched off.
+
+## 6. What the foot's trees row is actually made of
+
+With the geometric culls in (§4) the flight's foot reads 545 draws / 9.130 M, of which the trees are
+3.18 M. The per-family submission tally there (`submission.byFamily`, colour + depth, frozen clock):
+
+| row | calls | triangles |
+| --- | --- | --- |
+| giant far-foliage batches | 6 | 779 592 |
+| **giant near-canopy batch** | **1** | **675 673** |
+| columns, high rung (7 trees) | 14 | 550 078 |
+| giants' wood (3 sectors) | 6 | 541 250 |
+| giants' authored leaves | 3 | 286 692 |
+| giant near bases (4) | 3 | 95 761 |
+| column near bases (2) | 3 | 92 017 |
+| columns, medium rung | 5 | 53 190 |
+| white-barks, medium rung | 4 | 31 167 |
+| giants' cards | 6 | 23 236 |
+| mid layer, near rung (36 instances) | 5 | 18 945 |
+| white-barks, low rung | 5 | 15 595 |
+| mid layer, far rung (53) | 5 | 10 513 |
+| distant ring, far rung (210) | 6 | 5 040 |
+| column near-canopy batch | 1 | 4 864 |
+| giants' authored cards | 2 | 1 972 |
+
+Two things follow.
+
+**fable-4's third look call is sized.** The near-canopy batch is 0.68 M in a single draw at the foot,
+with the tier's window `inM 26 / outM 30`. That is the row a slot cap "beyond 20 m from the crowd"
+would cut, and at the foot it is nearly five times the 0.25 M he estimated at the look-backs. It is
+still a look call: a part 26–30 m away subtends a large angle, so dropping it is visible, and what
+replaces it is its far-foliage form rather than a hole.
+
+**There is no free colour-pass cull left here.** The near-canopy batch is a `BatchedMesh` with
+`perObjectFrustumCulled = true`, so its parts are already culled individually; the distant and mid
+layers are 34 K between them; the families' rungs are at the gates round 53/54 priced against W38.
+The rows that remain are in-frame detail at the range the owner asked for it. Closing the foot's last
+0.13 M is a look decision (the vegetation row, 3.3 M there, or this near-canopy tier), not another
+geometric trim.
