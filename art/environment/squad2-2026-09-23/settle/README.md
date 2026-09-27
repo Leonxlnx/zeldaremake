@@ -44,13 +44,36 @@ Repeating it with the trees' own submission alongside the frame's totals:
 **The trees' row never moves** — 75 draws and 3 185 585 triangles from the first frame to the
 twenty-second — so this lane's pools do honour their contract, measured rather than asserted. The
 `reset` path pins every candidate before filtering by residency and a pin that is not resident is
-built synchronously, which is exactly what that invariant requires. The late arrival at frame 16
-belongs to another system's own warm-up.
+built synchronously, which is exactly what that invariant requires.
+
+## 2b. And it is not a warm-up either — it is the clock
+
+I first wrote the frame-16 arrival down as "another system's warm-up". It is not. The scene roll-up
+(`audit().scene.bySystem`) is **identical on every one of the twenty frames**, for every system: no
+geometry is swapped in, so nothing is warming up. What changes is a submission decision. And the
+cause is the world clock:
+
+| 20 frames at the same pose | distinct frames | where it changes |
+| --- | --- | --- |
+| `render(1, 0)` — clock frozen | **1** (545 / 9 129 877) | never |
+| `render(1, 1/30)` — clock advancing | 2 | frame 16 → 544 / 9 129 709 |
+
+Sixteen frames at 1/30 s is 0.53 s of world time. The sun creeps (the shadow target snaps to shadow
+texels as it goes) and one marginal caster leaves the depth pass: one draw and 168 triangles. It is
+not this lane's cull — the trees' own submission is constant across the same frames — and it is not a
+defect: it is what a moving sun does to a marginal decision.
+
+**So the protocol matters more than the frame count.** A capture's counts depend on how much sim time
+has elapsed, not on pool residency, and two runs of the same build that spend different numbers of
+time-advancing frames at a pose can differ by a draw. Settling with time and then reading with the
+clock frozen — `render(settle, 1/30)` then `render(2, 0)` — gives one value, and it is the protocol
+behind every before/after table on this branch. That is why those tables come out byte-identical
+while a `--settle 6` comparison of the same two builds would have a draw of noise in it.
 
 For the squad, two things follow. A before/after comparison must be taken **within one harness** (the
 tables in `depthfoot/` all are), and a pose whose frame is still moving at frame 6 will differ by a
 draw or two between two runs of the same build at `--settle 6` — worth knowing before attributing
-such a difference to a change.
+such a difference to a change. §2b says why, and what to do about it.
 
 ## 3. `pending` is the wrong signal, and the right one is now reported
 
@@ -71,4 +94,6 @@ the pre-fetch behind it is still busy).
 
 - `settle-foot-north.json` — §1, the frame at 1 … 48 frames at both poses with the pool reports.
 - `settle-trees.json` — §2, the per-frame run with the trees' own submission and `pinnedPending`.
-- `settle.mjs`, `settle2.mjs` — the two probes.
+- `whose-row.json` — §2b, the scene roll-up per system over 20 frames: no row changes.
+- `frozen-vs-advancing.json` — §2b, the same 20 frames with the clock frozen and advancing.
+- `settle.mjs`, `settle2.mjs`, `whose.mjs`, `frozen20.mjs` — the four probes.
