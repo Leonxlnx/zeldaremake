@@ -1,0 +1,13 @@
+{"a":"/tmp/f4/r213-cap-head/A_stairs.png","b":"/tmp/f4/r213-cap-nearbox/A_stairs.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/A_stairs.png","b":"/tmp/f4/r213-cap-nearbox/A_stairs.png","changedShare":0.004,"changedPx":38,"meanAbs":0,"bbox":[108,8,873,365]}
+{"a":"/tmp/f4/r213-cap-head/B_house.png","b":"/tmp/f4/r213-cap-nearbox/B_house.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/B_house.png","b":"/tmp/f4/r213-cap-nearbox/B_house.png","changedShare":0.009,"changedPx":87,"meanAbs":0,"bbox":[175,20,1090,399]}
+{"a":"/tmp/f4/r213-cap-head/C_lookback.png","b":"/tmp/f4/r213-cap-nearbox/C_lookback.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/C_lookback.png","b":"/tmp/f4/r213-cap-nearbox/C_lookback.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/D_log.png","b":"/tmp/f4/r213-cap-nearbox/D_log.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/D_log.png","b":"/tmp/f4/r213-cap-nearbox/D_log.png","changedShare":0.012,"changedPx":108,"meanAbs":0,"bbox":[432,0,1247,515]}
+{"a":"/tmp/f4/r213-cap-head/E_ground.png","b":"/tmp/f4/r213-cap-nearbox/E_ground.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/E_ground.png","b":"/tmp/f4/r213-cap-nearbox/E_ground.png","changedShare":0.009,"changedPx":87,"meanAbs":0,"bbox":[175,20,1090,399]}
+{"a":"/tmp/f4/r213-cap-head/F_canopy.png","b":"/tmp/f4/r213-cap-nearbox/F_canopy.png","changedShare":0,"changedPx":0,"meanAbs":0,"bbox":null}
+{"a":"/tmp/f4/r213-cap-head/F_canopy.png","b":"/tmp/f4/r213-cap-nearbox/F_canopy.png","changedShare":0.004,"changedPx":34,"meanAbs":0,"bbox":[772,81,796,100]}
+R213_DONE
