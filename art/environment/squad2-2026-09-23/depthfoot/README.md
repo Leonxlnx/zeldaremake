@@ -253,3 +253,16 @@ identical, at 163 K and 2-of-14 groups — the test is tight without being wrong
 
 `clearing-north.jpg` is the after frame at the biggest saving, for the record: 462 draws, 5.57 M,
 twelve of fourteen giant groups not casting, and not a pixel different from the 5.77 M version.
+
+### And under a moving camera
+
+A frozen frame cannot show a flicker, and these culls are recomputed every time the view-projection
+changes, so the branch also went through `playtest.mjs --only look,walk` (`behaviour-look-walk.json`):
+
+- **11 walk routes, every one reached, 0 stuck** — `plaza-to-upper-house` 6/6, `north-clearing-ledge`
+  15/15, `south-bridge-to-log` 21/21, `north-grove` 28/28, and the other seven complete.
+- **10 look spots, 0 flagged.**
+- **No page errors.**
+
+That is the behaviour side of the same claim: the shade decisions change as the camera moves, and
+nothing in the walk or look scenarios notices.
