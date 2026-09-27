@@ -50,6 +50,35 @@ So the two directions cost the opposite of what they look like:
   sizing last round was the drawn cost of the in-view parts; a distance cap would not take most of
   it. That correction is the useful half of this round.
 
+## 2b. So I built it and priced it: aiming the slots at the frame is not worth it
+
+Estimating was not good enough, so the ranking went in behind a dev knob (`?canopyaim=<pad m>`, the
+frustum grown by `pad` so a crown is promoted before it comes into shot) and both states were measured
+from one build, frozen clock:
+
+| pose | ranking | draws / triangles | in frame | starved | frame moved |
+| --- | --- | --- | --- | --- | --- |
+| A_stairs | distance (shipped) | 575 / 8 631 286 | 10 | 21 | — |
+| A_stairs | **in frame first** | 576 / **8 820 983** | **29** | **2** | **0.46 %** |
+| F_canopy | distance (shipped) | 515 / 7 836 917 | 15 | 16 | — |
+| F_canopy | **in frame first** | 514 / **7 946 885** | **29** | **2** | **0.01 %** |
+
+It does exactly what it was meant to: at camera A nineteen more crowns get their near laminae and the
+starved count falls from 21 to 2. And it is **not worth it** — that costs **+189 697 triangles**, half
+of A's 0.37 M of headroom under W38, and moves **0.46 % of the frame**. Side by side the two frames
+are the same picture (mean 95.8 vs 95.7, top third 100.6 vs 100.3, middle third equal):
+
+`aim-vs-shipped-A.jpg` — A shipped (8.631 M, 10 crowns in frame) | A aimed (8.821 M, 29 in frame).
+
+So the knob came out again; the fourth rejected ranking is now recorded beside the other three in the
+`NEAR_CANOPY_KEEP` comment, the way this file keeps them.
+
+**And the negative result points somewhere useful.** If nineteen crowns at 15.6–26 m are
+indistinguishable in their near form and their folded far foliage, the near form does not earn its
+keep at that range — so the direction worth pricing is **down**: fable-4's slot cap should cost very
+little in pixels, which is the opposite of what its 0.68 M drawn-cost sizing suggests it would save.
+Both halves of that are now measured rather than guessed.
+
 ## 3. What changed in the code
 
 Nothing that moves a pixel. The audit's near-canopy block now carries `slotsInFrame` — `shown`,
@@ -62,3 +91,5 @@ taken on numbers. It is computed on demand inside `audit()`, which nothing but a
 - `slots-in-frame.json` — the six-pose run behind §1, with the nearest starved parts per pose.
 - `slots-saturation.json` — the earlier run that established the tier is at capacity (79 shown of
   352–366 registered) at every pose.
+- `aim-off.json` / `aim-on.json` — §2b, the two rankings at A, F and the foot.
+- `aim-vs-shipped-A.jpg` — §2b, camera A under both rankings, with each panel's mean and thirds.

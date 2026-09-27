@@ -4649,6 +4649,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    *   • ranking by coverage per triangle collapses to 3 shown lobes: it prefers cheap far crowns, which
    *     the pool (prefetching by distance) has not built, so `resident` filters them out. Any ranking
    *     that disagrees with the prefetch starves itself.
+   *   • ranking by WHETHER THE PART IS IN THE FRAME, distance second, was tried on 2026-09-27 with the
+   *     frustum grown 6 m so a crown is promoted before it comes into shot
+   *     (`art/environment/squad2-2026-09-23/slots`). It works as designed and it is not worth it: the
+   *     tier is saturated at 79 parts and 77–100 % of them are OUTSIDE the frame (the plaza's authored
+   *     boughs surround the camera), so at camera A it lifted the parts in frame from 10 to 29 and cut
+   *     the in-frame parts with no slot from 21 to 2 — and the frame moved **0.46 %** for **+189 697
+   *     triangles**, half of A's headroom under W38; F_canopy moved 0.01 % for +109 968. Nineteen more
+   *     crowns in their near form at 15.6–26 m are indistinguishable from their folded far foliage
+   *     (means 95.8 vs 95.7, thirds equal to 0.3), which also says the near form does not earn its keep
+   *     at that range: the direction worth pricing there is DOWN (fable-4's slot cap), not outward.
    * Distance agrees with the prefetch and puts the detail nearest the eye, so it stays.
    */
   /** the parts shown by the previous non-reset update (byRank's incumbents) */
