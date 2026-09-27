@@ -1,0 +1,122 @@
+{
+ "cost-before": {
+  "still": {
+   "n": 35,
+   "p50": 4.5,
+   "p95": 9.799999982118607,
+   "max": 15.599999994039536,
+   "mean": 4.21142857159887
+  },
+  "moving": {
+   "n": 70,
+   "p50": 5.5,
+   "p95": 8.699999988079071,
+   "max": 10.300000011920929,
+   "mean": 5.454285714456013
+  },
+  "keys": [
+   "wind",
+   "lighting",
+   "atmosphere",
+   "terrain",
+   "hardscape",
+   "rocks",
+   "trees",
+   "canopy",
+   "structures",
+   "props",
+   "vegetation",
+   "character"
+  ]
+ },
+ "cost-after": {
+  "still": {
+   "n": 35,
+   "p50": 4.699999988079071,
+   "p95": 12.100000023841858,
+   "max": 13,
+   "mean": 4.662857144219535
+  },
+  "moving": {
+   "n": 70,
+   "p50": 2,
+   "p95": 7.9000000059604645,
+   "max": 12.599999994039536,
+   "mean": 3.099999999148505
+  },
+  "keys": [
+   "wind",
+   "lighting",
+   "atmosphere",
+   "terrain",
+   "hardscape",
+   "rocks",
+   "trees",
+   "canopy",
+   "structures",
+   "props",
+   "vegetation",
+   "character"
+  ]
+ },
+ "cost-before2": {
+  "still": {
+   "n": 35,
+   "p50": 0.9000000059604645,
+   "p95": 1.9000000059604645,
+   "max": 6.299999982118607,
+   "mean": 1.1314285721097674
+  },
+  "moving": {
+   "n": 70,
+   "p50": 1.100000023841858,
+   "p95": 8.199999988079071,
+   "max": 12.099999994039536,
+   "mean": 2.820000001362392
+  },
+  "keys": [
+   "wind",
+   "lighting",
+   "atmosphere",
+   "terrain",
+   "hardscape",
+   "rocks",
+   "trees",
+   "canopy",
+   "structures",
+   "props",
+   "vegetation",
+   "character"
+  ]
+ },
+ "cost-after2": {
+  "still": {
+   "n": 35,
+   "p50": 4.5,
+   "p95": 13.200000017881393,
+   "max": 14.300000011920929,
+   "mean": 5.062857144219535
+  },
+  "moving": {
+   "n": 70,
+   "p50": 1.800000011920929,
+   "p95": 7.300000011920929,
+   "max": 16,
+   "mean": 3.355714287502425
+  },
+  "keys": [
+   "wind",
+   "lighting",
+   "atmosphere",
+   "terrain",
+   "hardscape",
+   "rocks",
+   "trees",
+   "canopy",
+   "structures",
+   "props",
+   "vegetation",
+   "character"
+  ]
+ }
+}

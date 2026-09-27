@@ -4235,19 +4235,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** the sphere (already padded) meets the frustum */
   const inView = (s: Sphere) => frustum.intersectsSphere(s);
   /**
-   * The volume the sphere's shadow sweeps along the sun direction (from the sphere down to
-   * SHADOW_FLOOR_Y) meets the frustum: a capsule is outside a plane iff both end spheres are.
-   */
-  const shadowReaches = (s: Sphere) => {
-    const span = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / Math.max(0.05, sunNow.y));
-    shadowEnd.copy(s.center).addScaledVector(sunNow, -span);
-    for (const plane of frustum.planes) {
-      if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(shadowEnd) < -s.radius) return false;
-    }
-    return true;
-  };
-  /**
-   * The same test with the sweep ended where the ground stops it instead of at SHADOW_FLOOR_Y.
+   * Does the volume this sphere's shadow sweeps along the sun direction meet the camera frustum? If
+   * not, the caster is not in the sun's depth pass for this frame: nothing it shades is on screen.
+   *
+   * The volume is bounded by a capsule — the sphere swept down-sun — and the sweep ends where the
+   * ground stops it rather than at SHADOW_FLOOR_Y.
    * The world's floor is -9.6 m (measured: the gorge at (0, 39)) and most ground is 1-26 m, so a
    * capsule swept to -20 runs tens of metres past anything its caster could shade: a near base on
    * the plaza swept 43 m where 8 m reaches its own ground. Here the swept sphere marches down-sun
@@ -4260,6 +4252,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const marchAt = new Vector3();
   const marchSphere = new Sphere();
   const shadowReachesGround = (s: Sphere) => {
+    // a caster whose own sphere meets the frustum is its own answer — the capsule starts there — so
+    // the march and the walk below are only ever paid for casters that are off screen
+    if (frustum.intersectsSphere(s)) return true;
     const fall = Math.max(0.05, sunNow.y);
     const full = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / fall);
     let span = full;

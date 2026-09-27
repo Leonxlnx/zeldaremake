@@ -266,3 +266,40 @@ changes, so the branch also went through `playtest.mjs --only look,walk` (`behav
 
 That is the behaviour side of the same claim: the shade decisions change as the camera moves, and
 nothing in the walk or look scenarios notices.
+
+## 8. What the culls cost in CPU — and why the answer is "below the noise"
+
+The culls add per-frame work: up to six `liveTerrain.height` samples to end each sweep, and two to
+four sphere tests to walk each capsule, for every caster whose shadow decision is a sphere. That work
+runs whenever the view-projection changes, i.e. every frame the player moves, so it is worth knowing
+before shipping.
+
+`cullcost.mjs` samples `perf().systems.trees` — the trees system's own per-frame update time — at a
+320×180 viewport (the cull's work is resolution-independent, the rasteriser's is not), first with the
+camera still (where `cull()` early-returns on an unchanged view-projection) and then turning 0.4° a
+frame for 70 frames. Two samples of each build, run as a pair so both share the same machine load:
+
+| sample | still p50 / mean | moving p50 / mean / p95 |
+| --- | --- | --- |
+| before the culls (a9308730), run 1 | 4.5 / 4.21 | 5.5 / 5.45 / 8.7 |
+| before the culls, run 2 | 0.9 / 1.13 | 1.1 / 2.82 / 8.2 |
+| with the culls, run 1 | 4.7 / 4.66 | 2.0 / 3.10 / 7.9 |
+| with the culls + the short-circuit, run 1 | 4.5 / 5.06 | 1.8 / 3.36 / 7.3 |
+
+**The same build measured twice differs more than the builds differ** (before: moving p50 5.5 then
+1.1), so this instrument cannot resolve the question on this VM. What it does show is that there is
+no sign of a systematic increase: the two "with the culls" samples sit inside the range the two
+"before" samples span, and every p95 is 7.3–8.7 ms. The honest statement is **no measurable CPU cost,
+with a noise floor of a few milliseconds** — and my first reading of the pair (5.5 → 2.0, "the culls
+made it faster") was that same noise, not a saving.
+
+One free reduction went in while measuring it: `shadowReachesGround` now returns true immediately
+when the caster's own padded sphere meets the frustum. The capsule starts at that sphere, so the
+answer cannot be anything else, and the march and the walk are now only ever paid for casters that
+are off screen. Provably equivalent, and the foot pose renders the same md5 as it did before the
+culls and after them (`401ba6e3f45ecc369a57b9bdbcb102ff` in this harness).
+
+**A harness note for anyone comparing frames:** the foot pose reads 545 draws / 9 129 877 when a run
+goes straight to it, and 544 / 9 129 709 when the run visits A–F first — a pooled near part resident
+or not, worth 168 triangles. The same code produces both, so compare before against after *within*
+one harness, which every table here does.
