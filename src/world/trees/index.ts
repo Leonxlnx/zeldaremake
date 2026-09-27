@@ -5272,8 +5272,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   ctx.progress('trees', 1);
   phase('distant-mid-and-publish');
-  // TEMP squad2 depth probe (removed before commit)
-  (window as unknown as { __ZR_TREES__?: unknown }).__ZR_TREES__ = group;
 
   let prebuilt = false;
   return {

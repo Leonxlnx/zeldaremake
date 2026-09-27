@@ -8,6 +8,11 @@
 // Per caster group: drop `castShadow`, re-render the same frame, read the triangle delta (its depth
 // cost) and diff the PNG against the baseline (its shade's effect on the frame). A group that costs
 // triangles and moves no pixel is a free cull at this pose — the reason `shadowReaches` exists.
+//
+// It needs a handle on the trees group, which the shipped build does not expose. Add this line to
+// trees/index.ts next to `phase('distant-mid-and-publish')` while measuring, and take it out again:
+//
+//   (window as unknown as { __ZR_TREES__?: unknown }).__ZR_TREES__ = group;
 import fs from 'node:fs';
 import path from 'node:path';
 import { serveStatic, launchBrowser, openWorld } from '/workspace/gauntlet/scripts/lib/browser.mjs';
