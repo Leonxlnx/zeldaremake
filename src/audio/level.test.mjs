@@ -61,8 +61,21 @@ const { MASTER_TRIM_DB, MASTER_LEVEL, SFX_PAD_DB, SFX_TRIM } = loadTs(path.join(
  * cost 2.4 dB of the difference between a walk and a run, `art/audio/2026-09-26-pad/`). Nothing
  * limits this graph. What keeps the figure honest is that it is measured, guarded, and pinned to
  * the shape of the graph it was measured on.
+ *
+ * **It is the loudest of several takes, not one take** (`art/audio/2026-09-27-q/`). `worstcase.mjs`
+ * records the LIVE graph, so it repeats to about ±0.85 dB, and every figure above was a single
+ * take quoted to a tenth. Three takes at the bridge on each side of that change ran
+ *
+ *     before   −7.9  −8.4  −6.7 dBFS after the trim     mean −7.67, range 1.7
+ *     after    −6.9  −6.8  −8.3                         mean −7.33, range 1.5
+ *
+ * so the loudest is −6.7 − 9 = **−15.7 before the trim**, and the −16.6 pinned here was 0.9 dB
+ * optimistic on the build it was taken from. The bridge is still the place — three takes under the
+ * bough ran −9.1, −10.1, −10.1, which does not overlap the bridge's range at all — but it leads by
+ * 2.4 dB rather than the 1.1 that was published, and the old figure got the right answer from a
+ * margin that happened to be wider than its own error bar.
  */
-const WORST_CASE_PEAK_DBFS = -16.6;
+const WORST_CASE_PEAK_DBFS = -15.7;
 /** what must still be free above the worst case after the trim, for sources nobody has measured */
 const REQUIRED_HEADROOM_DB = 6;
 /** how many spaces return into the master — see the last test for why the count is a guard */
