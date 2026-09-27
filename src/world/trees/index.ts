@@ -1648,6 +1648,16 @@ const DISTANT_NEAR_M = 45;
  * medium and high LODs of a tree at 44-60 m read the same at that range; the close-only detail those
  * two per cent measure belongs to another gate, and finding which is the open question (the candidates
  * are `DISTANT_NEAR_M` and the giants' near-canopy swap band, both reachable with `?treelod=`).
+ *
+ * 2026-09-27: bracketed from both sides at the owner's 06:50 north pose (`?treelod=1,<k>,1`,
+ * `diffmap.mjs`, > 8 levels), because "the rung is neutral outward" invites the guess that it is
+ * neutral inward too and can be pulled in for free. It cannot:
+ *
+ *   70 m (k 1.6)  0.01 % of the frame   — outward buys nothing, as round 53's 59 m test found
+ *   35 m (k 0.8)  0.71 % of the frame   — inward thins the 35-44 m trees visibly
+ *
+ * so 44 m is the edge itself: the medium rung's extra laminae still read at 35-44 m and stop reading
+ * past it. Moving this gate costs either triangles for no frame or frame for a few triangles.
  */
 const TREE_LOD_MID_M = 44;
 /**
