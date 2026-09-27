@@ -1,0 +1,182 @@
+{
+  "description": "Compressed previews of the ten owner concept images; original PNG upload pending. These are visual references, not completed game renders or runtime assets.",
+  "previewSettings": {
+    "format": "JPEG",
+    "width": 960,
+    "quality": 80,
+    "resampler": "Lanczos"
+  },
+  "originalStatus": "Exact original PNGs retained locally; original upload pending.",
+  "files": [
+    {
+      "path": "reference/owner-concept-previews/01-village-lighting-preview.jpg",
+      "bytes": 173836,
+      "sha256": "d0be4f293362626998e1731781c67a57ae63717547c31fa07aa1f7dce77e15b8",
+      "sha": "be21b43e186ecea52aef7ef065a74c984fb9466b",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/01-village-lighting.png",
+      "originalBytes": 3739933,
+      "originalSha256": "afa7664c8d1605e70ce8b08d94f240a01bd27e1a5ba992c629a3b5c0ea7526c7",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/02-paths-and-overhead-shadows-preview.jpg",
+      "bytes": 183007,
+      "sha256": "579995a9b74c7ef61b5d4ba6fba164e0b181b983e51d7e4461281b4d2234ad51",
+      "sha": "7cef1f83e53ced93bd92edad2866e5270ee8194a",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/02-paths-and-overhead-shadows.png",
+      "originalBytes": 3838997,
+      "originalSha256": "9b04ec3d9b1427b447b9bd1051a805c1ba58e713020ebf08ccce75bba1c2061a",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/03-tree-house-front-preview.jpg",
+      "bytes": 190259,
+      "sha256": "befc956a8dc3ca830fcf13833a9e16e543f441771e1a39b61ec4f77bf82cd5a8",
+      "sha": "e1c96aa3d7ba98ddc1410bf01a966a1b5d4bc4c0",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/03-tree-house-front.png",
+      "originalBytes": 3853309,
+      "originalSha256": "0924e0f056830d89c801c3c0b0c08ac7d75c4c9c67a0b77009576afeb8c87f34",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/04-tree-house-structure-preview.jpg",
+      "bytes": 183772,
+      "sha256": "117b718c7d3dec6113b70c8a2d292629b07de565df39eec75ce2a8e6b576880c",
+      "sha": "4ed25a21d14a47a2b2e7605f1dfb37cba63c944e",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/04-tree-house-structure.png",
+      "originalBytes": 3704923,
+      "originalSha256": "573596c8c386a6d7f974b46e828ed557b6ef38a7963140fa816fc5fbbd4492d7",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/05-foliage-bark-and-bridge-preview.jpg",
+      "bytes": 180226,
+      "sha256": "f7bf1ce4ed5ec27c6a278ed22d78a3d50a0b133cceaacc58fc1754114f7c1163",
+      "sha": "33ea446234adead815ed6c2a1030cff1ec770336",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/05-foliage-bark-and-bridge.png",
+      "originalBytes": 3664800,
+      "originalSha256": "c0bb52f875526b3fd3c7f248c3ab502fc722a095e12d784dbce1c9b3ea182c66",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/06-props-signs-and-lanterns-preview.jpg",
+      "bytes": 184734,
+      "sha256": "33a7fa575b552ad96c182faa1824358439a7c0a17391b2f85d6f4dcf6eff0ce7",
+      "sha": "0c5b452528d6c320129c3e6b8cfc7eb05c9807f0",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/06-props-signs-and-lanterns.png",
+      "originalBytes": 3635552,
+      "originalSha256": "88bca1e6b1a8953551efa8a798c109f7c826e9fb7350000936e3534c5fe41dcd",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/07-village-scale-preview.jpg",
+      "bytes": 169921,
+      "sha256": "87d18db92432b581f055a8a2d912b3e9ba0ef5e4c2c5bf88bbb499d178c15839",
+      "sha": "59de0aad3b292e498de5bc4d446618c920b6b95f",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/07-village-scale.png",
+      "originalBytes": 3621734,
+      "originalSha256": "a989f2a4031393b4622e2f5a874b4d015ba1ebf2791156acbf2ac53f5d93783c",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/08-gameplay-composition-preview.jpg",
+      "bytes": 173723,
+      "sha256": "3b54d79052136099b3b8a8260f2d31ecf77d9db2a0755bfaaf8fcb3d9d64ad58",
+      "sha": "c67f2683c8ab8d5a1065872faec518e6d56ac355",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/08-gameplay-composition.png",
+      "originalBytes": 3678666,
+      "originalSha256": "9a06911b78eb14aabce09a949020021e0fbc4aae8911307b73b9017d8ae10e02",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/09-character-model-reference-preview.jpg",
+      "bytes": 162266,
+      "sha256": "df2c67ac6a0e2da2b1181480ad6e1327447259509d4e1e8c3eaaa84acf62f66e",
+      "sha": "2d483ba1cafb50572ea742cf2def4b7110ff64be",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/09-character-model-reference.png",
+      "originalBytes": 3601075,
+      "originalSha256": "fcf5463c4bb6b6871797100d6ba4e4c95e5f420753f6311b65e7b58ac6cadb09",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    },
+    {
+      "path": "reference/owner-concept-previews/10-equipment-reference-preview.jpg",
+      "bytes": 109871,
+      "sha256": "33a5452c5c187ffa0638cb182ff6e4b248bc79abd268de5a9f41c52b7cc04833",
+      "sha": "d37f52f16bd7d141d59cfeba2eb33e8e444c8247",
+      "dimensions": [
+        960,
+        720
+      ],
+      "originalPath": "reference/owner-concepts/10-equipment-reference.png",
+      "originalBytes": 3165114,
+      "originalSha256": "1e12be27a3f07be29e8a7095e9f063ef9850df9852b01e7ac7480d9ad484dd67",
+      "originalDimensions": [
+        1448,
+        1086
+      ]
+    }
+  ]
+}
