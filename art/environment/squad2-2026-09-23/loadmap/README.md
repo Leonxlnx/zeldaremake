@@ -88,6 +88,18 @@ still worth doing; it just should not start with a texture painter.
 For any lane reading this: if your system's build time is dominated by a procedural texture,
 check whether it is a canvas before optimising it, and expect the number to shrink on hardware.
 
+## 3b. And the 0.49 s next to it is the sampler doing its job
+
+`placeMidTrees` is the second-biggest line (0.49 s). It is a rejection sampler with a ceiling of
+`target * 90` = 36 000 attempts, so the first question is whether the ceiling binds — a shortfall
+would be a visual matter, not a load one. It does not: the audit reports `midCanopy.trees` 327
+with 73 culled by the north-grove filter, i.e. the full 400 samples produced. The cost is real
+per-attempt work (a 3-octave FBM, `terrain.slope`, `terrain.height`, the corridor and spacing
+tests), and the tests cannot be reordered cheapest-first because each `r()` they consume is part
+of the stream that decides where every mid tree stands. What is left is micro-work worth tens of
+milliseconds (a `MID_SPECS` lookup instead of a `find`, squared distances instead of `Math.hypot`)
+against a determinism risk, so I am leaving it and writing the reason down.
+
 ## 4. What changed in the code
 
 Two things, both small.
