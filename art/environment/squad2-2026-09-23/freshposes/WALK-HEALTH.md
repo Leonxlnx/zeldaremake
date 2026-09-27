@@ -51,3 +51,17 @@ pixel-based, and a walk speed is not something a frame comparison can see.
 
 Head `2b15f687` is healthy: 0 page errors, 10 look spots with a uniform 60.16° / −35.52° envelope, 11 walk
 routes with nothing stuck, and the locomotion change measuring at spec.
+
+## Re-run after the sign feature (head `97e9a7dc`, 06:15 on the 27th)
+
+`5e448ef3` (Link holds a sign over his head, a two-bone arm solve eased over 0.35 s, play mode only) went
+straight to the integration branch, so no PR carried a behaviour check. A character pose with an IK solve
+is exactly the kind of change that can perturb a walk, so the same eleven routes were re-run:
+
+**Every route returns the identical frame count** — 714, 381, 138, 159, 678, 351, 234, 516, 2061, 1296,
+1569, each equal to the run before those commits — with **0 stuck**, **0 page errors**, and path lengths and
+implied speeds unchanged (1.16–1.28 m/s). Frame-for-frame identical, so the new pose costs the walk nothing
+and does not fire outside its input.
+
+With the sealed frames byte-identical (`../pixelneutral/`), those commits are verified on both sides:
+nothing moved in the fixed shots, nothing moved in the walks.

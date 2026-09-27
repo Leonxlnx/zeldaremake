@@ -1,0 +1,60 @@
+{
+ "pageErrors": [],
+ "walk": [
+  {
+   "name": "plaza-to-upper-house",
+   "frames": 714,
+   "stuck": []
+  },
+  {
+   "name": "plaza-to-south-bank-top",
+   "frames": 381,
+   "stuck": []
+  },
+  {
+   "name": "saria-front-arc",
+   "frames": 138,
+   "stuck": []
+  },
+  {
+   "name": "west-deck",
+   "frames": 159,
+   "stuck": []
+  },
+  {
+   "name": "plaza-loop",
+   "frames": 678,
+   "stuck": []
+  },
+  {
+   "name": "south-approach",
+   "frames": 351,
+   "stuck": []
+  },
+  {
+   "name": "house-west-to-saria-door",
+   "frames": 234,
+   "stuck": []
+  },
+  {
+   "name": "west-house-to-plaza",
+   "frames": 516,
+   "stuck": []
+  },
+  {
+   "name": "north-clearing-ledge",
+   "frames": 2061,
+   "stuck": []
+  },
+  {
+   "name": "south-bridge-to-log",
+   "frames": 1296,
+   "stuck": []
+  },
+  {
+   "name": "north-grove",
+   "frames": 1569,
+   "stuck": []
+  }
+ ]
+}
