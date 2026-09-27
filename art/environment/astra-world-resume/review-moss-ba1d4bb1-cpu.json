@@ -1,0 +1,23 @@
+{
+  "baseline": "6c13f70c025b0fc9480ad92e263574b389193d46",
+  "candidate": "ba1d4bb1bf9612a3d6d53ae1e9d7ca260cfa52ff",
+  "scope": "CPU/source checks only; no renderer, visual verdict or W38 attestation",
+  "equalHardscapeMeshes": 18,
+  "changedMesh": "joint-sprouts-p5-v4",
+  "cushions": 577,
+  "allHardscapeInstanceMatricesColorsExact": true,
+  "mixedRockPackByteExact": true,
+  "oldTrianglesPerCushion": 50,
+  "newTrianglesPerCushion": 122,
+  "authoredTriangleIncrease": 41544,
+  "extraDrawCalls": 0,
+  "leafCount": 72,
+  "detachedLeaves": 0,
+  "rootCornersAbove": 8,
+  "maxRootGapPrototypeUnits": 0.011922463289428475,
+  "maxRootGapMmAtLargestLivePad": 2.1028607249143545,
+  "minTipExposedPrototypeUnits": 0.05201268040453655,
+  "minNormalDot": 0.9999999615748282,
+  "boundingSphereContainsAllVertices": true,
+  "seatedRimPreserved": true
+}

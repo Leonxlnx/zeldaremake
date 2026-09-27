@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moos im Pflaster — nativer Vergleich</title>
+<style>
+body{margin:24px;background:#171917;color:#e8e9e3;font:15px/1.5 system-ui,sans-serif}h1{font-size:24px;margin:0 0 8px}p{max-width:850px;color:#b9bdb1}label{margin-right:24px}select{background:#30362c;color:inherit;border:1px solid #68735c;padding:7px;margin-left:8px}main{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}figure{margin:0;min-width:0}figcaption{margin-bottom:8px;font-weight:600}.frame{overflow:auto;border:1px solid #41473c}img{display:block;width:100%;height:auto}.native img{width:1280px;max-width:none}a{color:#c5d9a9}@media(max-width:900px){main{grid-template-columns:1fr}}
+</style>
+<h1>Moos im Pflaster</h1>
+<p>Unveränderte PNG-Aufnahmen derselben Kameras bei gleicher Beleuchtung, Zeit und Qualität. Die veränderte Geometrie betrifft die kleinen Moospolster in den Fugen.</p>
+<label>Kamera<select id="view"></select></label>
+<label>Studie<select id="study">
+  <option value="native-shaded">Dichte Triebe mit Blattlicht · b266441d</option>
+  <option value="native-dense">Dichte Triebe · f5cae585 · zurückgestellt</option>
+  <option value="native-pair">Wenige Triebe · ba1d4bb1 · zurückgestellt</option>
+</select></label>
+<label><input type="checkbox" id="native"> Originalgröße, 1280 × 720</label>
+<main>
+  <figure><figcaption>Ausgang · 6c13f70c</figcaption><div class="frame"><img id="before" alt="Moos vor der Änderung"></div></figure>
+  <figure><figcaption id="caption">Studie</figcaption><div class="frame"><img id="after" alt="Moos nach der Änderung"></div></figure>
+</main>
+<p>Originale Geometrie, keine neuen Textur- oder Modellassets. <a href="README.md">Methodik und Prüfbericht</a></p>
+<script>
+const views=['w05-spine-d','w16-spine-d','A_stairs','B_house','C_lookback','D_log','E_ground','F_canopy'];
+const view=document.querySelector('#view'),study=document.querySelector('#study');
+views.forEach(id=>view.add(new Option(id,id)));
+function update(){document.querySelector('#before').src=`native-pair/before/${view.value}.png`;document.querySelector('#after').src=`${study.value}/after/${view.value}.png`;document.querySelector('#caption').textContent=study.selectedOptions[0].textContent;}
+view.onchange=study.onchange=update;document.querySelector('#native').onchange=e=>document.querySelector('main').classList.toggle('native',e.target.checked);update();
+</script>
+</html>

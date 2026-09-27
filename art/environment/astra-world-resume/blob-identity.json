@@ -1,0 +1,4761 @@
+{
+  "evidence": "E:/zeldaremake-astra-stones/art/environment/astra-stones/native-pebble837",
+  "image": "w05-spine-d",
+  "imageSha256": "e0e5307f5464aa2c01475df446cd742f0da49b9bf5e3e28c87bdc43eb77ed562",
+  "pose": {
+    "position": [
+      0,
+      1.45,
+      0.56
+    ],
+    "direction": [
+      1.0611951577662901e-16,
+      -0.49912220511167665,
+      -0.8665316060966604
+    ],
+    "fov": 46
+  },
+  "pixels": [
+    [
+      778,
+      557
+    ],
+    [
+      839,
+      500
+    ],
+    [
+      1026,
+      484
+    ],
+    [
+      685,
+      421
+    ],
+    [
+      964,
+      329
+    ],
+    [
+      245,
+      530
+    ],
+    [
+      675,
+      711
+    ],
+    [
+      112,
+      391
+    ],
+    [
+      630,
+      585
+    ],
+    [
+      1125,
+      607
+    ],
+    [
+      995,
+      373
+    ],
+    [
+      875,
+      431
+    ]
+  ],
+  "builds": {
+    "b89eae6641e59bb4d1db1fcc9f5e90134f398b5e": {
+      "rows": [
+        {
+          "pixel": [
+            778,
+            557
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 100,
+          "point": [
+            0.3304974474683232,
+            0.0314883609309399,
+            -0.9584621867766275
+          ],
+          "distance": 2.1040749144524122,
+          "faceIndex": 3,
+          "origin": [
+            0.32884371280670166,
+            0.013339294120669365,
+            -0.9727605581283569
+          ],
+          "spot": {
+            "x": 0.32884371480904573,
+            "y": 0.017339294512198497,
+            "z": -0.9727605510503068,
+            "size": 0.5250085990410298,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.44975185296699743
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            839,
+            500
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 142,
+          "point": [
+            0.5194217336196472,
+            0.03088084492158801,
+            -1.1708452784825751
+          ],
+          "distance": 2.2977213694685283,
+          "faceIndex": 5,
+          "origin": [
+            0.5229253172874451,
+            0.013648618012666702,
+            -1.1906054019927979
+          ],
+          "spot": {
+            "x": 0.5229253094876185,
+            "y": 0.01764861834677691,
+            "z": -1.1906053780112416,
+            "size": 0.438553468324244,
+            "kind": "cushion",
+            "source": "lawn-paving",
+            "jointTint": 0.55
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            1026,
+            484
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 62,
+          "point": [
+            1.0321492027321322,
+            0.03145006217311698,
+            -1.2366357534768497
+          ],
+          "distance": 2.5110786394457176,
+          "faceIndex": 6,
+          "origin": [
+            1.038341760635376,
+            0.013435198925435543,
+            -1.2430288791656494
+          ],
+          "spot": {
+            "x": 1.038341722055339,
+            "y": 0.01743519860214664,
+            "z": -1.2430289031006367,
+            "size": 0.639589550672099,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.45
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            685,
+            421
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 64,
+          "point": [
+            0.13584457267370745,
+            0.027063463334595556,
+            -1.542501910370227
+          ],
+          "distance": 2.54238400294147,
+          "faceIndex": 5,
+          "origin": [
+            0.14138402044773102,
+            0.012619126588106155,
+            -1.5534489154815674
+          ],
+          "spot": {
+            "x": 0.1413840241264559,
+            "y": 0.016619126371050136,
+            "z": -1.5534488903358579,
+            "size": 0.3854569820687175,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.45
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            964,
+            329
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 76,
+          "point": [
+            1.1696169257361846,
+            0.019499936066556155,
+            -2.1437600852468774
+          ],
+          "distance": 3.2748515667822797,
+          "faceIndex": 8,
+          "origin": [
+            1.1827138662338257,
+            0.000611921597737819,
+            -2.1668941974639893
+          ],
+          "spot": {
+            "x": 1.1827138123800989,
+            "y": 0.00461192159117184,
+            "z": -2.166894123796375,
+            "size": 0.9509537317790091,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.45
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            245,
+            530
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 8,
+          "point": [
+            -0.9921684437705373,
+            0.013801342775120481,
+            -1.0742763613286692
+          ],
+          "distance": 2.391218105699744,
+          "faceIndex": 0,
+          "origin": [
+            -1.0037815570831299,
+            0.0021063643507659435,
+            -1.085046410560608
+          ],
+          "spot": {
+            "x": -1.0037816030438984,
+            "y": 0.006106364457768802,
+            "z": -1.085046454891561,
+            "size": 0.030728390207514167,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.45
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            675,
+            711
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 126,
+          "point": [
+            0.06966122506708111,
+            0.021660704565943642,
+            -0.5378411610343738
+          ],
+          "distance": 1.8028480368628426,
+          "faceIndex": 8,
+          "origin": [
+            0.0665433332324028,
+            0.009551412425935268,
+            -0.5337072014808655
+          ],
+          "spot": {
+            "x": 0.0665433332324028,
+            "y": 0.013551412300815458,
+            "z": -0.5337072160327807,
+            "size": 0.0667788926512003,
+            "kind": "cushion",
+            "source": "lawn-paving",
+            "jointTint": 0.4742510676902546
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            112,
+            391
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 57,
+          "point": [
+            -1.6578729139448893,
+            0.033800304085603514,
+            -1.7003299226514732
+          ],
+          "distance": 3.14058203789262,
+          "faceIndex": 8,
+          "origin": [
+            -1.6623687744140625,
+            0.008881891146302223,
+            -1.7047125101089478
+          ],
+          "spot": {
+            "x": -1.6623688030056654,
+            "y": 0.012881891014398916,
+            "z": -1.7047125055454657,
+            "size": 0.9815907767042518,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.45
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            630,
+            585
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            -0.021870974621440806,
+            0.025596743964345192,
+            -0.8728005498062676
+          ],
+          "distance": 2.0204752883569275,
+          "faceIndex": 5477,
+          "origin": null,
+          "triangles": 176175,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            1125,
+            607
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            1.0707396146277979,
+            0.04342630272408665,
+            -0.7883570266273525
+          ],
+          "distance": 2.2232857574898177,
+          "faceIndex": 5906,
+          "origin": null,
+          "triangles": 176175,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            995,
+            373
+          ],
+          "object": "flagstone-joints",
+          "material": "flagstone-joints",
+          "point": [
+            1.182020251865878,
+            0.003622369575713602,
+            -1.861140702076936
+          ],
+          "distance": 3.057957230712432,
+          "faceIndex": 14178,
+          "origin": null,
+          "triangles": 21692,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            875,
+            431
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            0.687502959347143,
+            0.03334695668719578,
+            -1.4812682615169512
+          ],
+          "distance": 2.578050092553468,
+          "faceIndex": 925,
+          "origin": null,
+          "triangles": 176175,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        }
+      ],
+      "sproutSourceSha256": "f7397a1ae9b4d275d7edd177fb70b457dc485459732ad3e429c5c9acdc83d6f4",
+      "gritSourceSha256": "b6c08dccdf8f83457a4cf2c20a7be022c34b013c189c5d71ebffbe60d3ea6284",
+      "hardscapeAudit": {
+        "stairways": [
+          {
+            "id": "main",
+            "steps": 20,
+            "width": 3,
+            "treadSlabs": 26
+          },
+          {
+            "id": "house-west",
+            "steps": 5,
+            "width": 2.4,
+            "treadSlabs": 7
+          },
+          {
+            "id": "ledge",
+            "steps": 6,
+            "width": 1.8,
+            "treadSlabs": 6
+          }
+        ],
+        "totalSteps": 31,
+        "treadSlabs": 39,
+        "stairGeometry": "procedural-v2",
+        "uniqueStepShapes": 39,
+        "mossJoints": true,
+        "stairTriangles": 23295,
+        "flagstones": 555,
+        "flagstoneShapes": 555,
+        "flagstoneGeometry": "voronoi-cells-v6-broken-slabs",
+        "flagstoneSplitCells": 36,
+        "flagstoneBrokenCells": 164,
+        "flagstoneAcrossM": {
+          "n": 537,
+          "p10": 0.416,
+          "p50": 0.684,
+          "p90": 1.021
+        },
+        "flagstoneAcrossLawnM": {
+          "n": 12,
+          "p10": 1.288,
+          "p50": 1.433,
+          "p90": 1.837
+        },
+        "flagstoneCrownCm": {
+          "n": 549,
+          "p10": -1.086,
+          "p50": 0.514,
+          "p90": 1.2
+        },
+        "flagstoneShoulderRollCm": {
+          "n": 549,
+          "p10": 0.808,
+          "p50": 1.108,
+          "p90": 1.699
+        },
+        "flagstoneFilletCm": {
+          "n": 549,
+          "p10": 6.425,
+          "p50": 10.534,
+          "p90": 16.952
+        },
+        "flagstoneJointCm": {
+          "n": 549,
+          "p10": 3.2,
+          "p50": 3.687,
+          "p90": 6.943
+        },
+        "flagstoneNotches": 253,
+        "flagstoneChippedCorners": 456,
+        "flagstoneDished": 190,
+        "flagstoneCracked": 55,
+        "flagstoneWobbled": 549,
+        "flagstoneMergedD": 30,
+        "flagstoneSpalled": 342,
+        "flagstoneMossCreep": 265,
+        "stoneNearTile": {
+          "tileK": 0.55,
+          "fadeM": [
+            4,
+            7
+          ],
+          "normalK": 2,
+          "detailNormalK": 0.24,
+          "detailAlbedoK": 0.24,
+          "cleaveDepthM": 0.0035,
+          "perStoneRoughness": 0.05
+        },
+        "flagstoneEarthCells": 7,
+        "flagstoneDiscField": 26,
+        "flagstoneBigSlabs": 4,
+        "flagstoneRimStones": 117,
+        "flagstoneLawnSlabs": 5,
+        "flagstoneAuthoredSlabs": 7,
+        "lawnPaving": {
+          "x": [
+            -1.5,
+            3.5
+          ],
+          "z": [
+            -6.5,
+            -0.5
+          ],
+          "northEast": {
+            "x": [
+              0,
+              4.2
+            ],
+            "z": [
+              -3,
+              0.2
+            ]
+          },
+          "fadeM": 1.5,
+          "pocketWestOfPathEdge": true
+        },
+        "flagstoneEdgeMossStones": 130,
+        "steppingStones": 6,
+        "steppingStoneDiscs": [
+          [
+            3.562,
+            -4.415,
+            0.439
+          ],
+          [
+            2.792,
+            -5.321,
+            0.418
+          ],
+          [
+            7.133,
+            -7.071,
+            0.433
+          ],
+          [
+            7.894,
+            -7.662,
+            0.408
+          ],
+          [
+            8.753,
+            -7.921,
+            0.404
+          ],
+          [
+            9.101,
+            -8.928,
+            0.422
+          ]
+        ],
+        "flagstoneMaxAspect": 2.988,
+        "flagstoneTriangles": 226305,
+        "flagstoneDrawCalls": 1,
+        "jointFillVertices": 11814,
+        "jointSprouts": 5491,
+        "jointSproutsOnFlagstones": 3779,
+        "jointSproutsInDiscField": 300,
+        "jointSproutsInLawnPaving": 150,
+        "jointSproutsInLawnPocket": 1718,
+        "lawnPocket": {
+          "areaM2": 10.752,
+          "latticeCm": 8.2,
+          "tufts": 1362,
+          "clover": 167,
+          "mossPads": 4,
+          "edgeTufts": 75,
+          "edgeOverhangCm": 6.465,
+          "edgeBandTufts": 110,
+          "footprintCm": {
+            "n": 1142,
+            "p10": 10.203,
+            "p50": 12.32,
+            "p90": 16.751
+          },
+          "heightCm": {
+            "n": 1142,
+            "p10": 7.985,
+            "p50": 9.642,
+            "p90": 13.11
+          },
+          "tuftsPerM2": 159.417,
+          "flowerHeads": 14,
+          "flowerTriangles": 1148,
+          "flowerDrawCalls": 1,
+          "groundFill": "mossy-earth (JOINT_SOIL_MID lerp grassDeep 0.85, dimmed 0.6)"
+        },
+        "jointSproutsInEdgeSeams": 179,
+        "jointSproutsOnStairs": 258,
+        "jointSproutsSpineGrass": 480,
+        "expansion": {
+          "discs": 18,
+          "discsLaid": 18,
+          "discsSkippedSteep": 0,
+          "seeds": 5,
+          "stones": 18,
+          "triangles": 6421,
+          "stairs": [
+            {
+              "id": "south-bank",
+              "steps": 6,
+              "width": 1.6,
+              "treadSlabs": 7,
+              "triangles": 4165
+            },
+            {
+              "id": "west-house",
+              "steps": 3,
+              "width": 1,
+              "treadSlabs": 3,
+              "triangles": 2009
+            }
+          ],
+          "stairTriangles": 6174,
+          "visibleWithinM": 60,
+          "casterSpheres": 201,
+          "visible": false,
+          "discTops": [
+            [
+              -6.294,
+              0.257,
+              5.204
+            ],
+            [
+              -6.636,
+              0.532,
+              6.304
+            ],
+            [
+              -7.391,
+              1.249,
+              7.183
+            ],
+            [
+              -7.658,
+              1.295,
+              8.124
+            ],
+            [
+              -8.358,
+              1.531,
+              8.8
+            ],
+            [
+              -8.99,
+              1.409,
+              9.604
+            ],
+            [
+              -10.018,
+              1.494,
+              9.576
+            ],
+            [
+              -10.972,
+              1.462,
+              9.456
+            ],
+            [
+              -11.902,
+              1.646,
+              8.931
+            ],
+            [
+              -12.881,
+              1.744,
+              8.68
+            ],
+            [
+              -13.652,
+              2.079,
+              8.062
+            ],
+            [
+              -9.557,
+              0.904,
+              10.687
+            ],
+            [
+              -9.985,
+              0.386,
+              11.749
+            ],
+            [
+              -10.867,
+              0.19,
+              12.513
+            ],
+            [
+              -11.267,
+              0.179,
+              13.402
+            ],
+            [
+              -12.031,
+              0.174,
+              14
+            ],
+            [
+              -12.822,
+              0.179,
+              14.6
+            ],
+            [
+              -13.909,
+              0.173,
+              14.516
+            ]
+          ]
+        },
+        "northPaving": {
+          "flagstones": 176,
+          "seeds": 130,
+          "rimStones": 56,
+          "roundSlabs": 8,
+          "triangles": 50130,
+          "jointFillVertices": 2947,
+          "jointSprouts": 380,
+          "mossCushions": 70,
+          "seamGrit": 220,
+          "bbox": [
+            -9.3,
+            -77.6,
+            9,
+            -55
+          ],
+          "seamZ": -60.3
+        },
+        "stoneCircle": {
+          "standingStones": 7,
+          "ringRadius": 3.3,
+          "heightM": {
+            "n": 7,
+            "p10": 0.314,
+            "p50": 0.705,
+            "p90": 0.764
+          },
+          "centreSlabRadius": 1.05,
+          "shape": "standing-stones-v1",
+          "stones": [
+            {
+              "bands": 5,
+              "chips": 3,
+              "split": false,
+              "fallen": true,
+              "tiltDeg": 5.1,
+              "acrossM": 0.37
+            },
+            {
+              "bands": 4,
+              "chips": 4,
+              "split": true,
+              "fallen": false,
+              "tiltDeg": 6.9,
+              "acrossM": 0.45
+            },
+            {
+              "bands": 4,
+              "chips": 4,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 4.9,
+              "acrossM": 0.48
+            },
+            {
+              "bands": 3,
+              "chips": 2,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 4,
+              "acrossM": 0.45
+            },
+            {
+              "bands": 3,
+              "chips": 3,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 7.9,
+              "acrossM": 0.51
+            },
+            {
+              "bands": 3,
+              "chips": 3,
+              "split": true,
+              "fallen": false,
+              "tiltDeg": 5.7,
+              "acrossM": 0.56
+            },
+            {
+              "bands": 4,
+              "chips": 3,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 7.4,
+              "acrossM": 0.5
+            }
+          ],
+          "fallen": 1,
+          "splitTops": 2,
+          "tiltDeg": {
+            "n": 6,
+            "p10": 4,
+            "p50": 5.7,
+            "p90": 7.4
+          },
+          "skirt": {
+            "reachM": [
+              0.13,
+              0.22
+            ],
+            "riseM": [
+              0.08,
+              0.13
+            ],
+            "dampM": 0.22,
+            "buryK": 0.28,
+            "buryMinM": 0.16
+          },
+          "hiddenWithNorthPaving": true
+        },
+        "lookout": {
+          "x": 21.6,
+          "z": 2.2,
+          "topY": 5.667,
+          "proudM": 0.35,
+          "yawDeg": 124,
+          "triangles": 198
+        },
+        "blockTriangles": 2282,
+        "jointSproutVariants": 7,
+        "jointSproutDrawCalls": 6,
+        "jointSproutPacks": [
+          [
+            1
+          ],
+          [
+            0
+          ],
+          [
+            2
+          ],
+          [
+            6
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "sproutJitter": "per-source-stream",
+        "jointSproutHeightCm": [
+          6,
+          12
+        ],
+        "jointTuftRamp": [
+          "6a5430",
+          "b3925a"
+        ],
+        "jointTuftTint": {
+          "joints": 0.65,
+          "disc-turf": 0.7,
+          "spine-grass": 0.35,
+          "lawn-paving": 0.55,
+          "edge-turf": 0.7,
+          "stairs": 0.8,
+          "stairs-flank": 0.8,
+          "seam-cushions": 0.45,
+          "north-joints": 1,
+          "north-cushions": 0.45
+        },
+        "jointTuftsTinted": 1326,
+        "jointSproutLodFar": 25,
+        "jointSproutTriangles": 223974,
+        "jointSproutSubmittedTriangles": 274754,
+        "jointSproutSubmission": {
+          "instances": [
+            199,
+            1391,
+            1139,
+            568,
+            498,
+            199
+          ],
+          "triangles": 145564,
+          "cullPadM": 1.5
+        },
+        "mossCushions": 594,
+        "mossCushionsInSeams": 300,
+        "seamGrit": 2539,
+        "seamGritInSeams": 880,
+        "seamGritNearField": 700,
+        "seamGritPale": 240,
+        "seamGritAtStairFeet": 169,
+        "seamGritHollowPath": 349,
+        "seamGritArchSeam": 111,
+        "lipLitter": 110,
+        "lipTongue": "soil-bark-litter-v1",
+        "flagstonesHollowSeated": 174,
+        "seamGritLodFar": 25,
+        "seamGritTriangles": 50780,
+        "seamGritDrawCalls": 0,
+        "jointFillTriangles": 21692,
+        "jointFill": "mossy-earth-v2-clipped-dark-soil",
+        "jointSoilAlbedo": [
+          "6e5232",
+          "7a5e3d",
+          "836740"
+        ],
+        "jointFillIso": 0.5,
+        "jointFillClippedCells": 1069,
+        "jointFillRimVertices": 2393,
+        "jointFillRimLengthM": 182.797,
+        "jointGapField": [
+          407,
+          1609
+        ],
+        "hardscapeTriangles": 554736,
+        "plazaRadius": 6,
+        "samplePositions": {
+          "flagstones": [
+            [
+              -1.219,
+              0.046,
+              -2.117
+            ],
+            [
+              3.401,
+              0.043,
+              -2.564
+            ],
+            [
+              1.383,
+              0.038,
+              -6.341
+            ],
+            [
+              0.793,
+              0.046,
+              -0.602
+            ],
+            [
+              -3.547,
+              0.006,
+              0.665
+            ],
+            [
+              2.954,
+              0.044,
+              0.31
+            ],
+            [
+              6.183,
+              0.041,
+              0.897
+            ],
+            [
+              -2.472,
+              0.015,
+              1.249
+            ],
+            [
+              1.865,
+              0.008,
+              1.433
+            ],
+            [
+              -4.611,
+              0.026,
+              2.452
+            ],
+            [
+              -2.034,
+              0.047,
+              2.922
+            ],
+            [
+              0.162,
+              0.017,
+              2.541
+            ],
+            [
+              3.337,
+              0.019,
+              2.11
+            ],
+            [
+              5.672,
+              0.036,
+              2.067
+            ],
+            [
+              2.273,
+              0.041,
+              3.717
+            ],
+            [
+              -1.183,
+              0.037,
+              4.103
+            ],
+            [
+              3.339,
+              0.027,
+              4.834
+            ],
+            [
+              2.378,
+              -0.01,
+              5.536
+            ],
+            [
+              -1.391,
+              0.015,
+              7.403
+            ],
+            [
+              1.506,
+              0.03,
+              7.06
+            ],
+            [
+              0.789,
+              0.048,
+              7.159
+            ],
+            [
+              0.696,
+              0.035,
+              9.5
+            ],
+            [
+              1.751,
+              0.026,
+              9.095
+            ],
+            [
+              -0.225,
+              0.024,
+              10.853
+            ],
+            [
+              1.356,
+              0.023,
+              10.155
+            ],
+            [
+              1.338,
+              0.037,
+              12.104
+            ],
+            [
+              -0.829,
+              0.012,
+              11.448
+            ],
+            [
+              0.144,
+              0.018,
+              12.458
+            ],
+            [
+              -0.593,
+              0.015,
+              13.66
+            ],
+            [
+              0.537,
+              0.028,
+              12.826
+            ],
+            [
+              1.868,
+              0.008,
+              13.787
+            ],
+            [
+              0.339,
+              0.023,
+              14.172
+            ],
+            [
+              -0.243,
+              0.029,
+              15.327
+            ],
+            [
+              2.693,
+              0.028,
+              15.499
+            ],
+            [
+              1.183,
+              0.025,
+              17.4
+            ],
+            [
+              2.235,
+              0.03,
+              16.328
+            ],
+            [
+              2.06,
+              0.02,
+              17.596
+            ],
+            [
+              5.572,
+              4.436,
+              -59.771
+            ],
+            [
+              5.457,
+              4.252,
+              -58.034
+            ],
+            [
+              6.74,
+              4.397,
+              -59.027
+            ],
+            [
+              4.472,
+              4.277,
+              -51.233
+            ],
+            [
+              7.084,
+              4.357,
+              -51.157
+            ],
+            [
+              5.842,
+              4.342,
+              -50.591
+            ],
+            [
+              3.78,
+              4.271,
+              -49.185
+            ],
+            [
+              3.245,
+              4.223,
+              -48.623
+            ],
+            [
+              5.65,
+              4.153,
+              -47.686
+            ],
+            [
+              3.532,
+              4.125,
+              -47.053
+            ],
+            [
+              5.542,
+              4.124,
+              -47.024
+            ],
+            [
+              3.93,
+              4.055,
+              -45.901
+            ],
+            [
+              3.315,
+              3.955,
+              -44.76
+            ],
+            [
+              5.337,
+              4.029,
+              -45.374
+            ],
+            [
+              3.877,
+              3.893,
+              -43.807
+            ],
+            [
+              4.826,
+              3.949,
+              -44.244
+            ],
+            [
+              6.111,
+              3.937,
+              -43.916
+            ],
+            [
+              3.607,
+              3.821,
+              -43.149
+            ],
+            [
+              5.197,
+              3.866,
+              -43.108
+            ],
+            [
+              4.016,
+              3.773,
+              -42.029
+            ],
+            [
+              5.288,
+              3.823,
+              -42.328
+            ],
+            [
+              3.769,
+              3.712,
+              -41.411
+            ],
+            [
+              4.645,
+              3.74,
+              -41.38
+            ],
+            [
+              2.441,
+              3.657,
+              -40.289
+            ],
+            [
+              4.603,
+              3.679,
+              -40.439
+            ],
+            [
+              5.519,
+              3.72,
+              -41.02
+            ],
+            [
+              3.435,
+              3.563,
+              -38.845
+            ],
+            [
+              4.765,
+              3.61,
+              -39.528
+            ],
+            [
+              3.034,
+              3.551,
+              -38.719
+            ],
+            [
+              1.807,
+              3.505,
+              -38.02
+            ],
+            [
+              3.002,
+              3.496,
+              -37.713
+            ],
+            [
+              5.302,
+              3.526,
+              -37.839
+            ],
+            [
+              2.884,
+              3.422,
+              -36.836
+            ],
+            [
+              4.136,
+              3.43,
+              -36.574
+            ],
+            [
+              5.374,
+              3.408,
+              -36.112
+            ],
+            [
+              2.672,
+              3.236,
+              -35.676
+            ],
+            [
+              3.86,
+              3.279,
+              -35.61
+            ],
+            [
+              2.136,
+              2.85,
+              -34.269
+            ],
+            [
+              2.993,
+              3.022,
+              -34.783
+            ],
+            [
+              3.974,
+              2.919,
+              -34.25
+            ],
+            [
+              1.136,
+              2.599,
+              -33.459
+            ],
+            [
+              2.707,
+              2.602,
+              -33.248
+            ],
+            [
+              4.53,
+              2.684,
+              -33.154
+            ],
+            [
+              3.169,
+              2.422,
+              -32.438
+            ],
+            [
+              2.274,
+              2.148,
+              -31.534
+            ],
+            [
+              1.731,
+              1.708,
+              -30.076
+            ],
+            [
+              3.925,
+              1.97,
+              -30.645
+            ],
+            [
+              2.076,
+              1.427,
+              -29.102
+            ],
+            [
+              0.109,
+              1.089,
+              -28.283
+            ],
+            [
+              1.617,
+              0.93,
+              -27.377
+            ],
+            [
+              3.149,
+              1.449,
+              -29.005
+            ],
+            [
+              2.453,
+              0.684,
+              -26.465
+            ],
+            [
+              4.07,
+              0.926,
+              -27.207
+            ],
+            [
+              2.01,
+              0.575,
+              -26.153
+            ],
+            [
+              3.359,
+              0.771,
+              -26.741
+            ],
+            [
+              0.249,
+              0.147,
+              -24.934
+            ],
+            [
+              2.698,
+              0.279,
+              -25.177
+            ],
+            [
+              -0.178,
+              -0.016,
+              -24.448
+            ],
+            [
+              3.016,
+              0.037,
+              -24.332
+            ],
+            [
+              1.073,
+              -0.092,
+              -22.919
+            ],
+            [
+              2.668,
+              -0.092,
+              -23.402
+            ],
+            [
+              1.973,
+              -0.09,
+              -21.541
+            ],
+            [
+              3.931,
+              -0.086,
+              -22.106
+            ],
+            [
+              1.262,
+              -0.108,
+              -21.313
+            ],
+            [
+              3.857,
+              -0.077,
+              -21.146
+            ],
+            [
+              2.385,
+              -0.084,
+              -20.196
+            ],
+            [
+              0.446,
+              -0.068,
+              -19.58
+            ],
+            [
+              2.493,
+              -0.066,
+              -19.553
+            ],
+            [
+              0.441,
+              -0.056,
+              -18.811
+            ],
+            [
+              1.868,
+              -0.061,
+              -18.247
+            ],
+            [
+              2.846,
+              -0.065,
+              -18.174
+            ],
+            [
+              1.031,
+              -0.07,
+              -18.188
+            ],
+            [
+              1.716,
+              -0.076,
+              -17.809
+            ],
+            [
+              1.106,
+              -0.027,
+              -16.039
+            ],
+            [
+              1.595,
+              -0.014,
+              -16.062
+            ],
+            [
+              0.131,
+              -0.036,
+              -15.587
+            ],
+            [
+              2.649,
+              -0.028,
+              -15.244
+            ],
+            [
+              0.203,
+              0.002,
+              -13.78
+            ],
+            [
+              0.728,
+              -0.002,
+              -14.891
+            ],
+            [
+              2.728,
+              -0.028,
+              -14.578
+            ],
+            [
+              0.965,
+              0.021,
+              -13.239
+            ],
+            [
+              -5.124,
+              0.029,
+              -0.342
+            ],
+            [
+              -1.934,
+              0.045,
+              0.226
+            ],
+            [
+              6.251,
+              4.286,
+              -58.031
+            ],
+            [
+              4.415,
+              4.246,
+              -52.006
+            ],
+            [
+              6.783,
+              4.324,
+              -49.537
+            ],
+            [
+              4.587,
+              4.156,
+              -47.622
+            ],
+            [
+              3.237,
+              3.691,
+              -40.587
+            ],
+            [
+              4.296,
+              3.496,
+              -37.705
+            ],
+            [
+              2.196,
+              1.921,
+              -30.73
+            ],
+            [
+              3.067,
+              -0.066,
+              -21.863
+            ],
+            [
+              1.019,
+              -0.078,
+              -19.869
+            ],
+            [
+              4.088,
+              -0.062,
+              -17.971
+            ],
+            [
+              3.965,
+              0.028,
+              -3.475
+            ],
+            [
+              -3.891,
+              0.026,
+              -3.105
+            ],
+            [
+              -3.081,
+              0.047,
+              -3.515
+            ],
+            [
+              -3.931,
+              0.046,
+              -1.753
+            ],
+            [
+              -2.722,
+              0.042,
+              -1.622
+            ],
+            [
+              -2.702,
+              0.06,
+              -2.647
+            ],
+            [
+              5.709,
+              0.047,
+              -1.68
+            ],
+            [
+              -2.608,
+              0.044,
+              -0.497
+            ],
+            [
+              1.306,
+              0.023,
+              0.679
+            ],
+            [
+              -1.408,
+              0.025,
+              5.235
+            ],
+            [
+              2.073,
+              0.029,
+              8.13
+            ],
+            [
+              0.746,
+              0.04,
+              15.436
+            ],
+            [
+              4.104,
+              4.276,
+              -58.639
+            ],
+            [
+              5.192,
+              4.292,
+              -51.994
+            ],
+            [
+              3.116,
+              4.285,
+              -49.389
+            ],
+            [
+              3.282,
+              4.181,
+              -47.791
+            ],
+            [
+              7.07,
+              4.204,
+              -47.662
+            ],
+            [
+              6.81,
+              4.022,
+              -45.613
+            ],
+            [
+              2.869,
+              3.89,
+              -43.907
+            ],
+            [
+              2.887,
+              3.728,
+              -41.382
+            ],
+            [
+              6.162,
+              3.707,
+              -40.436
+            ],
+            [
+              1.525,
+              3.405,
+              -36.838
+            ],
+            [
+              5.179,
+              3.45,
+              -36.701
+            ],
+            [
+              1.525,
+              2.942,
+              -34.685
+            ],
+            [
+              5.032,
+              2.652,
+              -33.007
+            ],
+            [
+              0.709,
+              1.984,
+              -31.276
+            ],
+            [
+              4.527,
+              2.156,
+              -31.241
+            ],
+            [
+              1.006,
+              1.741,
+              -30.265
+            ],
+            [
+              0.061,
+              0.512,
+              -26.288
+            ],
+            [
+              3.481,
+              -0.105,
+              -23.513
+            ],
+            [
+              -0.121,
+              -0.082,
+              -21.535
+            ],
+            [
+              3.837,
+              -0.081,
+              -20.082
+            ],
+            [
+              0.043,
+              -0.056,
+              -16.913
+            ],
+            [
+              3.889,
+              -0.057,
+              -16.621
+            ],
+            [
+              3.671,
+              0.018,
+              -13.364
+            ],
+            [
+              5.304,
+              0.038,
+              -1.958
+            ],
+            [
+              5.963,
+              0.011,
+              -0.241
+            ],
+            [
+              6.669,
+              0.032,
+              0.528
+            ],
+            [
+              6.247,
+              0.029,
+              1.936
+            ],
+            [
+              5.154,
+              0.021,
+              3.384
+            ],
+            [
+              -2.441,
+              0.036,
+              4.057
+            ],
+            [
+              -1.987,
+              0.048,
+              3.965
+            ],
+            [
+              -1.943,
+              0.017,
+              6.731
+            ],
+            [
+              1.709,
+              0.047,
+              7.714
+            ],
+            [
+              -1.805,
+              0.014,
+              8.667
+            ],
+            [
+              1.818,
+              0.036,
+              9.836
+            ],
+            [
+              -1.231,
+              0.002,
+              10.852
+            ],
+            [
+              2.326,
+              0.036,
+              12.264
+            ],
+            [
+              -1.131,
+              0.036,
+              13.748
+            ],
+            [
+              2.922,
+              0.001,
+              14.69
+            ],
+            [
+              0.751,
+              0.021,
+              17.897
+            ],
+            [
+              2.906,
+              0.055,
+              -11.95
+            ],
+            [
+              -0.492,
+              0.052,
+              -8.15
+            ],
+            [
+              3.563,
+              0.081,
+              -4.414
+            ],
+            [
+              7.896,
+              1.395,
+              -7.663
+            ]
+          ],
+          "treadNose": [
+            [
+              7.873,
+              0.27,
+              0.747
+            ],
+            [
+              6.952,
+              0.27,
+              -0.435
+            ],
+            [
+              7.667,
+              0.543,
+              -0.395
+            ],
+            [
+              8.691,
+              0.805,
+              0.009
+            ],
+            [
+              7.771,
+              0.805,
+              -1.17
+            ],
+            [
+              8.521,
+              1.079,
+              -1.066
+            ],
+            [
+              9.41,
+              1.342,
+              -0.792
+            ],
+            [
+              8.474,
+              1.342,
+              -1.992
+            ],
+            [
+              9.809,
+              1.623,
+              -1.189
+            ],
+            [
+              8.881,
+              1.623,
+              -2.379
+            ],
+            [
+              9.81,
+              1.886,
+              -2.053
+            ],
+            [
+              10.203,
+              2.154,
+              -2.388
+            ],
+            [
+              10.635,
+              2.427,
+              -2.696
+            ],
+            [
+              11.098,
+              2.699,
+              -3.042
+            ],
+            [
+              12,
+              2.97,
+              -2.762
+            ],
+            [
+              11.055,
+              2.97,
+              -3.973
+            ],
+            [
+              11.93,
+              3.235,
+              -3.707
+            ],
+            [
+              12.349,
+              3.505,
+              -4.041
+            ],
+            [
+              13.313,
+              3.788,
+              -3.663
+            ],
+            [
+              12.38,
+              3.788,
+              -4.859
+            ],
+            [
+              13.209,
+              4.048,
+              -4.71
+            ],
+            [
+              13.63,
+              4.324,
+              -5.052
+            ],
+            [
+              14.075,
+              4.586,
+              -5.363
+            ],
+            [
+              14.487,
+              4.859,
+              -5.703
+            ],
+            [
+              14.888,
+              5.123,
+              -6.033
+            ],
+            [
+              15.311,
+              5.4,
+              -6.375
+            ],
+            [
+              3.752,
+              0.547,
+              -8.025
+            ],
+            [
+              4.097,
+              0.815,
+              -7.884
+            ],
+            [
+              4.317,
+              1.083,
+              -7.241
+            ],
+            [
+              4.73,
+              1.083,
+              -8.377
+            ],
+            [
+              4.85,
+              1.347,
+              -7.628
+            ],
+            [
+              5.005,
+              1.616,
+              -6.819
+            ],
+            [
+              5.418,
+              1.616,
+              -7.953
+            ],
+            [
+              1.19,
+              4.263,
+              -73.122
+            ],
+            [
+              1.204,
+              4.543,
+              -73.563
+            ],
+            [
+              1.207,
+              4.807,
+              -73.984
+            ],
+            [
+              1.198,
+              5.079,
+              -74.385
+            ],
+            [
+              1.182,
+              5.342,
+              -74.798
+            ],
+            [
+              1.193,
+              5.62,
+              -75.234
+            ]
+          ],
+          "northFlagstones": [
+            [
+              -4.552,
+              3.998,
+              -72.53
+            ],
+            [
+              -2.32,
+              4.024,
+              -73.713
+            ],
+            [
+              -2.939,
+              4.038,
+              -72.09
+            ],
+            [
+              -3.137,
+              4.035,
+              -70.912
+            ],
+            [
+              -0.815,
+              4.024,
+              -71.896
+            ],
+            [
+              1.343,
+              4.028,
+              -71.063
+            ],
+            [
+              -0.127,
+              4.026,
+              -70.457
+            ],
+            [
+              -3.848,
+              4.041,
+              -69.999
+            ],
+            [
+              -2.875,
+              4.029,
+              -70.198
+            ],
+            [
+              0.433,
+              4.052,
+              -68.999
+            ],
+            [
+              -4.134,
+              4.034,
+              -69.091
+            ],
+            [
+              -3.168,
+              4.021,
+              -69.165
+            ],
+            [
+              -0.841,
+              4.028,
+              -68.276
+            ],
+            [
+              2.058,
+              4.076,
+              -68.529
+            ],
+            [
+              -1.777,
+              4.031,
+              -67.796
+            ],
+            [
+              -0.789,
+              4.061,
+              -67.289
+            ],
+            [
+              -0.481,
+              4.052,
+              -67.902
+            ],
+            [
+              1.766,
+              4.099,
+              -67.601
+            ],
+            [
+              2.523,
+              4.161,
+              -67.211
+            ],
+            [
+              0.201,
+              4.093,
+              -66.766
+            ],
+            [
+              3.845,
+              4.28,
+              -66.579
+            ],
+            [
+              1.431,
+              4.172,
+              -66.208
+            ],
+            [
+              4.097,
+              4.327,
+              -65.443
+            ],
+            [
+              2.038,
+              4.292,
+              -64.967
+            ],
+            [
+              2.836,
+              4.314,
+              -64.717
+            ],
+            [
+              4.312,
+              4.372,
+              -64.316
+            ],
+            [
+              3.833,
+              4.375,
+              -63.611
+            ],
+            [
+              5.31,
+              4.403,
+              -63.595
+            ],
+            [
+              4.168,
+              4.414,
+              -62.798
+            ],
+            [
+              6.257,
+              4.42,
+              -62.808
+            ],
+            [
+              6.171,
+              4.47,
+              -61.906
+            ],
+            [
+              5.205,
+              4.482,
+              -60.787
+            ],
+            [
+              -0.822,
+              4.042,
+              -72.735
+            ],
+            [
+              -2.341,
+              4.022,
+              -71.335
+            ],
+            [
+              1.518,
+              4.06,
+              -69.526
+            ],
+            [
+              -1.725,
+              4.027,
+              -67.204
+            ],
+            [
+              4.468,
+              4.233,
+              -67.156
+            ],
+            [
+              3.161,
+              4.252,
+              -66.332
+            ],
+            [
+              -3.737,
+              4.024,
+              -73.488
+            ],
+            [
+              -2.257,
+              4.046,
+              -72.027
+            ],
+            [
+              -0.44,
+              4.032,
+              -72.539
+            ],
+            [
+              0.09,
+              4.013,
+              -71.922
+            ],
+            [
+              -5.131,
+              3.99,
+              -71.617
+            ],
+            [
+              2.559,
+              4.022,
+              -70.189
+            ],
+            [
+              2.046,
+              4.07,
+              -69.589
+            ],
+            [
+              -5.031,
+              4.008,
+              -68.143
+            ],
+            [
+              3.734,
+              4.23,
+              -67.285
+            ],
+            [
+              -4.407,
+              4.013,
+              -66.633
+            ],
+            [
+              -2.915,
+              4.042,
+              -66.646
+            ],
+            [
+              4.612,
+              4.239,
+              -66.574
+            ],
+            [
+              4.507,
+              4.3,
+              -66.072
+            ],
+            [
+              5.614,
+              4.346,
+              -65.563
+            ],
+            [
+              5.481,
+              4.349,
+              -64.801
+            ],
+            [
+              5.93,
+              4.398,
+              -64.164
+            ],
+            [
+              2.729,
+              4.357,
+              -62.803
+            ],
+            [
+              7.136,
+              4.481,
+              -61.602
+            ],
+            [
+              -1.499,
+              4.039,
+              -69.804
+            ],
+            [
+              -4.74,
+              4.032,
+              -69.356
+            ],
+            [
+              0.356,
+              4.043,
+              -72.596
+            ]
+          ],
+          "standingStones": [
+            [
+              -0.922,
+              4.028,
+              -66.558
+            ],
+            [
+              -3.415,
+              4.002,
+              -67.18
+            ],
+            [
+              -4.741,
+              3.994,
+              -69.357
+            ],
+            [
+              -4.252,
+              3.99,
+              -71.679
+            ],
+            [
+              -2.124,
+              3.991,
+              -72.971
+            ],
+            [
+              0.355,
+              4.005,
+              -72.595
+            ],
+            [
+              1.665,
+              4.022,
+              -70.328
+            ]
+          ],
+          "lookout": [
+            [
+              21.6,
+              5.667,
+              2.2
+            ]
+          ]
+        },
+        "flagstoneTopOffset": {
+          "min": 0.015,
+          "max": 0.086
+        },
+        "maxBottomGap": 0.106
+      }
+    },
+    "6c13f70c": {
+      "rows": [
+        {
+          "pixel": [
+            778,
+            557
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            0.32976479546423026,
+            0.03463294011953577,
+            -0.9550960356223506
+          ],
+          "distance": 2.0994105676786514,
+          "faceIndex": 9966,
+          "origin": null,
+          "triangles": 187956,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            839,
+            500
+          ],
+          "object": "flagstone-joints",
+          "material": "flagstone-joints",
+          "point": [
+            0.5257292643010046,
+            0.013647954898326153,
+            -1.1918635743914374
+          ],
+          "distance": 2.325623451913439,
+          "faceIndex": 14660,
+          "origin": null,
+          "triangles": 21692,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            1026,
+            484
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            1.0253889668658718,
+            0.04074109504161494,
+            -1.2248683835780896
+          ],
+          "distance": 2.4946319049654258,
+          "faceIndex": 9017,
+          "origin": null,
+          "triangles": 187956,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            685,
+            421
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            0.13403912107946217,
+            0.04597509880201467,
+            -1.5145584647745065
+          ],
+          "distance": 2.508594274276198,
+          "faceIndex": 8651,
+          "origin": null,
+          "triangles": 187956,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            964,
+            329
+          ],
+          "object": "flagstone-joints",
+          "material": "flagstone-joints",
+          "point": [
+            1.1851913121215563,
+            0.0004516816938899826,
+            -2.179762816854473
+          ],
+          "distance": 3.3184588389869845,
+          "faceIndex": 14052,
+          "origin": null,
+          "triangles": 21692,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            245,
+            530
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            -0.9856047278392018,
+            0.023302552036689628,
+            -1.0634647639064692
+          ],
+          "distance": 2.3753989406434233,
+          "faceIndex": 8168,
+          "origin": null,
+          "triangles": 187956,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            675,
+            711
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            0.06901347399993185,
+            0.034942243929881656,
+            -0.527632787826243
+          ],
+          "distance": 1.7860840948181649,
+          "faceIndex": 9988,
+          "origin": null,
+          "triangles": 187956,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            112,
+            391
+          ],
+          "object": "flagstones",
+          "material": "stone",
+          "point": [
+            -1.6697818878845254,
+            0.023627337792406777,
+            -1.7165665170957265
+          ],
+          "distance": 3.1631417343144386,
+          "faceIndex": 159749,
+          "origin": null,
+          "triangles": 187956,
+          "wind": null,
+          "maps": {
+            "color": true,
+            "normal": true,
+            "roughness": true
+          }
+        },
+        {
+          "pixel": [
+            630,
+            585
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 85,
+          "point": [
+            -0.02185093615621922,
+            0.02690180035079504,
+            -0.8714877997124229
+          ],
+          "distance": 2.018624103190395,
+          "faceIndex": 2,
+          "origin": [
+            -0.009662005119025707,
+            0.008064976893365383,
+            -0.8646424412727356
+          ],
+          "spot": {
+            "x": -0.009662005514837979,
+            "y": 0.012064976759894847,
+            "z": -0.8646424689330132,
+            "size": 0.9692675785627216,
+            "kind": "cushion",
+            "source": "seam-cushions",
+            "jointTint": 0.44409543650748756
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            1125,
+            607
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 117,
+          "point": [
+            1.0774091363126268,
+            0.034664906725347625,
+            -0.7967557972576036
+          ],
+          "distance": 2.2371343649090023,
+          "faceIndex": 2,
+          "origin": [
+            1.0755802392959595,
+            0.020696179941296577,
+            -0.8059176802635193
+          ],
+          "spot": {
+            "x": 1.0755802312633023,
+            "y": 0.024696180393828548,
+            "z": -0.8059176703682169,
+            "size": 0.2128637272398919,
+            "kind": "cushion",
+            "source": "lawn-paving",
+            "jointTint": 0.5354671893441224
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            995,
+            373
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 125,
+          "point": [
+            1.1660230843218777,
+            0.02319728400655057,
+            -1.8283735871331912
+          ],
+          "distance": 3.0165715995568974,
+          "faceIndex": 5,
+          "origin": [
+            1.1824713945388794,
+            0.003778127720579505,
+            -1.8473602533340454
+          ],
+          "spot": {
+            "x": 1.182471341220662,
+            "y": 0.0077781277778500345,
+            "z": -1.847360307816416,
+            "size": 0.8340371306985617,
+            "kind": "cushion",
+            "source": "disc-turf",
+            "jointTint": 0.7
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        },
+        {
+          "pixel": [
+            875,
+            431
+          ],
+          "object": "joint-sprouts-p5-v4",
+          "material": "joint-sprouts",
+          "instanceId": 110,
+          "point": [
+            0.6911730489246147,
+            0.02578445313943905,
+            -1.4921651416969748
+          ],
+          "distance": 2.5918124693494393,
+          "faceIndex": 1,
+          "origin": [
+            0.7073836922645569,
+            0.01111732516437769,
+            -1.5027434825897217
+          ],
+          "spot": {
+            "x": 0.7073836750350893,
+            "y": 0.015117325357540014,
+            "z": -1.502743455232121,
+            "size": 0.6292921921703964,
+            "kind": "cushion",
+            "source": "lawn-paving",
+            "jointTint": 0.55
+          },
+          "triangles": 50,
+          "wind": [
+            0,
+            0,
+            0
+          ],
+          "shaderVariant": 0,
+          "maps": {
+            "color": false,
+            "normal": false,
+            "roughness": false
+          }
+        }
+      ],
+      "sproutSourceSha256": "f7397a1ae9b4d275d7edd177fb70b457dc485459732ad3e429c5c9acdc83d6f4",
+      "gritSourceSha256": "b6c08dccdf8f83457a4cf2c20a7be022c34b013c189c5d71ebffbe60d3ea6284",
+      "hardscapeAudit": {
+        "stairways": [
+          {
+            "id": "main",
+            "steps": 20,
+            "width": 3,
+            "treadSlabs": 26
+          },
+          {
+            "id": "house-west",
+            "steps": 5,
+            "width": 2.4,
+            "treadSlabs": 7
+          },
+          {
+            "id": "ledge",
+            "steps": 6,
+            "width": 1.8,
+            "treadSlabs": 6
+          }
+        ],
+        "mainTreadTone": {
+          "foot": 0.65,
+          "top": 0.797
+        },
+        "totalSteps": 31,
+        "treadSlabs": 39,
+        "stairLogs": 20,
+        "stairStakes": 20,
+        "stairLogTriangles": 21280,
+        "stairGeometry": "procedural-v2",
+        "uniqueStepShapes": 39,
+        "mossJoints": true,
+        "stairTriangles": 23295,
+        "flagstones": 529,
+        "flagstoneShapes": 529,
+        "flagstoneGeometry": "voronoi-cells-v6-broken-slabs",
+        "flagstoneSplitCells": 41,
+        "flagstoneBrokenCells": 82,
+        "flagstoneAcrossM": {
+          "n": 495,
+          "p10": 0.459,
+          "p50": 0.819,
+          "p90": 1.031
+        },
+        "flagstoneAcrossLawnM": {
+          "n": 28,
+          "p10": 0.761,
+          "p50": 0.995,
+          "p90": 1.27
+        },
+        "flagstoneCrownCm": {
+          "n": 523,
+          "p10": -0.857,
+          "p50": 0.612,
+          "p90": 1.2
+        },
+        "flagstoneShoulderRollCm": {
+          "n": 523,
+          "p10": 0.821,
+          "p50": 1.143,
+          "p90": 1.691
+        },
+        "flagstoneFilletCm": {
+          "n": 523,
+          "p10": 12.023,
+          "p50": 19.458,
+          "p90": 25.854
+        },
+        "flagstoneJointCm": {
+          "n": 523,
+          "p10": 3.639,
+          "p50": 4.074,
+          "p90": 4.511
+        },
+        "flagstoneMedianSpanM": 0.925,
+        "flagstoneSpanM": {
+          "n": 225,
+          "p10": 0.499,
+          "p50": 0.925,
+          "p90": 1.117
+        },
+        "flagstoneSpanLawnM": {
+          "n": 28,
+          "p10": 0.733,
+          "p50": 1.072,
+          "p90": 1.323
+        },
+        "jointMedianWidthM": 0.075,
+        "jointMeasuredWidthM": {
+          "n": 1106,
+          "p10": 0.06,
+          "p50": 0.075,
+          "p90": 0.16
+        },
+        "flagstoneNotches": 150,
+        "flagstoneChippedCorners": 269,
+        "flagstoneDished": 116,
+        "flagstoneCracked": 47,
+        "flagstoneWobbled": 523,
+        "flagstoneSpalled": 323,
+        "flagstoneMossCreep": 222,
+        "stoneNearTile": {
+          "tileK": 0.55,
+          "fadeM": [
+            4,
+            7
+          ],
+          "normalK": 2,
+          "detailNormalK": 0.42,
+          "detailAlbedoK": 0.24,
+          "perStoneRoughness": 0.05
+        },
+        "flagstoneEarthCells": 7,
+        "flagstoneDiscField": 69,
+        "flagstoneBigSlabs": 7,
+        "flagstoneRimStones": 62,
+        "flagstoneLawnSlabs": 15,
+        "flagstoneAuthoredSlabs": 7,
+        "lawnPaving": {
+          "x": [
+            -1.5,
+            3.5
+          ],
+          "z": [
+            -6.5,
+            -0.5
+          ],
+          "northEast": {
+            "x": [
+              0,
+              4.2
+            ],
+            "z": [
+              -3,
+              0.2
+            ]
+          },
+          "fadeM": 1.5,
+          "pocketWestOfPathEdge": true
+        },
+        "flagstoneEdgeMossStones": 104,
+        "steppingStones": 6,
+        "steppingStoneDiscs": [
+          [
+            3.562,
+            -4.415,
+            0.439
+          ],
+          [
+            2.792,
+            -5.321,
+            0.418
+          ],
+          [
+            7.133,
+            -7.071,
+            0.433
+          ],
+          [
+            7.894,
+            -7.662,
+            0.408
+          ],
+          [
+            8.753,
+            -7.921,
+            0.404
+          ],
+          [
+            9.101,
+            -8.928,
+            0.422
+          ]
+        ],
+        "flagstoneMaxAspect": 2.78,
+        "flagstoneTriangles": 233556,
+        "flagstoneDrawCalls": 1,
+        "jointFillVertices": 11814,
+        "jointSprouts": 5513,
+        "jointSproutsOnFlagstones": 3725,
+        "jointSproutsInDiscField": 300,
+        "jointSproutsInLawnPaving": 150,
+        "jointSproutsInLawnPocket": 1674,
+        "lawnPocket": {
+          "areaM2": 10.752,
+          "latticeCm": 8.2,
+          "tufts": 1328,
+          "clover": 155,
+          "mossPads": 4,
+          "edgeTufts": 73,
+          "edgeOverhangCm": 6.497,
+          "edgeBandTufts": 114,
+          "footprintCm": {
+            "n": 1108,
+            "p10": 10.185,
+            "p50": 11.959,
+            "p90": 16.658
+          },
+          "heightCm": {
+            "n": 1108,
+            "p10": 7.971,
+            "p50": 9.36,
+            "p90": 13.037
+          },
+          "tuftsPerM2": 155.325,
+          "flowerHeads": 14,
+          "flowerTriangles": 1148,
+          "flowerDrawCalls": 1,
+          "groundFill": "mossy-earth (JOINT_SOIL_MID lerp grassDeep 0.85, dimmed 0.6)"
+        },
+        "jointSproutsInEdgeSeams": 172,
+        "jointSproutsOnStairs": 271,
+        "jointSproutsSpineGrass": 560,
+        "expansion": {
+          "discs": 18,
+          "discsLaid": 18,
+          "discsSkippedSteep": 0,
+          "seeds": 5,
+          "stones": 18,
+          "triangles": 6421,
+          "stairs": [
+            {
+              "id": "south-bank",
+              "steps": 6,
+              "width": 1.6,
+              "treadSlabs": 7,
+              "triangles": 4165
+            },
+            {
+              "id": "west-house",
+              "steps": 3,
+              "width": 1,
+              "treadSlabs": 3,
+              "triangles": 2009
+            }
+          ],
+          "stairTriangles": 6174,
+          "visibleWithinM": 60,
+          "casterSpheres": 201,
+          "visible": false,
+          "discTops": [
+            [
+              -6.294,
+              0.257,
+              5.204
+            ],
+            [
+              -6.636,
+              0.532,
+              6.304
+            ],
+            [
+              -7.391,
+              1.249,
+              7.183
+            ],
+            [
+              -7.658,
+              1.295,
+              8.124
+            ],
+            [
+              -8.358,
+              1.531,
+              8.8
+            ],
+            [
+              -8.99,
+              1.409,
+              9.604
+            ],
+            [
+              -10.018,
+              1.494,
+              9.576
+            ],
+            [
+              -10.972,
+              1.462,
+              9.456
+            ],
+            [
+              -11.902,
+              1.646,
+              8.931
+            ],
+            [
+              -12.881,
+              1.744,
+              8.68
+            ],
+            [
+              -13.652,
+              2.079,
+              8.062
+            ],
+            [
+              -9.557,
+              0.904,
+              10.687
+            ],
+            [
+              -9.985,
+              0.386,
+              11.749
+            ],
+            [
+              -10.867,
+              0.19,
+              12.513
+            ],
+            [
+              -11.267,
+              0.179,
+              13.402
+            ],
+            [
+              -12.031,
+              0.174,
+              14
+            ],
+            [
+              -12.822,
+              0.179,
+              14.6
+            ],
+            [
+              -13.909,
+              0.173,
+              14.516
+            ]
+          ]
+        },
+        "northPaving": {
+          "flagstones": 133,
+          "seeds": 110,
+          "rimStones": 26,
+          "roundSlabs": 8,
+          "triangles": 45600,
+          "jointFillVertices": 2947,
+          "jointSprouts": 380,
+          "mossCushions": 70,
+          "seamGrit": 220,
+          "bbox": [
+            -9.3,
+            -77.6,
+            9,
+            -55
+          ],
+          "seamZ": -60.3
+        },
+        "stoneCircle": {
+          "standingStones": 7,
+          "ringRadius": 3.3,
+          "heightM": {
+            "n": 7,
+            "p10": 0.314,
+            "p50": 0.705,
+            "p90": 0.764
+          },
+          "centreSlabRadius": 1.05,
+          "shape": "standing-stones-v1",
+          "stones": [
+            {
+              "bands": 5,
+              "chips": 3,
+              "split": false,
+              "fallen": true,
+              "tiltDeg": 5.1,
+              "acrossM": 0.37
+            },
+            {
+              "bands": 4,
+              "chips": 4,
+              "split": true,
+              "fallen": false,
+              "tiltDeg": 6.9,
+              "acrossM": 0.45
+            },
+            {
+              "bands": 4,
+              "chips": 4,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 4.9,
+              "acrossM": 0.48
+            },
+            {
+              "bands": 3,
+              "chips": 2,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 4,
+              "acrossM": 0.45
+            },
+            {
+              "bands": 3,
+              "chips": 3,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 7.9,
+              "acrossM": 0.51
+            },
+            {
+              "bands": 3,
+              "chips": 3,
+              "split": true,
+              "fallen": false,
+              "tiltDeg": 5.7,
+              "acrossM": 0.56
+            },
+            {
+              "bands": 4,
+              "chips": 3,
+              "split": false,
+              "fallen": false,
+              "tiltDeg": 7.4,
+              "acrossM": 0.5
+            }
+          ],
+          "fallen": 1,
+          "splitTops": 2,
+          "tiltDeg": {
+            "n": 6,
+            "p10": 4,
+            "p50": 5.7,
+            "p90": 7.4
+          },
+          "skirt": {
+            "reachM": [
+              0.13,
+              0.22
+            ],
+            "riseM": [
+              0.08,
+              0.13
+            ],
+            "dampM": 0.22,
+            "buryK": 0.28,
+            "buryMinM": 0.16
+          },
+          "hiddenWithNorthPaving": true
+        },
+        "lookout": {
+          "x": 21.6,
+          "z": 2.2,
+          "topY": 5.667,
+          "proudM": 0.35,
+          "yawDeg": 124,
+          "triangles": 198
+        },
+        "blockTriangles": 2282,
+        "jointSproutVariants": 7,
+        "jointSproutDrawCalls": 6,
+        "jointSproutPacks": [
+          [
+            1
+          ],
+          [
+            0
+          ],
+          [
+            2
+          ],
+          [
+            6
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "sproutJitter": "per-source-stream",
+        "jointSproutHeightCm": [
+          6,
+          12
+        ],
+        "jointTuftRamp": [
+          "6a5430",
+          "b3925a"
+        ],
+        "jointTuftTint": {
+          "joints": 0.65,
+          "disc-turf": 0.7,
+          "spine-grass": 0.35,
+          "lawn-paving": 0.55,
+          "edge-turf": 0.7,
+          "stairs": 0.8,
+          "stairs-flank": 0.8,
+          "seam-cushions": 0.45,
+          "north-joints": 1,
+          "north-cushions": 0.45
+        },
+        "jointTuftsTinted": 1410,
+        "jointSproutLodFar": 25,
+        "jointSproutTriangles": 225242,
+        "jointSproutSubmittedTriangles": 275962,
+        "jointSproutSubmission": {
+          "instances": [
+            205,
+            1477,
+            1105,
+            560,
+            562,
+            180
+          ],
+          "triangles": 150058,
+          "cullPadM": 1.5
+        },
+        "mossCushions": 577,
+        "mossCushionsInSeams": 286,
+        "seamGrit": 2536,
+        "seamGritInSeams": 880,
+        "seamGritNearField": 700,
+        "seamGritPale": 233,
+        "seamGritAtStairFeet": 166,
+        "seamGritHollowPath": 338,
+        "seamGritArchSeam": 122,
+        "lipLitter": 110,
+        "lipTongue": "soil-bark-litter-v1",
+        "flagstonesHollowSeated": 146,
+        "seamGritLodFar": 25,
+        "seamGritTriangles": 50720,
+        "seamGritDrawCalls": 0,
+        "jointFillTriangles": 21692,
+        "jointFill": "mossy-earth-v2-clipped-dark-soil",
+        "jointSoilAlbedo": [
+          "5a4b2a",
+          "685639",
+          "705e3c"
+        ],
+        "jointFillIso": 0.5,
+        "jointFillClippedCells": 1069,
+        "jointFillRimVertices": 2393,
+        "jointFillRimLengthM": 182.797,
+        "jointGapField": [
+          407,
+          1609
+        ],
+        "hardscapeTriangles": 563195,
+        "plazaRadius": 6,
+        "samplePositions": {
+          "flagstones": [
+            [
+              -1.524,
+              0.053,
+              -2.688
+            ],
+            [
+              0.815,
+              0.037,
+              -2.173
+            ],
+            [
+              3.003,
+              0.031,
+              -2.28
+            ],
+            [
+              4.568,
+              0.029,
+              -1.732
+            ],
+            [
+              1.78,
+              0.038,
+              -6.26
+            ],
+            [
+              1.964,
+              0.057,
+              -5.153
+            ],
+            [
+              3.131,
+              0.037,
+              -3.425
+            ],
+            [
+              1.21,
+              0.044,
+              -1.299
+            ],
+            [
+              2.231,
+              0.05,
+              -0.349
+            ],
+            [
+              -5.133,
+              0.038,
+              0.29
+            ],
+            [
+              0.367,
+              0.023,
+              0.549
+            ],
+            [
+              -3.905,
+              0.008,
+              1.238
+            ],
+            [
+              -0.816,
+              0.02,
+              1.635
+            ],
+            [
+              0.942,
+              0.017,
+              1.361
+            ],
+            [
+              4.333,
+              0.011,
+              1.127
+            ],
+            [
+              -3.302,
+              0.019,
+              1.822
+            ],
+            [
+              -2.278,
+              0.033,
+              1.976
+            ],
+            [
+              -0.287,
+              -0.004,
+              2.389
+            ],
+            [
+              3.058,
+              0.015,
+              2.156
+            ],
+            [
+              5.952,
+              0.045,
+              1.331
+            ],
+            [
+              -4.196,
+              0.028,
+              3.365
+            ],
+            [
+              -2.557,
+              0.025,
+              3.083
+            ],
+            [
+              -0.717,
+              0.036,
+              3.3
+            ],
+            [
+              2.287,
+              0.03,
+              2.896
+            ],
+            [
+              4.583,
+              0.032,
+              2.904
+            ],
+            [
+              -2.194,
+              0.023,
+              4.031
+            ],
+            [
+              0.874,
+              0.037,
+              4.049
+            ],
+            [
+              4.159,
+              0.018,
+              3.615
+            ],
+            [
+              1.468,
+              0.04,
+              4.646
+            ],
+            [
+              -1.394,
+              0.02,
+              5.587
+            ],
+            [
+              -1.721,
+              0.005,
+              6.473
+            ],
+            [
+              1.44,
+              0.023,
+              6.403
+            ],
+            [
+              -0.286,
+              0.016,
+              6.978
+            ],
+            [
+              -0.39,
+              0.004,
+              7.943
+            ],
+            [
+              -1.29,
+              0.01,
+              8.816
+            ],
+            [
+              0.575,
+              0.026,
+              9.074
+            ],
+            [
+              -0.916,
+              0.023,
+              10.56
+            ],
+            [
+              1.344,
+              0.039,
+              10.165
+            ],
+            [
+              -0.908,
+              0.011,
+              11.851
+            ],
+            [
+              0.687,
+              0.04,
+              11.233
+            ],
+            [
+              1.445,
+              0.053,
+              12.13
+            ],
+            [
+              -0.807,
+              0.04,
+              12.789
+            ],
+            [
+              2.063,
+              0.033,
+              12.607
+            ],
+            [
+              1.616,
+              0.018,
+              13.377
+            ],
+            [
+              0.872,
+              0.023,
+              14.514
+            ],
+            [
+              0.123,
+              0.029,
+              15.145
+            ],
+            [
+              0.429,
+              0.028,
+              16.437
+            ],
+            [
+              0.399,
+              0.03,
+              17.608
+            ],
+            [
+              1.497,
+              0.016,
+              16.63
+            ],
+            [
+              4.529,
+              4.348,
+              -59.389
+            ],
+            [
+              6.982,
+              4.465,
+              -59.635
+            ],
+            [
+              3.727,
+              4.232,
+              -52.066
+            ],
+            [
+              7.113,
+              4.357,
+              -51.24
+            ],
+            [
+              5.135,
+              4.326,
+              -50.472
+            ],
+            [
+              3.925,
+              4.297,
+              -49.592
+            ],
+            [
+              5.751,
+              4.341,
+              -50.281
+            ],
+            [
+              4.195,
+              4.201,
+              -48.221
+            ],
+            [
+              6.09,
+              4.277,
+              -48.917
+            ],
+            [
+              4.221,
+              4.162,
+              -47.571
+            ],
+            [
+              2.775,
+              4.096,
+              -46.517
+            ],
+            [
+              5.451,
+              4.105,
+              -47.045
+            ],
+            [
+              3.916,
+              4.079,
+              -46.283
+            ],
+            [
+              3.571,
+              4.021,
+              -45.589
+            ],
+            [
+              3.775,
+              3.918,
+              -44.184
+            ],
+            [
+              5.597,
+              3.942,
+              -44.147
+            ],
+            [
+              5.445,
+              3.871,
+              -43.16
+            ],
+            [
+              4.71,
+              3.844,
+              -42.711
+            ],
+            [
+              4.294,
+              3.756,
+              -41.659
+            ],
+            [
+              3.358,
+              3.691,
+              -40.712
+            ],
+            [
+              6.269,
+              3.712,
+              -41.015
+            ],
+            [
+              4.363,
+              3.62,
+              -39.852
+            ],
+            [
+              3.643,
+              3.582,
+              -39.215
+            ],
+            [
+              2.498,
+              3.499,
+              -37.8
+            ],
+            [
+              4.703,
+              3.533,
+              -38.487
+            ],
+            [
+              3.655,
+              3.471,
+              -37.203
+            ],
+            [
+              2.684,
+              3.357,
+              -36.121
+            ],
+            [
+              3.523,
+              3.394,
+              -36.481
+            ],
+            [
+              5.744,
+              3.456,
+              -36.544
+            ],
+            [
+              2.848,
+              3.212,
+              -35.508
+            ],
+            [
+              2.288,
+              2.805,
+              -34.066
+            ],
+            [
+              5.123,
+              2.993,
+              -34.292
+            ],
+            [
+              2.905,
+              2.646,
+              -33.351
+            ],
+            [
+              1.006,
+              2.489,
+              -33.082
+            ],
+            [
+              4.442,
+              2.673,
+              -33.107
+            ],
+            [
+              1.493,
+              1.855,
+              -30.634
+            ],
+            [
+              3.048,
+              2.048,
+              -31.029
+            ],
+            [
+              2.7,
+              1.698,
+              -29.874
+            ],
+            [
+              1.797,
+              1.427,
+              -29.117
+            ],
+            [
+              4.627,
+              1.779,
+              -29.763
+            ],
+            [
+              2.093,
+              1.28,
+              -28.608
+            ],
+            [
+              4.188,
+              1.178,
+              -28.026
+            ],
+            [
+              1.954,
+              1.002,
+              -27.607
+            ],
+            [
+              3.658,
+              0.963,
+              -27.358
+            ],
+            [
+              1.431,
+              0.58,
+              -26.244
+            ],
+            [
+              -0.104,
+              0.329,
+              -25.713
+            ],
+            [
+              2.373,
+              0.431,
+              -25.693
+            ],
+            [
+              2.19,
+              0.224,
+              -25.08
+            ],
+            [
+              3.485,
+              0.182,
+              -24.737
+            ],
+            [
+              2.336,
+              -0.097,
+              -23.515
+            ],
+            [
+              1.524,
+              -0.093,
+              -22.869
+            ],
+            [
+              -0.045,
+              -0.073,
+              -22.066
+            ],
+            [
+              3.42,
+              -0.068,
+              -21.421
+            ],
+            [
+              1.579,
+              -0.103,
+              -21.034
+            ],
+            [
+              1.41,
+              -0.092,
+              -20.288
+            ],
+            [
+              0.101,
+              -0.067,
+              -19.346
+            ],
+            [
+              1.735,
+              -0.062,
+              -19.169
+            ],
+            [
+              0.23,
+              -0.064,
+              -18.577
+            ],
+            [
+              3.454,
+              -0.067,
+              -18.707
+            ],
+            [
+              1.672,
+              -0.073,
+              -17.487
+            ],
+            [
+              0.273,
+              -0.051,
+              -16.646
+            ],
+            [
+              3.572,
+              -0.063,
+              -17.005
+            ],
+            [
+              2.043,
+              -0.015,
+              -15.726
+            ],
+            [
+              -0.392,
+              -0.023,
+              -14.522
+            ],
+            [
+              2.029,
+              -0.003,
+              -14.789
+            ],
+            [
+              0.106,
+              -0.007,
+              -13.877
+            ],
+            [
+              2.352,
+              -0.001,
+              -14.08
+            ],
+            [
+              1.696,
+              0.036,
+              -13.475
+            ],
+            [
+              3.659,
+              0.033,
+              -12.989
+            ],
+            [
+              1.38,
+              0.038,
+              -12.697
+            ],
+            [
+              0.537,
+              0.051,
+              -11.798
+            ],
+            [
+              3.22,
+              0.063,
+              -11.403
+            ],
+            [
+              0.974,
+              0.065,
+              -10.738
+            ],
+            [
+              2.528,
+              0.069,
+              -10.724
+            ],
+            [
+              -0.32,
+              0.053,
+              -9.768
+            ],
+            [
+              1.491,
+              0.067,
+              -9.773
+            ],
+            [
+              -0.173,
+              0.056,
+              -8.895
+            ],
+            [
+              2.199,
+              0.04,
+              -8.996
+            ],
+            [
+              1.097,
+              0.049,
+              -7.925
+            ],
+            [
+              0.723,
+              0.058,
+              -6.224
+            ],
+            [
+              -2.289,
+              0.037,
+              -0.843
+            ],
+            [
+              -2.837,
+              0.049,
+              0.244
+            ],
+            [
+              5.63,
+              4.259,
+              -58.295
+            ],
+            [
+              6.803,
+              4.352,
+              -50.147
+            ],
+            [
+              6.081,
+              4.008,
+              -45.11
+            ],
+            [
+              1.917,
+              3.529,
+              -38.589
+            ],
+            [
+              5.509,
+              3.496,
+              -37.171
+            ],
+            [
+              2.085,
+              2.353,
+              -32.412
+            ],
+            [
+              0.325,
+              1.407,
+              -29.259
+            ],
+            [
+              3.134,
+              -0.073,
+              -22.067
+            ],
+            [
+              2.212,
+              -0.077,
+              -19.782
+            ],
+            [
+              2.766,
+              -0.064,
+              -17.186
+            ],
+            [
+              -0.551,
+              0.053,
+              -8.407
+            ],
+            [
+              -4.082,
+              0.033,
+              -2.018
+            ],
+            [
+              -2.578,
+              0.059,
+              -2.15
+            ],
+            [
+              -4.359,
+              0.052,
+              -1.369
+            ],
+            [
+              -3.092,
+              0.038,
+              -0.84
+            ],
+            [
+              -4.487,
+              0.025,
+              0.27
+            ],
+            [
+              6.627,
+              0.029,
+              2.659
+            ],
+            [
+              1.46,
+              0.045,
+              2.98
+            ],
+            [
+              1.144,
+              0.041,
+              11.25
+            ],
+            [
+              0.923,
+              0.036,
+              15.737
+            ],
+            [
+              7.015,
+              4.374,
+              -58.142
+            ],
+            [
+              5.208,
+              4.287,
+              -52.156
+            ],
+            [
+              5.84,
+              4.332,
+              -52.087
+            ],
+            [
+              7.234,
+              4.291,
+              -49.353
+            ],
+            [
+              6.678,
+              4.015,
+              -45.312
+            ],
+            [
+              2.498,
+              3.708,
+              -40.972
+            ],
+            [
+              1.234,
+              3.066,
+              -35.194
+            ],
+            [
+              4.265,
+              2.468,
+              -32.426
+            ],
+            [
+              4.739,
+              2.113,
+              -31.012
+            ],
+            [
+              3.872,
+              -0.088,
+              -23.435
+            ],
+            [
+              3.703,
+              -0.084,
+              -20.085
+            ],
+            [
+              3.976,
+              -0.067,
+              -19.138
+            ],
+            [
+              4.088,
+              -0.06,
+              -16.668
+            ],
+            [
+              -0.417,
+              0.015,
+              -13.379
+            ],
+            [
+              3.857,
+              0.295,
+              -9.115
+            ],
+            [
+              4.502,
+              0.048,
+              -2.657
+            ],
+            [
+              -5.371,
+              0.02,
+              -1.036
+            ],
+            [
+              -2.788,
+              0.016,
+              4.719
+            ],
+            [
+              -2.046,
+              0.034,
+              5.729
+            ],
+            [
+              1.869,
+              0.04,
+              7.447
+            ],
+            [
+              2.283,
+              0.029,
+              9.668
+            ],
+            [
+              -1.745,
+              0.035,
+              11.535
+            ],
+            [
+              2.596,
+              0.018,
+              13.023
+            ],
+            [
+              2.909,
+              -0.001,
+              14.879
+            ],
+            [
+              7.131,
+              1.503,
+              -7.073
+            ],
+            [
+              9.101,
+              1.058,
+              -8.927
+            ]
+          ],
+          "treadNose": [
+            [
+              7.873,
+              0.27,
+              0.747
+            ],
+            [
+              6.952,
+              0.27,
+              -0.435
+            ],
+            [
+              7.667,
+              0.543,
+              -0.395
+            ],
+            [
+              8.691,
+              0.805,
+              0.009
+            ],
+            [
+              7.771,
+              0.805,
+              -1.17
+            ],
+            [
+              8.521,
+              1.079,
+              -1.066
+            ],
+            [
+              9.41,
+              1.342,
+              -0.792
+            ],
+            [
+              8.474,
+              1.342,
+              -1.992
+            ],
+            [
+              9.809,
+              1.623,
+              -1.189
+            ],
+            [
+              8.881,
+              1.623,
+              -2.379
+            ],
+            [
+              9.81,
+              1.886,
+              -2.053
+            ],
+            [
+              10.203,
+              2.154,
+              -2.388
+            ],
+            [
+              10.635,
+              2.427,
+              -2.696
+            ],
+            [
+              11.098,
+              2.699,
+              -3.042
+            ],
+            [
+              12,
+              2.97,
+              -2.762
+            ],
+            [
+              11.055,
+              2.97,
+              -3.973
+            ],
+            [
+              11.93,
+              3.235,
+              -3.707
+            ],
+            [
+              12.349,
+              3.505,
+              -4.041
+            ],
+            [
+              13.313,
+              3.788,
+              -3.663
+            ],
+            [
+              12.38,
+              3.788,
+              -4.859
+            ],
+            [
+              13.209,
+              4.048,
+              -4.71
+            ],
+            [
+              13.63,
+              4.324,
+              -5.052
+            ],
+            [
+              14.075,
+              4.586,
+              -5.363
+            ],
+            [
+              14.487,
+              4.859,
+              -5.703
+            ],
+            [
+              14.888,
+              5.123,
+              -6.033
+            ],
+            [
+              15.311,
+              5.4,
+              -6.375
+            ],
+            [
+              3.752,
+              0.547,
+              -8.025
+            ],
+            [
+              4.097,
+              0.815,
+              -7.884
+            ],
+            [
+              4.317,
+              1.083,
+              -7.241
+            ],
+            [
+              4.73,
+              1.083,
+              -8.377
+            ],
+            [
+              4.85,
+              1.347,
+              -7.628
+            ],
+            [
+              5.005,
+              1.616,
+              -6.819
+            ],
+            [
+              5.418,
+              1.616,
+              -7.953
+            ],
+            [
+              1.19,
+              4.263,
+              -73.122
+            ],
+            [
+              1.204,
+              4.543,
+              -73.563
+            ],
+            [
+              1.207,
+              4.807,
+              -73.984
+            ],
+            [
+              1.198,
+              5.079,
+              -74.385
+            ],
+            [
+              1.182,
+              5.342,
+              -74.798
+            ],
+            [
+              1.193,
+              5.62,
+              -75.234
+            ]
+          ],
+          "northFlagstones": [
+            [
+              -1.336,
+              4.026,
+              -73.699
+            ],
+            [
+              -2.096,
+              4.03,
+              -73.783
+            ],
+            [
+              -3.344,
+              4.028,
+              -72.499
+            ],
+            [
+              -0.796,
+              4.035,
+              -72.12
+            ],
+            [
+              -2.108,
+              4.042,
+              -71.868
+            ],
+            [
+              0.266,
+              4.024,
+              -71.275
+            ],
+            [
+              2.113,
+              4.033,
+              -71.747
+            ],
+            [
+              -2.977,
+              4.036,
+              -70.849
+            ],
+            [
+              -3.15,
+              4.017,
+              -69.733
+            ],
+            [
+              1.88,
+              4.053,
+              -69.54
+            ],
+            [
+              -3.449,
+              4.014,
+              -68.786
+            ],
+            [
+              0.344,
+              4.055,
+              -68.661
+            ],
+            [
+              -3.931,
+              4.018,
+              -67.809
+            ],
+            [
+              -0.612,
+              4.039,
+              -68.749
+            ],
+            [
+              1.366,
+              4.077,
+              -67.528
+            ],
+            [
+              -1.897,
+              4.034,
+              -67.504
+            ],
+            [
+              0.647,
+              4.096,
+              -66.943
+            ],
+            [
+              4.336,
+              4.231,
+              -66.939
+            ],
+            [
+              1.183,
+              4.167,
+              -66.038
+            ],
+            [
+              3.162,
+              4.268,
+              -66.209
+            ],
+            [
+              1.897,
+              4.266,
+              -65.116
+            ],
+            [
+              4.79,
+              4.343,
+              -65.087
+            ],
+            [
+              2.986,
+              4.336,
+              -64.512
+            ],
+            [
+              4.619,
+              4.381,
+              -63.656
+            ],
+            [
+              3.852,
+              4.394,
+              -62.723
+            ],
+            [
+              6.02,
+              4.454,
+              -62.579
+            ],
+            [
+              3.754,
+              4.428,
+              -61.752
+            ],
+            [
+              6.642,
+              4.472,
+              -62.135
+            ],
+            [
+              4.102,
+              4.392,
+              -59.535
+            ],
+            [
+              5.176,
+              4.482,
+              -60.83
+            ],
+            [
+              -5.023,
+              3.996,
+              -71.946
+            ],
+            [
+              1.038,
+              4.043,
+              -70.036
+            ],
+            [
+              2.953,
+              4.229,
+              -66.842
+            ],
+            [
+              0.755,
+              4.183,
+              -65.315
+            ],
+            [
+              -0.326,
+              4.031,
+              -72.615
+            ],
+            [
+              -5.582,
+              4.004,
+              -71.318
+            ],
+            [
+              -5.516,
+              3.988,
+              -68.593
+            ],
+            [
+              3.779,
+              4.22,
+              -67.876
+            ],
+            [
+              -0.273,
+              4.079,
+              -67.047
+            ],
+            [
+              -0.192,
+              4.089,
+              -66.141
+            ],
+            [
+              -1.504,
+              4.033,
+              -65.731
+            ],
+            [
+              7.02,
+              4.482,
+              -61.378
+            ],
+            [
+              -0.921,
+              4.072,
+              -66.557
+            ],
+            [
+              -4.251,
+              4.031,
+              -71.679
+            ],
+            [
+              1.667,
+              4.072,
+              -70.327
+            ]
+          ],
+          "standingStones": [
+            [
+              -0.922,
+              4.028,
+              -66.558
+            ],
+            [
+              -3.415,
+              4.002,
+              -67.18
+            ],
+            [
+              -4.741,
+              3.994,
+              -69.357
+            ],
+            [
+              -4.252,
+              3.99,
+              -71.679
+            ],
+            [
+              -2.124,
+              3.991,
+              -72.971
+            ],
+            [
+              0.355,
+              4.005,
+              -72.595
+            ],
+            [
+              1.665,
+              4.022,
+              -70.328
+            ]
+          ],
+          "lookout": [
+            [
+              21.6,
+              5.667,
+              2.2
+            ]
+          ]
+        },
+        "flagstoneTopOffset": {
+          "min": 0.015,
+          "max": 0.086
+        },
+        "maxBottomGap": 0.109
+      }
+    }
+  }
+}

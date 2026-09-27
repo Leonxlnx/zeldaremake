@@ -1,0 +1,461 @@
+{
+  "before": "6c13f70c",
+  "after": "ba1d4bb1bf9612a3d6d53ae1e9d7ca260cfa52ff",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "browser": "Chrome/153.0.8010.52",
+  "settings": {
+    "views": [
+      {
+        "id": "w05-spine-d",
+        "p": [
+          0,
+          1.45,
+          0.56
+        ],
+        "t": [
+          0,
+          0.01,
+          -1.94
+        ],
+        "fov": 46
+      },
+      {
+        "id": "w16-spine-d",
+        "p": [
+          2.87,
+          3.78,
+          -32.24
+        ],
+        "t": [
+          3.29,
+          2.98,
+          -34.71
+        ],
+        "fov": 46
+      },
+      {
+        "id": "A_stairs"
+      },
+      {
+        "id": "B_house"
+      },
+      {
+        "id": "C_lookback"
+      },
+      {
+        "id": "D_log"
+      },
+      {
+        "id": "E_ground"
+      },
+      {
+        "id": "F_canopy"
+      }
+    ],
+    "time": 12.6,
+    "width": 1280,
+    "height": 720,
+    "quality": "high",
+    "pixelRatio": 1
+  },
+  "views": {
+    "w05-spine-d": {
+      "drawCalls": 307,
+      "trianglesBefore": 6405148,
+      "trianglesAfter": 6418108,
+      "addedTriangles": 12960,
+      "changedPixels": 18844,
+      "changedPixelsOver8": 8254,
+      "fractionOver8": 0.008956163194444445,
+      "maxChannelDelta": 141
+    },
+    "w16-spine-d": {
+      "drawCalls": 316,
+      "trianglesBefore": 5200249,
+      "trianglesAfter": 5202553,
+      "addedTriangles": 2304,
+      "changedPixels": 3784,
+      "changedPixelsOver8": 1685,
+      "fractionOver8": 0.001828342013888889,
+      "maxChannelDelta": 114
+    },
+    "A_stairs": {
+      "drawCalls": 442,
+      "trianglesBefore": 8627602,
+      "trianglesAfter": 8650354,
+      "addedTriangles": 22752,
+      "changedPixels": 5691,
+      "changedPixelsOver8": 1622,
+      "fractionOver8": 0.0017599826388888888,
+      "maxChannelDelta": 76,
+      "reference": {
+        "before": {
+          "ssim": 0.2101,
+          "phash": "c5f180f2559f5e42",
+          "refPhash": "d5b497728c0b29ce",
+          "phashDistance": 26,
+          "hueDiffDeg": 5.09,
+          "satDiff": 0.0096,
+          "lumDiff": 0.0538,
+          "sharpness": 0.017138,
+          "refSharpness": 0.012052,
+          "sharpnessRatio": 1.422,
+          "skyFraction": 0.0367,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00022,
+          "meanHue": 54.2,
+          "meanSat": 0.147,
+          "meanLum": 0.338,
+          "ref": {
+            "meanHue": 49.1,
+            "meanSat": 0.157,
+            "meanLum": 0.392,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        },
+        "after": {
+          "ssim": 0.2103,
+          "phash": "c5f180f2559f5e42",
+          "refPhash": "d5b497728c0b29ce",
+          "phashDistance": 26,
+          "hueDiffDeg": 5.06,
+          "satDiff": 0.0096,
+          "lumDiff": 0.0537,
+          "sharpness": 0.017008,
+          "refSharpness": 0.012052,
+          "sharpnessRatio": 1.411,
+          "skyFraction": 0.0367,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00022,
+          "meanHue": 54.1,
+          "meanSat": 0.147,
+          "meanLum": 0.338,
+          "ref": {
+            "meanHue": 49.1,
+            "meanSat": 0.157,
+            "meanLum": 0.392,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        }
+      },
+      "ssimDelta": 0.0002
+    },
+    "B_house": {
+      "drawCalls": 423,
+      "trianglesBefore": 7800439,
+      "trianglesAfter": 7816999,
+      "addedTriangles": 16560,
+      "changedPixels": 8822,
+      "changedPixelsOver8": 2658,
+      "fractionOver8": 0.002884114583333333,
+      "maxChannelDelta": 95,
+      "reference": {
+        "before": {
+          "ssim": 0.1854,
+          "phash": "c6a491abb997f803",
+          "refPhash": "8569b426495b7f0b",
+          "phashDistance": 28,
+          "hueDiffDeg": 5.77,
+          "satDiff": 0.0498,
+          "lumDiff": 0.0253,
+          "sharpness": 0.015212,
+          "refSharpness": 0.011511,
+          "sharpnessRatio": 1.321,
+          "skyFraction": 0.0359,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00146,
+          "meanHue": 54.5,
+          "meanSat": 0.143,
+          "meanLum": 0.334,
+          "ref": {
+            "meanHue": 48.7,
+            "meanSat": 0.192,
+            "meanLum": 0.359,
+            "skyFraction": 0,
+            "purpleFraction": 0.00043
+          }
+        },
+        "after": {
+          "ssim": 0.1862,
+          "phash": "c6a491abb997f803",
+          "refPhash": "8569b426495b7f0b",
+          "phashDistance": 28,
+          "hueDiffDeg": 5.74,
+          "satDiff": 0.0498,
+          "lumDiff": 0.0251,
+          "sharpness": 0.015118,
+          "refSharpness": 0.011511,
+          "sharpnessRatio": 1.313,
+          "skyFraction": 0.0359,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00146,
+          "meanHue": 54.5,
+          "meanSat": 0.143,
+          "meanLum": 0.334,
+          "ref": {
+            "meanHue": 48.7,
+            "meanSat": 0.192,
+            "meanLum": 0.359,
+            "skyFraction": 0,
+            "purpleFraction": 0.00043
+          }
+        }
+      },
+      "ssimDelta": 0.0008
+    },
+    "C_lookback": {
+      "drawCalls": 340,
+      "trianglesBefore": 6957474,
+      "trianglesAfter": 6975042,
+      "addedTriangles": 17568,
+      "changedPixels": 7795,
+      "changedPixelsOver8": 2164,
+      "fractionOver8": 0.002348090277777778,
+      "maxChannelDelta": 104,
+      "reference": {
+        "before": {
+          "ssim": 0.2122,
+          "phash": "8b24a7b0c934fccb",
+          "refPhash": "907cc543e5613ee3",
+          "phashDistance": 28,
+          "hueDiffDeg": 5.36,
+          "satDiff": 0.0249,
+          "lumDiff": 0.0275,
+          "sharpness": 0.015648,
+          "refSharpness": 0.008974,
+          "sharpnessRatio": 1.744,
+          "skyFraction": 0.0001,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00195,
+          "meanHue": 53.2,
+          "meanSat": 0.145,
+          "meanLum": 0.325,
+          "ref": {
+            "meanHue": 47.8,
+            "meanSat": 0.17,
+            "meanLum": 0.353,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        },
+        "after": {
+          "ssim": 0.2122,
+          "phash": "8b24a7b0c934fccb",
+          "refPhash": "907cc543e5613ee3",
+          "phashDistance": 28,
+          "hueDiffDeg": 5.34,
+          "satDiff": 0.0248,
+          "lumDiff": 0.0275,
+          "sharpness": 0.015562,
+          "refSharpness": 0.008974,
+          "sharpnessRatio": 1.734,
+          "skyFraction": 0.0001,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00195,
+          "meanHue": 53.1,
+          "meanSat": 0.145,
+          "meanLum": 0.325,
+          "ref": {
+            "meanHue": 47.8,
+            "meanSat": 0.17,
+            "meanLum": 0.353,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        }
+      },
+      "ssimDelta": 0
+    },
+    "D_log": {
+      "drawCalls": 390,
+      "trianglesBefore": 8077773,
+      "trianglesAfter": 8088789,
+      "addedTriangles": 11016,
+      "changedPixels": 5167,
+      "changedPixelsOver8": 1397,
+      "fractionOver8": 0.0015158420138888888,
+      "maxChannelDelta": 91,
+      "reference": {
+        "before": {
+          "ssim": 0.2576,
+          "phash": "ccc1c5e84cb761b6",
+          "refPhash": "c3c3900ef8a72fb8",
+          "phashDistance": 26,
+          "hueDiffDeg": 5.42,
+          "satDiff": 0.0302,
+          "lumDiff": 0.0518,
+          "sharpness": 0.011781,
+          "refSharpness": 0.008912,
+          "sharpnessRatio": 1.322,
+          "skyFraction": 0.0138,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00434,
+          "meanHue": 55.8,
+          "meanSat": 0.127,
+          "meanLum": 0.342,
+          "ref": {
+            "meanHue": 50.4,
+            "meanSat": 0.157,
+            "meanLum": 0.394,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        },
+        "after": {
+          "ssim": 0.2575,
+          "phash": "ccc1c5e84cb761b6",
+          "refPhash": "c3c3900ef8a72fb8",
+          "phashDistance": 26,
+          "hueDiffDeg": 5.42,
+          "satDiff": 0.0302,
+          "lumDiff": 0.0518,
+          "sharpness": 0.011704,
+          "refSharpness": 0.008912,
+          "sharpnessRatio": 1.313,
+          "skyFraction": 0.0138,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00434,
+          "meanHue": 55.8,
+          "meanSat": 0.127,
+          "meanLum": 0.342,
+          "ref": {
+            "meanHue": 50.4,
+            "meanSat": 0.157,
+            "meanLum": 0.394,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        }
+      },
+      "ssimDelta": -0.0001
+    },
+    "E_ground": {
+      "drawCalls": 423,
+      "trianglesBefore": 7800439,
+      "trianglesAfter": 7816999,
+      "addedTriangles": 16560,
+      "changedPixels": 8822,
+      "changedPixelsOver8": 2658,
+      "fractionOver8": 0.002884114583333333,
+      "maxChannelDelta": 95,
+      "reference": {
+        "before": {
+          "ssim": 0.2095,
+          "phash": "c6a491abb997f803",
+          "refPhash": "8561346f59e5a4b5",
+          "phashDistance": 30,
+          "hueDiffDeg": 3.26,
+          "satDiff": 0.0402,
+          "lumDiff": 0.0202,
+          "sharpness": 0.015212,
+          "refSharpness": 0.012302,
+          "sharpnessRatio": 1.237,
+          "skyFraction": 0.0359,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00146,
+          "meanHue": 54.5,
+          "meanSat": 0.143,
+          "meanLum": 0.334,
+          "ref": {
+            "meanHue": 51.2,
+            "meanSat": 0.183,
+            "meanLum": 0.354,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        },
+        "after": {
+          "ssim": 0.2097,
+          "phash": "c6a491abb997f803",
+          "refPhash": "8561346f59e5a4b5",
+          "phashDistance": 30,
+          "hueDiffDeg": 3.24,
+          "satDiff": 0.0402,
+          "lumDiff": 0.0201,
+          "sharpness": 0.015118,
+          "refSharpness": 0.012302,
+          "sharpnessRatio": 1.229,
+          "skyFraction": 0.0359,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00146,
+          "meanHue": 54.5,
+          "meanSat": 0.143,
+          "meanLum": 0.334,
+          "ref": {
+            "meanHue": 51.2,
+            "meanSat": 0.183,
+            "meanLum": 0.354,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        }
+      },
+      "ssimDelta": 0.0002
+    },
+    "F_canopy": {
+      "drawCalls": 407,
+      "trianglesBefore": 8016642,
+      "trianglesAfter": 8028882,
+      "addedTriangles": 12240,
+      "changedPixels": 5152,
+      "changedPixelsOver8": 1687,
+      "fractionOver8": 0.0018305121527777777,
+      "maxChannelDelta": 91,
+      "reference": {
+        "before": {
+          "ssim": 0.2215,
+          "phash": "8f618791c1f6bc54",
+          "refPhash": "c261d6b9d89c6a1b",
+          "phashDistance": 26,
+          "hueDiffDeg": 2.79,
+          "satDiff": 0.0237,
+          "lumDiff": 0.069,
+          "sharpness": 0.016527,
+          "refSharpness": 0.010224,
+          "sharpnessRatio": 1.616,
+          "skyFraction": 0.0115,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00022,
+          "meanHue": 52.4,
+          "meanSat": 0.187,
+          "meanLum": 0.299,
+          "ref": {
+            "meanHue": 49.6,
+            "meanSat": 0.163,
+            "meanLum": 0.368,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        },
+        "after": {
+          "ssim": 0.2216,
+          "phash": "8f618791c1f6bc54",
+          "refPhash": "c261d6b9d89c6a1b",
+          "phashDistance": 26,
+          "hueDiffDeg": 2.79,
+          "satDiff": 0.0236,
+          "lumDiff": 0.069,
+          "sharpness": 0.016435,
+          "refSharpness": 0.010224,
+          "sharpnessRatio": 1.608,
+          "skyFraction": 0.0115,
+          "overexposedFraction": 0,
+          "purpleFraction": 0.00022,
+          "meanHue": 52.4,
+          "meanSat": 0.187,
+          "meanLum": 0.299,
+          "ref": {
+            "meanHue": 49.6,
+            "meanSat": 0.163,
+            "meanLum": 0.368,
+            "skyFraction": 0,
+            "purpleFraction": 0
+          }
+        }
+      },
+      "ssimDelta": 0.0001
+    }
+  }
+}
