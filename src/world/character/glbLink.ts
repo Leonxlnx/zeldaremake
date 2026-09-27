@@ -141,10 +141,17 @@ import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, 
 import { createHeldSign, type HeldSign } from './sign';
 import { SIGN_ELBOW_POLE, SIGN_GRIP, SIGN_LOWERED_Y, SIGN_TEXTURE_FILE, reachTwoBone, signWeight, stepRaise, type V3 } from './signPose';
 
-/** served by Vite from public/ */
-export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
-/** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd';
+/**
+ * Served by Vite from public/: Astra's delivery with its two 4096² maps (normal, body colour) at
+ * 2048² (art/characters/link/downscale-textures.mjs) — 31.5 MB instead of 54.4, a quarter of the
+ * texture memory. A 4096² map that fails to decode leaves its material at glTF's white base
+ * colour, which is how Link came out white on a phone.
+ */
+export const LINK_GLB_FILE = 'models/link/link-runtime-2k.glb';
+/** the shipped file's hash — reported, never recomputed at runtime */
+export const LINK_GLB_SHA256 = 'f24b9b80c05d682be6b324b4e5761f5c3d24d7eee5c7f2f8c4a050186418fc85';
+/** the delivery it is derived from, recorded in public/models/link/SOURCE.md (models/link/link-runtime.glb) */
+export const LINK_GLB_SOURCE_SHA256 = '8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
