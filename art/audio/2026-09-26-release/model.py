@@ -128,15 +128,20 @@ for r in [float(v) for v in a.releases.split(',')]:
 print(f'\nsteps are {1000 / STEP_HZ:.0f} ms apart at a run; a release recovers in about three time constants')
 
 # ---- and the lever that is left: how much quieter would the steps have to be? ------------------
-print("\nthe release is not a lever. Making the steps quieter is, and this is its exchange rate:")
+#
+# Approximate, and kept here to show by how much. The model compresses the whole steps stem, tails
+# included, but in the graph the hall and the room are taken off the panner and bypass the
+# compressor AND the trim -- so a cut moves less of the signal than this thinks it does. Compare
+# `price.py`, which splits the dry from the tail and is therefore exact: it puts a 3 dB cut at
+# -0.2 dB rather than the -1.5 below. That 1.3 dB is the whole reason the number that shipped was
+# priced from a rendered dry stem instead of from here.
+print('\nthe release is not a lever. Making the steps quieter is, and this is roughly its exchange rate:')
 print(f"{'steps':>8}   {'step line':>10} {'beat line':>10} {'step over beat':>15}")
-base = None
 for cut in (0, 1, 2, 3, 4, 6, 9):
     made, _ = at(0.12)
     s2, f2 = env_spectrum(made * (10 ** (-cut / 20)) + rest, rate, lead)
     st, bt = line(s2, f2, STEP_HZ), line(s2, f2, BEAT_HZ)
-    if base is None:
-        base = st - bt
     print(f'{-cut:>6} dB   {st:>7.1f} dB {bt:>9.1f} dB {st - bt:>+12.1f} dB')
-print("\n(the bed is in `rest` as well as the music, so the beat line moves a little as the steps do;")
-print(" what matters is the last column, which is the owner's sentence as a number.)")
+print('\n(the bed is in `rest` as well as the music, so the beat line moves a little as the steps do;')
+print(" what matters is the last column, which is the owner's sentence as a number -- and for that")
+print(' column, read price.py rather than this one.)')
