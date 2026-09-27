@@ -118,9 +118,9 @@ test('a hut is not a bigger wood: the room is short, dark and its own convolver'
     built.slice(pre, pre + 400).some((v) => v !== 0),
     'the room the buses built never answers at all',
   );
-  // the return joins the master, never the sfx bus, so the room is not squeezed by the step compressor
+  // the return joins the master, never the sfx bus, so the room is not scaled by the steps' own pad
   assert.ok(reaches(buses.roomReturn, buses.master), 'the room has to reach the master');
-  assert.ok(!reaches(buses.sfx, buses.roomReturn), 'the room returns through the step compressor');
+  assert.ok(!reaches(buses.sfx, buses.roomReturn), 'the room returns through the sfx bus');
 });
 
 test('a step outdoors builds no room at all, and indoors sends it in proportion', () => {
