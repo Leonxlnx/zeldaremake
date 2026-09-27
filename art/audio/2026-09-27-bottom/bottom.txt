@@ -1,0 +1,20 @@
+the flame's body, high-passed at 80 Hz — predicted on the stem, and what the graph did
+
+  predicted (the filter applied to the rendered stem, so the body and husk keep their phase)
+    A-weighted floor  -0.26 dB      unweighted floor  -3.98 dB      peak  -3.73 dB
+
+  measured (the filter in the graph, on the body only)
+    A-weighted floor  +0.36 dB      unweighted floor  -1.80 dB      peak  -1.49 dB
+
+  where it went, band by band
+
+        20-40      -14.85 dB   <- what it was meant to remove
+        40-60       -5.17 dB
+        60-80       -0.08 dB
+        80-100      +2.25 dB
+       100-140      +2.06 dB   <- the husk sits here
+       140-200      +0.33 dB
+       200-320      +0.34 dB
+       320-500      +0.24 dB
+       500-1000     +0.16 dB
+      1000-4000     +0.11 dB
