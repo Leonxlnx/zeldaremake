@@ -138,6 +138,8 @@ import { BLINK_HALF_MORPH, BLINK_MORPH, blinkPhase, blinkWeights, createBlinkSch
 import { chainWeights, type FootAnchor, type GaitChain } from './gaitChain';
 import { STAIR_CELL } from './ground';
 import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, PuppetPose } from './puppet';
+import { createHeldSign, type HeldSign } from './sign';
+import { SIGN_ELBOW_POLE, SIGN_GRIP, SIGN_LOWERED_Y, SIGN_TEXTURE_FILE, reachTwoBone, signWeight, stepRaise, type V3 } from './signPose';
 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
@@ -1570,6 +1572,21 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
   const chest = bone('chest');
   const hipsMix = new Quaternion();
   let hipsDirty = false;
+  /**
+   * The held sign (play mode, T; signPose.ts): built on the first raise and parented to the chest,
+   * so it rides the torso whatever the legs' IK does to the hips afterwards. The wrist chain per
+   * side; without hand bones there is no wrist to aim and the sign stays unbuilt.
+   */
+  const handL = model.getObjectByName('handL');
+  const handR = model.getObjectByName('handR');
+  const signArms =
+    handL && handR
+      ? [
+          { shoulder: bone('shoulderL'), elbow: bone('elbowL'), hand: handL, grip: SIGN_GRIP.L, pole: SIGN_ELBOW_POLE.L },
+          { shoulder: bone('shoulderR'), elbow: bone('elbowR'), hand: handR, grip: SIGN_GRIP.R, pole: SIGN_ELBOW_POLE.R },
+        ]
+      : [];
+  let heldSign: HeldSign | null = null;
   const feet: FootContact[] = [
     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
@@ -1865,6 +1882,61 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       hipsDirty = false;
     }
   };
+  const _signS = new Vector3();
+  const _signE = new Vector3();
+  const _signW = new Vector3();
+  const _signT = new Vector3();
+  const _signP = new Vector3();
+  const _signFrom = new Vector3();
+  const _signTo = new Vector3();
+  const _signChest = new Quaternion();
+  const _signFull = new Quaternion();
+  const _signPart = new Quaternion();
+  const _signNone = new Quaternion();
+  /** turn `b` (in place, world space) so the direction `from` points along `to`, by the share `w` of the full turn */
+  const aimBone = (b: Object3D, from: Vector3, to: Vector3, w: number) => {
+    _signFull.setFromUnitVectors(from.normalize(), to.normalize());
+    _signPart.copy(_signNone).slerp(_signFull, w);
+    rotateWorld(b, _signPart);
+    b.updateMatrixWorld(true);
+  };
+  /**
+   * Play mode, after the arm overlay: ease the sign's raise clock toward the toggle, lift the sign
+   * up the spine into place with it, and bend each arm onto the pole — the shoulder aimed at the
+   * two-bone elbow, then the forearm at the grip — by the same eased weight, so the fists travel up
+   * with the stave. The shoulders and elbows are the overlay's bones: restoreOverlays puts the
+   * mixer's values back before the next pose.
+   */
+  const applySign = (loco: Locomotion) => {
+    loco.signRaise = stepRaise(loco.signRaise, loco.sign, loco.dt);
+    const w = signWeight(loco.signRaise);
+    if (!heldSign && w > 0 && signArms.length) {
+      heldSign = createHeldSign(`${import.meta.env.BASE_URL}${SIGN_TEXTURE_FILE}`);
+      chest.add(heldSign.group);
+    }
+    if (!heldSign) return;
+    heldSign.group.visible = w > 1e-3;
+    if (!heldSign.group.visible) return;
+    heldSign.group.position.set(0, (1 - w) * SIGN_LOWERED_Y, 0);
+    root.updateMatrixWorld(true);
+    chest.getWorldQuaternion(_signChest);
+    for (const arm of signArms) {
+      arm.shoulder.getWorldPosition(_signS);
+      arm.elbow.getWorldPosition(_signE);
+      arm.hand.getWorldPosition(_signW);
+      const upper = _signS.distanceTo(_signE);
+      const fore = _signE.distanceTo(_signW);
+      _signT.set(arm.grip[0], arm.grip[1], arm.grip[2]).applyMatrix4(heldSign.group.matrixWorld);
+      _signP.set(arm.pole[0], arm.pole[1], arm.pole[2]).applyQuaternion(_signChest);
+      const s: V3 = [_signS.x, _signS.y, _signS.z];
+      const reach = reachTwoBone(s, [_signT.x, _signT.y, _signT.z], upper, fore, [_signP.x, _signP.y, _signP.z]);
+      aimBone(arm.shoulder, _signFrom.subVectors(_signE, _signS), _signTo.set(reach.elbow[0] - s[0], reach.elbow[1] - s[1], reach.elbow[2] - s[2]), w);
+      arm.elbow.getWorldPosition(_signE);
+      arm.hand.getWorldPosition(_signW);
+      aimBone(arm.elbow, _signFrom.subVectors(_signW, _signE), _signTo.set(reach.wrist[0] - _signE.x, reach.wrist[1] - _signE.y, reach.wrist[2] - _signE.z), w);
+    }
+    armsDirty = true;
+  };
 
   const puppet: GlbLink = {
     kind: 'glb',
@@ -1908,8 +1980,13 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.kneePivot.quaternion.identity();
         leg.anklePivot.quaternion.identity();
       }
-      if (loco) applyArms(p, loco, fx, fz);
-      else armsLoco = null;
+      if (loco) {
+        applyArms(p, loco, fx, fz);
+        applySign(loco);
+      } else {
+        armsLoco = null;
+        if (heldSign) heldSign.group.visible = false;
+      }
       if (p.look && p.lookWeight > 0) lookAt(p.look, p.lookWeight);
       root.updateMatrixWorld(true);
 
