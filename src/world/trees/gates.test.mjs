@@ -36,6 +36,21 @@ const num = (name) => {
   return Number(m[1]);
 };
 
+test('the giants phase is split into named steps that bracket their parts', () => {
+  const src = source;
+  // every `step`/`mark` name appears once, so no two regions accumulate into the same audit key
+  const names = [...src.matchAll(/(?:^|[^a-zA-Z])(?:step|mark)\('([a-z-]+)'/g)].map((m) => m[1]);
+  assert.ok(names.length >= 8, `expected the giants load map to be split, saw ${names.length}`);
+  assert.deepEqual([...new Set(names)].sort(), [...names].sort(), `duplicate step name: ${names.join(', ')}`);
+  // the two totals bracket the loop and its tail; the parts below are what the split accounts for
+  for (const total of ['giants-loop-total', 'giants-tail-total']) assert.ok(names.includes(total), `missing ${total}`);
+  for (const part of ['to-world', 'near-pool-register', 'tail-sectors', 'tail-mid-place', 'crown-materials']) {
+    assert.ok(names.includes(part), `missing step ${part}`);
+  }
+  // `giantStepMs` is what publishes them, and the audit must carry it
+  assert.match(src, /giantStepMs: \{ \.\.\.giantStepMs \}/);
+});
+
 test('the tree LOD rungs are where the pop measurement left them', () => {
   const near = num('TREE_LOD_NEAR_M');
   const mid = num('TREE_LOD_MID_M');

@@ -433,17 +433,22 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size 
   const stamp = document.createElement('canvas');
   stamp.width = stamp.height = 128;
   const sc = stamp.getContext('2d')!;
+  // Same card UV crop as the giant cluster: exclude the solid wood patch in its corner. Every clump
+  // masks with the same crop of the same source, so resample it once here and blit it 1:1 below:
+  // `destination-in` reads only the mask's alpha, which a 1:1 blit carries through unchanged.
+  const mask = document.createElement('canvas');
+  mask.width = mask.height = 128;
+  mask.getContext('2d')!.drawImage(tuftCanvas, 128 * CARD_UV0, 0, 128 * (1 - CARD_UV0), 128 * (1 - CARD_UV0), 0, 0, 128, 128);
   const paintTuft = (base: Color, alpha: number) => {
-    sc.globalCompositeOperation = 'source-over';
-    sc.clearRect(0, 0, 128, 128);
+    // `copy` writes the tone over the whole stamp, which is what clear-then-fill amounted to
+    sc.globalCompositeOperation = 'copy';
     const tone = sc.createLinearGradient(0, 0, 0, 128);
     tone.addColorStop(0, css(base.clone().multiplyScalar(1.1), alpha));
     tone.addColorStop(1, css(base, alpha));
     sc.fillStyle = tone;
     sc.fillRect(0, 0, 128, 128);
     sc.globalCompositeOperation = 'destination-in';
-    // Same card UV crop as the giant cluster: exclude the solid wood patch in its corner.
-    sc.drawImage(tuftCanvas, 128 * CARD_UV0, 0, 128 * (1 - CARD_UV0), 128 * (1 - CARD_UV0), 0, 0, 128, 128);
+    sc.drawImage(mask, 0, 0);
   };
 
   interface Clump {

@@ -2028,6 +2028,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const buildPhases: Record<string, number> = {};
   /** per giant, its own `createGiantTree` wall clock (ms) — the giants are two thirds of this build */
   const giantBuildMs: Record<string, number> = {};
+  /**
+   * The giants' loop spends ~2/3 of its time OUTSIDE `createGiantTree` (TREE-PHASES.md): this accumulates
+   * the steps around it — the world-space translation of every geometry and its `aRoot`, the pooled near
+   * part registration, and the sector merge with its group split and cull install — so the load question
+   * lands on a line rather than on the loop.
+   */
+  const giantStepMs: Record<string, number> = {};
+  const step = (name: string, t0: number) => {
+    giantStepMs[name] = Math.round((giantStepMs[name] ?? 0) + (performance.now() - t0));
+  };
+  let markAt = performance.now();
+  const mark = (name: string) => {
+    const now = performance.now();
+    giantStepMs[name] = Math.round((giantStepMs[name] ?? 0) + (now - markAt));
+    markAt = now;
+  };
   let phaseAt = performance.now();
   const phase = (name: string) => {
     const now = performance.now();
@@ -3148,6 +3164,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     nearBasePool.work(0);
   };
+  const loopT0 = performance.now();
   for (const def of giantDefs) {
     const [px, , pz] = def.position;
     // round 56: a giant standing in the south exit's boxes (`plaza-south`, `south-centre`) seats its
@@ -3274,10 +3291,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     giantBuildMs[def.id] = Math.round(performance.now() - giantT0);
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
+    const translateT0 = performance.now();
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
       rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, px, gy, pz);
     }
+    step('to-world', translateT0);
     // the detached boughs (DETACHED_BOUGHS): three meshes of their own in `detachedGroup`, shown
     // by the gate below — wood (never casts: its footprint is what comes nearest camera C),
     // laminae and cards (cast: the curtains' shade on the bank is the point of them)
@@ -3362,16 +3381,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the giant's bole joins the seats under its layout id (giants are only translated: yaw 0, scale 1)
     trunkSeats.push(trunkSeatFromRings(def.id, origin, 0, 1, asset.trunkPath.map((p) => p.clone().add(origin)), asset.trunkRadii, asset.bareHeight));
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px), heroDistance });
+    const poolT0 = performance.now();
     attachGiantNearParts(giants[giants.length - 1]);
     pruneNearPools();
+    step('near-pool-register', poolT0);
     for (const c of asset.contacts) {
       const at: [number, number, number] = [px + c.x, gy + c.y, pz + c.z];
       contacts.push(at);
       if (southSeat) liveContacts.add(at);
     }
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
+    const yieldT0 = performance.now();
     await yieldFrame();
+    step('yield-frame', yieldT0);
+    giantStepMs['yield-count'] = (giantStepMs['yield-count'] ?? 0) + 1;
   }
+  step('giants-loop-total', loopT0);
   /**
    * Per-group colour-pass culling for a merged world-space mesh: `groupBoxes[i]` bounds group i
    * (materialIndex i). `cull()` marks each box against the camera frustum (GROUP_PAD_M for wind);
@@ -3706,6 +3731,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       return Object.values(g.attributes).reduce((b, a) => b + bytes(a as BufferAttribute), 0) + bytes(g.index);
     }
   }
+  const tailT0 = performance.now();
+  markAt = tailT0;
   const groupMeshes: Mesh[] = [];
   // three angular sectors around the plaza → three meshes, each frustum-culled as a unit
   const byAngle = [...giants].sort((a, b) => a.angle - b.angle);
@@ -3738,6 +3765,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // 55 m and always meets the frustum; at A the south sector's four giants all stand behind the
     // camera and drew 488 K triangles for no pixel). The shadow pass still draws every group —
     // three renders the shadow maps before the scene and never calls onBeforeRender from them.
+    const mergeT0 = performance.now();
     const geometry = mergeParts(
       `giants-sector-${s}`,
       members.map((m) => m.asset.geometry),
@@ -3761,6 +3789,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.kind = 'giant';
     mesh.userData.giants = members.map((m) => m.def.id);
     installGroupCulling(mesh, woodBounds);
+    step('sector-merge', mergeT0);
     groupMeshes.push(mesh);
     if (layout) {
       compactToLayout(geometry, layout);
@@ -3797,6 +3826,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // met every hero frustum, so each view would have drawn every giant's curtains (F and C the
   // plateau-oak's 0.29 M triangles of shot-D curtains, A / B / D the bank's). Per giant, a view
   // draws the curtains whose own sphere meets it: +1 call per giant that has any.
+  mark('tail-sectors');
   const authoredParts = giants.filter((g) => g.asset.authoredLeaves.getAttribute('position').count > 0);
   for (const g of giants) if (!authoredParts.includes(g)) g.asset.authoredLeaves.dispose();
   for (const g of authoredParts) {
@@ -3891,12 +3921,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.add(detachedGroup);
 
   // ------------------------------------------------------------------ distant trees
+  mark('tail-authored-and-rootkit');
   const distantGroup = new Group();
   distantGroup.name = 'distant';
   // the 60–220 m layer, then the mid-canopy layer appended (distant.ts createMidVariants: the
   // 14–58 m band the owner's 06:50 screenshot circles as empty grey haze). Their streams are forked
   // by name off `rng`, so every distant / white-bark / giant / column draw is where it was.
   const distantVariants = [...createDistantVariants(rng, palette), ...createMidVariants(rng, palette)];
+  mark('tail-variants');
   const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
   // Round 45 (structures-28's ray pick at w21-spine-f): the first depth row ran through the log
   // arch's north mouth — its instance at (0.73, −59.8) was a hex-prism trunk 5 m off the spine,
@@ -3922,6 +3954,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     footprints: [{ x: arch.position[0], z: arch.position[2], ax: Math.cos(archYaw), az: -Math.sin(archYaw), halfLength: arch.length / 2 + 2, halfWidth: arch.radius + 1 }],
   };
   const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
+  mark('tail-distant-place');
   const distantCleared = distantClearanceTally();
 
   // ------------------------------------------------------------------ mid-canopy grove (14–58 m)
@@ -3991,6 +4024,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
   // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
   // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
+  mark('tail-mid-place');
   const midSpec0 = distantVariants.length - MID_SPECS.length;
   /** the mid boles standing on the south exit's live ground, for the base-gap audit */
   const midLive = new Set<(typeof midSampled)[number]>();
@@ -4056,11 +4090,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
+  mark('grove-cull');
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
   // the mid-canopy crowns share that atlas and turn off the treatments the far layer applies inside
   // its 48 m gate (distant.ts MID_CROWN_LOOK) — at 12 m they would darken the mass to a quarter of
   // its albedo and fade its vertical cards out as the view climbs to it
   const midCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir, { ...MID_CROWN_LOOK, atlas: distantCrown.map ?? undefined });
+  mark('crown-materials');
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
@@ -4088,8 +4124,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     });
     return { variant, near, far, placements, matrices, counts: [0, 0], lists: [[], []], submitted: [[], []] };
   });
+  mark('distant-sets');
   group.add(distantGroup);
   ctx.progress('trees', 0.95);
+  step('giants-tail-total', tailT0);
   phase('giants');
 
   // ------------------------------------------------------------------ LOD bucketing
@@ -4790,6 +4828,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       buildPhases: { ...buildPhases },
       /** per giant id, its own build in ms, heaviest first — which of the twelve the giants' phase is */
       giantBuildMs: Object.fromEntries(Object.entries(giantBuildMs).sort((a, b) => b[1] - a[1])),
+      /** the giants' loop outside `createGiantTree`: to-world translation, pool registration, the sector merge */
+      giantStepMs: { ...giantStepMs },
       /**
        * Where a giant's WOOD triangles are, one row per giant, heaviest first — the question the
        * family total (`submission.byFamily['giant-wood']`, 1.51 M) cannot answer and the reason a rung
