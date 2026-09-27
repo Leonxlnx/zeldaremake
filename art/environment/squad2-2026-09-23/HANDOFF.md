@@ -12,7 +12,13 @@
 > The individual branches are still pushed if you would rather take them one by one; their PRs, where the
 > tool allowed one, are #198, #204, #206 and #209.
 
-## Three branches, all merge-tested against the head (latest check 00:30, 2026-09-27)
+## Three branches, all carrying the current head (latest merge 03:45, 2026-09-27)
+
+> The integration branch moved again at 03:12 today (`5af5d697`, Link's held sign) after a day quiet, so
+> all three branches have that head merged **into** them and were re-verified on it: `tsc` clean, build
+> clean, `node --test` **249** on the evidence branch and **254** on the gate-test branch (the new sign
+> feature brings its own tests). The PR call is still refused — twenty-two attempts since 08:20 yesterday —
+> so these branches want opening or merging by hand.
 
 * **`cursor/squad2-consolidate-682b`** — based on the current head; `git merge` reports *already up to
   date*. Evidence only, 51 files, no source change.
