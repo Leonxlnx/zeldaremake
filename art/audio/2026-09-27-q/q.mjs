@@ -49,6 +49,16 @@ function magnitudes(ir, sr) {
   return pts;
 }
 
+/**
+ * How much power flat noise loses going from one filter to the other, which is the number that
+ * predicts a floor. Parseval: the energy in an impulse response IS the integral of |H|² over
+ * frequency, so this is a sum over the two responses and no noise has to be rendered.
+ */
+function power(a, b) {
+  const e = (ir) => ir.reduce((s, v) => s + v * v, 0);
+  return 10 * Math.log10(e(a) / e(b));
+}
+
 /** the response at one frequency, read between the two bins that straddle it */
 function interp(spec, hz) {
   for (let i = 1; i < spec.length; i++) {
@@ -222,14 +232,17 @@ try {
     `and the ${sites.length} filters in src/audio/ whose cutoff and Q are both written down, each at its own corner.`,
     '"passed raw" is the number going straight into the node, which is what the lane did until today;',
     '"as a quality factor" is the same number through 20 log10(Q), which is what the call site reads as.',
+    'The peak is the smaller half of the story: the corner itself moves by more, because a quality',
+    'factor of 0.5 is −6.02 dB at the cutoff where 0.5 dB of resonance is +0.5 dB. The last column is',
+    'the one that predicts a floor: how much power a flat noise loses through the filter either way.',
     '',
-    'where                 type         Hz   Q written   peak passed raw    at Hz   peak as a quality factor   the lift nobody asked for',
+    'where                 type         Hz   Q written    peak raw    at Hz   peak as a Q    at the corner   flat noise through it',
   );
   for (const s of sites) {
     const set = peaks.get(`${s.where}:set`);
     const fix = peaks.get(`${s.where}:fixed`);
     sheet.push(
-      `${s.where.padEnd(20)} ${s.type.padEnd(9)} ${s.hz.toFixed(0).padStart(6)} ${s.q.toFixed(2).padStart(10)}   ${set.peak.db.toFixed(2).padStart(13)} dB ${set.peak.hz.toFixed(0).padStart(7)}   ${fix.peak.db.toFixed(2).padStart(21)} dB   ${(set.peak.db - fix.peak.db).toFixed(2).padStart(22)} dB`,
+      `${s.where.padEnd(20)} ${s.type.padEnd(9)} ${s.hz.toFixed(0).padStart(6)} ${s.q.toFixed(2).padStart(10)}   ${set.peak.db.toFixed(2).padStart(8)} dB ${set.peak.hz.toFixed(0).padStart(7)}   ${fix.peak.db.toFixed(2).padStart(9)} dB   ${(set.atCut - fix.atCut).toFixed(2).padStart(11)} dB   ${power(set.ir, fix.ir).toFixed(2).padStart(18)} dB`,
     );
   }
   const text = sheet.join('\n') + '\n';
