@@ -2026,6 +2026,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * of the load rather than an artefact of measuring it.
    */
   const buildPhases: Record<string, number> = {};
+  /** per giant, its own `createGiantTree` wall clock (ms) — the giants are two thirds of this build */
+  const giantBuildMs: Record<string, number> = {};
   let phaseAt = performance.now();
   const phase = (name: string) => {
     const now = performance.now();
@@ -3219,6 +3221,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
       }),
     );
+    const giantT0 = performance.now();
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => giantTerrain.height(px + lx, pz + lz) - gy,
       limbSpec,
@@ -3265,6 +3268,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       heroDistance,
       nearCanopy: { defer: true },
     });
+    // lodFade/buildtime: this giant's own build, for the load split — the giants are 63 % of this system's
+    // 8.3 s (art/environment/squad2-2026-09-23/buildtime/TREE-PHASES.md) and twelve authored trees is few
+    // enough that one of them can be the reason
+    giantBuildMs[def.id] = Math.round(performance.now() - giantT0);
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
@@ -4781,6 +4788,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * `__ZR__.perf()` is their sum, and this says which of them a load pass should attack.
        */
       buildPhases: { ...buildPhases },
+      /** per giant id, its own build in ms, heaviest first — which of the twelve the giants' phase is */
+      giantBuildMs: Object.fromEntries(Object.entries(giantBuildMs).sort((a, b) => b[1] - a[1])),
       /**
        * Where a giant's WOOD triangles are, one row per giant, heaviest first — the question the
        * family total (`submission.byFamily['giant-wood']`, 1.51 M) cannot answer and the reason a rung

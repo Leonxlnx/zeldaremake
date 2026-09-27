@@ -46,3 +46,42 @@ leaf-cluster and bark atlases, and the placement passes - which the progress mar
 Where the giants' 4.8 s goes (bark relief versus limbs versus the lobes' laminae) needs the same treatment
 one level down, inside `giant.ts` - not this lane's file, and it needs the per-part triangle count that
 `giantwood/CORRECTION.md` already asked for. Worth doing if load becomes the binding priority.
+
+## Inside the giants' 4.8 s: the authored assets are only a third of it
+
+The giants phase is 4,798 ms. Timing each `createGiantTree` call individually (the same way, three runs,
+first dropped) accounts for **1,692 ms of it across twelve trees**:
+
+| giant | mean | share of the asset builds |
+| --- | --- | --- |
+| plateau-oak | 334 ms | 19.8 % |
+| stair-bank-giant | 206 ms | 12.2 % |
+| lantern-tree | 206 ms | 12.1 % |
+| north-west-near | 143 ms | 8.5 % |
+| south-centre | 130 ms | 7.7 % |
+| east-giant | 129 ms | 7.6 % |
+| southwest-giant | 120 ms | 7.1 % |
+| plaza-south | 96 ms | 5.6 % |
+| south-giant | 95 ms | 5.6 % |
+| far-plateau | 82 ms | 4.8 % |
+| north-east | 78 ms | 4.6 % |
+| north-west | 72 ms | 4.3 % |
+| **total** | **1,692 ms** | |
+
+`plateau-oak` being heaviest matches what it carries: 312 K leaf triangles, 39 % of all giant laminae
+(`../giantwood/BY-TREE.md`).
+
+**So ~3.1 s of the giants' 4.8 s is not the authored assets at all.** It is the work around them in the same
+loop — `mergeParts` into the three sector geometries, `splitGroupsAtLeaves` and `installGroupCulling`, the
+world-space translation of every geometry and its `aRoot`, `attachGiantNearParts` / `pruneNearPools`
+registering the pooled near bases and near-canopy parts, and the detached boughs.
+
+**That corrects what this file said one section up.** "A load pass aimed at the trees is a load pass aimed at
+the giants, and splitting it further needs `giant.ts`" was only half right: the giants *are* the phase, but
+**two thirds of it is merge, split, cull-install and pool registration in `trees/index.ts` — this lane's own
+file** — and only a third is the authored geometry in another lane's. Whether the merge/pool side can be made
+cheaper is now a lane-2 question, and the next one worth asking here.
+
+*(Timing only, as before: two `performance.now()` calls and a map write outside the render path. The previous
+section's identical class of change was verified frame-identical at the owner's north pose and the sealed
+`D_log`; this one is not separately re-rendered.)*

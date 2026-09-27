@@ -1,0 +1,23 @@
+{
+ "phases": {
+  "white-barks": 934,
+  "understory": 71,
+  "columns": 1224,
+  "giants": 4750,
+  "distant-mid-and-publish": 508
+ },
+ "giants": {
+  "plateau-oak": 330,
+  "lantern-tree": 206,
+  "stair-bank-giant": 189,
+  "south-centre": 151,
+  "north-west-near": 129,
+  "east-giant": 125,
+  "southwest-giant": 119,
+  "south-giant": 95,
+  "plaza-south": 91,
+  "far-plateau": 82,
+  "north-east": 78,
+  "north-west": 71
+ }
+}
