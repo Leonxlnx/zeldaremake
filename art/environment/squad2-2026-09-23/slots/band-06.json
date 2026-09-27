@@ -1,0 +1,35 @@
+{
+ "A_stairs": {
+  "draws": 575,
+  "triangles": 8621260,
+  "slots": {
+   "shown": 71,
+   "inView": 10,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "a280badd8db2655329902ffdb743a6fd"
+ },
+ "F_canopy": {
+  "draws": 514,
+  "triangles": 7800344,
+  "slots": {
+   "shown": 62,
+   "inView": 13,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "02c0f751ffc7cc4c9f86fa2fa2c4f866"
+ },
+ "foot": {
+  "draws": 544,
+  "triangles": 9125523,
+  "slots": {
+   "shown": 76,
+   "inView": 18,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "ad4a8b10803949635f57f2fa5dc9e820"
+ }
+}

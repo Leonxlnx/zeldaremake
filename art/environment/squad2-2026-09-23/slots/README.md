@@ -79,6 +79,36 @@ keep at that range — so the direction worth pricing is **down**: fable-4's slo
 little in pixels, which is the opposite of what its 0.68 M drawn-cost sizing suggests it would save.
 Both halves of that are now measured rather than guessed.
 
+## 2c. And the other direction — tightening the band — is free but nearly empty
+
+§2b's negative result said the near form does not earn its keep at 15.6–26 m, which predicts that
+tightening the tier should be cheap in pixels. It is, and it is also nearly worthless in triangles.
+`?treelod=,,,<k>` scales the canopy swap band; frozen clock, same three poses:
+
+| band | A_stairs | F_canopy | flight's foot | pixels moved |
+| --- | --- | --- | --- | --- |
+| 26 m (shipped) | 575 / 8 631 286 · 79 shown, 10 in frame | 515 / 7 836 917 · 79, 15 | 544 / 9 129 709 · 79, 18 | — |
+| 20.8 m (k 0.8) | 575 / 8 631 286 · 79, 10 | 515 / 7 836 917 · 79, 15 | 544 / 9 129 709 · 79, 18 | 0.00 % (153 bytes of 1.56 M, max Δ10) |
+| **15.6 m (k 0.6)** | 575 / **8 621 260** · 71, **10** | 514 / **7 800 344** · 62, 13 | 544 / **9 125 523** · 76, **18** | **0.00 % at all three** |
+
+Narrowing the band by 40 % moves **not one pixel above threshold at any of the three poses** and saves
+**4–37 K triangles**. The reason is the same one that killed §2b: what it drops is off screen, where
+`perObjectFrustumCulled` already drew nothing. The count of parts *in frame* does not move at A (10) or
+at the foot (18) — only F loses two.
+
+**So the pending look call can be answered.** The near-canopy tier's drawn cost sits in the handful of
+in-view parts nearest the camera, and any distance or slot cap must keep exactly those. Both
+directions are now measured from a build rather than estimated:
+
+| direction | what it buys | what it costs |
+| --- | --- | --- |
+| aim the slots at the frame (§2b) | 19 more near crowns at A, starved 21 → 2 | +189 697 triangles, 0.46 % of the frame |
+| tighten the band 40 % (§2c) | 4–37 K triangles, less pool pressure | 0.00 % of the frame |
+
+Neither is worth taking as a look change: one spends half of A's headroom for a picture nobody can
+tell apart, the other saves a rounding error. fable-4's third look call on this tier would buy pool
+memory and CPU, not the drawn cost its 0.68 M row suggests.
+
 ## 3. What changed in the code
 
 Nothing that moves a pixel. The audit's near-canopy block now carries `slotsInFrame` — `shown`,
@@ -92,4 +122,5 @@ taken on numbers. It is computed on demand inside `audit()`, which nothing but a
 - `slots-saturation.json` — the earlier run that established the tier is at capacity (79 shown of
   352–366 registered) at every pose.
 - `aim-off.json` / `aim-on.json` — §2b, the two rankings at A, F and the foot.
+- `band-08.json` / `band-06.json` — §2c, the band at 20.8 m and 15.6 m.
 - `aim-vs-shipped-A.jpg` — §2b, camera A under both rankings, with each panel's mean and thirds.

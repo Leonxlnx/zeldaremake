@@ -4683,6 +4683,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
      * farthest shown part ran 16.3 m in the village and 42.2 m in the clearing, wherever the 64th
      * nearest lobe happened to fall — which is why widening the 26 / 30 band changed 0.00 %.)
      *
+     * 2026-09-27, the other side of that band, because the view-first ranking above showed the near
+     * form is indistinguishable from the folded far foliage at 15.6-26 m and so suggested the tier
+     * could be CHEAPER (`?treelod=,,,<k>` scales this band; A / F / the foot, frozen clock):
+     *
+     *   20.8 m (k 0.8)  A 8 631 286, F 7 836 917, foot 9 129 709 — the same frames to the digit
+     *   15.6 m (k 0.6)  A 8 621 260, F 7 800 344, foot 9 125 523 — 0.00 % of every frame moved
+     *
+     * so narrowing the band 40 % is free in pixels and saves only 4-37 K triangles: the parts it drops
+     * are off screen, where the batch's `perObjectFrustumCulled` already drew nothing, and the in-view
+     * count is unchanged at A (10) and at the foot (18). The tier's drawn cost lives in the handful of
+     * in-view parts nearest the camera, which any cap must keep — so a slot or distance cap on this
+     * tier buys pool memory and CPU, not triangles, and both directions are now priced
+     * (art/environment/squad2-2026-09-23/slots).
+     *
      * An incumbent now ranks as if it were `NEAR_CANOPY_KEEP` nearer than it is, so a challenger must
      * be meaningfully nearer to take its slot. Both are inside their own in-radius either way, so the
      * frame is as correct as before and stops changing under the walker; it also spares the pool the
