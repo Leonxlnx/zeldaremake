@@ -204,6 +204,42 @@ const HARP: [number, number][] = [
   [0, 1], [2, 1], [1, 1], [2, 0],
 ];
 
+/** how far across the field the harp figure sweeps, end to end */
+export const HARP_SWEEP = 0.7;
+
+/**
+ * Where the `i`-th note of the harp figure sits in the stereo field.
+ *
+ * **The score used to sit left of centre.** It was the only panned voice in the music and it was
+ * panned by `i` alone — and `i` is doing three unrelated jobs at once. It picks where the note
+ * sits, it picks how hard the note is struck (`i % 2 === 0` is an on-beat eighth and is played
+ * louder), and it is what every rule that thins the figure tests. Those three correlate, and all
+ * of them lean the same way:
+ *
+ *   - `bar % 4 === 3 && i >= 6` drops the two RIGHTMOST notes, once every four bars
+ *   - `i === 5 && bar % 2 === 1` drops another right-of-centre note on every odd bar
+ *   - `quiet && i % 2 === 1` drops the odd eighths, which are the right-leaning half
+ *   - and the accent makes the even eighths — the LEFT-leaning half — the loud ones
+ *
+ * Walking the schedule and applying `StereoPannerNode`'s own equal-power law, that came to
+ * **1.01 dB of left on a quiet pass and 0.60 dB on a full one**, and the rendered music stem
+ * measured a lean in every ten-second window of a two-minute take but one
+ * (`art/audio/2026-09-26-mono/`). Nothing had caught it because **every measurement this lane
+ * makes sums to mono**, and a mono sum cannot tell left from right.
+ *
+ * The sweep turns round every phrase, which cancels it: the thinning rules have periods of two
+ * and four bars and the accent has a period of one, so a sign that flips every four bars averages
+ * all three to nothing. Measured the same way it leaves **0.08 dB, on both the quiet pass and the
+ * full one** — per-bar alternation was tried first and is worse (−0.08 and −0.25, and the two
+ * disagree, because the bar-parity rules flip with it instead of cancelling).
+ *
+ * It is also the better figure. A harp that sweeps the same way every bar for sixteen bars is a
+ * machine; one that turns round every four is a player.
+ */
+export function harpPan(i: number, phrase: number, n = HARP.length): number {
+  return (i / (n - 1) - 0.5) * HARP_SWEEP * (phrase % 2 ? -1 : 1);
+}
+
 export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0, tryFiles = true): Music {
   // long-lived sources only (per-note oscillators stop themselves)
   const nodes: AudioScheduledSourceNode[] = [];
@@ -347,7 +383,7 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
             if (phrase === 1 && i !== 0 && i !== 4) continue;
             if ((bar % 4 === 3 && i >= 6) || (i === 5 && bar % 2 === 1) || (quiet && i % 2 === 1)) continue;
             const vel = (quiet ? 0.6 : 1) * phraseGain(beat) * (0.55 + 0.35 * (i % 2 === 0 ? 1 : 0.5) + (harpRng() - 0.5) * 0.15);
-            pluck(t0 + i * BEAT * 0.5, chord[idx] + 12 * (lift + 1), vel, (i / (HARP.length - 1) - 0.5) * 0.7);
+            pluck(t0 + i * BEAT * 0.5, chord[idx] + 12 * (lift + 1), vel, harpPan(i, phrase));
           }
         }
         if (!quiet) {

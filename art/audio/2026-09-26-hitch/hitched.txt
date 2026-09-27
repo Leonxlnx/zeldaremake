@@ -1,0 +1,35 @@
+
+/tmp/hitch/before
+  take        plants  metres  per m  sim s  wall s   median     p90     max   crest
+  smooth          57   24.57   2.32   41.0    41.0    -25.1   -20.5   -19.3    4.6 dB
+  smooth2         57   24.59   2.32   41.0    41.0    -24.4   -19.7   -18.7    4.8 dB
+  blocking        57   24.58   2.32   33.9    41.0    -23.0   -19.8   -16.5    3.2 dB
+  burst           57   24.57   2.32   51.1    41.0    -22.9   -20.0   -18.5    2.9 dB
+  smooth against smooth    57 plants: median +0.4 dB, p90 +2.0, worst +2.8; 0 (0%) over 3 dB
+  hitched against smooth   57 plants: median +0.8 dB, p90 +3.6, worst +5.5; 10 (18%) over 3 dB
+  burst against smooth     57 plants: median +0.8 dB, p90 +5.2, worst +8.2; 7 (12%) over 3 dB
+
+/tmp/hitch/after
+  take        plants  metres  per m  sim s  wall s   median     p90     max   crest
+  smooth          57   24.58   2.32   41.0    41.0    -25.3   -20.6   -19.3    4.7 dB
+  smooth2         57   24.53   2.32   41.0    41.0    -25.1   -19.9   -18.7    5.2 dB
+  blocking        57   24.47   2.33   33.9    41.0    -23.7   -20.0   -18.5    3.7 dB
+  burst           57   24.57   2.32   50.3    41.0    -23.8   -20.2   -19.2    3.6 dB
+  smooth against smooth    57 plants: median +0.1 dB, p90 +1.5, worst +2.3; 0 (0%) over 3 dB
+  hitched against smooth   57 plants: median +0.5 dB, p90 +2.1, worst +6.0; 3 (5%) over 3 dB
+  burst against smooth     57 plants: median +0.1 dB, p90 +3.0, worst +7.4; 6 (11%) over 3 dB
+
+  the same pacing over the same ground, after minus before, in dB
+    pacing                                  plants   median     p90   worst   over 3 dB
+    smooth (the control: nothing should move)      57     -0.0    +1.0    +2.0     0 / 57
+    a 300 ms blocking frame a second            57     -0.2    +1.4    -6.0     4 / 57  (4 of 4 quieter)
+    the world at twice the audio's clock        57     -0.4    +1.1    -3.9     2 / 57  (2 of 2 quieter)
+
+  and each build's own takes against its own smooth one, which carries the pacing confound
+                                            plants   median     p90   worst   over 3 dB
+    before  smooth twice (the instrument)       57     +0.4    +2.0    +2.8     0 / 57
+    after   smooth twice (the instrument)       57     +0.1    +1.5    +2.3     0 / 57
+    before  blocking against smooth             57     +0.8    +3.6    +5.5    10 / 57
+    after   blocking against smooth             57     +0.5    +2.1    +6.0     3 / 57
+    before  burst against smooth                57     +0.8    +5.2    +8.2     7 / 57
+    after   burst against smooth                57     +0.1    +3.0    +7.4     6 / 57

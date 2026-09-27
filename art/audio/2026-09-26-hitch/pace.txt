@@ -1,0 +1,46 @@
+the speed the footstep system is told, at 33.3 ms a tick, on a 1.2 m/s walk
+
+  smooth  (316 ticks after the 1.5 s ramp; he is walking at 1.20 m/s)
+    frame length         median      p90      max
+      wall                34.5     42.6     52.5  ms
+      sim                 37.9     43.5     56.3  ms
+    estimator        median     p95  |level err|    worst   a run  silent
+    wall, clamped      1.21    1.41       0.7 dB    +4.0      0%      0%
+    wall, true         1.21    1.41       0.7 dB    +4.0      0%      0%
+    sim                1.20    1.20       0.0 dB    +0.0      0%      0%
+
+  raf  (317 ticks after the 1.5 s ramp; he is walking at 1.20 m/s)
+    frame length         median      p90      max
+      wall                33.0     33.3     35.8  ms
+      sim                 33.4     33.6     33.9  ms
+    estimator        median     p95  |level err|    worst   a run  silent
+    wall, clamped      1.21    1.23       0.1 dB    -3.5      0%      0%
+    wall, true         1.21    1.23       0.1 dB    -3.5      0%      0%
+    sim                1.20    1.20       0.0 dB    +0.0      0%      0%
+
+  blocking  (244 ticks after the 1.5 s ramp; he is walking at 1.20 m/s)
+    frame length         median      p90      max
+      wall                34.7     38.3    320.2  ms
+      sim                 37.7     39.0    120.7  ms
+    estimator        median     p95  |level err|    worst   a run  silent
+    wall, clamped      1.20    1.40       1.1 dB   -11.5      4%      5%
+    wall, true         1.20    1.40       1.1 dB   -11.5      4%      5%
+    sim                1.20    1.20       0.0 dB    +0.0      0%      0%
+
+  starved  (317 ticks after the 1.5 s ramp; he is walking at 1.20 m/s)
+    frame length         median      p90      max
+      wall                33.1     38.0     42.9  ms
+      sim                 37.3     38.6    119.7  ms
+    estimator        median     p95  |level err|    worst   a run  silent
+    wall, clamped      1.19    1.39       1.5 dB   -11.5      3%     25%
+    wall, true         1.19    1.39       1.5 dB   -11.5      3%     25%
+    sim                1.20    1.20       0.0 dB    +0.0      0%      0%
+
+  burst  (317 ticks after the 1.5 s ramp; he is walking at 1.20 m/s)
+    frame length         median      p90      max
+      wall                30.5     44.1     52.0  ms
+      sim                 33.3     66.7     66.7  ms
+    estimator        median     p95  |level err|    worst   a run  silent
+    wall, clamped      1.67    2.18       4.0 dB    +6.9     49%      0%
+    wall, true         1.67    2.18       4.0 dB    +6.9     49%      0%
+    sim                1.20    1.20       0.0 dB    -0.0      0%      0%

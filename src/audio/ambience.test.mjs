@@ -141,9 +141,13 @@ function bed(opts = {}) {
   const out = ctx.createGain();
   const reverb = ctx.createGain();
   const madeBefore = { ...ctx.made, osc: [...ctx.made.osc] };
-  const amb = A.createAmbience(ctx, out, reverb, createRng(opts.seed ?? 'bed/test'), 0);
-  return { ctx, amb, out, reverb, oscAtBuild: ctx.made.osc.length - madeBefore.osc.length };
+  const gorge = ctx.createGain();
+  const amb = A.createAmbience(ctx, out, reverb, gorge, createRng(opts.seed ?? 'bed/test'), 0);
+  return { ctx, amb, out, reverb, gorge, oscAtBuild: ctx.made.osc.length - madeBefore.osc.length };
 }
+
+/** every gain feeding `target`, by the value it was built with */
+const sendsInto = (ctx, target) => ctx.made.gain.filter((g) => g.outputs.includes(target)).map((g) => g.gain.value);
 
 /** every gain the bed owns, by the value `update` last aimed it at */
 const gains = (ctx) => ctx.made.gain.map((g) => g.gain.target);
@@ -161,6 +165,37 @@ function respondsTo(ctx, amb, a, b) {
   const after = gains(ctx);
   return ctx.made.gain.map((g, i) => ({ node: g, before: before[i], after: after[i] })).filter((r) => Math.abs(r.before - r.after) > 1e-12);
 }
+
+test('a muted layer is silent, modulation included', () => {
+  // `mute` is the instrument every "what is this layer worth" measurement on this lane rests on,
+  // and for two days it did not mute the wind. `canopyMod` and `hushMod` are CONNECTED to
+  // `canopyGain.gain` and `hushGain.gain`, and a node connected to an AudioParam is summed with
+  // that param's automation rather than scaling it — so zeroing the level left the gust still
+  // driving the same gain, and a take with the wind "off" still played the wind.
+  //
+  // The test is therefore on every gain the wind owns, not just the two levels: with the layer
+  // muted at a full gust, nothing that answers the wind may aim anywhere but zero.
+  const ctx = fakeContext();
+  const out = ctx.createGain();
+  const reverb = ctx.createGain();
+  const amb = A.createAmbience(ctx, out, reverb, ctx.createGain(), createRng('bed/test'), 0, new Set(['wind']));
+  const loud = { gust: 1, listener: LISTENER, forward: NORTH, pods: [] };
+  amb.update(1, loud);
+  amb.update(2, loud);
+  const live = ctx.made.gain.filter((g) => Math.abs(g.gain.target ?? 0) > 1e-9);
+  // the flame and its send are not the wind and are expected to be alive; the wind's are not
+  const unmuted = fakeContext();
+  const ambOn = A.createAmbience(unmuted, unmuted.createGain(), unmuted.createGain(), unmuted.createGain(), createRng('bed/test'), 0);
+  ambOn.update(1, loud);
+  ambOn.update(2, loud);
+  const windGains = unmuted.made.gain
+    .map((g, i) => ({ i, on: g.gain.target }))
+    .filter(({ i, on }) => Math.abs(on ?? 0) > 1e-9 && Math.abs((ctx.made.gain[i]?.gain.target ?? 0) - on) > 1e-12);
+  assert.ok(windGains.length >= 3, `only ${windGains.length} gains changed when the wind was muted; the two levels and both modulations should`);
+  for (const { i, on } of windGains) {
+    assert.equal(ctx.made.gain[i].gain.target, 0, `gain ${i} aims at ${ctx.made.gain[i].gain.target} with the wind muted (${on} unmuted) — a muted layer that still sounds makes every layer measurement wrong`);
+  }
+});
 
 test('below the gust knee the wind layers are silent, not faint', () => {
   const { ctx, amb } = bed();
@@ -295,6 +330,41 @@ test('the bed is deterministic and draws only from the seeded stream', () => {
   const other = bed({ seed: 'different' });
   other.amb.scheduleUntil(30);
   assert.notDeepEqual(other.amb.stats(), a.amb.stats());
+});
+
+test('a call out over the cut answers off the rock, and one inland does not', () => {
+  for (const gorge of [0, 0.5, 1]) {
+    const b = bed({ seed: 'ravine-call' });
+    b.amb.update(0, { gust: 0.05, listener: LISTENER, forward: NORTH, pods: [], gorge });
+    b.amb.scheduleUntil(60);
+    const sent = sendsInto(b.ctx, b.gorge);
+    assert.ok(b.amb.stats().birds > 2, `only ${b.amb.stats().birds} calls to judge on`);
+    // The send is built for every call, at zero inland, where a footstep's is not built at all.
+    // A boot is a third of a second and cannot cross the cut's eleven-metre fade while it sounds;
+    // a call is two and a half seconds, which at a walk is three metres of it, so one booked on
+    // the approach has to be able to pick the ravine up as he steps out over it.
+    assert.equal(sent.length, b.amb.stats().birds, `${sent.length} ravine sends for ${b.amb.stats().birds} calls`);
+    for (const v of sent) assert.ok(Math.abs(v - A.GORGE_CALL_SEND * gorge) < 1e-9, `at gorge ${gorge} a call sent ${v}, expected ${A.GORGE_CALL_SEND * gorge}`);
+  }
+});
+
+test('and a call still sounding when he walks off the bridge loses the ravine with it', () => {
+  // The fault this lane has caught twice: a term booked when the voice was built and never moved
+  // again, so a call keeps the place it started in for its whole two and a half seconds. The pan,
+  // the reach, the top and the wet all ride `turning` for that reason and so does this.
+  const b = bed({ seed: 'ravine-leave' });
+  const base = { gust: 0.05, listener: LISTENER, forward: NORTH, pods: [] };
+  b.amb.update(0, { ...base, gorge: 1 });
+  b.amb.scheduleUntil(20);
+  const built = b.ctx.made.gain.filter((g) => g.outputs.includes(b.gorge));
+  assert.ok(built.length > 2, `only ${built.length} calls to judge on`);
+  // he is still out over the cut: the sends hold
+  b.amb.update(1, { ...base, gorge: 1 });
+  for (const g of built) assert.equal(g.gain.target ?? g.gain.value, A.GORGE_CALL_SEND, 'a ravine send moved while he stood still in the ravine');
+  // and now he is not
+  b.amb.update(2, { ...base, gorge: 0 });
+  const held = built.filter((g) => (g.gain.target ?? g.gain.value) !== 0);
+  assert.equal(held.length, 0, `${held.length} of ${built.length} calls kept the ravine after he left it`);
 });
 
 test('the forest is events: birds and leaves are scheduled, and gusts bring more leaves', () => {
@@ -785,6 +855,39 @@ test('below the gust knee the leaves are the only thing keeping the wood from si
   );
 });
 
+test('and the leaves are irregular, not a metronome under the cap', () => {
+  // `QUIET_GAP_MAX` used to be a `Math.min`, and a min against a draw whose range is much wider
+  // than the cap does not shorten the long gaps — it replaces them all with the same number.
+  // Measured on the schedule, in still air under open sky **88 % of the gaps were exactly 2.2 s**
+  // with a tenth-to-ninetieth spread of 0.20: a metronome at 0.45 Hz, in the one condition where
+  // the wind layers are gated silent and the leaves are all there is
+  // (`art/audio/2026-09-26-gaps/`). The cap is an asymptote now, and this is the contract.
+  const { amb } = bed({ seed: 'gaps/irregular' });
+  const gust = A.GUST_KNEE * 0.5;
+  const at = [];
+  let seen = 0;
+  for (let t = 0; t < 600; t += 1 / 30) {
+    amb.update(t, { gust, listener: LISTENER, forward: NORTH, pods: [], canopy: 0 });
+    amb.scheduleUntil(t + 4);
+    const n = amb.stats().flutters;
+    while (seen < n) {
+      at.push(t);
+      seen++;
+    }
+  }
+  // the scheduler fires two or three leaves for one turn-over; the gap that matters is between
+  // bursts, so anything inside a tick of the last is the same event
+  const gaps = [];
+  for (let i = 1; i < at.length; i++) if (at[i] - at[i - 1] > 0.05) gaps.push(at[i] - at[i - 1]);
+  gaps.sort((a, b) => a - b);
+  assert.ok(gaps.length > 100, `only ${gaps.length} gaps to judge on`);
+  const atCeiling = gaps.filter((g) => g >= A.QUIET_GAP_MAX - 1 / 30 - 1e-9).length;
+  assert.ok(atCeiling === 0, `${((100 * atCeiling) / gaps.length).toFixed(0)} % of the gaps sit at the ceiling — the cap is clipping again, not saturating`);
+  const spread = gaps[Math.floor(gaps.length * 0.9)] - gaps[Math.floor(gaps.length * 0.1)];
+  assert.ok(spread > 1.0, `the gaps span ${spread.toFixed(2)} s from the tenth percentile to the ninetieth; under a second and an ear starts counting them`);
+  assert.ok(gaps[gaps.length - 1] <= A.QUIET_GAP_MAX, `the longest gap was ${gaps[gaps.length - 1].toFixed(2)} s against a ${A.QUIET_GAP_MAX} s ceiling`);
+});
+
 test('a lantern and a fairy are further off in more than level', () => {
   // Rubric checks 42 and 45 both stall on one sentence: "pods and fairies are level-only". A bird
   // has had the other half since it was built — `birdWet` sends 0.2 of it to the hall at arm's
@@ -810,4 +913,144 @@ test('a lantern and a fairy are further off in more than level', () => {
   // …and the flame itself got quieter, so this is not a level change wearing a send's clothes
   const quieter = overhead.filter((v, i) => across[i] < v - 1e-9).length;
   assert.ok(quieter >= 1, 'the flame must also be quieter across the plaza');
+});
+
+test('the bed is filled as far ahead as the next tick and no further', () => {
+  // Four seconds was never a number the leaves asked for. It is what a BACKGROUND TAB needs,
+  // whose timers Chrome clamps to 1 Hz — and in the foreground the tick runs at 30 Hz, so the bed
+  // was being written a hundred and twenty times further ahead than anything needed it.
+  //
+  // The horizon has one job: be at least as long as the gap to the next tick, or an event falls
+  // due before anyone writes it down.
+  for (const gap of [1 / 120, 1 / 60, 1 / 30, 1 / 20, 0.1, 0.3, 0.5, 1, 1.3, 2, 4]) {
+    const ahead = A.aheadFor(gap);
+    assert.ok(ahead >= gap, `a caller ticking every ${gap.toFixed(3)} s is only filled ${ahead.toFixed(3)} s ahead`);
+    assert.ok(ahead >= A.AHEAD_FLOOR, `${ahead} is under the floor`);
+    assert.ok(ahead <= A.AHEAD_CEILING, `${ahead} is over the four seconds that shipped, so a throttled tab is worse off than before`);
+  }
+  // and the floor has to cover a foreground stall outright, because the horizon can only grow
+  // after a long gap has been seen, never during the first one (`art/audio/2026-09-26-hitch/`
+  // measures 300 ms as the longest this lane has induced)
+  assert.ok(A.AHEAD_FLOOR >= 0.3, `the floor is ${A.AHEAD_FLOOR} s and a blocking frame is 0.3`);
+  // monotone, so a slower caller is never filled less far ahead than a faster one
+  let last = 0;
+  for (let g = 0; g <= 5; g += 0.05) {
+    const a = A.aheadFor(g);
+    assert.ok(a >= last - 1e-9, `the horizon fell from ${last} to ${a} as the tick got slower`);
+    last = a;
+  }
+  // and the two callers have to be asking for it. `aheadFor` is a pure function, so nothing above
+  // can tell whether the live tick and the offline render use it or go back to the flat ceiling —
+  // that half is wiring, and this reads the call sites the way footsteps.test.mjs reads CLIP_SPEC.
+  const src = readFileSync(path.join(here, 'index.ts'), 'utf8');
+  const calls = src.match(/ambience\??\.scheduleUntil\([^\n]*\)/g) ?? [];
+  assert.ok(calls.length >= 2, `expected the live tick and the offline render to fill the bed; found ${calls.length}`);
+  const flat = calls.filter((c) => !c.includes('aheadFor(') && !c.includes('scheduleUntil(seconds)'));
+  assert.equal(flat.length, 0, `these fill the bed on a fixed horizon instead of the tick's: ${flat.join(' · ')}`);
+});
+
+test('a leaf is booked with the wind it will sound in, not the wind four seconds before', () => {
+  // `scheduleFlutters` reads `gustNow` for the leaf's LEVEL (`0.35 + g · 0.9`, 11.1 dB end to end)
+  // and for the gap to the next one, at the moment it writes the event down. On the four-second
+  // horizon that was the wind of four seconds earlier: measured over ten minutes of the game's own
+  // gust, a median level error of 2.34 dB, p90 5.62, worst 9.34, and 38 % of leaves out by more
+  // than 3 dB (`art/audio/2026-09-26-early/`).
+  //
+  // The gust here is a plain ramp rather than a copy of `wind.ts`'s two sines: the property is
+  // about the horizon, and a constant copied out of another lane's file goes stale.
+  const RAMP_S = 30; // 0 to 1 over thirty seconds, comfortably faster than the game's weather
+  const weather = (g) => 0.35 + g * 0.9;
+  const worstFor = (ahead) => {
+    const { ctx, amb } = bed({ seed: 'early/leaf' });
+    let seenG = ctx.made.gain.length;
+    let birds = 0;
+    let glints = 0;
+    let worst = 0;
+    for (let t = 0; t < RAMP_S; t += 1 / 30) {
+      const g = Math.max(0, Math.min(1, t / RAMP_S));
+      amb.update(t, { gust: g, listener: LISTENER, forward: NORTH, pods: [], canopy: 0, fairies: [] });
+      const n0 = ctx.made.gain.length;
+      amb.scheduleUntil(t + ahead);
+      const s = amb.stats();
+      const madeThisTick = ctx.made.gain.slice(n0);
+      // only ticks that booked leaves and nothing else, so the envelopes read here are all flutters
+      if (s.birds === birds && s.glints === glints) {
+        for (const node of madeThisTick) {
+          const peak = node.gain.events.find((e) => e[0] === 'lin' && e[1] > 0);
+          if (!peak) continue;
+          const heard = Math.max(0, Math.min(1, peak[2] / RAMP_S));
+          worst = Math.max(worst, Math.abs(20 * Math.log10(weather(heard) / weather(g))));
+        }
+      }
+      birds = s.birds;
+      glints = s.glints;
+      seenG = ctx.made.gain.length;
+    }
+    assert.ok(seenG > 0, 'no leaves were booked at all');
+    return worst;
+  };
+  const shipped = worstFor(A.aheadFor(1 / 30));
+  assert.ok(shipped < 1, `a leaf was booked ${shipped.toFixed(2)} dB away from the wind it sounds in`);
+  // and the guard is only worth having if it fails on the horizon that shipped before
+  const old = worstFor(4);
+  assert.ok(old > 2, `the four-second horizon should be plainly worse, and it measured ${old.toFixed(2)} dB`);
+});
+
+test('every stream in the bed can be taken out on its own', () => {
+  // The bed has five streams and `mute` could only take out three. The two it could not were the
+  // smallest — a pod lantern's flame and a fairy's bell — which is exactly backwards: those are
+  // the two that need isolating to be measured at all, because a flame a metre away is the
+  // loudest never-stopping thing in the world and a fairy is the quietest thing in the bed.
+  // Measuring the fairy against "the forest" meant measuring it against a lantern
+  // (`art/audio/2026-09-27-fairies/`).
+  //
+  // `mute` is also the instrument every "what is this layer worth" measurement rests on, and it
+  // has silently failed once already. So each layer is checked by counting what reaches the bus.
+  const LISTENER_HERE = { x: 0, y: 1.2, z: 0 };
+  const run = (mute) => {
+    const ctx = fakeContext();
+    const out = ctx.createGain();
+    const amb = A.createAmbience(ctx, out, ctx.createGain(), ctx.createGain(), createRng('bed/mute'), 0, new Set(mute));
+    // a lantern overhead and a fairy at arm's length, so both of the small streams have something
+    // to answer, and long enough for the glint scheduler to fire
+    for (let t = 0; t < 30; t += 1 / 30) {
+      amb.update(t, {
+        gust: 0.8,
+        listener: LISTENER_HERE,
+        forward: NORTH,
+        pods: [{ x: 0.3, y: 2.2, z: 0.2 }],
+        fairies: [{ x: 0.8, y: 1.4, z: 0.3 }],
+        canopy: 0,
+      });
+      amb.scheduleUntil(t + A.aheadFor(1 / 30));
+    }
+    // how much of the bed is wired to the bed's own bus at all. `createAmbience` puts an
+    // enclosure filter between its internal bus and the caller's, so the node to count against is
+    // the one everything in here connects to, not the one that was passed in.
+    const inner = ctx.made.gain.find((g) => g.outputs.some((o) => o.kind === 'filter' && o.outputs.includes(out)));
+    assert.ok(inner, 'could not find the bed\'s own bus');
+    const reaching = ctx.made.gain.concat(ctx.made.panner).filter((n) => n.outputs.includes(inner)).length;
+    return { reaching, stats: amb.stats() };
+  };
+  const full = run([]);
+  assert.ok(full.stats.glints > 0, 'the fairy never sounded, so muting it proves nothing');
+  assert.ok(full.reaching > 0, 'nothing reaches the bus even unmuted');
+
+  // The wind is muted differently — its two layers stay wired and are aimed at zero, because
+  // what they carry is modulation as well as level (see 'a muted layer is silent, modulation
+  // included' above, which is the test for that mechanism and found it broken once). Everything
+  // else is muted by leaving the connection off, which is what this counts.
+  for (const layer of ['flutters', 'birds', 'flames', 'glints']) {
+    const cut = run([layer]);
+    assert.ok(cut.reaching < full.reaching, `muting '${layer}' left as much wired to the bus as before (${cut.reaching} of ${full.reaching})`);
+    // and the draws must be untouched, or a muted take is a different forest and cannot be
+    // compared with a full one — which is the whole point of having the switch
+    assert.equal(cut.stats.flutters, full.stats.flutters, `muting '${layer}' changed how many leaves were drawn`);
+    assert.equal(cut.stats.birds, full.stats.birds, `muting '${layer}' changed how many birds were drawn`);
+    assert.equal(cut.stats.glints, full.stats.glints, `muting '${layer}' changed how many glints were drawn`);
+  }
+  // and with everything muted, the only things still wired are the wind's two layers, aimed at
+  // zero. Anything else left over is a stream `AmbienceLayer` does not name.
+  const silent = run(['flutters', 'birds', 'wind', 'flames', 'glints']);
+  assert.ok(silent.reaching <= 2, `${silent.reaching} nodes still reach the bus with every layer muted; only the wind's two should, and at zero`);
 });

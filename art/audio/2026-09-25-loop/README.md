@@ -94,6 +94,15 @@ loop: the control buffers are 47 s and there is no peak at 47 (r = −0.02). It 
 correlation time of a slow random walk — a gust takes tens of seconds to forget itself, which is
 what wind does. Nothing here was aimed at it and nothing here moved it.
 
+> **Wrong, corrected 2026-09-26 — `art/audio/2026-09-26-gust/`.** There is no random walk. `uGust`
+> is `0.5 + 0.5·sin(0.37t)·sin(0.11t+1.3)` plus a cubed `sin(0.23t)`, a function of the clock with
+> no randomness in it at all, and a product of two sines is a sum of two: it **repeats every
+> 26.4 s at r = 0.868**, again at 52.9 and again at 79.4. A random walk's autocorrelation falls
+> away and does not come back; this one comes back three times. The bed inherits it at r = 0.126,
+> which is the bed's own seeded walks and its events dissolving seven eighths of it on the way
+> through — so the conclusion here (nothing to fix in the bed) survives, and the reason for it
+> does not.
+
 ## The guards
 
 `src/audio/ambience.test.mjs`, two new tests (17 in the file):

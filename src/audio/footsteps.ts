@@ -78,6 +78,8 @@ export interface StepDrive {
   stance?: readonly boolean[];
   /** how enclosed the space is (`surfaceAt`): 0 outdoors, 0.7 in a hut, 1 in the log bore */
   enclosure?: number;
+  /** how much of the space around him is the ravine (`gorgeAt`): 0 inland, 1 out over the cut */
+  gorge?: number;
 }
 
 export interface Footsteps {
@@ -86,9 +88,9 @@ export interface Footsteps {
   /** integrate the player's motion; `t` is the context time the step would sound at */
   drive(t: number, dt: number, d: StepDrive): void;
   /** both boots shoving off as he leaves the ground at `speed` m/s */
-  pushOff(t: number, surface: Surface, speed: number, enclosure?: number): void;
+  pushOff(t: number, surface: Surface, speed: number, enclosure?: number, gorge?: number): void;
   /** both boots arriving at once after a fall of `fallM` metres */
-  land(t: number, surface: Surface, fallM: number, enclosure?: number): void;
+  land(t: number, surface: Surface, fallM: number, enclosure?: number, gorge?: number): void;
   /** what has been heard so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
   stats(): FootstepStats;
   dispose(): void;
@@ -493,7 +495,114 @@ export const ROOM_SEND = 0.85;
 /** below this there is no room worth building a send for, and a step outdoors costs what it did */
 export const ROOM_MIN = 0.02;
 
-export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
+/**
+ * How much of a step the ravine gets back, out over the middle of it.
+ *
+ * The same shape as `ROOM_SEND` and for the same reason: `gorgeAt` has known about the cut since
+ * the south expansion, the bed uses it, and the boots did not — the steps stem at gorge 0 and
+ * gorge 1 differed by −105.7 dB, the renderer's own last bit (`art/audio/2026-09-26-ravine/`).
+ *
+ * It scales with the term, so the ravine fades up over the eleven metres of approach `gorgeAt`
+ * spreads it across rather than switching on at the bridge's first plank, and the shallow ends
+ * where the cut closes to nothing never open at all (the term carries a depth factor).
+ *
+ * The space itself is `buses.gorge` — see `GORGE_*` in graph.ts for the geometry it is built from
+ * and for why its return is calibrated rather than chosen.
+ */
+export const GORGE_SEND = 0.7;
+/** below this the cut is too far or too shallow to answer, and a step costs exactly what it did */
+export const GORGE_MIN = 0.02;
+
+/**
+ * Clear of the ground by this much and he is in the air. `airHeight` is 0 whenever a boot is down.
+ *
+ * **One threshold, for both edges**, and it used to be two: leaving the ground opened at 0.02 and
+ * landing needed the arc to have reached 0.05. An arc peaking between them therefore **shoved and
+ * never landed** — a contact with no answer, which is the exact fault `2026-09-24-jump` was
+ * written to remove, sitting in the machine that removed it. Found by extracting the machine so a
+ * test could drive it (below); not reachable in the shipped game, because `airHeight` is non-zero
+ * only while `loco.jump.phase === 'air'` and a deliberate jump's arc peaks near 0.8 m. Latent, and
+ * fixed rather than documented, because the character system is another lane's and its jump can
+ * change without anyone here hearing about it.
+ *
+ * It is the landing's threshold that both now use, not the shove's, and that is `landingStrength`'s
+ * doing: it floors at 0.45, so a two-centimetre bob answered would be 7 dB under a full landing
+ * off a storey rather than the nothing it deserves. The cost is that the shove fires when the arc
+ * passes 5 cm rather than 2 — **6 ms later on a jump that peaks at 0.8 m**, which is under a fifth
+ * of the tick the game runs at and is measured in `cadence.test.mjs` rather than argued here.
+ */
+export const AIR_MIN = 0.05;
+
+/**
+ * The jump's two contacts, as a state machine with one number in it.
+ *
+ * `airHeight` is a height, and a shove and a landing are EDGES of it: he leaves the ground once
+ * and arrives once however often the height is sampled. `peakAir` is the latch that turns the one
+ * into the other, and it also carries how far he fell, because the highest point of the arc is
+ * what `landingStrength` needs and it is gone by the time he lands.
+ *
+ * This was eleven lines inside `mountAudio`'s tick, which is why rubric check 28 — *nothing fires
+ * twice for one event, and nothing is missed at any frame rate* — had only ever been half tested.
+ * The other half, the distance integrator, was measured at eight frame rates and a real fault came
+ * out of it (`art/audio/2026-09-25-tickrate/`: one step in fifteen dropped at the shipping tick).
+ * A machine that cannot be reached by a test is a machine nobody has checked, and this one had a
+ * fault in it.
+ */
+export function contactFor(air: number, peakAir: number): { event: 'shove' | 'land' | null; peakAir: number; fall: number } {
+  if (air > AIR_MIN) return { event: peakAir === 0 ? 'shove' : null, peakAir: Math.max(peakAir, air), fall: 0 };
+  if (peakAir > AIR_MIN) return { event: 'land', peakAir: 0, fall: peakAir };
+  return { event: null, peakAir: 0, fall: 0 };
+}
+
+/**
+ * How fast Link is walking — **on the clock he is walking on**.
+ *
+ * Nothing tells the audio his speed. It differences his position between two of its own ticks and
+ * divides by a time, and that quotient is not just the stride: `strengthFor` reads it for how hard
+ * the boot lands, `speed > RUN_SPEED` swaps the entire design for a run's, and under 0.25 m/s
+ * `drive` returns before it even looks at the gait's stance flags. So the whole thing turns on
+ * which time it divides by, and the audio was dividing by the WALL clock (`Math.min(0.1, now -
+ * lastT)`), which is not the clock he moves on.
+ *
+ * He moves in `world.update(dt, simTime)`, and `main.ts` hands that a dt CLAMPED at 0.1 s. Over a
+ * frame that runs longer than that he covers a tenth of a second of ground no matter how long the
+ * frame really was — the world slows down rather than skipping — so the wall clock and the ground
+ * disagree exactly when it matters. Measured in the real build on the plaza spine at 1.2 m/s, one
+ * 300 ms blocking frame a second (`art/audio/2026-09-26-hitch/`):
+ *
+ *     estimator        median    p95   |level err|    worst   reads as a run   silent
+ *     wall, clamped      1.20   1.44        1.0 dB   −11.5 dB             4 %      3 %
+ *     wall, true         1.20   1.44        1.0 dB   −11.5 dB             4 %      4 %
+ *     sim                1.20   1.20        0.0 dB     0.0 dB             0 %      0 %
+ *
+ * and on the same walk recorded off the master, paired plant against plant over the same sixteen
+ * metres of flagstone, **16 % of his boots landed more than 3 dB above their own twin** and the
+ * worst was +6.1 dB. Not a hitch you can hear as a hitch — a hitch you hear as Link breaking into
+ * a run for one step on a plaza he is strolling across.
+ *
+ * Removing the clamp does not fix it and makes it worse in the common case: a long frame is
+ * usually a BLOCKED main thread (a shader compile, a GC), which holds up the audio's own 30 Hz
+ * timer by the same amount, so the true wall elapsed is the stretched one while the ground is not.
+ * The table above is the two of them measured side by side, and they are the same column.
+ *
+ * The simulation clock is the one that cannot be wrong, because it is the clock the distance was
+ * generated on: `moved / Δsim` is his speed by construction at any frame length, in any tab state,
+ * under any harness. `mountAudio` can read it without reaching outside this lane — `wind.update`
+ * is handed the same `t` and writes it straight into `uTime`.
+ *
+ * `held` is for the ticks where the simulation did not advance at all (the audio ticks on a timer,
+ * which keeps running when animation frames do not). There is no new speed to read on those and
+ * zero is not the answer — he has not stopped, he has not been stepped — so the last one stands
+ * and `dt` is zero, which hands the stride integrator the nothing he actually travelled. The old
+ * code called those ticks a standstill and reset the stride: on a starved frame pattern that was
+ * **a quarter of them**.
+ */
+export function paceFrom(moved: number, simElapsed: number, held: number): { speed: number; dt: number } {
+  if (!(simElapsed > 0)) return { speed: held, dt: 0 };
+  return { speed: moved / simElapsed, dt: simElapsed };
+}
+
+export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, roomSend: AudioNode | null, gorgeSend: AudioNode | null, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence
   const noise = noiseBuffer(ctx, rng.fork('steps'), 5.3);
@@ -501,7 +610,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   const stepRng = rng.fork('stepjitter');
 
   /** render one designed step at context time `t`, panned toward the boot that landed */
-  const play = (design: StepDesign, t: number, pan: number, enclosure = 0) => {
+  const play = (design: StepDesign, t: number, pan: number, enclosure = 0, gorge = 0) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     panner.connect(out);
@@ -513,6 +622,14 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
       const r = gain(ctx, ROOM_SEND * enclosure);
       panner.connect(r).connect(roomSend);
       nodes.push(r);
+    }
+    // the rock either side answering, 29 ms later. A hut and a ravine are not alternatives — he can
+    // be indoors or out over the cut but not both, and the terms are computed independently, so
+    // neither send excludes the other rather than one being chosen over the other.
+    if (gorgeSend && gorge > GORGE_MIN) {
+      const g = gain(ctx, GORGE_SEND * gorge);
+      panner.connect(g).connect(gorgeSend);
+      nodes.push(g);
     }
     const taps: BiquadFilterNode[] = [];
     for (const p of design.parts) {
@@ -574,7 +691,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   let wasStance: boolean[] = [];
   const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0, pushOffs: 0, scheduledAt: 0 };
 
-  const pushOff = (t: number, surface: Surface, speed: number, enclosure = 0) => {
+  const pushOff = (t: number, surface: Surface, speed: number, enclosure = 0, gorge = 0) => {
     // the shove takes the place of the step he would have taken, so the stride integrator restarts
     // from here and no boot plant lands on top of it
     if (t - lastStepAt < MIN_STEP_GAP) return;
@@ -583,19 +700,19 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     counts.scheduledAt = t;
     lastStepAt = t;
     travelled = 0;
-    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0, enclosure);
+    play(designPushOff(surface, pushOffStrength(speed), stepRng), t, 0, enclosure, gorge);
   };
 
-  const land = (t: number, surface: Surface, fallM: number, enclosure = 0) => {
+  const land = (t: number, surface: Surface, fallM: number, enclosure = 0, gorge = 0) => {
     counts.landings++;
     counts.lastSurface = surface;
     counts.scheduledAt = t;
     lastStepAt = t;
     travelled = 0;
-    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0, enclosure);
+    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0, enclosure, gorge);
   };
 
-  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false, enclosure = 0) => {
+  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false, enclosure = 0, gorge = 0) => {
     if (t - lastStepAt < MIN_STEP_GAP) return false;
     lastStepAt = t;
     counts.scheduledAt = t;
@@ -607,12 +724,12 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // the two boots never land identically: one is a little heavier than the other
     const asymmetry = pan > 0 ? 1.06 : 0.94;
     const strength = Math.min(1, strengthFor(speed) * asymmetry * (1 + (stepRng() * 2 - 1) * 0.1));
-    play(designStep(surface, strength, speed > RUN_SPEED, stepRng), t, pan, enclosure);
+    play(designStep(surface, strength, speed > RUN_SPEED, stepRng), t, pan, enclosure, gorge);
     return true;
   };
 
   const drive = (t: number, dt: number, d: StepDrive) => {
-    const { speed, onStairs, enclosure = 0 } = d;
+    const { speed, onStairs, enclosure = 0, gorge = 0 } = d;
     if (speed < 0.25) {
       travelled = 0;
       moving = false;
@@ -625,15 +742,27 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // 1. the gait's own plant, when the character system reports it: the sound lands with the boot
     if (d.stance) {
       for (let i = 0; i < d.stance.length; i++) {
-        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true, enclosure)) gaitUntil = t + 1.2;
+        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true, enclosure, gorge)) gaitUntil = t + 1.2;
       }
       wasStance = d.stance.slice();
-      if (t < gaitUntil) return;
+      // The integrator SHADOWS the gait rather than stopping while it drives.
+      //
+      // `gaitUntil` keeps the two paths from both firing, and it used to do that by returning
+      // before `travelled` was touched — so the distance he covered under the lock was thrown
+      // away. `fire` zeroes the integrator at every boot plant, so keeping it running costs
+      // nothing at all while the flags are alive; what it buys is the case where they are not.
+      // Measured with the flags frozen mid-walk (`cadence.test.mjs`), he went **1.60 s** without
+      // a step: 1.2 s of lock and then a whole stride from zero before the integrator could
+      // trigger. Now the stride is already banked when the lock lifts and the gap is the lock.
+      if (t < gaitUntil) {
+        travelled += speed * dt;
+        return;
+      }
     }
     // 2. otherwise (or if the flags went quiet) the distance the boot has travelled
     if (first) {
       strideNext = strideFor(speed, onStairs) * (1 + (stepRng() * 2 - 1) * 0.04);
-      if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
+      if (fire(t, speed, surface, side * 0.12, false, enclosure, gorge)) side = -side;
       return;
     }
     travelled += speed * dt;
@@ -645,7 +774,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
       // second, 16 % (`art/audio/2026-09-25-tickrate/`). A stride is a distance, so what is left
       // over belongs to the next one.
       const carry = travelled - strideNext;
-      if (fire(t, speed, surface, side * 0.12, false, enclosure)) side = -side;
+      if (fire(t, speed, surface, side * 0.12, false, enclosure, gorge)) side = -side;
       travelled = carry;
       // and the next stride's jitter is drawn HERE rather than every tick: drawn per tick it made
       // the seeded stream depend on the frame rate, so the same walk rendered at 20 Hz and heard at

@@ -69,6 +69,9 @@ export interface Buses {
   /** the small plank room a hut's interior is (see `ROOM_*` in footsteps.ts) */
   room: ConvolverNode;
   roomReturn: GainNode;
+  /** the rock cut the south bridge crosses (see `GORGE_*` above and in footsteps.ts) */
+  gorge: ConvolverNode;
+  gorgeReturn: GainNode;
 }
 
 /**
@@ -108,6 +111,57 @@ export const ROOM_TOP_HZ = 3000;
 export const ROOM_RETURN = 2.4;
 
 /**
+ * The ravine, as a space rather than as the wood turned up.
+ *
+ * `gorgeAt` has returned 1.00 across the whole bridge since the south expansion was cut, and the
+ * BED uses it — `GORGE_HALL` and `GORGE_WIND` in ambience.ts, +2.7 dB across the bed. His boots
+ * did not: `footsteps.drive` was handed `speed`, `surface`, `onStairs` and `enclosure` and nothing
+ * else, so a player walking out over eight metres of open air with rock either side made the sound
+ * he makes on a veranda. Measured, the steps stem at gorge 0 and gorge 1 differed by −105.7 dB,
+ * which is the renderer's own last bit. Exactly the hole `2026-09-24-room` found for the huts, in
+ * the one place in this world where a contact would obviously answer.
+ *
+ * Its numbers are the cut's own geometry rather than a preset. At mid-span the ravine is 5 m to
+ * each wall and 8.8 m deep (`EXPANSION_SOUTH.ravine.line`), so at 343 m/s a wall answers
+ * **29 ms** after the boot and the floor **51 ms**, and — the part that makes it a place and not a
+ * reverb — *nothing comes back before 29 ms*. That is the pre-delay, and the early spread carries
+ * the reflections out past the floor.
+ *
+ * It is brighter and shorter than the wood. Trunks scatter and leaves absorb the top, which is why
+ * the hall is 1.5 s and rolled off at 3 kHz; rock absorbs almost nothing and returns the top, but a
+ * cut that is open to the sky loses most of its energy upward, so the tail dies sooner than the
+ * wood's even while it stays brighter. Short, bright and late is what tells a ravine from a room.
+ *
+ * (An earlier attempt at the gorge's colour opened the BED's own filter on the same reasoning and
+ * measured +0.3 dB in 4–8 kHz — see `GORGE_HALL`. It failed because the bed has almost nothing up
+ * there to return. A footstep does.)
+ */
+export const GORGE_SECONDS = 0.9;
+/** the walls, 5 m off: 2 × 5 / 343 */
+export const GORGE_EARLY_AT = 0.029;
+/** out past the floor's 51 ms, so the first reflections span the wall and the floor */
+export const GORGE_EARLY_SPREAD = 0.03;
+/** rock returns the top the leaves take; air over a 10–20 m path takes a little of it back */
+export const GORGE_TOP_HZ = 7000;
+/** far less damped than the wood's 0.96 or the hut's 0.9 — this is stone, not foliage */
+export const GORGE_DAMP = 0.45;
+/**
+ * The ravine's return, calibrated and not chosen — `ConvolverNode.normalize` rescales an impulse by
+ * a rule that has nothing to do with the space, so the only way to know what a send of 1.0 produces
+ * is to render and subtract (the same trap `ROOM_RETURN` documents).
+ *
+ * The target is physics. A boot's direct sound reaches the ear about 1.7 m away; a wall 5 m off
+ * returns it over 10 m, which is 15.4 dB of spreading loss and almost nothing absorbed, and the
+ * floor 8.8 m down returns it over 17.6 m. Summed, the first-order field is about **12.6 dB under
+ * the direct**, and higher orders add little because the fourth wall is the sky.
+ *
+ * At 1.5 the ravine answers an isolated boot **12.8 dB under it**, which is that figure and not a
+ * taste. For scale the hut's plank box sits at 10.9 dB under, and it should be the louder of the
+ * two: six surfaces two metres off against two walls at five and a roof made of sky.
+ */
+export const GORGE_RETURN = 1.5;
+
+/**
  * The master's output trim (dB), and the gain it becomes.
  *
  * Everything in this file was built from the bed upward and nothing ever gain-staged the result, so
@@ -123,16 +177,26 @@ export const ROOM_RETURN = 2.4;
  * cannot touch it. What it buys is only that he stops cranking the system.
  *
  * Sized against the worst case rather than an average, because an average is all this lane had ever
- * measured. Two takes agree on the ceiling to a tenth of a decibel: thirteen minutes of ordinary
+ * measured. Two takes agreed on the ceiling to a tenth of a decibel: thirteen minutes of ordinary
  * play peaked at −16.7 dBFS true, and a deliberately constructed worst case — running *and* jumping
  * on the flagstones under the lantern bough, 168 steps, 51 landings and 30 shoves in seventy
- * seconds with the score playing — also peaked at **−16.7**. It is stable because the sfx bus has a
- * compressor on it, so no amount of stacking gets past it.
+ * seconds with the score playing — also peaked at **−16.7**.
  *
- * +9 dB leaves the true peak at −7.7 dBFS and puts the mix at −23.6 LUFS: inside the normal band,
- * at the conservative end of it, with nearly eight decibels still unused for sources nobody has
- * measured yet (the ruins' waterfall close to, whatever the expansions add). It is one number —
- * move it if the owner wants the game louder or quieter, and nothing else in the mix moves with it.
+ * This used to go on: *"it is stable because the sfx bus has a compressor on it, so no amount of
+ * stacking gets past it"*. **There is no compressor.** It came out when it could not show it was
+ * worth its cost (`SFX_PAD_DB` above), and nothing in this graph limits anything — a peak here is
+ * a sum, and the only reason the ceiling holds is that it has been measured and guarded.
+ *
+ * Which is why it was 0.1 dB optimistic by the time anyone looked. The loudest moment in the game
+ * is no longer under the bough: `buses.gorge` gave the ravine its own convolver, so a boot
+ * mid-span returns through two spaces, and the same worst case measures **−16.6 dBFS there
+ * against −17.7 under the bough** (`art/audio/2026-09-26-ceiling/`, four places). `level.test.mjs`
+ * carries the figure, the 6 dB headroom rule, and a guard that fails if a fourth space is added.
+ *
+ * +9 dB leaves that worst case at −7.6 dBFS and the mix at −24.1 LUFS: inside the normal band, at
+ * the conservative end of it, with seven decibels still unused for sources nobody has measured yet
+ * (the ruins' waterfall close to, whatever the expansions add). It is one number — move it if the
+ * owner wants the game louder or quieter, and nothing else in the mix moves with it.
  */
 export const MASTER_TRIM_DB = 9;
 export const MASTER_LEVEL = dB(MASTER_TRIM_DB);
@@ -185,7 +249,18 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng, limiter = true): Bu
   const roomTop = filter(ctx, 'lowpass', ROOM_TOP_HZ, 0.6);
   room.connect(roomTop).connect(roomReturn);
   roomReturn.connect(master);
-  return { master, music, ambience, sfx, reverb, reverbReturn, room, roomReturn };
+  const gorge = ctx.createConvolver();
+  // the pre-delay is the wall's own 29 ms: in a cut this size nothing reaches the ear before it,
+  // and a space that starts answering at sample 0 thickens the boot instead of reflecting it
+  gorge.buffer = impulseResponse(ctx, rng.fork('gorgeir'), GORGE_SECONDS, GORGE_DAMP, GORGE_EARLY_AT, GORGE_EARLY_SPREAD, GORGE_EARLY_AT);
+  const gorgeReturn = ctx.createGain();
+  gorgeReturn.gain.value = GORGE_RETURN;
+  // joins the master for the same reason the other two returns do: the ravine answering a step is
+  // not itself the player's footstep, so the sfx bus's pad does not scale it twice
+  const gorgeTop = filter(ctx, 'lowpass', GORGE_TOP_HZ, 0.6);
+  gorge.connect(gorgeTop).connect(gorgeReturn);
+  gorgeReturn.connect(master);
+  return { master, music, ambience, sfx, reverb, reverbReturn, room, roomReturn, gorge, gorgeReturn };
 }
 
 /** Looping seeded white noise (seconds long). */
@@ -394,9 +469,16 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
   const n = Math.floor(ctx.sampleRate * seconds);
   const pre = Math.floor(ctx.sampleRate * preDelay);
   const buf = ctx.createBuffer(2, n, ctx.sampleRate);
+  const noise = new Float64Array(n);
+  const r0 = rng.fork('ir0');
+  for (let i = 0; i < n; i++) noise[i] = r0() * 2 - 1;
+  const sides = [noise, quadrature(noise)];
   for (let c = 0; c < 2; c++) {
     const d = buf.getChannelData(c);
-    const r = rng.fork(`ir${c}`);
+    const src = sides[c];
+    // the early reflections stay each channel's own: two ears really do get different first
+    // bounces, and being sparse they are not what a tone sits on
+    const r = rng.fork(`irearly${c}`);
     let lp = 0;
     for (let i = pre; i < n; i++) {
       const j = i - pre;
@@ -404,7 +486,7 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
       const env = Math.exp(-t * 6.5) * (j < 400 ? j / 400 : 1);
       // one-pole low-pass whose cutoff falls as the tail decays
       const k = 0.15 + damp * 0.8 * t;
-      lp += (r() * 2 - 1 - lp) * (1 - k);
+      lp += (src[i] - lp) * (1 - k);
       d[i] = lp * env;
     }
     // early reflections
@@ -417,11 +499,131 @@ export function impulseResponse(ctx: BaseAudioContext, rng: Rng, seconds: number
   return buf;
 }
 
+/**
+ * The second channel of a space: the same sound, a quarter turn of phase later at every frequency.
+ *
+ * Both channels used to be their own noise stream, drawn from `ir0` and `ir1`. Summed over the
+ * whole spectrum that matched to a tenth of a decibel, which is the number anyone would check and
+ * it passed. But **the balance a source gets is the balance at the frequencies the source has**,
+ * and at one frequency two independent noise spectra are two independent draws. Measured at the
+ * score's own pitches (`art/audio/2026-09-26-mono/hall.mjs`), the three spaces were out by up to
+ * 6.8, 8.0 and 11.0 dB with a spread of 3.1 to 4.7 — and the score sat **1.6 dB left of centre**,
+ * every ten-second window of a two-minute take but one. A bed of leaves excites thousands of bins
+ * and averages that away, which is why nothing had ever caught it. A tune only has the pitches it
+ * has.
+ *
+ * A hall has to be two things at once and they pull against each other: **decorrelated**, or it is
+ * not a space, and **matched in magnitude**, or every tone put through it lands off-centre. The
+ * Hilbert transform is both exactly — unit gain at every frequency, so the magnitudes are
+ * identical, and a quarter turn of phase, so the two channels are orthogonal.
+ *
+ * It is also the only candidate that SURVIVES what happens next. Three were built and measured
+ * (`art/audio/2026-09-26-hall/candidates.mjs`): the second channel as the first reversed, as one
+ * magnitude with two random phase sets, and as this. The first two match in magnitude when they
+ * are made and stop matching the moment the decay envelope and the closing low-pass are applied,
+ * because those are time-domain operations and the two sequences hold their energy at different
+ * moments — they measured 2.7 to 4.0 dB of spread, no better than independent noise. The Hilbert
+ * transform preserves the instantaneous ENVELOPE as well as the spectrum, so the shaping treats
+ * both channels identically and the match holds through it: **0.19, 0.33 and 0.52 dB worst across
+ * the three spaces, with a correlation of 0.000**.
+ *
+ * Nothing else about the spaces moves: the tail still starts where it did (the gorge's wall at
+ * 29.6 ms, which is a published measurement) and the decay is the same to the millisecond.
+ */
+export function quadrature(x: Float64Array): Float64Array {
+  const n = x.length;
+  const m = 1 << Math.ceil(Math.log2(n));
+  const re = new Float64Array(m);
+  const im = new Float64Array(m);
+  re.set(x);
+  fft(re, im, false);
+  // +90° on the positive frequencies and −90° on the negative, which is a real output
+  for (let k = 1; k < m / 2; k++) {
+    const a = re[k];
+    const b = im[k];
+    re[k] = b;
+    im[k] = -a;
+    const c = re[m - k];
+    const d = im[m - k];
+    re[m - k] = -d;
+    im[m - k] = c;
+  }
+  re[0] = im[0] = 0;
+  re[m / 2] = im[m / 2] = 0;
+  fft(re, im, true);
+  return re.slice(0, n) as Float64Array;
+}
+
+/**
+ * In-place radix-2 FFT, and the only signal processing in this file that is not a WebAudio node.
+ *
+ * It exists for `quadrature` above and runs three times at start-up, on impulses of a second or
+ * two — a couple of milliseconds each, once, before anything is heard.
+ */
+function fft(re: Float64Array, im: Float64Array, inverse: boolean): void {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      const tr = re[i];
+      re[i] = re[j];
+      re[j] = tr;
+      const ti = im[i];
+      im[i] = im[j];
+      im[j] = ti;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = ((inverse ? 2 : -2) * Math.PI) / len;
+    const half = len >> 1;
+    for (let i = 0; i < n; i += len) {
+      for (let k = 0; k < half; k++) {
+        const c = Math.cos(ang * k);
+        const s = Math.sin(ang * k);
+        const ur = re[i + k];
+        const ui = im[i + k];
+        const vr = re[i + k + half] * c - im[i + k + half] * s;
+        const vi = re[i + k + half] * s + im[i + k + half] * c;
+        re[i + k] = ur + vr;
+        im[i + k] = ui + vi;
+        re[i + k + half] = ur - vr;
+        im[i + k + half] = ui - vi;
+      }
+    }
+  }
+  if (inverse) {
+    for (let i = 0; i < n; i++) {
+      re[i] /= n;
+      im[i] /= n;
+    }
+  }
+}
+
+/**
+ * A biquad whose `Q` is a quality factor for every type, which is not what the parameter is.
+ *
+ * `BiquadFilterNode.Q` means different things per type, and for `lowpass` and `highpass` the spec
+ * is explicit that it is *"not a traditional Q, but is a resonance value in decibels"*. Measured
+ * (`art/audio/2026-09-27-q/`): it is exactly the gain at the cutoff, so the 0.5…0.9 this lane wrote
+ * at seventeen call sites — 0.7 for Butterworth, the way anyone writes it — asked for half a
+ * decibel to nearly one of LIFT and got a resonant peak of +1.59 to +1.89 dB at about 0.76 of the
+ * corner. Every one of those call sites meant flat or gentler.
+ *
+ * A quality factor Q asks for |H(fc)| = Q at the cutoff, and this parameter is that number in dB,
+ * so `20 log10(Q)` converts one convention to the other exactly: fed it, a lowpass at 0.707 is
+ * Butterworth to two decimals and one at 0.9 peaks at the textbook +0.69 dB. The conversion lives
+ * here rather than at the call sites so the numbers in the bed keep reading as what they mean.
+ *
+ * `bandpass`, `notch`, `allpass` and `peaking` do take a traditional Q, and the shelves ignore it;
+ * those pass through untouched.
+ */
 export function filter(ctx: BaseAudioContext, type: BiquadFilterType, frequency: number, Q = 1, gain = 0): BiquadFilterNode {
   const f = ctx.createBiquadFilter();
   f.type = type;
   f.frequency.value = frequency;
-  f.Q.value = Q;
+  f.Q.value = type === 'lowpass' || type === 'highpass' ? 20 * Math.log10(Q) : Q;
   f.gain.value = gain;
   return f;
 }

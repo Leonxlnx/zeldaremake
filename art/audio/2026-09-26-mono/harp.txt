@@ -1,0 +1,17 @@
+
+where the harp's energy lands, over one 16-bar pass
+
+  pan rule                                      quiet pass             full pass
+                                          lean    L over R      lean    L over R
+  as it ships: pan = the note's index    -0.116      +1.01 dB    -0.069      +0.60 dB
+  …sweeping the other way each bar      +0.009      -0.08 dB    +0.028      -0.25 dB
+  …sweeping the other way each phrase    -0.009      +0.08 dB    -0.009      +0.08 dB
+
+  lean is (R−L)/(R+L): 0 is centred, negative is left.
+  A pass is 16 bars; the tune alternates quiet and full passes, so both have to be near zero.
+
+  full  pass: 87 notes kept at mean pan -0.036, 41 dropped at mean pan +0.077
+         every rule that thins the figure takes from the right, so what is left leans left
+
+  quiet pass: 50 notes kept at mean pan -0.078, 78 dropped at mean pan +0.050
+         every rule that thins the figure takes from the right, so what is left leans left

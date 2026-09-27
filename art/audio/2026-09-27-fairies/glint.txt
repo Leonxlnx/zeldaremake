@@ -1,0 +1,29 @@
+
+standing a metre from kokiri-a at (10, 3.6), 90 s
+
+  bed       rms   -39.8 dB   peak   -15.3 dBFS
+  glints    rms  -117.0 dB   peak   -73.4 dBFS
+  without   rms   -39.8 dB   peak   -15.3 dBFS
+
+  1 glints in 90 s — one every 90.0 s
+  each against the forest at that instant, in 1200–9000 Hz:
+    median -28.6 dB   p10 -28.6   best -28.6   worst -28.6
+    0 of 1 (0 %) are louder than the forest behind them
+
+  and the glint stream against the rest of the bed, over the whole take:
+    glints -117.0 dB, everything else -39.8 dB — -77.2 dB
+
+
+and on the lane's own scripted walk, which passes the kids
+
+  the glints alone     rms   -60.8 dB   peak   -26.9 dBFS
+  everything else      rms   -38.8 dB   peak   -18.1 dBFS
+  the whole bed        rms   -38.8 dB   peak   -18.1 dBFS
+
+  4 glints in 50 s, at 1.0 s, 3.9 s, 45.3 s, 46.9 s
+  each against the forest at that instant, 1200-9000 Hz:
+       1.0 s    +11.7 dB
+       3.9 s     -1.9 dB
+      45.3 s    +22.3 dB
+      46.9 s    +26.9 dB
+  median +17.0 dB, 3 of 4 above the forest behind them

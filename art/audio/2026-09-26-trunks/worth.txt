@@ -1,0 +1,24 @@
+
+the sound's list of solid things, against the world's
+
+  as it ships            16 things
+  the trees already publish 121 more (white-bark and understory boles, r 0.08–0.45 m, every one over 2.5 m tall)
+
+  7992 standing points × 16 bearings, each line 28 m long
+
+  bearings with any wood on them   14.6 %  →  22.3 %
+  bearings that gain wood          8.7 %  (11064 of 127872)
+  wood added, median               0.52 m   p90 0.75 m   most 1.70 m
+  what that is worth in level      median -0.38 dB   p90 -0.56 dB   most -1.33 dB
+  and to a call's top               7000 → 6040 Hz at the median, 4303 at the most
+  (OCCLUSION_FULL_M = 6 m, OCCLUSION_DUCK = 0.5, OCCLUSION_TOP = 0.18)
+
+  the deepest wood a player can put between himself and a source, from each standing point
+    as the sound knows the world   median 4.33 m   p90 7.03   most 13.61
+    as the world actually is       median 4.33 m   p90 7.21   most 13.61
+    OCCLUSION_FULL_M is 6 m, set at the top of that range
+
+  the same list at another quality tier: 121 against 104
+    in one and not the other: 17 / 0
+    bearings whose wood would depend on the setting: 1.50 %
+    when it does: median -0.27 dB, most -0.65 dB

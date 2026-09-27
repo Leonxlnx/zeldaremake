@@ -1,0 +1,19 @@
+place              floor   swing  1 spkr    60-250  250-1k    1-2k    2-4k    4-8k   8-16k
+pod-1m             -58.3    20.1   -60.2     -51.0   -54.8   -75.9   -80.5   -96.2  -104.3
+lawn               -59.5    22.1   -61.2     -54.8   -58.6   -74.8   -78.7   -97.1  -104.0
+plaza              -61.5    22.4   -63.6     -55.0   -58.8   -78.2   -83.1   -97.0  -104.6
+bridge-midspan     -62.4    26.5   -64.3     -61.7   -63.0   -77.8   -81.8   -96.8  -104.4
+grove-deck         -62.5    26.7   -64.5     -65.8   -63.0   -73.9   -80.4   -97.7  -105.0
+grove-trail        -62.5    26.7   -64.6     -65.9   -63.1   -73.9   -80.4   -97.7  -104.9
+forest-floor       -62.8    27.7   -64.9     -69.0   -67.8   -71.8   -77.7   -94.4  -104.9
+north-clearing     -64.8    27.4   -66.3     -63.5   -65.4   -76.7   -83.3   -96.2  -104.5
+far-log            -65.2    18.2   -67.6     -58.5   -61.9   -86.2   -99.7  -107.7  -105.3
+lookout            -66.0    27.8   -67.6     -67.5   -67.4   -79.4   -81.3   -97.4  -104.7
+grove-room         -67.6    27.1   -69.6     -70.9   -67.2   -77.4   -86.5  -106.0  -105.1
+log-bore           -69.0    25.3   -70.8     -68.8   -68.2   -85.0  -100.1  -107.0  -105.2
+west-room          -69.3    25.5   -71.2     -65.2   -67.9   -82.5   -90.4  -106.6  -105.2
+
+two ears against one speaker: +1.5 to +2.4 dB across the world, median +1.9
+the loudest never-stopping place in the world is pod-1m (a metre from a pod lantern at the path fork) at -58.3 dBA
+places that do not breathe (swing under 10 dB): none
+wrote art/audio/2026-09-26-mono/world-floor-stereo.jpg

@@ -1,0 +1,39 @@
+The loudest moment the game makes, measured as takes rather than a take.
+
+`worstcase.mjs` records the LIVE graph (running and jumping continuously with the score playing,
+seventy seconds), so unlike everything else on this lane it is not deterministic. Every figure the
+lane has quoted from it was one take read to a tenth of a decibel. Below is every take taken for
+this report, through `verdict.py`. True peak is 4x-oversampled, in dBFS, after the master trim.
+
+  the bridge, mid-span over the ravine    --legs 3.8,33,180;4.0,41,0;3.8,37,90;4.0,35,270
+
+    build     take 1   take 2   take 3     mean   range      integrated loudness (LUFS)
+    before     -7.9     -8.4     -6.7     -7.67     1.7      -24.0  -23.9  -24.0
+    after      -6.9     -6.8     -8.3     -7.33     1.5      -24.4  -24.4  -24.4
+
+  under the lantern bough                 --legs 1.5,-4,180;1.5,-12,0;-1.5,-6,90;3.5,-8,270
+
+    before     -8.8                       -8.80       —      -25.0
+    after      -9.1    -10.1    -10.1     -9.77     1.0      -25.4  -25.4  -25.5
+
+Three things come out of it.
+
+1. The Q conversion did not move the worst case. The difference in means at the bridge is 0.34 dB
+   against a spread of 1.5 to 1.7 dB in either condition, and the two sets of takes interleave
+   (before contains both the loudest take of all, -6.7, and the quietest, -8.4). The first pair of
+   takes said the peak had risen 1.0 dB; that was noise, and so would "it fell 1.0 dB" have been.
+
+2. The instrument repeats to about +/-0.85 dB. Anything this lane has read off it to a tenth was
+   read off noise.
+
+3. The bridge really is the loudest place, and by more than was published. On the same build the
+   bridge runs -6.8 to -8.3 and the bough -9.1 to -10.1: the ranges do not overlap, and the means
+   are 2.4 dB apart. Adding the two takes from the other build does not close it either — the
+   loudest bough take anywhere is -8.8, still under the quietest bridge take anywhere, -8.4.
+   `2026-09-26-ceiling` claimed 1.1 dB from single takes and had no way to know; the conclusion
+   was right and the margin was understated by half.
+
+The loudest take of the ten is the bridge's -6.7 dBFS, which is -15.7 before the +9 dB trim.
+`WORST_CASE_PEAK_DBFS` in src/audio/level.test.mjs is now that figure, where it was -16.6.
+
+Nothing clipped in any of the ten takes, and every one is more than 3 dB under the gate.

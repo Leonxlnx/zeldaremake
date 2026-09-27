@@ -1,5 +1,12 @@
 # Lane 5 — the sound scored against fifty checks: 173 / 200, and it does not ship
 
+> **Superseded 2026-09-26 by `art/audio/2026-09-26-rubric/` — 187 / 200.** Checks 12, 20 and 45
+> moved up, and five rows here cite evidence that has since changed: **37 describes a compressor
+> that no longer exists**, 21's "next thing" was done, 44 has a third convolver, 8's render floor
+> is −108 dB rather than −115, and 9 / 15 are now known to be limited by the world's geometry
+> rather than by the sound. Read the newer scorecard; this one is kept for the history of how the
+> scores got where they are.
+
 Branch `agent/squad5-rubric`, off the integration head at `5f8a6738`. **No `src/` change.**
 
 The owner asked for "50 rubrics for each item" on the 24th. `docs/RUBRIC_50_STRUCTURES.md` answered

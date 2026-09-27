@@ -13,6 +13,11 @@
  * densest cluster of pod flames in the world), jumping continuously so every landing — the loudest
  * single event the footstep designer makes — stacks on the steps, with the placeholder score
  * playing. The take is long enough to catch the music's own lift and a full gust.
+ *
+ * `--legs x,z,deg;x,z,deg;…` moves the route. It is a parameter now because the graph grew a
+ * second space after this was written: `buses.gorge` gives a boot over the ravine its own
+ * convolver ON TOP of the shared hall, which is a return the lantern bough has never had. Where
+ * the loudest moment in the game is, is not a thing to assume twice.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,6 +32,11 @@ const args = Object.fromEntries(
 const dist = path.resolve(args.dist || 'dist');
 const out = path.resolve(args.out || '/tmp/worst');
 const seconds = Number(args.seconds ?? 70);
+/** the route, as `x,z,deg` legs; the default is the lantern bough this was written for */
+const legs = (typeof args.legs === 'string' ? args.legs : '1.5,-4,180;1.5,-12,0;-1.5,-6,90;3.5,-8,270')
+  .split(';')
+  .map((l) => l.split(',').map(Number));
+const tag = typeof args.tag === 'string' ? args.tag : 'worst';
 const log = (...m) => console.error('[worst]', ...m);
 fs.mkdirSync(out, { recursive: true });
 
@@ -48,19 +58,13 @@ try {
   }
   await new Promise((r) => setTimeout(r, 1200));
 
-  const r = await page.evaluate(async (secs) => {
+  const r = await page.evaluate(async ([secs, LEGS]) => {
     const P = window.__ZR_PLAY__;
     const A = window.__ZR_AUDIO__;
     P.setPlayMode(true);
     const key = (code, type) => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
-    /** short legs right through the plaza's lantern cluster, so he never leaves it */
-    const LEGS = [
-      [1.5, -4, 180],
-      [1.5, -12, 0],
-      [-1.5, -6, 90],
-      [3.5, -8, 270],
-    ];
-    P.place(LEGS[0][0], LEGS[0][1], Math.PI);
+    // short legs through one small area, so he never leaves the place being measured
+    P.place(LEGS[0][0], LEGS[0][1], (LEGS[0][2] * Math.PI) / 180);
     key('KeyW', 'keydown');
     key('ShiftLeft', 'keydown');
     const warm = performance.now();
@@ -98,10 +102,10 @@ try {
     key('ShiftLeft', 'keyup');
     const a1 = A.stats();
     return { b64: await rec, steps: a1.steps - a0.steps, landings: a1.landings - a0.landings, pushOffs: (a1.pushOffs ?? 0) - (a0.pushOffs ?? 0), pods: a1.pods, music: a1.music };
-  }, seconds);
+  }, [seconds, legs]);
 
-  fs.writeFileSync(path.join(out, 'worst.webm'), Buffer.from(r.b64, 'base64'));
-  fs.writeFileSync(path.join(out, 'worst.json'), JSON.stringify({ seconds, ...r, b64: undefined }, null, 1));
+  fs.writeFileSync(path.join(out, `${tag}.webm`), Buffer.from(r.b64, 'base64'));
+  fs.writeFileSync(path.join(out, `${tag}.json`), JSON.stringify({ seconds, legs, ...r, b64: undefined }, null, 1));
   log(`${r.steps} steps, ${r.landings} landings, ${r.pushOffs} shoves in ${seconds} s, ${r.pods} pods in the scene, music ${r.music}`);
 } finally {
   await browser.close();

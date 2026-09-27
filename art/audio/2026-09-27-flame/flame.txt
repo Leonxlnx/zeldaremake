@@ -1,0 +1,52 @@
+
+the always-on level (A-weighted, the tenth percentile over time) and how much it breathes
+
+  place   take         always-on    median    swing   the flame is
+  pod     bed              -57.9     -49.5     18.7               
+  pod     flame            -60.7     -59.2      2.6       +6.85 dB
+  pod     without          -64.8     -50.0     25.5               
+
+  bough   bed              -61.1     -49.8     21.5               
+  bough   flame            -65.3     -63.7      2.6       +3.72 dB
+  bough   without          -64.8     -50.0     25.2               
+
+  lawn    bed              -59.0     -48.4     21.6               
+  lawn    flame            -65.0     -63.5      2.6       +2.04 dB
+  lawn    without          -61.0     -48.6     23.6               
+
+  what the flame adds to the floor, per band (the bed against the bed without it)
+
+       band (Hz)         pod       bough        lawn
+      20-60           +24.87      +20.93      +21.20
+      60-250          +20.39      +16.37      +16.50
+     250-1000         +10.19       +6.36       +9.41
+    1000-2000          +1.63       +0.70       +0.43
+    2000-4000          +0.44       +0.17       +0.03
+    4000-8000          +0.95       +0.40       +0.20
+    8000-16000         +0.09       -0.21       -0.29
+
+  and the flame on its own: does it breathe, or is it a drone?
+
+  place      always-on    swing   (rubric check 1 wants a band to swing 10 dB or more)
+  pod            -60.7      2.6   a metre from a pod lantern at the path fork
+  bough          -65.3      2.6   the village plaza, under the lantern bough
+  lawn           -65.0      2.6   the lawn west of the spine, away from everything
+
+  the densest cluster in the world against one pod at a metre: -4.5 dB on the floor
+  (LANTERN_CROWD_SHARE exists so a village of pods does not sum to a drone)
+
+
+how much the flame breathes, against the length of the window you look through
+
+     window               the flame    the bed without it    2.6 Hz flutter               12 s gutter
+                  swing       floor       swing     floor     swing   floor         swing       floor    median
+        5ms         9.8       -52.5        25.2     -62.7       9.8   -52.0          10.0       -51.2     +1.37
+       50ms         5.4       -49.1        24.7     -62.2       5.4   -48.7           5.9       -48.0     +1.36
+      250ms         3.3       -47.8        24.3     -61.5       3.2   -47.4           3.8       -46.7     +1.30
+     1000ms         1.7       -46.9        20.5     -57.6       1.7   -46.4           2.3       -45.7     +1.28
+     2000ms         1.3       -46.5        17.4     -54.7       1.3   -46.1           2.1       -45.6     +1.29
+     4000ms         1.0       -46.6        14.2     -50.6       1.0   -46.1           1.3       -45.2     +1.24
+
+  both attempts are REVERTED: neither made the flame breathe on any timescale and both
+  raised its level. A zero-mean modulation of a gain raises the mean POWER it passes, so
+  'breathe more' and 'stay the same loudness' pull against each other.
