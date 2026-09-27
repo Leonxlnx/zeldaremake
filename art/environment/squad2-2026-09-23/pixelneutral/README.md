@@ -40,3 +40,21 @@ on faith from five separate PRs.
 The frames are fixed and 0.23–0.37 M cheaper; the remaining cost work is all in play mode, where the
 flight's foot is 2.7 % over at the high tier only (`../tiers/`) and its 0.22 M is priced to vegetation
 (`../vegmenu/`).
+
+## Re-checked after the sign feature went in unreviewed (head `97e9a7dc`, 05:15 on the 27th)
+
+`5e448ef3` and `5af5d697` (Link holds a sign over his head, on T / gamepad Y) and `97e9a7dc` were
+committed **straight to the integration branch**, so no PR carried a frame check for them. The same five
+frames, same harness and pose order, against the set from before those commits:
+
+| frame | pixels moved > 4 | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | **0 %** | 0.3332 → 0.3332 |
+| B_house | **0 %** | 0.2412 → 0.2412 |
+| C_lookback | **0 %** | 0.1236 → 0.1236 |
+| D_log | **0 %** | 0.4021 → 0.4021 |
+| F_canopy | **0 %** | 0.4330 → 0.4330 |
+
+Byte-identical, as a play-mode-only character feature should be — the six frames capture with the
+character hidden, and the pose is driven by input that a fixed capture never sends. Recorded because an
+unreviewed commit to the head is exactly the case where nobody else was going to check.
