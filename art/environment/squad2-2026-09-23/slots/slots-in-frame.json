@@ -1,0 +1,759 @@
+{
+ "foot": {
+  "draws": 545,
+  "triangles": 9129877,
+  "slots": {
+   "shown": 79,
+   "inView": 18,
+   "starved": 9,
+   "starvedNearest": [
+    {
+     "id": "east-giant/limb-32",
+     "dist": 17.6
+    },
+    {
+     "id": "east-giant/lobe-18",
+     "dist": 17.8
+    },
+    {
+     "id": "plateau-oak/lobe-1",
+     "dist": 18.1
+    },
+    {
+     "id": "plateau-oak/lobe-0",
+     "dist": 20.5
+    },
+    {
+     "id": "plateau-oak/limb-33",
+     "dist": 21.2
+    },
+    {
+     "id": "east-giant/lobe-24",
+     "dist": 22.1
+    },
+    {
+     "id": "east-giant/lobe-25",
+     "dist": 23
+    },
+    {
+     "id": "plateau-oak/lobe-10",
+     "dist": 24.8
+    },
+    {
+     "id": "plateau-oak/lobe-8",
+     "dist": 25.7
+    }
+   ],
+   "shownReach": 431,
+   "inViewReach": 112,
+   "off": [
+    {
+     "id": "seat-6/lobe-4",
+     "dist": 13.3
+    },
+    {
+     "id": "lantern-tree/lobe-0",
+     "dist": 13.6
+    },
+    {
+     "id": "lantern-tree/lobe-1",
+     "dist": 13.9
+    },
+    {
+     "id": "lantern-tree/lobe-10",
+     "dist": 11.9
+    },
+    {
+     "id": "lantern-tree/lobe-22",
+     "dist": 13
+    },
+    {
+     "id": "plateau-oak/lobe-6",
+     "dist": 15.1
+    },
+    {
+     "id": "plateau-oak/lobe-7",
+     "dist": 13.5
+    },
+    {
+     "id": "southwest-giant/lobe-13",
+     "dist": 13.8
+    },
+    {
+     "id": "east-giant/lobe-4",
+     "dist": 15.8
+    },
+    {
+     "id": "east-giant/lobe-5",
+     "dist": 14.7
+    },
+    {
+     "id": "east-giant/lobe-29",
+     "dist": 14.8
+    },
+    {
+     "id": "east-giant/lobe-30",
+     "dist": 14.8
+    },
+    {
+     "id": "south-giant/lobe-0",
+     "dist": 12.9
+    },
+    {
+     "id": "south-giant/lobe-1",
+     "dist": 10.5
+    },
+    {
+     "id": "south-giant/lobe-2",
+     "dist": 8.7
+    },
+    {
+     "id": "south-giant/lobe-7",
+     "dist": 13.5
+    },
+    {
+     "id": "south-giant/lobe-9",
+     "dist": 13.2
+    },
+    {
+     "id": "south-giant/lobe-10",
+     "dist": 10.8
+    },
+    {
+     "id": "south-giant/lobe-23",
+     "dist": 10.5
+    },
+    {
+     "id": "south-giant/limb-26",
+     "dist": 9.2
+    }
+   ]
+  }
+ },
+ "plaza-west": {
+  "draws": 484,
+  "triangles": 6049665,
+  "slots": {
+   "shown": 79,
+   "inView": 6,
+   "starved": 10,
+   "starvedNearest": [
+    {
+     "id": "south-centre/limb-30",
+     "dist": 15.4
+    },
+    {
+     "id": "southwest-giant/limb-29",
+     "dist": 17.9
+    },
+    {
+     "id": "southwest-giant/lobe-6",
+     "dist": 18.3
+    },
+    {
+     "id": "southwest-giant/lobe-7",
+     "dist": 18.9
+    },
+    {
+     "id": "southwest-giant/lobe-0",
+     "dist": 19
+    },
+    {
+     "id": "southwest-giant/lobe-1",
+     "dist": 20
+    },
+    {
+     "id": "southwest-giant/lobe-8",
+     "dist": 20.1
+    },
+    {
+     "id": "southwest-giant/lobe-2",
+     "dist": 21.1
+    },
+    {
+     "id": "southwest-giant/lobe-24",
+     "dist": 23.3
+    },
+    {
+     "id": "southwest-giant/lobe-3",
+     "dist": 24.2
+    }
+   ],
+   "shownReach": 434,
+   "inViewReach": 42,
+   "off": [
+    {
+     "id": "lantern-tree/lobe-0",
+     "dist": 12.9
+    },
+    {
+     "id": "lantern-tree/lobe-1",
+     "dist": 14.6
+    },
+    {
+     "id": "lantern-tree/lobe-7",
+     "dist": 16.2
+    },
+    {
+     "id": "lantern-tree/lobe-10",
+     "dist": 13.3
+    },
+    {
+     "id": "lantern-tree/lobe-11",
+     "dist": 16
+    },
+    {
+     "id": "lantern-tree/lobe-13",
+     "dist": 15.5
+    },
+    {
+     "id": "lantern-tree/lobe-14",
+     "dist": 13.5
+    },
+    {
+     "id": "lantern-tree/lobe-22",
+     "dist": 13.2
+    },
+    {
+     "id": "lantern-tree/lobe-24",
+     "dist": 15.9
+    },
+    {
+     "id": "lantern-tree/lobe-25",
+     "dist": 16.7
+    },
+    {
+     "id": "lantern-tree/lobe-26",
+     "dist": 16.7
+    },
+    {
+     "id": "lantern-tree/limb-27",
+     "dist": 2.7
+    },
+    {
+     "id": "lantern-tree/limb-29",
+     "dist": 10
+    },
+    {
+     "id": "plateau-oak/lobe-3",
+     "dist": 17
+    },
+    {
+     "id": "southwest-giant/lobe-10",
+     "dist": 14.5
+    },
+    {
+     "id": "southwest-giant/lobe-13",
+     "dist": 11.9
+    },
+    {
+     "id": "southwest-giant/lobe-17",
+     "dist": 17.4
+    },
+    {
+     "id": "southwest-giant/lobe-25",
+     "dist": 14.4
+    },
+    {
+     "id": "east-giant/lobe-23",
+     "dist": 15.1
+    },
+    {
+     "id": "south-giant/lobe-0",
+     "dist": 16.9
+    }
+   ]
+  }
+ },
+ "owner-north": {
+  "draws": 457,
+  "triangles": 8504699,
+  "slots": {
+   "shown": 79,
+   "inView": 5,
+   "starved": 4,
+   "starvedNearest": [
+    {
+     "id": "seat-2/lobe-3",
+     "dist": 22.6
+    },
+    {
+     "id": "seat-1/lobe-3",
+     "dist": 24.2
+    },
+    {
+     "id": "north-west/limb-22",
+     "dist": 24.3
+    },
+    {
+     "id": "north-west/limb-21",
+     "dist": 24.5
+    }
+   ],
+   "shownReach": 417,
+   "inViewReach": 54,
+   "off": [
+    {
+     "id": "seat-0/lobe-3",
+     "dist": 16.1
+    },
+    {
+     "id": "seat-0/lobe-4",
+     "dist": 14.6
+    },
+    {
+     "id": "seat-7/lobe-0",
+     "dist": 16.2
+    },
+    {
+     "id": "lantern-tree/lobe-0",
+     "dist": 6.6
+    },
+    {
+     "id": "lantern-tree/lobe-1",
+     "dist": 5.2
+    },
+    {
+     "id": "lantern-tree/lobe-2",
+     "dist": 7.3
+    },
+    {
+     "id": "lantern-tree/lobe-3",
+     "dist": 8.4
+    },
+    {
+     "id": "lantern-tree/lobe-7",
+     "dist": 13.3
+    },
+    {
+     "id": "lantern-tree/lobe-8",
+     "dist": 14.7
+    },
+    {
+     "id": "lantern-tree/lobe-9",
+     "dist": 15.3
+    },
+    {
+     "id": "lantern-tree/lobe-10",
+     "dist": 10.3
+    },
+    {
+     "id": "lantern-tree/lobe-19",
+     "dist": 13.9
+    },
+    {
+     "id": "lantern-tree/lobe-21",
+     "dist": 12.8
+    },
+    {
+     "id": "lantern-tree/lobe-22",
+     "dist": 15.4
+    },
+    {
+     "id": "lantern-tree/lobe-25",
+     "dist": 17
+    },
+    {
+     "id": "lantern-tree/lobe-26",
+     "dist": 13.1
+    },
+    {
+     "id": "lantern-tree/limb-28",
+     "dist": 13.3
+    },
+    {
+     "id": "lantern-tree/limb-29",
+     "dist": 6.3
+    },
+    {
+     "id": "plateau-oak/lobe-0",
+     "dist": 14.1
+    },
+    {
+     "id": "plateau-oak/lobe-1",
+     "dist": 12.3
+    }
+   ]
+  }
+ },
+ "clearing-north": {
+  "draws": 455,
+  "triangles": 5748682,
+  "slots": {
+   "shown": 79,
+   "inView": 0,
+   "starved": 0,
+   "starvedNearest": [],
+   "shownReach": 388,
+   "inViewReach": 0,
+   "off": [
+    {
+     "id": "swap-8/lobe-3",
+     "dist": 19.3
+    },
+    {
+     "id": "seat-1/lobe-0",
+     "dist": 20.1
+    },
+    {
+     "id": "seat-1/lobe-1",
+     "dist": 17.7
+    },
+    {
+     "id": "seat-1/lobe-2",
+     "dist": 14.7
+    },
+    {
+     "id": "seat-1/lobe-3",
+     "dist": 10.6
+    },
+    {
+     "id": "seat-1/lobe-4",
+     "dist": 14.5
+    },
+    {
+     "id": "seat-1/lobe-5",
+     "dist": 16.7
+    },
+    {
+     "id": "swap-18/lobe-3",
+     "dist": 19.9
+    },
+    {
+     "id": "swap-18/lobe-5",
+     "dist": 18.4
+    },
+    {
+     "id": "seat-2/lobe-0",
+     "dist": 17.8
+    },
+    {
+     "id": "seat-2/lobe-1",
+     "dist": 17.3
+    },
+    {
+     "id": "seat-2/lobe-2",
+     "dist": 17.5
+    },
+    {
+     "id": "seat-2/lobe-3",
+     "dist": 9.3
+    },
+    {
+     "id": "seat-2/lobe-4",
+     "dist": 12.1
+    },
+    {
+     "id": "seat-2/lobe-5",
+     "dist": 10.5
+    },
+    {
+     "id": "seat-2/lobe-6",
+     "dist": 12.2
+    },
+    {
+     "id": "seat-2/lobe-7",
+     "dist": 12.4
+    },
+    {
+     "id": "seat-0/lobe-3",
+     "dist": 15.7
+    },
+    {
+     "id": "seat-0/lobe-4",
+     "dist": 20.9
+    },
+    {
+     "id": "seat-0/lobe-5",
+     "dist": 17.4
+    }
+   ]
+  }
+ },
+ "A_stairs": {
+  "draws": 575,
+  "triangles": 8631286,
+  "slots": {
+   "shown": 79,
+   "inView": 10,
+   "starved": 21,
+   "starvedNearest": [
+    {
+     "id": "east-giant/limb-34",
+     "dist": 15.6
+    },
+    {
+     "id": "plateau-oak/limb-32",
+     "dist": 15.9
+    },
+    {
+     "id": "lantern-tree/limb-29",
+     "dist": 16
+    },
+    {
+     "id": "plateau-oak/limb-31",
+     "dist": 16.8
+    },
+    {
+     "id": "lantern-tree/lobe-0",
+     "dist": 17.2
+    },
+    {
+     "id": "east-giant/lobe-20",
+     "dist": 17.3
+    },
+    {
+     "id": "plateau-oak/lobe-3",
+     "dist": 17.7
+    },
+    {
+     "id": "plateau-oak/lobe-7",
+     "dist": 17.8
+    },
+    {
+     "id": "east-giant/lobe-19",
+     "dist": 18.2
+    },
+    {
+     "id": "lantern-tree/lobe-1",
+     "dist": 18.3
+    },
+    {
+     "id": "plateau-oak/lobe-6",
+     "dist": 19.5
+    },
+    {
+     "id": "north-west-near/limb-29",
+     "dist": 20
+    }
+   ],
+   "shownReach": 437,
+   "inViewReach": 58,
+   "off": [
+    {
+     "id": "seat-6/lobe-4",
+     "dist": 14.3
+    },
+    {
+     "id": "lantern-tree/lobe-10",
+     "dist": 15
+    },
+    {
+     "id": "lantern-tree/lobe-14",
+     "dist": 16.2
+    },
+    {
+     "id": "lantern-tree/lobe-22",
+     "dist": 14.2
+    },
+    {
+     "id": "lantern-tree/limb-28",
+     "dist": 12.5
+    },
+    {
+     "id": "southwest-giant/lobe-10",
+     "dist": 15.7
+    },
+    {
+     "id": "southwest-giant/lobe-13",
+     "dist": 12.8
+    },
+    {
+     "id": "south-giant/lobe-0",
+     "dist": 11
+    },
+    {
+     "id": "south-giant/lobe-1",
+     "dist": 8.7
+    },
+    {
+     "id": "south-giant/lobe-2",
+     "dist": 7.8
+    },
+    {
+     "id": "south-giant/lobe-6",
+     "dist": 12.5
+    },
+    {
+     "id": "south-giant/lobe-7",
+     "dist": 12.9
+    },
+    {
+     "id": "south-giant/lobe-9",
+     "dist": 11.3
+    },
+    {
+     "id": "south-giant/lobe-10",
+     "dist": 10.8
+    },
+    {
+     "id": "south-giant/lobe-23",
+     "dist": 8.5
+    },
+    {
+     "id": "south-giant/lobe-24",
+     "dist": 16.4
+    },
+    {
+     "id": "south-giant/limb-26",
+     "dist": 7.1
+    },
+    {
+     "id": "south-giant/limb-27",
+     "dist": 14.3
+    },
+    {
+     "id": "south-centre/lobe-0",
+     "dist": 11.4
+    },
+    {
+     "id": "south-centre/lobe-1",
+     "dist": 9.8
+    }
+   ]
+  }
+ },
+ "F_canopy": {
+  "draws": 515,
+  "triangles": 7836917,
+  "slots": {
+   "shown": 79,
+   "inView": 15,
+   "starved": 16,
+   "starvedNearest": [
+    {
+     "id": "east-giant/limb-33",
+     "dist": 16.7
+    },
+    {
+     "id": "east-giant/limb-34",
+     "dist": 16.9
+    },
+    {
+     "id": "plateau-oak/lobe-7",
+     "dist": 17
+    },
+    {
+     "id": "east-giant/lobe-20",
+     "dist": 17.7
+    },
+    {
+     "id": "plateau-oak/lobe-2",
+     "dist": 18.1
+    },
+    {
+     "id": "plateau-oak/lobe-6",
+     "dist": 18.7
+    },
+    {
+     "id": "east-giant/lobe-19",
+     "dist": 19.1
+    },
+    {
+     "id": "east-giant/lobe-21",
+     "dist": 19.8
+    },
+    {
+     "id": "plateau-oak/lobe-1",
+     "dist": 21.1
+    },
+    {
+     "id": "plateau-oak/lobe-5",
+     "dist": 21.3
+    },
+    {
+     "id": "east-giant/limb-32",
+     "dist": 21.8
+    },
+    {
+     "id": "east-giant/lobe-18",
+     "dist": 22.1
+    }
+   ],
+   "shownReach": 447,
+   "inViewReach": 97,
+   "off": [
+    {
+     "id": "seat-6/lobe-4",
+     "dist": 16.4
+    },
+    {
+     "id": "lantern-tree/lobe-0",
+     "dist": 13
+    },
+    {
+     "id": "lantern-tree/lobe-1",
+     "dist": 14.2
+    },
+    {
+     "id": "lantern-tree/lobe-4",
+     "dist": 13.4
+    },
+    {
+     "id": "lantern-tree/lobe-5",
+     "dist": 15.4
+    },
+    {
+     "id": "lantern-tree/lobe-6",
+     "dist": 16.3
+    },
+    {
+     "id": "lantern-tree/lobe-10",
+     "dist": 12.7
+    },
+    {
+     "id": "lantern-tree/lobe-11",
+     "dist": 16.7
+    },
+    {
+     "id": "lantern-tree/lobe-13",
+     "dist": 15.6
+    },
+    {
+     "id": "lantern-tree/lobe-14",
+     "dist": 14.2
+    },
+    {
+     "id": "lantern-tree/lobe-22",
+     "dist": 12.9
+    },
+    {
+     "id": "lantern-tree/limb-28",
+     "dist": 8.8
+    },
+    {
+     "id": "lantern-tree/limb-29",
+     "dist": 11.1
+    },
+    {
+     "id": "southwest-giant/lobe-10",
+     "dist": 15.2
+    },
+    {
+     "id": "southwest-giant/lobe-13",
+     "dist": 12.2
+    },
+    {
+     "id": "southwest-giant/lobe-25",
+     "dist": 15
+    },
+    {
+     "id": "south-giant/lobe-0",
+     "dist": 15.4
+    },
+    {
+     "id": "south-giant/lobe-1",
+     "dist": 13
+    },
+    {
+     "id": "south-giant/lobe-6",
+     "dist": 16.2
+    },
+    {
+     "id": "south-giant/lobe-7",
+     "dist": 15.7
+    }
+   ]
+  }
+ }
+}

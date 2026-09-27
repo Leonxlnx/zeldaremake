@@ -5192,6 +5192,40 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         distanceTo: 'crown-envelope',
         slots: NEAR_CANOPY_SLOTS,
         limbsMax: NEAR_CANOPY_LIMBS_MAX,
+        /**
+         * Where the tier's slots actually land, for the camera the last frame drew: of the parts it
+         * shows, how many are inside the frustum, and how many parts are inside their swap band AND
+         * inside the frame but hold no slot because the nearest `slots` filled up first. The tier
+         * ranks by distance and the plaza's authored boughs surround the camera, so most of what it
+         * shows is behind or above the frame: measured at camera A, 10 of 79 shown are in view and
+         * 21 in-view parts (nearest 15.6 m) keep their far foliage
+         * (art/environment/squad2-2026-09-23/slots). Aiming the same slots at the frame is a look
+         * call with a price — those 21 parts are ≈ 37 K triangles each as drawn — so this reports
+         * the state rather than changing it.
+         */
+        slotsInFrame: (() => {
+          const cam = ctx.camera;
+          cam.updateMatrixWorld();
+          const f = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+          const sp = new Sphere();
+          let shown = 0;
+          let inView = 0;
+          let starved = 0;
+          let starvedNearestM = Infinity;
+          for (const nc of nearCanopies) {
+            sp.center.copy(nc.center);
+            sp.radius = nc.radius;
+            const seen = f.intersectsSphere(sp);
+            if (nc.shown) {
+              shown++;
+              if (seen) inView++;
+            } else if (nc.active && seen) {
+              starved++;
+              starvedNearestM = Math.min(starvedNearestM, nc.dist);
+            }
+          }
+          return { shown, inView, starved, starvedNearestM: Number.isFinite(starvedNearestM) ? Math.round(starvedNearestM * 10) / 10 : null };
+        })(),
         leafFloor: [NEAR_CANOPY_LEAF_FLOOR.lift, NEAR_CANOPY_LEAF_FLOOR.texture],
         leafNearM: NEAR_CANOPY_LEAF_NEAR_M,
         sunThrough: NEAR_CANOPY_SUN_THROUGH,
@@ -5322,7 +5356,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   ctx.progress('trees', 1);
   phase('distant-mid-and-publish');
-
   let prebuilt = false;
   return {
     name: 'trees',
