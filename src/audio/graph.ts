@@ -601,11 +601,29 @@ function fft(re: Float64Array, im: Float64Array, inverse: boolean): void {
   }
 }
 
+/**
+ * A biquad whose `Q` is a quality factor for every type, which is not what the parameter is.
+ *
+ * `BiquadFilterNode.Q` means different things per type, and for `lowpass` and `highpass` the spec
+ * is explicit that it is *"not a traditional Q, but is a resonance value in decibels"*. Measured
+ * (`art/audio/2026-09-27-q/`): it is exactly the gain at the cutoff, so the 0.5…0.9 this lane wrote
+ * at seventeen call sites — 0.7 for Butterworth, the way anyone writes it — asked for half a
+ * decibel to nearly one of LIFT and got a resonant peak of +1.59 to +1.89 dB a third of an octave
+ * inside the corner. Every one of those call sites meant flat or gentler.
+ *
+ * A quality factor Q asks for |H(fc)| = Q at the cutoff, and this parameter is that number in dB,
+ * so `20 log10(Q)` converts one convention to the other exactly: fed it, a lowpass at 0.707 is
+ * Butterworth to two decimals and one at 0.9 peaks at the textbook +0.69 dB. The conversion lives
+ * here rather than at the call sites so the numbers in the bed keep reading as what they mean.
+ *
+ * `bandpass`, `notch`, `allpass` and `peaking` do take a traditional Q, and the shelves ignore it;
+ * those pass through untouched.
+ */
 export function filter(ctx: BaseAudioContext, type: BiquadFilterType, frequency: number, Q = 1, gain = 0): BiquadFilterNode {
   const f = ctx.createBiquadFilter();
   f.type = type;
   f.frequency.value = frequency;
-  f.Q.value = Q;
+  f.Q.value = type === 'lowpass' || type === 'highpass' ? 20 * Math.log10(Q) : Q;
   f.gain.value = gain;
   return f;
 }
