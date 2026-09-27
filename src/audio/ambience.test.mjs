@@ -995,3 +995,62 @@ test('a leaf is booked with the wind it will sound in, not the wind four seconds
   const old = worstFor(4);
   assert.ok(old > 2, `the four-second horizon should be plainly worse, and it measured ${old.toFixed(2)} dB`);
 });
+
+test('every stream in the bed can be taken out on its own', () => {
+  // The bed has five streams and `mute` could only take out three. The two it could not were the
+  // smallest — a pod lantern's flame and a fairy's bell — which is exactly backwards: those are
+  // the two that need isolating to be measured at all, because a flame a metre away is the
+  // loudest never-stopping thing in the world and a fairy is the quietest thing in the bed.
+  // Measuring the fairy against "the forest" meant measuring it against a lantern
+  // (`art/audio/2026-09-27-fairies/`).
+  //
+  // `mute` is also the instrument every "what is this layer worth" measurement rests on, and it
+  // has silently failed once already. So each layer is checked by counting what reaches the bus.
+  const LISTENER_HERE = { x: 0, y: 1.2, z: 0 };
+  const run = (mute) => {
+    const ctx = fakeContext();
+    const out = ctx.createGain();
+    const amb = A.createAmbience(ctx, out, ctx.createGain(), ctx.createGain(), createRng('bed/mute'), 0, new Set(mute));
+    // a lantern overhead and a fairy at arm's length, so both of the small streams have something
+    // to answer, and long enough for the glint scheduler to fire
+    for (let t = 0; t < 30; t += 1 / 30) {
+      amb.update(t, {
+        gust: 0.8,
+        listener: LISTENER_HERE,
+        forward: NORTH,
+        pods: [{ x: 0.3, y: 2.2, z: 0.2 }],
+        fairies: [{ x: 0.8, y: 1.4, z: 0.3 }],
+        canopy: 0,
+      });
+      amb.scheduleUntil(t + A.aheadFor(1 / 30));
+    }
+    // how much of the bed is wired to the bed's own bus at all. `createAmbience` puts an
+    // enclosure filter between its internal bus and the caller's, so the node to count against is
+    // the one everything in here connects to, not the one that was passed in.
+    const inner = ctx.made.gain.find((g) => g.outputs.some((o) => o.kind === 'filter' && o.outputs.includes(out)));
+    assert.ok(inner, 'could not find the bed\'s own bus');
+    const reaching = ctx.made.gain.concat(ctx.made.panner).filter((n) => n.outputs.includes(inner)).length;
+    return { reaching, stats: amb.stats() };
+  };
+  const full = run([]);
+  assert.ok(full.stats.glints > 0, 'the fairy never sounded, so muting it proves nothing');
+  assert.ok(full.reaching > 0, 'nothing reaches the bus even unmuted');
+
+  // The wind is muted differently — its two layers stay wired and are aimed at zero, because
+  // what they carry is modulation as well as level (see 'a muted layer is silent, modulation
+  // included' above, which is the test for that mechanism and found it broken once). Everything
+  // else is muted by leaving the connection off, which is what this counts.
+  for (const layer of ['flutters', 'birds', 'flames', 'glints']) {
+    const cut = run([layer]);
+    assert.ok(cut.reaching < full.reaching, `muting '${layer}' left as much wired to the bus as before (${cut.reaching} of ${full.reaching})`);
+    // and the draws must be untouched, or a muted take is a different forest and cannot be
+    // compared with a full one — which is the whole point of having the switch
+    assert.equal(cut.stats.flutters, full.stats.flutters, `muting '${layer}' changed how many leaves were drawn`);
+    assert.equal(cut.stats.birds, full.stats.birds, `muting '${layer}' changed how many birds were drawn`);
+    assert.equal(cut.stats.glints, full.stats.glints, `muting '${layer}' changed how many glints were drawn`);
+  }
+  // and with everything muted, the only things still wired are the wind's two layers, aimed at
+  // zero. Anything else left over is a stream `AmbienceLayer` does not name.
+  const silent = run(['flutters', 'birds', 'wind', 'flames', 'glints']);
+  assert.ok(silent.reaching <= 2, `${silent.reaching} nodes still reach the bus with every layer muted; only the wind's two should, and at zero`);
+});

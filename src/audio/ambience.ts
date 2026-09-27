@@ -603,7 +603,20 @@ export const BIRD_ANSWERS_LULL: [number, number] = [0.5, 1.8];
  * silent, rather than a different forest: the birds call at the same moments whether the leaves are
  * heard or not, which is the only way the difference between two takes is the layer and not the seed.
  */
-export type AmbienceLayer = 'flutters' | 'birds' | 'wind';
+/**
+ * The bed's streams, as `renderOffline({ mute })` can switch them off one at a time.
+ *
+ * `flames` and `glints` were not on this list and should have been. The bed has five streams and
+ * only three could be taken out, so the two smallest — the pod lantern's flame and a fairy's
+ * bell — could never be heard on their own: a take with the wind and the birds and the leaves
+ * muted still had a flame in it, and a flame standing a metre away is the loudest never-stopping
+ * thing in the world. Measuring a fairy against the forest meant measuring it against a lantern
+ * (`art/audio/2026-09-27-fairies/`).
+ *
+ * Muting leaves every draw and every node in place and omits only the connection to the bus, so a
+ * muted take draws the same seeded stream as a full one and the events in it are the same events.
+ */
+export type AmbienceLayer = 'flutters' | 'birds' | 'wind' | 'flames' | 'glints';
 
 export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, gorgeSend: AudioNode | null, rng: Rng, startAt = 0, mute: ReadonlySet<AmbienceLayer> = new Set()): Ambience {
   // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
@@ -689,9 +702,9 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   // ---- pod lantern flame ----------------------------------------------------------------------
   const flameGain = gain(ctx, 0);
   const flamePan = ctx.createStereoPanner();
-  flameGain.connect(flamePan).connect(out);
+  if (!mute.has('flames')) flameGain.connect(flamePan).connect(out);
   const flameSend = gain(ctx, flameWet(0));
-  flameGain.connect(flameSend).connect(reverbSend);
+  if (!mute.has('flames')) flameGain.connect(flameSend).connect(reverbSend);
   // the third tap of the same buffer, and the one that matters most for a repeat: standing a metre
   // from a pod the flame is the loudest never-stopping thing in the world. Its own rate and its own
   // wander, for the reason the other two have theirs.
@@ -988,9 +1001,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     const hp = filter(ctx, 'highpass', 1200, 0.6);
-    hp.connect(panner).connect(out);
+    const heard = !mute.has('glints');
+    if (heard) hp.connect(panner).connect(out);
     const send = gain(ctx, glintWet(close));
-    panner.connect(send).connect(reverbSend);
+    if (heard) panner.connect(send).connect(reverbSend);
     const notes = 2 + Math.floor(eventRng() * 2);
     let end = t;
     const nodes: AudioNode[] = [hp, panner, send];
