@@ -865,7 +865,7 @@ function skirtPanel(profile: [number, number][], a0: number, a1: number, segment
  * overlapping the other at the centre) so they follow the legs — draped on the thighs when
  * seated, swinging with the stride, never poked through by a knee.
  */
-function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
+function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial, seated = false): void {
   const p = rig.props;
   const hl = (y: number) => y - p.hipY;
   const cl = (y: number) => y - p.chestY;
@@ -920,6 +920,35 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
     // shared with the hips (skin.ts SkinBlend): from the waist the flap hangs and drapes down over the
     // thigh when she sits, instead of pivoting with it into a shelf at hip height over bare thighs
     flapMesh.userData.skinBlend = { top: 0.85, hem: 0.5 };
+  }
+  if (seated) {
+    // the sitter (lane 7, the 09-24 find): her flaps hang from the waist as an apron between the thighs and
+    // the thighs sit bare from hip to knee. She never stands, so her skirt gets what a standing kid's cannot:
+    // a shell of cloth round each thigh's top and outer side, cut about the thigh's own axis (the thigh's
+    // 0.06 plus the cloth) from the knee to the hip joint and weighted to the thigh alone, so it rides the
+    // pitch and lies on the leg; the hanging flaps stay and close the gap between the knees. At the 58° sit
+    // the shell's top swings up inside the belly under the belt (y +0.08, z +0.04), so no seam shows.
+    const thighLen = p.hipY - p.kneeY;
+    for (const side of [1, -1] as const) {
+      const thigh = side > 0 ? rig.thighL : rig.thighR;
+      // from behind the outer side, over the top, to a little past the front toward the centre
+      const a0 = side > 0 ? -0.9 : front - 0.45;
+      const a1 = side > 0 ? front + 0.45 : Math.PI + 0.9;
+      const shell = skirtPanel(
+        [
+          [0.071, -thighLen + 0.02],
+          [0.071, -thighLen * 0.6],
+          [0.073, -thighLen * 0.25],
+          [0.08, 0],
+          [0.092, 0.012],
+        ],
+        a0,
+        a1,
+        10,
+        { ...opts, scaleZ: 1, folds: 3, foldDepth: 0.015, scallops: 3, scallopDepth: 0.02, ragged: 0.008, seed: 47 + side },
+      );
+      part(thigh, shell, tunic, 'kid-tunic-thigh-shell');
+    }
   }
   // leather belt (lane 7, owner 23:00 JOB 7 "the belt"): a flat strap, 3 cm tall and 6 mm thick, on
   // the waist's oval — stitched along both edges and burnished at them on the strap canvas — passing
@@ -1103,7 +1132,7 @@ export function createKokiri(variant: number): Character {
     buildArms(rig, { skin, sleeve: null });
     buildHands(rig, skin);
     buildWristbands(rig, beltMaterial());
-    buildGirlTunic(rig, girlCloth(look));
+    buildGirlTunic(rig, girlCloth(look), variant === 1);
     buildGirlFace(rig, look);
     buildGirlHair(rig, girlHair(look));
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));

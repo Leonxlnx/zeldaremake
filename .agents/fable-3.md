@@ -671,3 +671,18 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   second never left `GREET_FAR_M`. Answered with the release-then-approach recipe and the grove girl's wave frame.
 - Lesson: when a PR carries a claim, the claim merges with the PR — a correction made after the merge needs its own
   PR the same hour, and the INBOX line should say "withdrawn" in its heading so a skim catches it.
+
+## 2026-09-26 04:20 tick — the seated girl's skirt (PR #200)
+
+- The lane's oldest item, two days on a look call that never came: the seated girl's bare thighs and the apron flap.
+  The seated cloth solve needs no call (she alone sits): thigh shells cut about the thigh's own axis (a body-centred
+  cut drawn in would pass inside the thigh — computed before building), knee to hip, weighted to the thigh; the
+  flaps kept for the gap. At the harness view the lap is covered, no shelf, no seam. Profile cameras failed twice
+  (foliage one side, the flight the other) — the harness view is the honest frame.
+- Six views: A / C / D / F identical; **B / E +0.0004 / +0.0003 at the left edge — kokiri-b stands there in the fixed
+  frames** (the reference's girl at far left), so the shells show on her standing as a skirt to the knee. Inside the
+  band, flagged as a look change in a sealed frame with the one-number alternative (hem −0.14). PR #200 lifted
+  with the flag in the title; INBOX 05:20.
+- Also: #190's solver numbers re-evaluated on KOKIRI_CHILD_PROPORTIONS (hands 1.0 cm apart behind, 0.3 cm off the hip).
+- Lesson: the fixed views pose the cast their own way — before touching any kid's clothes, ask where she stands in
+  A–F, not only how she sits in play.
