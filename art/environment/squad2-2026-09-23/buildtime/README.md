@@ -41,3 +41,28 @@ before anyone optimises against it.
 
 Lane 2's own share is measured and small: the roof at 0.1 %, and the trees' 19.1 % already carrying the
 pool work, the batch and the LOD rungs that this lane and fable-4 have spent the week on.
+
+## Re-run after Link shipped at 2048² (head `1232f1d3`, 07:15 on the 27th)
+
+`bb1b5bab` swapped the runtime model for `link-runtime-2k.glb` — 31.5 MB against 54.4 — because a 4096²
+map that fails to decode on a memory-limited device leaves glTF's white base colour. The build cost of
+that, measured the same way:
+
+| system | before | after | delta |
+| --- | --- | --- | --- |
+| **character** | 999 ms | **592 ms** | **−407 ms (−41 %)** |
+| vegetation | 10,739 | 11,307 | +568 |
+| terrain | 3,769 | 4,110 | +341 |
+| structures | 8,171 | 8,007 | −164 |
+| rocks | 6,790 | 6,702 | −88 |
+| trees | 8,311 | 8,408 | +97 |
+| **total** | **43,503 ms** | **43,938 ms** | +436 |
+
+**The character's saving is real** — 41 % off its build, from a model 23 MB smaller, and the only system any
+commit in this window touched.
+
+**The total is not readable from one sample.** Vegetation, terrain, structures and rocks moved by −164 to
++568 ms with nothing committed against them, so this VM's per-system noise is **±0.5 s** between runs and
+the +436 ms total sits inside it. That bounds every single-sample build comparison, including the table
+above this section: it can rank systems (the shares are stable and large) but it cannot resolve a change
+smaller than about half a second, and a load claim at that scale needs three runs a side.
