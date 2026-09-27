@@ -1,0 +1,10 @@
+the loudest moment the game can make, four places, running and jumping with the score playing
+
+  place                             LUFS    true peak   clipped   before the +9 trim
+  the rope bridge, mid-span        -24.1         -7.6         0           -16.6 dBFS   (73 steps, 42 landings, 33 shoves)
+  the lantern bough                -24.9         -8.7         0           -17.7 dBFS   (152 steps, 49 landings, 31 shoves)
+  inside the log arch's bore       -24.6         -8.7         0           -17.7 dBFS   (91 steps, 53 landings, 43 shoves)
+  inside the west house            -24.9         -9.7         0           -18.7 dBFS   (65 steps, 58 landings, 46 shoves)
+
+  WORST_CASE_PEAK_DBFS was -16.7 (the bough, measured with the compressor still on the bus).
+  REQUIRED_HEADROOM_DB is 6, and the bridge leaves 7.6.
