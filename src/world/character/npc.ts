@@ -473,11 +473,44 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
   for (const e of r.eyes) e.scale.y = 1 - 0.92 * b;
 }
 
+/** how a standing kid holds her arms while she idles (lane 7: the cast's silhouettes differ at 4–7 m) */
+type ArmStyle = 'hang' | 'behind' | 'akimbo';
+/**
+ * Shoulder (x, y, z) and elbow x for the left arm of each held style; the right arm mirrors y and z.
+ * Solved on the rig's own chain in node (people-fable-3/idle-arms/arm-solve.mjs), a grid over the
+ * joint angles with the elbow kept out of the torso: `behind` puts the hands together at the lumbar
+ * (0.6 cm apart, the elbows 13 cm out behind the back); `akimbo` puts each hand on its hip's side
+ * (0.6 cm off), the elbows out and a little back.
+ */
+const ARM_STYLES: Record<Exclude<ArmStyle, 'hang'>, { sh: [number, number, number]; el: number }> = {
+  behind: { sh: [0.65, -1.4, 0.2], el: -1.05 },
+  akimbo: { sh: [0.6, -0.65, 0.45], el: -1.08 },
+};
+
+/**
+ * Blend the hanging idle arms toward a held style by `k` (0: the hang, 1: the style); a slow drift
+ * keeps a held pose alive. The greeter passes `1 − g`, so the arms come down as she turns to Link
+ * and the wave starts from hanging arms, as before.
+ */
+function styleArms(rig: Rig, style: ArmStyle, k: number, t: number, phase: number): void {
+  if (style === 'hang' || k <= 0) return;
+  const st = ARM_STYLES[style];
+  for (const side of [1, -1] as const) {
+    const sh = side > 0 ? rig.shoulderL.rotation : rig.shoulderR.rotation;
+    const el = side > 0 ? rig.elbowL.rotation : rig.elbowR.rotation;
+    const drift = 0.02 * Math.sin(t * 0.5 + phase + side);
+    sh.x += (st.sh[0] + drift - sh.x) * k;
+    sh.y += (side * st.sh[1] - sh.y) * k;
+    sh.z += (side * st.sh[2] - sh.z) * k;
+    el.x += (st.el - drift - el.x) * k;
+  }
+}
+
 /**
  * The ledge girl's idle (round 48): standing on her spot facing `yaw`, weight shifting, breathing,
  * the dwell-style look-around from the seeded head keys — the wander pose with the walk weight 0.
  */
-function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState, shuffle = 0, shufflePhi = 0): void {
+function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState, shuffle = 0, shufflePhi = 0, arms: ArmStyle = 'hang', armsK = 1): void {
   st.x = x;
   st.z = z;
   st.yaw = yaw;
@@ -493,6 +526,7 @@ function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t
   rig.root.position.set(x, y, z);
   rig.root.rotation.y = yaw;
   poseWander(rig, st, t, phase);
+  styleArms(rig, arms, armsK, t, phase);
   // a slow shoulder-line turn: she looks over the clearing, then back along the ledge
   const turn = 0.12 * Math.sin(t * 0.11 + phase);
   rig.hips.rotation.y += turn;
@@ -959,7 +993,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const lg = standGreet(ledgeGreet, t, ledge.x, ledge.z, ledge.yaw, view ? null : player);
         actor.yaw = lg.yaw;
         const [hy, hp] = seatedLook(t, ledgePhase, ledgeKeys, ledgeLookPeriod);
-        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, lg.yaw, t, 5.1, hy * (1 - ledgeGreet.g), hp, ledgeSt, lg.shuffle, lg.shufflePhi);
+        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, lg.yaw, t, 5.1, hy * (1 - ledgeGreet.g), hp, ledgeSt, lg.shuffle, lg.shufflePhi, 'behind', 1 - ledgeGreet.g);
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
         noticeFor(ledgeChar.rig, actor, player);
         ledgeChar.rig.neck.rotation.x += greetNod(ledgeGreet, t);
@@ -976,7 +1010,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const bg = standGreet(bankGreet, t, bank.x, bank.z, bank.yaw, view ? null : player);
         actor.yaw = bg.yaw;
         const [hy, hp] = seatedLook(t, bankPhase, bankKeys, bankLookPeriod);
-        poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bg.yaw, t, 7.9, hy * (1 - bankGreet.g), hp, bankSt, bg.shuffle, bg.shufflePhi);
+        poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bg.yaw, t, 7.9, hy * (1 - bankGreet.g), hp, bankSt, bg.shuffle, bg.shufflePhi, 'akimbo', 1 - bankGreet.g);
         plantFeet(bankChar.rig, ground.height, actor.contact);
         noticeFor(bankChar.rig, actor, player);
         bankChar.rig.neck.rotation.x += greetNod(bankGreet, t);
@@ -1012,7 +1046,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const vg = standGreet(verandaGreet, t, veranda.x, veranda.z, veranda.yaw, view ? null : player);
         actor.yaw = vg.yaw;
         const [hy, hp] = seatedLook(t, verandaPhase, verandaKeys, verandaLookPeriod);
-        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, vg.yaw, t, 6.1, hy * (1 - verandaGreet.g), hp, verandaSt, vg.shuffle, vg.shufflePhi);
+        poseLedgeIdle(verandaChar.rig, veranda.x, veranda.z, veranda.y, vg.yaw, t, 6.1, hy * (1 - verandaGreet.g), hp, verandaSt, vg.shuffle, vg.shufflePhi, 'behind', 1 - verandaGreet.g);
         plantFeet(verandaChar.rig, ground.height, actor.contact);
         noticeFor(verandaChar.rig, actor, player);
         verandaChar.rig.neck.rotation.x += greetNod(verandaGreet, t);

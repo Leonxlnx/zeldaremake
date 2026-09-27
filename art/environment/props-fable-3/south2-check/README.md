@@ -19,3 +19,11 @@ By exp-south2's own numbers the pile is 0.5 m outside the hut's gallery's north-
 
 Tests on exp-south2's tip with the head merged: `node --test src/world/props/*.test.mjs` 1/1, the whole suite 227/227.
 No lane 9 change is needed for the ship; no code in this folder's PR.
+
+## Re-check, 2026-09-26 04:10 — exp-south2 `ad49052c` (the keeper's entrance boards extended, the waystation's steps)
+
+Same two cameras (`pile-from-the-path`, `waystation-from-the-path`) on the 18:20 tip `f2f6e793` (left) and `ad49052c`
+(right): `recheck-04-10-f2f6e793-vs-ad49052c.jpg`. 2 492 / 2 463 changed px, SSIM 0.9957 / 0.9952 — the entrance's
+four new chords reaching toward the pile and the head's lantern warmth. By their numbers the chords end at r 2.28
+from the hut's axis, the last at 228°: (5.57, 30.21) — 0.6 m short of the crate's near edge, 0.29 m clear of the
+squat pot's rim. Nothing intersects; props tests 1 / 1 on the tip. No lane 9 change.
