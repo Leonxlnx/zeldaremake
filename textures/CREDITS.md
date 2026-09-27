@@ -17,6 +17,7 @@ Every file under public/textures/** must be listed here with its licence (GAUNTL
 | `tree_bark_03` | color.jpg, normal.jpg, roughness.jpg | https://polyhaven.com/a/tree_bark_03 | CC0 1.0 |
 | `weathered_planks` | color.jpg, normal.jpg, roughness.jpg | https://polyhaven.com/a/weathered_planks | CC0 1.0 |
 | `worn_rock_natural_01` | ao.jpg, color.jpg, normal.jpg, roughness.jpg | https://polyhaven.com/a/worn_rock_natural_01 | CC0 1.0 |
+| `sign` | readers-note.jpg | the owner's phone screenshot of the X "Readers added context" note on the project's first video (2026-09-27), supplied by the owner as the face of the sign Link holds up in play mode (T); re-encoded with sharp, metadata stripped | owner-supplied, used at the owner's request |
 
 ## 2K tier (`<set>/2k/<kind>.jpg`)
 
