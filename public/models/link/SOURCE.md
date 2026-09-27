@@ -1,5 +1,15 @@
 # Young Link runtime candidate — Blender source and validation
 
+## September 27 shipped runtime: `link-runtime-2k.glb`
+
+The game loads **`link-runtime-2k.glb`** (sha256 `f24b9b80c05d682be6b324b4e5761f5c3d24d7eee5c7f2f8c4a050186418fc85`,
+31,483,716 bytes), derived from the delivery below by `art/characters/link/downscale-textures.mjs`: the
+two 4096² maps (`nose-zero-margin-normal` → 2048² PNG, `hardware-body-color` → 2048² JPEG q92, lanczos3) and nothing
+else — geometry, skin, morphs, animation and materials are the delivery's bytes. The owner saw Link white on 09-27:
+a 4096² map that fails to decode on a memory-limited device leaves the material at glTF's white base colour. Astra's
+full-resolution delivery stays here as `link-runtime.glb` (loadable with `?link=link-runtime.glb`); re-run the
+script after a new delivery.
+
 ## September 24 running leg replacement
 
 Current delivery: **8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd**, 54,439,952 bytes. The original Blender-authored run replaces the low, nearly horizontal boot return with a rear heel recovery, forward passage and extension into contact. Each leg supports approximately 30% of the cycle. Pelvis translation uses a smooth 12 mm two-step rise/fall below the leg reach limit. Only six leg rotation channels and run hips translation change; the original mesh, materials, weights, repaired arms/hands, other clips and original binary prefix are preserved.
