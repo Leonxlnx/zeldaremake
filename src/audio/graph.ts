@@ -608,8 +608,8 @@ function fft(re: Float64Array, im: Float64Array, inverse: boolean): void {
  * is explicit that it is *"not a traditional Q, but is a resonance value in decibels"*. Measured
  * (`art/audio/2026-09-27-q/`): it is exactly the gain at the cutoff, so the 0.5…0.9 this lane wrote
  * at seventeen call sites — 0.7 for Butterworth, the way anyone writes it — asked for half a
- * decibel to nearly one of LIFT and got a resonant peak of +1.59 to +1.89 dB a third of an octave
- * inside the corner. Every one of those call sites meant flat or gentler.
+ * decibel to nearly one of LIFT and got a resonant peak of +1.59 to +1.89 dB at about 0.76 of the
+ * corner. Every one of those call sites meant flat or gentler.
  *
  * A quality factor Q asks for |H(fc)| = Q at the cutoff, and this parameter is that number in dB,
  * so `20 log10(Q)` converts one convention to the other exactly: fed it, a lowpass at 0.707 is

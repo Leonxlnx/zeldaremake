@@ -7,7 +7,7 @@
 //
 // This lane wrote 0.5 to 0.9 at seventeen lowpass and highpass call sites, 0.7 standing in for
 // Butterworth. Under the parameter's real meaning every one of them was a resonant peak of +1.59
-// to +1.89 dB a third of an octave inside its corner — not a large error anywhere, but an error in
+// to +1.89 dB at about 0.76 of its corner — not a large error anywhere, but an error in
 // the same direction at every filter in the bed, which is how a floor rises without anyone
 // choosing it. `filter()` converts, so the numbers keep reading as the quality factors they are.
 //
