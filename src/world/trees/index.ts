@@ -3822,7 +3822,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       compactToLayout(geometry, layout);
       layoutFixed.add(geometry);
       if (farParts.length) {
-        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows, (sphere) => shadowReaches(sphere));
+        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows, (sphere) => shadowReachesGround(sphere));
         batch.mesh.userData.giants = members.map((m) => m.def.id);
         farFoliage.push(batch);
         giantGroup.add(batch.mesh);
@@ -4236,6 +4236,37 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return true;
   };
+  /**
+   * The same test with the sweep ended where the ground stops it instead of at SHADOW_FLOOR_Y.
+   * The world's floor is -9.6 m (measured: the gorge at (0, 39)) and most ground is 1-26 m, so a
+   * capsule swept to -20 runs tens of metres past anything its caster could shade: a near base on
+   * the plaza swept 43 m where 8 m reaches its own ground. Here the swept sphere marches down-sun
+   * until it is wholly at or below the ground it is passing over; past that point that ground is
+   * what blocks the light, so this caster's shade cannot continue. Coarse sampling can only move
+   * where the sweep ends and never ends it before the ground blocks it, so the capsule remains a
+   * bound on the real shadow volume — the test stays conservative, and the frame identical.
+   */
+  const SHADOW_MARCH_STEPS = 6;
+  const marchAt = new Vector3();
+  const shadowReachesGround = (s: Sphere) => {
+    const fall = Math.max(0.05, sunNow.y);
+    const full = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / fall);
+    let span = full;
+    const step = full / SHADOW_MARCH_STEPS;
+    for (let k = 1; k <= SHADOW_MARCH_STEPS; k++) {
+      const t = step * k;
+      marchAt.copy(s.center).addScaledVector(sunNow, -t);
+      if (marchAt.y + s.radius <= liveTerrain.height(marchAt.x, marchAt.z)) {
+        span = t;
+        break;
+      }
+    }
+    shadowEnd.copy(s.center).addScaledVector(sunNow, -span);
+    for (const plane of frustum.planes) {
+      if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(shadowEnd) < -s.radius) return false;
+    }
+    return true;
+  };
   /** world bounding sphere of placement `i` of `w` at LOD `l`, padded */
   const instanceSphere = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number, out: Sphere) => {
     const bs = w.lods[l].geometry.boundingSphere!;
@@ -4343,7 +4374,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         for (const i of w.lists[l]) {
           instanceSphere(w, l, i, sphere);
           if (inView(sphere) && hullInView(w, l, i)) kept.push(i);
-          else if (casts && shadowReaches(sphere)) shadowOnly.push(i);
+          else if (casts && shadowReachesGround(sphere)) shadowOnly.push(i);
         }
         if (l === 0 && w.shadowProxy) {
           // the high bucket's shadow-only instances cast from the medium-geometry twin
@@ -4467,7 +4498,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (mesh.userData.kind === 'giant-authored-leaves' || mesh.userData.kind === 'giant-authored-cards') continue; // never cast
       sphere.copy(mesh.geometry.boundingSphere!);
       sphere.radius += CULL_PAD_M;
-      mesh.castShadow = shadowReaches(sphere);
+      mesh.castShadow = shadowReachesGround(sphere);
       // then per giant, for the sectors that carry groups: the sector's own sphere spans ~50 × 55 m
       // and reaches nearly every frame, while a single giant's crown or wood often does not
       const casts = mesh.userData.groupCasts as boolean[] | undefined;
@@ -4476,7 +4507,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       let any = false;
       if (mesh.castShadow) {
         for (let i = 0; i < spheres.length; i++) {
-          casts[i] = shadowReaches(spheres[i]);
+          casts[i] = shadowReachesGround(spheres[i]);
           if (casts[i]) any = true;
         }
         // nothing left to draw: drop the mesh instead of issuing count-0 draws per group
@@ -4486,7 +4517,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const batch of farFoliage) {
       sphere.copy(batch.mesh.boundingSphere!);
       sphere.radius += CULL_PAD_M;
-      batch.mesh.castShadow = shadowReaches(sphere);
+      batch.mesh.castShadow = shadowReachesGround(sphere);
     }
     // the pooled near parts: the build arms them (`staticCasts`) and this narrows them per frame.
     // They are the last casters with no shadow test — at the main flight's foot the four giant
@@ -4499,7 +4530,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.updateMatrixWorld();
       sphere.copy(bs).applyMatrix4(mesh.matrixWorld);
       sphere.radius += CULL_PAD_M;
-      mesh.castShadow = shadowReaches(sphere);
+      mesh.castShadow = shadowReachesGround(sphere);
     }
   };
   /** trim every bucket for `camera`; skipped while the view-projection is unchanged (unless forced) */

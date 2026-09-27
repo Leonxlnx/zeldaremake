@@ -44,12 +44,17 @@ test('the sun depth pass culls per giant group and tests the pooled near bases',
   assert.match(src, /groupCasts/, 'the per-group depth decision must be named in userData');
   // and it must be the conservative test, not a distance guess
   const submit = src.slice(src.indexOf('const submitGiants = ()'), src.indexOf('/** trim every bucket for'));
-  assert.match(submit, /casts\[i\] = shadowReaches\(spheres\[i\]\)/, 'per group: the swept-capsule test');
+  assert.match(submit, /casts\[i\] = shadowReachesGround\(spheres\[i\]\)/, 'per group: the swept-capsule test, ended at the ground');
   assert.match(submit, /if \(!any\) mesh\.castShadow = false/, 'a sector with no casting group should not draw at all');
   // the pooled near bases: narrowed per frame, never widened past what the build armed
   assert.match(submit, /for \(const nb of nearBoles\)/, 'the near bases need a per-frame shadow test');
   assert.match(submit, /staticCasts !== true/, "quality.shadows and a column's casts flag still bind");
-  assert.match(submit, /mesh\.castShadow = shadowReaches\(sphere\)/, 'the near base test is the same capsule test');
+  assert.match(submit, /mesh\.castShadow = shadowReachesGround\(sphere\)/, 'the near base test is the same capsule test');
+  // the sweep ends where the ground blocks the light, and only when the whole swept sphere is under it
+  assert.match(src, /const shadowReachesGround = /, 'the ground-ended sweep must exist');
+  const march = src.slice(src.indexOf('const shadowReachesGround = '), src.indexOf('/** world bounding sphere of placement'));
+  assert.match(march, /marchAt\.y \+ s\.radius <= liveTerrain\.height\(marchAt\.x, marchAt\.z\)/, 'stop only when the swept sphere is wholly at or below the ground');
+  assert.match(march, /const full = Math\.max\(0, \(s\.center\.y \+ s\.radius - SHADOW_FLOOR_Y\)/, 'the floor stays the outer bound');
   // both pools arm `staticCasts` at build, or the per-frame test can never turn them on again
   assert.equal((src.match(/userData\.staticCasts = mesh\.castShadow/g) ?? []).length, 2, 'both near-base pools must record what the build armed');
 });
