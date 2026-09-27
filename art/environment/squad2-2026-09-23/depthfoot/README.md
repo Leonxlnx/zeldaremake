@@ -97,9 +97,22 @@ baseline, the south sector not casting (−86 K, mean 80.1 / 74.9 / 76.8 — the
 baseline to the decimal) and the lantern-tree sector not casting (−87 K, mean 84.9 / 76.9 / 82.3 —
 the stairs and the bank visibly lose their shade).
 
-A is unchanged because the giants behind that camera really do throw their shade into its frame
-(round 52's colour-pass note does not carry over to the depth pass), and F looks up into the canopy
-where the near bases are out of the pool.
+Hero D — the biggest saving — is byte-identical as well: md5 `8aa95606b19b15db512ae17ad341fe14` on
+both builds with 88 204 fewer triangles after.
+
+What each frame actually culled (`submission.giantGroupsCasting` / `giantGroupsTotal` /
+`nearBolesCasting`, read at the same poses):
+
+| pose | sector groups casting | near bases casting | triangles saved |
+| --- | --- | --- | --- |
+| stairs2-base-follow | 12 of 14 | 5 of 6 shown | 44 299 |
+| D_log | 10 of 14 | 4 | 88 204 |
+| A_stairs | 14 of 14 | 4 | 0 |
+
+So the per-giant group test does most of the work (two groups idle at the foot, four at D) and the
+near bases add one at the foot. A keeps every group — the giants behind that camera really do throw
+their shade into its frame, so round 52's colour-pass result does not carry over to the depth pass —
+and F looks up into the canopy where these casters are out of the pool.
 
 ## 4. What is left, with its size
 
