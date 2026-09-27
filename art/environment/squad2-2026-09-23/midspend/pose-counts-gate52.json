@@ -1,0 +1,12 @@
+[
+ {
+  "pose": "A_stairs",
+  "drawCalls": 575,
+  "triangles": 8638346
+ },
+ {
+  "pose": "D_log",
+  "drawCalls": 484,
+  "triangles": 8370410
+ }
+]

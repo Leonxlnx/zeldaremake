@@ -1,0 +1,82 @@
+{
+ "pageErrors": [],
+ "walk": [
+  {
+   "name": "plaza-to-upper-house",
+   "frames": 714,
+   "stuck": 0,
+   "pathM": 28.41,
+   "impliedMs": 1.194
+  },
+  {
+   "name": "plaza-to-south-bank-top",
+   "frames": 381,
+   "stuck": 0,
+   "pathM": 15.55,
+   "impliedMs": 1.225
+  },
+  {
+   "name": "saria-front-arc",
+   "frames": 138,
+   "stuck": 0,
+   "pathM": 5.87,
+   "impliedMs": 1.275
+  },
+  {
+   "name": "west-deck",
+   "frames": 159,
+   "stuck": 0,
+   "pathM": 6.22,
+   "impliedMs": 1.173
+  },
+  {
+   "name": "plaza-loop",
+   "frames": 678,
+   "stuck": 0,
+   "pathM": 26.27,
+   "impliedMs": 1.162
+  },
+  {
+   "name": "south-approach",
+   "frames": 351,
+   "stuck": 0,
+   "pathM": 13.77,
+   "impliedMs": 1.177
+  },
+  {
+   "name": "house-west-to-saria-door",
+   "frames": 234,
+   "stuck": 0,
+   "pathM": 9.07,
+   "impliedMs": 1.163
+  },
+  {
+   "name": "west-house-to-plaza",
+   "frames": 516,
+   "stuck": 0,
+   "pathM": 20.33,
+   "impliedMs": 1.182
+  },
+  {
+   "name": "north-clearing-ledge",
+   "frames": 2061,
+   "stuck": 0,
+   "pathM": 82.04,
+   "impliedMs": 1.194
+  },
+  {
+   "name": "south-bridge-to-log",
+   "frames": 1296,
+   "stuck": 0,
+   "pathM": 50.82,
+   "impliedMs": 1.176
+  },
+  {
+   "name": "north-grove",
+   "frames": 1569,
+   "stuck": 0,
+   "pathM": 61.33,
+   "impliedMs": 1.173
+  }
+ ]
+}

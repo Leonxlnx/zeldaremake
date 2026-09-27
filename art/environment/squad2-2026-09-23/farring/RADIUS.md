@@ -59,3 +59,25 @@ side and a stopwatch on `placeDistantTrees` itself, not a frame harness.
 The radius is back to 215 m. Nothing here is proposed for merge.
 
 ![the plateau look-back with the ring to 215 m and to 150 m](sheet-trim.png)
+
+## A fourth dimension: the ring costs nothing to BUILD either
+
+`README.md` and the table above measured the ring's population and radius against the frame. The open
+question was load: the owner's first priority is "make all the trees load in ASAP", the trees are 19.6 % of
+the build (`../buildtime/`), and if the ring's trees cost build time then cutting a population already
+measured invisible would be free load. Tested by cutting the target the other way — **680 → 420**, −38 %:
+
+| | look | build (three runs, first dropped) |
+| --- | --- | --- |
+| owner-0650-north | **0.021 %** of pixels moved | |
+| D_log (sealed) | **0.014 %**, SSIM 0.4013 → 0.4013 | |
+| trees | | 8,260 → **8,266 ms** (+6) |
+| total | | 42,423 → 42,934 ms (+510, inside the spread — vegetation alone moved +186 untouched) |
+
+Removing 260 trees is invisible, as predicted, **and saves nothing**: +6 ms on the trees' 8.3 s build, two
+orders of magnitude inside that system's 353 ms run-to-run spread. A far-LOD distant tree is ~24 triangles
+and its placement is a handful of samples, so the ring is cheap to build as well as cheap to draw.
+
+That closes this layer in every dimension it has: **look** (density and radius both inert), **draw and
+triangle** (`../lookbacks/`: 200–327 instances for 4.8–7.8 K triangles), and now **load** (+6 ms for 38 % of
+the population). Reverted; `distantTarget` is 680.
