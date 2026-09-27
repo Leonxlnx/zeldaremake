@@ -4248,6 +4248,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    */
   const SHADOW_MARCH_STEPS = 6;
   const marchAt = new Vector3();
+  const marchSphere = new Sphere();
   const shadowReachesGround = (s: Sphere) => {
     const fall = Math.max(0.05, sunNow.y);
     const full = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / fall);
@@ -4265,7 +4266,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const plane of frustum.planes) {
       if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(shadowEnd) < -s.radius) return false;
     }
-    return true;
+    // The plane test only rejects a capsule that lies outside ONE plane; a capsule that slips past a
+    // frustum corner — the usual case for a caster beside the frame, since the sweep runs diagonally
+    // — is outside none of them. So walk the capsule instead: spheres of radius r + step/2 spaced
+    // `step` apart contain it (any point within r of the axis is within step/2 of a sample along
+    // it), and when none of them meets the frustum neither can the shadow volume.
+    const stepM = Math.max(2 * s.radius, 2);
+    const n = Math.max(1, Math.ceil(span / stepM));
+    const d = span / n;
+    marchSphere.radius = s.radius + d / 2;
+    for (let k = 0; k <= n; k++) {
+      marchSphere.center.copy(s.center).addScaledVector(sunNow, -d * k);
+      if (frustum.intersectsSphere(marchSphere)) return true;
+    }
+    return false;
   };
   /** world bounding sphere of placement `i` of `w` at LOD `l`, padded */
   const instanceSphere = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number, out: Sphere) => {

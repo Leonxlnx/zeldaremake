@@ -114,20 +114,67 @@ near bases add one at the foot. A keeps every group — the giants behind that c
 their shade into its frame, so round 52's colour-pass result does not carry over to the depth pass —
 and F looks up into the canopy where these casters are out of the pool.
 
-## 4. What is left, with its size
+## 4. Round two: the sweep ends at the ground, and the capsule is walked
 
-The empirical table says 331 K is idle at the foot; this change collects 44 K of it. The rest is
-visible to the experiment but not to `shadowReaches`, and the reason is `SHADOW_FLOOR_Y = -20`: the
-capsule every caster is tested with reaches 20 m below the world's floor, tens of metres past where
-its shade could possibly land, so it meets the frustum when the shadow itself does not. A per-caster
-floor (the ground under the sweep rather than a global constant) would recover most of the
-remaining 287 K, and it is the next thing I would build here — carefully, because a floor set too
-high deletes a real shadow, and the conservative direction is the one that costs triangles rather
-than pixels.
+§1 said 331 K is idle at the foot and the per-group cull collected 44 K. Two things kept the rest
+out of reach, and both are now fixed.
 
-The two groups this change does not touch: the family shadow proxies (90 K at the foot — the
-off-screen white-bark instances already admitted by the same `shadowReaches`, so they need the same
-tighter floor) and the plateau-oak sector (97 K for 0.16 % of the frame — small but not nothing).
+**The sweep ran 20 m under the world.** `SHADOW_FLOOR_Y = -20` is the lowest y a receiver may have,
+and every capsule was swept to it. The world's floor is **-9.6 m** (measured on a 181 × 181 grid
+over ±250 m: the gorge at (0, 39); highest ground +41.8 m), and a caster's own ground is usually
+1–26 m, so the capsule ran tens of metres past anything its caster could shade — a near base on the
+plaza was swept 43 m where 8 m reaches its own ground. `shadowReachesGround` now marches the swept
+sphere down-sun and ends the sweep once the sphere is wholly at or below the ground it passes over,
+because past that point *that ground* is what blocks the light. Six steps, `liveTerrain.height` per
+step. Coarse sampling can only move where the sweep ends, never end it before the ground blocks it,
+so the capsule stays a bound on the real shadow volume. `SHADOW_FLOOR_Y` stays -20 as the outer
+bound: the grid could miss a narrow trench, and the march makes the constant nearly irrelevant.
+
+**The plane test could only see capsules outside one plane.** A capsule that slips past a frustum
+*corner* — the usual case for a caster beside the frame, since the sweep runs diagonally — is
+outside none of the six planes. So the capsule is now walked as well: spheres of radius r + step/2
+spaced `step` apart contain it, and when none of them meets the frustum neither can the shadow
+volume. Two to four sphere tests per caster, cheaper than the plane loop that precedes it.
+
+Seven poses, clock frozen, one load per build (`/opt/cursor/artifacts/squad2-shadow-sweep.log`):
+
+| pose | per-group cull only | + ground sweep | + capsule cover | total | frame |
+| --- | --- | --- | --- | --- | --- |
+| A_stairs | 575 / 8 635 674 | 575 / 8 634 966 | 575 / 8 631 286 | −4 388 | identical |
+| B_house | 557 / 7 909 298 | 557 / 7 907 882 | 557 / 7 907 882 | −1 416 | identical |
+| C_lookback | 494 / 7 685 827 | 494 / 7 684 675 | 494 / 7 684 675 | −1 152 | identical |
+| D_log | 484 / 8 279 584 | 482 / 8 248 580 | 482 / 8 246 740 | **−32 844** | identical |
+| E_ground | 557 / 7 909 298 | 557 / 7 907 882 | 557 / 7 907 882 | −1 416 | identical |
+| F_canopy | 516 / 7 840 487 | 515 / 7 836 917 | 515 / 7 836 917 | −3 570 | identical |
+| foot | 546 / 9 178 166 | 544 / 9 129 709 | 544 / 9 129 709 | **−48 457** | identical |
+
+All seven md5s are the same in all three builds. The ground sweep does the work (48 K at the foot,
+31 K at D, and two draws at each); the capsule cover adds 3.7 K at A and 1.8 K at D.
+
+In play mode, against the same `playtest.mjs --only perf` harness before this branch touched the
+depth pass:
+
+| spot | before | now | delta |
+| --- | --- | --- | --- |
+| plaza | 539 / 7 689 651 | 539 / 7 639 357 | −50 294 |
+| **stairs2-base (the foot)** | 557 / 9 243 897 | 555 / **9 151 141** | **−92 756** |
+| saria-side | 520 / 8 601 339 | 519 / 8 512 887 | −88 452 |
+| west-house | 430 / 5 090 910 | 426 / 4 902 532 | −188 378 |
+
+## 5. What is left is not geometry's to cull
+
+The foot is still 0.15 M over W38's 9.0 M line, and the experiment in §1 still says more of its
+shade is idle. That residue is a different kind of thing, and it is worth writing down so nobody
+hunts it with geometry again: **those casters are inside the frame.** The four giant near bases that
+moved 0.00 % of pixels stand in view at the top of the stairs; any capsule test passes trivially for
+them, because the capsule starts at the caster and the caster is visible. Their shade moves nothing
+because it lands on ground that is *already* in shade — under the canopy, behind other trunks. That
+is a radiometric coincidence, not a geometric fact, and the only way to exploit it is to ask the
+depth buffer at run time, which is a different (and fragile) kind of change.
+
+So the geometric levers here are now spent: caster outside the frame with its shade outside the
+frame is culled at the mesh, the group, the instance and the lobe. What remains at the foot is
+visible casters and the vegetation row that the owner's `veg=0.96` decision would settle.
 
 ## Files
 
