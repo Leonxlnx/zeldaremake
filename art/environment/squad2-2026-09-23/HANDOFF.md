@@ -12,10 +12,14 @@
 > The individual branches are still pushed if you would rather take them one by one; their PRs, where the
 > tool allowed one, are #198, #204, #206 and #209.
 
-## Both branches are merge-tested against the head (22:40, 2026-09-26)
+## Three branches, all merge-tested against the head (latest check 00:30, 2026-09-27)
 
 * **`cursor/squad2-consolidate-682b`** — based on the current head; `git merge` reports *already up to
   date*. Evidence only, 51 files, no source change.
+* **`cursor/squad2-gatetests-682b`** — one new test file, `src/world/trees/gates.test.mjs`: the four tuned
+  gates (rungs 32 / 44 m, the distant layer's 45 m, the mid layer's 40 m, the ring's 680 trees at
+  60–215 m) pinned with the measurement that chose each, plus the dev knob pinned neutral. A guard, not a
+  tune; `node --test` 248.
 * **`cursor/squad2-lodfade4-682b`** — the head has been merged **into** it, so it is current and conflict
   free. The merge combines fable-4's `releaseAfterUpload` exemption (#193) with this branch's build-time
   attachment; both are belt and braces and both are inert with `TREE_LOD_DITHER = false`. On the merged

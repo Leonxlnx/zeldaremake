@@ -35,6 +35,21 @@ are high. So this is **a trap rather than a live problem** — but it is a trap 
 a quality selector into the settings screen, and it should get a budget pass before that happens (or be
 left out of the menu).
 
+### And what ultra buys for that cost: nothing the frame can show
+
+The owner's north pose rendered at `quality=high` and `quality=ultra`, same harness, settle and pose:
+
+| | pixels moved > 4 | mean | local detail |
+| --- | --- | --- | --- |
+| ultra vs high | **17.884 %** | 80.6 → 80.6 | 4.26 → 4.26 |
+
+Eighteen percent of the pixels differ — ultra's density multiplier puts more foliage instances in the
+frame — and **the frame's brightness and local detail do not move at all**. Side by side (`sheet-ultra.png`)
+the two read the same: the same composition, the same amount of texture, no new structure. So ultra spends
++1.91…+3.00 M triangles to reshuffle a fifth of the pixels without making the shot clearer.
+
+That is the argument for leaving it out of any future quality menu rather than merely budgeting it.
+
 ## Two things the low/medium end says
 
 * **The breach is high-tier only.** The main flight's foot is 2.7 % over at high and **1.77 M under** at
