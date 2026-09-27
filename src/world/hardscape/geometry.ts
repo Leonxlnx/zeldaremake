@@ -518,6 +518,16 @@ export interface SlabOptions {
    * weights are > 0 and pulls the cushions from khaki toward moss with the greenness
    */
   mottleFn?: (x: number, z: number, edge: number) => [number, number, number];
+  /**
+   * the far LOD of a paving slab (fable-2, lane 6): the top face alone, one fan from the outline
+   * to the centre — no walls, no shoulder roll, no interior rings. The rim vertices carry the full
+   * slab's outer top ring values (its tone at that ring's mean `edge`, its moss, mottle, crack and
+   * spall drop) and the centre the centre's, so the fan interpolates the same radial grading the
+   * rings step through. n triangles where the full slab has n(3 + 2·bevelRings + 2·rings); the
+   * paving swaps to it beyond `FLAGSTONE_FAR_M` (hardscape/index.ts), where a 1–3 cm roll and a
+   * 6 mm crown are under a pixel.
+   */
+  farLod?: boolean;
 }
 
 const _a = new Vector3();
@@ -647,10 +657,54 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     return [ca[0], ca[1], cb[0], cb[1], cc[0], cc[1]];
   };
 
+  const earthBefore = mb.currentEarth;
+
+  if (o.farLod) {
+    // the far LOD: the top as one fan from the OUTER outline (the walls' footprint, so the joint
+    // between two far slabs keeps the near joint's width) at the shoulder ring's height. The rim
+    // takes the full slab's outer top ring's values: its per-quad tone is sampled at that ring's
+    // mean edge ((1 + rings/(rings+1)) / 2) and its moss is the shoulder's 0.7 × mossEdge.
+    mb.currentEarth = o.earthTop ?? earthBefore;
+    mb.beginGroup();
+    const rimEdge = (1 + rings / (rings + 1)) / 2;
+    const rimMoss = mossEdge * 0.7;
+    const rimY = (i: number) => topY(top[i], 1) - 0.85 * dropAt(i);
+    const rimCol = (p: P2) => shade(col, 'top', p.x, p.z, 1, rimEdge);
+    const rimMossAt = (p: P2) => rimMoss * mossFn(p.x, p.z) + mossAdd(p.x, p.z, 1);
+    if (!fanCentre) {
+      // a non-star-shaped outline (rare): its exact boundary triangulated, rim values throughout
+      const triangles = ShapeUtils.triangulateShape(outer.map((p) => new Vector2(p.x, p.z)), []);
+      for (const tri of triangles) {
+        const idx = polygonArea(tri.map((i) => outer[i])) > 0 ? [...tri].reverse() : tri;
+        const [p, q, r] = idx.map((i) => outer[i]);
+        _a.set(p.x, rimY(idx[0]), p.z);
+        _b.set(q.x, rimY(idx[1]), q.z);
+        _c.set(r.x, rimY(idx[2]), r.z);
+        const tc = colorFn ? ([rimCol(p), rimCol(q), rimCol(r)] as const) : col;
+        mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(r), tc, [rimMossAt(p), rimMossAt(q), rimMossAt(r)], undefined, undefined, wear, crackOf(p, q, r), mottleOf(p, q, r, 1, 1, 1));
+      }
+    } else {
+      _c.set(c.x, topY(c, 0), c.z);
+      const mC = mossInner * mossFn(c.x, c.z) + mossAdd(c.x, c.z, 0);
+      const cC = colorFn ? shade(col, 'top', c.x, c.z, 1, 0) : col;
+      for (let i = 0; i < n; i++) {
+        const i1 = (i + 1) % n;
+        const p = outer[i];
+        const q = outer[i1];
+        _a.set(p.x, rimY(i), p.z);
+        _b.set(q.x, rimY(i1), q.z);
+        const tc = colorFn ? ([rimCol(p), rimCol(q), cC] as const) : col;
+        mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [rimMossAt(p), rimMossAt(q), mC], undefined, undefined, wear, crackOf(p, q, c), mottleOf(p, q, c, 1, 1, 0));
+      }
+    }
+    mb.smoothGroup();
+    mb.currentEarth = earthBefore;
+    return;
+  }
+
   // --- side walls (flat) ---
   const sideUp = o.sideNormalUp ?? 0;
   const sideWear = o.sideWear ?? 0;
-  const earthBefore = mb.currentEarth;
   mb.currentEarth = o.earthSides ?? earthBefore;
   for (let i = 0; i < n; i++) {
     const p = outer[i];
