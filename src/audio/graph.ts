@@ -177,16 +177,26 @@ export const GORGE_RETURN = 1.5;
  * cannot touch it. What it buys is only that he stops cranking the system.
  *
  * Sized against the worst case rather than an average, because an average is all this lane had ever
- * measured. Two takes agree on the ceiling to a tenth of a decibel: thirteen minutes of ordinary
+ * measured. Two takes agreed on the ceiling to a tenth of a decibel: thirteen minutes of ordinary
  * play peaked at −16.7 dBFS true, and a deliberately constructed worst case — running *and* jumping
  * on the flagstones under the lantern bough, 168 steps, 51 landings and 30 shoves in seventy
- * seconds with the score playing — also peaked at **−16.7**. It is stable because the sfx bus has a
- * compressor on it, so no amount of stacking gets past it.
+ * seconds with the score playing — also peaked at **−16.7**.
  *
- * +9 dB leaves the true peak at −7.7 dBFS and puts the mix at −23.6 LUFS: inside the normal band,
- * at the conservative end of it, with nearly eight decibels still unused for sources nobody has
- * measured yet (the ruins' waterfall close to, whatever the expansions add). It is one number —
- * move it if the owner wants the game louder or quieter, and nothing else in the mix moves with it.
+ * This used to go on: *"it is stable because the sfx bus has a compressor on it, so no amount of
+ * stacking gets past it"*. **There is no compressor.** It came out when it could not show it was
+ * worth its cost (`SFX_PAD_DB` above), and nothing in this graph limits anything — a peak here is
+ * a sum, and the only reason the ceiling holds is that it has been measured and guarded.
+ *
+ * Which is why it was 0.1 dB optimistic by the time anyone looked. The loudest moment in the game
+ * is no longer under the bough: `buses.gorge` gave the ravine its own convolver, so a boot
+ * mid-span returns through two spaces, and the same worst case measures **−16.6 dBFS there
+ * against −17.7 under the bough** (`art/audio/2026-09-26-ceiling/`, four places). `level.test.mjs`
+ * carries the figure, the 6 dB headroom rule, and a guard that fails if a fourth space is added.
+ *
+ * +9 dB leaves that worst case at −7.6 dBFS and the mix at −24.1 LUFS: inside the normal band, at
+ * the conservative end of it, with seven decibels still unused for sources nobody has measured yet
+ * (the ruins' waterfall close to, whatever the expansions add). It is one number — move it if the
+ * owner wants the game louder or quieter, and nothing else in the mix moves with it.
  */
 export const MASTER_TRIM_DB = 9;
 export const MASTER_LEVEL = dB(MASTER_TRIM_DB);

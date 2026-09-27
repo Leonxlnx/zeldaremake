@@ -37,20 +37,36 @@ const here = path.dirname(new URL(import.meta.url).pathname);
 const { MASTER_TRIM_DB, MASTER_LEVEL, SFX_PAD_DB, SFX_TRIM } = loadTs(path.join(here, 'graph.ts'));
 
 /**
- * The loudest true peak the game has been measured to make, in dBFS before the trim. Three takes
- * agree within 1.6 dB — thirteen minutes of ordinary play, and a deliberate worst case of running
- * and jumping under the lantern bough, measured once with the sfx bus compressed (−18.3) and once
- * with the compressor replaced by a plain pad (−17.6). **Re-measure this before raising the trim.**
+ * The loudest true peak the game has been measured to make, in dBFS before the trim.
  *
- * This used to say the figure was stable *because* the bus was compressed, "so stacking events
- * cannot get past it". Measured on the same deliberate worst case, the compressor was worth
- * **0.4 dB** of that stability and cost 2.4 dB of the difference between a walk and a run
- * (`art/audio/2026-09-26-pad/`), which is why it is gone. What keeps the figure honest now is that
- * it is a measured number with a guard under it.
+ * **On the rope bridge.** This figure used to be the lantern bough's, because that is where the
+ * loudest moment was when it was first taken: the hardest surface, the fastest step rate and the
+ * densest cluster of pod flames in the world. It is not there any more. `buses.gorge` gave the
+ * ravine its own convolver, so a boot over the cut returns through TWO spaces instead of one, and
+ * the same deliberate worst case — running and jumping continuously with the score playing —
+ * measures **1.1 dB louder mid-span than under the bough** (`art/audio/2026-09-26-ceiling/`):
+ *
+ *     the bridge over the ravine   −16.6 dBFS    ← this number
+ *     the lantern bough            −17.7
+ *     inside the log arch's bore   −17.7
+ *     inside the west house        −18.7
+ *
+ * Nothing clips at any of them and the guard below passes at all four, but the number was 0.1 dB
+ * optimistic until this was measured — right by accident, because the bough's compressor-era
+ * −16.7 happened to sit just under the bridge's real figure.
+ *
+ * **Re-measure this whenever a space is added**, which is what the last test in this file is for.
+ * It used to say the figure was stable *because* the sfx bus was compressed, "so stacking events
+ * cannot get past it" — and the compressor is gone (it was worth 0.4 dB of that stability and
+ * cost 2.4 dB of the difference between a walk and a run, `art/audio/2026-09-26-pad/`). Nothing
+ * limits this graph. What keeps the figure honest is that it is measured, guarded, and pinned to
+ * the shape of the graph it was measured on.
  */
-const WORST_CASE_PEAK_DBFS = -16.7;
+const WORST_CASE_PEAK_DBFS = -16.6;
 /** what must still be free above the worst case after the trim, for sources nobody has measured */
 const REQUIRED_HEADROOM_DB = 6;
+/** how many spaces return into the master — see the last test for why the count is a guard */
+const RETURNS_MEASURED_AGAINST = 3;
 
 test('the trim cannot push the loudest moment the game makes into the ceiling', () => {
   const peak = WORST_CASE_PEAK_DBFS + MASTER_TRIM_DB;
@@ -142,4 +158,25 @@ test('the pad cannot spend headroom, because it only ever takes level away', () 
   // case is 17.9 dB under full scale before the trim, inside the constant above.
   assert.ok(SFX_TRIM < 1, 'SFX_TRIM must attenuate; a pad over unity would invalidate the worst case');
   assert.ok(SFX_PAD_DB > 0, 'and it must be a pad, not a boost');
+});
+
+test('the worst case is pinned to the graph it was measured on', () => {
+  // A peak measurement is a measurement OF A PARTICULAR GRAPH, and this one has been overtaken
+  // once already: the figure above was the lantern bough's until `buses.gorge` gave the ravine
+  // its own convolver, and a boot over the cut started returning through two spaces instead of
+  // one. The loudest moment in the game moved to the bridge and nobody noticed for a day, because
+  // nothing in the code knew the measurement had a shape attached to it.
+  //
+  // Every space that returns into the master can add to a peak, so the count is the shape. Add a
+  // fourth and this fails, which is the only way a re-measure gets asked for at the moment it is
+  // needed rather than the next time somebody happens to wonder.
+  const src = readFileSync(path.join(here, 'graph.ts'), 'utf8');
+  const returns = [...src.matchAll(/^\s*(\w*Return)\.connect\(master\);/gm)].map((m) => m[1]);
+  assert.equal(
+    returns.length,
+    RETURNS_MEASURED_AGAINST,
+    `${returns.length} spaces return into the master (${returns.join(', ')}) and the worst case was measured against ${RETURNS_MEASURED_AGAINST}. Re-run art/audio/2026-09-24-level/worstcase.mjs in every enclosed place and take the loudest.`,
+  );
+  // and the pad is still the only thing between the sfx bus and the master, so a peak is a sum
+  assert.doesNotMatch(src, /createDynamicsCompressor/, 'something limits the bus again — the worst case is no longer a sum and this constant means something else');
 });
