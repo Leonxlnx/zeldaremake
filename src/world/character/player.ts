@@ -12,6 +12,8 @@ export interface PlayerInput {
   run: boolean;
   /** jump button held (Space / gamepad A); a jump starts on the press, never repeats while held */
   jump?: boolean;
+  /** sign button held (T / gamepad Y); each press raises or lowers the sign (signPose.ts) */
+  sign?: boolean;
 }
 
 export interface PlayerHandle {
