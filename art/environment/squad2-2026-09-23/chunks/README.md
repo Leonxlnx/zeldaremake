@@ -175,10 +175,84 @@ so GC and scheduling are in these readings. The reproducible part is the index t
 `nearCanopy.ts`'s `nearSpray` / `twiglets` / limb rows. Until a chunk's worst case is under the budget,
 `workOverBudget` cannot go to zero, and `workMsP95` will sit at budget + one chunk.
 
+## 6. A long chunk or a long pause? (the round after, same day)
+
+§5 named two populations and guessed at each. Both are measured now. Node's GC observer runs over the
+same 65 parts (`chunkcost.mjs`, unchanged workload):
+
+**251 collections, 220 ms of pause against 2013 ms of building — 11 % of the builder's wall clock.**
+
+| chunks | count | p50 | p95 | max |
+| --- | --- | --- | --- | --- |
+| all readings | 19 590 | 0.06 | 0.30 | 2.82 |
+| **those a collection landed in** | 186 | **1.08** | **1.94** | **2.82** |
+| those with no collection in them | 19 404 | 0.05 | 0.24 | 1.90 |
+
+A chunk a collection lands in reads **20× the median** of one that escapes it, and **every one of the
+eight longest readings** had a pause inside it worth 0.8–1.4 ms of its 2.0–2.8. So the scattered
+population is not work, no amount of chunking removes it, and that is why §4's finer chunks did not
+move `workMsP95`. It agrees with what the browser said from the other side: the builds are
+deterministic, yet the same part's long chunks land at different indices between rebuilds.
+
+**What was work, and is now chunked.** `setIndex`, the last operation in `finishSteps` that was still
+one call: its chunk goes **0.73 → 0.33 ms** and the whole `aWind/aRoot` + index group 12.4 → 7.3 ms.
+
+**Two allocation cuts**, against `node --trace-gc` over an identical workload (run-to-run spread 2 %):
+
+| | collections | garbage | pause |
+| --- | --- | --- | --- |
+| before this round (`605b81cf`) | 264 | 4719 MB | 256 ms |
+| + `addLeaf` on scratch objects | 247 | 4445 MB | 254 ms |
+| + no second typed-array copy | **241** | **4342 MB (−8 %)** | **241 ms (−6 %)** |
+
+`addLeaf` allocated ~15 short-lived objects per lamina — eight points, four colours, three frame
+vectors — and a near-canopy lobe carries over a thousand laminae. They are module scratch now, safe
+because `writer.vertex` copies the components out, so none is held across a call. `packSteps` and
+`indexSteps` return a `BufferAttribute` over the array they just filled instead of a
+`Float32BufferAttribute`/`Uint32BufferAttribute` that copies it again (three's own `mergeGeometries`
+returns plain `BufferAttribute`s too, and the renderer picks the GL type from `array.constructor`).
+
+**Bit-identity, in seconds instead of ten minutes.** `bitcheck.mjs` builds the same 75 geometries —
+the merged far trees and every pooled near part, **741 103 triangles** — from any checkout and md5s
+every buffer. A worktree at `605b81cf` and this tree both give `TOTAL 9fc119c64da990ab83caf7625ce98b6d`.
+The frames agree: A_stairs **575 / 8 631 286 md5 `a280badd…`** and the flight's foot **544 / 9 129 709
+md5 `9ce108b2…`**, both identical.
+
+**And a methodological result worth more than the numbers.** The walk cannot resolve changes of this
+size. Its tail metrics move as much between identical-code runs as between builds, because the tail
+*is* the pause:
+
+| at 600 frames | before the branch | + packing | + this round |
+| --- | --- | --- | --- |
+| `work` p95 | 6.4 | 7.3 | 6.9 |
+| calls over the 3 ms budget | 19 | 35 | 30 |
+| worst chunk in a frame | 9.0 | 6.9 | 10.1 |
+| a whole build, p50 / p95 | 6.6 / 13.4 | 6.3 / 9.9 | 6.2 / 11.7 |
+| parts built | 262 | 250 | 255 |
+| `syncBuilds` / `pinnedPending` | 63 / 0 | 63 / 0 | 63 / 0 |
+
+`stepMsMax` reads 6.9, 9.0, 9.8, 10.1 and 14.2 across five runs of code that differs in ways that
+cannot produce a 7 ms chunk. **The instrument for this work is the Node harness** — a fixed workload,
+five builds a part, medians, and the collector under observation — with the browser kept for what only
+it can answer: that the frame is the same bytes.
+
+**Named for next time, with its blast radius.** The builder's real allocator is `GeometryWriter`'s
+growing `number[]`s — `positions`, `colors`, `uvs`, `winds`, `roots`, `indices`, about **14.5 MB a
+build**, of which the leaf vectors were only 6 %. A lobe's five attributes hold ~90 000 doubles (720 KB)
+and double their way there, then get copied to float32. Writing into typed buffers from the start would
+take most of the remaining garbage and halve the bytes. It reaches outside this lane: `writer.ts` has
+14 sites, `giant.ts` reads `leaves.positions.length / 3` in four places and `splice`s three values in
+one (a plain overwrite), while `whitebark.ts`'s in-place uv and colour rewrites work unchanged on a
+typed array. `bitcheck.mjs` makes it verifiable in seconds, but it wants the owning lanes' agreement,
+not a unilateral edit.
+
 ## Files
 
 - `chunkcost.mjs` (parent) — the chunk timer; `--repeat`, `--top`, `--json`.
 - `before.json` / `after.json` / `after2.json` — every part's chunk list at each step.
 - `frames-A/`, `frames-lookbacks/`, `frames-A2/`, `frames-lookbacks2/` — §3's md5 runs, the second pair on the final code (`counts.json` each; the PNGs are regenerable from the commands above and are not committed — the two A_stairs files, rendered ten minutes and three commits apart, were the same bytes).
-- `walk-before.json`, `walk-after.json` (normals), `walk-after2.json` (+ predictor), `walk-after3.json` (+ packing) — §4.
+- `walk-before.json`, `walk-after.json` (normals), `walk-after2.json` (+ predictor), `walk-after3.json` (+ packing), `walk-after4.json` (+ §6) — §4 and §6.
+- `bitcheck.mjs` — the same 75 geometries md5'd from any checkout (`--root`), so "changes nothing" is checkable while it is being written.
+- `gc-before.log` / `gc-after.log` — `node --trace-gc` over the identical workload, the garbage table of §6.
+- `after3.json` — the chunk lists with `setIndex` chunked and the leaf path on scratch.
 - `tiers/walkpool.mjs` now takes `--dist` and `--out`, so two builds can be walked in one session.
