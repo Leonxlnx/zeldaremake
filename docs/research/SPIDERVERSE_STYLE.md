@@ -539,7 +539,7 @@ Ink lines are **curves in 3-D space**, not an image-space filter:
 
 > "inklines are **curves in 3D space** and in Into the Spider-Verse we use them a lot on **face and
 > hands** in order to make you feel like [a hand-drawn] character rather than 3D render. It's a
-> **stylization layer**." — Edmond Blanchet, Imageworks, Blender Conference 2023 [DOC]
+> **stylization layer**." — Edmond Boulet-Gilly, inkline technical lead, Imageworks, Blender Conference 2023 [DOC]
 > <https://www.youtube.com/watch?v=8yHuJLeAAsA>
 
 ### 3.2 Scale: how much of the film has them
@@ -605,7 +605,7 @@ There was also a **procedural mode** driven by artist sliders:
 > "it's **rule based rather than handmade**… sliders would control the underlying tool set to make
 > really sketchy lines, make them looser or more rough, they could play with a **thick-thin**… those
 > sliders become a **preset**, and then those presets get saved for a character." — Gnomon panel
-> [DOC] <https://www.youtube.com/watch?v=Vt3M1oJ2eTI>
+> [DOC] <https://www.youtube.com/watch?v=NbatURNBv6Y>
 
 So each character has a named line-style preset. Worth mirroring in your material system.
 
@@ -888,7 +888,7 @@ ATSV built a dedicated tool to manage this, because per-part rates break every d
 
 > "in order to manage all of the different frame rate stuff there was a new tool developed called
 > **Step sets**, because when you have these jumps of frame rates, things like cloth simulation… it
-> makes it really hard to manage." — Josh Beveridge, Gnomon panel [DOC]
+> makes it really hard to manage." — Alan Hawkins, Head of Character Animation, Gnomon panel [DOC]
 
 So if you implement variable rates, **your cloth/hair/FX systems need to know about the stepping**,
 or they will interpolate across held poses and cancel the effect. Budget for that.
@@ -902,7 +902,7 @@ simultaneously** rather than one rate per character. From the animation supervis
 > same time** — so like **his body might be on twos and threes, his jacket would be on fours, his
 > guitar would be on sixes** — and that kind of gave him more of the chaotic look that we liked, and
 > it was more homogeneous too because it wasn't like different body parts being assembled."
-> — Josh Beveridge, Gnomon panel [DOC]
+> — Alan Hawkins, Head of Character Animation, Gnomon panel [DOC]
 
 Note what they *rejected*: putting head and arms on separate layers "as if they were cut out from
 different pieces of paper" — because "when you keep the arms and heads separate you kind of get like
@@ -915,11 +915,13 @@ Sources disagree on the exact numbers — see [Appendix B](#appendix-b--where-so
 The widely repeated account is that Miles begins the first film animated on twos and shifts to ones
 once he masters his powers, encoding his arc in the frame rate.
 
-**This is contradicted by a primary source.** Alan Hawkins (Imageworks) has stated there was **no
-such intended meaning** behind the frame rates on the first film. I flag this as genuinely disputed
-in [Appendix B](#appendix-b--where-sources-disagree) — the popular account is repeated by
-Business Insider and many others, but I could not find it asserted by a named Imageworks supervisor
-in a primary source, and I did find it denied by one.
+**This is contradicted by a primary source.** Alan Hawkins — the same Head of Character Animation
+quoted for Hobie's rates in §6.2 — has stated there was **no such intended meaning** behind the
+frame rates on the first film. I flag this as genuinely disputed in
+[Appendix B](#appendix-b--where-sources-disagree): the popular account is repeated by Business
+Insider and many others, but I could not find it asserted by a named Imageworks supervisor in a
+primary source, and I did find it denied by one. Note the asymmetry — the person best placed to know
+is the one denying it.
 
 **[EST] What to implement regardless:** the *technique* is well documented even if the narrative
 gloss is not. A character on twos next to a character on ones is a real and striking effect. Use it
@@ -1274,7 +1276,7 @@ Documented as a core device: **"Panelization — breaks up action into"** panels
 "Graphic elements – used to fill the frame like 'BOOM' and 'POW'" [DOC, fxguide].
 
 The editorial side is covered in Art of the Cut with editor **Michael Andrews, ACE** [DOC]
-<https://www.provideocoalition.com/art-of-the-cut-spider-man-across-the-spider-verse/>
+<https://borisfx.com/blog/aotc/art-of-the-cut-spider-man-across-the-spider-verse/>
 
 **[EST] Implementation.** Panels are a screen-space compositing operation, not a camera operation.
 The practical structure:
@@ -1382,12 +1384,14 @@ If a source cites "Anatomy of a Shot" for a specific claim, that claim needs re-
 
 | Source | Body | Jacket / vest | Guitar | Outline |
 | --- | --- | --- | --- | --- |
-| Josh Beveridge, Gnomon panel [DOC] | twos **and** threes | fours | sixes | — |
-| Alan Hawkins / Autodesk | twos–threes | fours | sixes | — |
+| **Alan Hawkins**, Head of Character Animation, Gnomon panel [DOC] | twos **and** threes | fours | sixes | — |
 | Gordon-Ratzlaff | threes | threes, offset | fours | twos |
 
-Two of three agree on body 2s–3s / jacket 4s / guitar 6s, and one of those two is the animation
-supervisor speaking on the record. **I would implement that version.**
+Note that these are **two** independent accounts, not three: the figures widely attributed to
+Hawkins via Autodesk material are the same person as the Gnomon panel speaker, so they are one
+source, not corroboration. Hawkins is the department head who supervised the film and is speaking
+on the record, so **I would implement his version** — body on twos/threes, jacket on fours, guitar
+on sixes.
 
 **3. Whether Miles' frame rate encodes his arc.** Widely reported (Business Insider, WhatCulture and
 many downstream summaries) that he moves from twos to ones as he gains mastery. **Alan Hawkins has
@@ -1422,13 +1426,20 @@ Geometrically equivalent; the difference is subtractive vs additive recombinatio
 ### Primary — talks by the people who built it
 
 - **"Inklines Across the Spider-Verse — Using Blender at Sony Imageworks"**, Blender Conference 2023.
-  Edmond Blanchet, Sharon Ng, Monica Salazar. <https://www.youtube.com/watch?v=8yHuJLeAAsA>
+  Edmond Boulet-Gilly (inkline technical lead), Sharon Snow (inkline artist) and Monica
+  (animation). <https://www.youtube.com/watch?v=8yHuJLeAAsA>
 - **"Spider-Man: Across the Spider-Verse: An Evening with Sony Pictures Imageworks"**, Gnomon, 2h05m,
-  Nov 2023. Includes Josh Beveridge (animation) and Pawel Grochola (ink lines).
-  <https://www.youtube.com/watch?v=Vt3M1oJ2eTI>
+  Nov 2023. Speakers: **Alan Hawkins** (Head of Character Animation), **Pav Grochola**
+  (FX and Look of Picture Supervisor), **Bret St. Clair** (Senior Look of Picture
+  Supervisor).
+  <https://www.youtube.com/watch?v=NbatURNBv6Y>
 - **SIGGRAPH 2019 production session**, "Swing into Another Dimension" (see Appendix B for URL).
-- **SIGGRAPH 2023 production session**, "Spider-Man: Creating the Spider-Verse", plus the ATSV
-  linework and repainting talks.
+- **SIGGRAPH 2023 production session**, "Spider-Man: Creating the Spider-Verse", 1h05m, posted by
+  Sony Pictures Imageworks. <https://www.youtube.com/watch?v=Br2AjE2WC6U> — I was unable to obtain a
+  transcript of this one, so nothing in this document rests on it alone; it is listed because it is
+  the correct citation for the ATSV production session and is where the `StepSets`, `ChromaShifter`,
+  `PigmentMerge` and Rebelle-integration details are presented in most depth. Plus the two ATSV
+  SIGGRAPH 2023 talks on linework and on repainting.
 
 ### Primary — supervisor interviews
 
@@ -1445,7 +1456,7 @@ Geometrically equivalent; the difference is subtractive vs additive recombinatio
 - **Sony Pictures Imageworks** film page.
   <https://www.imageworks.com/our-craft/feature-animation/movies/spider-man-spider-verse>
 - **Art of the Cut** with Michael Andrews, ACE (editorial / panels).
-  <https://www.provideocoalition.com/art-of-the-cut-spider-man-across-the-spider-verse/>
+  <https://borisfx.com/blog/aotc/art-of-the-cut-spider-man-across-the-spider-verse/>
 
 ### Do not cite
 
