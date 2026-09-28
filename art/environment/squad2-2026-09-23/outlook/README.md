@@ -143,3 +143,57 @@ thing it claimed.
 the material blends (additive glows, the mist) the second pass is doing real work and the flag would
 change the picture more than it did here — but it is worth measuring one at a time, and `singlepass.mjs`
 does exactly that measurement for any of them.
+
+## 6. The two-pass sweep, closed: the crowns were the only one that mattered
+
+§5 fixed the distant crowns and noted that `forceSinglePass` appears nowhere else in the repository, with
+seven other `transparent` + `DoubleSide` materials in the source. `twopass.mjs` asks the **whole scene**
+instead of the grep: walk up from the trees group to the root, find every material actually in that state,
+then flip them one at a time and together, on the shipped build.
+
+**Two material/system pairs, both in `structures`** — `structures:lantern-halo` and an unnamed
+`MeshBasicMaterial` — and that is all:
+
+| view | material | draws saved | triangles saved | pixels moved | SSIM |
+| --- | --- | --- | --- | --- | --- |
+| A_stairs (559 draws) | `structures:lantern-halo` | **1** | 10 | 0.00 % | 1.00000 |
+| A_stairs | `MeshBasicMaterial` (2 meshes) | 0 | 0 | 0.00 % | 1.00000 |
+| A_stairs | both together | **1** | 10 | 0.00 % | 1.00000 |
+| plateau-back (687 draws) | `structures:lantern-halo` | 0 | 0 | 0.00 % | 1.00000 |
+| plateau-back | `MeshBasicMaterial` | **1** | 560 | 0.00 % | 1.00000 |
+| plateau-back | both together | **1** | 560 | 0.00 % | 1.00000 |
+
+**So the question is closed rather than open.** The rest of the world already avoids the rule — the leaf
+and foliage materials are `alphaTest` **without** `transparent`, which is the correct pattern and costs one
+pass — and the seven other source matches are either single-sided, sprites, or not in this scene. What is
+left is **one draw call**, free (SSIM 1.00000 at both poses, 0.00 % of pixels), in `structures/`: worth a
+line when that lane next touches those materials, not worth a branch.
+
+Recorded so nobody re-runs it: the distant crowns were the only material in the world where three's
+two-pass rule was costing anything, and §5 took it.
+
+**The baselines here are also a cross-check on §5.** `twopass.mjs` is a different harness and it reads the
+shipped head at **A_stairs 559 / 8 626 622** and **plateau-back 687 / 10 888 866** — the same numbers
+`singlepass.mjs` produced, control 0.00 % at both.
+
+## 7. What is left in these two layers, sized
+
+After §5 each distant and mid mesh is **two draws** (wood, crown). The layers are split by tree **variant**,
+not by sector: `distantVariants.map(...)` makes a near and a far `InstancedMesh` per variant, so the draws
+scale with how many shapes have instances in a bucket rather than with what is on screen.
+
+| pose | distant meshes | mid meshes | draws now | a `BatchedMesh` per layer per material |
+| --- | --- | --- | --- | --- |
+| plateau-north | 7 | 10 | 34 | 4 |
+| plateau-back | 5 | 10 | 30 | 4 |
+
+**That is −26 to −30 draws**, and it is the same shape as the giants' far foliage (`FarFoliageBatch`,
+fable-4's round 54) which already proves the approach works here: those three batches carry 100–105
+instances each and measure **2 draws apiece** (colour + depth), so `WEBGL_multi_draw` is present on this
+box and a batch really is one call.
+
+What it needs: each variant's geometry split at the existing group boundary into wood and crown (the split
+`extractTaggedFoliage` already does for the giants), two `BatchedMesh`es per layer, `setGeometryIdAt` for
+the near/far LOD swap instead of two meshes, per-instance colour through `setColorAt`, and the audit's
+counters moved across. The risk is the capture contract — the same pose must draw the same instances warm
+or cold — which `bitcheck.mjs` cannot check (it hashes geometry, not the draw list) but `frozen.mjs` can.
