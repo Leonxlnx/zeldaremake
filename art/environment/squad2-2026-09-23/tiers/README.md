@@ -53,11 +53,38 @@ geometry builds on a re-pose, each one a frame hitch, on the device that can lea
 cause is arithmetic rather than a bug: the pinned set needs 41 MiB, the prefetch radius wants far more
 than the remaining 23, so pins evict prefetched parts and the prefetch evicts what the next pose pins.
 
-**This is the next thing to fix in this lane** and it is in this lane's own file: `nearLodTierFor`'s
-`canopyPrefetchM` for the small tier should be sized so the prefetch demand fits the cap *minus* the
-pinned set, instead of competing with it. The measurable target is `syncBuilds` per re-pose (113 → near
-63) with the shown set unchanged — the reset path pins every candidate before filtering by residency, so
-tightening the prefetch cannot change which parts a capture draws.
+### 2b. …and it is not prefetch thrash. Correcting that
+
+I called this "the next thing to fix" and named the prefetch radius as the lever. **Both halves were
+wrong, and the measurement that shows it is the fix itself.** Setting the small tier's
+`canopyPrefetchM` from 34 m to 28 m (the 26 m out-radius plus a walker's margin, which is what the
+tier's own comment says 64 MB can hold) changes nothing that matters:
+
+| small tier, owner-north | evicted | **syncBuilds** | shown / in frame | draws / triangles |
+| --- | --- | --- | --- | --- |
+| prefetch 34 m (shipped) | 131 | **113** | 79 / 5 | 449 / 8 247 038 |
+| prefetch 28 m | 127 | **113** | 79 / 5 | 449 / 8 247 038 |
+
+So the synchronous builds do not come from the prefetch competing with the pins. They come from the
+**reset path**, which is this lane's own capture contract: on an explicit re-pose it pins every
+candidate before filtering by residency, and `LodPool.pin` runs the whole build generator inline when
+the part is not resident (`lodPool.ts`, `syncCount++`). On a 64 MB pool that holds ~140 of 364 parts, a
+jump to a different part of the world therefore builds most of what the new frame pins, right there.
+
+Sized properly: the counters are cumulative, so the *second* re-pose in that run cost 113 − 63 = **50
+inline builds**, at `buildMsP50` 10.9 ms and P95 24.3 ms — about **0.5 s of freeze on this VM** (less on
+hardware, where these CPU geometry builds are not running under SwiftShader). It happens **at a
+teleport and nowhere else**: a walking camera takes the non-reset path, whose builds go through
+`work(budgetMs)` a chunk at a time, which is exactly what the code comment at that branch says.
+
+Is it worth removing? Not by tightening the prefetch, and not by pinning less — the reset already pins
+only the candidates it will show (64 lobe slots, 12 limbs, plus the persistent set ≈ the 79 shown). The
+honest statement is that **the small tier trades a ~0.5 s hitch at a teleport for a capture that draws
+the same parts warm or cold**, and this lane wrote that trade deliberately. What would test the other
+half — whether a *walking* camera on the small tier ever stalls — is `canopy-walk.mjs` on this tier with
+`syncBuilds` read per step, which no round has done yet.
+
+The prefetch change was reverted: a parameter change with no measured effect is not worth shipping.
 
 ## Files
 
