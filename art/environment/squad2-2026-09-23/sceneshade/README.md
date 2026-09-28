@@ -95,6 +95,45 @@ in `util/shadowReach.ts`; what it needs from you is caster granularity.** Split 
 into per-building or per-run groups (or register per-part spheres) and the 719 K becomes addressable
 the way the giants' 86 K sector was.
 
+## How much the test would actually recover, system by system — the answer is: little, and nothing from the two big rows
+
+Patching one lane's file to find out does not scale, and my extrapolation from the trees ("structures'
+719 K might yield ~200 K") was a guess. `recover.mjs` replaces both: it asks **the real util** about
+every caster in the scene — one temporary line exposes it, no lane's file changes — and sums the depth
+triangles it would drop, per system.
+
+| at the flight's foot | casters | depth | the test would cull | share |
+| --- | --- | --- | --- | --- |
+| trees | 34 | 854 109 | 2 / 4 272 | already culled per group |
+| **structures** | 47 | **735 822** | **0 / 0** | **nothing** |
+| **vegetation** | 14 | **723 378** | **0 / 0** | **nothing** |
+| terrain | 12 | 345 600 | 1 / 28 800 | 8 % |
+| rocks | 11 | 93 980 | 1 / 16 820 | 18 % |
+| props | 17 | 71 834 | 11 / **20 118** | 28 % |
+| character | 5 | 70 442 | 0 / 0 | nothing |
+| **hardscape** | 8 | 48 532 | 6 / **29 571** | **61 %** |
+
+At camera A the same pass finds props 13 958, hardscape 6 174, trees 4 272 and **zero everywhere
+else** — about 24 K in total, against 99 K at the foot.
+
+So the handoff's real size is **24–99 K, not ~200 K, and none of it comes from the two systems whose
+shade looks most idle.** Structures' 736 K and vegetation's 723 K survive the test completely: a merged
+house or a grass patch under the camera has a sphere whose swept capsule meets the frustum wherever the
+camera looks. Vegetation's 723 K at the foot also *earns* 2.17 % of the pixels — the grass is under the
+player's feet, its shade is genuinely in shot, and the budget question there is the `veg=` look call, not
+a cull.
+
+Where the test pays at current granularity is the small systems: **hardscape gives up 61 % of its depth
+cost at the foot and props 28 %.** 50 K between them is free and pixel-identical, if their owners want
+it.
+
+Two caveats, stated because they bound the numbers. The probe can only evaluate a caster that already
+has a bounding sphere — the build frees CPU arrays after upload, so a sphere that was never computed
+cannot be computed here: 62 of structures' meshes and 12–18 of the character's were skipped (the 47
+structures casters it *did* evaluate carry essentially all of that system's 719 K, so the zero stands
+for the cost). And the test was asked at whole-mesh granularity, which is exactly the point: **the
+lesson is granularity, and this is its price list.**
+
 ## The contract is now under test, without a browser
 
 Everything this branch claims about the culls — "79–193 K a pose off the depth pass and every frame
@@ -128,3 +167,4 @@ case now, where the geometry is unambiguous.
 - `scene-shade.log` — both tables as printed.
 - `structures-try.json` — the three poses with the test wired into structures (the run above).
 - `shadowreach-tests.log` — the contract tests as printed.
+- `recover.mjs`, `recover.json` — what the test would cull per system, at both poses.
