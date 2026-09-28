@@ -86,6 +86,24 @@ half — whether a *walking* camera on the small tier ever stalls — is `canopy
 
 The prefetch change was reverted: a parameter change with no measured effect is not worth shipping.
 
+### 2c. And a walk on the small tier is clean — as far as the harness can see
+
+`playtest.mjs --only walk` with `?pool=small` (`walk-small.json`): **11 routes, every one reached, 0
+stuck, no page errors**, including the long ones — `north-clearing-ledge` 15/15 over 82.1 m,
+`south-bridge-to-log` 21/21 over 51.7 m, `north-grove` 28/28 over 61.7 m. Frame counts and camera speed
+percentiles come out **identical to the default tier's run** (714 / 381 / 138 / 159 / 678 / 351 / 234 /
+516 / 2061 / 1296 / 1569 frames), which is what you would expect: the memory tier decides geometry
+residency, not the simulation.
+
+So the small tier neither breaks nor slows a walk at the level this harness can see. What is still
+unanswered is the pool's own counters *during* a walk — `syncBuilds` per step on the non-reset path — and
+I could not get it this round: the walking path only exists in play mode, and my own play-mode probe
+(`walkpool.mjs` pattern: `place()`, hold `KeyW`, `step(n, dt, false)`, read the audit every 60 frames)
+never got past the `__ZR_PLAY__` / `ready()` handshake, idling instead of stepping. The harness that does
+know that handshake is `playtest.mjs`, and it does not read the trees' audit. Closing that gap means
+either teaching a probe the handshake properly or asking the harness's owner for a pool read in the walk
+scenario; the question itself is now the only open one on this tier.
+
 ## Files
 
 - `quality-tiers.jpg` — the north pose at quality high and low, with each panel's mean and thirds.
