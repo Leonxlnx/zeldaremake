@@ -95,14 +95,38 @@ percentiles come out **identical to the default tier's run** (714 / 381 / 138 / 
 516 / 2061 / 1296 / 1569 frames), which is what you would expect: the memory tier decides geometry
 residency, not the simulation.
 
-So the small tier neither breaks nor slows a walk at the level this harness can see. What is still
-unanswered is the pool's own counters *during* a walk — `syncBuilds` per step on the non-reset path — and
-I could not get it this round: the walking path only exists in play mode, and my own play-mode probe
-(`walkpool.mjs` pattern: `place()`, hold `KeyW`, `step(n, dt, false)`, read the audit every 60 frames)
-never got past the `__ZR_PLAY__` / `ready()` handshake, idling instead of stepping. The harness that does
-know that handshake is `playtest.mjs`, and it does not read the trees' audit. Closing that gap means
-either teaching a probe the handshake properly or asking the harness's owner for a pool read in the walk
-scenario; the question itself is now the only open one on this tier.
+So the small tier neither breaks nor slows a walk at the level that harness can see.
+
+### 2d. And the pool's own counters during the walk: no synchronous builds at all
+
+`walkpool.mjs` (this directory) drives play mode directly — place the player in the plaza, hold `KeyW`,
+step 600 frames at 1/30 s without drawing, and read the pool every 60 — on `?pool=small`:
+
+| sim frames | syncBuilds | built | evicted | pending | resident | pinned / pinnedPending | shown | `work` P95 | over budget |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 180 | **63** | 155 | 98 | 181 | 167 | 79 / **0** | 79 | 6.5 ms | 8 |
+| 300 | **63** | 175 | 120 | 197 | 165 | 79 / **0** | 79 | 6.5 ms | 12 |
+| 420 | **63** | 196 | 140 | 185 | 166 | 79 / **0** | 79 | 6.9 ms | 20 |
+| 600 | **63** | 243 | 183 | 144 | 170 | 79 / **0** | 79 | 6.7 ms | 26 |
+
+**`syncBuilds` never moves.** It sits at the 63 the initial placement cost and does not increment once
+over twenty seconds of walking, while `built` climbs 155 → 243 and `evicted` 98 → 183: the pool is busy,
+and every build of it goes through the chunked `work()` path. `pinnedPending` is 0 at every sample, so
+nothing the frame draws is ever unbuilt, and `shown` holds at 79 throughout.
+
+What the walk does cost is inside that chunked builder: `workMsP95` 6.5–6.9 ms against its 3 ms budget,
+with **26 of 600 frames (4 %) over budget** and three individual long steps. That is a builder overrun,
+not a stall — an order of magnitude below the 10.9 ms median of a whole inline build — and it is the
+honest shape of the answer: **the small tier does not stall a walking camera; it spends about 7 ms in the
+geometry builder on 4 % of frames.**
+
+**The trap that cost me a round**, recorded for whoever writes the next play-mode probe: `__ZR_PLAY__` is
+installed only when the page does not look automated (`main.ts`: `playTest = !headless && test=1`, and
+`isHeadlessCapture()` returns true when `navigator.webdriver` is true). Under puppeteer that means the
+hook never appears unless the probe masks it first —
+`page.evaluateOnNewDocument(() => Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false, configurable: true }))`
+— which `playtest.mjs`, `pool-check.mjs` and `normal-run.mjs` all do. Without it the probe sits waiting
+with `ready()` resolved and nothing else happening, which is exactly how mine idled.
 
 ## Files
 
