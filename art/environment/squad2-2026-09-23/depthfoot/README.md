@@ -303,3 +303,29 @@ culls and after them (`401ba6e3f45ecc369a57b9bdbcb102ff` in this harness).
 goes straight to it, and 544 / 9 129 709 when the run visits A–F first — a pooled near part resident
 or not, worth 168 triangles. The same code produces both, so compare before against after *within*
 one harness, which every table here does.
+
+## 9. The two look-backs — the game's worst views, and the one gate the culls close there
+
+`lookbacks/` measured these long ago as the worst frames in the game (25 % over the triangle ceiling) and
+they were never re-measured against this work. `frozen.mjs` on `lookbacks/poses.json`, `a9308730` against
+the head, **all three md5-identical**:
+
+| pose | before | after | triangles | draws | sector groups casting | near bases casting |
+| --- | --- | --- | --- | --- | --- | --- |
+| plateau-north | 456 / 6 293 690 | 456 / 6 246 699 | **−46 991** | 0 | 6 of 14 | 3 |
+| **plateau-back** | **707** / 10 950 726 | **702** / 10 895 532 | **−55 194** | **−5** | 14 of 14 | 4 |
+| ledge-look-south | 635 / 11 049 685 | 635 / 11 046 057 | −3 628 | 0 | 14 of 14 | 0 |
+
+**The plateau look-back crosses back under W38's draw limit**: 707 → 702 against a ceiling of 700. That is
+the one gate this work closes at that view; its triangles stay at 10.9 M, 21 % over the 9 M line, which is
+the overage fable-4 and fable-5 both sized as needing a look call (vegetation is 59 % of it, trees 8 %).
+
+The spread across the three is the same story the walk poses told. `plateau-north` looks out over the
+forest with most giants behind the camera — 6 of 14 groups cast, and it gives 47 K. `plateau-back` looks
+*into* the plaza, so every giant's shade lands in frame (14 of 14) and the saving is the near bases and the
+batches. `ledge-look-south` stands 75 m north where the near-canopy tier shows only 3 parts and no near
+base is active, so there is almost nothing of this lane's to cull: 3.6 K.
+
+One number worth passing to whoever holds the near-canopy decision: at `plateau-back` **34 in-frame parts
+are starved of a slot**, the nearest 14 m from the camera — the largest starvation measured anywhere, and
+the same shape as `slots/`.
