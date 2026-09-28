@@ -1,6 +1,6 @@
 # Lane 2's evidence, indexed
 
-`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 33
+`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 34
 measurement directories and 14 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
 
@@ -51,6 +51,7 @@ the foot is the vegetation row and an owner call.
 | `crowntone/`, `softedge/`, `lookup/`, `treepop/`, `upring/`, `roofhole/`, `roofcover/`, `headcheck/`, `northgrove/` | The crown veil's rounds: the ray-climb gate, the floor-card fade, the roof's hero-top keep and the stand bands that closed the north, south and grove voids. |
 | `fake/`, `brownwood/` | "The trees show the brown": tree wood is 2.2–2.4 % of the frame; the brown is the columns' boles and the giants' trunks (fable-4's attribution agrees). |
 | `backlog3/`, `farhut/` | Backlog item 3 measured: the west house's wall 0.199 and the far hut's 0.075 against 0.502–0.537 on the reference huts — structures' near-field bounce, not trees. |
+| `roofup/` | **The roof from the middle of the plaza, straight up** — the view the player stands in and the one the earlier roof rounds never took. Layered crowns with real gaps: leaf coverage 47–61 % per strip, mist through the gaps 6–25 %, no flat lid and no bald patch. The one jarring element, a cluster of oversized glossy leaves overhead, is **structures' climbing foliage** (it survives hiding the trees and the vegetation and vanishes with structures) — the third not-a-tree this week. |
 | `bandcheck/` | **The lane's oldest review note, measured as met.** At the owner's 06:50 north pose the 14–58 m crowns read **s 0.06 / l 0.466** against his s 0.05 / l 0.474 (they were 0.15 / 0.29), and the top strips 0.346–0.384 against his 0.394; the band's remaining gap is its bottom third — ground cover, not the middle distance. Both levers left (lighten the understory, pull the medium rung in) move *away* from his numbers. |
 | `arrival/` | "Trees load in ASAP" on screen: **0.02 % of pixels** arrive late with the clock frozen, and the 10 % that moves with the clock running is the wind, not geometry. |
 
