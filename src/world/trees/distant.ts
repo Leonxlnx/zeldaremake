@@ -605,6 +605,21 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
   const rimShare = look?.rim ?? CROWN_RIM;
   const material = new MeshStandardMaterial({ map: atlas, alphaTest: CROWN_ALPHA_TEST, transparent: true, depthWrite: true, vertexColors: true, roughness: 1, metalness: 0, side: DoubleSide });
   material.name = look ? `distant-crown-${look.id}` : 'distant-crown';
+  /**
+   * One draw per crown group instead of two (2026-09-28, lane 2).
+   *
+   * three renders a material with `transparent` AND `side: DoubleSide` **twice** — back faces, then
+   * front faces — unless `forceSinglePass` is set (WebGLRenderer, `renderObject`). Measured per mesh
+   * with `outlook/familycost.mjs`, every distant and mid tree mesh cost **three** draw calls for its two
+   * material groups: one for the wood and two for this crown. Across the two layers that is 45–51 draws
+   * at the look-backs to draw 1.3 % of the trees' triangles.
+   *
+   * The second pass exists so blended back faces sort behind front faces. These cards do not blend:
+   * `alphaTest` makes every fragment opaque or discarded and `depthWrite` is on, so the depth test
+   * resolves the ordering within one pass and the picture is the same — which is checked, not assumed
+   * (`outlook/README.md` §5: the frames' md5s).
+   */
+  material.forceSinglePass = true;
   const f = (x: number) => x.toFixed(3);
   material.onBeforeCompile = (s) => {
     s.uniforms.uCrownSun = { value: sunDir.clone().normalize() };

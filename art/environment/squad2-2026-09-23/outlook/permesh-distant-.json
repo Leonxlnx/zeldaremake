@@ -1,0 +1,300 @@
+[
+ {
+  "pose": "plateau-north",
+  "base": {
+   "draws": 456,
+   "triangles": 6246699
+  },
+  "control": 0,
+  "md5": "44a62d3f",
+  "meshes": [
+   {
+    "name": "distant-0-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 1438,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-0-far",
+    "visible": true,
+    "instances": 58,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 1856,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-1-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 1298,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-1-far",
+    "visible": true,
+    "instances": 52,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 1664,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-2-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 1492,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-2-far",
+    "visible": true,
+    "instances": 47,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 1504,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-3-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 721,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-3-far",
+    "visible": true,
+    "instances": 18,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 576,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-4-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 721,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-4-far",
+    "visible": true,
+    "instances": 24,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 768,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-5-near",
+    "visible": true,
+    "instances": 2,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 721,
+    "drawnTriangles": 1466,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-5-far",
+    "visible": true,
+    "instances": 47,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 1504,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   }
+  ]
+ },
+ {
+  "pose": "plateau-back",
+  "base": {
+   "draws": 702,
+   "triangles": 10895532
+  },
+  "control": 0,
+  "md5": "49b522cd",
+  "meshes": [
+   {
+    "name": "distant-0-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 1438,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-0-far",
+    "visible": true,
+    "instances": 32,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 1024,
+    "drawnDraws": 3,
+    "pixelsMoved": 0.02
+   },
+   {
+    "name": "distant-1-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 1298,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-1-far",
+    "visible": true,
+    "instances": 49,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 1568,
+    "drawnDraws": 3,
+    "pixelsMoved": 0.67
+   },
+   {
+    "name": "distant-2-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 1492,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-2-far",
+    "visible": true,
+    "instances": 63,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 2016,
+    "drawnDraws": 3,
+    "pixelsMoved": 0.9
+   },
+   {
+    "name": "distant-3-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 721,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-3-far",
+    "visible": true,
+    "instances": 31,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 992,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-4-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 721,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-4-far",
+    "visible": true,
+    "instances": 25,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 800,
+    "drawnDraws": 3,
+    "pixelsMoved": 0
+   },
+   {
+    "name": "distant-5-near",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 721,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   },
+   {
+    "name": "distant-5-far",
+    "visible": false,
+    "instances": 0,
+    "groups": 2,
+    "materials": 2,
+    "geometryTriangles": 24,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "note": "not visible"
+   }
+  ]
+ }
+]

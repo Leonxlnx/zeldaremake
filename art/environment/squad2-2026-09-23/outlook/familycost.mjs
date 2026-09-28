@@ -30,6 +30,15 @@ const ONLY = (() => {
   const i = process.argv.indexOf('--only');
   return i >= 0 ? process.argv[i + 1].split(',').map((s) => s.trim().toLowerCase()) : null;
 })();
+/**
+ * `--per-mesh <substring>` measures one MESH at a time instead of a family, and reports what the mesh
+ * is made of (instances, geometry groups, materials). Two groups and two materials should be two draw
+ * calls; when a family's total does not divide that way, this is what says why.
+ */
+const PER_MESH = (() => {
+  const i = process.argv.indexOf('--per-mesh');
+  return i >= 0 ? process.argv[i + 1].toLowerCase() : null;
+})();
 const W = 960;
 const H = 540;
 const SETTLE = 8;
@@ -114,6 +123,55 @@ try {
       return out;
     });
 
+    if (PER_MESH) {
+      const meshes = await page.evaluate((match) => {
+        const out = [];
+        const walk = (o) => {
+          if (o.isMesh && (o.name || '').toLowerCase().includes(match)) {
+            const g = o.geometry;
+            const tri = g?.index ? g.index.count / 3 : 0;
+            out.push({
+              name: o.name,
+              visible: o.visible,
+              instances: o.isInstancedMesh ? o.count : 1,
+              groups: g?.groups?.length ?? 0,
+              materials: Array.isArray(o.material) ? o.material.length : 1,
+              geometryTriangles: Math.round(tri),
+            });
+          }
+          for (const c of o.children) walk(c);
+        };
+        walk(window.__ZR_TREES__);
+        return out;
+      }, PER_MESH);
+      const perMesh = [];
+      for (const m of meshes) {
+        if (!m.visible || m.instances === 0) {
+          perMesh.push({ ...m, drawnTriangles: 0, drawnDraws: 0, pixelsMoved: 0, note: m.visible ? 'no instances' : 'not visible' });
+          continue;
+        }
+        await page.evaluate((n) => {
+          const walk = (o) => {
+            if (o.isMesh && o.name === n) {
+              o.visible = false;
+              window.__ZR_ONE__ = o;
+            }
+            for (const c of o.children) walk(c);
+          };
+          walk(window.__ZR_TREES__);
+        }, m.name);
+        const off = await read();
+        const offPng = await page.screenshot({ type: 'png' });
+        await page.evaluate(() => {
+          if (window.__ZR_ONE__) window.__ZR_ONE__.visible = true;
+        });
+        const moved = await diffShare(basePng, offPng);
+        perMesh.push({ ...m, drawnTriangles: base.triangles - off.triangles, drawnDraws: base.draws - off.draws, pixelsMoved: Math.round(moved * 100) / 100 });
+        log(`  ${m.name}: ${m.instances} inst, ${m.groups} groups, ${m.materials} mats → −${base.draws - off.draws} draws, −${base.triangles - off.triangles} tri, ${moved.toFixed(2)} %`);
+      }
+      results.push({ pose: pose.name, base, control: Math.round(control * 100) / 100, md5: md5(basePng), meshes: perMesh });
+      continue;
+    }
     const rows = [];
     for (const [name, info] of Object.entries(families)) {
       if (ONLY && !ONLY.some((o) => name.toLowerCase().includes(o))) continue;
@@ -164,9 +222,15 @@ try {
   await browser.close();
   await server.close();
 }
-fs.writeFileSync(path.join(outDir, SHADOW ? 'shadowcost.json' : 'familycost.json'), JSON.stringify(results, null, 1) + '\n');
+fs.writeFileSync(path.join(outDir, PER_MESH ? `permesh-${PER_MESH.replace(/[^a-z0-9]+/g, '-')}.json` : SHADOW ? 'shadowcost.json' : 'familycost.json'), JSON.stringify(results, null, 1) + '\n');
 for (const r of results) {
   console.log(`\n## ${r.pose} — ${r.base.draws} draws / ${r.base.triangles} triangles (control ${r.control} %)`);
+  if (r.meshes) {
+    console.log('| mesh | instances | groups | materials | geometry tri | drawn tri | draws | pixels |');
+    console.log('| --- | --- | --- | --- | --- | --- | --- | --- |');
+    for (const m of r.meshes) console.log(`| ${m.name} | ${m.instances} | ${m.groups} | ${m.materials} | ${m.geometryTriangles} | ${m.drawnTriangles} | ${m.drawnDraws} | ${m.pixelsMoved} %${m.note ? ' (' + m.note + ')' : ''} |`);
+    continue;
+  }
   console.log('| family | meshes | submitted | drawn triangles | draws | pixels moved |');
   console.log('| --- | --- | --- | --- | --- | --- |');
   for (const f of r.families) console.log(`| ${f.family} | ${f.meshes} | ${f.submitted} | ${f.drawnTriangles} | ${f.drawnDraws} | ${f.pixelsMoved} % |`);

@@ -92,3 +92,54 @@ and `lookbacks.log` now carry the correction.
 - `poses.json` — the two look-backs.
 - `plateau-north.jpg`, `plateau-back.jpg` — the baselines, and a frame without any family whose removal
   moved under 0.05 % while saving more than 4 draws.
+
+## 5. The third draw call, found and removed: 15–17 draws a frame
+
+`--per-mesh distant-` measured every distant and mid tree mesh at **three draw calls for two material
+groups**, at both poses, without exception:
+
+| mesh | instances | groups | materials | draws | drawn triangles | pixels moved |
+| --- | --- | --- | --- | --- | --- | --- |
+| `distant-0-far` | 58 | 2 | 2 | **3** | 1 856 | 0.00 % |
+| `distant-1-far` | 52 | 2 | 2 | **3** | 1 664 | 0.00 % |
+| `distant-2-far` | 47 | 2 | 2 | **3** | 1 504 | 0.00 % |
+| `distant-3-far` | 18 | 2 | 2 | **3** | 576 | 0.00 % |
+| `distant-4-far` | 24 | 2 | 2 | **3** | 768 | 0.00 % |
+| `distant-5-near` | 2 | 2 | 2 | **3** | 1 466 | 0.00 % |
+| `distant-5-far` | 47 | 2 | 2 | **3** | 1 504 | 0.00 % |
+
+Two groups cannot be three draws, and the reason is in three's renderer: a material with `transparent`
+**and** `side: DoubleSide` is rendered **twice** — back faces, then front faces — unless
+`forceSinglePass` is set (`WebGLRenderer.renderObject`, and again in `getProgram`). The wood group is one
+draw; the crown group is two. `forceSinglePass` appears nowhere in this repository.
+
+These cards do not blend: `alphaTest` makes every fragment opaque or discarded and `depthWrite` is on, so
+the depth test resolves the ordering inside one pass. `distant.ts` sets `forceSinglePass = true` on the
+crown material (both the far layer's and the mid layer's, one factory).
+
+`singlepass.mjs` measures the two states **against each other in one page load** — same pose, clock
+frozen, the flag toggled at runtime with `needsUpdate` — so nothing but the flag differs:
+
+| view | single pass | two passes | draws | triangles | pixels > 2/255 | > 8/255 | max Δ | SSIM |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **A_stairs** | **559** / 8 626 622 | 575 / 8 631 286 | **−16** | −4 664 | 0.213 % | 0.036 % | 28/255 | 0.99746 |
+| F_canopy | 500 / 7 831 095 | 515 / 7 836 917 | **−15** | −5 822 | 0.526 % | 0.125 % | 39/255 | 0.99789 |
+| plateau-north | 439 / 6 242 395 | 456 / 6 246 699 | **−17** | −4 304 | 0.092 % | 0.038 % | 46/255 | 0.99936 |
+| **plateau-back** | **687** / 10 888 866 | 702 / 10 895 532 | **−15** | −6 666 | 0.578 % | 0.072 % | 37/255 | 0.99904 |
+
+**This is not pixel-identical, and it is inside the lane's budget.** 0.09–0.58 % of pixels move by more
+than 2/255 and a tenth of that by more than 8/255, all of it on the crowns' card edges where two faces of
+the same card overlap; SSIM **0.9975–0.9994** against the −0.003 the six fixed views are held to. Side by
+side the two frames are indistinguishable and the amplified difference is nearly black.
+
+**What it buys:** 15–17 draws at every view measured. **A_stairs 575 → 559**, which is the binding fixed
+view, and **plateau-back 702 → 687 — under 700 this time**, which is the correction in §4 turned into the
+thing it claimed.
+
+**For the other lanes, the same one line:** nothing else in the repository sets `forceSinglePass`, and
+`transparent` + `DoubleSide` also describes `atmosphere/mist.ts`, `atmosphere/fairy.ts`,
+`structures/expansionSouth.ts`'s haze, `structures/expansionNorth.ts`'s pool, `structures/materials.ts`,
+`props/index.ts`'s AO decals and `ui/items/dekuStick.ts`. Each of those is drawing twice per frame. Where
+the material blends (additive glows, the mist) the second pass is doing real work and the flag would
+change the picture more than it did here — but it is worth measuring one at a time, and `singlepass.mjs`
+does exactly that measurement for any of them.
