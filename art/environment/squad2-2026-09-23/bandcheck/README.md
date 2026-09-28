@@ -122,3 +122,28 @@ the meshes yourself and screenshot while they are hidden, which is what the prob
 - `pole-not-a-tree.jpg` — §4's correction: the same region with, in turn, nothing hidden, the
   white-barks, the columns, the giants, the far-foliage batches and the understory hidden. The pole
   is in all six.
+
+## The one change on this branch that moves pixels, checked against this charter
+
+`outlook/` §5 set `forceSinglePass` on the distant crown material — three was drawing it twice — which
+takes 15–17 draws a frame and moves **0.09–0.58 % of the pixels** at SSIM 0.9975–0.9994. Those pixels are
+the crowns' card edges, which is precisely the band this note is about, so the charter had to be re-read
+rather than assumed.
+
+Both states rendered **in one page load** at the owner's `owner-0650-north`, clock frozen, the flag toggled
+at runtime (`outlook/singlepass.mjs --only owner-0650-north`), then measured with fable-5's own
+`bands.py` — the same script and crops as §1:
+
+| | mist % | brown % | dark % | leaf % | band mean l | far-centre box |
+| --- | --- | --- | --- | --- | --- | --- |
+| two passes (before) | 14.8 | 26.2 | 21.6 | 20.9 | 0.321 | `#7e7b6f` 46° **s 0.06 / l 0.466** |
+| **single pass (shipped)** | 14.8 | 26.2 | 21.6 | 20.9 | 0.321 | `#7e7b6f` 46° **s 0.06 / l 0.466** |
+| the owner's r_024 | — | — | 12 | — | 0.394 | s 0.05 / l 0.474 |
+
+**Identical on every column, to three decimals and the same hex.** The frame differs by 0.205 % of its
+pixels at that pose (max 34/255) and the band composition does not notice: the difference is on card edges
+where two faces of one card overlap, not in the mass of the crowns. §1's verdict stands unchanged — the
+14–58 m crowns read s 0.06 / l 0.466 against the owner's s 0.05 / l 0.474.
+
+It is also the **largest draw saving of any pose measured**: at the owner's own pose, **457 → 440 draws**
+(−17) and −3 352 triangles.

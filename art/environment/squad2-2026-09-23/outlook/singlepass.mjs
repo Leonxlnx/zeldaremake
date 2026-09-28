@@ -27,12 +27,19 @@ const SETTLE = 8;
 const log = (...m) => console.error(`[singlepass ${new Date().toISOString().slice(11, 19)}]`, ...m);
 fs.mkdirSync(outDir, { recursive: true });
 
-const SHOTS = [
+const ALL_SHOTS = [
   { name: 'A_stairs', viewpoint: 'A_stairs' },
   { name: 'F_canopy', viewpoint: 'F_canopy' },
   { name: 'plateau-north', pose: { p: [17.2, 7.1, -12.0], t: [4.0, 3.0, -40.0], fov: 50 } },
   { name: 'plateau-back', pose: { p: [17.0, 7.1, -15.0], t: [0.0, 2.0, 6.0], fov: 50 } },
+  // the owner's 06:50 north pose: the one the lane's crown-band charter is measured at (bandcheck/)
+  { name: 'owner-0650-north', pose: { p: [1.4, 1.75, -10.2], t: [2.0, 1.45, -20.0], fov: 46 } },
 ];
+const only = (() => {
+  const i = process.argv.indexOf('--only');
+  return i >= 0 ? process.argv[i + 1].split(',') : null;
+})();
+const SHOTS = only ? ALL_SHOTS.filter((s) => only.includes(s.name)) : ALL_SHOTS;
 
 const raw = async (png) => await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
 /** share of pixels differing by more than `t`/255 on any channel, and the largest single difference */
