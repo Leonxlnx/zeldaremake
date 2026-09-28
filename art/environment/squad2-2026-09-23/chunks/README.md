@@ -246,6 +246,93 @@ one (a plain overwrite), while `whitebark.ts`'s in-place uv and colour rewrites 
 typed array. `bitcheck.mjs` makes it verifiable in seconds, but it wants the owning lanes' agreement,
 not a unilateral edit.
 
+## 7. Naming the allocators, and an 89 % cut on the path every tree walks
+
+§6 ended with an estimate of where the garbage comes from. `allocprof.mjs` replaces the estimate: V8's
+sampling heap profiler, through the inspector session Node already has, attributing every sampled
+allocation to the function that made it.
+
+**The flag that makes it useful:** without `includeObjectsCollectedByMajorGC` and
+`…MinorGC`, `getSamplingProfile` reports only what **survived** — for a builder that is 0.23 MB against
+the 4.3 GB `--trace-gc` sees. With them, 1916 MB over 65 parts × 3 builds:
+
+| MB | share | function |
+| --- | --- | --- |
+| 557.6 | 29.1 % | `GeometryWriter.vertex` |
+| 296.9 | 15.5 % | `Array.push` |
+| 187.8 | 9.8 % | `Curve.getPoint` (three) |
+| 172.2 | 9.0 % | `addLeaf` |
+| 99.0 | 5.2 % | `cordField` (bole.ts) |
+| 67.1 | 3.5 % | `reliefBoleSteps` |
+
+The first two are the writer's growing `number[]`s — the cross-lane refactor §6 named, still deferred.
+The third is reachable from inside `writer.ts` alone, and it turned out to be worth far more than its
+share suggested, because `growthPath` is called for **every stem, secondary, twig and twiglet of every
+tree in the world** while this fixture builds only four trees.
+
+**But the profiler's bytes cannot be trusted at this resolution.** After the first fix removed 201
+throwaway vectors per call, `getPoint` kept its 9 % share while `init` vanished and two
+`BufferAttribute` getters appeared — attribution shifting under inlining. So `pathgarbage.mjs` settles
+such questions instead: one code path, 40 000 calls, the same seeds, count the megabytes.
+
+| `growthPath`, 40 000 calls | garbage | per call |
+| --- | --- | --- |
+| `605b81cf` (before this round) | 3384.4 MB | 86.6 KB |
+| `spacedPoints` reuses the table, vectors and curve | 2659.4 MB | 68.1 KB |
+| **+ the cubic evaluated in local variables** | **383.9 MB** | **9.8 KB (−89 %)** |
+
+A control path (`addLeaf`, unchanged this round) moved 2.3 % between the same two builds, which is this
+measurement's noise floor.
+
+**What the two fixes are.** `getSpacedPoints` re-derives the arc-length table on every call: 201 samples
+with no target vector, a fresh cache array, and a new `CatmullRomCurve3`. `spacedPoints` keeps three's
+algorithm exactly — the same 200-sample cumulative table summed in the same order, the same binary
+search, the same segment interpolation — and reuses all three.
+
+The rest was **boxing**. three's `CubicPoly` holds its four coefficients in closure variables, and V8
+heap-allocates a double assigned to a captured variable, so `getPoint` cost ~240 bytes a call — twelve
+coefficients and three components — which over 206 samples is **49 KB a path**. `curvePoint` and
+`cubicAxis` do the same arithmetic in the same order in local variables, where the doubles stay in
+registers.
+
+**Bit-identical** through both: `bitcheck.mjs`'s 75 geometries and 741 103 triangles hash to
+`TOTAL 9fc119c64da990ab83caf7625ce98b6d` before and after.
+
+**What is left on that path:** 9.8 KB a call, of which `growthPath`'s own six `clone()`s and the
+returned points are most. The `_arcLengths` table still churns a little because `length = 0` lets V8
+trim the backing store; a fixed `Float64Array` and an inlined `uToT` would take the rest, and are worth
+the next five minutes rather than an hour.
+
+### 7a. What it is worth where it matters, and where it is worth nothing
+
+**The runtime builder** — the 65 pooled parts the near-LOD pool builds while the player walks, which is
+exactly the workload §6 showed the frame budget losing to the collector:
+
+| the pool's builds (65 parts × 5) | collections | garbage | pause |
+| --- | --- | --- | --- |
+| before the branch | 264 | 4719.3 MB | 255.9 ms |
+| round 2 (leaf scratch, no double copy) | 241 | 4342.5 MB | 241.3 ms |
+| + `spacedPoints` reuse | 239 | 4275.2 MB | 274.0 ms |
+| **+ the inline cubic** | **205** | **3785.2 MB (−19.8 %)** | **226.6 ms (−11.4 %)** |
+
+**A fifth less garbage and 11 % less pause** in the builder whose pauses are the frame-budget tail.
+
+**The world build: nothing measurable.** Three runs each, one Chrome at a time (in parallel the builds
+inflate to 56 s and the noise doubles), reading `__ZR__.perf().buildMs` and the trees' `buildPhases`:
+
+| median of 3 | before | after | runs |
+| --- | --- | --- | --- |
+| trees | 8395 ms | 8367 ms | 8365–9176 → 8166–8855 |
+| the whole build | 44 852 ms | 46 508 ms | 44 217–48 467 → 44 410–47 927 |
+| giants | 4955 ms | 5013 ms | — |
+| white-barks | 931 ms | 844 ms | — |
+
+**−28 ms on an 8.4 s phase whose runs span 700 ms is not a result**, and the whole build reading +1.7 s
+is the same noise from the other side (nothing on this branch touches vegetation or terrain, which moved
++198 and +977 ms in the earlier paired run). The owner's "trees load in ASAP" is not answered by this
+change: the allocation it removes is cheap in wall clock next to the arithmetic and the canvas work
+around it. What it does buy is the runtime table above.
+
 ## Files
 
 - `chunkcost.mjs` (parent) — the chunk timer; `--repeat`, `--top`, `--json`.
@@ -253,6 +340,10 @@ not a unilateral edit.
 - `frames-A/`, `frames-lookbacks/`, `frames-A2/`, `frames-lookbacks2/` — §3's md5 runs, the second pair on the final code (`counts.json` each; the PNGs are regenerable from the commands above and are not committed — the two A_stairs files, rendered ten minutes and three commits apart, were the same bytes).
 - `walk-before.json`, `walk-after.json` (normals), `walk-after2.json` (+ predictor), `walk-after3.json` (+ packing), `walk-after4.json` (+ §6) — §4 and §6.
 - `bitcheck.mjs` — the same 75 geometries md5'd from any checkout (`--root`), so "changes nothing" is checkable while it is being written.
-- `gc-before.log` / `gc-after.log` — `node --trace-gc` over the identical workload, the garbage table of §6.
+- `gc-before.log` / `gc-after.log` — `node --trace-gc` over the identical workload, the garbage tables of §6 and §7a.
+- `allocprof.mjs` — V8's sampling heap profiler by function (remember the two include flags); `alloc-before.json`.
+- `pathgarbage.mjs` — one code path, 40 000 calls, two checkouts: what settles an allocation question.
+- `fixture.mjs` — the one copy of the no-browser fixture `chunkcost`, `bitcheck` and `allocprof` share.
+- `buildphases.mjs`, `buildphases-{before,after}.json` — the world build per system and per trees phase (§7a).
 - `after3.json` — the chunk lists with `setIndex` chunked and the leaf path on scratch.
 - `tiers/walkpool.mjs` now takes `--dist` and `--out`, so two builds can be walked in one session.

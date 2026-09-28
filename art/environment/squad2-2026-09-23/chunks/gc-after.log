@@ -1,305 +1,270 @@
-[306189:0x279a0000]       38 ms: Scavenge 5.7 (6.4) -> 5.3 (7.4) MB, pooled: 0 MB, 0.47 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]       55 ms: Scavenge 8.6 (10.7) -> 8.6 (11.2) MB, pooled: 0 MB, 0.46 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      165 ms: Scavenge 21.4 (23.9) -> 21.4 (25.9) MB, pooled: 0 MB, 0.30 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      304 ms: Scavenge 32.9 (35.3) -> 31.9 (39.6) MB, pooled: 0 MB, 1.07 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      321 ms: Scavenge 35.6 (40.3) -> 33.6 (49.6) MB, pooled: 0 MB, 1.70 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      416 ms: Scavenge 44.0 (52.6) -> 40.6 (53.8) MB, pooled: 0 MB, 2.98 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      458 ms: Scavenge 45.8 (54.8) -> 43.2 (58.1) MB, pooled: 0 MB, 5.86 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      503 ms: Scavenge 49.7 (58.8) -> 45.0 (76.8) MB, pooled: 0 MB, 4.05 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      585 ms: Scavenge 61.0 (78.3) -> 51.1 (79.3) MB, pooled: 0 MB, 4.75 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
-[306189:0x279a0000]      608 ms: Mark-Compact 55.8 (79.7) -> 45.5 (84.5) MB, pooled: 0 MB, 4.19 / 0.00 ms  (+ 0.9 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 22 ms) (average mu = 0.992, current mu = 0.992) finalize incremental marking via stack guard; GC in old space requested
-[306189:0x279a0000]      675 ms: Scavenge 63.0 (85.9) -> 53.9 (85.9) MB, pooled: 0 MB, 5.30 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      716 ms: Scavenge 63.6 (86.3) -> 57.3 (88.3) MB, pooled: 0 MB, 8.47 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      759 ms: Scavenge 70.8 (88.9) -> 62.3 (91.6) MB, pooled: 0 MB, 5.94 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      794 ms: Scavenge 74.0 (92.1) -> 66.4 (96.9) MB, pooled: 0 MB, 3.16 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      807 ms: Scavenge 78.4 (97.1) -> 67.4 (100.9) MB, pooled: 0 MB, 1.65 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      818 ms: Scavenge 82.3 (100.9) -> 68.3 (101.1) MB, pooled: 0 MB, 0.71 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      832 ms: Scavenge 86.3 (104.8) -> 69.5 (103.5) MB, pooled: 0 MB, 0.59 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      851 ms: Scavenge 93.1 (111.4) -> 74.5 (108.6) MB, pooled: 0 MB, 0.75 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      863 ms: Scavenge 90.2 (108.6) -> 74.5 (108.6) MB, pooled: 0 MB, 0.28 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      886 ms: Scavenge 90.6 (108.7) -> 75.2 (108.7) MB, pooled: 0 MB, 0.39 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      898 ms: Scavenge 91.7 (110.1) -> 77.9 (109.7) MB, pooled: 0 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      912 ms: Scavenge 97.7 (116.2) -> 80.0 (113.8) MB, pooled: 0 MB, 0.60 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      926 ms: Scavenge 101.2 (119.9) -> 85.9 (119.9) MB, pooled: 0 MB, 0.60 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      942 ms: Scavenge 110.8 (129.2) -> 96.2 (130.0) MB, pooled: 0 MB, 0.81 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      953 ms: Scavenge 111.5 (130.5) -> 96.0 (130.0) MB, pooled: 0 MB, 0.46 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      962 ms: Scavenge 111.8 (130.4) -> 95.9 (130.0) MB, pooled: 0 MB, 0.36 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      970 ms: Scavenge 111.8 (130.4) -> 96.2 (130.0) MB, pooled: 0 MB, 0.62 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      984 ms: Scavenge 117.7 (136.8) -> 96.1 (130.2) MB, pooled: 0 MB, 0.67 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]      997 ms: Scavenge 117.8 (137.0) -> 96.1 (130.5) MB, pooled: 0 MB, 0.65 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1009 ms: Scavenge 117.9 (137.0) -> 96.1 (130.5) MB, pooled: 0 MB, 0.71 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1022 ms: Scavenge 117.9 (137.0) -> 96.1 (130.5) MB, pooled: 0 MB, 1.56 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1036 ms: Scavenge 117.9 (137.0) -> 96.1 (130.5) MB, pooled: 0 MB, 1.01 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1048 ms: Scavenge 118.0 (137.0) -> 96.3 (130.5) MB, pooled: 0 MB, 1.07 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1062 ms: Scavenge 118.1 (137.0) -> 96.3 (130.7) MB, pooled: 0 MB, 1.06 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1075 ms: Scavenge 113.4 (132.4) -> 96.4 (131.0) MB, pooled: 0 MB, 0.47 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1089 ms: Scavenge 113.5 (132.6) -> 96.5 (131.0) MB, pooled: 0 MB, 0.44 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1118 ms: Scavenge 117.6 (136.4) -> 96.8 (131.0) MB, pooled: 0 MB, 0.50 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1129 ms: Scavenge 112.6 (131.3) -> 98.5 (131.8) MB, pooled: 0 MB, 0.66 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1142 ms: Scavenge 117.0 (136.3) -> 100.0 (134.5) MB, pooled: 0 MB, 0.95 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1157 ms: Scavenge 122.2 (141.4) -> 104.7 (139.4) MB, pooled: 0 MB, 0.58 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1171 ms: Scavenge 121.4 (140.3) -> 107.9 (140.3) MB, pooled: 0 MB, 0.99 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1184 ms: Scavenge 127.7 (147.0) -> 110.0 (144.4) MB, pooled: 0 MB, 0.77 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1198 ms: Scavenge 132.9 (151.9) -> 116.5 (150.8) MB, pooled: 0 MB, 0.70 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1208 ms: Scavenge 137.2 (156.2) -> 122.4 (156.8) MB, pooled: 0 MB, 0.88 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1216 ms: Scavenge 137.9 (157.5) -> 122.4 (157.0) MB, pooled: 0 MB, 0.65 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1227 ms: Scavenge 140.8 (160.4) -> 122.1 (157.0) MB, pooled: 0 MB, 1.09 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1240 ms: Scavenge 143.9 (163.5) -> 122.0 (157.0) MB, pooled: 0 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1253 ms: Scavenge 144.0 (163.5) -> 122.1 (157.0) MB, pooled: 0 MB, 1.11 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1267 ms: Scavenge 144.0 (163.5) -> 122.1 (157.0) MB, pooled: 0 MB, 1.37 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1279 ms: Scavenge 144.1 (163.5) -> 122.3 (157.0) MB, pooled: 0 MB, 0.87 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1291 ms: Scavenge 144.2 (163.5) -> 124.1 (158.9) MB, pooled: 0 MB, 0.74 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1305 ms: Scavenge 146.1 (165.5) -> 124.3 (158.9) MB, pooled: 0 MB, 0.82 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1316 ms: Scavenge 143.4 (162.5) -> 125.2 (159.5) MB, pooled: 0 MB, 0.74 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1330 ms: Scavenge 142.5 (161.9) -> 125.6 (159.9) MB, pooled: 0 MB, 0.76 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1352 ms: Scavenge 145.7 (165.1) -> 125.8 (160.1) MB, pooled: 0 MB, 0.75 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1363 ms: Scavenge 141.6 (161.0) -> 126.6 (160.9) MB, pooled: 0 MB, 0.62 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1372 ms: Scavenge 142.3 (161.6) -> 127.5 (161.6) MB, pooled: 0 MB, 0.37 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1383 ms: Scavenge 144.3 (163.7) -> 128.3 (163.0) MB, pooled: 0 MB, 0.67 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1398 ms: Scavenge 148.7 (167.8) -> 131.5 (166.4) MB, pooled: 0 MB, 1.01 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1413 ms: Scavenge 152.9 (172.2) -> 135.7 (170.8) MB, pooled: 0 MB, 1.00 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1427 ms: Scavenge 159.0 (178.5) -> 141.3 (175.6) MB, pooled: 0 MB, 1.15 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1436 ms: Scavenge 156.6 (176.4) -> 141.3 (176.1) MB, pooled: 0 MB, 0.45 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1453 ms: Scavenge 160.2 (179.9) -> 141.0 (176.3) MB, pooled: 0 MB, 0.56 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1463 ms: Scavenge 156.8 (176.7) -> 141.9 (176.7) MB, pooled: 0 MB, 0.59 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1476 ms: Scavenge 160.2 (180.0) -> 143.5 (178.8) MB, pooled: 0 MB, 0.67 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1485 ms: Scavenge 159.4 (179.1) -> 144.6 (179.1) MB, pooled: 0 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1497 ms: Scavenge 161.4 (181.1) -> 145.5 (180.6) MB, pooled: 0 MB, 0.61 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1515 ms: Scavenge 170.1 (189.9) -> 150.4 (185.7) MB, pooled: 0 MB, 1.03 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1529 ms: Scavenge 176.7 (196.8) -> 155.5 (190.9) MB, pooled: 0 MB, 1.02 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1546 ms: Mark-Compact 166.5 (192.1) -> 80.3 (129.6) MB, pooled: 10 MB, 6.24 / 0.00 ms  (+ 1.7 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 15 ms) (average mu = 0.992, current mu = 0.992) finalize incremental marking via stack guard; GC in old space requested
-[306189:0x279a0000]     1555 ms: Scavenge 96.9 (130.5) -> 82.2 (129.9) MB, pooled: 10 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1577 ms: Scavenge 101.6 (135.2) -> 81.5 (131.2) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1591 ms: Scavenge 101.8 (136.0) -> 84.0 (133.6) MB, pooled: 9 MB, 0.99 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1607 ms: Scavenge 106.2 (140.2) -> 84.6 (133.6) MB, pooled: 9 MB, 0.95 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1624 ms: Scavenge 110.9 (145.0) -> 88.8 (138.3) MB, pooled: 9 MB, 1.07 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1638 ms: Scavenge 106.7 (140.6) -> 90.6 (139.8) MB, pooled: 9 MB, 0.94 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1656 ms: Scavenge 115.0 (148.8) -> 90.9 (139.8) MB, pooled: 9 MB, 0.86 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1673 ms: Scavenge 117.4 (151.2) -> 95.3 (144.4) MB, pooled: 9 MB, 0.81 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1686 ms: Scavenge 112.8 (146.4) -> 96.8 (145.8) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1704 ms: Scavenge 121.5 (155.1) -> 97.2 (145.8) MB, pooled: 9 MB, 0.86 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1713 ms: Scavenge 113.4 (146.9) -> 97.2 (145.8) MB, pooled: 9 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1721 ms: Scavenge 113.2 (146.7) -> 97.2 (145.8) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1729 ms: Scavenge 112.9 (146.2) -> 97.5 (145.8) MB, pooled: 9 MB, 0.80 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1737 ms: Scavenge 112.9 (146.2) -> 97.5 (145.8) MB, pooled: 9 MB, 0.59 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1745 ms: Scavenge 113.2 (146.4) -> 97.7 (145.9) MB, pooled: 9 MB, 0.46 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1752 ms: Scavenge 113.3 (146.4) -> 98.2 (146.1) MB, pooled: 9 MB, 0.69 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1759 ms: Scavenge 113.5 (146.5) -> 98.1 (146.2) MB, pooled: 9 MB, 0.96 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1767 ms: Scavenge 113.7 (146.7) -> 98.3 (146.4) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1774 ms: Scavenge 113.9 (146.8) -> 98.6 (146.5) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1782 ms: Scavenge 114.1 (147.0) -> 98.8 (146.7) MB, pooled: 9 MB, 1.08 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1788 ms: Scavenge 114.3 (147.1) -> 99.1 (146.8) MB, pooled: 9 MB, 0.52 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1795 ms: Scavenge 114.5 (147.3) -> 99.3 (147.0) MB, pooled: 9 MB, 0.72 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1802 ms: Scavenge 114.7 (147.4) -> 99.4 (147.1) MB, pooled: 9 MB, 0.58 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1809 ms: Scavenge 114.9 (147.6) -> 99.5 (147.3) MB, pooled: 9 MB, 0.84 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1816 ms: Scavenge 115.1 (147.7) -> 100.0 (147.4) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1828 ms: Scavenge 121.2 (154.0) -> 100.0 (147.6) MB, pooled: 9 MB, 1.02 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1840 ms: Scavenge 121.4 (154.1) -> 100.1 (147.7) MB, pooled: 9 MB, 1.06 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1851 ms: Scavenge 121.6 (154.2) -> 100.4 (147.9) MB, pooled: 9 MB, 1.15 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1863 ms: Scavenge 121.9 (154.4) -> 100.7 (148.0) MB, pooled: 9 MB, 0.90 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1875 ms: Scavenge 122.1 (154.5) -> 100.9 (148.2) MB, pooled: 9 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1887 ms: Scavenge 122.3 (154.7) -> 101.1 (148.3) MB, pooled: 9 MB, 0.66 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1901 ms: Scavenge 122.6 (154.8) -> 101.4 (148.5) MB, pooled: 9 MB, 0.84 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1914 ms: Scavenge 122.7 (154.8) -> 101.5 (148.5) MB, pooled: 9 MB, 1.27 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1927 ms: Scavenge 122.9 (155.0) -> 101.4 (148.5) MB, pooled: 9 MB, 1.24 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1940 ms: Scavenge 123.0 (155.0) -> 101.3 (148.5) MB, pooled: 9 MB, 0.94 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1952 ms: Scavenge 123.0 (155.0) -> 101.3 (148.5) MB, pooled: 9 MB, 0.87 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1965 ms: Scavenge 123.2 (155.0) -> 101.5 (148.5) MB, pooled: 9 MB, 0.75 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1977 ms: Scavenge 123.3 (155.0) -> 101.7 (148.5) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     1988 ms: Scavenge 123.4 (155.0) -> 102.0 (148.5) MB, pooled: 9 MB, 0.86 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2000 ms: Scavenge 123.5 (155.0) -> 102.1 (148.5) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2012 ms: Scavenge 123.6 (155.0) -> 102.1 (148.5) MB, pooled: 9 MB, 0.77 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2024 ms: Scavenge 123.7 (155.0) -> 102.1 (148.5) MB, pooled: 9 MB, 0.77 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2036 ms: Scavenge 123.8 (155.0) -> 102.2 (148.5) MB, pooled: 9 MB, 0.85 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2047 ms: Scavenge 123.9 (155.0) -> 102.4 (148.5) MB, pooled: 9 MB, 0.61 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2059 ms: Scavenge 124.1 (155.1) -> 102.7 (148.6) MB, pooled: 9 MB, 0.94 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2071 ms: Scavenge 124.0 (155.0) -> 102.8 (148.6) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2083 ms: Scavenge 124.3 (155.1) -> 102.8 (148.6) MB, pooled: 9 MB, 1.13 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2095 ms: Scavenge 124.4 (155.1) -> 102.9 (148.6) MB, pooled: 9 MB, 1.00 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2107 ms: Scavenge 124.4 (155.1) -> 102.9 (148.6) MB, pooled: 9 MB, 0.87 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2119 ms: Scavenge 124.5 (155.1) -> 103.1 (148.6) MB, pooled: 9 MB, 0.99 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2131 ms: Scavenge 124.6 (155.1) -> 103.1 (148.6) MB, pooled: 9 MB, 1.13 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2143 ms: Scavenge 124.7 (155.1) -> 103.2 (148.6) MB, pooled: 9 MB, 0.96 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2156 ms: Scavenge 124.8 (155.1) -> 103.4 (148.6) MB, pooled: 9 MB, 1.03 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2167 ms: Scavenge 125.0 (155.3) -> 103.7 (148.8) MB, pooled: 9 MB, 1.04 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2179 ms: Scavenge 125.1 (155.3) -> 103.9 (148.9) MB, pooled: 9 MB, 1.23 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2191 ms: Scavenge 125.4 (155.4) -> 104.1 (149.1) MB, pooled: 9 MB, 1.17 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2203 ms: Scavenge 125.6 (155.6) -> 104.3 (149.2) MB, pooled: 9 MB, 1.12 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2214 ms: Scavenge 125.9 (155.7) -> 104.6 (149.4) MB, pooled: 9 MB, 0.91 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2225 ms: Scavenge 126.1 (155.9) -> 104.8 (149.5) MB, pooled: 9 MB, 0.76 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2238 ms: Scavenge 126.2 (155.9) -> 104.9 (149.5) MB, pooled: 9 MB, 0.84 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2250 ms: Scavenge 122.4 (152.0) -> 106.0 (150.0) MB, pooled: 9 MB, 1.19 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2262 ms: Scavenge 123.0 (152.4) -> 105.6 (150.0) MB, pooled: 9 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2274 ms: Scavenge 123.1 (152.5) -> 106.7 (150.5) MB, pooled: 9 MB, 1.06 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2287 ms: Scavenge 123.6 (152.9) -> 106.3 (150.5) MB, pooled: 9 MB, 0.83 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2299 ms: Scavenge 123.8 (153.0) -> 107.4 (151.0) MB, pooled: 9 MB, 0.92 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2311 ms: Scavenge 124.3 (153.4) -> 107.0 (151.0) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2324 ms: Scavenge 124.5 (153.5) -> 106.7 (151.0) MB, pooled: 9 MB, 0.61 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2336 ms: Scavenge 123.8 (152.7) -> 106.8 (151.0) MB, pooled: 9 MB, 0.61 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2349 ms: Scavenge 123.9 (152.7) -> 106.9 (151.0) MB, pooled: 9 MB, 0.71 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2365 ms: Scavenge 130.7 (159.4) -> 110.5 (154.6) MB, pooled: 9 MB, 0.85 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2380 ms: Scavenge 131.3 (160.0) -> 115.2 (159.1) MB, pooled: 9 MB, 0.69 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2398 ms: Scavenge 139.9 (168.5) -> 115.9 (159.5) MB, pooled: 9 MB, 0.95 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2417 ms: Scavenge 141.9 (170.5) -> 115.7 (159.5) MB, pooled: 9 MB, 0.83 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2432 ms: Scavenge 139.4 (167.9) -> 119.2 (163.1) MB, pooled: 9 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2447 ms: Scavenge 140.0 (168.4) -> 123.8 (167.6) MB, pooled: 9 MB, 1.08 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2464 ms: Scavenge 148.6 (177.0) -> 124.2 (167.6) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2472 ms: Scavenge 140.5 (168.7) -> 124.3 (167.6) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2480 ms: Scavenge 140.1 (168.2) -> 124.3 (167.6) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2487 ms: Scavenge 140.0 (168.0) -> 124.5 (167.6) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2495 ms: Scavenge 140.2 (168.1) -> 124.8 (167.7) MB, pooled: 9 MB, 0.64 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2503 ms: Scavenge 140.5 (168.4) -> 124.9 (167.9) MB, pooled: 9 MB, 0.87 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2511 ms: Scavenge 141.1 (169.0) -> 125.2 (168.0) MB, pooled: 9 MB, 0.68 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2519 ms: Scavenge 140.9 (168.7) -> 125.4 (168.1) MB, pooled: 9 MB, 0.86 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2527 ms: Scavenge 140.9 (168.6) -> 125.7 (168.3) MB, pooled: 9 MB, 0.67 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2534 ms: Scavenge 141.2 (168.7) -> 125.9 (168.4) MB, pooled: 9 MB, 0.97 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2544 ms: Scavenge 144.3 (171.9) -> 125.9 (168.4) MB, pooled: 9 MB, 0.67 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2555 ms: Scavenge 147.4 (175.0) -> 126.1 (168.4) MB, pooled: 9 MB, 0.80 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2566 ms: Scavenge 147.5 (175.0) -> 126.1 (168.4) MB, pooled: 9 MB, 0.65 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2578 ms: Scavenge 147.6 (175.0) -> 126.2 (168.4) MB, pooled: 9 MB, 1.38 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2589 ms: Scavenge 147.8 (175.1) -> 126.4 (168.6) MB, pooled: 9 MB, 0.60 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2601 ms: Scavenge 147.9 (175.1) -> 126.7 (168.7) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2613 ms: Scavenge 148.1 (175.3) -> 126.8 (168.9) MB, pooled: 9 MB, 0.76 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2624 ms: Scavenge 148.3 (175.4) -> 127.2 (169.0) MB, pooled: 9 MB, 0.76 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2636 ms: Scavenge 148.4 (175.4) -> 127.2 (169.0) MB, pooled: 9 MB, 0.83 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2648 ms: Scavenge 148.6 (175.6) -> 127.1 (169.0) MB, pooled: 9 MB, 0.85 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2660 ms: Scavenge 148.7 (175.6) -> 127.2 (169.0) MB, pooled: 9 MB, 1.16 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2671 ms: Scavenge 148.8 (175.6) -> 127.5 (169.0) MB, pooled: 9 MB, 0.84 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2683 ms: Scavenge 148.9 (175.6) -> 127.5 (169.0) MB, pooled: 9 MB, 1.13 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2694 ms: Scavenge 149.0 (175.6) -> 127.6 (169.0) MB, pooled: 9 MB, 0.85 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2706 ms: Scavenge 149.1 (175.6) -> 127.7 (169.0) MB, pooled: 9 MB, 1.00 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2718 ms: Scavenge 149.2 (175.6) -> 127.7 (169.0) MB, pooled: 9 MB, 1.21 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2730 ms: Scavenge 149.2 (175.6) -> 127.7 (169.0) MB, pooled: 9 MB, 1.15 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2742 ms: Scavenge 149.3 (175.6) -> 127.8 (169.0) MB, pooled: 9 MB, 0.96 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2754 ms: Scavenge 149.4 (175.6) -> 128.0 (169.0) MB, pooled: 9 MB, 1.27 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2766 ms: Scavenge 149.5 (175.6) -> 128.1 (169.0) MB, pooled: 9 MB, 0.89 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2777 ms: Scavenge 149.6 (175.6) -> 128.2 (169.0) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2788 ms: Scavenge 149.7 (175.6) -> 128.3 (169.0) MB, pooled: 9 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2800 ms: Scavenge 149.7 (175.6) -> 128.4 (169.0) MB, pooled: 9 MB, 0.92 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2812 ms: Scavenge 149.8 (175.6) -> 128.4 (169.0) MB, pooled: 9 MB, 0.76 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2824 ms: Scavenge 149.9 (175.6) -> 128.3 (169.0) MB, pooled: 9 MB, 0.90 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2836 ms: Scavenge 150.0 (175.6) -> 128.3 (169.0) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2848 ms: Scavenge 150.1 (175.6) -> 128.3 (169.0) MB, pooled: 9 MB, 0.77 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2860 ms: Scavenge 150.2 (175.6) -> 128.4 (169.0) MB, pooled: 9 MB, 0.72 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2872 ms: Scavenge 150.3 (175.6) -> 128.5 (169.0) MB, pooled: 9 MB, 0.95 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2884 ms: Scavenge 150.4 (175.6) -> 128.7 (169.0) MB, pooled: 9 MB, 0.81 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2896 ms: Scavenge 150.6 (175.8) -> 129.3 (169.2) MB, pooled: 9 MB, 1.00 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2907 ms: Scavenge 150.7 (175.8) -> 129.4 (169.2) MB, pooled: 9 MB, 0.74 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2918 ms: Scavenge 150.8 (175.8) -> 129.5 (169.2) MB, pooled: 9 MB, 0.66 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2930 ms: Scavenge 150.9 (175.8) -> 129.5 (169.2) MB, pooled: 9 MB, 1.08 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2942 ms: Scavenge 151.0 (175.8) -> 129.3 (169.2) MB, pooled: 9 MB, 0.94 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2953 ms: Scavenge 148.2 (172.8) -> 130.1 (169.6) MB, pooled: 9 MB, 0.85 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2967 ms: Scavenge 149.4 (173.9) -> 131.4 (171.1) MB, pooled: 9 MB, 0.88 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2981 ms: Scavenge 149.0 (173.4) -> 131.8 (171.1) MB, pooled: 9 MB, 0.62 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     2993 ms: Scavenge 149.5 (173.8) -> 132.2 (171.4) MB, pooled: 9 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3007 ms: Scavenge 150.1 (174.3) -> 132.0 (171.4) MB, pooled: 9 MB, 1.23 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3019 ms: Scavenge 149.0 (173.1) -> 131.9 (171.4) MB, pooled: 9 MB, 1.12 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3031 ms: Scavenge 148.6 (172.6) -> 132.8 (171.8) MB, pooled: 9 MB, 1.10 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3040 ms: Scavenge 149.2 (173.1) -> 133.9 (172.3) MB, pooled: 9 MB, 0.61 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3054 ms: Scavenge 155.9 (179.8) -> 136.5 (175.9) MB, pooled: 9 MB, 1.21 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3066 ms: Scavenge 153.7 (177.5) -> 138.0 (177.2) MB, pooled: 9 MB, 0.74 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3082 ms: Scavenge 160.2 (184.0) -> 138.1 (177.2) MB, pooled: 9 MB, 1.11 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3092 ms: Scavenge 155.8 (179.5) -> 139.5 (178.7) MB, pooled: 9 MB, 0.58 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3106 ms: Scavenge 161.1 (184.8) -> 143.7 (182.3) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3117 ms: Scavenge 162.4 (186.0) -> 145.3 (184.4) MB, pooled: 9 MB, 0.45 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3131 ms: Scavenge 166.0 (189.5) -> 149.7 (188.4) MB, pooled: 9 MB, 0.71 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3144 ms: Scavenge 171.3 (194.8) -> 152.5 (191.4) MB, pooled: 9 MB, 0.58 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3157 ms: Scavenge 170.9 (194.2) -> 154.5 (193.1) MB, pooled: 9 MB, 0.87 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3165 ms: Scavenge 171.1 (194.4) -> 155.5 (193.3) MB, pooled: 9 MB, 0.63 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3173 ms: Scavenge 171.0 (194.1) -> 155.3 (193.4) MB, pooled: 9 MB, 0.89 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3180 ms: Scavenge 170.8 (193.9) -> 155.5 (193.6) MB, pooled: 9 MB, 0.63 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3188 ms: Scavenge 171.0 (194.0) -> 155.7 (193.7) MB, pooled: 9 MB, 0.57 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3196 ms: Scavenge 171.2 (194.2) -> 155.9 (193.9) MB, pooled: 9 MB, 0.57 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3204 ms: Scavenge 171.4 (194.3) -> 156.1 (194.0) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3212 ms: Scavenge 171.9 (194.7) -> 156.2 (194.0) MB, pooled: 9 MB, 0.58 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3221 ms: Scavenge 172.3 (195.1) -> 156.1 (194.0) MB, pooled: 9 MB, 0.81 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3230 ms: Scavenge 172.4 (195.1) -> 156.0 (194.0) MB, pooled: 9 MB, 1.39 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3239 ms: Scavenge 172.1 (194.7) -> 156.5 (194.0) MB, pooled: 9 MB, 0.88 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3250 ms: Scavenge 175.0 (197.7) -> 157.9 (196.1) MB, pooled: 9 MB, 1.06 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3267 ms: Scavenge 181.2 (203.8) -> 163.2 (200.7) MB, pooled: 9 MB, 0.81 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3278 ms: Scavenge 181.9 (204.4) -> 164.8 (202.8) MB, pooled: 9 MB, 0.50 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3295 ms: Scavenge 188.1 (210.5) -> 170.0 (207.4) MB, pooled: 9 MB, 0.78 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3306 ms: Scavenge 188.7 (211.1) -> 171.6 (209.5) MB, pooled: 9 MB, 0.46 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3323 ms: Scavenge 195.0 (217.2) -> 176.9 (214.1) MB, pooled: 9 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3333 ms: Scavenge 195.6 (217.8) -> 178.5 (216.2) MB, pooled: 9 MB, 0.86 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3351 ms: Scavenge 201.8 (223.9) -> 183.7 (220.8) MB, pooled: 9 MB, 0.99 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3361 ms: Scavenge 201.1 (223.1) -> 184.9 (222.3) MB, pooled: 9 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3378 ms: Scavenge 209.6 (231.5) -> 190.5 (227.1) MB, pooled: 9 MB, 0.87 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3387 ms: Scavenge 206.4 (228.2) -> 190.5 (227.7) MB, pooled: 8 MB, 0.79 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3395 ms: Scavenge 206.7 (228.9) -> 190.5 (227.7) MB, pooled: 8 MB, 0.81 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3404 ms: Scavenge 207.3 (229.4) -> 190.5 (228.0) MB, pooled: 8 MB, 0.73 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3413 ms: Scavenge 206.5 (228.8) -> 190.6 (228.0) MB, pooled: 8 MB, 0.70 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3421 ms: Scavenge 206.2 (228.4) -> 190.7 (228.0) MB, pooled: 8 MB, 0.59 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3430 ms: Scavenge 207.5 (229.6) -> 190.6 (228.0) MB, pooled: 8 MB, 0.74 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3439 ms: Scavenge 207.4 (229.4) -> 190.6 (228.0) MB, pooled: 8 MB, 1.01 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3448 ms: Scavenge 207.1 (229.1) -> 190.7 (228.0) MB, pooled: 8 MB, 0.69 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3456 ms: Scavenge 206.7 (228.6) -> 190.9 (228.0) MB, pooled: 8 MB, 0.55 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3463 ms: Scavenge 206.6 (228.4) -> 191.1 (228.2) MB, pooled: 8 MB, 0.75 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-[306189:0x279a0000]     3472 ms: Scavenge 207.3 (229.3) -> 191.1 (228.5) MB, pooled: 8 MB, 0.63 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
+[314093:0xc967000]       39 ms: Scavenge 5.7 (6.4) -> 5.3 (7.4) MB, pooled: 0 MB, 0.50 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]       57 ms: Scavenge 8.6 (10.7) -> 8.6 (11.2) MB, pooled: 0 MB, 0.49 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      167 ms: Scavenge 21.4 (23.9) -> 21.4 (26.1) MB, pooled: 0 MB, 0.32 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      293 ms: Scavenge 32.8 (35.3) -> 31.9 (39.6) MB, pooled: 0 MB, 1.02 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      308 ms: Scavenge 35.6 (40.3) -> 33.6 (49.6) MB, pooled: 0 MB, 1.82 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      400 ms: Scavenge 44.0 (52.6) -> 40.7 (53.8) MB, pooled: 0 MB, 3.22 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      445 ms: Scavenge 45.7 (54.8) -> 43.1 (58.1) MB, pooled: 0 MB, 6.27 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      492 ms: Scavenge 49.7 (58.8) -> 44.9 (77.1) MB, pooled: 0 MB, 2.74 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      579 ms: Scavenge 60.8 (78.3) -> 50.6 (79.5) MB, pooled: 0 MB, 3.50 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[314093:0xc967000]      600 ms: Mark-Compact 54.5 (79.5) -> 51.5 (87.0) MB, pooled: 0 MB, 4.11 / 0.00 ms  (+ 0.3 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 20 ms) (average mu = 0.993, current mu = 0.993) finalize incremental marking via stack guard; GC in old space requested
+[314093:0xc967000]      672 ms: Scavenge 69.1 (88.4) -> 59.2 (88.4) MB, pooled: 0 MB, 5.90 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      713 ms: Scavenge 69.8 (89.1) -> 63.5 (94.1) MB, pooled: 0 MB, 5.40 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      753 ms: Scavenge 76.2 (94.4) -> 68.1 (97.9) MB, pooled: 0 MB, 2.94 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      788 ms: Scavenge 80.1 (98.1) -> 72.8 (102.6) MB, pooled: 0 MB, 2.99 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      804 ms: Scavenge 84.2 (102.9) -> 73.8 (107.1) MB, pooled: 0 MB, 2.30 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      817 ms: Scavenge 88.7 (107.1) -> 74.8 (107.4) MB, pooled: 0 MB, 0.61 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      829 ms: Scavenge 91.4 (109.8) -> 75.8 (109.4) MB, pooled: 0 MB, 0.68 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      848 ms: Scavenge 97.5 (115.7) -> 79.5 (113.5) MB, pooled: 0 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      862 ms: Scavenge 98.2 (116.5) -> 82.6 (117.0) MB, pooled: 0 MB, 0.53 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      886 ms: Scavenge 98.5 (117.0) -> 83.0 (117.0) MB, pooled: 0 MB, 0.30 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      902 ms: Scavenge 101.7 (120.3) -> 85.9 (119.6) MB, pooled: 0 MB, 0.54 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      926 ms: Scavenge 113.4 (132.2) -> 92.9 (126.9) MB, pooled: 0 MB, 1.12 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      945 ms: Scavenge 115.8 (134.7) -> 100.3 (135.0) MB, pooled: 0 MB, 0.81 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      955 ms: Scavenge 116.3 (135.6) -> 100.9 (135.1) MB, pooled: 0 MB, 0.56 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      965 ms: Scavenge 116.4 (135.6) -> 100.8 (135.1) MB, pooled: 0 MB, 0.73 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      978 ms: Scavenge 122.9 (142.2) -> 101.6 (135.5) MB, pooled: 0 MB, 0.70 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]      995 ms: Scavenge 125.5 (145.0) -> 101.3 (135.8) MB, pooled: 0 MB, 0.76 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1008 ms: Scavenge 123.4 (142.9) -> 102.1 (136.2) MB, pooled: 0 MB, 1.17 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1023 ms: Scavenge 126.0 (145.4) -> 101.7 (136.2) MB, pooled: 0 MB, 0.94 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1040 ms: Scavenge 126.6 (146.0) -> 101.5 (136.2) MB, pooled: 0 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1054 ms: Scavenge 120.6 (139.8) -> 102.3 (136.5) MB, pooled: 0 MB, 0.60 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1069 ms: Scavenge 119.1 (138.1) -> 102.8 (136.9) MB, pooled: 0 MB, 0.98 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1084 ms: Scavenge 119.9 (139.0) -> 102.2 (136.9) MB, pooled: 0 MB, 0.86 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1113 ms: Scavenge 122.7 (141.5) -> 103.8 (136.9) MB, pooled: 0 MB, 1.30 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1126 ms: Scavenge 120.4 (139.2) -> 104.7 (139.1) MB, pooled: 0 MB, 0.89 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1143 ms: Scavenge 129.2 (148.2) -> 109.3 (143.7) MB, pooled: 0 MB, 0.74 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1159 ms: Scavenge 125.6 (144.5) -> 111.6 (145.0) MB, pooled: 0 MB, 0.72 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1178 ms: Scavenge 134.3 (153.7) -> 115.2 (149.6) MB, pooled: 0 MB, 0.90 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1195 ms: Scavenge 141.6 (160.9) -> 123.6 (157.5) MB, pooled: 0 MB, 0.72 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1203 ms: Scavenge 139.3 (158.4) -> 124.2 (158.4) MB, pooled: 0 MB, 0.91 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1214 ms: Scavenge 142.5 (162.0) -> 124.2 (158.6) MB, pooled: 0 MB, 0.66 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1231 ms: Scavenge 148.6 (168.2) -> 123.8 (158.6) MB, pooled: 0 MB, 0.97 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1243 ms: Scavenge 145.8 (165.3) -> 124.6 (158.7) MB, pooled: 0 MB, 0.77 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1259 ms: Scavenge 148.9 (168.4) -> 124.1 (158.7) MB, pooled: 0 MB, 0.81 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1272 ms: Scavenge 146.0 (165.4) -> 124.8 (158.9) MB, pooled: 0 MB, 0.97 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1289 ms: Scavenge 149.1 (168.5) -> 124.2 (158.9) MB, pooled: 0 MB, 1.33 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1304 ms: Scavenge 142.0 (161.2) -> 124.1 (158.9) MB, pooled: 0 MB, 0.54 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1329 ms: Scavenge 145.2 (164.5) -> 124.4 (159.1) MB, pooled: 0 MB, 1.90 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1341 ms: Scavenge 140.3 (159.5) -> 125.2 (159.5) MB, pooled: 0 MB, 0.46 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1352 ms: Scavenge 141.8 (160.7) -> 126.6 (160.7) MB, pooled: 0 MB, 0.39 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1363 ms: Scavenge 142.7 (161.8) -> 127.7 (162.0) MB, pooled: 0 MB, 0.70 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1375 ms: Scavenge 145.3 (164.8) -> 129.0 (164.1) MB, pooled: 0 MB, 0.59 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1391 ms: Scavenge 149.4 (168.8) -> 133.2 (167.7) MB, pooled: 0 MB, 0.62 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1409 ms: Scavenge 160.0 (179.7) -> 138.4 (173.0) MB, pooled: 0 MB, 1.17 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1418 ms: Scavenge 154.3 (173.6) -> 139.1 (173.4) MB, pooled: 0 MB, 0.65 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1437 ms: Scavenge 157.6 (177.0) -> 138.7 (173.7) MB, pooled: 0 MB, 1.11 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1449 ms: Scavenge 154.7 (174.3) -> 139.8 (174.3) MB, pooled: 0 MB, 0.59 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1463 ms: Scavenge 157.6 (177.4) -> 141.3 (176.4) MB, pooled: 0 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1474 ms: Scavenge 157.5 (177.3) -> 142.4 (176.9) MB, pooled: 0 MB, 0.98 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1486 ms: Scavenge 160.8 (180.7) -> 144.1 (179.5) MB, pooled: 0 MB, 0.75 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1508 ms: Scavenge 172.7 (192.7) -> 151.6 (187.0) MB, pooled: 0 MB, 1.35 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1521 ms: Scavenge 173.2 (193.0) -> 157.3 (192.3) MB, pooled: 0 MB, 0.79 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1533 ms: Scavenge 173.4 (193.4) -> 157.3 (192.3) MB, pooled: 0 MB, 1.21 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1555 ms: Scavenge 178.1 (198.0) -> 158.3 (192.8) MB, pooled: 0 MB, 0.90 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1575 ms: Scavenge 183.4 (203.3) -> 157.5 (193.0) MB, pooled: 0 MB, 1.09 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1590 ms: Scavenge 179.8 (199.8) -> 160.7 (196.1) MB, pooled: 0 MB, 0.83 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1605 ms: Scavenge 181.3 (201.1) -> 166.5 (201.1) MB, pooled: 0 MB, 0.55 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1622 ms: Scavenge 192.3 (212.1) -> 170.5 (206.5) MB, pooled: 0 MB, 0.86 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1642 ms: Scavenge (interleaved) 189.7 (210.4) -> 172.7 (209.0) MB, pooled: 0 MB, 0.92 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1648 ms: Mark-Compact 172.8 (209.0) -> 77.1 (133.2) MB, pooled: 15 MB, 6.56 / 0.00 ms  (+ 0.7 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 16 ms) (average mu = 0.993, current mu = 0.993) finalize incremental marking via stack guard; GC in old space requested
+[314093:0xc967000]     1667 ms: Scavenge 100.5 (140.9) -> 81.8 (137.8) MB, pooled: 15 MB, 0.75 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1684 ms: Scavenge 102.2 (142.6) -> 84.4 (140.3) MB, pooled: 15 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1700 ms: Scavenge 106.9 (147.2) -> 85.1 (140.3) MB, pooled: 15 MB, 0.98 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1711 ms: Scavenge 101.5 (141.7) -> 84.8 (140.3) MB, pooled: 15 MB, 0.72 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1718 ms: Scavenge 100.7 (140.9) -> 85.5 (140.4) MB, pooled: 15 MB, 0.61 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1728 ms: Scavenge 100.8 (140.9) -> 85.3 (140.4) MB, pooled: 15 MB, 0.89 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1737 ms: Scavenge 101.0 (141.0) -> 85.3 (140.4) MB, pooled: 15 MB, 0.83 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1746 ms: Scavenge 101.1 (141.0) -> 85.5 (140.4) MB, pooled: 15 MB, 0.61 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1754 ms: Scavenge 101.1 (141.0) -> 85.9 (140.6) MB, pooled: 15 MB, 0.73 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1762 ms: Scavenge 101.3 (141.1) -> 85.8 (140.7) MB, pooled: 15 MB, 0.41 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1772 ms: Scavenge 101.5 (141.3) -> 86.0 (140.9) MB, pooled: 15 MB, 0.94 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1780 ms: Scavenge 101.7 (141.4) -> 86.2 (141.0) MB, pooled: 15 MB, 0.92 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1788 ms: Scavenge 101.7 (141.4) -> 86.3 (141.0) MB, pooled: 15 MB, 0.70 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1797 ms: Scavenge 101.9 (141.6) -> 86.3 (141.0) MB, pooled: 15 MB, 0.88 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1808 ms: Scavenge 105.0 (144.7) -> 86.5 (141.1) MB, pooled: 15 MB, 1.01 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1825 ms: Scavenge 111.0 (150.8) -> 86.5 (141.1) MB, pooled: 15 MB, 1.26 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1842 ms: Scavenge 111.2 (150.9) -> 86.3 (141.1) MB, pooled: 15 MB, 1.12 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1859 ms: Scavenge 111.2 (150.9) -> 86.3 (141.1) MB, pooled: 15 MB, 1.04 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1873 ms: Scavenge 108.3 (147.8) -> 87.2 (141.3) MB, pooled: 15 MB, 1.12 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1890 ms: Scavenge 111.4 (150.9) -> 86.8 (141.3) MB, pooled: 15 MB, 0.84 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1905 ms: Scavenge 109.0 (148.4) -> 87.7 (141.7) MB, pooled: 15 MB, 1.14 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1922 ms: Scavenge 111.5 (150.9) -> 87.3 (141.7) MB, pooled: 15 MB, 1.33 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1936 ms: Scavenge 109.5 (148.8) -> 88.2 (142.1) MB, pooled: 15 MB, 1.26 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1953 ms: Scavenge 112.1 (151.4) -> 88.0 (142.1) MB, pooled: 15 MB, 1.29 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1970 ms: Scavenge 112.7 (151.9) -> 87.9 (142.1) MB, pooled: 15 MB, 1.18 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     1984 ms: Scavenge 110.1 (149.2) -> 88.8 (142.5) MB, pooled: 15 MB, 1.05 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2002 ms: Scavenge 112.7 (151.8) -> 88.7 (142.5) MB, pooled: 15 MB, 0.97 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2019 ms: Scavenge 113.3 (152.3) -> 88.4 (142.5) MB, pooled: 15 MB, 0.94 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2032 ms: Scavenge 110.8 (149.6) -> 89.4 (142.9) MB, pooled: 15 MB, 1.55 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2048 ms: Scavenge 113.3 (152.2) -> 89.3 (142.9) MB, pooled: 15 MB, 1.12 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2065 ms: Scavenge 113.9 (152.7) -> 89.0 (142.9) MB, pooled: 15 MB, 1.12 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2079 ms: Scavenge 111.3 (150.0) -> 90.3 (143.3) MB, pooled: 15 MB, 0.85 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2095 ms: Scavenge 113.9 (152.6) -> 89.8 (143.3) MB, pooled: 15 MB, 0.99 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2112 ms: Scavenge 114.5 (153.1) -> 89.6 (143.3) MB, pooled: 15 MB, 1.24 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2125 ms: Scavenge 111.9 (150.4) -> 90.6 (143.8) MB, pooled: 15 MB, 1.01 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2141 ms: Scavenge 114.5 (153.0) -> 90.6 (143.8) MB, pooled: 15 MB, 1.48 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2158 ms: Scavenge 115.1 (153.6) -> 90.4 (143.8) MB, pooled: 15 MB, 1.08 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2177 ms: Scavenge 115.2 (153.6) -> 90.2 (143.8) MB, pooled: 15 MB, 1.63 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2191 ms: Scavenge 112.7 (150.8) -> 91.6 (144.2) MB, pooled: 15 MB, 1.37 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2207 ms: Scavenge 115.3 (153.6) -> 91.3 (144.3) MB, pooled: 15 MB, 1.47 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2222 ms: Scavenge 113.0 (151.0) -> 91.7 (144.7) MB, pooled: 15 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2237 ms: Scavenge 109.6 (147.5) -> 91.9 (144.7) MB, pooled: 15 MB, 1.32 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2252 ms: Scavenge 110.1 (147.9) -> 91.8 (144.7) MB, pooled: 15 MB, 1.29 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2265 ms: Scavenge 109.1 (146.6) -> 92.7 (145.0) MB, pooled: 15 MB, 0.79 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2280 ms: Scavenge 110.6 (147.9) -> 92.8 (145.0) MB, pooled: 15 MB, 0.94 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2293 ms: Scavenge 110.3 (147.4) -> 94.0 (145.5) MB, pooled: 15 MB, 1.25 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2306 ms: Scavenge 111.0 (147.9) -> 93.7 (145.5) MB, pooled: 15 MB, 0.70 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2320 ms: Scavenge 110.5 (147.2) -> 93.9 (145.5) MB, pooled: 15 MB, 0.81 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2333 ms: Scavenge 110.7 (147.2) -> 94.1 (145.5) MB, pooled: 15 MB, 1.09 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2347 ms: Scavenge 112.4 (148.7) -> 95.5 (147.0) MB, pooled: 15 MB, 0.55 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2367 ms: Scavenge 120.2 (156.4) -> 96.3 (147.4) MB, pooled: 15 MB, 0.92 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2388 ms: Scavenge 122.3 (158.4) -> 96.0 (147.4) MB, pooled: 15 MB, 1.48 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2406 ms: Scavenge 119.9 (155.8) -> 99.6 (151.0) MB, pooled: 15 MB, 0.92 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2424 ms: Scavenge 120.5 (156.3) -> 104.4 (155.5) MB, pooled: 15 MB, 0.93 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2444 ms: Scavenge 129.1 (164.8) -> 105.3 (155.8) MB, pooled: 15 MB, 1.33 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2464 ms: Scavenge 131.2 (166.8) -> 105.1 (155.8) MB, pooled: 15 MB, 0.87 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2473 ms: Scavenge 121.7 (157.0) -> 105.6 (155.9) MB, pooled: 15 MB, 0.97 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2483 ms: Scavenge 121.6 (156.8) -> 105.6 (155.9) MB, pooled: 15 MB, 0.49 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2493 ms: Scavenge 121.3 (156.5) -> 105.6 (155.9) MB, pooled: 15 MB, 0.77 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2501 ms: Scavenge 121.4 (156.5) -> 106.3 (156.1) MB, pooled: 15 MB, 0.65 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2510 ms: Scavenge 122.1 (157.2) -> 105.9 (156.1) MB, pooled: 15 MB, 0.73 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2520 ms: Scavenge 122.0 (157.1) -> 105.9 (156.1) MB, pooled: 15 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2528 ms: Scavenge 121.6 (156.7) -> 106.5 (156.2) MB, pooled: 15 MB, 0.72 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2537 ms: Scavenge 122.0 (156.8) -> 106.5 (156.4) MB, pooled: 15 MB, 0.80 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2551 ms: Scavenge 128.1 (163.1) -> 106.6 (156.5) MB, pooled: 15 MB, 0.91 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2568 ms: Scavenge 131.2 (166.2) -> 106.6 (156.5) MB, pooled: 15 MB, 1.18 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2585 ms: Scavenge 131.4 (166.3) -> 106.5 (156.5) MB, pooled: 15 MB, 1.21 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2598 ms: Scavenge 128.8 (163.6) -> 107.7 (156.9) MB, pooled: 15 MB, 1.05 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2613 ms: Scavenge 131.3 (166.2) -> 107.2 (156.9) MB, pooled: 15 MB, 0.89 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2630 ms: Scavenge 131.9 (166.7) -> 107.1 (156.9) MB, pooled: 15 MB, 1.02 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2643 ms: Scavenge 129.4 (164.0) -> 108.3 (157.4) MB, pooled: 15 MB, 0.84 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2658 ms: Scavenge 131.9 (166.6) -> 107.9 (157.4) MB, pooled: 15 MB, 1.04 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2675 ms: Scavenge 132.5 (167.2) -> 107.7 (157.4) MB, pooled: 15 MB, 0.96 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2687 ms: Scavenge 130.0 (164.4) -> 108.9 (157.8) MB, pooled: 15 MB, 0.96 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2703 ms: Scavenge 132.5 (167.0) -> 108.5 (157.8) MB, pooled: 15 MB, 1.00 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2721 ms: Scavenge 133.1 (167.6) -> 108.2 (157.8) MB, pooled: 15 MB, 1.06 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2733 ms: Scavenge 130.1 (164.4) -> 109.2 (157.9) MB, pooled: 15 MB, 1.02 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2750 ms: Scavenge 133.2 (167.6) -> 108.7 (157.9) MB, pooled: 15 MB, 1.29 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2771 ms: Scavenge 133.4 (167.7) -> 108.5 (157.9) MB, pooled: 15 MB, 1.12 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2785 ms: Scavenge 130.9 (165.0) -> 109.8 (158.3) MB, pooled: 15 MB, 1.23 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2801 ms: Scavenge 133.4 (167.6) -> 109.4 (158.3) MB, pooled: 15 MB, 1.17 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2818 ms: Scavenge 134.0 (168.1) -> 109.0 (158.3) MB, pooled: 15 MB, 1.38 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2831 ms: Scavenge 131.1 (165.0) -> 109.9 (158.5) MB, pooled: 15 MB, 0.84 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2849 ms: Scavenge 134.1 (168.1) -> 109.5 (158.5) MB, pooled: 15 MB, 1.17 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2863 ms: Scavenge 131.7 (165.6) -> 110.6 (158.9) MB, pooled: 15 MB, 0.82 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2879 ms: Scavenge 134.3 (168.1) -> 110.2 (158.9) MB, pooled: 15 MB, 1.11 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2896 ms: Scavenge 135.0 (168.9) -> 110.2 (159.1) MB, pooled: 15 MB, 1.13 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2910 ms: Scavenge 132.5 (166.2) -> 111.4 (159.5) MB, pooled: 15 MB, 1.35 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2929 ms: Scavenge 135.1 (168.7) -> 111.0 (159.5) MB, pooled: 15 MB, 1.04 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2948 ms: Scavenge 135.7 (169.3) -> 110.7 (159.5) MB, pooled: 15 MB, 1.29 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2965 ms: Scavenge 130.2 (163.6) -> 112.1 (160.0) MB, pooled: 15 MB, 1.05 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     2985 ms: Scavenge 130.6 (163.8) -> 111.8 (160.0) MB, pooled: 15 MB, 1.31 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3001 ms: Scavenge 129.6 (162.7) -> 112.5 (160.3) MB, pooled: 15 MB, 1.09 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3018 ms: Scavenge 131.8 (164.7) -> 112.3 (160.3) MB, pooled: 15 MB, 0.86 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3031 ms: Scavenge 128.9 (161.5) -> 113.4 (160.7) MB, pooled: 15 MB, 0.72 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3045 ms: Scavenge 129.8 (162.2) -> 113.7 (160.8) MB, pooled: 15 MB, 0.73 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3058 ms: Scavenge 130.1 (162.3) -> 113.7 (160.8) MB, pooled: 15 MB, 0.70 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3070 ms: Scavenge 132.4 (164.5) -> 115.4 (162.9) MB, pooled: 15 MB, 0.73 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3085 ms: Scavenge 135.8 (167.7) -> 119.8 (166.6) MB, pooled: 15 MB, 0.71 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3097 ms: Scavenge 138.3 (170.2) -> 121.2 (168.6) MB, pooled: 15 MB, 0.71 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3113 ms: Scavenge 142.0 (173.7) -> 125.8 (172.6) MB, pooled: 15 MB, 0.95 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3127 ms: Scavenge 145.3 (177.1) -> 127.7 (175.1) MB, pooled: 15 MB, 0.60 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3142 ms: Scavenge 147.4 (179.0) -> 132.8 (179.0) MB, pooled: 15 MB, 0.79 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3158 ms: Scavenge 155.4 (187.1) -> 135.5 (182.7) MB, pooled: 15 MB, 1.29 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3171 ms: Scavenge 152.0 (183.5) -> 137.1 (183.2) MB, pooled: 15 MB, 0.65 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3185 ms: Scavenge 159.2 (190.8) -> 139.8 (186.8) MB, pooled: 15 MB, 1.00 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3200 ms: Scavenge 157.1 (188.5) -> 140.5 (186.8) MB, pooled: 15 MB, 0.92 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3209 ms: Scavenge 156.9 (188.2) -> 140.8 (187.0) MB, pooled: 15 MB, 0.69 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3218 ms: Scavenge 156.2 (187.4) -> 140.7 (187.0) MB, pooled: 15 MB, 0.66 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3228 ms: Scavenge 156.4 (187.6) -> 140.7 (187.0) MB, pooled: 15 MB, 0.82 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3237 ms: Scavenge 156.4 (187.6) -> 141.2 (187.1) MB, pooled: 15 MB, 0.78 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3247 ms: Scavenge 156.8 (187.9) -> 141.2 (187.3) MB, pooled: 15 MB, 0.65 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3258 ms: Scavenge 157.5 (188.6) -> 141.0 (187.3) MB, pooled: 15 MB, 0.92 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3268 ms: Scavenge 157.5 (188.5) -> 141.6 (187.4) MB, pooled: 15 MB, 0.97 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3278 ms: Scavenge 157.4 (188.3) -> 141.8 (187.8) MB, pooled: 15 MB, 0.80 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3292 ms: Scavenge 160.7 (191.7) -> 143.6 (190.0) MB, pooled: 15 MB, 1.13 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3309 ms: Scavenge 166.5 (197.4) -> 149.1 (195.0) MB, pooled: 15 MB, 0.81 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3323 ms: Scavenge 168.1 (199.0) -> 151.0 (197.3) MB, pooled: 15 MB, 0.80 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3342 ms: Scavenge 173.9 (204.7) -> 156.5 (202.2) MB, pooled: 15 MB, 0.96 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3356 ms: Scavenge 175.5 (206.2) -> 158.4 (204.5) MB, pooled: 15 MB, 1.02 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3376 ms: Scavenge 181.2 (211.8) -> 163.8 (209.3) MB, pooled: 15 MB, 0.94 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3389 ms: Scavenge 182.9 (213.5) -> 165.6 (211.6) MB, pooled: 15 MB, 0.93 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3408 ms: Scavenge 188.3 (218.7) -> 171.0 (216.2) MB, pooled: 15 MB, 0.96 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3422 ms: Scavenge 189.5 (219.9) -> 172.4 (218.3) MB, pooled: 15 MB, 0.73 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3443 ms: Scavenge 196.2 (226.5) -> 177.8 (223.1) MB, pooled: 15 MB, 0.76 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3454 ms: Scavenge 194.2 (224.4) -> 177.9 (223.1) MB, pooled: 15 MB, 0.74 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3464 ms: Scavenge 194.8 (224.9) -> 178.3 (223.2) MB, pooled: 15 MB, 0.67 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3475 ms: Scavenge 194.5 (224.5) -> 178.1 (223.2) MB, pooled: 15 MB, 0.58 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3486 ms: Scavenge 194.2 (224.2) -> 178.1 (223.2) MB, pooled: 15 MB, 0.71 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3497 ms: Scavenge 195.1 (225.1) -> 178.6 (223.4) MB, pooled: 15 MB, 0.89 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3509 ms: Scavenge 195.0 (224.9) -> 178.3 (223.4) MB, pooled: 15 MB, 0.95 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3518 ms: Scavenge 194.6 (224.4) -> 178.9 (223.5) MB, pooled: 15 MB, 0.68 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3528 ms: Scavenge 194.3 (224.1) -> 178.8 (223.7) MB, pooled: 15 MB, 1.08 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+[314093:0xc967000]     3538 ms: Scavenge 195.2 (225.0) -> 178.8 (223.7) MB, pooled: 15 MB, 0.55 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
 # the near-LOD builder's chunks (node, 65 real parts, 5 builds each, median per chunk)
 
 | part kind | parts | chunks | chunk p50 | chunk p95 | chunk max | whole build p50 | p95 | max |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| giant near base | 2 | 231 | 0.05 | 1.03 | 1.59 | 22.94 | 22.94 | 22.94 |
-| near canopy lobe | 56 | 3335 | 0.05 | 0.16 | 1.31 | 4.86 | 6.33 | 6.48 |
-| near canopy limb | 5 | 293 | 0.06 | 0.29 | 0.75 | 7.39 | 9.19 | 9.19 |
-| column near base | 2 | 238 | 0.05 | 0.97 | 1.69 | 27.47 | 27.47 | 27.47 |
-| **all** | 65 | 4097 | **0.05** | **0.23** | **1.69** | 5.07 | 20.9 | 27.47 |
+| giant near base | 2 | 231 | 0.05 | 1.16 | 1.74 | 25.21 | 25.21 | 25.21 |
+| near canopy lobe | 56 | 3335 | 0.06 | 0.16 | 0.66 | 4.97 | 5.67 | 6.13 |
+| near canopy limb | 5 | 293 | 0.06 | 0.33 | 0.99 | 7.82 | 11.16 | 11.16 |
+| column near base | 2 | 238 | 0.06 | 1.2 | 1.96 | 32.77 | 32.77 | 32.77 |
+| **all** | 65 | 4097 | **0.06** | **0.26** | **1.96** | 5.07 | 23.65 | 32.77 |
 
 ## the 12 most expensive chunks, and what they are
 
 | ms | chunk | of | what it is | part |
 | --- | --- | --- | --- | --- |
-| 1.69 | 3 | 127 | the part's geometry | column-1-base |
-| 1.68 | 17 | 127 | the part's geometry | column-1-base |
-| 1.59 | 21 | 114 | the part's geometry | giant-0-base |
-| 1.4 | 13 | 127 | the part's geometry | column-1-base |
-| 1.39 | 12 | 127 | the part's geometry | column-1-base |
-| 1.37 | 26 | 127 | the part's geometry | column-1-base |
-| 1.35 | 21 | 117 | the part's geometry | giant-1-base |
-| 1.31 | 17 | 78 | the part's geometry | near-canopy-giant-chunkcost-giant-a-lobe-21 |
-| 1.3 | 10 | 114 | the part's geometry | giant-0-base |
-| 1.28 | 10 | 117 | the part's geometry | giant-1-base |
-| 1.24 | 14 | 111 | the part's geometry | column-0-base |
-| 1.14 | 6 | 114 | the part's geometry | giant-0-base |
+| 1.96 | 17 | 127 | the part's geometry | column-1-base |
+| 1.84 | 5 | 127 | the part's geometry | column-1-base |
+| 1.82 | 15 | 127 | the part's geometry | column-1-base |
+| 1.74 | 21 | 114 | the part's geometry | giant-0-base |
+| 1.66 | 26 | 127 | the part's geometry | column-1-base |
+| 1.65 | 12 | 127 | the part's geometry | column-1-base |
+| 1.63 | 21 | 117 | the part's geometry | giant-1-base |
+| 1.47 | 10 | 114 | the part's geometry | giant-0-base |
+| 1.41 | 10 | 117 | the part's geometry | giant-1-base |
+| 1.38 | 14 | 111 | the part's geometry | column-0-base |
+| 1.38 | 14 | 127 | the part's geometry | column-1-base |
+| 1.36 | 8 | 127 | the part's geometry | column-1-base |
 
 ## every chunk by what it is
 
 | what it is | count | p50 | p95 | max | sum ms | share of the builder |
 | --- | --- | --- | --- | --- | --- | --- |
-| the part's geometry | 2375 | 0.09 | 0.42 | 1.69 | 296.69 | 85.38 % |
-| finish: position/color/uv packed | 461 | 0.01 | 0.02 | 0.07 | 4.47 | 1.29 % |
-| finish: aWind/aRoot packed + index | 424 | 0.01 | 0.04 | 0.21 | 5.26 | 1.52 % |
-[306189:0x279a0000]     3486 ms: Scavenge 207.1 (229.2) -> 190.9 (228.7) MB, pooled: 7 MB, 0.91 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-| finish: face normals | 605 | 0.05 | 0.06 | 0.11 | 29.93 | 8.61 % |
-| finish: normals normalised | 167 | 0.03 | 0.03 | 0.03 | 3.3 | 0.95 % |
-| finish: seams and bounds | 65 | 0.13 | 0.28 | 0.33 | 7.84 | 2.26 % |
+| the part's geometry | 2375 | 0.08 | 0.43 | 1.96 | 304.38 | 84.16 % |
+| finish: position/color/uv packed | 461 | 0.01 | 0.02 | 0.08 | 5.23 | 1.45 % |
+| finish: aWind/aRoot packed + index | 424 | 0.01 | 0.04 | 0.22 | 5.98 | 1.65 % |
+| finish: face normals | 605 | 0.06 | 0.07 | 0.13 | 33.42 | 9.24 % |
+| finish: normals normalised | 167 | 0.03 | 0.03 | 0.05 | 3.63 | 1 % |
+| finish: seams and bounds | 65 | 0.15 | 0.32 | 0.4 | 9.05 | 2.5 % |
 
 ## what a 3 ms budget pays, given these chunks
 
-- chunks longer than the 3 ms budget: **0 of 4097** (0 %), the longest 1.69 ms
+- chunks longer than the 3 ms budget: **0 of 4097** (0 %), the longest 1.96 ms
 - a `work` call that starts with one of those pays it whole: p95 of the over-budget chunks **0 ms**
 - the parts whose LONGEST chunk is over budget: **0 of 65**
+[314093:0xc967000]     3637 ms: Scavenge 194.7 (224.1) -> 180.3 (223.7) MB, pooled: 15 MB, 2.15 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
 
 ## a long chunk or a long pause? (node GC observer over the same builds)
 
-226 collections, 195.4 ms of pause in total, the longest 6.27 ms — against 1887.19 ms of building.
+191 collections, 188.34 ms of pause in total, the longest 6.59 ms — against 1979.59 ms of building.
 
 | chunks | count | p50 | p95 | max |
 | --- | --- | --- | --- | --- |
-[306189:0x279a0000]     3589 ms: Scavenge 208.2 (230.2) -> 194.2 (229.8) MB, pooled: 7 MB, 1.13 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
-| all readings | 20485 | 0.05 | 0.28 | 2.04 |
-| those a collection landed in | 166 | 1.06 | 1.87 | 2.04 |
-| those with no collection in them | 20319 | 0.05 | 0.23 | 1.78 |
-[306189:0x279a0000]     3604 ms: Scavenge 209.0 (231.1) -> 194.5 (232.4) MB, pooled: 5 MB, 1.74 / 0.00 ms  (average mu = 0.992, current mu = 0.992) allocation failure; 
+| all readings | 20485 | 0.06 | 0.31 | 8.79 |
+| those a collection landed in | 141 | 1.26 | 2.14 | 8.79 |
+[314093:0xc967000]     3661 ms: Scavenge 196.3 (225.7) -> 181.7 (224.5) MB, pooled: 15 MB, 2.21 / 0.00 ms  (average mu = 0.993, current mu = 0.993) allocation failure; 
+| those with no collection in them | 20344 | 0.06 | 0.26 | 2.13 |
 
 | ms | of which GC pause | chunk | part |
 | --- | --- | --- | --- |
-| 2.04 | 0.97 | 2 | giant-0-base |
-| 1.95 | 1.08 | 13 | column-1-base |
-| 1.94 | 1.11 | 9 | giant-1-base |
-| 1.93 | 0.85 | 0 | giant-1-base |
-| 1.9 | 0.98 | 4 | giant-1-base |
-| 1.89 | 0.89 | 2 | giant-0-base |
-| 1.88 | 1.13 | 1 | column-0-base |
-| 1.88 | 0.57 | 12 | column-1-base |
+| 8.79 | 7.53 | 11 | giant-0-base |
+| 2.71 | 1.51 | 0 | giant-1-base |
+| 2.42 | 1.37 | 4 | giant-1-base |
+| 2.34 | 1.16 | 16 | column-1-base |
+| 2.28 | 1.12 | 0 | giant-0-base |
+| 2.26 | 0.99 | 4 | column-1-base |
+| 2.15 | 0.93 | 6 | giant-0-base |
+| 2.14 | 0.97 | 4 | column-1-base |

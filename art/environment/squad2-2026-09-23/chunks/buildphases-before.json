@@ -1,0 +1,167 @@
+{
+ "summary": {
+  "dist": "dist",
+  "runs": 3,
+  "treesMs": 8395,
+  "totalMs": 44852,
+  "phases": {
+   "white-barks": 931,
+   "understory": 66,
+   "columns": 1313,
+   "giants": 4955,
+   "distant-mid-and-publish": 530
+  },
+  "giantStepMs": {
+   "to-world": 103,
+   "near-pool-register": 135,
+   "yield-frame": 48,
+   "yield-count": 12,
+   "giants-loop-total": 2094,
+   "sector-merge": 66,
+   "tail-sectors": 313,
+   "tail-authored-and-rootkit": 32,
+   "tail-variants": 11,
+   "tail-distant-place": 28,
+   "tail-mid-place": 544,
+   "grove-cull": 5,
+   "crown-materials": 1960,
+   "distant-sets": 1,
+   "giants-tail-total": 2898
+  },
+  "bySystem": {
+   "lighting": 105,
+   "atmosphere": 950,
+   "terrain": 4133,
+   "hardscape": 3580,
+   "rocks": 7117,
+   "trees": 8395,
+   "canopy": 56,
+   "structures": 8514,
+   "props": 364,
+   "vegetation": 11587,
+   "character": 634
+  }
+ },
+ "rows": [
+  {
+   "buildMs": {
+    "lighting": 109.7000000178814,
+    "atmosphere": 1151.2999999821186,
+    "terrain": 4251.199999988079,
+    "hardscape": 3639.4000000059605,
+    "rocks": 7578.600000023842,
+    "trees": 9176.5,
+    "canopy": 56.80000001192093,
+    "structures": 8843,
+    "props": 416.89999997615814,
+    "vegetation": 12609.5,
+    "character": 634.2000000178814
+   },
+   "totalMs": 48467.10000002384,
+   "phases": {
+    "white-barks": 941,
+    "understory": 68,
+    "columns": 1451,
+    "giants": 5516,
+    "distant-mid-and-publish": 543
+   },
+   "giantStepMs": {
+    "to-world": 109,
+    "near-pool-register": 142,
+    "yield-frame": 48,
+    "yield-count": 12,
+    "giants-loop-total": 2363,
+    "sector-merge": 71,
+    "tail-sectors": 334,
+    "tail-authored-and-rootkit": 34,
+    "tail-variants": 11,
+    "tail-distant-place": 28,
+    "tail-mid-place": 588,
+    "grove-cull": 5,
+    "crown-materials": 2146,
+    "distant-sets": 1,
+    "giants-tail-total": 3148
+   }
+  },
+  {
+   "buildMs": {
+    "lighting": 33.30000001192093,
+    "atmosphere": 795.1999999880791,
+    "terrain": 4133.299999982119,
+    "hardscape": 3580,
+    "rocks": 7116.5,
+    "trees": 8365.299999982119,
+    "canopy": 52.69999998807907,
+    "structures": 7971.300000011921,
+    "props": 357.59999999403954,
+    "vegetation": 11212,
+    "character": 600.2000000178814
+   },
+   "totalMs": 44217.39999997616,
+   "phases": {
+    "white-barks": 917,
+    "understory": 65,
+    "columns": 1313,
+    "giants": 4948,
+    "distant-mid-and-publish": 515
+   },
+   "giantStepMs": {
+    "to-world": 103,
+    "near-pool-register": 133,
+    "yield-frame": 48,
+    "yield-count": 12,
+    "giants-loop-total": 2094,
+    "sector-merge": 66,
+    "tail-sectors": 308,
+    "tail-authored-and-rootkit": 32,
+    "tail-variants": 10,
+    "tail-distant-place": 26,
+    "tail-mid-place": 518,
+    "grove-cull": 5,
+    "crown-materials": 1951,
+    "distant-sets": 1,
+    "giants-tail-total": 2850
+   }
+  },
+  {
+   "buildMs": {
+    "lighting": 105.2999999821186,
+    "atmosphere": 950.3999999761581,
+    "terrain": 3907.5999999940395,
+    "hardscape": 3362.9000000059605,
+    "rocks": 6963.5999999940395,
+    "trees": 8394.699999988079,
+    "canopy": 55.599999994039536,
+    "structures": 8514,
+    "props": 364.19999998807907,
+    "vegetation": 11587.09999999404,
+    "character": 646.5999999940395
+   },
+   "totalMs": 44851.99999991059,
+   "phases": {
+    "white-barks": 931,
+    "understory": 66,
+    "columns": 1300,
+    "giants": 4955,
+    "distant-mid-and-publish": 530
+   },
+   "giantStepMs": {
+    "to-world": 100,
+    "near-pool-register": 135,
+    "yield-frame": 48,
+    "yield-count": 12,
+    "giants-loop-total": 2053,
+    "sector-merge": 65,
+    "tail-sectors": 313,
+    "tail-authored-and-rootkit": 32,
+    "tail-variants": 13,
+    "tail-distant-place": 30,
+    "tail-mid-place": 544,
+    "grove-cull": 5,
+    "crown-materials": 1960,
+    "distant-sets": 1,
+    "giants-tail-total": 2898
+   }
+  }
+ ]
+}
