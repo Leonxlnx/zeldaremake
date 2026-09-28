@@ -71,9 +71,34 @@ frustum, so it cannot move a pixel. Whoever owns structures or terrain is welcom
 a shared util is a ten-line change and this lane will do that work if it is wanted. `gates.test.mjs`
 shows how to pin it.
 
+## Tried: the test given to structures as it stands
+
+Rather than leave the offer hanging, the util went in and `structures/index.ts` called it from its own
+`update` and `onCameraMove` (a declared cross-lane touch), then the same three poses were measured:
+
+| pose | baseline | with the cull | delta | pixels |
+| --- | --- | --- | --- | --- |
+| A_stairs | 575 / 8 631 286 | 575 / 8 631 286 | 0 | 0.00 % |
+| F_canopy | 515 / 7 836 917 | 510 / **7 812 055** | **−24 862, −5 draws** | 0.00 % |
+| flight's foot | 544 / 9 129 709 | 544 / 9 129 709 | 0 | 0.00 % |
+
+Pixel-identical, as the test guarantees — and it recovers **25 K at one pose and nothing at the other
+two**, against the 719 K this system's shade costs. The reason is granularity, not the test: a merged
+house, a fence run or the log arch has a bounding sphere tens of metres across, and a capsule swept
+from a sphere that big meets the frustum almost wherever the camera looks. What made the same test pay
+in the trees was round 52's split of each sector into **one geometry group per giant**, which gave the
+capsule something small enough to miss the frame — and the depth-pass cull then keyed on those groups.
+
+So the call was taken back out (a cross-lane change earning 25 K at one pose is not worth its review),
+and the recommendation to whoever owns structures or terrain is specific: **the test is free and ready
+in `util/shadowReach.ts`; what it needs from you is caster granularity.** Split the big merged casters
+into per-building or per-run groups (or register per-part spheres) and the 719 K becomes addressable
+the way the giants' 86 K sector was.
+
 ## Files
 
 - `scenedepth.mjs` — the probe. `<outDir> <foot|A_stairs>`; needs one temporary line exposing the scene
   root (documented in `depthfoot/depthprobe.mjs`'s header) because the capture API does not expose it.
 - `A_stairs.json`, `foot.json` — the runs, with per-system caster counts and deltas.
 - `scene-shade.log` — both tables as printed.
+- `structures-try.json` — the three poses with the test wired into structures (the run above).

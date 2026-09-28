@@ -50,11 +50,15 @@ test('the sun depth pass culls per giant group and tests the pooled near bases',
   assert.match(submit, /for \(const nb of nearBoles\)/, 'the near bases need a per-frame shadow test');
   assert.match(submit, /staticCasts !== true/, "quality.shadows and a column's casts flag still bind");
   assert.match(submit, /mesh\.castShadow = shadowReachesGround\(sphere\)/, 'the near base test is the same capsule test');
-  // the sweep ends where the ground blocks the light, and only when the whole swept sphere is under it
-  assert.match(src, /const shadowReachesGround = /, 'the ground-ended sweep must exist');
-  const march = src.slice(src.indexOf('const shadowReachesGround = '), src.indexOf('/** world bounding sphere of placement'));
-  assert.match(march, /marchAt\.y \+ s\.radius <= liveTerrain\.height\(marchAt\.x, marchAt\.z\)/, 'stop only when the swept sphere is wholly at or below the ground');
-  assert.match(march, /const full = Math\.max\(0, \(s\.center\.y \+ s\.radius - SHADOW_FLOOR_Y\)/, 'the floor stays the outer bound');
+  // the test itself lives in util/shadowReach.ts since 2026-09-28; this lane wires it and uses it
+  assert.match(src, /const shadowReachesGround = \(s: Sphere\) => shade\.reaches\(s\)/, 'the lane must call the util');
+  assert.match(src, /createShadowReach\(\{ groundAt: \(x, z\) => liveTerrain\.height\(x, z\), floorY: SHADOW_FLOOR_Y, padM: CULL_PAD_M \}\)/, 'wired to the live ground, the world floor and the wind pad');
+  assert.match(src, /shade\.prepare\(camera, /, 'the frustum and sun must be prepared every cull');
+  const util = readFileSync(new URL('../util/shadowReach.ts', import.meta.url), 'utf8');
+  assert.match(util, /marchAt\.y \+ s\.radius <= groundAt\(marchAt\.x, marchAt\.z\)/, 'stop only when the swept sphere is wholly at or below the ground');
+  assert.match(util, /const full = Math\.max\(0, \(s\.center\.y \+ s\.radius - floorY\)/, 'the floor stays the outer bound');
+  assert.match(util, /if \(frustum\.intersectsSphere\(s\)\) return true;/, 'a caster on screen answers itself');
+  assert.match(util, /marchSphere\.radius = s\.radius \+ d \/ 2;/, 'the capsule is walked with covering spheres');
   // both pools arm `staticCasts` at build, or the per-frame test can never turn them on again
   assert.equal((src.match(/userData\.staticCasts = mesh\.castShadow/g) ?? []).length, 2, 'both near-base pools must record what the build armed');
 });

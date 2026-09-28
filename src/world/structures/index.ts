@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { type Camera, Group, type Mesh, type Object3D, type PointLight, Vector3 } from 'three';
+import { Group, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -26,7 +26,6 @@ import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { NORTH_LANTERN_POSTS, NORTH_ROPE_FENCES, NORTH_SIGNPOSTS, NORTH_VISIBLE_M } from './north';
 import { buildSignpost } from './signpost';
-import { createShadowReach } from '../util/shadowReach';
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
@@ -461,23 +460,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }));
 
   const windDir = ctx.wind.direction;
-  /**
-   * Declared cross-lane touch (lane 2, 2026-09-28, PR #210). `art/environment/squad2-2026-09-23/
-   * sceneshade` measured this system casting **719 K depth triangles for 0.49 % of camera A's pixels
-   * and 0.52 % of the flight's foot** — the shade of a house or a fence whose sweep never enters the
-   * view frustum is pure cost. `createShadowReach` is the trees' own test lifted to a util: it clears
-   * `castShadow` only when the caster's padded sphere, swept down-sun to the ground, provably misses
-   * the frame, so the frame cannot change. Nothing else here is touched; the build still decides which
-   * meshes are casters at all (`userData.staticCasts` remembers that).
-   */
-  const shade = createShadowReach({ groundAt: (x, z) => ctx.terrain.height(x, z), floorY: -20 });
-  const sunUp = new Vector3(0, 1, 0);
-  const cullShade = (camera: Camera) => {
-    if (!ctx.sun?.castShadow) return;
-    sunUp.subVectors(ctx.sun.position, ctx.sun.target.position);
-    shade.prepare(camera, sunUp);
-    shade.cull(group);
-  };
   let disposed = false;
   return {
     name: 'structures',
@@ -485,7 +467,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the walk moves the camera every frame; pose jumps (captures) come through onCameraMove
     update(_dt, t, c) {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
-      cullShade(c.camera);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
@@ -493,7 +474,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       grove.group.visible = grove.visible(c.camera);
     },
     onCameraMove(camera) {
-      cullShade(camera);
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);

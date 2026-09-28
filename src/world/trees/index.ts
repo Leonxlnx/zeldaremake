@@ -54,6 +54,7 @@ const ROOT_KIT = import.meta.env.VITE_ROOT_KIT === '1';
 const ROOT_KIT_BOLES = ['stair-bank-giant', 'plaza-south'];
 import { CANOPY_OPENINGS, CANOPY_OPENING_COLLAR, CANOPY_OPENING_DENSIFY, SHAFT_COLUMNS } from './corridors';
 import { trunkSeatFromRings, tubePathFromRings } from './tubePath';
+import { createShadowReach } from '../util/shadowReach';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
@@ -4235,57 +4236,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** the sphere (already padded) meets the frustum */
   const inView = (s: Sphere) => frustum.intersectsSphere(s);
   /**
-   * Does the volume this sphere's shadow sweeps along the sun direction meet the camera frustum? If
-   * not, the caster is not in the sun's depth pass for this frame: nothing it shades is on screen.
+   * Does a caster's shade reach the frame? The test itself is `util/shadowReach.ts` — the caster's
+   * padded sphere swept down-sun, the sweep ended where the ground stops it, the capsule walked with
+   * covering spheres, short-circuited when the caster is already on screen — lifted out of here on
+   * 2026-09-28 so every system that casts can ask the same question (`sceneshade/` prices the rest:
+   * structures spend 719 K depth triangles for 0.49 % of camera A, this lane's 1.20 M buys 55 %).
    *
-   * The volume is bounded by a capsule — the sphere swept down-sun — and the sweep ends where the
-   * ground stops it rather than at SHADOW_FLOOR_Y.
-   * The world's floor is -9.6 m (measured: the gorge at (0, 39)) and most ground is 1-26 m, so a
-   * capsule swept to -20 runs tens of metres past anything its caster could shade: a near base on
-   * the plaza swept 43 m where 8 m reaches its own ground. Here the swept sphere marches down-sun
-   * until it is wholly at or below the ground it is passing over; past that point that ground is
-   * what blocks the light, so this caster's shade cannot continue. Coarse sampling can only move
-   * where the sweep ends and never ends it before the ground blocks it, so the capsule remains a
-   * bound on the real shadow volume — the test stays conservative, and the frame identical.
+   * Applied at structures' current mesh granularity it recovered only 25 K at F_canopy and nothing at
+   * A or the flight's foot: a merged house or fence run has a sphere too large for the capsule to miss
+   * the frame. What made it pay here was round 52's split of each sector into one group per giant — the
+   * lesson for any lane that wants this is granularity, not the test.
    */
-  const SHADOW_MARCH_STEPS = 6;
-  const marchAt = new Vector3();
-  const marchSphere = new Sphere();
-  const shadowReachesGround = (s: Sphere) => {
-    // a caster whose own sphere meets the frustum is its own answer — the capsule starts there — so
-    // the march and the walk below are only ever paid for casters that are off screen
-    if (frustum.intersectsSphere(s)) return true;
-    const fall = Math.max(0.05, sunNow.y);
-    const full = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / fall);
-    let span = full;
-    const step = full / SHADOW_MARCH_STEPS;
-    for (let k = 1; k <= SHADOW_MARCH_STEPS; k++) {
-      const t = step * k;
-      marchAt.copy(s.center).addScaledVector(sunNow, -t);
-      if (marchAt.y + s.radius <= liveTerrain.height(marchAt.x, marchAt.z)) {
-        span = t;
-        break;
-      }
-    }
-    shadowEnd.copy(s.center).addScaledVector(sunNow, -span);
-    for (const plane of frustum.planes) {
-      if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(shadowEnd) < -s.radius) return false;
-    }
-    // The plane test only rejects a capsule that lies outside ONE plane; a capsule that slips past a
-    // frustum corner — the usual case for a caster beside the frame, since the sweep runs diagonally
-    // — is outside none of them. So walk the capsule instead: spheres of radius r + step/2 spaced
-    // `step` apart contain it (any point within r of the axis is within step/2 of a sample along
-    // it), and when none of them meets the frustum neither can the shadow volume.
-    const stepM = Math.max(2 * s.radius, 2);
-    const n = Math.max(1, Math.ceil(span / stepM));
-    const d = span / n;
-    marchSphere.radius = s.radius + d / 2;
-    for (let k = 0; k <= n; k++) {
-      marchSphere.center.copy(s.center).addScaledVector(sunNow, -d * k);
-      if (frustum.intersectsSphere(marchSphere)) return true;
-    }
-    return false;
-  };
+  const shade = createShadowReach({ groundAt: (x, z) => liveTerrain.height(x, z), floorY: SHADOW_FLOOR_Y, padM: CULL_PAD_M });
+  const shadowReachesGround = (s: Sphere) => shade.reaches(s);
   /** world bounding sphere of placement `i` of `w` at LOD `l`, padded */
   const instanceSphere = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number, out: Sphere) => {
     const bs = w.lods[l].geometry.boundingSphere!;
@@ -4559,6 +4522,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (!force && viewProj.equals(lastViewProj)) return;
     lastViewProj.copy(viewProj);
     frustum.setFromProjectionMatrix(viewProj);
+    shade.prepare(camera, ctx.sun ? sunNow.subVectors(ctx.sun.position, ctx.sun.target.position) : sunDir);
     frustumCornersFor(camera);
     if (ctx.sun) {
       sunNow.subVectors(ctx.sun.position, ctx.sun.target.position);
