@@ -72,6 +72,7 @@ if (hasAudio) ff.push('-i', audio);
 ff.push(
   '-map', '0:v:0',
   ...(hasAudio ? ['-map', '1:a:0'] : []),
+  '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=neighbor',
   '-c:v', 'libx264', '-preset', opt('preset', 'slow'), '-crf', crf, '-pix_fmt', 'yuv420p', '-profile:v', 'high',
   '-g', '48', '-bf', '2', '-r', String(edit.FPS),
   ...(hasAudio ? ['-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-ac', '2'] : []),

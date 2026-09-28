@@ -18,8 +18,9 @@ const params = new URLSearchParams(location.search);
 const SCALE = Number(params.get('scale') || 1);
 const SS = Number(params.get('ss') || 1);
 const FORCE_FALLBACK = params.get('nolook') === '1';
-const W = Math.round(edit.WIDTH * SCALE);
-const H = Math.round(edit.HEIGHT * SCALE);
+const even = (x) => Math.max(2, 2 * Math.round(x / 2));
+const W = even(edit.WIDTH * SCALE);
+const H = even(edit.HEIGHT * SCALE);
 const TRANSITION_FRAMES = { whip: 6, inkWipe: 10, panelWipe: 10, fadeIn: 14 };
 
 // ---------------------------------------------------------------------------------------------

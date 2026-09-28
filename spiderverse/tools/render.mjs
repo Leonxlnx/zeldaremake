@@ -54,8 +54,9 @@ if (!todo.length) process.exit(0);
 const srv = await startServer();
 const browser = await launchBrowser({ priority });
 const page = await browser.newPage();
-const W = Math.round(edit.WIDTH * scale);
-const H = Math.round(edit.HEIGHT * scale);
+const even = (x) => Math.max(2, 2 * Math.round(x / 2));
+const W = even(edit.WIDTH * scale);
+const H = even(edit.HEIGHT * scale);
 await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
 page.on('console', (m) => {
   const t = m.text();
