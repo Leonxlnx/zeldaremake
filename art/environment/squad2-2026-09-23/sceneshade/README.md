@@ -95,6 +95,31 @@ in `util/shadowReach.ts`; what it needs from you is caster granularity.** Split 
 into per-building or per-run groups (or register per-part spheres) and the 719 K becomes addressable
 the way the giants' 86 K sector was.
 
+## The contract is now under test, without a browser
+
+Everything this branch claims about the culls — "79–193 K a pose off the depth pass and every frame
+byte-identical" — is true only if the test never says *no* while some part of a caster's shadow volume
+can still touch the frame. `src/world/util/shadowReach.test.mjs` asserts that as behaviour rather than
+as source text (8 tests, no browser):
+
+- a caster inside the frame always casts (its own sphere answers);
+- a caster behind the camera casts when its shadow sweeps into the frame, and does not when it sweeps
+  away;
+- raising the ground ends the sweep early, and the floor bounds it when the ground never does;
+- the wind pad only ever widens the answer;
+- `cull()` arms from what the build set (`staticCasts`) and narrows, never widens — and a caster it
+  switched off comes back when the sun moves;
+- **no false negatives.** A dense reference walks the same sweep 400 times and asks three whether each
+  step's sphere meets the frustum. Over a grid of 1053 casters around the camera it found more than a
+  hundred whose shadow volume really does touch the frame, and `shadowReach` agreed on every one. The
+  test is allowed to say yes where nothing is there — that costs triangles; it must never say no while
+  shade can be seen.
+
+Worth recording: two of my own expectations were wrong on the first run and the code was right. A
+caster 45 m behind the camera with a 45° sun falls out of the frame faster than it approaches it, so
+its capsule never crosses the view however deep the floor is; the tests use a vertical sun for that
+case now, where the geometry is unambiguous.
+
 ## Files
 
 - `scenedepth.mjs` — the probe. `<outDir> <foot|A_stairs>`; needs one temporary line exposing the scene
@@ -102,3 +127,4 @@ the way the giants' 86 K sector was.
 - `A_stairs.json`, `foot.json` — the runs, with per-system caster counts and deltas.
 - `scene-shade.log` — both tables as printed.
 - `structures-try.json` — the three poses with the test wired into structures (the run above).
+- `shadowreach-tests.log` — the contract tests as printed.
