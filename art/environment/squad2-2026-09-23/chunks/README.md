@@ -179,6 +179,6 @@ so GC and scheduling are in these readings. The reproducible part is the index t
 
 - `chunkcost.mjs` (parent) — the chunk timer; `--repeat`, `--top`, `--json`.
 - `before.json` / `after.json` / `after2.json` — every part's chunk list at each step.
-- `frozen-A-foot-after.json`, `frames-A/`, `frames-lookbacks/`, `frames-A2/`, `frames-lookbacks2/` — §3's md5 runs (the second pair on the final code).
+- `frames-A/`, `frames-lookbacks/`, `frames-A2/`, `frames-lookbacks2/` — §3's md5 runs, the second pair on the final code (`counts.json` each; the PNGs are regenerable from the commands above and are not committed — the two A_stairs files, rendered ten minutes and three commits apart, were the same bytes).
 - `walk-before.json`, `walk-after.json` (normals), `walk-after2.json` (+ predictor), `walk-after3.json` (+ packing) — §4.
 - `tiers/walkpool.mjs` now takes `--dist` and `--out`, so two builds can be walked in one session.
