@@ -1,13 +1,36 @@
 # Lane 2's evidence, indexed
 
-`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 26
-measurement directories and 11 tools, with the headline of each, so another lane can find a number
+`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 31
+measurement directories and 13 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
+
+**Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). The sun's
+depth pass no longer pays for shade the frame cannot see — 79–193 K a pose in play, up to 121 K at a
+fixed view, every frame byte-identical. Checked on the branch head (`sweep2/`):
+
+| | draws / triangles |
+| --- | --- |
+| A_stairs (the binding view) | 575 / 8.63 M — 0.37 M under W38 |
+| B_house / C_lookback / D_log | 557 / 7.91 M · 494 / 7.68 M · 482 / 8.25 M |
+| E_ground / F_canopy | 557 / 7.91 M · 515 / 7.84 M |
+| play: plaza / **flight's foot** | 539 / 7.64 M · 555 / **9.151 M** (0.151 M over) |
+| play: saria-side / west-house | 519 / 8.51 M · 426 / 4.90 M |
+
+All six fixed views are inside the envelope, no page errors, and the play-mode numbers reproduced to
+the digit across two runs hours apart. The lane's own levers are measured out: the crown-veil ask is
+met (far-centre box s 0.06 / l 0.466 against the owner's 0.05 / 0.474), the LOD rungs are bracketed
+from both sides, and the near-canopy tier is priced in both directions and left alone. What remains at
+the foot is the vegetation row and an owner call.
 
 ## Cost and budget
 
 | where | the headline |
 | --- | --- |
+| `depthfoot/` | **The sun's depth pass, by caster.** At the flight's foot 331 K of depth triangles move **zero pixels** (giant near bases 96 K, family shadow proxies 90 K, the south sector 86 K, column near bases 59 K) while the lantern-tree sector's 87 K moves 20.93 %. The four culls that followed take 79–193 K a pose in play and up to 121 K at a fixed view with **byte-identical frames**; §6 has the foot's per-family tally, §7 the walk-pose validation, §8 the CPU answer (below the noise). |
+| `slots/` | **The near-canopy tier, priced both ways.** It is saturated at 79 parts and **77–100 % of them are outside the frame**; at camera A 21 in-frame parts hold no slot. Aiming the slots at the frame gives 19 more near crowns for **+189 697 triangles and 0.46 % of the frame**; tightening the band 40 % moves **0.00 %** and saves only 4–37 K. A slot cap on this tier buys memory and CPU, not drawn cost. |
+| `loadmap/` | **Where the world build goes.** The giants phase splits into `createGiantTree` 1.70 s, the far-crown atlas 1.83 s, `placeMidTrees` 0.49 s, sector foliage 0.33 s, pools 0.14 s, to-world 0.12 s, merge 0.08 s. Across the whole 42.5 s build, **canvas-to-pixels is 6.27 s (14.8 %)** — a SwiftShader cost, not a player's. |
+| `settle/` | **What a pose takes to settle.** The trees' own submission is final on frame 1 (the pools' capture contract holds); the frame-16 change at the foot is the **clock**, not a warm-up — frozen it is one value for 20 frames. Compare within one harness, settle with time and read with the clock frozen. |
+| `sweep2/` | The branch head's own check: six fixed views **all inside W38** (A binding at 575 / 8.63 M, 0.37 M spare), play mode plaza 7.64 M / foot **9.151 M** / saria-side 8.51 M / west-house 4.90 M, no page errors — and identical to a run hours earlier, so the play harness is reproducible on one build. |
 | `sweep/` | "Check everything" on head `e438c6e5`: all six fixed views inside W38 (A the binding one at **614 draws / 8.97 M**, 30 K of headroom), 11 walk routes with 0 stuck, 10 look spots unflagged, no page errors; play mode still **9.59 M at the flight's foot**. |
 | `shadowcost/` | The sun's depth pass is **32 % of hero A's triangles** (174 draws / 2.91 M). `DEPTH-SPLIT.md`: of it, trees 19 %, vegetation 10 %, **the solid world 71 %** — and the grass barely casts (thinning it removes 1.46 M of colour and 0.30 M of depth). The giants' wood contributes **zero**. |
 | `giantwood/` | The giants' mesh family draws **1.36 M at hero A, flat with distance** (72 draws). `BY-TREE.md`: it is **18 % wood / 53 % leaves / 29 % foldable far foliage**, and every giant's relief bole is 0. `CORRECTION.md` withdraws the trunk-arc proposal — `heroDistance` already gates it twice. |
@@ -27,6 +50,7 @@ without opening all of them. Newest first within each group.
 | `crowntone/`, `softedge/`, `lookup/`, `treepop/`, `upring/`, `roofhole/`, `roofcover/`, `headcheck/`, `northgrove/` | The crown veil's rounds: the ray-climb gate, the floor-card fade, the roof's hero-top keep and the stand bands that closed the north, south and grove voids. |
 | `fake/`, `brownwood/` | "The trees show the brown": tree wood is 2.2–2.4 % of the frame; the brown is the columns' boles and the giants' trunks (fable-4's attribution agrees). |
 | `backlog3/`, `farhut/` | Backlog item 3 measured: the west house's wall 0.199 and the far hut's 0.075 against 0.502–0.537 on the reference huts — structures' near-field bounce, not trees. |
+| `bandcheck/` | **The lane's oldest review note, measured as met.** At the owner's 06:50 north pose the 14–58 m crowns read **s 0.06 / l 0.466** against his s 0.05 / l 0.474 (they were 0.15 / 0.29), and the top strips 0.346–0.384 against his 0.394; the band's remaining gap is its bottom third — ground cover, not the middle distance. Both levers left (lighten the understory, pull the medium rung in) move *away* from his numbers. |
 | `arrival/` | "Trees load in ASAP" on screen: **0.02 % of pixels** arrive late with the clock frozen, and the 10 % that moves with the clock running is the wind, not geometry. |
 
 ## Reviews
@@ -41,7 +65,9 @@ without opening all of them. Newest first within each group.
 | --- | --- |
 | `playcost.mjs` | Who owns the triangles at a pose — `__ZR__.isolate` per top-level system, for broll poses or `{"viewpoint": "A_stairs"}`. |
 | `treeaudit.mjs` | The trees system's own audit at a pose, including `submission.byFamily` and `giantWoodByTree`. |
-| `isolateshots.mjs` | One saved frame per system, so a suspect region can be attributed by eye as well as by count. |
+| `isolateshots.mjs` | One saved frame per system — **but see the method note below: `isolate()` cannot be screenshotted.** Use it for counts and attribute pixels by hiding meshes yourself. |
+| `depthfoot/depthprobe.mjs` | Which casters the sun's depth pass pays for at a pose, and whether each one's shade is in the frame at all (frozen clock, one group switched off at a time). |
+| `depthfoot/cullcost.mjs` | The trees system's own per-frame CPU while the camera turns, at a small viewport so the cull's cost is not buried in rasterisation. |
 | `sixcheck.mjs` | What a change did to the fixed frames: pixels moved, mean, local detail, and SSIM against `reference/frames`. |
 | `walkpop.mjs` | What arrives late on screen (renders at `dt = 0`, so the wind cannot be mistaken for geometry). |
 | `band.mjs` | Is the middle distance trees or haze (band mean and across-column sd). |
@@ -59,4 +85,12 @@ without opening all of them. Newest first within each group.
 * Render at `dt = 0` when the question is geometry: with the clock running, wind moves 10 % of a frame.
 * `isolate()` bypasses the composer, so its frames carry no post pass — its numbers are the material's
   own output, not the finished image.
-* `?shadow=0` prices the whole depth pass; `?veg=<lodScale>,<grassDensity>` prices the ground cover.
+* `?shadow=0` prices the whole depth pass; `?veg=<lodScale>,<grassDensity>` prices the ground cover;
+  `?treelod=<near>,<mid>,<distant>,<canopy band>` prices every tree LOD gate and the canopy swap band.
+* **`__ZR__.isolate(system)` restores every child's visibility before it returns**, so a screenshot
+  taken after it shows the FULL frame, not the isolated system (2026-09-27; it cost me an hour and a
+  wrong attribution). Its counts are real — `playcost.mjs` is unaffected — but to attribute a *pixel*
+  to a system you must hide the meshes yourself and shoot while they are hidden.
+* A frame's counts depend on **how much sim time has elapsed**, not on pool residency: at the flight's
+  foot a marginal caster leaves the depth pass 0.53 s in (frame 16 at `dt = 1/30`) because the sun
+  creeps and its shadow target snaps a texel. Settle with time, then read with `render(2, 0)`.
