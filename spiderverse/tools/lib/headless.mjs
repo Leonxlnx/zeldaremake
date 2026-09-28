@@ -79,13 +79,84 @@ export function startServer({ port = 0, root = REPO_ROOT } = {}) {
   });
 }
 
-export async function launchBrowser() {
-  return puppeteer.launch({
-    executablePath: CHROME,
-    headless: 'shell',
-    args: CHROME_ARGS,
-    protocolTimeout: 0,
-  });
+// ---------------------------------------------------------------------------------------------
+// Machine-wide browser semaphore. Many agents share 4 cores and ~6 GB; each headless Chrome
+// with SwiftShader costs 300-900 MB. Slots are atomic mkdir locks holding the owner PID; a slot
+// whose owner process is gone is reclaimed.
+// ---------------------------------------------------------------------------------------------
+const SLOT_DIR = '/tmp/sv-browser-slots';
+const MAX_BROWSERS = Number(process.env.SV_MAX_BROWSERS || 3);
+
+function pidAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return e.code === 'EPERM';
+  }
+}
+
+async function acquireSlot({ priority = false } = {}) {
+  fs.mkdirSync(SLOT_DIR, { recursive: true });
+  const limit = priority ? MAX_BROWSERS + 1 : MAX_BROWSERS;
+  let waitedMs = 0;
+  for (;;) {
+    for (let i = 0; i < limit; i++) {
+      const dir = path.join(SLOT_DIR, `slot${i}`);
+      try {
+        fs.mkdirSync(dir);
+        fs.writeFileSync(path.join(dir, 'pid'), String(process.pid));
+        return dir;
+      } catch {
+        try {
+          const pid = Number(fs.readFileSync(path.join(dir, 'pid'), 'utf8'));
+          if (pid && !pidAlive(pid)) fs.rmSync(dir, { recursive: true, force: true });
+        } catch {
+          // A slot directory without a pid file is being created right now; leave it alone
+          // unless it is clearly stale.
+          try {
+            const st = fs.statSync(dir);
+            if (Date.now() - st.mtimeMs > 60000) fs.rmSync(dir, { recursive: true, force: true });
+          } catch {}
+        }
+      }
+    }
+    if (waitedMs % 30000 === 0 && waitedMs > 0) {
+      console.log(`[headless] waiting for a browser slot (${waitedMs / 1000}s, limit ${limit})`);
+    }
+    await new Promise((r) => setTimeout(r, 500));
+    waitedMs += 500;
+  }
+}
+
+function releaseSlot(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true });
+  } catch {}
+}
+
+/**
+ * Launch Chrome inside a semaphore slot. The slot is released when the browser closes.
+ * `priority: true` is reserved for the director's production renderer.
+ */
+export async function launchBrowser({ priority = false } = {}) {
+  const slot = await acquireSlot({ priority });
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      executablePath: CHROME,
+      headless: 'shell',
+      args: CHROME_ARGS,
+      protocolTimeout: 0,
+    });
+  } catch (e) {
+    releaseSlot(slot);
+    throw e;
+  }
+  const release = () => releaseSlot(slot);
+  browser.once('disconnected', release);
+  process.once('exit', release);
+  return browser;
 }
 
 /**

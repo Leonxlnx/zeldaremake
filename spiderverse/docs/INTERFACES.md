@@ -1,234 +1,241 @@
-# Module contracts (frozen)
+# Module contracts and file ownership (frozen)
 
-Eight people are building this at the same time. It only works because these boundaries do not
-move. If you need a contract changed, say so in your final report - do not change it
-unilaterally.
+Fifteen specialists build this film at the same time in one working tree. It only works because
+these boundaries do not move. If a contract is insufficient, work around it inside your own
+files and state the needed change in your final report - never edit a file you do not own.
 
-- Timing: `app/core/beats.js` (24 fps, 240 frames, 1920x803 delivery, 2.39:1).
-- Placement: `app/core/layout.js` (millimetres, +Y up, tabletop is `y = 0`, action runs +X).
-- Randomness: `app/core/prng.js` only. **No `Math.random`, no `Date.now`, no
+- Timing: `app/core/edit.js` (24 fps, 2880 frames, 1920x804). Shots read their duration from it.
+- Placement: `app/core/layout.js` (millimetres, +Y up, counter `y = 0`, -Z toward the wall,
+  outbound = +X = screen right).
+- Randomness: `app/core/prng.js` only (`rng`, `hash2`, `hash3`, `noise1`, `noise2`, `fbm1`,
+  `fbm2`, `ease`, `clamp`, `smoothstep`, `mix`). **No `Math.random`, `Date.now` or
   `performance.now` in anything that affects pixels.** Every frame must be reproducible.
-- three.js r186, loaded as an ES module from `/node_modules/three/build/three.module.js`
-  (the static server maps the repo root, so `import * as THREE from '/node_modules/three/build/three.module.js'`
-  works in the browser). Use an import map in HTML: `"three": "/node_modules/three/build/three.module.js"`
-  so modules can `import * as THREE from 'three'`.
-- No bundler. Plain browser ES modules under `spiderverse/app/`.
+- three.js r186, plain browser ES modules, no bundler. HTML import map:
+  `{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}`.
+  The static server roots at `/workspace`, so pages are `/spiderverse/app/<page>.html`.
+- Headless rendering only through `tools/lib/headless.mjs` (`startServer`, `withPage`,
+  `grabPNG`). It enforces a machine-wide limit on concurrent browsers (the VM has 4 cores and
+  ~6 GB free shared by everyone) - **one browser per agent at a time, iterate at 960x402.**
+- Nobody runs git. The director commits.
+- Scratch output: `spiderverse/out/<your-owner-id>/` (gitignored).
 
 ## File ownership
 
-| Owner | Files |
+| Owner | Exclusive files |
 | --- | --- |
-| director (integration) | `app/index.html`, `app/main.js`, `app/core/beats.js`, `app/core/layout.js`, `tools/serve.mjs`, `tools/render.mjs`, `tools/assemble.mjs`, `docs/*` except your own report |
-| LOOK | `app/core/materials.js`, `app/core/renderer.js`, `app/core/shaders/**`, `app/scene/lookdev.js`, `tools/preview-look.mjs`, `app/preview-look.html` |
-| ANT | `app/scene/ant.js`, `app/scene/ant/**`, `tools/preview-ant.mjs`, `app/preview-ant.html` |
-| SET | `app/scene/set.js`, `app/scene/set/**`, `tools/preview-set.mjs`, `app/preview-set.html` (tabletop, monuments, window/city/neon, pendant lamp; composes PROPS) |
-| PROPS | `app/scene/props/**`, `tools/preview-props.mjs`, `app/preview-props.html` (mug, crumb, sugar packet, sugar grains) |
-| PERFORM | `app/scene/perform.js`, `app/scene/cameras.js`, `tools/previs.mjs`, `app/previs.html` |
-| FX2D | `app/scene/fx2d.js`, `app/scene/fx2d/**`, `tools/preview-fx2d.mjs`, `app/preview-fx2d.html` |
-| UNIVERSE | `app/core/universes.js`, `app/core/glitch.js`, `tools/preview-universe.mjs`, `app/preview-universe.html` |
-| SOUND | `tools/audio/**`, `audio/**` |
-| RUBRIC | `rubric/**`, `tools/score.mjs`, `tools/score/**`, `docs/RUBRIC.md` |
-| (done) | `app/scene/letters.js` - hand-lettered vector comic faces, already authored |
+| DIRECTOR | `app/index.html`, `app/main.js`, `app/core/layout.js`, `app/core/registry.js`, `app/assets/proxy.js`, `tools/render.mjs`, `tools/assemble.mjs`, `tools/lib/**`, `docs/BRIEF.md`, `docs/GOAL.md`, `docs/INTERFACES.md`, `checkpoints/**` |
+| EDIT | `app/core/edit.js`, `docs/STORY.md`, `docs/SHOTLIST.md`, `app/animatic/**`, `tools/animatic.mjs` |
+| CHAR | `app/assets/characters/**`, `tools/preview-char.mjs`, `app/preview-char.html` |
+| KITCHEN | `app/assets/sets/kitchen.js`, `app/assets/sets/kitchen/**`, `tools/preview-kitchen.mjs`, `app/preview-kitchen.html` |
+| NEST | `app/assets/sets/nest.js`, `app/assets/sets/nest/**`, `tools/preview-nest.mjs`, `app/preview-nest.html` |
+| PROPS | `app/assets/props/**`, `tools/preview-props.mjs`, `app/preview-props.html` |
+| LOOK | `app/core/materials.js`, `app/core/renderer.js`, `app/core/shaders/**`, `app/core/lookdev.js`, `tools/preview-look.mjs`, `app/preview-look.html` |
+| WATER | `app/assets/water/**`, `tools/preview-water.mjs`, `app/preview-water.html` |
+| FX2D | `app/fx/fx2d.js`, `app/fx/fx2d/**`, `tools/preview-fx2d.mjs`, `app/preview-fx2d.html` (uses `app/scene/letters.js`, read-only) |
+| FXPOST | `app/fx/post.js`, `app/fx/post/**`, `tools/preview-post.mjs`, `app/preview-post.html` |
+| ANIM1 | `app/shots/s01.js` ... `app/shots/s06.js`, `app/shots/lib1/**` |
+| ANIM2 | `app/shots/s07.js` ... `app/shots/s12.js`, `app/shots/lib2/**` |
+| ANIM3 | `app/shots/s13.js` ... `app/shots/s19.js`, `app/shots/lib3/**` |
+| MUSIC | `tools/audio/music/**`, `audio/music/**` |
+| SFX | `tools/audio/sfx/**`, `tools/audio/mix/**`, `audio/sfx/**` (owns the final mix) |
+| REVIEW | `rubric/**`, `tools/score.mjs`, `tools/score/**`, `docs/RUBRIC.md`, `docs/reviews/**` |
 
-Outputs go under `spiderverse/out/<owner>/` (gitignored). Nobody runs git - the director commits.
+Shared read-only helpers that anyone may import: `app/core/prng.js`, `app/core/edit.js`,
+`app/core/layout.js`, `app/scene/letters.js`, `app/shots/common.js` (director; small helpers:
+lens-to-FOV, look-at, held-frame sampling, spline evaluation).
 
-## `app/core/materials.js` (LOOK)
+## The shot module (ANIM1-3 write these; the director's harness runs them)
 
 ```js
-export const LIGHTS;                  // shared uniform objects; every look material references
-                                      // the SAME objects, so setLightRig() updates all of them
-export function setLightRig(rig);     // rig: see lookdev.js
-export function makeLookMaterial(p) -> THREE.ShaderMaterial   // writes the 4-target G-buffer
+// app/shots/s08.js
+export default {
+  id: 'S08',
+  needs: {                                 // what the harness must build for this shot
+    sets: ['kitchen'],                     // 'kitchen' | 'nest'
+    characters: [{ key: 'courier', variant: 'courier', lod: 0 }],
+    props: ['mug', 'crumb', 'sugarGrains'],
+    water: false,
+  },
+  setup(ctx) { return {}; },               // once per shot; ctx described below; returns shot-local memo
+  frame(f, ctx, memo) {                    // LOCAL frame 0..n-1 (n from edit.js); pure in f
+    return {
+      camera: { position: [x,y,z], target: [x,y,z], up: [0,1,0], fovY },   // on 1s
+      // or cameras: [{ rect: [x,y,w,h], position, target, up, fovY }] for split panels
+      held: false,                         // true if ALL character poses repeat f-1 (motion = 0)
+      characters: { courier: antState },   // already cadence-quantised
+      props: { mug: {...}, crumb: {...} }, // per-prop state (contracts below)
+      sets: { kitchen: { clock: '11:58', lights: 1 } },
+      water: null,                         // or water state (below)
+      fx: [ { kind: 'speedLines', ... } ],  // 2D FX cues (FX2D contract)
+      lettering: [ { text, anchor, rot, scale, style, color, t } ],
+      panels: null,                        // or { kind, rects, captions: [{ text, rect }], t }
+      post: { flash: null, glitch: 0, universe: null, transition: null },
+      look: {},                            // per-frame overrides merged over lookdev's shot look
+    };
+  },
+};
 ```
 
-`p` (all optional except `color`):
+`ctx` = `{ THREE, edit, layout, prng, common, assets, shot, n }` where `assets` holds the
+built objects (`assets.characters.courier`, `assets.props.mug`, `assets.sets.kitchen`, ...).
+Shot modules must NOT create scene objects except shot-specific rigging helpers; they return
+state and the harness applies it via each asset's `setPose` / `setState` / `update`.
 
-| Field | Meaning |
-| --- | --- |
-| `color` | albedo, hex or `THREE.Color` |
-| `map` | albedo texture (multiplied), e.g. a procedurally generated `DataTexture`/`CanvasTexture` |
-| `vertexColors` | multiply albedo by the `color` attribute |
-| `matId` | integer 0..15, selects the per-material look row (band edges, screen, ink) |
-| `shadowTint` | hue-shifted shadow colour (Spider-Verse shadows are never grey) |
-| `rim` / `rimColor` | rim-light strength and colour (neon rims) |
-| `gloss` | 0..1 size of the designed hard specular shape |
-| `inkWeight` / `inkColor` | how strongly this surface draws ink lines, and their colour (never pure black) |
-| `normalQuant` | 0..1 quantise normals so terminators snap to designed facets |
-| `bandShift` | -0.5..0.5 nudges the Thresher band edges for this material (designed shadow shapes) |
-| `screen` | `'object'` (default for props/characters), `'screen'`, `'triplanar'`, `'uv'` |
-| `screenScale` | multiplies the dot/hatch pitch for this material |
-| `glow` | emissive amount; also feeds the screen-locked highlight/glow screen |
-| `side` | `THREE.FrontSide` (default) / `THREE.DoubleSide` |
-| `flatSilhouette` | colour used for this object in flash frames (default deep shadow) |
+Screen anchors for FX: if a cue needs a character's screen position, give its world position
+as `anchorWorld: [x,y,z]` (optionally `anchorOffset: [dx,dy,dz]`) or name the subject with
+`anchorOf: 'courier' | '<prop name>'` and the harness projects it into `anchor: [u,v]`;
+`pathWorld: [[x,y,z], ...]` becomes `path: [[u,v], ...]` (ribbons, arcs). Or give `anchor`
+directly in normalised screen space (origin bottom-left).
 
-Motion vectors: every mesh using a look material stores its previous-frame world matrix; the
-material writes screen-space motion into the G-buffer. Rigid hierarchies only (the ant is an
-exoskeleton - no skinning anywhere in this production). Call
-`lookRenderer.beginFrame(frame)` before posing so previous matrices roll over correctly, and
-**do not roll previous matrices over on held frames** (a held pose has zero motion).
+Harness extensions (implemented in `app/main.js`):
 
-### G-buffer layout
+- Crowd: `needs.colony = { count, seed, lod }` builds `createColony(...)`; return
+  `colony: [antState | null, ...]` from `frame()` (null hides that member). Individually named
+  extra ants also work: list them in `needs.characters` with their own `key`/`variant`.
+- Carry: a character state with `carry: '<prop>'`, or a prop state with `attachedTo: '<character key>'`,
+  parents the prop to that character's `parts.carryHook`; optional prop `carryOffset: [x,y,z]`.
+- Camera extras: `near`, `far`, `roll` (radians) are honoured.
+- Transitions come from `edit.js` `transitionIn` (whip 6 f, inkWipe 10 f, panelWipe 10 f,
+  fadeIn 14 f); the outgoing shot is held on its last frame underneath. `post.transitionDir`
+  sets the whip direction.
+- `frame(f)` may be called with any f in `0..n-1` in any order (pre-roll, cue export), so it
+  must be pure.
+- Sound: `sfx: [{ cue: 'footstep', pan: -0.3, gain: 0.8, material: 'formica' }, ...]` - exported to
+  `out/cues/sfx_cues.json` by `tools/export-cues.mjs` with global frame numbers.
 
-| Target | Format | Contents |
-| --- | --- | --- |
-| `g0` | RGBA16F | `beauty.rgb` (smooth lit colour, linear), `matId / 16` |
-| `g1` | RGBA16F | `lumaLighting` (lighting term WITHOUT albedo), `glow`, `motion.xy` (px) |
-| `g2` | RGBA32F | `screenCoord.xy` for the chosen screen projection (object/triplanar/uv/screen), `viewDepth`, `objectId` |
-| `g3` | RGBA16F | `viewNormal.xyz`, `inkWeight` |
-
-## `app/core/renderer.js` (LOOK)
+## Characters (CHAR): `app/assets/characters/ant.js`
 
 ```js
-export function createLookRenderer({ canvas, width = 1920, height = 803, supersample = 1 }) -> {
-  renderer,                                   // THREE.WebGLRenderer (WebGL2)
-  beginFrame(frame, { held }),                // roll previous matrices unless held
-  renderView({ scene, camera, look, frame, rect = [0,0,1,1] }),
-      // full look chain (G-buffer -> Thresher/Hatcher -> ink -> misregistration -> motion trail
-      // -> glow screen) into `rect` (normalised x, y, w, h, origin bottom-left) of the
-      // internal composite target. Camera aspect must match the rect aspect (caller's job).
-  compositeTexture(),                         // -> THREE.Texture of the composite so far
-  applyPass(fn),                              // fn(inputTexture, outputTarget) - lets the
-                                              // universe/glitch passes run in place
-  drawOverlay(scene, camera),                 // renders the 2D FX layer over the composite
-  finish({ frame, look }),                    // print pass: paper grain (frame-locked),
-                                              // vignette, final grade, supersample resolve
-  readPixels(),                               // Uint8Array RGBA OUT_WIDTH x OUT_HEIGHT, top row first
-  setSupersample(n),
-}
-```
-
-`look` comes from `lookdev.js`:
-
-```js
-export function lookForFrame(frame) -> {
-  world,                 // 'tabletop' | 'eclipse' | 'impact' | 'payoff' ...
-  lights,                // rig passed to setLightRig
-  bands,                 // Thresher: edge positions, transition widths, multipliers
-  screen,                // pitch (output px), angle, dot/hatch assignment per band
-  ink,                   // width px, boil step, overshoot, colour
-  misreg,                // focus distance (mm), floor px, gain, max px, direction
-  motionTrail,           // gain, max px
-  palette,               // per-shot grade / palette remap
-  background,            // clear colour / sky treatment
-  flash,                 // null or { field, silhouette, lineScreen } for graphical flash frames
-  grain,                 // amplitude
-}
-```
-
-## `app/scene/ant.js` (ANT)
-
-```js
-export function createAnt({ THREE, makeLookMaterial }) -> {
-  root,                  // THREE.Group; local +X forward, +Y up, origin on the ground under the thorax
+export function createAnt({ THREE, look, variant, lod = 0, seed = 0 }) -> {
+  root,            // local +X forward, +Y up, origin on the ground under the thorax
   setPose(state),
-  parts,                 // named Object3Ds: head, mandibleL/R, thorax, petiole, gaster,
-                         // antennaL/R (scape, funiculus[]), legs[6] (coxa, femur, tibia, tarsus[])
-  multiples,             // extra leg/antenna copies used for smear frames (hidden by default)
-  audit(),               // -> { triangles, meshes, segments, setae }
+  parts,           // head, mandibleL/R, thorax, petiole, gaster, antennaL/R, legs[6], eyes
+  audit(),         // { triangles, meshes, setae }
 }
+// variant: 'courier' | 'little' | 'sibTall' | 'sibRound' | 'worker'
+// lod: 0 hero (<= ~80k tris), 1 mid (<= ~15k), 2 crowd (<= ~3k)
+export function createColony({ THREE, look, count, seed }) -> { root, members: [ant...], setPoses(states[]) }
+export const POSES;                  // named presets (idle, alert, sprint, climb, heave, hoist, skid,
+                                     // leap, land, paddle, dangle, chainLink, eat, antennaTouch, ...)
+export function gait(phase, speed);  // helper returning leg targets for an alternating tripod
 ```
 
-`state` (every field optional, defaults = neutral standing pose):
+`antState` (every field optional):
 
 ```js
-{
-  position: [x, y, z],   // world mm, the ground contact point under the thorax
-  heading: 0,            // yaw radians about +Y; 0 faces +X
-  up: [0, 1, 0],         // surface normal the ant stands on (wall-run on the mug!)
-  pitch: 0, roll: 0,     // body lean, radians
-  bob: 0,                // mm, vertical body bounce
-  gait: { phase: 0, speed: 0, stride: 2.2 },  // phase 0..1 alternating tripod; speed 0..1
-  legs: null,            // optional array of 6 world-space foot targets (overrides gait)
+{ position: [x,y,z],   // world mm, ground contact under the thorax
+  heading: 0,          // yaw about the surface normal; 0 faces +X
+  up: [0,1,0],         // surface normal (wall-runs, climbing the board, dangling)
+  pitch: 0, roll: 0, bob: 0,
+  gait: { phase: 0, speed: 0, stride: 2.2 },
+  legs: null,          // optional [6] world-space foot targets (overrides gait) or null
+  legPose: null,       // optional named per-leg pose ('tuck', 'reach', 'brace', 'flail')
   headYaw: 0, headPitch: 0,
   antennae: { L: { yaw, pitch, curl }, R: { yaw, pitch, curl } },
-  mandibles: 0,          // 0 closed .. 1 wide
-  gasterLift: 0,         // radians
-  stretch: 1,            // squash/stretch along heading (volume-preserving)
-  smear: 0,              // 0..1 enables leg multiples / stretched smear geometry
-  eyes: { widen: 0, squint: 0, lookX: 0, lookY: 0 },
-  carry: null,           // null or a THREE.Object3D to hold in the mandibles (the crumb)
-}
+  mandibles: 0,        // 0 closed .. 1 wide
+  gasterLift: 0,
+  stretch: 1,          // volume-preserving squash/stretch along heading
+  smear: 0,            // 0..1 leg/antenna multiples for smear frames
+  eyes: { widen: 0, squint: 0, lookX: 0, lookY: 0, blink: 0 },
+  carry: null,         // name of a prop to hold in the mandibles ('crumb'); harness parents it
+  contactShadow: 1 }   // 0..1 strength of the designed contact shadow
 ```
 
-## `app/scene/set.js` (SET)
+## Sets
 
 ```js
-export function createSet({ THREE, makeLookMaterial }) -> {
-  root,
-  mug: { root, setState({ y, tilt: [x, z], squash, coffeeSlosh }) },   // root origin = foot-ring centre
-  crumb: { root, setState({ attachedTo: null | Object3D, sparkle }) },
-  sugarGrains,           // InstancedMesh(es); setState({ jump }) for the slam hop
-  update(frame),         // neon flicker, grain hop, coffee - driven by frame only
-  audit(),               // -> { triangles, meshes, instances, props }
-}
+// KITCHEN: app/assets/sets/kitchen.js
+export function createKitchen({ THREE, look }) -> { root, update(frame, state), audit() }
+// state: { clock: '11:58', lights: 0..1, moon: 0..1, wet: 0..1 (counter wetness), windowNeon: 0..1 }
+// NEST: app/assets/sets/nest.js
+export function createNest({ THREE, look }) -> { root, update(frame, state), anchors, audit() }
+// root is placed at layout.NEST.interiorOrigin; anchors = { larder, nursery, entranceInside, ... } in world mm
 ```
 
-## `app/scene/props/*.js` (PROPS) - consumed by `set.js`
+## Props (PROPS): `app/assets/props/index.js`
 
 ```js
-// mug.js    - root origin = foot-ring centre on the table, +Y up
-export function createMug({ THREE, makeLookMaterial }) -> { root, setState({ y, tilt: [x, z], squash, coffeeSlosh }), audit() }
-// crumb.js  - root origin = centre of the crumb's footprint on the table
-export function createCrumb({ THREE, makeLookMaterial }) -> { root, setState({ attachedTo, sparkle }), audit() }
-// packet.js - root origin = packet centre on the table; ridge top reported in local space
-export function createSugarPacket({ THREE, makeLookMaterial }) -> { root, ridgeTopLocal: [x, y, z], audit() }
-// grains.js - positioned in WORLD space from layout.js (clusters around packet, path, mug landing)
-export function createSugarGrains({ THREE, makeLookMaterial }) -> { root, setState({ jump, frame }), audit() }
+export function createProp(name, { THREE, look }) -> { root, setState(state), audit() }
+// 'crumb'       { position, rotation: [x,y,z], attachedTo: null | 'courier', squash, sparkle }
+// 'mug'         { position, y, tilt: [x,z], squash, coffeeSlosh }        origin = foot-ring centre
+// 'sponge'      { position, rotation, squash, wet }                      origin = bottom centre
+// 'cap'         { position, rotation, bob, spin, wet }                   origin = bottom centre
+// 'toothpick'   { position, rotation, heldBy: null | 'courier' }         origin = one tip
+// 'cuttingBoard'{ }                                                     static, at layout position
+// 'sugarGrains' { jump, frame, scatter }                                  instanced, world space
+// 'hand'        { position, rotation, grip, visible }                    big stylised graphic hand
+// 'spoon'       { }                                                      landmark on the counter
 ```
 
-`set.js` places packet/crumb/mug at the `layout.js` positions and re-exposes them as `set.mug`,
-`set.crumb`, `set.sugarGrains`.
-
-## `app/scene/perform.js` + `app/scene/cameras.js` (PERFORM)
+## Water (WATER): `app/assets/water/water.js`
 
 ```js
-// perform.js
-export function performanceAt(frame) -> {
-  ant,                   // ant state (above), ALREADY step-quantised (2s/1s/3s per beats.js)
-  mug,                   // mug state
-  crumb,                 // crumb state
-  grains,                // { jump }
-  held,                  // true if this frame repeats the previous pose (for motion vectors)
-}
-// cameras.js
-export function cameraAt(frame, aspect) -> {
-  position, target, up, fovY,     // on 1s, never stepped
-  shake: [x, y],                   // screen-space shake already applied into position/target
-}
-export function panelCamerasAt(frame) -> Array<{ rect, position, target, up, fovY }>  // split panels
+export function createWater({ THREE, look }) -> { root, setState(frame, state), audit() }
+// state: { level: 0..1 (flood extent), flow: 0..1, torrent: 0..1 (the pour from the sponge),
+//          dropFall: 0..1 (waterfall at the sink edge), ripples: [{x,z,t}], capWake: [x,z] | null }
 ```
 
-## `app/scene/fx2d.js` (FX2D)
+Stylised, never photographic: flat colour bands, hard graphic highlight shapes, ink ripple
+lines, drawn foam shapes, halftone in depth. Built with `look.makeLookMaterial` (plus any
+water-specific material LOOK exposes).
+
+## Look (LOOK): `app/core/materials.js`, `app/core/renderer.js`, `app/core/lookdev.js`
 
 ```js
-export function createFx2D({ THREE }) -> {
-  scene, camera,         // orthographic, drawn over the composite by renderer.drawOverlay()
-  update(frame, refs),   // refs: { ant: {x, y, vx, vy}, mug: {x, y, r}, crumb: {x, y}, impact: {x, y} }
-                         // screen positions normalised 0..1, origin bottom-left
-  audit(),
+// materials.js
+export const LIGHTS;                 // shared uniforms; setLightRig() updates every material at once
+export function setLightRig(rig);
+export function makeLookMaterial(p) -> THREE.ShaderMaterial    // writes the G-buffer
+// p: { color, map, vertexColors, matId (0..15), shadowTint, rim, rimColor, gloss, inkWeight,
+//      inkColor, normalQuant, bandShift, screen ('object'|'screen'|'triplanar'|'uv'),
+//      screenScale, halftone (0..1 selective halftone amount), brush (0..1 painterly breakup),
+//      glow, side, transparent, opacity, flatSilhouette }
+
+// renderer.js
+export function createLookRenderer({ width = 1920, height = 804, supersample = 1 }) -> {
+  renderer,
+  beginFrame(frame, { held }),       // rolls previous matrices unless held
+  renderView({ scene, camera, look, rect = [0,0,1,1] }),
+  compositeTexture(),
+  applyPass(fn),                     // fn(inputTexture, outputTarget)
+  drawOverlay(scene, camera),        // 2D FX layer
+  finish({ frame, look }),           // print pass: frame-locked grain, vignette, resolve
+  readPixels(),                      // Uint8Array RGBA WIDTH x HEIGHT, top row first
 }
+
+// lookdev.js
+export function lookForShot(shotId, f, globalFrame) -> look   // the colour script per shot
 ```
 
-All FX update on 2s. Uses `app/scene/letters.js` for onomatopoeia and captions.
-
-## `app/core/universes.js` + `app/core/glitch.js` (UNIVERSE)
+## Effects
 
 ```js
-export function createUniversePass({ THREE, renderer }) -> {
-  apply(inputTexture, outputTarget, { style, amount, frame }),  // 'punk' | 'graphite' | 'watercolor'
-}
-export function createGlitchPass({ THREE, renderer }) -> {
-  apply(inputTexture, outputTarget, { amount, frame, seed }),   // layer tearing, channel split, pixel shift
+// FX2D: app/fx/fx2d.js - orthographic overlay drawn over the composite, everything on 2s
+export function createFx2D({ THREE }) -> { scene, camera, update(globalFrame, { fx, lettering, panels }), audit() }
+// fx kinds: speedLines, radialBurst, zipRibbon, arcRibbon, crackle (Kirby), impactFlash,
+//   shockRing, debrisSpray, splash (coffee|water), sparkle, idea, growl, sweat, motionArc,
+//   dustPuff, tears, heartPop, caption
+// FXPOST: app/fx/post.js - full-screen passes run through renderer.applyPass
+export function createPost({ THREE, renderer }) -> {
+  glitch(input, output, { amount, frame, seed }),
+  universe(input, output, { style: 'punk' | 'watercolor' | 'graphite', amount, frame }),
+  flash(input, output, { field, silhouette, accent, frame }),     // graphical flash frames
+  transition(inputA, inputB, output, { kind: 'whip' | 'inkWipe' | 'panelWipe' | 'fadeIn', t, dir }),
 }
 ```
 
-## Sound (SOUND)
+## Sound (MUSIC + SFX)
 
-`python3 spiderverse/tools/audio/build.py` reads the cue sheet from `app/core/beats.js`
-(`AUDIO_CUES`, parsed with a regex or via `node -e`) and writes
-`spiderverse/out/audio/mix.wav` (48 kHz, 24-bit, stereo) plus stems. Pure synthesis.
+- MUSIC: `python3 spiderverse/tools/audio/music/build.py` -> `spiderverse/out/audio/music/score.wav`
+  + stems, keyed to `edit.js` (`SYNC`, `SHOTS`). Parse with
+  `node -e "import('/workspace/spiderverse/app/core/edit.js').then(m=>console.log(JSON.stringify(m)))"`.
+- SFX: `python3 spiderverse/tools/audio/sfx/build.py` -> `out/audio/sfx/*.wav`, and
+  `python3 spiderverse/tools/audio/mix/build.py` -> `spiderverse/out/audio/mix.wav`
+  (48 kHz, 24-bit stereo, exactly `DURATION_SECONDS`, -16..-14 LUFS integrated, true peak
+  <= -1 dBTP). Shot modules may export extra sound cues via `frame().sfx = [...]`; the harness
+  writes them to `out/cues/sfx_cues.json` for SFX to consume.
 
-## Rubric (RUBRIC)
+## Review (REVIEW)
 
-`node spiderverse/tools/score.mjs [--frames dir]` reads `spiderverse/out/frames/frame_0000.png`
-... and writes `spiderverse/out/score/score.json` + `score.md`.
+`node spiderverse/tools/score.mjs --frames <dir>` -> `out/score/score.json` + `score.md`.
+Written reviews go to `docs/reviews/<date>-<subject>.md`.
