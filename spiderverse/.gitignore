@@ -1,0 +1,6 @@
+# Render outputs are rebuilt from source; only curated evidence gets copied into docs/ or artifacts.
+out/
+
+# Reference stills are Sony Pictures Imageworks frames used for side-by-side comparison only.
+# They are never used as scenery and never committed.
+reference/stills/
