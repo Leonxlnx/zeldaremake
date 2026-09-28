@@ -41,6 +41,8 @@ const [width, height] = String(flag('size', '960x540')).split('x').map(Number);
 const settle = Number(flag('settle', 8));
 const poses = flag('poses') ? JSON.parse(fs.readFileSync(path.resolve(flag('poses')), 'utf8')) : [];
 const views = flag('views') ? String(flag('views')).split(',') : [];
+// `--quality low` checks the weak-device tier with the same protocol as the default one (tiers/)
+const quality = flag('quality', 'high');
 if (!poses.length && !views.length) {
   console.error('nothing to render: pass --poses <file> and/or --views A_stairs,D_log');
   process.exit(1);
@@ -51,7 +53,7 @@ const server = await serveStatic(dist);
 const browser = await launchBrowser({ width, height });
 const rows = {};
 try {
-  const { page } = await openWorld(browser, server.url, { width, height, log: () => {} });
+  const { page } = await openWorld(browser, server.url, { width, height, quality, log: () => {} });
   await page.evaluate(() => window.__ZR__.setTime(12.5));
   const shot = async (name) => {
     // settle WITH time so the pools swap in, then stop the clock and read

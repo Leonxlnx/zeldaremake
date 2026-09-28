@@ -163,3 +163,27 @@ Reverted. What this says for anyone who wants the overruns gone: the lever is no
 cost of that change is a pool that can stall behind a single expensive part. The overrun as it stands is
 ~7 ms on 4 % of frames while walking, an order of magnitude under a whole inline build, so this lane is
 not spending that trade without being asked.
+
+## 3. Re-read on the head, after the change that moves pixels
+
+§1 measured this tier before `outlook/` §5 set `forceSinglePass` on the distant crown material. That change
+moves 0.09–0.58 % of the pixels at `quality=high`, and the crown material is the **same factory** at every
+tier — so the low tier had to be re-read rather than assumed. `frozen.mjs --quality low` (the flag added for
+this), clock frozen, same pose and the same `bands.py`:
+
+| | mist % | brown % | dark % | leaf % | band mean l | far-centre box |
+| --- | --- | --- | --- | --- | --- | --- |
+| §1, before the change | 16.4 | 29.0 | 21.3 | **15.4** | 0.330 | s 0.06 / **l 0.478** |
+| **the head** | 16.5 | 28.8 | 21.6 | **15.4** | 0.330 | s 0.06 / **l 0.478** |
+| the owner's r_024 | — | — | 12 | — | 0.394 | s 0.05 / l 0.474 |
+
+**Unchanged within a rounding step on every column**, and the charter number is exactly the same — the low
+tier's crown tone still lands closer to the owner's reference than the high tier's does.
+
+Its counts on the head, for the record: **A_stairs 495 / 6 441 178**, F_canopy 449 / 5 493 128, the owner's
+north pose 392 / 5 637 435 — 64 fewer draws than `quality=high` at A_stairs, which is the tier doing its job.
+
+## 4. And the branch from a clean checkout
+
+A worktree at the head (`f64c5e53`), nothing carried over from the working tree: `tsc --noEmit` clean,
+`vite build` clean, `node --test` **269 / 269**. So nothing this branch needs is sitting uncommitted.

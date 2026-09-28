@@ -1,0 +1,7 @@
+bands.py on the low tier's owner-north frame, rendered from the head with frozen.mjs --quality low:
+
+image                                                      mist%  brown%  dark%  leaf%  mean-l | far-centre box hex  hue  s     l     B/R
+tiers/low-head/owner-0650-north.png                         16.5   28.8    21.6   15.4  0.330  | #817e72    45°  0.06  0.478 0.88
+
+Section 1 of ../README.md recorded 16.4 / 29.0 / 21.3 / 15.4 / 0.330 / s 0.06 / l 0.478 before the
+forceSinglePass change. Unchanged within a rounding step, and the far-centre box is identical.
