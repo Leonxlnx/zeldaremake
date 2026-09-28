@@ -1,0 +1,46 @@
+{
+  "file": "/workspace/spiderverse/out/film/into-the-ant-verse_pipeline-test.mp4",
+  "bytes": 204360,
+  "video": {
+    "codec": "h264",
+    "profile": "High",
+    "width": 480,
+    "height": 202,
+    "pix_fmt": "yuv420p",
+    "fps": 24,
+    "frames": 2880,
+    "duration": 120
+  },
+  "audio": null,
+  "container": {
+    "duration": 120,
+    "topLevelAtoms": [
+      "ftyp",
+      "moov",
+      "free",
+      "mdat"
+    ],
+    "faststart": true
+  },
+  "decode": {
+    "ok": true,
+    "errors": ""
+  },
+  "frames": {
+    "expected": 2880,
+    "filled": 2760
+  },
+  "checks": {
+    "dimensions": false,
+    "fps24": true,
+    "duration": true,
+    "frameCount": true,
+    "h264": true,
+    "aac": false,
+    "audioNotSilent": false,
+    "noClipping": true,
+    "faststart": true,
+    "fullDecode": true,
+    "noFilledFrames": false
+  }
+}
