@@ -12,17 +12,19 @@ measured trade inside the lane's budget: the distant crowns were being **drawn t
 rule for `transparent` + `DoubleSide`), so **A_stairs is 575 → 559 draws and plateau-back 702 → 687** for
 SSIM 0.9975–0.9994 (`outlook/` §5). The table below is the head **before** that last change:
 
-| | draws / triangles |
+| the six fixed views | draws / triangles |
 | --- | --- |
-| A_stairs (the binding view) | 575 / 8.63 M — 0.37 M under W38 |
-| B_house / C_lookback / D_log | 557 / 7.91 M · 494 / 7.68 M · 482 / 8.25 M |
-| E_ground / F_canopy | 557 / 7.91 M · 515 / 7.84 M |
-| play: plaza / **flight's foot** | 539 / 7.64 M · 555 / **9.151 M** (0.151 M over) |
-| play: saria-side / west-house | 519 / 8.51 M · 426 / 4.90 M |
+| A_stairs (binding) | **559** / 8 626 622 — 141 draws and 0.37 M spare |
+| B_house / C_lookback / D_log | 541 / 7.90 M · 479 / 7.68 M · 465 / 8.24 M |
+| E_ground / F_canopy | 541 / 7.90 M · 500 / 7.83 M |
+| play: plaza / **flight's foot** | 528 / 7.68 M · 535 / **9.151 M** (0.151 M over) |
+| play: saria-side / west-house | 502 / 8.51 M · 411 / 4.91 M |
 
-All six fixed views are inside the envelope, no page errors, and the play-mode numbers reproduced to
-the digit across two runs hours apart. On top of that the near-LOD **builder** is now 14 % cheaper with
-a whole build's p95 down 26 % (`chunks/`), every frame still md5-identical. The lane's own levers are measured out: the crown-veil ask is
+Re-verified 21:40 with the gauntlet's own `pose-counts.mjs` and `playtest.mjs` after the one change that
+moves pixels (`headcheck2/`): **all six inside W38 on both lines**, 11 walk routes all reached with 0 stuck,
+10 look spots unflagged, 0 page errors. The only number over a line is the flight's foot at 9.151 M
+triangles — vegetation-dominated and an owner call. On top of that the near-LOD **builder** is 14 % cheaper
+with a whole build's p95 down 26 % (`chunks/`), every frame still md5-identical. The lane's own levers are measured out: the crown-veil ask is
 met (far-centre box s 0.06 / l 0.466 against the owner's 0.05 / 0.474), the LOD rungs are bracketed
 from both sides, and the near-canopy tier is priced in both directions and left alone. What remains at
 the foot is the vegetation row and an owner call.
