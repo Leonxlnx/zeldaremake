@@ -133,3 +133,33 @@ with `ready()` resolved and nothing else happening, which is exactly how mine id
 - `quality-tiers.jpg` — the north pose at quality high and low, with each panel's mean and thirds.
 - `pool-small.json` — the two poses on the small memory tier, with both pools' reports.
 - `bands-tiers.txt` — the metric output behind §1.
+
+### 2e. Tried: predicting a fresh chunk pessimistically. It made the overruns worse
+
+§2d left one number unexplained — the chunked builder runs at `workMsP95` 6.2–6.7 ms against a 3 ms
+budget, with 21–26 of 600 frames over it. `work()` declines to *start* a step it expects to overrun,
+using the slot's own worst chunk when it has one and the **median** of recent chunks when it does not,
+so the obvious suspicion was that the median under-predicts: instrumenting which parts produce the long
+chunks showed them scattered and heterogeneous — `giant-near-canopy/plateau-oak/lobe-20` 6.5 ms at its
+16th step, `giant-near-base/north-west` 5.5 ms at its **first**, `column-near-canopy/seat-1/lobe-3` 5 ms
+at its second — so a fresh slot's first chunk is exactly the case the median misses.
+
+Replacing that estimate with the p95 of recent chunks, same walk, same tier:
+
+| estimate for a fresh chunk | `work` P95 | frames over the 3 ms budget (of 600) | steps over 12 ms | parts built |
+| --- | --- | --- | --- | --- |
+| median (shipped) | 6.2–6.7 ms | **21–26** | 3 | 243 |
+| p95 | 7.1–7.6 ms | **42** | 0 | 257 |
+
+**Worse on the number it aimed at**, and the mechanism is instructive: the budget check is
+`if (steps > 0 && …) break`, so the **first** step of every `work()` call runs whatever the budget says —
+that is the progress guarantee. A pessimistic estimate ends each call sooner, so the same work is spread
+over more calls, and each of those calls pays one unbudgeted first step. More calls, more mandatory
+steps, more overruns: 42 instead of 24. (It did remove the three steps over 12 ms, and it built 14 more
+parts in the same 600 frames, which is the same effect seen from the other side.)
+
+Reverted. What this says for anyone who wants the overruns gone: the lever is not the estimator but the
+**progress guarantee** — a call that has already spent its budget must be allowed to do nothing — and the
+cost of that change is a pool that can stall behind a single expensive part. The overrun as it stands is
+~7 ms on 4 % of frames while walking, an order of magnitude under a whole inline build, so this lane is
+not spending that trade without being asked.
