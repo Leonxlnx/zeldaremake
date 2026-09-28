@@ -48,6 +48,28 @@ export const CUSHION_ROOT_MAX_H = (CUSHION_ROOT_W[1] - CUSHION_ROOT_W[0] - 0.002
 export const cushionRootW = (heightAboveOrigin: number) => CUSHION_ROOT_W[0] + 0.001 + CUSHION_ROOT_W_PER_M * Math.min(CUSHION_ROOT_MAX_H, Math.max(0, heightAboveOrigin));
 export const isCushionRoot = (w: number) => w > CUSHION_ROOT_W[0] && w < CUSHION_ROOT_W[1];
 
+/** floats copied into a packed attribute between two yields of `packSteps` */
+export const PACK_FLOATS_PER_STEP = 8192;
+
+/**
+ * `new Float32BufferAttribute(values, itemSize)` as a chunked copy. The same float32 conversion of
+ * the same values in the same order — `array[k] = values[k]` is what the bulk constructor does per
+ * element — so the bytes are identical.
+ *
+ * It is chunked for the same reason the normals are: measured on a walk, the long chunks left in the
+ * builder clustered at the END of every near-canopy lobe's build (indices 56–64 of ~64, 2.5–3.5 ms),
+ * which is `finishSteps` packing five attributes of 100–300 k floats in two chunks.
+ */
+function* packSteps(values: number[], itemSize: number): Generator<void, Float32BufferAttribute> {
+  const array = new Float32Array(values.length);
+  for (let i = 0; i < values.length; i += PACK_FLOATS_PER_STEP) {
+    const end = Math.min(values.length, i + PACK_FLOATS_PER_STEP);
+    for (let k = i; k < end; k++) array[k] = values[k];
+    if (end < values.length) yield;
+  }
+  return new Float32BufferAttribute(array, itemSize);
+}
+
 /**
  * Triangles accumulated, and vertices normalised, between two yields of `vertexNormalSteps`.
  * Sized so a chunk costs about what one of the relief bole's chunks does (its 4 rings ≈ 800
@@ -271,12 +293,12 @@ export class GeometryWriter {
   *finishSteps(name: string): Generator<void, BufferGeometry> {
     const g = new BufferGeometry();
     g.name = name;
-    g.setAttribute('position', new Float32BufferAttribute(this.positions, 3));
-    g.setAttribute('color', new Float32BufferAttribute(this.colors, 3));
-    g.setAttribute('uv', new Float32BufferAttribute(this.uvs, 2));
+    g.setAttribute('position', yield* packSteps(this.positions, 3));
+    g.setAttribute('color', yield* packSteps(this.colors, 3));
+    g.setAttribute('uv', yield* packSteps(this.uvs, 2));
     yield;
-    g.setAttribute('aWind', new Float32BufferAttribute(this.winds, 3));
-    g.setAttribute('aRoot', new Float32BufferAttribute(this.roots, 4));
+    g.setAttribute('aWind', yield* packSteps(this.winds, 3));
+    g.setAttribute('aRoot', yield* packSteps(this.roots, 4));
     g.setIndex(this.indices);
     yield;
     yield* vertexNormalSteps(g);

@@ -85,28 +85,33 @@ const timeChunks = (gen) => {
   }
 };
 
-const { VERTEX_NORMAL_FACES_PER_STEP, VERTEX_NORMAL_VERTICES_PER_STEP } = loadTs(path.join(treesDir, 'writer.ts'));
+const { VERTEX_NORMAL_FACES_PER_STEP, VERTEX_NORMAL_VERTICES_PER_STEP, PACK_FLOATS_PER_STEP } = loadTs(path.join(treesDir, 'writer.ts'));
 
 /**
- * What each chunk of a part IS, counted back from the end: `finishSteps` closes every build with
- * the two attribute packs, the vertex normals (chunked: `ceil(faces / FACES_PER_STEP)` accumulation
- * chunks then `ceil(vertices / VERTICES_PER_STEP)` normalisation chunks) and the bounds pass.
- * Everything before that is the part's own geometry.
+ * What each chunk of a part IS, counted back from the end. `finishSteps` closes every build with the
+ * five attributes packed (`packSteps`, which yields BETWEEN its pieces, so consecutive calls share a
+ * chunk), the index, the vertex normals (`ceil(faces / FACES_PER_STEP)` accumulation chunks then
+ * `ceil(vertices / VERTICES_PER_STEP)` normalisation chunks) and the seams / bounds pass. Everything
+ * before that is the part's own geometry.
  */
 const labelChunks = (n, geometry) => {
   const faces = geometry.index ? geometry.index.count / 3 : 0;
   const vertices = geometry.getAttribute('position').count;
   const f = Math.max(1, Math.ceil(faces / VERTEX_NORMAL_FACES_PER_STEP));
   const v = Math.ceil(vertices / VERTEX_NORMAL_VERTICES_PER_STEP);
-  const labels = new Array(n).fill('the part\'s geometry');
+  // yields inside one `packSteps` call: pieces − 1 (none after the last piece)
+  const y = (floats) => Math.max(0, Math.ceil(floats / PACK_FLOATS_PER_STEP) - 1);
+  const packA = y(vertices * 3) + y(vertices * 3) + y(vertices * 2) + 1; // position, color, uv
+  const packB = y(vertices * 3) + y(vertices * 4) + 1; // aWind, aRoot, then the index
+  const labels = new Array(n).fill("the part's geometry");
   const at = (fromEnd, label) => {
     if (n - fromEnd >= 0) labels[n - fromEnd] = label;
   };
   at(1, 'finish: seams and bounds');
   for (let i = 0; i < v; i++) at(2 + i, 'finish: normals normalised');
   for (let i = 0; i < f; i++) at(2 + v + i, 'finish: face normals');
-  at(2 + v + f, 'finish: aWind/aRoot/index packed');
-  at(3 + v + f, 'finish: position/color/uv packed');
+  for (let i = 0; i < packB; i++) at(2 + v + f + i, 'finish: aWind/aRoot packed + index');
+  for (let i = 0; i < packA; i++) at(2 + v + f + packB + i, 'finish: position/color/uv packed');
   return labels;
 };
 
