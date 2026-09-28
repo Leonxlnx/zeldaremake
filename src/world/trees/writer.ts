@@ -25,7 +25,7 @@
  * in every shading term that the colour pass drops while the lobe's near version is drawn
  * (round 41, materials.ts uNearCanopy).
  */
-import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const TAU = Math.PI * 2;
@@ -47,6 +47,97 @@ export const CUSHION_ROOT_W_PER_M = 0.0035;
 export const CUSHION_ROOT_MAX_H = (CUSHION_ROOT_W[1] - CUSHION_ROOT_W[0] - 0.002) / CUSHION_ROOT_W_PER_M;
 export const cushionRootW = (heightAboveOrigin: number) => CUSHION_ROOT_W[0] + 0.001 + CUSHION_ROOT_W_PER_M * Math.min(CUSHION_ROOT_MAX_H, Math.max(0, heightAboveOrigin));
 export const isCushionRoot = (w: number) => w > CUSHION_ROOT_W[0] && w < CUSHION_ROOT_W[1];
+
+/**
+ * Triangles accumulated, and vertices normalised, between two yields of `vertexNormalSteps`.
+ * Sized so a chunk costs about what one of the relief bole's chunks does (its 4 rings ≈ 800
+ * vertices), which is what the rest of a pooled part's build already yields at.
+ */
+export const VERTEX_NORMAL_FACES_PER_STEP = 1024;
+export const VERTEX_NORMAL_VERTICES_PER_STEP = 4096;
+
+/**
+ * `BufferGeometry.computeVertexNormals` as a chunked build (lodPool.ts), bit-identical to three's.
+ *
+ * It is here because three's is ONE call, and `LodPool.work` always runs the first chunk of a
+ * frame (its progress guarantee: a build whose chunks all exceed the budget must still advance, or
+ * it starves into a synchronous build at its pin). So the longest unsplittable chunk is a floor
+ * under the frame's pool time, and measured over 65 real pooled parts this was it — the longest
+ * chunk of EVERY part (p50 0.81 ms, max 3.23 ms against the rest of a build's 0.1 ms median, ≈ 13 %
+ * of the builder's whole time; `art/environment/squad2-2026-09-23/chunks/`).
+ *
+ * Identical, not equivalent: the same face loop in the same triangle order, the same `Vector3`
+ * methods, and the same accumulate-through-the-Float32Array (read the running normal, add the face
+ * normal, round back to float32 with `setXYZ`) three does — a faster float64 accumulator would
+ * change the bytes. `writer.test.mjs` pins it against three's own call on real tree geometry.
+ */
+export function* vertexNormalSteps(geometry: BufferGeometry): Generator<void, void> {
+  const position = geometry.getAttribute('position');
+  const index = geometry.index;
+  if (!position) return;
+  // the tree writer always indexes; anything else keeps three's own path rather than a second one
+  if (!index) {
+    geometry.computeVertexNormals();
+    return;
+  }
+  let normal = geometry.getAttribute('normal') as BufferAttribute | undefined;
+  if (normal === undefined || normal.count !== position.count) {
+    normal = new BufferAttribute(new Float32Array(position.count * 3), 3);
+    geometry.setAttribute('normal', normal);
+  } else {
+    for (let i = 0, il = normal.count; i < il; i++) normal.setXYZ(i, 0, 0, 0);
+  }
+  const pA = new Vector3();
+  const pB = new Vector3();
+  const pC = new Vector3();
+  const nA = new Vector3();
+  const nB = new Vector3();
+  const nC = new Vector3();
+  const cb = new Vector3();
+  const ab = new Vector3();
+  // the loops are plain functions, not the generator's own body: a generator's body is slower per
+  // iteration, and this pass must not cost more in total than the one call it replaces
+  const faces = (from: number, to: number) => {
+    for (let i = from; i < to; i += 3) {
+      const vA = index.getX(i + 0);
+      const vB = index.getX(i + 1);
+      const vC = index.getX(i + 2);
+      pA.fromBufferAttribute(position, vA);
+      pB.fromBufferAttribute(position, vB);
+      pC.fromBufferAttribute(position, vC);
+      cb.subVectors(pC, pB);
+      ab.subVectors(pA, pB);
+      cb.cross(ab);
+      nA.fromBufferAttribute(normal!, vA);
+      nB.fromBufferAttribute(normal!, vB);
+      nC.fromBufferAttribute(normal!, vC);
+      nA.add(cb);
+      nB.add(cb);
+      nC.add(cb);
+      normal!.setXYZ(vA, nA.x, nA.y, nA.z);
+      normal!.setXYZ(vB, nB.x, nB.y, nB.z);
+      normal!.setXYZ(vC, nC.x, nC.y, nC.z);
+    }
+  };
+  const v = new Vector3();
+  const unit = (from: number, to: number) => {
+    for (let i = from; i < to; i++) {
+      v.fromBufferAttribute(normal!, i);
+      v.normalize();
+      normal!.setXYZ(i, v.x, v.y, v.z);
+    }
+  };
+  const faceStep = VERTEX_NORMAL_FACES_PER_STEP * 3;
+  for (let i = 0; i < index.count; i += faceStep) {
+    faces(i, Math.min(index.count, i + faceStep));
+    yield;
+  }
+  for (let i = 0; i < normal.count; i += VERTEX_NORMAL_VERTICES_PER_STEP) {
+    unit(i, Math.min(normal.count, i + VERTEX_NORMAL_VERTICES_PER_STEP));
+    if (i + VERTEX_NORMAL_VERTICES_PER_STEP < normal.count) yield;
+  }
+  normal.needsUpdate = true;
+}
 
 export class GeometryWriter {
   positions: number[] = [];
@@ -173,8 +264,9 @@ export class GeometryWriter {
   }
 
   /**
-   * `finish` as a chunked build (lodPool.ts): yields after the attributes are packed and again
-   * after the normals are computed, so a runtime build's last few milliseconds can straddle frames.
+   * `finish` as a chunked build (lodPool.ts): yields after the attributes are packed, between the
+   * chunks of the vertex normals and again after them, so a runtime build's last few milliseconds
+   * can straddle frames.
    */
   *finishSteps(name: string): Generator<void, BufferGeometry> {
     const g = new BufferGeometry();
@@ -187,7 +279,7 @@ export class GeometryWriter {
     g.setAttribute('aRoot', new Float32BufferAttribute(this.roots, 4));
     g.setIndex(this.indices);
     yield;
-    g.computeVertexNormals();
+    yield* vertexNormalSteps(g);
     yield;
     const normals = g.getAttribute('normal');
     if (this.authoredNormals) {

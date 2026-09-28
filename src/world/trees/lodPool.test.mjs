@@ -401,6 +401,52 @@ test('the budget is checked before a chunk with its expected cost; the first chu
   assert.equal(pool.report().building, 1);
 });
 
+// 2026-09-28 (lane 2): `computeVertexNormals` was the longest chunk of every pooled part, and
+// `work` always runs the first chunk of a frame, so it was a floor under the frame's pool time.
+// It is chunked now, and the whole world's tree geometry goes through it: bit-identical or nothing.
+test('the chunked vertex normals are bit-identical to three\'s own call, on real tree geometry', () => {
+  const { vertexNormalSteps, VERTEX_NORMAL_FACES_PER_STEP } = loadTs(path.join(here, 'writer.ts'));
+  const { createGiantTree } = loadTs(path.join(here, 'giant.ts'));
+  const def = { id: 'normals-giant', position: [0, 0, 0], trunkRadius: 1.4, height: 30 };
+  const asset = createGiantTree(def, createRng('lodPool-test/normals'), {
+    groundAt: ground, palette, leafDensity: 0.8, cardDensity: 0.8,
+    sunDir: new THREE.Vector3(0.3, 0.8, 0.5).normalize(), pathAt: () => 0, heroDistance: Infinity, nearCanopy: {},
+  });
+  // the near base (wood, no authored normals) and a near-canopy lobe (leaf cards, authored ones)
+  const cases = [['near base', runSteps(asset.nearBaseBuild())], ['near-canopy lobe', asset.nearCanopy[0].geometry]];
+  for (const [what, source] of cases) {
+    assert.ok(source.index && source.getAttribute('position').count > 0, `${what} has indexed geometry`);
+    const bare = () => {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(source.getAttribute('position').array.slice(), 3));
+      g.setIndex(new THREE.BufferAttribute(source.index.array.slice(), 1));
+      return g;
+    };
+    const theirs = bare();
+    theirs.computeVertexNormals();
+    const ours = bare();
+    let chunks = 0;
+    for (const _ of vertexNormalSteps(ours)) chunks++;
+    const faces = source.index.count / 3;
+    assert.ok(chunks >= Math.ceil(faces / VERTEX_NORMAL_FACES_PER_STEP), `${what} yielded per chunk (${chunks} for ${faces} faces)`);
+    assert.ok(chunks > 1, `${what} really is split (${chunks} chunks)`);
+    const a = Buffer.from(theirs.getAttribute('normal').array.buffer);
+    const b = Buffer.from(ours.getAttribute('normal').array.buffer);
+    assert.equal(b.byteLength, a.byteLength, `${what} normal length`);
+    assert.ok(a.equals(b), `${what}: the chunked normals differ from three's own`);
+  }
+});
+
+test('a geometry without an index keeps three\'s own path', () => {
+  const { vertexNormalSteps } = loadTs(path.join(here, 'writer.ts'));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
+  assert.deepEqual([...vertexNormalSteps(g)], [], 'nothing to chunk');
+  const n = g.getAttribute('normal');
+  assert.ok(n, 'three computed them');
+  assert.equal(n.getY(0), -1, 'the face normal of a triangle wound this way');
+});
+
 test('runBuild finishes a generator and returns its value', () => {
   function* g() {
     yield;
