@@ -335,6 +335,89 @@ is the same noise from the other side (nothing on this branch touches vegetation
 change: the allocation it removes is cheap in wall clock next to the arithmetic and the canvas work
 around it. What it does buy is the runtime table above.
 
+## 8. The last of that path, and what four rounds of it are actually worth
+
+Three things §7 named and left: the arc-length table was a plain array reset with `length = 0`, which
+lets V8 trim the backing store so every path re-grew it (a `Float64Array` with its used length carried
+separately now); `uToT` was a closure, an allocation per path (a module function now); and
+`growthPath`'s six `clone()`s are scratch, with the three inner control points written straight into the
+reused curve. `frame` gained a `frameInto` variant for hot paths — the same two cross products.
+
+| `growthPath`, 40 000 calls | garbage | per call |
+| --- | --- | --- |
+| `5b5cbed8` (before the curve work) | 3384.4 MB | 86.6 KB |
+| `spacedPoints` reuse | 2659.4 MB | 68.1 KB |
+| + the inline cubic | 383.9 MB | 9.8 KB |
+| **+ this round** | **193.8 MB** | **5.0 KB (−94 %)** |
+
+The harness's own per-iteration floor is ~4 KB, so what is left of `growthPath`'s own allocation is
+about **1 KB of the 82** it started with.
+
+### Where that lands, at three scales
+
+**Tree creation** (`chunks/treecost.mjs`, four trees with every lobe, limb, bole and root they register,
+five runs) is the phase the branch paths are drawn in:
+
+| | collections | garbage | pause | wall clock (median) |
+| --- | --- | --- | --- | --- |
+| `5b5cbed8` | 319 | 5648.6 MB | 418.0 ms | 1025.22 ms |
+| now | **268** | **4804.1 MB (−15 %)** | 403.5 ms | **1027.36 ms** |
+
+**−15 % of the garbage and −16 % of the collections, and no time at all** — 1025 → 1027 ms inside a run
+spread of 890–1310. The allocation was cheap in wall clock. What it costs is pauses.
+
+**The pool's builds** do not move with it (3785 → 3795 MB, noise): a pooled part rebuilds leaves and
+bark far more than branch paths. Their own totals across the branch: **4719 → 3785 MB (−20 %)**,
+collections 264 → 204, pause 256 → 227 ms.
+
+**The world build** does not move either (§7a: trees 8395 → 8367 ms against a 700 ms run spread).
+
+### The closing measurement: the frame budget, after all of it
+
+The whole arc, on the walk it was aimed at (`?pool=small`, plaza, `KeyW` held, 600 frames at 1/30 s):
+
+| at 600 frames | before | normals | +predictor | +packing | +setIndex/leaf | **+curve (head)** |
+| --- | --- | --- | --- | --- | --- | --- |
+| **a whole build, p50** | 6.6 | 6.5 | 7.4 | 6.3 | 6.2 | **5.4 (−18 %)** |
+| **a whole build, p95** | 13.4 | 10.4 | 12.6 | 9.9 | 11.7 | **10.6 (−21 %)** |
+| chunk p95 | 0.7 | 0.3 | 0.3 | 0.3 | 0.2 | **0.2** |
+| `work` p95 | 6.4 | 7.0 | 6.5 | 7.3 | 6.9 | 7.0 |
+| calls over the 3 ms budget | 19 | 34 | 20 | 35 | 30 | 31 |
+| worst chunk in a frame | 9.0 | 9.8 | 14.2 | 6.9 | 10.1 | **16.1** |
+| parts built | 262 | 262 | 240 | 250 | 255 | 262 |
+| `syncBuilds` / `pinnedPending` | 63 / 0 | 63 / 0 | 63 / 0 | 63 / 0 | 63 / 0 | 63 / 0 |
+
+**What improved is the builder's own cost**: a whole build — what a pin pays synchronously and what the
+reset path pays 63 times at a teleport — is **18 % cheaper at the median and 21 % at the p95**, with the
+prefetch back to its original 262 parts and nothing the frame draws ever unbuilt.
+
+**What did not improve is the frame budget**, and after four rounds the reason is not in doubt: the
+worst chunk in a frame reads 6.9, 9.0, 9.8, 10.1, 14.2 and 16.1 ms across six runs of code that cannot
+produce a 7 ms chunk, while the chunks themselves are p95 **0.2 ms**. The tail is a **collector pause**,
+its size set by the whole page's allocation rather than the trees' share of it, and this lane removed
+20 % of the trees' share without touching that. `workMsP95` is budget + one tail event, so it sits at
+6.4–7.3 ms throughout.
+
+That is the honest end of this thread: **the builder got materially cheaper and the frame budget did
+not**, and the next thing that could move it is not in `trees/`.
+
+### What is left in the leaf path, and why this lane stops here
+
+`addLeaf` is the other allocator reachable from `writer.ts`. Profiled on its own, 200 000 laminae:
+
+| B per lamina | share | where |
+| --- | --- | --- |
+| 3261 | 73.7 % | `GeometryWriter.vertex` — the growing `number[]`s |
+| 893 | 20.2 % | `addLeaf` itself: three closures per lamina (`localPoint`, `lift`, `V`) |
+| 77 | 1.7 % | `V` |
+
+The 893 bytes could go, but not cleanly: **V8 boxes a double assigned to a context slot or an object
+field** — that is the same mechanism the `CubicPoly` fix exploited — so hoisting those closures means
+keeping the lamina's five scalars in a `Float64Array` with magic indices in a file five other builders
+share. For **3.8 % of the pool's garbage**, in a round whose 20 % did not move any frame number above
+noise, that trade is not worth taking. It belongs with the writer's arrays (73.7 % here, 44.6 % overall)
+in one deliberate change, with the owning lanes' agreement, which is where §6 left it.
+
 ## Files
 
 - `chunkcost.mjs` (parent) — the chunk timer; `--repeat`, `--top`, `--json`.
