@@ -296,7 +296,9 @@ coefficients and three components — which over 206 samples is **49 KB a path**
 registers.
 
 **Bit-identical** through both: `bitcheck.mjs`'s 75 geometries and 741 103 triangles hash to
-`TOTAL 9fc119c64da990ab83caf7625ce98b6d` before and after.
+`TOTAL 9fc119c64da990ab83caf7625ce98b6d` before and after, and the frames agree on the final code —
+A_stairs **575 / 8 631 286 md5 `a280badd…`** and the flight's foot **544 / 9 129 709 md5 `9ce108b2…`**
+(`frames-A4/`). `growthPath` is used by every tree builder, so the frame is the check that matters.
 
 **What is left on that path:** 9.8 KB a call, of which `growthPath`'s own six `clone()`s and the
 returned points are most. The `_arcLengths` table still churns a little because `length = 0` lets V8
