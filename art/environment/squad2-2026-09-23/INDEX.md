@@ -1,7 +1,7 @@
 # Lane 2's evidence, indexed
 
 `README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 35
-measurement directories and 15 tools, with the headline of each, so another lane can find a number
+measurement directories and 16 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
 
 **Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). The sun's
@@ -71,6 +71,7 @@ the foot is the vegetation row and an owner call.
 | `isolateshots.mjs` | One saved frame per system — **but see the method note below: `isolate()` cannot be screenshotted.** Use it for counts and attribute pixels by hiding meshes yourself. |
 | `depthfoot/depthprobe.mjs` | Which casters the sun's depth pass pays for at a pose, and whether each one's shade is in the frame at all (frozen clock, one group switched off at a time). |
 | `depthfoot/cullcost.mjs` | The trees system's own per-frame CPU while the camera turns, at a small viewport so the cull's cost is not buried in rasterisation. |
+| `frozen.mjs` | **The harness behind every "byte-identical" claim here.** Renders a pose list (and/or fixed viewpoints) with the world clock frozen and writes draws, triangles, the trees' own submission, the casting counters and an md5 per frame. Settles *with* time so the pools swap in, then reads with `render(2, 0)`. Verified to reproduce this branch's numbers: A_stairs 575 / 8 631 286 at md5 `a280badd…`, the same bytes as the run behind the PR's table. |
 | `tiers/walkpool.mjs` | The pools as a WALKING player meets them: drives play mode (masking `navigator.webdriver`, or the hook never installs), holds a key for 600 sim frames and reads the pool every 60. |
 | `sceneshade/scenedepth.mjs` | Every system's shade at a pose: switch one system's casters off at a time and read the triangle delta and the pixel difference. |
 | `sixcheck.mjs` | What a change did to the fixed frames: pixels moved, mean, local detail, and SSIM against `reference/frames`. |
@@ -85,7 +86,8 @@ the foot is the vegetation row and an owner call.
 
 ## Standing method notes
 
-* Compare only runs with the **same shots order**: pool residency carries over between poses inside one
+* Compare only runs with the **same shots order** (`frozen.mjs` prints the md5 so a mismatch is visible;
+  the flight's foot differs by one draw and 168 triangles depending on whether A–F were visited first): pool residency carries over between poses inside one
   `broll` run (a fresh-run A against an A captured third showed a spurious 19.5 % of pixels moved).
 * Render at `dt = 0` when the question is geometry: with the clock running, wind moves 10 % of a frame.
 * `isolate()` bypasses the composer, so its frames carry no post pass — its numbers are the material's
