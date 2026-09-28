@@ -10,7 +10,7 @@ pose in play, up to 121 K at a fixed view), and the near-LOD builder is cheaper 
 −20 % in garbage**, a whole build **−18 % / −21 %** at median and p95 — `chunks/`). The third is a
 measured trade inside the lane's budget: the distant crowns were being **drawn twice** (three's two-pass
 rule for `transparent` + `DoubleSide`), so **A_stairs is 575 → 559 draws and plateau-back 702 → 687** for
-SSIM 0.9975–0.9994 (`outlook/` §5). The table below is the head **before** that last change:
+SSIM 0.9975–0.9994 (`outlook/` §5). The head as it stands, with all three in:
 
 | the six fixed views | draws / triangles |
 | --- | --- |
