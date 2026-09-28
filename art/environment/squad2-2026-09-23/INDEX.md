@@ -1,12 +1,14 @@
 # Lane 2's evidence, indexed
 
-`README.md` in this directory is the mid-canopy round's write-up, not a map (it now opens with a pointer here). This is the map: 36
-measurement directories and 17 tools, with the headline of each, so another lane can find a number
+`README.md` in this directory is the mid-canopy round's write-up, not a map (it now opens with a pointer here). This is the map: 37
+measurement directories and 22 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
 
-**Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). The sun's
-depth pass no longer pays for shade the frame cannot see — 79–193 K a pose in play, up to 121 K at a
-fixed view, every frame byte-identical. Checked on the branch head (`sweep2/`):
+**Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). Two things,
+both pixel-identical. The sun's depth pass no longer pays for shade the frame cannot see — 79–193 K a
+pose in play, up to 121 K at a fixed view — and the near-LOD builder is cheaper to run: **−14 % in time,
+−20 % in garbage, and a whole build −18 % at the median / −21 % at the p95** (`chunks/`). Checked on the
+branch head (`sweep2/`):
 
 | | draws / triangles |
 | --- | --- |
