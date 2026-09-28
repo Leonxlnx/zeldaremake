@@ -197,3 +197,59 @@ What it needs: each variant's geometry split at the existing group boundary into
 the near/far LOD swap instead of two meshes, per-instance colour through `setColorAt`, and the audit's
 counters moved across. The risk is the capture contract — the same pose must draw the same instances warm
 or cold — which `bitcheck.mjs` cannot check (it hashes geometry, not the draw list) but `frozen.mjs` can.
+
+## 8. Batching the two layers: the win at the views W38 measures, and the reason it is not lane 2's call alone
+
+§7 sized this at the look-backs. `familycost.mjs --only "distant ring,mid layer"` now prices it at the six
+fixed views — the ones W38 is written for — on the shipped head:
+
+| view | draws | distant ring | mid layer | the two layers | share of the frame | batched (4 draws) |
+| --- | --- | --- | --- | --- | --- | --- |
+| **A_stairs** | 559 | 12 (6 meshes) | 20 (10) | **32** | **5.7 %** | **531** |
+| B_house | 541 | 12 | 20 | 32 | 5.9 % | 513 |
+| C_lookback | 479 | 10 | 20 | 30 | 6.3 % | 453 |
+| **D_log** | 465 | 14 (7) | 20 | **34** | **7.3 %** | 435 |
+| E_ground | 541 | 12 | 20 | 32 | 5.9 % | 513 |
+| F_canopy | 500 | 10 | 20 | 30 | 6.0 % | 474 |
+
+Two draws a mesh now (§5 took the third), and **the mid layer is a flat 20 at every view**: all ten of its
+meshes always have instances, so it never culls at the mesh level. The two layers are **5.7–7.3 % of every
+hero view's draw calls** for 29–44 K triangles, and both are real content — 0.4–4.5 % of the pixels for the
+ring, 2.1–10.1 % for the mid layer. This is a submission-cost change, not a look one.
+
+### What it takes, read out of the code
+
+- **Geometry:** each variant's `near` and `far` already carry exactly two groups — wood (material 0) and
+  crown (material 1) — so the split into two geometries is an index-range subset, the same shape as
+  `extractTaggedFoliage`'s. Two `BatchedMesh`es per layer (wood, crown), `setGeometryIdAt` for the near/far
+  swap where there are two meshes today.
+- **Per-instance colour needs nothing:** three routes a `BatchedMesh`'s `setColorAt` through
+  `USE_BATCHING_COLOR` in the standard `<color_vertex>` chunk, which these materials already use.
+- **The drawing half is small:** `bucketDistant` splits placements by distance into two lists and
+  `fillDistant` writes matrices, colours, a count and a padded bounding sphere. In a batch that becomes
+  `setVisibleAt` plus `setMatrixAt`, with `perObjectFrustumCulled = false` so this lane's own padded test
+  (wind sway and the shadow margin) keeps deciding rather than three's unpadded one.
+
+### And the blocker, which is the reason this is a proposal and not a commit
+
+**The trees' shared vertex shader multiplies by `instanceMatrix` by hand**, in four places in
+`materials.ts` (`WIND_VERTEX_BODY`'s root, position and the inverse-rotation of the wind displacement, plus
+`vDistPhase`) and four in this file's crown shader. Each is guarded by `#ifdef USE_INSTANCING` — and a
+`BatchedMesh` does **not** define it. Under `USE_BATCHING` those branches would be skipped and every
+instance would render at the origin, so a `#elif defined( USE_BATCHING )` branch using three's
+`batchingMatrix` is **mandatory**, not optional.
+
+The good news is that it fits: `<batching_vertex>` declares `batchingMatrix` at line 31 of the standard
+vertex shader and these materials inject at `#include <begin_vertex>`, line 40 — so it is in scope at the
+injection point, and the added branch is provably inert for every current user (nothing defines
+`USE_BATCHING` today).
+
+**But `materials.ts` is the shader every tree family shares** — giants, columns, white-barks and both these
+layers. That is not a "minimal declared touch" to another lane's file; it is the hot path of lane 3's and
+fable-4's work. So the numbers above are a proposal for whoever holds that file, not something this lane
+should land on its own.
+
+**One risk to carry with it:** `batchingMatrix` is indexed by `gl_DrawID`, which needs `WEBGL_multi_draw`.
+It is present on this box — the giants' far-foliage batches carry 100–105 instances each and measure two
+draws apiece, which only multi-draw explains — but fable-4's round-54 note says the same thing their
+batches were never exercised on: a context without the extension.

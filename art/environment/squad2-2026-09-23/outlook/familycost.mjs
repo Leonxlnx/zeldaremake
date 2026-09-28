@@ -85,7 +85,9 @@ try {
     log(`pose ${pose.name}`);
     await page.evaluate((sh) => {
       window.__ZR__.setTime(12.5);
-      window.__ZR__.setPose(sh.from.p, sh.from.t, sh.from.fov);
+      // a pose entry carries `from`, a fixed view carries `viewpoint` (the six W38 views)
+      if (sh.viewpoint) window.__ZR__.setViewpoint(sh.viewpoint);
+      else window.__ZR__.setPose(sh.from.p, sh.from.t, sh.from.fov);
     }, pose);
     // settle WITH time so the near-LOD pools swap in, then read with the clock stopped
     await page.evaluate(async (n) => await window.__ZR__.render(n, 1 / 30), SETTLE);
