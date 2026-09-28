@@ -1,0 +1,330 @@
+{
+ "parts": 65,
+ "repeat": 3,
+ "interval": 8192,
+ "totalBytes": 2008808728,
+ "byFile": [
+  {
+   "file": "(native)",
+   "bytes": 1651380648,
+   "mb": 1574.88
+  },
+  {
+   "file": "three.core.js",
+   "bytes": 356468640,
+   "mb": 339.95
+  },
+  {
+   "file": "fixture.mjs",
+   "bytes": 951232,
+   "mb": 0.91
+  },
+  {
+   "file": "allocprof.mjs",
+   "bytes": 8208,
+   "mb": 0.01
+  }
+ ],
+ "byFrame": [
+  {
+   "where": "vertex  (native)",
+   "bytes": 584693680,
+   "mb": 557.61
+  },
+  {
+   "where": "push  (native)",
+   "bytes": 311284624,
+   "mb": 296.86
+  },
+  {
+   "where": "getPoint  three.core.js:32350",
+   "bytes": 196964344,
+   "mb": 187.84
+  },
+  {
+   "where": "addLeaf  (native)",
+   "bytes": 180512352,
+   "mb": 172.15
+  },
+  {
+   "where": "cordField  (native)",
+   "bytes": 103799032,
+   "mb": 98.99
+  },
+  {
+   "where": "reliefBoleSteps  (native)",
+   "bytes": 70362608,
+   "mb": 67.1
+  },
+  {
+   "where": "(anonymous)  (native)",
+   "bytes": 64925216,
+   "mb": 61.92
+  },
+  {
+   "where": "Vector3  three.core.js:4845",
+   "bytes": 56551616,
+   "mb": 53.93
+  },
+  {
+   "where": "init  three.core.js:32210",
+   "bytes": 52197728,
+   "mb": 49.78
+  },
+  {
+   "where": "noise  (native)",
+   "bytes": 50864992,
+   "mb": 48.51
+  },
+  {
+   "where": "nearSpray  (native)",
+   "bytes": 36564256,
+   "mb": 34.87
+  },
+  {
+   "where": "next  (native)",
+   "bytes": 23871656,
+   "mb": 22.77
+  },
+  {
+   "where": "growthPath  (native)",
+   "bytes": 23675648,
+   "mb": 22.58
+  },
+  {
+   "where": "buttressRoot  (native)",
+   "bytes": 22850424,
+   "mb": 21.79
+  },
+  {
+   "where": "tube  (native)",
+   "bytes": 22781520,
+   "mb": 21.73
+  },
+  {
+   "where": "clone  three.core.js:14518",
+   "bytes": 20997600,
+   "mb": 20.02
+  },
+  {
+   "where": "nearLeafColor  (native)",
+   "bytes": 17887552,
+   "mb": 17.06
+  },
+  {
+   "where": "V  (native)",
+   "bytes": 14973248,
+   "mb": 14.28
+  },
+  {
+   "where": "frame  (native)",
+   "bytes": 14677120,
+   "mb": 14
+  },
+  {
+   "where": "clone  three.core.js:4994",
+   "bytes": 13999968,
+   "mb": 13.35
+  },
+  {
+   "where": "mossCushion  (native)",
+   "bytes": 11658320,
+   "mb": 11.12
+  },
+  {
+   "where": "tangent  (native)",
+   "bytes": 10077600,
+   "mb": 9.61
+  },
+  {
+   "where": "nearRosette  (native)",
+   "bytes": 8588256,
+   "mb": 8.19
+  },
+  {
+   "where": "between  (native)",
+   "bytes": 8183680,
+   "mb": 7.8
+  },
+  {
+   "where": "getSpacedPoints  three.core.js:31494",
+   "bytes": 7712200,
+   "mb": 7.35
+  },
+  {
+   "where": "hypot  (native)",
+   "bytes": 7606720,
+   "mb": 7.25
+  },
+  {
+   "where": "mossStrip  (native)",
+   "bytes": 7335080,
+   "mb": 7
+  },
+  {
+   "where": "boleBump  (native)",
+   "bytes": 7240608,
+   "mb": 6.91
+  },
+  {
+   "where": "on  (native)",
+   "bytes": 5945008,
+   "mb": 5.67
+  },
+  {
+   "where": "mossExtra  (native)",
+   "bytes": 5559600,
+   "mb": 5.3
+  },
+  {
+   "where": "clear  (native)",
+   "bytes": 4182016,
+   "mb": 3.99
+  },
+  {
+   "where": "twiglets  (native)",
+   "bytes": 3810856,
+   "mb": 3.63
+  },
+  {
+   "where": "barkColor  (native)",
+   "bytes": 3256824,
+   "mb": 3.11
+  },
+  {
+   "where": "nearLeafOpts  (native)",
+   "bytes": 2622576,
+   "mb": 2.5
+  },
+  {
+   "where": "Color  three.core.js:14168",
+   "bytes": 2464704,
+   "mb": 2.35
+  },
+  {
+   "where": "frond  (native)",
+   "bytes": 2278232,
+   "mb": 2.17
+  },
+  {
+   "where": "tubeRidge  (native)",
+   "bytes": 2115616,
+   "mb": 2.02
+  },
+  {
+   "where": "length  three.core.js:5563",
+   "bytes": 1968032,
+   "mb": 1.88
+  },
+  {
+   "where": "gb  (native)",
+   "bytes": 1836848,
+   "mb": 1.75
+  },
+  {
+   "where": "smoothstep  (native)",
+   "bytes": 1697448,
+   "mb": 1.62
+  },
+  {
+   "where": "exec  (native)",
+   "bytes": 1483144,
+   "mb": 1.41
+  },
+  {
+   "where": "setStyle  three.core.js:14353",
+   "bytes": 1470376,
+   "mb": 1.4
+  },
+  {
+   "where": "finishSteps  (native)",
+   "bytes": 1372024,
+   "mb": 1.31
+  },
+  {
+   "where": "groundAt  fixture.mjs:53",
+   "bytes": 951232,
+   "mb": 0.91
+  },
+  {
+   "where": "sample  (native)",
+   "bytes": 922944,
+   "mb": 0.88
+  },
+  {
+   "where": "sampleAt  (native)",
+   "bytes": 706856,
+   "mb": 0.67
+  },
+  {
+   "where": "mossBeard  (native)",
+   "bytes": 689008,
+   "mb": 0.66
+  },
+  {
+   "where": "packSteps  (native)",
+   "bytes": 667904,
+   "mb": 0.64
+  },
+  {
+   "where": "triangle  (native)",
+   "bytes": 610144,
+   "mb": 0.58
+  },
+  {
+   "where": "lengthSq  three.core.js:5552",
+   "bytes": 508448,
+   "mb": 0.48
+  },
+  {
+   "where": "from  (native)",
+   "bytes": 477168,
+   "mb": 0.46
+  },
+  {
+   "where": "SRGBToLinear  three.core.js:6882",
+   "bytes": 475616,
+   "mb": 0.45
+  },
+  {
+   "where": "litter  (native)",
+   "bytes": 460248,
+   "mb": 0.44
+  },
+  {
+   "where": "stiffnessFor  (native)",
+   "bytes": 426416,
+   "mb": 0.41
+  },
+  {
+   "where": "lobeSteps  (native)",
+   "bytes": 410936,
+   "mb": 0.39
+  },
+  {
+   "where": "dot  three.core.js:5539",
+   "bytes": 401840,
+   "mb": 0.38
+  },
+  {
+   "where": "at  (native)",
+   "bytes": 394016,
+   "mb": 0.38
+  },
+  {
+   "where": "sin  (native)",
+   "bytes": 336256,
+   "mb": 0.32
+  },
+  {
+   "where": "distanceTo  three.core.js:5747",
+   "bytes": 319824,
+   "mb": 0.31
+  },
+  {
+   "where": "vertexNormalSteps  (native)",
+   "bytes": 304352,
+   "mb": 0.29
+  }
+ ]
+}

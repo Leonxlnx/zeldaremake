@@ -527,6 +527,131 @@ export function taper(points: Vector3[], radius: number, terminal = 0.004, power
 }
 
 /** A tortuous woody axis between two growth targets, continuing its parent. */
+/**
+ * `curve.getSpacedPoints(divisions)` without its allocations, arithmetic for arithmetic.
+ *
+ * three's version walks `getPointAt` → `getUtoTmapping` → `getLengths`, and `getLengths` samples the
+ * curve `arcLengthDivisions` (200) times with no target vector: 201 throwaway `Vector3`s and a fresh
+ * cache array **per call**, and `growthPath` is called once per stem, secondary, twig and twiglet —
+ * thousands of times a tree. The allocation profile put `Curve.getPoint` and its `init` at **12.4 % of
+ * everything the builders allocate** (`art/environment/squad2-2026-09-23/chunks/alloc-*.json`), and
+ * garbage is what the frame budget actually trips over (chunks/README.md §6).
+ *
+ * This keeps three's algorithm exactly — the same 200-sample cumulative length cache summed in the same
+ * order, the same binary search, the same segment interpolation, the same `getPoint` — and only reuses
+ * the vectors and the array. The returned points are fresh, because the caller keeps them.
+ */
+const _arcLengths: number[] = [];
+const _arcA = new Vector3();
+const _arcB = new Vector3();
+
+/**
+ * One axis of a centripetal Catmull-Rom segment, evaluated in local variables.
+ *
+ * three's `CubicPoly` keeps its four coefficients in closure variables, and V8 boxes a double assigned
+ * to a captured variable: `getPoint` allocated ~240 bytes a call — twelve coefficients and three
+ * components — which over `growthPath`'s 206 samples is **49 KB of garbage per path**. The arithmetic
+ * here is `initNonuniformCatmullRom` followed by `calc`, operation for operation in the same order, with
+ * nothing captured, so the doubles stay in registers. The output is the same bits, which
+ * `chunks/bitcheck.mjs` checks over 75 geometries and 741 103 triangles.
+ */
+function cubicAxis(x0: number, x1: number, x2: number, x3: number, dt0: number, dt1: number, dt2: number, w: number): number {
+  let t1 = (x1 - x0) / dt0 - (x2 - x0) / (dt0 + dt1) + (x2 - x1) / dt1;
+  let t2 = (x2 - x1) / dt1 - (x3 - x1) / (dt1 + dt2) + (x3 - x2) / dt2;
+  t1 *= dt1;
+  t2 *= dt1;
+  const c0 = x1;
+  const c1 = t1;
+  const c2 = -3 * x1 + 3 * x2 - 2 * t1 - t2;
+  const c3 = 2 * x1 - 2 * x2 + t1 + t2;
+  const w2 = w * w;
+  const w3 = w2 * w;
+  return c0 + c1 * w + c2 * w2 + c3 * w3;
+}
+
+/** the two extrapolated end points three's `getPoint` builds in its module scratch */
+const _curveEndA = new Vector3();
+const _curveEndB = new Vector3();
+
+/**
+ * `CatmullRomCurve3.getPoint(t, target)` for a non-closed centripetal curve, without the boxing.
+ * Same branch structure as three's: the first and last control points extrapolated the same way, the
+ * same `Math.pow(distanceToSquared, 0.25)` knot spacing, the same repeated-point safety checks.
+ */
+function curvePoint(points: Vector3[], t: number, target: Vector3): Vector3 {
+  const l = points.length;
+  const p = (l - 1) * t;
+  let intPoint = Math.floor(p);
+  let weight = p - intPoint;
+  if (weight === 0 && intPoint === l - 1) {
+    intPoint = l - 2;
+    weight = 1;
+  }
+  let p0: Vector3;
+  let p3: Vector3;
+  if (intPoint > 0) p0 = points[(intPoint - 1) % l];
+  else p0 = _curveEndB.subVectors(points[0], points[1]).add(points[0]);
+  const p1 = points[intPoint % l];
+  const p2 = points[(intPoint + 1) % l];
+  if (intPoint + 2 < l) p3 = points[(intPoint + 2) % l];
+  else p3 = _curveEndA.subVectors(points[l - 1], points[l - 2]).add(points[l - 1]);
+  let dt0 = Math.pow(p0.distanceToSquared(p1), 0.25);
+  let dt1 = Math.pow(p1.distanceToSquared(p2), 0.25);
+  let dt2 = Math.pow(p2.distanceToSquared(p3), 0.25);
+  if (dt1 < 1e-4) dt1 = 1.0;
+  if (dt0 < 1e-4) dt0 = dt1;
+  if (dt2 < 1e-4) dt2 = dt1;
+  return target.set(
+    cubicAxis(p0.x, p1.x, p2.x, p3.x, dt0, dt1, dt2, weight),
+    cubicAxis(p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2, weight),
+    cubicAxis(p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2, weight),
+  );
+}
+
+function spacedPoints(curve: CatmullRomCurve3, divisions: number): Vector3[] {
+  const n = curve.arcLengthDivisions;
+  const control = curve.points;
+  _arcLengths.length = 0;
+  _arcLengths.push(0);
+  let last = curvePoint(control, 0, _arcA);
+  let sum = 0;
+  for (let p = 1; p <= n; p++) {
+    const current = curvePoint(control, p / n, last === _arcA ? _arcB : _arcA);
+    sum += current.distanceTo(last);
+    _arcLengths.push(sum);
+    last = current;
+  }
+  const il = _arcLengths.length;
+  /** three's `getUtoTmapping` with the cache above */
+  const uToT = (u: number) => {
+    const targetArcLength = u * _arcLengths[il - 1];
+    let i = 0;
+    let low = 0;
+    let high = il - 1;
+    while (low <= high) {
+      i = Math.floor(low + (high - low) / 2);
+      const comparison = _arcLengths[i] - targetArcLength;
+      if (comparison < 0) low = i + 1;
+      else if (comparison > 0) high = i - 1;
+      else {
+        high = i;
+        break;
+      }
+    }
+    i = high;
+    if (_arcLengths[i] === targetArcLength) return i / (il - 1);
+    const lengthBefore = _arcLengths[i];
+    const segmentFraction = (targetArcLength - lengthBefore) / (_arcLengths[i + 1] - lengthBefore);
+    return (i + segmentFraction) / (il - 1);
+  };
+  const points: Vector3[] = [];
+  for (let d = 0; d <= divisions; d++) points.push(curvePoint(control, uToT(d / divisions), new Vector3()));
+  return points;
+}
+
+/** the curve `growthPath` samples, reused: five points copied in place instead of a new curve a call */
+const _growthCurve = new CatmullRomCurve3([new Vector3(), new Vector3(), new Vector3(), new Vector3(), new Vector3()], false, 'centripetal');
+
 export function growthPath(origin: Vector3, target: Vector3, parentDirection: Vector3, rng: RandomFn, segments = 8, tortuosity = 1): Vector3[] {
   const displacement = target.clone().sub(origin);
   const length = displacement.length();
@@ -544,8 +669,12 @@ export function growthPath(origin: Vector3, target: Vector3, parentDirection: Ve
     .lerp(target, 0.76)
     .addScaledVector(side, (rng() - 0.5) * length * 0.23 * tortuosity)
     .addScaledVector(bend, (rng() - 0.4) * length * 0.12 * tortuosity);
-  const curve = new CatmullRomCurve3([origin.clone(), a, b, c, target.clone()], false, 'centripetal');
-  const points = curve.getSpacedPoints(segments);
+  _growthCurve.points[0].copy(origin);
+  _growthCurve.points[1].copy(a);
+  _growthCurve.points[2].copy(b);
+  _growthCurve.points[3].copy(c);
+  _growthCurve.points[4].copy(target);
+  const points = spacedPoints(_growthCurve, segments);
   points[0].copy(origin);
   points[points.length - 1].copy(target);
   return points;
