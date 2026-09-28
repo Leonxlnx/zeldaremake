@@ -316,9 +316,15 @@ the head, **all three md5-identical**:
 | **plateau-back** | **707** / 10 950 726 | **702** / 10 895 532 | **−55 194** | **−5** | 14 of 14 | 4 |
 | ledge-look-south | 635 / 11 049 685 | 635 / 11 046 057 | −3 628 | 0 | 14 of 14 | 0 |
 
-**The plateau look-back crosses back under W38's draw limit**: 707 → 702 against a ceiling of 700. That is
-the one gate this work closes at that view; its triangles stay at 10.9 M, 21 % over the 9 M line, which is
-the overage fable-4 and fable-5 both sized as needing a look call (vegetation is 59 % of it, trees 8 %).
+**Correction (2026-09-28 18:00):** this section first said the plateau look-back "crosses back under
+W38's draw limit". It does not — **702 against a ceiling of 700 is two over**, and the −5 draws only
+narrow the gap. W38's checks are written for the six `*hero` viewpoints, so the line does not formally
+bind at this pose either way; the arithmetic error was mine and the claim is withdrawn. What is left is
+that the culls take **707 → 702 draws and −55 194 triangles**, with the frame byte-identical.
+`outlook/` now prices what the remaining draws at this pose are made of.
+
+Its trianglesstay at 10.9 M, 21 % over the 9 M line, which is the overage fable-4 and
+fable-5 both sized as needing a look call (vegetation is 59 % of it, trees 8 %).
 
 The spread across the three is the same story the walk poses told. `plateau-north` looks out over the
 forest with most giants behind the camera — 6 of 14 groups cast, and it gives 47 K. `plateau-back` looks

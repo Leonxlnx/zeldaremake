@@ -1,0 +1,23 @@
+squad2 2026-09-28: the depth culls at the two look-backs (the game's worst views)
+
+frozen.mjs on lookbacks/poses.json, a9308730 against the branch head. All three md5-identical.
+
+  pose               before                after                 triangles   draws   groups casting
+  plateau-north      456/6 293 690         456/6 246 699           -46 991       0     6 of 14
+  plateau-back       707/10 950 726        702/10 895 532          -55 194      -5    14 of 14
+  ledge-look-south   635/11 049 685        635/11 046 057           -3 628       0    14 of 14
+
+CORRECTION (2026-09-28 18:00): 702 against a ceiling of 700 is TWO OVER, not under it. This log first
+claimed the plateau look-back crossed back under W38's draw limit; it does not, and the -5 draws only
+narrow the gap (W38's checks are written for the six *hero viewpoints, so the line does not formally
+bind at this pose either way). The arithmetic error was mine. What stands is 707 -> 702 draws and
+-55 194 triangles with the frame byte-identical; its triangles stay at 10.9 M, 21 % over the 9 M line, which is
+the overage fable-4 and fable-5 sized as needing a look call (vegetation 59 % of it, trees 8 %).
+
+The spread matches the walk poses: plateau-north looks OUT over the forest with most giants behind the
+camera (6 of 14 groups cast) and gives 47 K; plateau-back looks INTO the plaza so every giant's shade
+lands in frame and the saving is the near bases and batches; ledge-look-south stands 75 m north where
+the near-canopy tier shows only 3 parts and no near base is active, so there is almost nothing to cull.
+
+For whoever holds the near-canopy decision: at plateau-back 34 in-frame parts are starved of a slot,
+the nearest 14 m from the camera - the largest starvation measured anywhere.

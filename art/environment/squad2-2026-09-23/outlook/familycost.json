@@ -1,0 +1,232 @@
+[
+ {
+  "pose": "plateau-north",
+  "base": {
+   "draws": 456,
+   "triangles": 6246699
+  },
+  "control": 0,
+  "md5": "44a62d3f",
+  "families": [
+   {
+    "family": "giants: wood and leaves",
+    "meshes": 13,
+    "submitted": 3393774,
+    "drawnTriangles": 552932,
+    "drawnDraws": 26,
+    "pixelsMoved": 6.78,
+    "names": [
+     "giant-near-canopy-batch",
+     "giants-sector-0-lantern-tree+north-west-near+north-west+north-east",
+     "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east"
+    ]
+   },
+   {
+    "family": "columns",
+    "meshes": 8,
+    "submitted": 738567,
+    "drawnTriangles": 513233,
+    "drawnDraws": 14,
+    "pixelsMoved": 2.45,
+    "names": [
+     "column-col-0-619356256-high@22.191,-34.941",
+     "column-col-1-678757811-high@-5.700,-31.900",
+     "column-col-2-328830636-high@11.097,-25.000"
+    ]
+   },
+   {
+    "family": "giants: far foliage batches",
+    "meshes": 3,
+    "submitted": 483860,
+    "drawnTriangles": 227652,
+    "drawnDraws": 3,
+    "pixelsMoved": 1.38,
+    "names": [
+     "giant-far-foliage-0-lantern-tree+north-west-near+north-west+north-east",
+     "giant-far-foliage-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+     "giant-far-foliage-2-south-giant+plaza-south+south-centre+southwest-giant"
+    ]
+   },
+   {
+    "family": "white-barks",
+    "meshes": 12,
+    "submitted": 117519,
+    "drawnTriangles": 157743,
+    "drawnDraws": 15,
+    "pixelsMoved": 0.34,
+    "names": [
+     "whitebark-wb-0-969193859-high",
+     "whitebark-wb-1-813437645-high",
+     "whitebark-wb-2-462283019-medium"
+    ]
+   },
+   {
+    "family": "understory",
+    "meshes": 14,
+    "submitted": 75350,
+    "drawnTriangles": 143818,
+    "drawnDraws": 23,
+    "pixelsMoved": 0.31,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us0-542438786-medium",
+     "understory-us0-542438786-low"
+    ]
+   },
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 22869,
+    "drawnTriangles": 25181,
+    "drawnDraws": 30,
+    "pixelsMoved": 0.38,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 7,
+    "submitted": 7346,
+    "drawnTriangles": 9338,
+    "drawnDraws": 21,
+    "pixelsMoved": 0,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   },
+   {
+    "family": "near bases",
+    "meshes": 6,
+    "submitted": 195792,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "names": [
+     "column-near-base-seat-4",
+     "column-near-base-swap-18",
+     "column-near-base-seat-3"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "plateau-back",
+  "base": {
+   "draws": 702,
+   "triangles": 10895532
+  },
+  "control": 0,
+  "md5": "49b522cd",
+  "families": [
+   {
+    "family": "giants: wood and leaves",
+    "meshes": 16,
+    "submitted": 3400474,
+    "drawnTriangles": 1175651,
+    "drawnDraws": 44,
+    "pixelsMoved": 35.21,
+    "names": [
+     "giant-near-canopy-batch",
+     "giants-sector-0-lantern-tree+north-west-near+north-west+north-east",
+     "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east"
+    ]
+   },
+   {
+    "family": "giants: far foliage batches",
+    "meshes": 3,
+    "submitted": 483860,
+    "drawnTriangles": 655676,
+    "drawnDraws": 6,
+    "pixelsMoved": 9.78,
+    "names": [
+     "giant-far-foliage-0-lantern-tree+north-west-near+north-west+north-east",
+     "giant-far-foliage-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+     "giant-far-foliage-2-south-giant+plaza-south+south-centre+southwest-giant"
+    ]
+   },
+   {
+    "family": "columns",
+    "meshes": 11,
+    "submitted": 830082,
+    "drawnTriangles": 498590,
+    "drawnDraws": 14,
+    "pixelsMoved": 1.84,
+    "names": [
+     "column-col-0-619356256-high@21.200,6.800",
+     "column-col-1-678757811-high@-5.700,-31.900",
+     "column-col-2-328830636-high@11.097,-25.000"
+    ]
+   },
+   {
+    "family": "white-barks",
+    "meshes": 15,
+    "submitted": 159174,
+    "drawnTriangles": 168838,
+    "drawnDraws": 16,
+    "pixelsMoved": 2.29,
+    "names": [
+     "whitebark-wb-0-969193859-low",
+     "whitebark-wb-1-813437645-low",
+     "whitebark-wb-2-462283019-medium"
+    ]
+   },
+   {
+    "family": "understory",
+    "meshes": 8,
+    "submitted": 49602,
+    "drawnTriangles": 63638,
+    "drawnDraws": 10,
+    "pixelsMoved": 5.47,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us1-404692179-high",
+     "understory-us1-404692179-low"
+    ]
+   },
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 39782,
+    "drawnTriangles": 44848,
+    "drawnDraws": 30,
+    "pixelsMoved": 6.03,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 5,
+    "submitted": 4800,
+    "drawnTriangles": 6400,
+    "drawnDraws": 15,
+    "pixelsMoved": 1.78,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   },
+   {
+    "family": "near bases",
+    "meshes": 6,
+    "submitted": 200335,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "pixelsMoved": 0,
+    "names": [
+     "column-near-base-swap-8",
+     "column-near-base-swap-18",
+     "column-near-base-seat-3"
+    ]
+   }
+  ]
+ }
+]
