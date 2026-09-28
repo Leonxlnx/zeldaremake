@@ -1,0 +1,6 @@
+image                                                      mist%  brown%  dark%  leaf%  mean-l | far-centre box hex  hue  s     l     B/R
+/tmp/q-high/f0000.png                                       14.7   26.5    21.2   20.9  0.321  | #7e7b6f    46° 0.06  0.466 0.88
+/tmp/q-low/f0000.png                                        16.4   29.0    21.3   15.4  0.330  | #817e72    45° 0.06  0.478 0.88
+
+q-high/f0000.png  band y 0.12–0.5  mean 86.5  across-columns sd 28.93  within-column sd 18.12
+q-low/f0000.png  band y 0.12–0.5  mean 88.5  across-columns sd 29.63  within-column sd 19.38
