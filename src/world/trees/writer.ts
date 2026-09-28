@@ -369,10 +369,20 @@ export function tangent(points: Vector3[], t: number): Vector3 {
   return sample(points, Math.min(1, t + 0.02)).sub(sample(points, Math.max(0, t - 0.02))).normalize();
 }
 
+const _frameRefZ = new Vector3(0, 0, 1);
+
+/** `frame` into caller-owned vectors: the same two cross products, no allocation (hot paths) */
+export function frameInto(axis: Vector3, u: Vector3, v: Vector3): void {
+  const reference = Math.abs(axis.y) < 0.92 ? UP : _frameRefZ;
+  u.crossVectors(axis, reference).normalize();
+  v.crossVectors(axis, u).normalize();
+}
+
 export function frame(axis: Vector3): [Vector3, Vector3] {
-  const reference = Math.abs(axis.y) < 0.92 ? UP : new Vector3(0, 0, 1);
-  const u = new Vector3().crossVectors(axis, reference).normalize();
-  return [u, new Vector3().crossVectors(axis, u).normalize()];
+  const u = new Vector3();
+  const v = new Vector3();
+  frameInto(axis, u, v);
+  return [u, v];
 }
 
 /** stiffness for the branch wind layer from the local wood radius */
@@ -541,7 +551,7 @@ export function taper(points: Vector3[], radius: number, terminal = 0.004, power
  * order, the same binary search, the same segment interpolation, the same `getPoint` — and only reuses
  * the vectors and the array. The returned points are fresh, because the caller keeps them.
  */
-const _arcLengths: number[] = [];
+let _arcLengths = new Float64Array(201);
 const _arcA = new Vector3();
 const _arcB = new Vector3();
 
@@ -608,72 +618,87 @@ function curvePoint(points: Vector3[], t: number, target: Vector3): Vector3 {
   );
 }
 
+/**
+ * three's `getUtoTmapping` over the table `spacedPoints` just filled: the same binary search for the
+ * largest cumulative length under the target, then the same interpolation inside that segment. A
+ * module function rather than a closure, because a closure is an allocation per path.
+ */
+function uToT(u: number, il: number): number {
+  const targetArcLength = u * _arcLengths[il - 1];
+  let i = 0;
+  let low = 0;
+  let high = il - 1;
+  while (low <= high) {
+    i = Math.floor(low + (high - low) / 2);
+    const comparison = _arcLengths[i] - targetArcLength;
+    if (comparison < 0) low = i + 1;
+    else if (comparison > 0) high = i - 1;
+    else {
+      high = i;
+      break;
+    }
+  }
+  i = high;
+  if (_arcLengths[i] === targetArcLength) return i / (il - 1);
+  const lengthBefore = _arcLengths[i];
+  const segmentFraction = (targetArcLength - lengthBefore) / (_arcLengths[i + 1] - lengthBefore);
+  return (i + segmentFraction) / (il - 1);
+}
+
 function spacedPoints(curve: CatmullRomCurve3, divisions: number): Vector3[] {
   const n = curve.arcLengthDivisions;
   const control = curve.points;
-  _arcLengths.length = 0;
-  _arcLengths.push(0);
+  // a plain array's `length = 0` lets V8 trim the backing store, so every path re-grew it; the table
+  // is a fixed buffer with its used length carried separately
+  if (_arcLengths.length < n + 1) _arcLengths = new Float64Array(n + 1);
+  _arcLengths[0] = 0;
   let last = curvePoint(control, 0, _arcA);
   let sum = 0;
   for (let p = 1; p <= n; p++) {
     const current = curvePoint(control, p / n, last === _arcA ? _arcB : _arcA);
     sum += current.distanceTo(last);
-    _arcLengths.push(sum);
+    _arcLengths[p] = sum;
     last = current;
   }
-  const il = _arcLengths.length;
-  /** three's `getUtoTmapping` with the cache above */
-  const uToT = (u: number) => {
-    const targetArcLength = u * _arcLengths[il - 1];
-    let i = 0;
-    let low = 0;
-    let high = il - 1;
-    while (low <= high) {
-      i = Math.floor(low + (high - low) / 2);
-      const comparison = _arcLengths[i] - targetArcLength;
-      if (comparison < 0) low = i + 1;
-      else if (comparison > 0) high = i - 1;
-      else {
-        high = i;
-        break;
-      }
-    }
-    i = high;
-    if (_arcLengths[i] === targetArcLength) return i / (il - 1);
-    const lengthBefore = _arcLengths[i];
-    const segmentFraction = (targetArcLength - lengthBefore) / (_arcLengths[i + 1] - lengthBefore);
-    return (i + segmentFraction) / (il - 1);
-  };
+  const il = n + 1;
   const points: Vector3[] = [];
-  for (let d = 0; d <= divisions; d++) points.push(curvePoint(control, uToT(d / divisions), new Vector3()));
+  for (let d = 0; d <= divisions; d++) points.push(curvePoint(control, uToT(d / divisions, il), new Vector3()));
   return points;
 }
 
 /** the curve `growthPath` samples, reused: five points copied in place instead of a new curve a call */
 const _growthCurve = new CatmullRomCurve3([new Vector3(), new Vector3(), new Vector3(), new Vector3(), new Vector3()], false, 'centripetal');
 
+const _gpDisplacement = new Vector3();
+const _gpDirection = new Vector3();
+const _gpSide = new Vector3();
+const _gpBend = new Vector3();
+const _gpOutgoing = new Vector3();
+
 export function growthPath(origin: Vector3, target: Vector3, parentDirection: Vector3, rng: RandomFn, segments = 8, tortuosity = 1): Vector3[] {
-  const displacement = target.clone().sub(origin);
+  const displacement = _gpDisplacement.copy(target).sub(origin);
   const length = displacement.length();
-  const direction = displacement.clone().normalize();
-  const [side, bend] = frame(direction);
-  const outgoing = parentDirection.clone().normalize().lerp(direction, 0.42).normalize();
-  const a = origin.clone().addScaledVector(outgoing, length * 0.19);
-  const b = origin
-    .clone()
+  const direction = _gpDirection.copy(displacement).normalize();
+  const side = _gpSide;
+  const bend = _gpBend;
+  frameInto(direction, side, bend);
+  const outgoing = _gpOutgoing.copy(parentDirection).normalize().lerp(direction, 0.42).normalize();
+  // the three inner control points are written straight into the reused curve, in the order the
+  // random stream expects (b's two draws before c's two)
+  const control = _growthCurve.points;
+  control[0].copy(origin);
+  control[1].copy(origin).addScaledVector(outgoing, length * 0.19);
+  control[2]
+    .copy(origin)
     .lerp(target, 0.45)
     .addScaledVector(side, (rng() - 0.5) * length * 0.28 * tortuosity)
     .addScaledVector(bend, (rng() - 0.46) * length * 0.14 * tortuosity);
-  const c = origin
-    .clone()
+  control[3]
+    .copy(origin)
     .lerp(target, 0.76)
     .addScaledVector(side, (rng() - 0.5) * length * 0.23 * tortuosity)
     .addScaledVector(bend, (rng() - 0.4) * length * 0.12 * tortuosity);
-  _growthCurve.points[0].copy(origin);
-  _growthCurve.points[1].copy(a);
-  _growthCurve.points[2].copy(b);
-  _growthCurve.points[3].copy(c);
-  _growthCurve.points[4].copy(target);
+  control[4].copy(target);
   const points = spacedPoints(_growthCurve, segments);
   points[0].copy(origin);
   points[points.length - 1].copy(target);
