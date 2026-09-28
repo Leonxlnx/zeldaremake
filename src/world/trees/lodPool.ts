@@ -49,6 +49,8 @@ interface Slot<B extends PoolBuilt> {
   genMs: number;
   /** the longest chunk (ms) of the in-progress build so far: what `work` expects its next chunk to cost */
   stepMs: number;
+  /** whether the in-progress build has run a chunk yet (a zero-ms first chunk is still not "fresh") */
+  started: boolean;
   /** the tick the item was last wanted or pinned (LRU order) */
   lastUse: number;
   pinned: boolean;
@@ -101,6 +103,8 @@ export interface PoolReport {
   /** `work` calls that ran past their budget by more than one chunk's tolerance (STEP_TOLERANCE_MS), and the p95 of a call's ms */
   workOverBudget: number;
   workMsP95: number;
+  /** what BEGINNING a build costs: the p95 of the last builds' first chunks (`stepMsTypical`) */
+  firstStepMsP95: number;
 }
 
 /** a chunk between two yields longer than this (ms) is counted in `longSteps`: the frame it lands in pays it whole */
@@ -124,6 +128,8 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   private workMsTotal = 0;
   /** the last chunks' ms (a ring of `history`), their count, and the count over LONG_STEP_MS */
   private readonly stepMs: number[] = [];
+  /** the last builds' FIRST chunks (ms): what starting a fresh item costs (see `stepMsTypical`) */
+  private readonly firstStepMs: number[] = [];
   private stepCount = 0;
   private longSteps = 0;
   /** the last `work` calls' ms and the count over budget + STEP_TOLERANCE_MS */
@@ -146,7 +152,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   /** register an item; `built` = buffers that already exist (the measurement build), counted resident */
   add(item: PoolItem<B>, built: B | null = null) {
     if (this.slots.has(item)) throw new Error(`LodPool: ${item.id} added twice`);
-    const slot: Slot<B> = { item, built, gen: null, genMs: 0, stepMs: 0, lastUse: this.tick, pinned: false, wanted: false, priority: Infinity };
+    const slot: Slot<B> = { item, built, gen: null, genMs: 0, stepMs: 0, started: false, lastUse: this.tick, pinned: false, wanted: false, priority: Infinity };
     this.slots.set(item, slot);
     if (built) {
       item.bytes = built.bytes;
@@ -238,6 +244,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
         s.gen = null;
         s.genMs = 0;
         s.stepMs = 0;
+        s.started = false;
       }
     }
     this.evictToCap(0, -Infinity);
@@ -256,8 +263,10 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
         s.gen = s.item.build();
         s.genMs = 0;
         s.stepMs = 0;
+        s.started = false;
       }
-      const expected = s.stepMs > 0 ? s.stepMs : typical;
+      const first = !s.started;
+      const expected = first ? typical : s.stepMs;
       if (steps > 0 && elapsed + expected > budgetMs) break;
       const c0 = this.now();
       const r = s.gen.next();
@@ -266,7 +275,8 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       steps++;
       s.genMs += stepMs;
       s.stepMs = Math.max(s.stepMs, stepMs);
-      this.recordStep(stepMs);
+      s.started = true;
+      this.recordStep(stepMs, first);
       if (r.done) this.finish(s, r.value, s.genMs);
     }
     const ms = this.now() - t0;
@@ -277,19 +287,41 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     if (ms > budgetMs + STEP_TOLERANCE_MS) this.workOverBudget++;
   }
 
-  /** what a chunk of an untouched build is expected to cost: the median of the last chunks (0 until one has run) */
+  /**
+   * What STARTING a build is expected to cost: the p95 of the last builds' first chunks, or the
+   * median of all recent chunks until one build has started (0 before any).
+   *
+   * A fresh item's first chunk is the expensive one — a bole's first rings, a lobe's first sprays —
+   * and it is the only chunk the pool has no per-slot measurement for. The median of ALL chunks
+   * under-predicts it by an order of magnitude (a part's own build is mostly small chunks, and the
+   * chunked vertex normals made the tail smaller still), so `work` would spend its budget on cheap
+   * chunks and then start a fresh item at the edge of it: measured on a walk, chunk p95 0.7 → 0.3 ms
+   * but the calls over budget 19 → 34 of 600 frames.
+   *
+   * This is not round 48's rejected pessimism (`tiers/README.md` §2e: predicting EVERY chunk with a
+   * p95 made the overruns worse, because shorter calls mean more of the mandatory first steps the
+   * progress guarantee runs). It is pessimistic about one case only — beginning a build — which
+   * cannot add mandatory steps: the first step of a call runs whatever this returns, so declining to
+   * BEGIN a build late in a call moves that same first chunk to the front of a later call, where it
+   * is the mandatory step that was going to run anyway, and the call it left ends inside its budget.
+   */
   private stepMsTypical() {
+    if (this.firstStepMs.length) return percentile([...this.firstStepMs].sort((a, b) => a - b), 0.95);
     if (!this.stepMs.length) return 0;
     const sorted = [...this.stepMs].sort((a, b) => a - b);
     return percentile(sorted, 0.5);
   }
 
-  private recordStep(ms: number) {
+  private recordStep(ms: number, first: boolean) {
     this.stepCount++;
     this.stepMsMax = Math.max(this.stepMsMax, ms);
     if (ms > LONG_STEP_MS) this.longSteps++;
     this.stepMs.push(ms);
     if (this.stepMs.length > this.history) this.stepMs.shift();
+    if (first) {
+      this.firstStepMs.push(ms);
+      if (this.firstStepMs.length > this.history) this.firstStepMs.shift();
+    }
   }
 
   get poolBytes() {
@@ -351,6 +383,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       longSteps: this.longSteps,
       workOverBudget: this.workOverBudget,
       workMsP95: r(percentile(works, 0.95)),
+      firstStepMsP95: r(this.firstStepMs.length ? percentile([...this.firstStepMs].sort((a, b) => a - b), 0.95) : 0),
     };
   }
 
@@ -370,6 +403,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       s.gen = null;
       s.genMs = 0;
       s.stepMs = 0;
+      s.started = false;
     }
     this.bytes = 0;
   }
@@ -397,6 +431,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     s.gen = null;
     s.genMs = 0;
     s.stepMs = 0;
+    s.started = false;
     this.evictToCap(built.bytes, s.priority);
     s.built = built;
     s.item.bytes = built.bytes;

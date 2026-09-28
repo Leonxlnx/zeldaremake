@@ -1,10 +1,19 @@
 // Does the near-canopy pool stall a WALKING camera on the small memory tier? The walking path is the
 // non-reset one (chunked prefetch through work(budgetMs)), which only happens in play mode: setPose
 // and place() are explicit re-poses and take the capture contract's synchronous path instead.
+//
+// 2026-09-28: `--dist <dir> --out <file>` so a before and an after build can be walked side by side
+// in one session, and the pool's chunk counters (stepMsP50/P95/Max) travel with the `work` ones —
+// the chunks ARE the overrun (chunks/README.md).
 import fs from 'node:fs';
 import { serveStatic, launchBrowser } from '/workspace/gauntlet/scripts/lib/browser.mjs';
 const DT = 1 / 30;
-const server = await serveStatic('dist');
+const arg = (name, fallback) => {
+  const i = process.argv.indexOf(`--${name}`);
+  return i >= 0 ? process.argv[i + 1] : fallback;
+};
+const OUT = arg('out', '/tmp/walkpool.json');
+const server = await serveStatic(arg('dist', 'dist'));
 const browser = await launchBrowser({ width: 640, height: 360 });
 try {
   const page = await browser.newPage();
@@ -36,7 +45,9 @@ try {
         at: [Math.round((st.position?.[0] ?? st.x ?? 0) * 10) / 10, Math.round((st.position?.[2] ?? st.z ?? 0) * 10) / 10],
         syncBuilds: p.syncBuilds, built: p.built, evicted: p.evicted, pending: p.pending, resident: p.resident,
         pinned: p.pinned, pinnedPending: p.pinnedPending, poolMiB: Math.round((p.poolBytes ?? 0) / 1048576),
-        workMsP95: p.workMsP95, workOverBudget: p.workOverBudget, longSteps: p.longSteps,
+        workMsP95: p.workMsP95, workMsMax: p.workMsMax, workOverBudget: p.workOverBudget, longSteps: p.longSteps,
+        steps: p.steps, stepMsP50: p.stepMsP50, stepMsP95: p.stepMsP95, stepMsMax: p.stepMsMax,
+        buildMsP50: p.buildMsP50, buildMsP95: p.buildMsP95, firstStepMsP95: p.firstStepMsP95,
         shown: t.nearCanopy?.slotsInFrame?.shown ?? null,
       };
     });
@@ -51,5 +62,5 @@ try {
     console.error(JSON.stringify(rows.at(-1)));
   }
   await page.keyboard.up('KeyW');
-  fs.writeFileSync('/tmp/walkpool.json', JSON.stringify(rows, null, 1));
+  fs.writeFileSync(OUT, JSON.stringify(rows, null, 1));
 } finally { await browser.close(); await server.close(); }

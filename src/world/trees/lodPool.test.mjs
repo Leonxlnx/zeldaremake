@@ -72,6 +72,21 @@ const fakeItem = (id, bytes, log, chunks = 1, now = null, chunkMs = 0) => ({
   uninstall: () => log.push(`uninstall ${id}`),
 });
 
+/** a pool item whose chunks cost what `msPerChunk` says, in order (the real parts are uneven) */
+const varItem = (id, bytes, log, msPerChunk, now) => ({
+  id,
+  bytes,
+  build: function* () {
+    for (const ms of msPerChunk) {
+      now.advance(ms);
+      yield;
+    }
+    return { bytes, dispose: () => log.push(`dispose ${id}`) };
+  },
+  install: () => log.push(`install ${id}`),
+  uninstall: () => log.push(`uninstall ${id}`),
+});
+
 /** a synthetic lobe record in the shape giant.ts records: a stem, two secondaries, six twigs */
 const lobeRecord = (rng) => {
   const center = new THREE.Vector3(3, 9, 1);
@@ -389,9 +404,9 @@ test('the budget is checked before a chunk with its expected cost; the first chu
   assert.equal(pool.report().stepMsMax, 5);
   assert.equal(pool.report().longSteps, 0, 'five ms is under LONG_STEP_MS');
 
-  // a build's first chunk is expected to cost the pool's median chunk: after the 2 ms and 5 ms
-  // chunks above (median 2), a new build's first chunk runs and its second waits when it would
-  // end past a 3 ms budget
+  // a build's first chunk is expected to cost what beginning a build has cost lately (the p95 of the
+  // last builds' first chunks — here 2 and 5 ms): at the start of a call it runs regardless, and its
+  // second chunk waits when it would end past a 3 ms budget
   const v = fakeItem('v', 10, log, 2, now, 2);
   pool.add(v);
   pool.begin();
@@ -445,6 +460,53 @@ test('a geometry without an index keeps three\'s own path', () => {
   const n = g.getAttribute('normal');
   assert.ok(n, 'three computed them');
   assert.equal(n.getY(0), -1, 'the face normal of a triangle wound this way');
+});
+
+// 2026-09-28 (lane 2): with the vertex normals chunked, most chunks are tiny and the median of all
+// of them predicted a FRESH item's first chunk an order of magnitude too low, so `work` spent its
+// budget on cheap chunks and then began an expensive build at the edge of it (measured on a walk:
+// chunk p95 0.7 → 0.3 ms but calls over budget 19 → 34 of 600). Beginning a build is predicted from
+// the last builds' first chunks now. See chunks/README.md §4.
+test('work will not BEGIN a build at the edge of its budget: a fresh item is priced by first chunks', () => {
+  const log = [];
+  const now = clock();
+  const pool = new LodPool(1000, now);
+  // one item whose first chunk is expensive and whose rest is cheap (a near base: the bole's first
+  // rings), and one of all-cheap chunks (the chunked normals): the median chunk is 0.2 ms
+  const heavyA = varItem('heavy-a', 10, log, [6, 0.2, 0.2], now);
+  const cheap = varItem('cheap', 10, log, Array(10).fill(0.2), now);
+  const heavyB = varItem('heavy-b', 10, log, [6, 0.2, 0.2], now);
+  for (const it of [heavyA, cheap, heavyB]) pool.add(it);
+
+  // heavy-a first, so the pool learns what beginning a build costs
+  for (let f = 0; f < 4 && !pool.isResident(heavyA); f++) {
+    pool.begin();
+    pool.want(heavyA, 1);
+    pool.work(3);
+  }
+  assert.ok(pool.isResident(heavyA));
+  assert.equal(pool.report().firstStepMsP95, 6, 'beginning a build has cost 6 ms');
+
+  // now a frame where the cheap build finishes mid-call and heavy-b is the next pending item:
+  // the call must end inside its budget instead of paying heavy-b's first chunk on top
+  pool.begin();
+  pool.want(cheap, 1);
+  pool.want(heavyB, 2);
+  const t0 = now();
+  pool.work(3);
+  const ms = now() - t0;
+  assert.ok(pool.isResident(cheap), 'the cheap build still finished in the frame');
+  assert.ok(!pool.isResident(heavyB), 'and the expensive one did not run in it');
+  assert.ok(ms <= 3, `the call stayed inside its 3 ms budget (${ms} ms)`);
+  assert.equal(pool.report().workOverBudget, 1, 'only heavy-a\'s own mandatory first chunk ever ran over');
+
+  // the next frame runs that first chunk as its mandatory one — the work is not lost, it moves to
+  // the front of a call, where the progress guarantee was always going to pay for it
+  pool.begin();
+  pool.want(heavyB, 2);
+  const t1 = now();
+  pool.work(3);
+  assert.equal(now() - t1, 6, 'the 6 ms first chunk ran, once, at the front');
 });
 
 test('runBuild finishes a generator and returns its value', () => {
