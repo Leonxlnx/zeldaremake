@@ -1,7 +1,7 @@
 # Lane 2's evidence, indexed
 
-`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 31
-measurement directories and 13 tools, with the headline of each, so another lane can find a number
+`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 33
+measurement directories and 14 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
 
 **Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). The sun's
@@ -26,6 +26,7 @@ the foot is the vegetation row and an owner call.
 
 | where | the headline |
 | --- | --- |
+| `sceneshade/` | **Every system's shade, priced (a handoff).** The same probe widened to the whole scene: the trees' shade is **55–59 % of the pixels** at camera A and the foot, while **structures spend 719 K for 0.49 % / 0.52 %**, terrain 317 K for 0.08 %, and vegetation 304 K for 0.02 % at A. At A those three are **1.34 M of an 8.63 M frame** for under 0.6 % of pixels, against 0.37 M of W38 headroom. No code changed — the mechanism (`shadowReachesGround`) is offered to whoever owns them. |
 | `depthfoot/` | **The sun's depth pass, by caster.** At the flight's foot 331 K of depth triangles move **zero pixels** (giant near bases 96 K, family shadow proxies 90 K, the south sector 86 K, column near bases 59 K) while the lantern-tree sector's 87 K moves 20.93 %. The four culls that followed take 79–193 K a pose in play and up to 121 K at a fixed view with **byte-identical frames**; §6 has the foot's per-family tally, §7 the walk-pose validation, §8 the CPU answer (below the noise). |
 | `slots/` | **The near-canopy tier, priced both ways.** It is saturated at 79 parts and **77–100 % of them are outside the frame**; at camera A 21 in-frame parts hold no slot. Aiming the slots at the frame gives 19 more near crowns for **+189 697 triangles and 0.46 % of the frame**; tightening the band 40 % moves **0.00 %** and saves only 4–37 K. A slot cap on this tier buys memory and CPU, not drawn cost. |
 | `loadmap/` | **Where the world build goes.** The giants phase splits into `createGiantTree` 1.70 s, the far-crown atlas 1.83 s, `placeMidTrees` 0.49 s, sector foliage 0.33 s, pools 0.14 s, to-world 0.12 s, merge 0.08 s. Across the whole 42.5 s build, **canvas-to-pixels is 6.27 s (14.8 %)** — a SwiftShader cost, not a player's. |
@@ -68,6 +69,7 @@ the foot is the vegetation row and an owner call.
 | `isolateshots.mjs` | One saved frame per system — **but see the method note below: `isolate()` cannot be screenshotted.** Use it for counts and attribute pixels by hiding meshes yourself. |
 | `depthfoot/depthprobe.mjs` | Which casters the sun's depth pass pays for at a pose, and whether each one's shade is in the frame at all (frozen clock, one group switched off at a time). |
 | `depthfoot/cullcost.mjs` | The trees system's own per-frame CPU while the camera turns, at a small viewport so the cull's cost is not buried in rasterisation. |
+| `sceneshade/scenedepth.mjs` | Every system's shade at a pose: switch one system's casters off at a time and read the triangle delta and the pixel difference. |
 | `sixcheck.mjs` | What a change did to the fixed frames: pixels moved, mean, local detail, and SSIM against `reference/frames`. |
 | `walkpop.mjs` | What arrives late on screen (renders at `dt = 0`, so the wind cannot be mistaken for geometry). |
 | `band.mjs` | Is the middle distance trees or haze (band mean and across-column sd). |

@@ -1,0 +1,108 @@
+{
+ "base": {
+  "draws": 545,
+  "triangles": 9129877
+ },
+ "systems": {
+  "atmosphere": {
+   "casters": 1,
+   "tris": 2304,
+   "off": {
+    "draws": 544,
+    "triangles": 9127573,
+    "dropped": 1
+   },
+   "depthDelta": 2304,
+   "drawDelta": 1
+  },
+  "terrain": {
+   "casters": 12,
+   "tris": 345600,
+   "off": {
+    "draws": 533,
+    "triangles": 8784277,
+    "dropped": 12
+   },
+   "depthDelta": 345600,
+   "drawDelta": 12
+  },
+  "hardscape": {
+   "casters": 8,
+   "tris": 48532,
+   "off": {
+    "draws": 541,
+    "triangles": 9101786,
+    "dropped": 8
+   },
+   "depthDelta": 28091,
+   "drawDelta": 4
+  },
+  "rocks": {
+   "casters": 11,
+   "tris": 93980,
+   "off": {
+    "draws": 534,
+    "triangles": 9035897,
+    "dropped": 11
+   },
+   "depthDelta": 93980,
+   "drawDelta": 11
+  },
+  "trees": {
+   "casters": 37,
+   "tris": 1337969,
+   "off": {
+    "draws": 499,
+    "triangles": 7974495,
+    "dropped": 37
+   },
+   "depthDelta": 1155382,
+   "drawDelta": 46
+  },
+  "structures": {
+   "casters": 109,
+   "tris": 1319754,
+   "off": {
+    "draws": 500,
+    "triangles": 8410883,
+    "dropped": 109
+   },
+   "depthDelta": 718994,
+   "drawDelta": 45
+  },
+  "props": {
+   "casters": 17,
+   "tris": 71834,
+   "off": {
+    "draws": 540,
+    "triangles": 9085361,
+    "dropped": 17
+   },
+   "depthDelta": 44516,
+   "drawDelta": 5
+  },
+  "vegetation": {
+   "casters": 14,
+   "tris": 723378,
+   "off": {
+    "draws": 531,
+    "triangles": 8406499,
+    "dropped": 14
+   },
+   "depthDelta": 723378,
+   "drawDelta": 14
+  },
+  "character": {
+   "casters": 23,
+   "tris": 96756,
+   "off": {
+    "draws": 522,
+    "triangles": 9033121,
+    "dropped": 23
+   },
+   "depthDelta": 96756,
+   "drawDelta": 23
+  }
+ },
+ "control": null
+}
