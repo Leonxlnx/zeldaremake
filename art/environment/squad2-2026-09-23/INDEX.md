@@ -1,6 +1,6 @@
 # Lane 2's evidence, indexed
 
-`README.md` in this directory is the mid-canopy PR's description, not a map. This is the map: 35
+`README.md` in this directory is the mid-canopy round's write-up, not a map (it now opens with a pointer here). This is the map: 35
 measurement directories and 16 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
 
