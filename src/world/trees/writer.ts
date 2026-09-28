@@ -25,7 +25,7 @@
  * in every shading term that the colour pass drops while the lobe's near version is drawn
  * (round 41, materials.ts uNearCanopy).
  */
-import { BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const TAU = Math.PI * 2;
@@ -52,7 +52,7 @@ export const isCushionRoot = (w: number) => w > CUSHION_ROOT_W[0] && w < CUSHION
 export const PACK_FLOATS_PER_STEP = 8192;
 
 /**
- * `new Float32BufferAttribute(values, itemSize)` as a chunked copy. The same float32 conversion of
+ * `new Float32BufferAttribute(values, itemSize)`'s work as a chunked copy. The same float32 conversion of
  * the same values in the same order — `array[k] = values[k]` is what the bulk constructor does per
  * element — so the bytes are identical.
  *
@@ -60,14 +60,40 @@ export const PACK_FLOATS_PER_STEP = 8192;
  * builder clustered at the END of every near-canopy lobe's build (indices 56–64 of ~64, 2.5–3.5 ms),
  * which is `finishSteps` packing five attributes of 100–300 k floats in two chunks.
  */
-function* packSteps(values: number[], itemSize: number): Generator<void, Float32BufferAttribute> {
+function* packSteps(values: number[], itemSize: number): Generator<void, BufferAttribute> {
   const array = new Float32Array(values.length);
   for (let i = 0; i < values.length; i += PACK_FLOATS_PER_STEP) {
     const end = Math.min(values.length, i + PACK_FLOATS_PER_STEP);
     for (let k = i; k < end; k++) array[k] = values[k];
     if (end < values.length) yield;
   }
-  return new Float32BufferAttribute(array, itemSize);
+  // as in `indexSteps`: `Float32BufferAttribute(array)` would copy the array a second time
+  return new BufferAttribute(array, itemSize);
+}
+
+/**
+ * `BufferGeometry.setIndex(number[])` as a chunked copy, and the last operation of `finishSteps` that
+ * was still one call: three picks `Uint16` or `Uint32` by scanning for a value ≥ 65535 (backwards —
+ * the largest is usually last, so it normally exits at once) and then copies the whole array.
+ */
+function* indexSteps(indices: number[]): Generator<void, BufferAttribute> {
+  let needs32 = false;
+  for (let i = indices.length - 1; i >= 0; i--) {
+    if (indices[i] >= 65535) {
+      needs32 = true;
+      break;
+    }
+  }
+  const array = needs32 ? new Uint32Array(indices.length) : new Uint16Array(indices.length);
+  for (let i = 0; i < indices.length; i += PACK_FLOATS_PER_STEP) {
+    const end = Math.min(indices.length, i + PACK_FLOATS_PER_STEP);
+    for (let k = i; k < end; k++) array[k] = indices[k];
+    if (end < indices.length) yield;
+  }
+  // `BufferAttribute` over the array just filled, rather than `Uint32BufferAttribute(array)` which
+  // copies it again; three's own `mergeGeometries` hands back plain `BufferAttribute`s too, and the
+  // renderer picks the GL type from `array.constructor`
+  return new BufferAttribute(array, 1);
 }
 
 /**
@@ -299,7 +325,7 @@ export class GeometryWriter {
     yield;
     g.setAttribute('aWind', yield* packSteps(this.winds, 3));
     g.setAttribute('aRoot', yield* packSteps(this.roots, 4));
-    g.setIndex(this.indices);
+    g.setIndex(yield* indexSteps(this.indices));
     yield;
     yield* vertexNormalSteps(g);
     yield;
@@ -637,6 +663,25 @@ export interface LeafOptions {
  * One curved leaf lamina with a raised midrib, cup and twist. Distant LODs select stable subsets
  * of the seeded population and widen the retained laminae so crown coverage stays constant.
  */
+/**
+ * `addLeaf`'s scratch. A lamina used to allocate ~15 short-lived objects (eight points, four colours,
+ * three frame vectors) and a near-canopy lobe carries over a thousand laminae, so the leaf path was
+ * the builder's allocator — and its garbage is what the frame budget actually trips over: measured
+ * over 65 real parts, 251 collections cost 220 ms of pause against 2013 ms of building, and the
+ * chunks a collection landed in read a median 1.08 ms against 0.05 ms for the rest
+ * (`art/environment/squad2-2026-09-23/chunks/`). Every one of these is consumed before the next
+ * statement — `writer.vertex` copies the components out — so none is ever held across a call.
+ */
+const _leafForward = new Vector3();
+const _leafSide = new Vector3();
+const _leafNormal = new Vector3();
+const _leafPoint = new Vector3();
+const _leafColor = new Color();
+const _leafTip = new Color();
+const _leafShade = new Color();
+/** the default tip tint, parsed once instead of per lamina (`lerp` reads it, never writes) */
+const LEAF_TIP_DEFAULT = new Color('#7d8f4a');
+
 export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector3, sizeIn: number, color: Color, rng: RandomFn, o: LeafOptions, build = true): boolean {
   const ordinal = writer.leafOrdinal++;
   const mediumEvery = o.mediumEvery ?? 4;
@@ -646,25 +691,29 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
   let leafDetail: Detail = writer.detail === 'high' ? (ordinal % 4 === 0 ? 'high' : 'medium') : writer.detail === 'medium' ? 'medium' : 'low';
   if (o.detailOverride) leafDetail = writer.detail === 'high' ? o.detailOverride : leafDetail;
   const size = sizeIn * (writer.detail === 'medium' ? o.mediumScale ?? 1.8 : writer.detail === 'low' ? o.lowScale ?? 2.6 : 1);
-  const forward = direction.clone().normalize();
+  const forward = _leafForward.copy(direction).normalize();
   // Most laminae face the sky, while the roll and pitch retain oblique leaves.
-  const side = new Vector3().crossVectors(UP, forward);
+  const side = _leafSide.crossVectors(UP, forward);
   if (side.lengthSq() < 0.015) side.set(1, 0, 0);
   side.normalize().applyAxisAngle(forward, (rng() - 0.5) * 1.8);
-  const normal = new Vector3().crossVectors(forward, side).normalize();
+  const normal = _leafNormal.crossVectors(forward, side).normalize();
   const twist = (rng() - 0.5) * 0.42;
   const cup = size * (0.045 + rng() * 0.075);
   const curve = size * (rng() * 0.2 - 0.045);
   const width = size * o.widthRatio;
   const phase = rng();
+  // each point is handed straight to `writer.vertex`, which copies its components out, so one
+  // scratch vector serves every call (a lamina used to allocate eight of them)
   const localPoint = (s: number, t: number) =>
-    base
-      .clone()
+    _leafPoint
+      .copy(base)
       .addScaledVector(forward, size * t)
       .addScaledVector(side, s * width * 0.5)
       .addScaledVector(normal, curve * t * t + cup * (1 - Math.abs(s)) * Math.sin(t * Math.PI) + s * twist * size * t);
-  const leafColor = color.clone().multiplyScalar(0.8 + rng() * 0.38);
-  const tipColor = leafColor.clone().lerp(o.tipColor ?? new Color('#7d8f4a'), 0.08 + rng() * 0.14);
+  const leafColor = _leafColor.copy(color).multiplyScalar(0.8 + rng() * 0.38);
+  const tipColor = _leafTip.copy(leafColor).lerp(o.tipColor ?? LEAF_TIP_DEFAULT, 0.08 + rng() * 0.14);
+  /** a shade of one of the two colours, consumed by the next `V` call (never held) */
+  const lift = (c: Color, by: number) => _leafShade.copy(c).multiplyScalar(by);
   // `build` false: the lamina was culled (sun corridor) after its draws, so the stream stays aligned
   if (!retained || !build) return false;
   writer.leafCount++;
@@ -678,7 +727,7 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
     const r = V(localPoint(1, 0.43), leafColor, 1, 0.43);
     const tip = V(localPoint(0, 1), tipColor, 0.5, 1);
     if (leafDetail === 'medium') {
-      const center = V(localPoint(0, 0.43), leafColor.clone().multiplyScalar(1.045), 0.5, 0.43);
+      const center = V(localPoint(0, 0.43), lift(leafColor, 1.045), 0.5, 0.43);
       writer.triangle(b, l, center);
       writer.triangle(b, center, r);
       writer.triangle(l, tip, center);
@@ -691,10 +740,10 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
   }
   const b = V(base, leafColor, 0.5, 0);
   const l1 = V(localPoint(-o.wideFirst, 0.34), leafColor, 0, 0.34);
-  const c1 = V(localPoint(0, 0.34), leafColor.clone().multiplyScalar(1.045), 0.5, 0.34);
+  const c1 = V(localPoint(0, 0.34), lift(leafColor, 1.045), 0.5, 0.34);
   const r1 = V(localPoint(o.wideFirst, 0.34), leafColor, 1, 0.34);
   const l2 = V(localPoint(-o.wideSecond, 0.73), tipColor, 0.15, 0.73);
-  const c2 = V(localPoint(0, 0.73), tipColor.clone().multiplyScalar(1.025), 0.5, 0.73);
+  const c2 = V(localPoint(0, 0.73), lift(tipColor, 1.025), 0.5, 0.73);
   const r2 = V(localPoint(o.wideSecond, 0.73), tipColor, 0.85, 0.73);
   const tip = V(localPoint(0, 1), tipColor, 0.5, 1);
   writer.triangle(b, l1, c1);

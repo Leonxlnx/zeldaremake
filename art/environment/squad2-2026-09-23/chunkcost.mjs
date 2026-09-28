@@ -17,6 +17,7 @@
 import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { PerformanceObserver } from 'node:perf_hooks';
 import ts from 'typescript';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -74,14 +75,29 @@ const palette = { barkWhite: 0xe8e2d4, barkGrey: 0x9a938a, barkDark: 0x4a4038, l
 const ground = (x, z) => 0.05 * Math.sin(x * 0.7) + 0.04 * Math.cos(z * 0.9);
 const sunDir = new THREE.Vector3(0.3, 0.8, 0.5).normalize();
 
-/** run a build generator chunk by chunk, timing each chunk */
+/**
+ * Garbage collections while the parts build, so a long chunk can be told from a long PAUSE. The
+ * browser walk shows the same part's long chunks landing at different indices between rebuilds even
+ * though the builds are deterministic, which is the signature of a pause rather than of work; this is
+ * how that gets checked instead of asserted. `--expose-gc` is not needed: the observer only watches.
+ */
+const gcEvents = [];
+const gcObserver = new PerformanceObserver((list) => {
+  for (const e of list.getEntries()) gcEvents.push({ start: e.startTime, ms: e.duration, kind: e.detail?.kind });
+});
+gcObserver.observe({ entryTypes: ['gc'] });
+
+/** run a build generator chunk by chunk, timing each chunk (absolute window kept, for the GC overlap) */
 const timeChunks = (gen) => {
   const chunks = [];
+  const windows = [];
   for (;;) {
     const t0 = performance.now();
     const r = gen.next();
-    chunks.push(performance.now() - t0);
-    if (r.done) return { chunks, value: r.value };
+    const t1 = performance.now();
+    chunks.push(t1 - t0);
+    windows.push([t0, t1]);
+    if (r.done) return { chunks, windows, value: r.value };
   }
 };
 
@@ -163,6 +179,8 @@ const median = (xs) => {
 
 const measured = [];
 const allChunks = [];
+/** every chunk of every build, with its absolute window: the raw readings the medians come from */
+const rawChunks = [];
 for (const part of parts) {
   const runs = [];
   let geometry = null;
@@ -170,6 +188,7 @@ for (const part of parts) {
     const out = timeChunks(part.build());
     runs.push(out.chunks);
     geometry = out.value;
+    for (const [at, ms] of out.chunks.entries()) rawChunks.push({ ms, at, window: out.windows[at], id: part.id, kind: part.kind });
   }
   const chunks = runs[0].map((_, at) => median(runs.map((r) => r[at])));
   const total = chunks.reduce((a, b) => a + b, 0);
@@ -242,6 +261,40 @@ const over = every.filter((ms) => ms > budget);
 say(`- chunks longer than the ${budget} ms budget: **${over.length} of ${every.length}** (${r2((100 * over.length) / every.length)} %), the longest ${r2(Math.max(...every))} ms`);
 say(`- a \`work\` call that starts with one of those pays it whole: p95 of the over-budget chunks **${r2(pct(over, 0.95))} ms**`);
 say(`- the parts whose LONGEST chunk is over budget: **${measured.filter((m) => m.max > budget).length} of ${measured.length}**`);
+
+// The GC observer delivers asynchronously; a macrotask flushes what the builds produced.
+await new Promise((r) => setTimeout(r, 50));
+gcObserver.disconnect();
+if (gcEvents.length) {
+  const overlap = (w, e) => Math.max(0, Math.min(w[1], e.start + e.ms) - Math.max(w[0], e.start));
+  for (const c of rawChunks) c.gcMs = gcEvents.reduce((n, e) => n + overlap(c.window, e), 0);
+  const withGc = rawChunks.filter((c) => c.gcMs > 0.01);
+  const clean = rawChunks.filter((c) => !(c.gcMs > 0.01));
+  const raw = rawChunks.map((c) => c.ms);
+  say();
+  say('## a long chunk or a long pause? (node GC observer over the same builds)');
+  say();
+  say(
+    `${gcEvents.length} collections, ${r2(sum(gcEvents.map((e) => e.ms)))} ms of pause in total, the longest ` +
+      `${r2(Math.max(...gcEvents.map((e) => e.ms)))} ms — against ${r2(sum(raw))} ms of building.`,
+  );
+  say();
+  say('| chunks | count | p50 | p95 | max |');
+  say('| --- | --- | --- | --- | --- |');
+  for (const [label, set] of [
+    ['all readings', raw],
+    ['those a collection landed in', withGc.map((c) => c.ms)],
+    ['those with no collection in them', clean.map((c) => c.ms)],
+  ]) {
+    if (!set.length) continue;
+    say(`| ${label} | ${set.length} | ${r2(pct(set, 0.5))} | ${r2(pct(set, 0.95))} | ${r2(Math.max(...set))} |`);
+  }
+  const worst = [...rawChunks].sort((a, b) => b.ms - a.ms).slice(0, 8);
+  say();
+  say('| ms | of which GC pause | chunk | part |');
+  say('| --- | --- | --- | --- |');
+  for (const c of worst) say(`| ${r2(c.ms)} | ${r2(c.gcMs)} | ${c.at} | ${c.id} |`);
+}
 
 if (JSON_OUT) {
   writeFileSync(
