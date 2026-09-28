@@ -1,0 +1,35 @@
+{
+ "A_stairs": {
+  "draws": 575,
+  "triangles": 8631286,
+  "treeDraws": 77,
+  "treeTriangles": 3265520,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 10,
+   "starved": 21,
+   "starvedNearestM": 15.6
+  },
+  "md5": "a280badd8db2655329902ffdb743a6fd"
+ },
+ "stairs2-base-follow": {
+  "draws": 544,
+  "triangles": 9129709,
+  "treeDraws": 75,
+  "treeTriangles": 3185585,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 5,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 18,
+   "starved": 9,
+   "starvedNearestM": 17.6
+  },
+  "md5": "9ce108b27d7129243096e2b4cb4cf3f9"
+ }
+}
+workspace $

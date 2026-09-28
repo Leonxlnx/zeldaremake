@@ -1,0 +1,891 @@
+[
+ {
+  "frames": 0,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 139,
+  "evicted": 87,
+  "pending": 146,
+  "resident": 162,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 8.4,
+  "workMsMax": 467.1,
+  "workOverBudget": 3,
+  "longSteps": 0,
+  "steps": 4694,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.3,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.4,
+  "buildMsP95": 8.2,
+  "firstStepMsP95": 0.2,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-16",
+    "at": 79,
+    "ms": 2.1
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-19",
+    "at": 65,
+    "ms": 2.1
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 60,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 152,
+  "evicted": 99,
+  "pending": 157,
+  "resident": 163,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 7,
+  "workMsMax": 467.1,
+  "workOverBudget": 4,
+  "longSteps": 0,
+  "steps": 5469,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.2,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.3,
+  "buildMsP95": 8.2,
+  "firstStepMsP95": 0.2,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-16",
+    "at": 79,
+    "ms": 2.1
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-19",
+    "at": 65,
+    "ms": 2.1
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 120,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 167,
+  "evicted": 110,
+  "pending": 175,
+  "resident": 167,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workMsMax": 467.1,
+  "workOverBudget": 6,
+  "longSteps": 0,
+  "steps": 6375,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.3,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.2,
+  "buildMsP95": 8.3,
+  "firstStepMsP95": 0.2,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-16",
+    "at": 79,
+    "ms": 2.1
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-19",
+    "at": 65,
+    "ms": 2.1
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 180,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 173,
+  "evicted": 116,
+  "pending": 181,
+  "resident": 167,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workMsMax": 467.1,
+  "workOverBudget": 9,
+  "longSteps": 0,
+  "steps": 6757,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.2,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.2,
+  "buildMsP95": 8.2,
+  "firstStepMsP95": 0.2,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-16",
+    "at": 79,
+    "ms": 2.1
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-19",
+    "at": 65,
+    "ms": 2.1
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 240,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 182,
+  "evicted": 124,
+  "pending": 193,
+  "resident": 168,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workMsMax": 467.1,
+  "workOverBudget": 11,
+  "longSteps": 0,
+  "steps": 7259,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.2,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.2,
+  "buildMsP95": 8.2,
+  "firstStepMsP95": 0.2,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-16",
+    "at": 79,
+    "ms": 2.1
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-19",
+    "at": 65,
+    "ms": 2.1
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 300,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 193,
+  "evicted": 138,
+  "pending": 197,
+  "resident": 165,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 7,
+  "workMsMax": 467.1,
+  "workOverBudget": 16,
+  "longSteps": 0,
+  "steps": 7967,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.2,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.2,
+  "buildMsP95": 8.3,
+  "firstStepMsP95": 0.2,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-16",
+    "at": 79,
+    "ms": 2.1
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-19",
+    "at": 65,
+    "ms": 2.1
+   },
+   {
+    "id": "column-near-canopy/swap-18/lobe-7",
+    "at": 45,
+    "ms": 2.1
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 360,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 201,
+  "evicted": 148,
+  "pending": 198,
+  "resident": 163,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workMsMax": 467.1,
+  "workOverBudget": 16,
+  "longSteps": 0,
+  "steps": 8498,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.3,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.3,
+  "buildMsP95": 8.8,
+  "firstStepMsP95": 0.3,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-24",
+    "at": 73,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-24",
+    "at": 1,
+    "ms": 3.2
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-15",
+    "at": 76,
+    "ms": 2.7
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-7",
+    "at": 70,
+    "ms": 2.5
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-6",
+    "at": 78,
+    "ms": 2.3
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 420,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 214,
+  "evicted": 158,
+  "pending": 185,
+  "resident": 166,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workMsMax": 467.1,
+  "workOverBudget": 20,
+  "longSteps": 0,
+  "steps": 9151,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.2,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.3,
+  "buildMsP95": 8.8,
+  "firstStepMsP95": 0.3,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-24",
+    "at": 73,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-24",
+    "at": 1,
+    "ms": 3.2
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-15",
+    "at": 76,
+    "ms": 2.7
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-7",
+    "at": 70,
+    "ms": 2.5
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-6",
+    "at": 78,
+    "ms": 2.3
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 480,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 234,
+  "evicted": 176,
+  "pending": 175,
+  "resident": 168,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 7.1,
+  "workMsMax": 467.1,
+  "workOverBudget": 27,
+  "longSteps": 0,
+  "steps": 10321,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.2,
+  "stepMsMax": 4.4,
+  "buildMsP50": 6.3,
+  "buildMsP95": 8.6,
+  "firstStepMsP95": 0.3,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 72,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-24",
+    "at": 73,
+    "ms": 3.7
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-24",
+    "at": 1,
+    "ms": 3.2
+   },
+   {
+    "id": "giant-near-canopy/north-west-near/lobe-5",
+    "at": 20,
+    "ms": 2.8
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-15",
+    "at": 76,
+    "ms": 2.7
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-25",
+    "at": 76,
+    "ms": 2.6
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-7",
+    "at": 70,
+    "ms": 2.5
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-6",
+    "at": 78,
+    "ms": 2.3
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-17",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-24",
+    "at": 76,
+    "ms": 2.2
+   },
+   {
+    "id": "giant-near-canopy/south-centre/lobe-16",
+    "at": 77,
+    "ms": 2.2
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 540,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 245,
+  "evicted": 186,
+  "pending": 162,
+  "resident": 169,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 7.3,
+  "workMsMax": 467.1,
+  "workOverBudget": 32,
+  "longSteps": 0,
+  "steps": 10911,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.3,
+  "stepMsMax": 6.9,
+  "buildMsP50": 6.2,
+  "buildMsP95": 9.3,
+  "firstStepMsP95": 0.3,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/north-east/limb-24",
+    "at": 8,
+    "ms": 6.9
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-10",
+    "at": 76,
+    "ms": 6
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 72,
+    "ms": 5.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-10",
+    "at": 2,
+    "ms": 4.2
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 24,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 31,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-10",
+    "at": 35,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-14",
+    "at": 15,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-14",
+    "at": 64,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 22,
+    "ms": 4
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 29,
+    "ms": 4
+   }
+  ],
+  "shown": 79
+ },
+ {
+  "frames": 600,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 250,
+  "evicted": 190,
+  "pending": 143,
+  "resident": 170,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 7.3,
+  "workMsMax": 467.1,
+  "workOverBudget": 35,
+  "longSteps": 0,
+  "steps": 11221,
+  "stepMsP50": 0.1,
+  "stepMsP95": 0.3,
+  "stepMsMax": 6.9,
+  "buildMsP50": 6.3,
+  "buildMsP95": 9.9,
+  "firstStepMsP95": 0.3,
+  "topSteps": [
+   {
+    "id": "giant-near-canopy/north-east/limb-24",
+    "at": 8,
+    "ms": 6.9
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-5",
+    "at": 73,
+    "ms": 6.5
+   },
+   {
+    "id": "column-near-canopy/seat-2/lobe-1",
+    "at": 19,
+    "ms": 6.3
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-10",
+    "at": 76,
+    "ms": 6
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 72,
+    "ms": 5.8
+   },
+   {
+    "id": "giant-near-canopy/south-giant/lobe-19",
+    "at": 5,
+    "ms": 4.4
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-10",
+    "at": 2,
+    "ms": 4.2
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 24,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/plateau-oak/lobe-26",
+    "at": 31,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/north-east/lobe-10",
+    "at": 35,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-14",
+    "at": 15,
+    "ms": 4.1
+   },
+   {
+    "id": "giant-near-canopy/north-west/lobe-14",
+    "at": 64,
+    "ms": 4.1
+   }
+  ],
+  "shown": 79
+ }
+]
