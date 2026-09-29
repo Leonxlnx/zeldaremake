@@ -105,16 +105,12 @@ export interface PoolReport {
   workMsP95: number;
   /** what BEGINNING a build costs: the p95 of the last builds' first chunks (`stepMsTypical`) */
   firstStepMsP95: number;
-  /** the p95 of those first chunks per byte of the item they began: what scales the prediction to the item */
-  firstStepMsPerByteP95: number;
 }
 
 /** a chunk between two yields longer than this (ms) is counted in `longSteps`: the frame it lands in pays it whole */
 export const LONG_STEP_MS = 12;
 /** how far past its budget a `work` call may run before it counts in `workOverBudget` (one mis-predicted small chunk) */
 export const STEP_TOLERANCE_MS = 1;
-/** first chunks (with a known size) needed before `firstMsPerByteP95` scales the prediction by item */
-export const FIRST_STEP_BYTE_SAMPLES = 8;
 
 const percentile = (sorted: number[], q: number) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(q * (sorted.length - 1) + 0.5))] : 0);
 
@@ -134,8 +130,6 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   private readonly stepMs: number[] = [];
   /** the last builds' FIRST chunks (ms): what starting a fresh item costs (see `stepMsTypical`) */
   private readonly firstStepMs: number[] = [];
-  /** those same first chunks divided by the bytes of the item they began (ms/byte): see `firstMsPerByteP95` */
-  private readonly firstStepMsPerByte: number[] = [];
   private stepCount = 0;
   private longSteps = 0;
   /** the last `work` calls' ms and the count over budget + STEP_TOLERANCE_MS */
@@ -255,7 +249,6 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     }
     this.evictToCap(0, -Infinity);
     const typical = this.stepMsTypical();
-    const perByte = this.firstMsPerByteP95();
     let steps = 0;
     for (;;) {
       const elapsed = this.now() - t0;
@@ -273,7 +266,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
         s.started = false;
       }
       const first = !s.started;
-      const expected = first ? (perByte > 0 && s.item.bytes > 0 ? perByte * s.item.bytes : typical) : s.stepMs;
+      const expected = first ? typical : s.stepMs;
       if (steps > 0 && elapsed + expected > budgetMs) break;
       const c0 = this.now();
       const r = s.gen.next();
@@ -283,7 +276,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       s.genMs += stepMs;
       s.stepMs = Math.max(s.stepMs, stepMs);
       s.started = true;
-      this.recordStep(stepMs, first, s.item.bytes);
+      this.recordStep(stepMs, first);
       if (r.done) this.finish(s, r.value, s.genMs);
     }
     const ms = this.now() - t0;
@@ -312,25 +305,6 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
    * BEGIN a build late in a call moves that same first chunk to the front of a later call, where it
    * is the mandatory step that was going to run anyway, and the call it left ends inside its budget.
    */
-  /**
-   * The same question as `stepMsTypical`, asked per byte, so a fresh item can be priced by its OWN
-   * size instead of by whatever was built recently.
-   *
-   * `stepMsTypical`'s p95 is a single number for every pending item, and the pool's items are not one
-   * size: `framecost/` §7 measured a `work` call at 10.4 ms against a 6 ms budget because one of the
-   * authored plaza lobes (4–7 ms in its first chunk, `chunks/` §5) started after a run of small parts
-   * had pulled that p95 down. Multiplying a p95 of ms-per-byte by the item's `bytes` — an estimate
-   * before its first build, exact after — defers that lobe to the front of a later call, where the
-   * progress guarantee runs it as the mandatory first step that was going to run anyway.
-   *
-   * Returns 0 until `FIRST_STEP_BYTE_SAMPLES` first chunks have been seen with a size, so the early
-   * frames keep the flat prediction rather than scaling from one sample.
-   */
-  private firstMsPerByteP95() {
-    if (this.firstStepMsPerByte.length < FIRST_STEP_BYTE_SAMPLES) return 0;
-    return percentile([...this.firstStepMsPerByte].sort((a, b) => a - b), 0.95);
-  }
-
   private stepMsTypical() {
     if (this.firstStepMs.length) return percentile([...this.firstStepMs].sort((a, b) => a - b), 0.95);
     if (!this.stepMs.length) return 0;
@@ -338,7 +312,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     return percentile(sorted, 0.5);
   }
 
-  private recordStep(ms: number, first: boolean, bytes = 0) {
+  private recordStep(ms: number, first: boolean) {
     this.stepCount++;
     this.stepMsMax = Math.max(this.stepMsMax, ms);
     if (ms > LONG_STEP_MS) this.longSteps++;
@@ -347,10 +321,6 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     if (first) {
       this.firstStepMs.push(ms);
       if (this.firstStepMs.length > this.history) this.firstStepMs.shift();
-      if (bytes > 0) {
-        this.firstStepMsPerByte.push(ms / bytes);
-        if (this.firstStepMsPerByte.length > this.history) this.firstStepMsPerByte.shift();
-      }
     }
   }
 
@@ -413,7 +383,6 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       longSteps: this.longSteps,
       workOverBudget: this.workOverBudget,
       workMsP95: r(percentile(works, 0.95)),
-      firstStepMsPerByteP95: this.firstMsPerByteP95(),
       firstStepMsP95: r(this.firstStepMs.length ? percentile([...this.firstStepMs].sort((a, b) => a - b), 0.95) : 0),
     };
   }
