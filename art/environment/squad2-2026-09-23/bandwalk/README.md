@@ -94,18 +94,18 @@ is absent.
 frame-to-frame change than the hard cut does, and at 2.5× it reads as a fuller crown rather than a
 pattern.
 
-**Not separated, and it should be said:** there are two reasons the churn could fall, and these frames
-cannot tell them apart. Either the fade hands the crown over gradually, so consecutive frames are more
+**Not separated here, and settled in `ROTATION.md` §3 — the duller explanation won.** There are two reasons
+the churn could fall, and *these* frames cannot tell them apart. Either the fade hands the crown over gradually, so consecutive frames are more
 alike by construction — or a banded tree, drawn in both rungs, has the **union** of two silhouettes and so
 covers slightly more of a moving background, which would lower churn for a duller reason. The +35 K to
 +62 K triangles say the union is real. Both explanations are benign and the check asked whether the band
 adds churn; it does not. Distinguishing them would need the mask's footprint tracked in world space
 rather than screen space, which is more machinery than the question is worth.
 
-**Also not covered:** a strip at `quality=low`, and a strip with the camera *rotating* rather than
-translating. Rotation slides the whole frame across the hash at once, which is the harshest case for a
-screen-space mask; `look` in `playtest.mjs` turns the camera at ten spots and flagged none, which is
-evidence but not this measurement.
+**Both of the gaps this section named are now closed.** `quality=low` is measured in
+`../bandwidth/LOWTIER.md` — cheaper than high in triangles, double the draws, and no defect once the one
+scare in it was disproved. The **rotating** camera is `ROTATION.md`: churn lower at all 27 steps of a 13.5°
+slow pan, no visible pattern under independent review, and it is what separates the two explanations above.
 
 ## Files
 
