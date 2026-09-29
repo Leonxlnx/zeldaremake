@@ -1,4 +1,10 @@
-# The weak-device tier re-read after the atlas change, and a note on CI cadence
+# The weak-device tier re-read, and the gauntlet job is timing out
+
+> **§2 is the one that matters beyond this lane: the gauntlet is not failing, it is exceeding its
+> `timeout-minutes: 45`** — which shows up as `cancelled` and so reads like an interruption. The capture
+> reloads the world for **every** viewpoint, ~140 s each, and was still loading the sixth when the clock
+> ran out. One page load for all six would save about 12 minutes, and this lane's `frozen.mjs` has been
+> doing it all day with md5 agreement against the capture's own frames.
 
 Lane 2, 2026-09-29, head `ecffbcae`. **No code changed.** Two gaps closed, both about verification
 rather than the world.
@@ -29,22 +35,55 @@ F_canopy, 0.068 % against the 0.090 % the same view moved at high quality, which
 textures should do to a texture change. A_stairs at low also confirms the tier's recorded cost to the
 triangle: **495 / 6 441 178**, the number the PR has carried since `tiers/`.
 
-## 2. A note for whoever waits on this branch's CI
+## 2. The gauntlet job is timing out — and the capture rebuilds the world six times
 
-Looking at the branch's run history for the first time today: **almost every gauntlet run is
-`cancelled`**, because each push cancels the run in flight. A successful run takes about **41 minutes**
-(14:32:43 → 15:13:34 on `3961630f`), and this branch has been pushed roughly hourly all day, several
-times within an hour.
+I looked at this branch's CI history for the first time today and found almost every run marked
+**`cancelled`**. My first reading was that my own pushes were cancelling them. **That was wrong**, and the
+workflow says so in two lines: `concurrency.cancel-in-progress: **false**` — a push never cancels a run in
+flight — and `timeout-minutes: **45**`.
 
-The consequence is not a red gauntlet — the runs that were allowed to finish passed (`3961630f`,
-`faafac9b`, `c91a9bbe` all succeeded) — but that **the newest head frequently has no completed run**,
-which is exactly what an integrator looks for before merging. Two things follow, and the second is the
-one this lane changes:
+The latest run's job ran **17:01:25 → 17:46:48**: forty-five minutes and twenty-three seconds. GitHub
+killed it, and the log's cleanup names what it killed — `Terminate orphan process: pid (2511) (npm run
+capture)`. **The gauntlet is not failing; it is running out of time**, which shows up as `cancelled` and so
+reads like somebody's interruption rather than a blocker. Runs that fit did pass (`3961630f`, `faafac9b`,
+`c91a9bbe`).
 
-- the branch is CI-healthy; the gaps in its history are cancellations, not failures;
-- **a push cadence tighter than the gauntlet's 41 minutes guarantees the head is never green**, so this
-  round holds its push until the run in flight completes rather than restarting the clock for the sake
-  of landing evidence twenty minutes sooner.
+### Where the 45 minutes go
+
+The steps before the capture take 2.5 minutes (checkout, `npm ci`, typecheck, build, source-only
+anti-cheat). The capture starts at 17:03:47 with **`--settle 8`** — so this is not the settle cost
+`capturetime/` measured; CI already uses a small warm-up. From the log:
+
+| per viewpoint | |
+| --- | --- |
+| page load | 113–118 s |
+| then `__ZR__.ready()` | **138–144 s** from the start of the load |
+| 8 settle frames | 22–51 s a frame, 177–276 s |
+| **total** | **286–343 s — five to six minutes each** |
+
+It captured B_house in 308.9 s, C_lookback in 286.4 s, D_log in 342.7 s, E_ground in 311.6 s, and was
+**loading F_canopy when the timeout fired**. Six viewpoints at that rate cannot fit 45 minutes, and the
+world only grows.
+
+### The saving that is already proven byte-identical
+
+**`capture.mjs` reloads the page for every viewpoint**, so it pays that **~140 s world build six times —
+about 14 minutes of the run.** One load with the camera moved between shots would pay it once.
+
+This lane has been doing exactly that all day. `frozen.mjs` renders a pose list in **one** page load, and
+its header records that it was verified against the capture's own output: *"A_stairs 575 / 8 631 286 at md5
+`a280badd…`, the same bytes as the run behind the PR's table."* The mechanism that makes it safe is in
+`trees/index.ts` and deliberate — `nearCanopyUpdate`'s `if (reset)` block pins every candidate on an
+explicit pose jump *"so an explicit pose draws the same parts whether the pool was cold or warm"*, which is
+the capture contract holding a warm pool to a cold pool's result.
+
+So the proposal for the gauntlet's owner is small, and it is the difference between a job that finishes and
+one that does not: **capture the six viewpoints in a single page load**, saving roughly **12 minutes** and
+bringing the run back inside its own timeout, with `frozen.mjs`'s md5 agreement as the evidence that the
+frames do not move. Raising `timeout-minutes` works too, and buys less each week as the world grows.
+
+Nothing here is in this lane's files — `gauntlet/` and `.github/` are not mine to change, so this is a
+report with the timings attached.
 
 ## Files
 
