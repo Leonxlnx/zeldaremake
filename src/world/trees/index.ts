@@ -36,7 +36,7 @@ import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../
 import { inExpansionNorth } from '../layout';
 import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
-import { lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
+import { bandOverlaps, lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -4170,6 +4170,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // ------------------------------------------------------------------ LOD bucketing
   const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[0], TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE[1]];
+  /**
+   * The rung band this build actually uses (lodFade.ts). Resolved once, because the gates are scaled by
+   * `quality.distance` and `?treelod=`, so whether a band fits between them is a property of the build
+   * rather than of the constant: at `quality=low` the gates are 7.2 m apart against 12 m at high.
+   *
+   * `lodSlots` returns on the first gate whose band contains `d`, so overlapping bands do not glitch —
+   * they silently skip the far gate's fade. Rather than let that ship, fall back to the hard cut, which is
+   * the behaviour the flag has always been able to return to, and say so on the console: the gauntlet's B6
+   * check ("console clean during capture") then turns a mis-set constant into a failed take instead of a
+   * defect nobody sees. Zero per-frame cost — `lodSlots` already takes the band as an argument.
+   */
+  const lodBandM = (() => {
+    if (!TREE_LOD_DITHER) return 0;
+    if (!bandOverlaps([lodDist[0], lodDist[1]], TREE_LOD_DITHER_BAND_M)) return TREE_LOD_DITHER_BAND_M;
+    console.error(
+      `trees: TREE_LOD_DITHER_BAND_M ${TREE_LOD_DITHER_BAND_M} m does not fit between this build's rung gates ` +
+        `(${lodDist[0].toFixed(1)} m and ${lodDist[1].toFixed(1)} m, ${(lodDist[1] - lodDist[0]).toFixed(1)} m apart at ` +
+        `quality=${ctx.quality.tier}); the far gate's fade would be skipped, so the band is off for this build`,
+    );
+    return 0;
+  })();
   const distantNear = DISTANT_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[2];
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
@@ -4185,7 +4206,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // lodFade.ts: one rung with TREE_LOD_DITHER off (the rule this line has always used), a pair
         // inside a gate's transition band with it on. The weights travel in `w.lodWeights` for the
         // drawing half; with the flag off the array is never written and never read.
-        for (const slot of lodSlots(d, [lodDist[0], lodDist[1]])) {
+        for (const slot of lodSlots(d, [lodDist[0], lodDist[1]], lodBandM)) {
           buckets[slot.level].push(i);
           if (TREE_LOD_DITHER) (w.lodWeights ??= new Map()).set(slot.level * w.placements.length + i, slot.weight);
         }
@@ -5094,7 +5115,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * seated columns and the understory — not the distant or mid layers' own gates, not the giants
        * and not the near-canopy pool, each of which swaps by a different rule.
        */
-      lodBand: { on: TREE_LOD_DITHER, bandM: TREE_LOD_DITHER ? TREE_LOD_DITHER_BAND_M : 0, families: ['whites', 'seatedColumns', 'understory'] },
+      lodBand: { on: TREE_LOD_DITHER && lodBandM > 0, bandM: lodBandM, gateGapM: Number((lodDist[1] - lodDist[0]).toFixed(2)), families: ['whites', 'seatedColumns', 'understory'] },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**

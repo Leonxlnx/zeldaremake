@@ -49,8 +49,35 @@ export const TREE_LOD_DITHER = true;
  *
  * So the width stays 2.5 m because it is the cheapest point on a monotone curve, not because a ceiling
  * forces it. `art/environment/squad2-2026-09-23/bandwidth/` has the sweep.
+ *
+ * It is deliberately an ABSOLUTE distance and is NOT scaled by `quality.distance`, unlike the gates it
+ * sits on. A fade should last the same number of walking paces on every tier, because the player walks at
+ * the same speed on every tier; scaling it to 1.5 m at `quality=low` would make the handover shorter in
+ * time exactly where the frame rate is worst. The consequence is that the band is a larger FRACTION of
+ * the rung range on the weaker tiers — 35 % of the medium rung's span at low against 21 % at high — which
+ * is a cost to measure (`bandwidth/` §4), not a bug.
+ *
+ * The real ceiling on this number is `lodSlots`'s first-match loop: see `bandOverlaps` below.
  */
 export const TREE_LOD_DITHER_BAND_M = 2.5;
+
+/**
+ * True when a band of `band` metres around both gates would make the two bands touch or overlap.
+ *
+ * `lodSlots` walks the gates in order and returns on the FIRST one whose band contains `d`, so an overlap
+ * is not a visual glitch, it is a silently skipped fade: a tree inside both bands takes the near gate's
+ * pair and the far gate never fades at all. Nothing in the frame says so.
+ *
+ * The gates are `TREE_LOD_NEAR_M` and `TREE_LOD_MID_M` scaled by `quality.distance`, so the tightest gap
+ * is on the WEAKEST tier: at `quality=low` (distance 0.6) the gates are 19.2 m and 26.4 m, **7.2 m
+ * apart**, against 12 m at high and 15 m at ultra. So the usable ceiling on the band is set by low, and
+ * yesterday's 8 m and 12 m sweep variants — measured at high quality — would have been broken there.
+ * 2.5 m is safe on every tier with room to spare; a test pins that, and this predicate is how anyone
+ * raising the number finds out before a player does.
+ */
+export function bandOverlaps(gates: readonly [number, number], band = TREE_LOD_DITHER_BAND_M): boolean {
+  return band >= gates[1] - gates[0];
+}
 
 /** a rung a tree draws in this frame, and how much of it shows (the weights of a tree's slots sum to 1) */
 export interface LodSlot {

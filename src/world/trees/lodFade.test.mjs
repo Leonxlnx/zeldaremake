@@ -23,9 +23,20 @@ const source = readFileSync(path.join(here, 'lodFade.ts'), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const mod = {};
 new Function('exports', js)(mod);
-const { lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } = mod;
+const { bandOverlaps, lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } = mod;
 
 const GATES = [32, 44];
+/**
+ * The gates as each quality tier resolves them: `TREE_LOD_NEAR_M` 32 and `TREE_LOD_MID_M` 44 scaled by
+ * `quality.distance` (world/index.ts `qualityFor`). The gap is what limits the band, and it is tightest on
+ * the WEAKEST tier — which is the one a band chosen at `quality=high` would silently break.
+ */
+const TIER_GATES = {
+  low: [32 * 0.6, 44 * 0.6],
+  medium: [32 * 0.8, 44 * 0.8],
+  high: [32, 44],
+  ultra: [32 * 1.25, 44 * 1.25],
+};
 
 test('with the flag off every distance gives one rung at full weight', () => {
   for (let d = -5; d <= 80; d += 0.25) {
@@ -68,6 +79,54 @@ test('a tree the camera stands inside takes the nearest rung', () => {
   const slots = lodSlots(-3, GATES, 2.5, true);
   assert.equal(slots.length, 1);
   assert.equal(slots[0].level, 0);
+});
+
+/**
+ * The band's real ceiling, and the failure it prevents. `lodSlots` walks the gates in order and returns on
+ * the first one whose band contains `d`, so two overlapping bands are not a glitch — the far gate's fade is
+ * silently skipped and nothing in the frame says so. The gap between gates scales with `quality.distance`,
+ * so the tightest case is `quality=low`, and a width validated only at high can be broken there.
+ */
+test('the shipped band fits between the gates on every quality tier', () => {
+  for (const [tier, gates] of Object.entries(TIER_GATES)) {
+    assert.equal(bandOverlaps(gates, TREE_LOD_DITHER_BAND_M), false, `the shipped band does not fit at quality=${tier} (gates ${gates[0]}–${gates[1]} m)`);
+  }
+  // low is the binding tier: 19.2 and 26.4 m, 7.2 m apart, against 12 m at high and 15 m at ultra
+  const [lo, hi] = TIER_GATES.low;
+  assert.ok(hi - lo < TIER_GATES.high[1] - TIER_GATES.high[0], 'low must be the tightest gap, or this test is checking the wrong tier');
+  assert.equal(bandOverlaps(TIER_GATES.low, hi - lo - 0.01), false, 'a band just under the gap must still fit');
+  assert.equal(bandOverlaps(TIER_GATES.low, hi - lo), true, 'a band equal to the gap must be rejected — the bands touch');
+});
+
+test('an overlapping band is why the predicate exists: trees in the overlap take the wrong rung', () => {
+  const gates = TIER_GATES.low; // 19.2 and 26.4 m
+  const wide = gates[1] - gates[0] + 2; // 9.2 m — inside what yesterday's 8 m and 12 m sweep variants used
+  const half = wide / 2;
+  // the region inside BOTH bands: past the near gate's far edge is where the far gate's band already began
+  const overlapFrom = gates[1] - half;
+  const overlapTo = gates[0] + half;
+  assert.ok(overlapTo > overlapFrom, 'this width must actually overlap, or the test proves nothing');
+  const d = (overlapFrom + overlapTo) / 2;
+
+  // the hard cut puts this tree in rung 1: it is past the near gate and short of the far one
+  assert.equal(lodSlots(d, gates, wide, false)[0].level, 1);
+  // with overlapping bands the near gate wins the first-match loop, so it is drawn partly at rung 0 —
+  // a rung MORE detailed than the hard cut would ever give it, and nowhere near the 1→2 fade it is in
+  const slots = lodSlots(d, gates, wide, true);
+  assert.deepEqual(
+    slots.map((s) => s.level),
+    [0, 1],
+    'the near gate claims a tree that belongs to the 1→2 crossing',
+  );
+
+  // and the far gate itself is still fine, which is why this is silent rather than obvious
+  const atFar = lodSlots(gates[1], gates, wide, true);
+  assert.deepEqual(
+    atFar.map((s) => s.level),
+    [1, 2],
+    'the far gate still crosses over correctly — only the overlap region is wrong',
+  );
+  assert.ok(Math.abs(atFar[0].weight - 0.5) < 1e-9);
 });
 
 test('a zero band is the hard cut, even with the flag on', () => {
