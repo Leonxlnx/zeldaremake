@@ -9,13 +9,29 @@
  * headroom — so the remaining fix is to make the swap a fade.
  *
  * This module is the decision half: which rungs a tree belongs to at a distance, and with what weight.
- * The drawing half (a per-instance attribute and a screen-door discard) comes next, and until it lands
- * `TREE_LOD_DITHER` stays false, which makes `lodSlots` return exactly what the single-bucket rule
- * returned before it existed — one slot, full weight. Nothing in a build with the flag off can differ.
+ * The drawing half is a per-instance drop fraction (`index.ts` `fillFamily`) and a screen-door discard
+ * in the colour programs (`materials.ts` `injectLodDrop`). With the flag off `lodSlots` returns exactly
+ * what the single-bucket rule returned before this module existed — one slot, full weight — so nothing
+ * in a build with the flag off can differ.
+ *
+ * ON since 2026-09-29, when the proposal's four checks came back (`../../../art/environment/
+ * squad2-2026-09-23/gatesweep/README.md`), measured by sweeping the live gate past a standing camera
+ * rather than walking the camera past the gate:
+ *
+ *   1. the five distinct fixed frames: C_lookback and F_canopy byte-identical, A / B / D move
+ *      0.138 / 0.498 / 0.600 % of their pixels at SSIM 0.9989 / 0.9964 / 0.9963;
+ *   2. no stipple — the working crown's Laplacian energy spans 0.00465–0.00493 against the undithered
+ *      build's 0.00468–0.00477, at most +3.4 %;
+ *   3. the budget: +1…+3 draws and +8 K…+98 K triangles, worst case A_stairs 561 / 8.725 M — 139 draws
+ *      and 0.275 M triangles under W38;
+ *   4. it reads: the worst single metre of approach at the owner's north pose falls from 0.811 % of the
+ *      frame to 0.239 %, and from 28.0 % of the cell the swap lands in to 6.8 %. The hard cut's
+ *      signature — two metres that change nothing and then one that changes everything — becomes six
+ *      small even steps.
  */
 
-/** off until the drawing half lands and the four checks in the proposal pass */
-export const TREE_LOD_DITHER = false;
+/** on since 2026-09-29: the drawing half is in and the proposal's four checks passed (gatesweep/) */
+export const TREE_LOD_DITHER = true;
 /**
  * width of the transition band (m), centred on a gate. 2.5 m is a couple of walking paces; wider costs
  * more (a tree inside the band is drawn twice, ~11 K triangles for a medium white-bark) and hero A has
