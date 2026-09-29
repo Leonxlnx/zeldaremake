@@ -1,0 +1,151 @@
+{
+ "dist": "dist",
+ "view": "F_canopy",
+ "quality": "low",
+ "draws": 449,
+ "triangles": 5493128,
+ "lodBand": {
+  "on": true,
+  "bandM": 2.5,
+  "gateGapM": 7.2,
+  "families": [
+   "whites",
+   "seatedColumns",
+   "understory"
+  ]
+ },
+ "lodSwapM": {
+  "tree": [
+   19.2,
+   26.4
+  ],
+  "distant": 27,
+  "mid": 24,
+  "scale": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "treeSubmission": {
+  "drawCalls": 61,
+  "triangles": 2292225
+ },
+ "byFamily": {
+  "whitebark-lod0": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "whitebark-lod1": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "whitebark-lod2": {
+   "meshes": 6,
+   "instances": 11,
+   "calls": 6,
+   "triangles": 23100
+  },
+  "column-lod0": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 4,
+   "triangles": 151840
+  },
+  "column-lod1": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 5,
+   "triangles": 55952
+  },
+  "column-lod2": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 5663
+  },
+  "giant-wood": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 538140
+  },
+  "giant-cards": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 16288
+  },
+  "giant-authored-leaves": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 2,
+   "triangles": 23468
+  },
+  "giant-authored-cards": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 2,
+   "triangles": 1908
+  },
+  "distant-near": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "distant-far": {
+   "meshes": 5,
+   "instances": 142,
+   "calls": 5,
+   "triangles": 3408
+  },
+  "mid-near": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 3,
+   "triangles": 1560
+  },
+  "mid-far": {
+   "meshes": 5,
+   "instances": 80,
+   "calls": 5,
+   "triangles": 15860
+  },
+  "column-near-base": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 3,
+   "triangles": 92017
+  },
+  "giant-near-base": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 5,
+   "triangles": 163268
+  },
+  "giant-near-canopy-batch": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 686561
+  },
+  "column-near-canopy-batch": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 4864
+  },
+  "giant-far-foliage-batch": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 508328
+  }
+ }
+}

@@ -1,11 +1,11 @@
-# The band at `quality=low`: cheaper than at high, apparently better against the reference — and one
-# suspected defect that the metric called an improvement
+# The band at `quality=low`: cheaper than at high, and a defect I raised and then disproved
 
 Lane 2, 2026-09-29. Branch `cursor/squad2-treephases-682b`.
 
 The rung band shipped measured only at `quality=high`; `gatesweep/` §5 and `bandwalk/` §5 both listed the
-weak tier as uncovered. This closes the cost half and **opens a defect at `F_canopy`** that the aggregate
-numbers scored as a small win.
+weak tier as uncovered. This closes the cost half, and §3 raises a defect at `F_canopy` that §4
+**disproves** — the aggregate metric scored it as a small win, a crop made it look like a disappearing
+trunk, and the per-bucket probe shows nothing is banded there at all.
 
 ## 1. Why the tier is not just "the same thing, smaller"
 
@@ -54,7 +54,7 @@ That last line has a plausible reading: the weak tier starts sparser, so the ban
 fragments add middle-distance foliage it was missing, while at high the frame is already detailed enough
 that the stipple is a net departure. **It also turned out to be the wrong thing to lead with.**
 
-## 3. The defect the metric scored as a win
+## 3. What looked like a defect, and what the metric said about it
 
 At `F_canopy`, low: the trees system submits **61 draws and 2 292 225 triangles either way** — identical —
 and the whole frame's counts are identical too, while **0.40 % of the pixels move by a mean of 44–48
@@ -70,28 +70,49 @@ frame cannot tell "a crown gains plausible foliage" from "a trunk loses itself",
 caught by that twice in two days (the other being "no stipple" from a Laplacian bound that motion
 contradicted).
 
-**Why identical counts make this suspicious rather than benign.** A banded tree is supposed to be pushed
-into **both** rungs' buckets, which must change the submitted triangles. A fragment `discard` does not
-change them — so "identical counts, changed pixels" is consistent with the near rung drawing the tree
-thinned while **the complementary rung draws nothing**. If that is what is happening, the band is not
-cross-fading there at all; it is a one-sided dropout, and a tree gets thinner as the player approaches with
-nothing filling in.
-
-The mechanism I can construct for it, unverified: `fillFamily` gives every bucket mesh its own
+**Why identical counts looked suspicious.** A banded tree is pushed into **both** rungs' buckets, which must
+change the submitted triangles; a fragment `discard` does not. So "identical counts, changed pixels" fits a
+near rung drawing a tree thinned while the complementary rung draws nothing — a one-sided dropout rather
+than a cross-fade. I proposed a mechanism for it: `fillFamily` gives every bucket mesh its own
 `computeBoundingSphere()` plus `CULL_PAD_M`, so the two rungs of one banded tree are culled
-**independently**. A bucket holding few instances gets a tight sphere around a different LOD's geometry, and
-at the frustum edge the renderer can drop one of the pair while keeping the other.
+**independently**, and at the frustum edge the renderer could drop one of the pair and keep the other.
 
-**Verification is running** — `bucketprobe.mjs` reads `submission.byFamily`, which splits the trees by family
-**and by LOD** (`whitebark-lod0/1/2`, `column-lod*`), at this pose and tier on both builds. That separates
-the two possibilities cleanly: if `lod0` and `lod1` both hold the banded tree then the bucketing is right and
-a mesh is being culled; if neither moves, nothing is banded and the difference is something else entirely.
-The numbers land in the next commit.
+## 4. The defect does not exist — and the mechanism was wrong
 
-**Until it is explained, this file does not claim the low tier passes.** The cost figures in §2 stand on
-their own; §3 is an open defect on the tier that can least afford one, and if it is the independent-cull
-story then it applies at every tier and merely shows first at low, where the gates are closest and banded
-trees are largest on screen.
+`bucketprobe.mjs` on both builds at this pose and tier reads `submission.byFamily`, which splits the trees
+by family **and** by LOD. **All 19 families are identical, instance counts included:**
+
+| | band off | band on |
+| --- | --- | --- |
+| `column-lod0 / lod1 / lod2` | 151 840 / 55 952 / 5 663 tri · 2 / 3 / 1 instances | **the same** |
+| `whitebark-lod0 / lod1 / lod2` | 0 / 0 / 23 100 tri · 0 / 0 / 11 instances | **the same** |
+| the other 13 families | — | **the same** |
+| `lodBand` | `{ on: false, bandM: 0 }` | `{ on: true, bandM: 2.5, gateGapM: 7.2 }` |
+
+**No tree is in a band at this pose**, so every `aLodDrop` is 0, the mask never discards, and nothing can be
+thinning. The dropout is disproved and so is the independent-cull mechanism — it was a story that fitted the
+symptom, built before the cheap measurement that ruled it out, which is the same mistake this branch has now
+recorded three times.
+
+And the full-frame diffmap shows I misread my own crop: **the change is confined to one trunk at the extreme
+top-right corner of the frame**, a few hundred pixels at the edge of a high-contrast silhouette against pale
+mist. The rest of the frame is untouched. Cropping 0.60–0.92 × 0–0.20 and looking at it at 2.5× made an
+edge-localised difference read as a trunk disappearing.
+
+**What is left, stated as far as it is established.** The two builds differ only in `TREE_LOD_DITHER` and its
+inert guard, so with nothing banded the remaining difference is the **compiled program**: with the flag on,
+the tree colour materials carry an extra attribute and varying and a different `customProgramCacheKey`. A
+different compiled shader can land marginal alpha-test fragments on the other side of the threshold, and a
+trunk edge against mist is where that shows. It is consistent with high quality being byte-identical at the
+same viewpoint — `quality.pixelRatio` is 1.5 there against 1 at low, so high renders at 1440×810 and
+downsamples, averaging such flips away, while low renders 1:1 and passes them through.
+
+That is a hypothesis with one supporting coincidence, not a finding. What is measured: **0.40 % of one
+frame, at one corner, with no change to any bucket, any instance or any submitted triangle.** It is bounded
+and cosmetic, it is not a dropout, and it is not a reason to turn the band off. **§2's cost figures stand
+and the tier is not blocked** — but the residual is written down rather than rounded to zero, and the way to
+settle it would be a `quality=low` run at `pixelRatio` 1.5, which is a capture-harness change and not this
+lane's file.
 
 ## Files
 
@@ -99,6 +120,7 @@ trees are largest on screen.
   a chosen pose and quality tier.
 - `lowtier-canopy-trunk.jpg` — §3, the two `F_canopy` frames at ~2.5×.
 - `low.json` — §2's rows.
+- `bp-off.json`, `bp-on.json` — §4's per-family, per-LOD tallies on the two builds.
 
 ## Reproducing
 
