@@ -26,6 +26,13 @@
  * changed share and mean delta against the previous step, and the `grid`×`grid` cell with the largest
  * changed share (its index, share and mean delta). Also the Laplacian variance of that worst cell, since
  * a visible checker is high-frequency energy and a crawling one carries it in every frame.
+ *
+ * WHAT THIS SCRIPT'S OWN NUMBERS ARE NOT FOR, because its first run proved it (README §2): the worst cell
+ * of a walked strip is always FOREGROUND. Half a metre of walking changes 91–95 % of the pixels in the
+ * bottom row of cells — ground and grass one to three metres away — which no rung band can touch, so both
+ * builds agree there to two decimals and the reading says nothing about the effect. Use `maskchurn.mjs`,
+ * which finds the cells the two builds differ in first and measures churn only there. This script's job
+ * is to render the strip and to price it.
  */
 import fs from 'node:fs';
 import path from 'node:path';

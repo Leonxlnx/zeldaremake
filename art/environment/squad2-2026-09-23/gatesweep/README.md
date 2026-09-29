@@ -89,6 +89,12 @@ What this check does **not** cover: a strip with the camera actually moving. Scr
 what crawls, and there is +3.4 % of it, so there is little to swim — but the reading is static and it
 should be said plainly rather than implied away.
 
+**Closed the same day in `../bandwalk/`.** A nine-pose pure-translation walk, 0.5 m a step, the same
+strip on both builds: in the cells the mask actually works in, the frame-to-frame churn is **lower with
+the band at every one of eight steps** (by 0.10 to 2.59 points). A crawl would be the opposite. That file
+also records the metric that had to be thrown away first — the worst cell of a walked strip is always
+foreground, where half a metre changes 91–95 % of the pixels and no rung band reaches.
+
 ## 3. Check 1 — the fixed frames: two do not move at all, three move 0.14–0.60 %
 
 `frozen.mjs` on the two builds, five distinct fixed frames, clock frozen, same run each side:
