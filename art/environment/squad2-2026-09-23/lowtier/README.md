@@ -3,8 +3,12 @@
 > **§2 is the one that matters beyond this lane: the gauntlet is not failing, it is exceeding its
 > `timeout-minutes: 45`** — which shows up as `cancelled` and so reads like an interruption. The capture
 > reloads the world for **every** viewpoint, ~140 s each, and was still loading the sixth when the clock
-> ran out. One page load for all six would save about 12 minutes, and this lane's `frozen.mjs` has been
-> doing it all day with md5 agreement against the capture's own frames.
+> ran out.
+>
+> **§3 withdraws the fix §2 proposed.** I suggested capturing all six in one page load to save ~12 minutes.
+> `capture.mjs` explains in its own comments that this was tried and abandoned: one long session **degraded
+> from 12 s a frame to a single CDP call taking over 20 minutes** by the second or third view. The reload is
+> deliberate. Read §3 before acting on §2.
 
 Lane 2, 2026-09-29, head `ecffbcae`. **No code changed.** Two gaps closed, both about verification
 rather than the world.
@@ -77,13 +81,51 @@ its header records that it was verified against the capture's own output: *"A_st
 explicit pose jump *"so an explicit pose draws the same parts whether the pool was cold or warm"*, which is
 the capture contract holding a warm pool to a cold pool's result.
 
-So the proposal for the gauntlet's owner is small, and it is the difference between a job that finishes and
-one that does not: **capture the six viewpoints in a single page load**, saving roughly **12 minutes** and
-bringing the run back inside its own timeout, with `frozen.mjs`'s md5 agreement as the evidence that the
-frames do not move. Raising `timeout-minutes` works too, and buys less each week as the world grows.
+That suggested a fix, and **§3 is why it is wrong.**
 
 Nothing here is in this lane's files — `gauntlet/` and `.github/` are not mine to change, so this is a
 report with the timings attached.
+
+
+## 3. Withdrawn: the single-load capture was already tried and abandoned
+
+§2 proposed capturing the six viewpoints in one page load, on the grounds that `frozen.mjs` renders pose
+lists in a single load and matches the capture's own md5s. **Before proposing that I should have read
+`capture.mjs`, which explains itself in two comments dated 2026-09-22:**
+
+> *a fresh page for every viewpoint after the first — one long session degraded from 12 s/frame to a
+> single CDP call over 20 min by the second or third view (takes 0132/0133, the near-LOD pools +
+> persistent lobes resident across views); the seed is fixed, so a reloaded page renders the same frames*
+
+> *a whole new browser, not just a page: a second page in the same Chrome never returned its first render
+> call (the shared SwiftShader GPU process after the first page closed — 20 min timeout on the B view with
+> a fresh page, fourth take-0133 start); a new process starts clean*
+
+So the reload is not an oversight, it is the result of the exact experiment I was proposing, and it cost
+somebody two takes to learn. Following §2 would reintroduce a twenty-minute stall in place of a
+fourteen-minute cost. **Withdrawn.**
+
+Why `frozen.mjs` gets away with it: it renders **two to five** poses a load, which is inside the range
+where nothing has degraded yet. The comment puts the cliff at the *second or third* full viewpoint with
+its settle cycle, and this lane has never asked it for six.
+
+### What that leaves, honestly
+
+The capture's cost is **~140 s of world build plus 177–276 s of settle frames per viewpoint**, and neither
+half is reducible from inside this lane:
+
+- the **world build** is every system's `create()` — trees are 8.4 s of it in this VM and this lane has
+  taken 1.25 s out (§10, §11 of the PR); the rest belongs to the other lanes and to `world/index.ts`'s
+  serial loop;
+- the **settle frames** are GPU-bound at 1280×716 under SwiftShader, and their count is fixed by every
+  recorded reference image (`capturetime/`: `--settle` also sets the world time the shot is taken at, so
+  lowering it moves every reference).
+
+Which means the honest recommendation is the boring one I skipped past: **raise `timeout-minutes`**. The job
+needs more than 45 minutes today and will need more as the world grows, and no reorganisation of the capture
+loop is available to buy that back. The alternative worth measuring — not proposing, measuring — is whether
+the runner can be given a real GPU, because 22–51 s a frame at 1280×716 is SwiftShader's number, not a
+graphics card's.
 
 ## Files
 
