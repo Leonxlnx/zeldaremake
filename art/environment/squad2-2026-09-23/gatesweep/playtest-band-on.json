@@ -1,0 +1,7750 @@
+{
+ "dist": "/workspace/dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-29T19:19:01.667Z",
+ "baselineSha": null,
+ "look": [
+  {
+   "id": "plaza",
+   "at": [
+    0.5,
+    1
+   ],
+   "yaw": 180,
+   "note": "open plaza facing the village",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     0.5,
+     1.784,
+     5.3
+    ],
+    "cameraAboveGround": 1.774,
+    "link": [
+     0.5,
+     0.034,
+     1
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.201,
+     "nearShare": 0,
+     "skyShare": 0.0004,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 43.2,
+      "p50": 80.9,
+      "p95": 156.4,
+      "mean": 88.5
+     },
+     "sky": {
+      "share": 0.0004,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 17.8,
+      "p50": 18.8,
+      "p95": 68,
+      "mean": 50.5
+     },
+     "scene": {
+      "share": 0.9996,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 43.3,
+      "p50": 80.9,
+      "p95": 156.4,
+      "mean": 88.5
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     0.5,
+     1.245,
+     3.886
+    ],
+    "cameraAboveGround": 1.232,
+    "link": [
+     0.5,
+     0.034,
+     1
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.658,
+     "nearShare": 0,
+     "skyShare": 0.1578,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 36.2,
+      "p50": 89.9,
+      "p95": 179.3,
+      "mean": 98.7
+     },
+     "sky": {
+      "share": 0.1578,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.1,
+      "p50": 80.5,
+      "p95": 167.9,
+      "mean": 89.3
+     },
+     "scene": {
+      "share": 0.8422,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 35.9,
+      "p50": 91.9,
+      "p95": 180.8,
+      "mean": 100.4
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     0.5,
+     4.037,
+     4.506
+    ],
+    "cameraAboveGround": 4.015,
+    "link": [
+     0.5,
+     0.034,
+     1
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.03,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0005,
+      "crushed": 0,
+      "p05": 35.9,
+      "p50": 75.4,
+      "p95": 148.2,
+      "mean": 81.6
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0005,
+      "crushed": 0,
+      "p05": 35.9,
+      "p50": 75.4,
+      "p95": 148.2,
+      "mean": 81.6
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-base",
+   "at": [
+    6.038,
+    0.884
+   ],
+   "yaw": 127.95423087513251,
+   "note": "second staircase (main flight), foot, facing up",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     2.648,
+     1.786,
+     3.529
+    ],
+    "cameraAboveGround": 1.774,
+    "link": [
+     6.038,
+     0.036,
+     0.884
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.864,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0008,
+      "crushed": 0,
+      "p05": 39.3,
+      "p50": 73.6,
+      "p95": 149.8,
+      "mean": 80.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0008,
+      "crushed": 0,
+      "p05": 39.3,
+      "p50": 73.6,
+      "p95": 149.8,
+      "mean": 80.5
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     3.763,
+     1.247,
+     2.659
+    ],
+    "cameraAboveGround": 1.244,
+    "link": [
+     6.038,
+     0.036,
+     0.884
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 5.194,
+     "nearShare": 0,
+     "skyShare": 0.0734,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 33.6,
+      "p50": 70.1,
+      "p95": 168.7,
+      "mean": 81.2
+     },
+     "sky": {
+      "share": 0.0734,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 40.1,
+      "p50": 82.9,
+      "p95": 170.8,
+      "mean": 89.3
+     },
+     "scene": {
+      "share": 0.9266,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 33.1,
+      "p50": 69.3,
+      "p95": 168,
+      "mean": 80.5
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     3.274,
+     4.039,
+     3.04
+    ],
+    "cameraAboveGround": 4.028,
+    "link": [
+     6.038,
+     0.036,
+     0.884
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.952,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0005,
+      "crushed": 0,
+      "p05": 36.4,
+      "p50": 79.1,
+      "p95": 152.1,
+      "mean": 83.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0005,
+      "crushed": 0,
+      "p05": 36.4,
+      "p50": 79.1,
+      "p95": 152.1,
+      "mean": 83.5
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-mid",
+   "at": [
+    11.558,
+    -3.421
+   ],
+   "yaw": 127.95423087513251,
+   "note": "second staircase, halfway",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     8.167,
+     4.72,
+     -0.777
+    ],
+    "cameraAboveGround": 4.35,
+    "link": [
+     11.558,
+     2.97,
+     -3.421
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.02,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 32.6,
+      "p50": 71.8,
+      "p95": 138,
+      "mean": 77.1
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 32.6,
+      "p50": 71.8,
+      "p95": 138,
+      "mean": 77.1
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     9.283,
+     4.18,
+     -1.646
+    ],
+    "cameraAboveGround": 3.133,
+    "link": [
+     11.558,
+     2.97,
+     -3.421
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 7.068,
+     "nearShare": 0,
+     "skyShare": 0.0872,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 34.7,
+      "p50": 67.3,
+      "p95": 171,
+      "mean": 81.4
+     },
+     "sky": {
+      "share": 0.0872,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 34.7,
+      "p50": 69.6,
+      "p95": 146.4,
+      "mean": 79.8
+     },
+     "scene": {
+      "share": 0.9128,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 34.8,
+      "p50": 67.1,
+      "p95": 171,
+      "mean": 81.6
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     8.794,
+     6.973,
+     -1.265
+    ],
+    "cameraAboveGround": 6.221,
+    "link": [
+     11.558,
+     2.97,
+     -3.421
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.404,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.2,
+      "p50": 63.8,
+      "p95": 132.1,
+      "mean": 72.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.2,
+      "p50": 63.8,
+      "p95": 132.1,
+      "mean": 72.5
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-top",
+   "at": [
+    16.447,
+    -7.234
+   ],
+   "yaw": 307.9542308751325,
+   "note": "second staircase, top, facing down",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     19.837,
+     7.15,
+     -9.879
+    ],
+    "cameraAboveGround": 2.195,
+    "link": [
+     16.447,
+     5.4,
+     -7.234
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 5.374815274217841,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.632,
+     "nearShare": 0,
+     "skyShare": 0.0025,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 23.1,
+      "p50": 80.1,
+      "p95": 164.6,
+      "mean": 84.1
+     },
+     "sky": {
+      "share": 0.0025,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 52.8,
+      "p50": 65.3,
+      "p95": 87,
+      "mean": 68.1
+     },
+     "scene": {
+      "share": 0.9975,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 23.1,
+      "p50": 80.2,
+      "p95": 164.6,
+      "mean": 84.1
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     18.722,
+     6.61,
+     -9.009
+    ],
+    "cameraAboveGround": 1.76,
+    "link": [
+     16.447,
+     5.4,
+     -7.234
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 5.374815274217841,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.352,
+     "nearShare": 0,
+     "skyShare": 0.0566,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 14.6,
+      "p50": 52.5,
+      "p95": 170.1,
+      "mean": 64.1
+     },
+     "sky": {
+      "share": 0.0566,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 12.3,
+      "p50": 54.2,
+      "p95": 170.1,
+      "mean": 66.2
+     },
+     "scene": {
+      "share": 0.9434,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 14.8,
+      "p50": 52.3,
+      "p95": 170.1,
+      "mean": 64
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     19.211,
+     9.403,
+     -9.39
+    ],
+    "cameraAboveGround": 4.514,
+    "link": [
+     16.447,
+     5.4,
+     -7.234
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 5.374815274217841,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856356,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.486,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 28.6,
+      "p50": 81.8,
+      "p95": 117.5,
+      "mean": 78.7
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 28.6,
+      "p50": 81.8,
+      "p95": 117.5,
+      "mean": 78.7
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-base",
+   "at": [
+    -14.23,
+    14.45
+   ],
+   "yaw": -45,
+   "note": "first staircase (south bank), foot, facing up",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     -11.189,
+     1.951,
+     11.409
+    ],
+    "cameraAboveGround": 1.579,
+    "link": [
+     -14.23,
+     0.201,
+     14.45
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -0.7853981633974483,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.375,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 17.3,
+      "p50": 23.9,
+      "p95": 39.1,
+      "mean": 26.2
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 17.3,
+      "p50": 23.9,
+      "p95": 39.1,
+      "mean": 26.2
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     -12.19,
+     1.411,
+     12.41
+    ],
+    "cameraAboveGround": 1.414,
+    "link": [
+     -14.23,
+     0.201,
+     14.45
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -0.7853981633974483,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.253,
+     "nearShare": 0.0033,
+     "skyShare": 0.0101,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 15.4,
+      "p50": 25.1,
+      "p95": 70.6,
+      "mean": 31.5
+     },
+     "sky": {
+      "share": 0.0101,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 19.9,
+      "p50": 31.6,
+      "p95": 59.9,
+      "mean": 34.7
+     },
+     "scene": {
+      "share": 0.9899,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 15.4,
+      "p50": 25.1,
+      "p95": 70.8,
+      "mean": 31.5
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     -11.751,
+     4.204,
+     11.971
+    ],
+    "cameraAboveGround": 4.015,
+    "link": [
+     -14.23,
+     0.201,
+     14.45
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -0.7853981633974483,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.333,
+     "nearShare": 0.0009,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 36.5,
+      "p50": 52.3,
+      "p95": 96.5,
+      "mean": 58.3
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 36.5,
+      "p50": 52.3,
+      "p95": 96.5,
+      "mean": 58.3
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-top",
+   "at": [
+    -17.327,
+    17.547
+   ],
+   "yaw": 135,
+   "note": "first staircase, top, facing down",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     -20.368,
+     3.7,
+     20.588
+    ],
+    "cameraAboveGround": 3.134,
+    "link": [
+     -17.327,
+     1.95,
+     17.547
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.356194490192345,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856356,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.461,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 32.4,
+      "p50": 69.3,
+      "p95": 150.3,
+      "mean": 78.8
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 32.4,
+      "p50": 69.3,
+      "p95": 150.3,
+      "mean": 78.8
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     -19.368,
+     3.16,
+     19.588
+    ],
+    "cameraAboveGround": 1.227,
+    "link": [
+     -17.327,
+     1.95,
+     17.547
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.356194490192345,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.673,
+     "nearShare": 0,
+     "skyShare": 0.0442,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 18.2,
+      "p50": 55.3,
+      "p95": 140.5,
+      "mean": 64
+     },
+     "sky": {
+      "share": 0.0442,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 21.1,
+      "p50": 56.6,
+      "p95": 170.1,
+      "mean": 69.9
+     },
+     "scene": {
+      "share": 0.9558,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 18.2,
+      "p50": 55.2,
+      "p95": 139.5,
+      "mean": 63.7
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     -19.806,
+     5.953,
+     20.026
+    ],
+    "cameraAboveGround": 4.439,
+    "link": [
+     -17.327,
+     1.95,
+     17.547
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.356194490192345,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 1.664,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 23.9,
+      "p50": 52.6,
+      "p95": 130.1,
+      "mean": 61.1
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 23.9,
+      "p50": 52.6,
+      "p95": 130.1,
+      "mean": 61.1
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "saria-side",
+   "at": [
+    8.2,
+    -6.8
+   ],
+   "yaw": 137.5448043798131,
+   "note": "beside Saria's house",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     5.297,
+     3.124,
+     -3.627
+    ],
+    "cameraAboveGround": 3.099,
+    "link": [
+     8.2,
+     1.374,
+     -6.8
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.4006097054392557,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.449,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 25.4,
+      "p50": 58.6,
+      "p95": 128.8,
+      "mean": 65.1
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 25.4,
+      "p50": 58.6,
+      "p95": 128.8,
+      "mean": 65.1
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     6.252,
+     2.585,
+     -4.671
+    ],
+    "cameraAboveGround": 2.927,
+    "link": [
+     8.2,
+     1.374,
+     -6.8
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.4006097054392557,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 6.339,
+     "nearShare": 0,
+     "skyShare": 0.1098,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 38.9,
+      "p50": 90.8,
+      "p95": 171.1,
+      "mean": 97.1
+     },
+     "sky": {
+      "share": 0.1098,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 56.7,
+      "p50": 95.6,
+      "p95": 172.1,
+      "mean": 105.3
+     },
+     "scene": {
+      "share": 0.8902,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 38,
+      "p50": 89.3,
+      "p95": 171,
+      "mean": 96.1
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     5.834,
+     5.377,
+     -4.214
+    ],
+    "cameraAboveGround": 5.574,
+    "link": [
+     8.2,
+     1.374,
+     -6.8
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.4006097054392557,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.215,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 26.8,
+      "p50": 57.1,
+      "p95": 129,
+      "mean": 65
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 26.8,
+      "p50": 57.1,
+      "p95": 129,
+      "mean": 65
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "upper-house",
+   "at": [
+    17,
+    -15
+   ],
+   "yaw": -125.53767779197439,
+   "note": "the upper house, from the plateau",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     20.499,
+     6.932,
+     -12.501
+    ],
+    "cameraAboveGround": 1.968,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.098,
+     "nearShare": 0,
+     "skyShare": 0.0053,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0003,
+      "crushed": 0,
+      "p05": 14.4,
+      "p50": 45.5,
+      "p95": 145,
+      "mean": 57
+     },
+     "sky": {
+      "share": 0.0053,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.7,
+      "p50": 52.8,
+      "p95": 74.8,
+      "mean": 53.7
+     },
+     "scene": {
+      "share": 0.9947,
+      "clipped": 0.0003,
+      "crushed": 0,
+      "p05": 14.4,
+      "p50": 45.4,
+      "p95": 145.2,
+      "mean": 57
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     19.348,
+     6.392,
+     -13.323
+    ],
+    "cameraAboveGround": 1.425,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.048,
+     "nearShare": 0,
+     "skyShare": 0.0357,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 25.3,
+      "p50": 59.2,
+      "p95": 164.7,
+      "mean": 70.4
+     },
+     "sky": {
+      "share": 0.0357,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 36.1,
+      "p50": 89.6,
+      "p95": 177.4,
+      "mean": 99.7
+     },
+     "scene": {
+      "share": 0.9643,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 25.1,
+      "p50": 58.4,
+      "p95": 162.8,
+      "mean": 69.3
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     19.853,
+     9.185,
+     -12.962
+    ],
+    "cameraAboveGround": 4.272,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 1.307,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0004,
+      "crushed": 0,
+      "p05": 15.4,
+      "p50": 44.1,
+      "p95": 98.2,
+      "mean": 49.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0004,
+      "crushed": 0,
+      "p05": 15.4,
+      "p50": 44.1,
+      "p95": 98.2,
+      "mean": 49.5
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "west-house",
+   "at": [
+    -16.3,
+    6.5
+   ],
+   "yaw": -69.5377284765778,
+   "note": "the west house deck",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     -12.271,
+     4.62,
+     4.997
+    ],
+    "cameraAboveGround": 2.066,
+    "link": [
+     -16.3,
+     2.87,
+     6.5
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -1.2136623162741031,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.934,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0024,
+      "crushed": 0,
+      "p05": 18.8,
+      "p50": 51.6,
+      "p95": 126.6,
+      "mean": 59.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0024,
+      "crushed": 0,
+      "p05": 18.8,
+      "p50": 51.6,
+      "p95": 126.6,
+      "mean": 59.5
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     -13.597,
+     4.08,
+     5.491
+    ],
+    "cameraAboveGround": 1.584,
+    "link": [
+     -16.3,
+     2.87,
+     6.5
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -1.2136623162741031,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.900000000000001,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 1.063,
+     "nearShare": 0,
+     "skyShare": 0.036,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 17.4,
+      "p50": 49.6,
+      "p95": 127.8,
+      "mean": 58.5
+     },
+     "sky": {
+      "share": 0.036,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31,
+      "p50": 68.3,
+      "p95": 168.1,
+      "mean": 76.2
+     },
+     "scene": {
+      "share": 0.964,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 17.4,
+      "p50": 48.8,
+      "p95": 126.8,
+      "mean": 57.9
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     -13.016,
+     6.873,
+     5.274
+    ],
+    "cameraAboveGround": 4.332,
+    "link": [
+     -16.3,
+     2.87,
+     6.5
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -1.2136623162741031,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.259,
+     "nearShare": 0.0003,
+     "skyShare": 0,
+     "linkHidden": true
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 16.4,
+      "p50": 43.9,
+      "p95": 103,
+      "mean": 49.7
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 16.4,
+      "p50": 43.9,
+      "p95": 103,
+      "mean": 49.7
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "open-north",
+   "at": [
+    1.5,
+    -40
+   ],
+   "yaw": 180,
+   "note": "open ground north of the log arch",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     1.5,
+     5.291,
+     -35.7
+    ],
+    "cameraAboveGround": 2.112,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856352,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.28,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0002,
+      "crushed": 0,
+      "p05": 41.6,
+      "p50": 64.6,
+      "p95": 123.7,
+      "mean": 71.6
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0002,
+      "crushed": 0,
+      "p05": 41.6,
+      "p50": 64.6,
+      "p95": 123.7,
+      "mean": 71.6
+     }
+    },
+    "shot": null
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     1.5,
+     4.751,
+     -37.114
+    ],
+    "cameraAboveGround": 1.349,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.105,
+     "nearShare": 0.0001,
+     "skyShare": 0.1109,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 40.5,
+      "p50": 74.4,
+      "p95": 171.1,
+      "mean": 85.7
+     },
+     "sky": {
+      "share": 0.1109,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 41.3,
+      "p50": 70.2,
+      "p95": 135.2,
+      "mean": 75.7
+     },
+     "scene": {
+      "share": 0.8891,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 40.4,
+      "p50": 75.3,
+      "p95": 172,
+      "mean": 86.9
+     }
+    },
+    "shot": null
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     1.5,
+     7.544,
+     -36.494
+    ],
+    "cameraAboveGround": 4.196,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856355,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "lookahead": 1,
+     "swing": 1,
+     "ring": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.284,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 38.4,
+      "p50": 69.8,
+      "p95": 131.5,
+      "mean": 75
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 38.4,
+      "p50": 69.8,
+      "p95": 131.5,
+      "mean": 75
+     }
+    },
+    "shot": null
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  }
+ ],
+ "walk": [
+  {
+   "name": "plaza-to-upper-house",
+   "reached": true,
+   "waypointsReached": 6,
+   "of": 6,
+   "frames": 714,
+   "stuck": [],
+   "lengthM": 27.2,
+   "camera": {
+    "speedMps": {
+     "p50": 1.2,
+     "p95": 4.06,
+     "max": 7.68
+    },
+    "accelMps2": {
+     "p50": 1,
+     "p95": 69.77,
+     "max": 85.97
+    },
+    "verticalAccelMps2": {
+     "p50": 0.44,
+     "p95": 2.83,
+     "max": 13.5
+    },
+    "turnDegPerS": {
+     "p50": 2.93,
+     "p95": 58.65,
+     "max": 81.32
+    },
+    "turnAccelDegPerS2": {
+     "p50": 12.73,
+     "p95": 900.38,
+     "max": 937.63
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.136,
+   "feet": {
+    "stanceSamples": 676,
+    "soleGapAbsM": {
+     "p50": 0.0037,
+     "p95": 0.034,
+     "max": 0.1249
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.034,
+     "max": 0.1249
+    },
+    "shareOver1cm": 0.324,
+    "shareOver2cm": 0.1775,
+    "footprintMinGapM": -0.1222,
+    "shareFootprintInside5mm": 0.0059
+   },
+   "trace": [
+    [
+     1,
+     0.04,
+     3
+    ],
+    [
+     1.39,
+     0.05,
+     2.84
+    ],
+    [
+     1.83,
+     0.04,
+     2.65
+    ],
+    [
+     2.27,
+     0.04,
+     2.47
+    ],
+    [
+     2.71,
+     0.02,
+     2.28
+    ],
+    [
+     3.16,
+     0.02,
+     2.09
+    ],
+    [
+     3.6,
+     0.02,
+     1.91
+    ],
+    [
+     4.04,
+     0.03,
+     1.72
+    ],
+    [
+     4.49,
+     0.03,
+     1.54
+    ],
+    [
+     4.93,
+     0.03,
+     1.35
+    ],
+    [
+     5.37,
+     0.03,
+     1.16
+    ],
+    [
+     5.81,
+     0.04,
+     0.98
+    ],
+    [
+     6.26,
+     0.03,
+     0.79
+    ],
+    [
+     6.7,
+     0.04,
+     0.61
+    ],
+    [
+     7.14,
+     0.05,
+     0.42
+    ],
+    [
+     7.58,
+     0.27,
+     0.24
+    ],
+    [
+     7.99,
+     0.27,
+     0.07
+    ],
+    [
+     8.33,
+     0.54,
+     -0.17
+    ],
+    [
+     8.71,
+     0.81,
+     -0.39
+    ],
+    [
+     9.09,
+     1.08,
+     -0.6
+    ],
+    [
+     9.48,
+     1.08,
+     -0.82
+    ],
+    [
+     9.78,
+     1.35,
+     -1.11
+    ],
+    [
+     10.14,
+     1.62,
+     -1.36
+    ],
+    [
+     10.42,
+     1.89,
+     -1.67
+    ],
+    [
+     10.75,
+     2.16,
+     -1.96
+    ],
+    [
+     11,
+     2.16,
+     -2.29
+    ],
+    [
+     11.29,
+     2.43,
+     -2.63
+    ],
+    [
+     11.48,
+     2.7,
+     -3
+    ],
+    [
+     11.73,
+     2.97,
+     -3.36
+    ],
+    [
+     11.98,
+     2.97,
+     -3.72
+    ],
+    [
+     12.23,
+     3.24,
+     -4.09
+    ],
+    [
+     12.47,
+     3.51,
+     -4.45
+    ],
+    [
+     12.72,
+     3.78,
+     -4.81
+    ],
+    [
+     13.04,
+     4.05,
+     -5.09
+    ],
+    [
+     13.33,
+     4.05,
+     -5.42
+    ],
+    [
+     13.62,
+     4.32,
+     -5.75
+    ],
+    [
+     13.9,
+     4.59,
+     -6.08
+    ],
+    [
+     14.26,
+     4.86,
+     -6.31
+    ],
+    [
+     14.58,
+     5.13,
+     -6.61
+    ],
+    [
+     14.94,
+     5.13,
+     -6.82
+    ],
+    [
+     15.3,
+     5.4,
+     -7.08
+    ],
+    [
+     15.68,
+     5.4,
+     -7.24
+    ],
+    [
+     16.07,
+     5.4,
+     -7.37
+    ],
+    [
+     16.35,
+     5.4,
+     -7.67
+    ],
+    [
+     16.61,
+     5.4,
+     -8
+    ],
+    [
+     16.95,
+     5.04,
+     -8.31
+    ],
+    [
+     17.21,
+     4.86,
+     -8.68
+    ],
+    [
+     17.44,
+     4.85,
+     -9.08
+    ],
+    [
+     17.37,
+     4.75,
+     -9.54
+    ],
+    [
+     17.48,
+     4.75,
+     -10
+    ],
+    [
+     17.6,
+     4.76,
+     -10.47
+    ],
+    [
+     17.59,
+     4.81,
+     -10.93
+    ],
+    [
+     17.65,
+     4.92,
+     -11.4
+    ],
+    [
+     17.58,
+     4.93,
+     -11.86
+    ],
+    [
+     17.5,
+     4.8,
+     -12.3
+    ],
+    [
+     17.36,
+     4.78,
+     -12.74
+    ],
+    [
+     17.25,
+     4.84,
+     -13.2
+    ],
+    [
+     17.15,
+     4.93,
+     -13.67
+    ],
+    [
+     17.05,
+     5,
+     -14.14
+    ],
+    [
+     16.95,
+     5.17,
+     -14.61
+    ]
+   ]
+  },
+  {
+   "name": "plaza-to-south-bank-top",
+   "reached": true,
+   "waypointsReached": 4,
+   "of": 4,
+   "frames": 381,
+   "stuck": [],
+   "lengthM": 14.8,
+   "camera": {
+    "speedMps": {
+     "p50": 1.24,
+     "p95": 1.76,
+     "max": 5.48
+    },
+    "accelMps2": {
+     "p50": 0.5,
+     "p95": 45.62,
+     "max": 73.1
+    },
+    "verticalAccelMps2": {
+     "p50": 0.36,
+     "p95": 2.28,
+     "max": 6.13
+    },
+    "turnDegPerS": {
+     "p50": 1.62,
+     "p95": 18.74,
+     "max": 80.01
+    },
+    "turnAccelDegPerS2": {
+     "p50": 11.94,
+     "p95": 625.51,
+     "max": 973.9
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 0.599,
+   "feet": {
+    "stanceSamples": 384,
+    "soleGapAbsM": {
+     "p50": 0.0196,
+     "p95": 0.0651,
+     "max": 0.0935
+    },
+    "footprintLowestM": {
+     "p50": 0.0069,
+     "p95": 0.043,
+     "max": 0.0634
+    },
+    "shareOver1cm": 0.6432,
+    "shareOver2cm": 0.4661,
+    "footprintMinGapM": -0.0204,
+    "shareFootprintInside5mm": 0.0078
+   },
+   "trace": [
+    [
+     -6,
+     0.28,
+     8
+    ],
+    [
+     -6.35,
+     0.42,
+     8.24
+    ],
+    [
+     -6.74,
+     0.65,
+     8.51
+    ],
+    [
+     -7.14,
+     0.81,
+     8.78
+    ],
+    [
+     -7.53,
+     0.96,
+     9.06
+    ],
+    [
+     -7.93,
+     1.09,
+     9.33
+    ],
+    [
+     -8.32,
+     1.18,
+     9.6
+    ],
+    [
+     -8.72,
+     1.35,
+     9.87
+    ],
+    [
+     -9.11,
+     1.13,
+     10.15
+    ],
+    [
+     -9.51,
+     1.04,
+     10.42
+    ],
+    [
+     -9.9,
+     0.94,
+     10.69
+    ],
+    [
+     -10.3,
+     0.63,
+     10.96
+    ],
+    [
+     -10.69,
+     0.43,
+     11.24
+    ],
+    [
+     -11.09,
+     0.32,
+     11.51
+    ],
+    [
+     -11.48,
+     0.24,
+     11.78
+    ],
+    [
+     -11.88,
+     0.16,
+     12.05
+    ],
+    [
+     -12.27,
+     0.01,
+     12.33
+    ],
+    [
+     -12.67,
+     -0.1,
+     12.6
+    ],
+    [
+     -13.06,
+     -0.12,
+     12.87
+    ],
+    [
+     -13.38,
+     -0.15,
+     13.19
+    ],
+    [
+     -13.74,
+     -0.14,
+     13.51
+    ],
+    [
+     -14,
+     -0.07,
+     13.88
+    ],
+    [
+     -14.22,
+     0.16,
+     14.28
+    ],
+    [
+     -14.5,
+     0.19,
+     14.67
+    ],
+    [
+     -14.78,
+     0.34,
+     15.06
+    ],
+    [
+     -15.06,
+     0.39,
+     15.45
+    ],
+    [
+     -15.32,
+     0.65,
+     15.82
+    ],
+    [
+     -15.65,
+     1.17,
+     16.08
+    ],
+    [
+     -15.95,
+     1.43,
+     16.4
+    ],
+    [
+     -16.25,
+     1.69,
+     16.73
+    ],
+    [
+     -16.54,
+     1.95,
+     17.05
+    ],
+    [
+     -16.84,
+     1.95,
+     17.38
+    ]
+   ]
+  },
+  {
+   "name": "saria-front-arc",
+   "reached": true,
+   "waypointsReached": 3,
+   "of": 3,
+   "frames": 138,
+   "stuck": [],
+   "lengthM": 5.3,
+   "camera": {
+    "speedMps": {
+     "p50": 1.25,
+     "p95": 3.85,
+     "max": 5.5
+    },
+    "accelMps2": {
+     "p50": 1.32,
+     "p95": 69.42,
+     "max": 72.94
+    },
+    "verticalAccelMps2": {
+     "p50": 0.57,
+     "p95": 2.02,
+     "max": 2.23
+    },
+    "turnDegPerS": {
+     "p50": 2.88,
+     "p95": 49.23,
+     "max": 79.62
+    },
+    "turnAccelDegPerS2": {
+     "p50": 16.55,
+     "p95": 898.53,
+     "max": 923.66
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.483,
+   "feet": {
+    "stanceSamples": 141,
+    "soleGapAbsM": {
+     "p50": 0.0451,
+     "p95": 0.5718,
+     "max": 0.9549
+    },
+    "footprintLowestM": {
+     "p50": 0.0324,
+     "p95": 0.0612,
+     "max": 0.6057
+    },
+    "shareOver1cm": 0.8156,
+    "shareOver2cm": 0.7021,
+    "footprintMinGapM": -1.0326,
+    "shareFootprintInside5mm": 0.0567
+   },
+   "trace": [
+    [
+     5.7,
+     -0.04,
+     -4.5
+    ],
+    [
+     6.01,
+     -0.2,
+     -4.78
+    ],
+    [
+     6.36,
+     -0.35,
+     -5.11
+    ],
+    [
+     6.72,
+     -0.09,
+     -5.43
+    ],
+    [
+     7.07,
+     0.44,
+     -5.76
+    ],
+    [
+     7.42,
+     0.9,
+     -6.08
+    ],
+    [
+     7.78,
+     1.27,
+     -6.41
+    ],
+    [
+     8.03,
+     1.44,
+     -6.79
+    ],
+    [
+     8.25,
+     1.37,
+     -7.18
+    ],
+    [
+     8.43,
+     1.36,
+     -7.6
+    ],
+    [
+     8.66,
+     1.24,
+     -8.02
+    ],
+    [
+     8.88,
+     1.17,
+     -8.45
+    ]
+   ]
+  },
+  {
+   "name": "west-deck",
+   "reached": true,
+   "waypointsReached": 3,
+   "of": 3,
+   "frames": 159,
+   "stuck": [],
+   "lengthM": 6.1,
+   "camera": {
+    "speedMps": {
+     "p50": 1.22,
+     "p95": 4.67,
+     "max": 5.65
+    },
+    "accelMps2": {
+     "p50": 0.71,
+     "p95": 70.15,
+     "max": 73.12
+    },
+    "verticalAccelMps2": {
+     "p50": 0.24,
+     "p95": 1.28,
+     "max": 5.28
+    },
+    "turnDegPerS": {
+     "p50": 1.65,
+     "p95": 69.1,
+     "max": 81.82
+    },
+    "turnAccelDegPerS2": {
+     "p50": 12.59,
+     "p95": 908.37,
+     "max": 939
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.969,
+   "feet": {
+    "stanceSamples": 162,
+    "soleGapAbsM": {
+     "p50": 0.0189,
+     "p95": 0.0449,
+     "max": 0.1113
+    },
+    "footprintLowestM": {
+     "p50": 0.0085,
+     "p95": 0.0449,
+     "max": 0.1084
+    },
+    "shareOver1cm": 0.5864,
+    "shareOver2cm": 0.4691,
+    "footprintMinGapM": 0,
+    "shareFootprintInside5mm": 0
+   },
+   "trace": [
+    [
+     -12.5,
+     1.82,
+     8.5
+    ],
+    [
+     -12.85,
+     1.91,
+     8.28
+    ],
+    [
+     -13.26,
+     2.15,
+     8.02
+    ],
+    [
+     -13.67,
+     2.21,
+     7.76
+    ],
+    [
+     -14.07,
+     2.27,
+     7.5
+    ],
+    [
+     -14.48,
+     2.38,
+     7.25
+    ],
+    [
+     -14.88,
+     2.43,
+     6.99
+    ],
+    [
+     -15.29,
+     2.5,
+     6.73
+    ],
+    [
+     -15.7,
+     2.87,
+     6.57
+    ],
+    [
+     -16.1,
+     2.87,
+     6.65
+    ],
+    [
+     -16.53,
+     2.87,
+     6.61
+    ],
+    [
+     -16.96,
+     3.03,
+     6.65
+    ],
+    [
+     -17.44,
+     3.08,
+     6.66
+    ],
+    [
+     -17.88,
+     3.13,
+     6.79
+    ]
+   ]
+  },
+  {
+   "name": "plaza-loop",
+   "reached": true,
+   "waypointsReached": 4,
+   "of": 4,
+   "frames": 678,
+   "stuck": [],
+   "lengthM": 26.9,
+   "camera": {
+    "speedMps": {
+     "p50": 1.2,
+     "p95": 4.78,
+     "max": 10.36
+    },
+    "accelMps2": {
+     "p50": 0.26,
+     "p95": 69.8,
+     "max": 77.06
+    },
+    "verticalAccelMps2": {
+     "p50": 0.05,
+     "p95": 1.26,
+     "max": 30.15
+    },
+    "turnDegPerS": {
+     "p50": 0.49,
+     "p95": 71.64,
+     "max": 151.07
+    },
+    "turnAccelDegPerS2": {
+     "p50": 5.35,
+     "p95": 906.96,
+     "max": 965.99
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 0.3,
+   "feet": {
+    "stanceSamples": 650,
+    "soleGapAbsM": {
+     "p50": 0.003,
+     "p95": 0.0229,
+     "max": 0.061
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0047,
+     "max": 0.0242
+    },
+    "shareOver1cm": 0.1508,
+    "shareOver2cm": 0.0646,
+    "footprintMinGapM": -0.0369,
+    "shareFootprintInside5mm": 0.0215
+   },
+   "trace": [
+    [
+     0.5,
+     0.02,
+     3
+    ],
+    [
+     0.82,
+     0.03,
+     2.73
+    ],
+    [
+     1.19,
+     0.04,
+     2.42
+    ],
+    [
+     1.55,
+     0.03,
+     2.11
+    ],
+    [
+     1.92,
+     0.01,
+     1.8
+    ],
+    [
+     2.28,
+     0.02,
+     1.48
+    ],
+    [
+     2.65,
+     0.02,
+     1.17
+    ],
+    [
+     3.01,
+     0.04,
+     0.86
+    ],
+    [
+     3.38,
+     0.03,
+     0.55
+    ],
+    [
+     3.75,
+     0.03,
+     0.24
+    ],
+    [
+     4.11,
+     0.02,
+     -0.07
+    ],
+    [
+     4.11,
+     0.02,
+     -0.48
+    ],
+    [
+     3.91,
+     0.01,
+     -0.91
+    ],
+    [
+     3.8,
+     0.02,
+     -1.36
+    ],
+    [
+     3.77,
+     0.03,
+     -1.84
+    ],
+    [
+     3.73,
+     0.05,
+     -2.32
+    ],
+    [
+     3.7,
+     0.05,
+     -2.79
+    ],
+    [
+     3.66,
+     0.04,
+     -3.27
+    ],
+    [
+     3.62,
+     0.03,
+     -3.75
+    ],
+    [
+     3.59,
+     0.09,
+     -4.23
+    ],
+    [
+     3.44,
+     0.09,
+     -4.66
+    ],
+    [
+     3.35,
+     -0.05,
+     -5.14
+    ],
+    [
+     3.26,
+     0,
+     -5.61
+    ],
+    [
+     3.09,
+     0.13,
+     -6.03
+    ],
+    [
+     2.95,
+     0.2,
+     -6.49
+    ],
+    [
+     2.81,
+     0.27,
+     -6.94
+    ],
+    [
+     2.58,
+     0.04,
+     -7.34
+    ],
+    [
+     2.39,
+     0.04,
+     -7.78
+    ],
+    [
+     2.12,
+     0.04,
+     -8.14
+    ],
+    [
+     1.82,
+     0.05,
+     -8.48
+    ],
+    [
+     1.59,
+     0.06,
+     -8.65
+    ],
+    [
+     1.45,
+     0.06,
+     -8.2
+    ],
+    [
+     1.23,
+     0.05,
+     -7.79
+    ],
+    [
+     1.03,
+     0.03,
+     -7.37
+    ],
+    [
+     0.72,
+     0.04,
+     -7.01
+    ],
+    [
+     0.4,
+     0.04,
+     -6.65
+    ],
+    [
+     0.08,
+     0.03,
+     -6.3
+    ],
+    [
+     -0.24,
+     0.05,
+     -5.94
+    ],
+    [
+     -0.45,
+     0.05,
+     -5.53
+    ],
+    [
+     -0.72,
+     0.05,
+     -5.13
+    ],
+    [
+     -0.89,
+     0.03,
+     -4.71
+    ],
+    [
+     -1.12,
+     0.02,
+     -4.29
+    ],
+    [
+     -1.22,
+     0.02,
+     -3.84
+    ],
+    [
+     -1.08,
+     0.04,
+     -3.41
+    ],
+    [
+     -1.11,
+     0.05,
+     -2.93
+    ],
+    [
+     -1.13,
+     0.05,
+     -2.45
+    ],
+    [
+     -1.15,
+     0.05,
+     -1.97
+    ],
+    [
+     -1.09,
+     0.03,
+     -1.53
+    ],
+    [
+     -1.05,
+     0.02,
+     -1.05
+    ],
+    [
+     -1.02,
+     0.03,
+     -0.57
+    ],
+    [
+     -0.99,
+     0.02,
+     -0.09
+    ],
+    [
+     -0.85,
+     0.02,
+     0.35
+    ],
+    [
+     -0.76,
+     0.01,
+     0.82
+    ],
+    [
+     -0.6,
+     0.01,
+     1.24
+    ],
+    [
+     -0.46,
+     0.02,
+     1.7
+    ],
+    [
+     -0.24,
+     0.01,
+     2.1
+    ],
+    [
+     -0.04,
+     0.01,
+     2.53
+    ]
+   ]
+  },
+  {
+   "name": "south-approach",
+   "reached": true,
+   "waypointsReached": 2,
+   "of": 2,
+   "frames": 351,
+   "stuck": [],
+   "lengthM": 13.9,
+   "camera": {
+    "speedMps": {
+     "p50": 1.2,
+     "p95": 1.77,
+     "max": 5.43
+    },
+    "accelMps2": {
+     "p50": 0.07,
+     "p95": 45.63,
+     "max": 72.94
+    },
+    "verticalAccelMps2": {
+     "p50": 0.03,
+     "p95": 0.15,
+     "max": 0.34
+    },
+    "turnDegPerS": {
+     "p50": 0.15,
+     "p95": 18.31,
+     "max": 79.48
+    },
+    "turnAccelDegPerS2": {
+     "p50": 1.95,
+     "p95": 625.13,
+     "max": 924.7
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.687,
+   "feet": {
+    "stanceSamples": 354,
+    "soleGapAbsM": {
+     "p50": 0.0018,
+     "p95": 0.0084,
+     "max": 0.0194
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0,
+     "max": 0.0022
+    },
+    "shareOver1cm": 0.0339,
+    "shareOver2cm": 0,
+    "footprintMinGapM": 0,
+    "shareFootprintInside5mm": 0
+   },
+   "trace": [
+    [
+     1,
+     0.04,
+     15
+    ],
+    [
+     0.94,
+     0.03,
+     14.58
+    ],
+    [
+     0.87,
+     0.03,
+     14.11
+    ],
+    [
+     0.8,
+     0.03,
+     13.63
+    ],
+    [
+     0.74,
+     0.05,
+     13.16
+    ],
+    [
+     0.67,
+     0.05,
+     12.68
+    ],
+    [
+     0.6,
+     0.05,
+     12.21
+    ],
+    [
+     0.53,
+     0.04,
+     11.73
+    ],
+    [
+     0.47,
+     0.04,
+     11.26
+    ],
+    [
+     0.4,
+     0.05,
+     10.78
+    ],
+    [
+     0.33,
+     0.05,
+     10.31
+    ],
+    [
+     0.26,
+     0.05,
+     9.83
+    ],
+    [
+     0.19,
+     0.04,
+     9.36
+    ],
+    [
+     0.13,
+     0.02,
+     8.88
+    ],
+    [
+     0.06,
+     0.02,
+     8.41
+    ],
+    [
+     -0.01,
+     0.01,
+     7.93
+    ],
+    [
+     -0.08,
+     0.03,
+     7.46
+    ],
+    [
+     -0.15,
+     0.02,
+     6.98
+    ],
+    [
+     -0.21,
+     0.02,
+     6.51
+    ],
+    [
+     -0.28,
+     0.03,
+     6.03
+    ],
+    [
+     -0.35,
+     0.03,
+     5.56
+    ],
+    [
+     -0.42,
+     0.04,
+     5.08
+    ],
+    [
+     -0.4,
+     0.04,
+     4.63
+    ],
+    [
+     -0.41,
+     0.04,
+     4.15
+    ],
+    [
+     -0.42,
+     0.04,
+     3.67
+    ],
+    [
+     -0.34,
+     0.03,
+     3.22
+    ],
+    [
+     -0.3,
+     0.01,
+     2.74
+    ],
+    [
+     -0.16,
+     0,
+     2.31
+    ],
+    [
+     -0.07,
+     0.02,
+     1.84
+    ],
+    [
+     0.14,
+     0.02,
+     1.43
+    ]
+   ]
+  },
+  {
+   "name": "house-west-to-saria-door",
+   "reached": true,
+   "waypointsReached": 5,
+   "of": 5,
+   "frames": 234,
+   "stuck": [],
+   "lengthM": 8.8,
+   "camera": {
+    "speedMps": {
+     "p50": 1.24,
+     "p95": 4.67,
+     "max": 5.46
+    },
+    "accelMps2": {
+     "p50": 1.37,
+     "p95": 70.27,
+     "max": 73.1
+    },
+    "verticalAccelMps2": {
+     "p50": 0.29,
+     "p95": 2.16,
+     "max": 4.66
+    },
+    "turnDegPerS": {
+     "p50": 4.19,
+     "p95": 69.11,
+     "max": 79.93
+    },
+    "turnAccelDegPerS2": {
+     "p50": 23.33,
+     "p95": 914.52,
+     "max": 927.38
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.349,
+   "feet": {
+    "stanceSamples": 221,
+    "soleGapAbsM": {
+     "p50": 0.0022,
+     "p95": 0.0994,
+     "max": 0.1233
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0862,
+     "max": 0.1233
+    },
+    "shareOver1cm": 0.3167,
+    "shareOver2cm": 0.1312,
+    "footprintMinGapM": -0.0184,
+    "shareFootprintInside5mm": 0.0498
+   },
+   "trace": [
+    [
+     1.5,
+     0.07,
+     -9.5
+    ],
+    [
+     1.81,
+     0.06,
+     -9.21
+    ],
+    [
+     2.16,
+     0.04,
+     -8.89
+    ],
+    [
+     2.51,
+     0.05,
+     -8.56
+    ],
+    [
+     2.9,
+     0.22,
+     -8.33
+    ],
+    [
+     3.29,
+     0.28,
+     -8.04
+    ],
+    [
+     3.71,
+     0.54,
+     -7.87
+    ],
+    [
+     4.11,
+     0.54,
+     -7.74
+    ],
+    [
+     4.51,
+     1.08,
+     -7.57
+    ],
+    [
+     4.92,
+     1.35,
+     -7.4
+    ],
+    [
+     5.32,
+     1.62,
+     -7.22
+    ],
+    [
+     5.72,
+     1.62,
+     -7.05
+    ],
+    [
+     6.13,
+     1.62,
+     -7.08
+    ],
+    [
+     6.49,
+     1.62,
+     -7.31
+    ],
+    [
+     6.93,
+     1.62,
+     -7.38
+    ],
+    [
+     7.36,
+     1.62,
+     -7.46
+    ],
+    [
+     7.77,
+     1.41,
+     -7.64
+    ],
+    [
+     8.16,
+     1.39,
+     -7.86
+    ],
+    [
+     8.53,
+     1.23,
+     -8.14
+    ],
+    [
+     8.87,
+     1.17,
+     -8.44
+    ]
+   ]
+  },
+  {
+   "name": "west-house-to-plaza",
+   "reached": true,
+   "waypointsReached": 5,
+   "of": 5,
+   "frames": 516,
+   "stuck": [],
+   "lengthM": 20.4,
+   "camera": {
+    "speedMps": {
+     "p50": 1.21,
+     "p95": 4.77,
+     "max": 22.31
+    },
+    "accelMps2": {
+     "p50": 2.03,
+     "p95": 69.49,
+     "max": 632.37
+    },
+    "verticalAccelMps2": {
+     "p50": 0.32,
+     "p95": 3.96,
+     "max": 78.52
+    },
+    "turnDegPerS": {
+     "p50": 1.73,
+     "p95": 74.28,
+     "max": 153.22
+    },
+    "turnAccelDegPerS2": {
+     "p50": 14.42,
+     "p95": 910.46,
+     "max": 1080.49
+    },
+    "spikes": [
+     {
+      "row": 89,
+      "accelMps2": 632.4,
+      "jumpM": 0.042,
+      "before": {
+       "link": [
+        -15.12,
+        2.42,
+        6.9
+       ],
+       "cam": [
+        -15.75,
+        4.04,
+        6.82
+       ],
+       "hit": "solid",
+       "keep": 0.135,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.136
+      },
+      "after": {
+       "link": [
+        -15.08,
+        2.44,
+        6.9
+       ],
+       "cam": [
+        -15.71,
+        4.02,
+        6.82
+       ],
+       "hit": "solid",
+       "keep": 0.135,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.121
+      }
+     },
+     {
+      "row": 88,
+      "accelMps2": 408,
+      "jumpM": 0.744,
+      "before": {
+       "link": [
+        -15.16,
+        2.39,
+        6.89
+       ],
+       "cam": [
+        -16.48,
+        4.13,
+        6.73
+       ],
+       "hit": null,
+       "keep": 0.327,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.153
+      },
+      "after": {
+       "link": [
+        -15.12,
+        2.42,
+        6.9
+       ],
+       "cam": [
+        -15.75,
+        4.04,
+        6.82
+       ],
+       "hit": "solid",
+       "keep": 0.135,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.136
+      }
+     },
+     {
+      "row": 167,
+      "accelMps2": 100.7,
+      "jumpM": 0.188,
+      "before": {
+       "link": [
+        -12.41,
+        1.99,
+        8.03
+       ],
+       "cam": [
+        -15.48,
+        3.71,
+        7.19
+       ],
+       "hit": "solid",
+       "keep": 0.769,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.24
+      },
+      "after": {
+       "link": [
+        -12.37,
+        1.98,
+        8.05
+       ],
+       "cam": [
+        -15.53,
+        3.7,
+        7.37
+       ],
+       "hit": "solid",
+       "keep": 0.772,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.213
+      }
+     }
+    ]
+   },
+   "minCameraAboveGroundM": 0.331,
+   "feet": {
+    "stanceSamples": 519,
+    "soleGapAbsM": {
+     "p50": 0.0165,
+     "p95": 0.0442,
+     "max": 0.0726
+    },
+    "footprintLowestM": {
+     "p50": 0.0108,
+     "p95": 0.0405,
+     "max": 0.0514
+    },
+    "shareOver1cm": 0.6609,
+    "shareOver2cm": 0.3353,
+    "footprintMinGapM": -0.0096,
+    "shareFootprintInside5mm": 0.0096
+   },
+   "trace": [
+    [
+     -18.4,
+     3.2,
+     7.1
+    ],
+    [
+     -18,
+     3.15,
+     6.98
+    ],
+    [
+     -17.54,
+     3.1,
+     6.84
+    ],
+    [
+     -17.08,
+     3.04,
+     6.7
+    ],
+    [
+     -16.64,
+     2.87,
+     6.65
+    ],
+    [
+     -16.22,
+     2.87,
+     6.76
+    ],
+    [
+     -15.79,
+     2.87,
+     6.81
+    ],
+    [
+     -15.35,
+     2.62,
+     6.87
+    ],
+    [
+     -14.92,
+     2.41,
+     7.01
+    ],
+    [
+     -14.47,
+     2.4,
+     7.17
+    ],
+    [
+     -14.03,
+     2.33,
+     7.34
+    ],
+    [
+     -13.58,
+     2.31,
+     7.51
+    ],
+    [
+     -13.2,
+     2.22,
+     7.77
+    ],
+    [
+     -12.85,
+     2,
+     8.06
+    ],
+    [
+     -12.41,
+     1.99,
+     8.03
+    ],
+    [
+     -11.93,
+     1.97,
+     8.12
+    ],
+    [
+     -11.46,
+     2.04,
+     8.2
+    ],
+    [
+     -10.99,
+     2.08,
+     8.29
+    ],
+    [
+     -10.52,
+     2.11,
+     8.38
+    ],
+    [
+     -10.05,
+     2.04,
+     8.46
+    ],
+    [
+     -9.57,
+     1.96,
+     8.55
+    ],
+    [
+     -9.1,
+     1.78,
+     8.64
+    ],
+    [
+     -8.65,
+     1.67,
+     8.61
+    ],
+    [
+     -8.17,
+     1.6,
+     8.64
+    ],
+    [
+     -7.72,
+     1.3,
+     8.58
+    ],
+    [
+     -7.24,
+     0.88,
+     8.55
+    ],
+    [
+     -6.8,
+     0.7,
+     8.42
+    ],
+    [
+     -6.38,
+     0.43,
+     8.25
+    ],
+    [
+     -5.92,
+     0.23,
+     8.12
+    ],
+    [
+     -5.45,
+     0.13,
+     7.99
+    ],
+    [
+     -4.99,
+     0.14,
+     7.86
+    ],
+    [
+     -4.6,
+     0.15,
+     7.64
+    ],
+    [
+     -4.15,
+     0.14,
+     7.45
+    ],
+    [
+     -3.71,
+     0.05,
+     7.27
+    ],
+    [
+     -3.26,
+     -0.02,
+     7.09
+    ],
+    [
+     -2.89,
+     -0.15,
+     6.84
+    ],
+    [
+     -2.46,
+     -0.11,
+     6.61
+    ],
+    [
+     -2.04,
+     0.01,
+     6.38
+    ],
+    [
+     -1.7,
+     0.02,
+     6.09
+    ],
+    [
+     -1.3,
+     0.02,
+     5.81
+    ],
+    [
+     -0.99,
+     0.03,
+     5.49
+    ],
+    [
+     -0.63,
+     0.04,
+     5.17
+    ],
+    [
+     -0.36,
+     0.04,
+     4.8
+    ]
+   ]
+  },
+  {
+   "name": "north-clearing-ledge",
+   "reached": true,
+   "waypointsReached": 15,
+   "of": 15,
+   "frames": 2061,
+   "stuck": [],
+   "lengthM": 82.1,
+   "camera": {
+    "speedMps": {
+     "p50": 1.2,
+     "p95": 3.84,
+     "max": 10.47
+    },
+    "accelMps2": {
+     "p50": 0.13,
+     "p95": 57.1,
+     "max": 136.3
+    },
+    "verticalAccelMps2": {
+     "p50": 0.07,
+     "p95": 0.93,
+     "max": 121.91
+    },
+    "turnDegPerS": {
+     "p50": 0.4,
+     "p95": 49.12,
+     "max": 153.29
+    },
+    "turnAccelDegPerS2": {
+     "p50": 4.8,
+     "p95": 857.38,
+     "max": 1476.39
+    },
+    "spikes": [
+     {
+      "row": 1584,
+      "accelMps2": 136.3,
+      "jumpM": 0.186,
+      "before": {
+       "link": [
+        5.85,
+        4.48,
+        -60.26
+       ],
+       "cam": [
+        5.6,
+        5.98,
+        -55.85
+       ],
+       "hit": null,
+       "keep": 0.988,
+       "lift": 0,
+       "lowered": 0.22,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        5.85,
+        4.48,
+        -60.3
+       ],
+       "cam": [
+        5.61,
+        6,
+        -56.03
+       ],
+       "hit": "solid",
+       "keep": 0.955,
+       "lift": 0,
+       "lowered": 0.197,
+       "slimPush": 0
+      }
+     },
+     {
+      "row": 1585,
+      "accelMps2": 135,
+      "jumpM": 0.041,
+      "before": {
+       "link": [
+        5.85,
+        4.48,
+        -60.3
+       ],
+       "cam": [
+        5.61,
+        6,
+        -56.03
+       ],
+       "hit": "solid",
+       "keep": 0.955,
+       "lift": 0,
+       "lowered": 0.197,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        5.85,
+        4.48,
+        -60.34
+       ],
+       "cam": [
+        5.61,
+        6.03,
+        -56.07
+       ],
+       "hit": "solid",
+       "keep": 0.956,
+       "lift": 0,
+       "lowered": 0.176,
+       "slimPush": 0
+      }
+     },
+     {
+      "row": 1543,
+      "accelMps2": 122.5,
+      "jumpM": 0.129,
+      "before": {
+       "link": [
+        5.73,
+        4.32,
+        -58.65
+       ],
+       "cam": [
+        5.02,
+        5.95,
+        -54.32
+       ],
+       "hit": null,
+       "keep": 0.983,
+       "lift": 0,
+       "lowered": 0.069,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        5.74,
+        4.32,
+        -58.69
+       ],
+       "cam": [
+        5.01,
+        5.82,
+        -54.35
+       ],
+       "hit": null,
+       "keep": 0.985,
+       "lift": 0,
+       "lowered": 0.199,
+       "slimPush": 0
+      }
+     },
+     {
+      "row": 1544,
+      "accelMps2": 120,
+      "jumpM": 0.039,
+      "before": {
+       "link": [
+        5.74,
+        4.32,
+        -58.69
+       ],
+       "cam": [
+        5.01,
+        5.82,
+        -54.35
+       ],
+       "hit": null,
+       "keep": 0.985,
+       "lift": 0,
+       "lowered": 0.199,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        5.74,
+        4.33,
+        -58.73
+       ],
+       "cam": [
+        5.01,
+        5.83,
+        -54.39
+       ],
+       "hit": "solid",
+       "keep": 0.985,
+       "lift": 0,
+       "lowered": 0.193,
+       "slimPush": 0
+      }
+     }
+    ]
+   },
+   "minCameraAboveGroundM": 1.524,
+   "feet": {
+    "stanceSamples": 1974,
+    "soleGapAbsM": {
+     "p50": 0.004,
+     "p95": 0.026,
+     "max": 0.2217
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0143,
+     "max": 0.2073
+    },
+    "shareOver1cm": 0.2665,
+    "shareOver2cm": 0.0846,
+    "footprintMinGapM": -0.0237,
+    "shareFootprintInside5mm": 0.0066
+   },
+   "trace": [
+    [
+     0.5,
+     0.02,
+     2
+    ],
+    [
+     0.53,
+     0.03,
+     1.58
+    ],
+    [
+     0.56,
+     0.03,
+     1.1
+    ],
+    [
+     0.6,
+     0.03,
+     0.62
+    ],
+    [
+     0.63,
+     0.04,
+     0.14
+    ],
+    [
+     0.67,
+     0.05,
+     -0.33
+    ],
+    [
+     0.7,
+     0.04,
+     -0.81
+    ],
+    [
+     0.74,
+     0.04,
+     -1.29
+    ],
+    [
+     0.77,
+     0.03,
+     -1.77
+    ],
+    [
+     0.8,
+     0.04,
+     -2.25
+    ],
+    [
+     0.84,
+     0.04,
+     -2.73
+    ],
+    [
+     0.87,
+     0.03,
+     -3.21
+    ],
+    [
+     0.91,
+     0.06,
+     -3.69
+    ],
+    [
+     0.94,
+     0.07,
+     -4.16
+    ],
+    [
+     0.97,
+     0.06,
+     -4.64
+    ],
+    [
+     1.01,
+     0.09,
+     -5.12
+    ],
+    [
+     1.04,
+     0.08,
+     -5.6
+    ],
+    [
+     1.08,
+     0.04,
+     -6.08
+    ],
+    [
+     1.11,
+     0.05,
+     -6.56
+    ],
+    [
+     1.15,
+     0.04,
+     -7.04
+    ],
+    [
+     1.18,
+     0.04,
+     -7.52
+    ],
+    [
+     1.21,
+     0.05,
+     -7.99
+    ],
+    [
+     1.25,
+     0.06,
+     -8.47
+    ],
+    [
+     1.28,
+     0.07,
+     -8.95
+    ],
+    [
+     1.32,
+     0.07,
+     -9.43
+    ],
+    [
+     1.35,
+     0.07,
+     -9.91
+    ],
+    [
+     1.38,
+     0.06,
+     -10.39
+    ],
+    [
+     1.42,
+     0.06,
+     -10.87
+    ],
+    [
+     1.45,
+     0.07,
+     -11.35
+    ],
+    [
+     1.49,
+     0.04,
+     -11.82
+    ],
+    [
+     1.52,
+     0.04,
+     -12.3
+    ],
+    [
+     1.56,
+     0.04,
+     -12.78
+    ],
+    [
+     1.59,
+     0.04,
+     -13.26
+    ],
+    [
+     1.62,
+     0.04,
+     -13.74
+    ],
+    [
+     1.66,
+     0.02,
+     -14.22
+    ],
+    [
+     1.69,
+     0.02,
+     -14.7
+    ],
+    [
+     1.73,
+     -0.01,
+     -15.18
+    ],
+    [
+     1.76,
+     -0.01,
+     -15.66
+    ],
+    [
+     1.8,
+     -0.03,
+     -16.13
+    ],
+    [
+     1.83,
+     -0.04,
+     -16.61
+    ],
+    [
+     1.86,
+     -0.05,
+     -17.09
+    ],
+    [
+     1.9,
+     -0.07,
+     -17.57
+    ],
+    [
+     1.93,
+     -0.07,
+     -18.05
+    ],
+    [
+     1.97,
+     -0.07,
+     -18.53
+    ],
+    [
+     2,
+     -0.06,
+     -19.01
+    ],
+    [
+     2.03,
+     -0.08,
+     -19.49
+    ],
+    [
+     2.07,
+     -0.08,
+     -19.96
+    ],
+    [
+     2.1,
+     -0.09,
+     -20.44
+    ],
+    [
+     2.14,
+     -0.09,
+     -20.92
+    ],
+    [
+     2.17,
+     -0.08,
+     -21.4
+    ],
+    [
+     2.21,
+     -0.08,
+     -21.88
+    ],
+    [
+     2.24,
+     -0.09,
+     -22.36
+    ],
+    [
+     2.19,
+     -0.09,
+     -22.81
+    ],
+    [
+     2.17,
+     -0.1,
+     -23.29
+    ],
+    [
+     2.02,
+     -0.1,
+     -23.72
+    ],
+    [
+     1.95,
+     -0.02,
+     -24.2
+    ],
+    [
+     1.87,
+     0.12,
+     -24.67
+    ],
+    [
+     1.8,
+     0.27,
+     -25.15
+    ],
+    [
+     1.72,
+     0.43,
+     -25.62
+    ],
+    [
+     1.65,
+     0.56,
+     -26.09
+    ],
+    [
+     1.67,
+     0.68,
+     -26.55
+    ],
+    [
+     1.66,
+     0.87,
+     -27.03
+    ],
+    [
+     1.63,
+     1.01,
+     -27.51
+    ],
+    [
+     1.73,
+     1.09,
+     -27.95
+    ],
+    [
+     1.76,
+     1.25,
+     -28.43
+    ],
+    [
+     1.9,
+     1.4,
+     -28.87
+    ],
+    [
+     2.07,
+     1.5,
+     -29.29
+    ],
+    [
+     2.21,
+     1.67,
+     -29.75
+    ],
+    [
+     2.35,
+     1.81,
+     -30.21
+    ],
+    [
+     2.49,
+     1.96,
+     -30.66
+    ],
+    [
+     2.63,
+     2.07,
+     -31.12
+    ],
+    [
+     2.77,
+     2.2,
+     -31.58
+    ],
+    [
+     2.92,
+     2.34,
+     -32.04
+    ],
+    [
+     3.06,
+     2.46,
+     -32.5
+    ],
+    [
+     3.2,
+     2.58,
+     -32.96
+    ],
+    [
+     3.34,
+     2.72,
+     -33.42
+    ],
+    [
+     3.48,
+     2.83,
+     -33.87
+    ],
+    [
+     3.62,
+     2.94,
+     -34.33
+    ],
+    [
+     3.65,
+     3.05,
+     -34.79
+    ],
+    [
+     3.65,
+     3.16,
+     -35.24
+    ],
+    [
+     3.68,
+     3.34,
+     -35.72
+    ],
+    [
+     3.72,
+     3.39,
+     -36.2
+    ],
+    [
+     3.75,
+     3.42,
+     -36.68
+    ],
+    [
+     3.79,
+     3.48,
+     -37.16
+    ],
+    [
+     3.82,
+     3.5,
+     -37.64
+    ],
+    [
+     3.85,
+     3.53,
+     -38.11
+    ],
+    [
+     3.89,
+     3.54,
+     -38.59
+    ],
+    [
+     3.92,
+     3.58,
+     -39.07
+    ],
+    [
+     3.96,
+     3.62,
+     -39.55
+    ],
+    [
+     3.99,
+     3.63,
+     -40.03
+    ],
+    [
+     4.03,
+     3.69,
+     -40.51
+    ],
+    [
+     4.06,
+     3.7,
+     -40.99
+    ],
+    [
+     4.19,
+     3.75,
+     -41.42
+    ],
+    [
+     4.28,
+     3.76,
+     -41.89
+    ],
+    [
+     4.37,
+     3.83,
+     -42.37
+    ],
+    [
+     4.45,
+     3.85,
+     -42.84
+    ],
+    [
+     4.54,
+     3.87,
+     -43.31
+    ],
+    [
+     4.63,
+     3.91,
+     -43.78
+    ],
+    [
+     4.72,
+     3.95,
+     -44.25
+    ],
+    [
+     4.81,
+     3.98,
+     -44.72
+    ],
+    [
+     4.9,
+     4.01,
+     -45.2
+    ],
+    [
+     4.99,
+     4.05,
+     -45.67
+    ],
+    [
+     5.07,
+     4.06,
+     -46.14
+    ],
+    [
+     5.16,
+     4.11,
+     -46.61
+    ],
+    [
+     5.25,
+     4.12,
+     -47.08
+    ],
+    [
+     5.34,
+     4.17,
+     -47.56
+    ],
+    [
+     5.43,
+     4.19,
+     -48.03
+    ],
+    [
+     5.52,
+     4.22,
+     -48.5
+    ],
+    [
+     5.48,
+     4.26,
+     -48.96
+    ],
+    [
+     5.41,
+     4.32,
+     -49.41
+    ],
+    [
+     5.39,
+     4.33,
+     -49.89
+    ],
+    [
+     5.37,
+     4.33,
+     -50.37
+    ],
+    [
+     5.35,
+     4.33,
+     -50.84
+    ],
+    [
+     5.33,
+     4.33,
+     -51.32
+    ],
+    [
+     5.31,
+     4.32,
+     -51.8
+    ],
+    [
+     5.29,
+     4.29,
+     -52.28
+    ],
+    [
+     5.27,
+     4.28,
+     -52.76
+    ],
+    [
+     5.25,
+     4.28,
+     -53.24
+    ],
+    [
+     5.23,
+     4.27,
+     -53.72
+    ],
+    [
+     5.2,
+     4.26,
+     -54.2
+    ],
+    [
+     5.18,
+     4.25,
+     -54.68
+    ],
+    [
+     5.16,
+     4.24,
+     -55.16
+    ],
+    [
+     5.14,
+     4.24,
+     -55.64
+    ],
+    [
+     5.12,
+     4.24,
+     -56.12
+    ],
+    [
+     5.21,
+     4.24,
+     -56.57
+    ],
+    [
+     5.33,
+     4.24,
+     -57
+    ],
+    [
+     5.42,
+     4.24,
+     -57.48
+    ],
+    [
+     5.62,
+     4.25,
+     -57.89
+    ],
+    [
+     5.75,
+     4.27,
+     -58.35
+    ],
+    [
+     5.76,
+     4.34,
+     -58.81
+    ],
+    [
+     5.84,
+     4.39,
+     -59.28
+    ],
+    [
+     5.82,
+     4.47,
+     -59.74
+    ],
+    [
+     5.84,
+     4.48,
+     -60.22
+    ],
+    [
+     5.76,
+     4.48,
+     -60.67
+    ],
+    [
+     5.62,
+     4.48,
+     -61.1
+    ],
+    [
+     5.54,
+     4.48,
+     -61.57
+    ],
+    [
+     5.46,
+     4.48,
+     -62.05
+    ],
+    [
+     5.3,
+     4.44,
+     -62.47
+    ],
+    [
+     5.16,
+     4.43,
+     -62.93
+    ],
+    [
+     5.03,
+     4.41,
+     -63.39
+    ],
+    [
+     4.8,
+     4.39,
+     -63.79
+    ],
+    [
+     4.61,
+     4.39,
+     -64.23
+    ],
+    [
+     4.33,
+     4.36,
+     -64.59
+    ],
+    [
+     4.02,
+     4.35,
+     -64.93
+    ],
+    [
+     3.68,
+     4.32,
+     -65.23
+    ],
+    [
+     3.38,
+     4.29,
+     -65.6
+    ],
+    [
+     3.08,
+     4.28,
+     -65.98
+    ],
+    [
+     2.77,
+     4.26,
+     -66.35
+    ],
+    [
+     2.47,
+     4.21,
+     -66.72
+    ],
+    [
+     2.17,
+     4.18,
+     -67.1
+    ],
+    [
+     1.87,
+     4.13,
+     -67.47
+    ],
+    [
+     1.51,
+     4.09,
+     -67.75
+    ],
+    [
+     1.17,
+     4.08,
+     -68.09
+    ],
+    [
+     0.82,
+     4.05,
+     -68.42
+    ],
+    [
+     0.48,
+     4.06,
+     -68.76
+    ],
+    [
+     0.14,
+     4.05,
+     -69.09
+    ],
+    [
+     -0.2,
+     4.05,
+     -69.43
+    ],
+    [
+     -0.46,
+     4.04,
+     -69.81
+    ],
+    [
+     -0.15,
+     4.05,
+     -70.16
+    ],
+    [
+     0.13,
+     4.04,
+     -70.53
+    ],
+    [
+     0.25,
+     4.03,
+     -71
+    ],
+    [
+     0.47,
+     4.03,
+     -71.4
+    ],
+    [
+     0.72,
+     4.03,
+     -71.78
+    ],
+    [
+     0.94,
+     4.04,
+     -72.2
+    ],
+    [
+     1.06,
+     4.04,
+     -72.64
+    ],
+    [
+     1.23,
+     4.05,
+     -73.09
+    ],
+    [
+     1.27,
+     4.27,
+     -73.51
+    ],
+    [
+     1.29,
+     4.54,
+     -73.93
+    ],
+    [
+     1.35,
+     4.81,
+     -74.36
+    ],
+    [
+     1.41,
+     5.08,
+     -74.8
+    ],
+    [
+     1.47,
+     5.35,
+     -75.24
+    ],
+    [
+     1.43,
+     5.62,
+     -75.65
+    ]
+   ]
+  },
+  {
+   "name": "south-bridge-to-log",
+   "reached": true,
+   "waypointsReached": 21,
+   "of": 21,
+   "frames": 1296,
+   "stuck": [],
+   "lengthM": 51.7,
+   "camera": {
+    "speedMps": {
+     "p50": 1.2,
+     "p95": 3.85,
+     "max": 6.2
+    },
+    "accelMps2": {
+     "p50": 0.06,
+     "p95": 69.37,
+     "max": 72.94
+    },
+    "verticalAccelMps2": {
+     "p50": 0.04,
+     "p95": 0.38,
+     "max": 2.98
+    },
+    "turnDegPerS": {
+     "p50": 0.2,
+     "p95": 49.14,
+     "max": 81.7
+    },
+    "turnAccelDegPerS2": {
+     "p50": 1.36,
+     "p95": 901.28,
+     "max": 935.04
+    },
+    "spikes": []
+   },
+   "minCameraAboveGroundM": 1.372,
+   "feet": {
+    "stanceSamples": 1299,
+    "soleGapAbsM": {
+     "p50": 0.0024,
+     "p95": 0.0213,
+     "max": 0.03
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0165,
+     "max": 0.03
+    },
+    "shareOver1cm": 0.1686,
+    "shareOver2cm": 0.0539,
+    "footprintMinGapM": -0.004,
+    "shareFootprintInside5mm": 0
+   },
+   "trace": [
+    [
+     0.5,
+     0.02,
+     3
+    ],
+    [
+     0.52,
+     0.03,
+     3.42
+    ],
+    [
+     0.54,
+     0.05,
+     3.9
+    ],
+    [
+     0.56,
+     0.05,
+     4.38
+    ],
+    [
+     0.58,
+     0.05,
+     4.86
+    ],
+    [
+     0.6,
+     0.03,
+     5.34
+    ],
+    [
+     0.62,
+     0.03,
+     5.82
+    ],
+    [
+     0.64,
+     0.03,
+     6.3
+    ],
+    [
+     0.66,
+     0.05,
+     6.78
+    ],
+    [
+     0.68,
+     0.05,
+     7.26
+    ],
+    [
+     0.7,
+     0.04,
+     7.74
+    ],
+    [
+     0.72,
+     0.03,
+     8.22
+    ],
+    [
+     0.74,
+     0.03,
+     8.69
+    ],
+    [
+     0.76,
+     0.03,
+     9.17
+    ],
+    [
+     0.79,
+     0.04,
+     9.65
+    ],
+    [
+     0.81,
+     0.05,
+     10.13
+    ],
+    [
+     0.83,
+     0.05,
+     10.61
+    ],
+    [
+     0.85,
+     0.04,
+     11.09
+    ],
+    [
+     0.87,
+     0.04,
+     11.57
+    ],
+    [
+     0.89,
+     0.05,
+     12.05
+    ],
+    [
+     0.91,
+     0.05,
+     12.53
+    ],
+    [
+     0.93,
+     0.05,
+     13.01
+    ],
+    [
+     0.95,
+     0.03,
+     13.49
+    ],
+    [
+     0.97,
+     0.03,
+     13.97
+    ],
+    [
+     0.99,
+     0.03,
+     14.45
+    ],
+    [
+     1.01,
+     0.04,
+     14.93
+    ],
+    [
+     1.03,
+     0.04,
+     15.41
+    ],
+    [
+     0.77,
+     0.04,
+     15.77
+    ],
+    [
+     0.52,
+     0.03,
+     16.15
+    ],
+    [
+     0.25,
+     0.03,
+     16.52
+    ],
+    [
+     -0.05,
+     0.03,
+     16.86
+    ],
+    [
+     -0.34,
+     0.02,
+     17.24
+    ],
+    [
+     -0.63,
+     0.02,
+     17.62
+    ],
+    [
+     -0.83,
+     0.02,
+     18.03
+    ],
+    [
+     -1.07,
+     0.02,
+     18.44
+    ],
+    [
+     -1.19,
+     0.02,
+     18.89
+    ],
+    [
+     -1.26,
+     0.03,
+     19.34
+    ],
+    [
+     -1.41,
+     0.03,
+     19.8
+    ],
+    [
+     -1.45,
+     0.01,
+     20.25
+    ],
+    [
+     -1.45,
+     0.01,
+     20.7
+    ],
+    [
+     -1.49,
+     -0.03,
+     21.18
+    ],
+    [
+     -1.43,
+     -0.04,
+     21.63
+    ],
+    [
+     -1.42,
+     -0.08,
+     22.11
+    ],
+    [
+     -1.29,
+     -0.09,
+     22.55
+    ],
+    [
+     -1.13,
+     -0.1,
+     22.98
+    ],
+    [
+     -0.93,
+     -0.13,
+     23.38
+    ],
+    [
+     -0.76,
+     -0.19,
+     23.83
+    ],
+    [
+     -0.51,
+     -0.22,
+     24.21
+    ],
+    [
+     -0.28,
+     -0.22,
+     24.63
+    ],
+    [
+     0.04,
+     -0.24,
+     24.96
+    ],
+    [
+     0.31,
+     -0.25,
+     25.36
+    ],
+    [
+     0.64,
+     -0.28,
+     25.67
+    ],
+    [
+     0.96,
+     -0.31,
+     26.03
+    ],
+    [
+     1.33,
+     -0.32,
+     26.29
+    ],
+    [
+     1.73,
+     -0.33,
+     26.52
+    ],
+    [
+     2.11,
+     -0.34,
+     26.81
+    ],
+    [
+     2.49,
+     -0.34,
+     27.1
+    ],
+    [
+     2.87,
+     -0.35,
+     27.4
+    ],
+    [
+     3.08,
+     -0.37,
+     27.78
+    ],
+    [
+     3.39,
+     -0.37,
+     28.15
+    ],
+    [
+     3.59,
+     -0.37,
+     28.56
+    ],
+    [
+     3.61,
+     -0.37,
+     29.01
+    ],
+    [
+     3.78,
+     -0.36,
+     29.47
+    ],
+    [
+     3.85,
+     -0.36,
+     29.91
+    ],
+    [
+     3.96,
+     -0.16,
+     30.38
+    ],
+    [
+     3.95,
+     -0.21,
+     30.84
+    ],
+    [
+     3.91,
+     -0.29,
+     31.29
+    ],
+    [
+     3.9,
+     -0.37,
+     31.77
+    ],
+    [
+     3.91,
+     -0.44,
+     32.25
+    ],
+    [
+     3.91,
+     -0.51,
+     32.73
+    ],
+    [
+     3.91,
+     -0.56,
+     33.21
+    ],
+    [
+     3.91,
+     -0.61,
+     33.69
+    ],
+    [
+     3.91,
+     -0.66,
+     34.17
+    ],
+    [
+     3.91,
+     -0.69,
+     34.65
+    ],
+    [
+     3.91,
+     -0.72,
+     35.13
+    ],
+    [
+     3.91,
+     -0.74,
+     35.61
+    ],
+    [
+     3.91,
+     -0.76,
+     36.09
+    ],
+    [
+     3.91,
+     -0.76,
+     36.57
+    ],
+    [
+     3.91,
+     -0.76,
+     37.05
+    ],
+    [
+     3.91,
+     -0.75,
+     37.53
+    ],
+    [
+     3.91,
+     -0.74,
+     38.01
+    ],
+    [
+     3.91,
+     -0.71,
+     38.49
+    ],
+    [
+     3.91,
+     -0.68,
+     38.97
+    ],
+    [
+     3.91,
+     -0.65,
+     39.45
+    ],
+    [
+     3.92,
+     -0.6,
+     39.93
+    ],
+    [
+     3.92,
+     -0.55,
+     40.41
+    ],
+    [
+     3.92,
+     -0.49,
+     40.89
+    ],
+    [
+     3.92,
+     -0.42,
+     41.37
+    ],
+    [
+     3.92,
+     -0.35,
+     41.85
+    ],
+    [
+     3.92,
+     -0.26,
+     42.33
+    ],
+    [
+     3.92,
+     -0.17,
+     42.81
+    ],
+    [
+     3.92,
+     -0.08,
+     43.29
+    ],
+    [
+     3.92,
+     -0.02,
+     43.77
+    ],
+    [
+     3.92,
+     -0.2,
+     44.25
+    ],
+    [
+     3.92,
+     -0.2,
+     44.73
+    ],
+    [
+     4.05,
+     -0.19,
+     45.17
+    ],
+    [
+     4.1,
+     -0.19,
+     45.65
+    ],
+    [
+     4.16,
+     -0.21,
+     46.12
+    ],
+    [
+     4.21,
+     -0.22,
+     46.6
+    ],
+    [
+     4.27,
+     -0.22,
+     47.08
+    ],
+    [
+     4.32,
+     -0.22,
+     47.55
+    ],
+    [
+     4.38,
+     -0.22,
+     48.03
+    ],
+    [
+     4.43,
+     -0.22,
+     48.51
+    ],
+    [
+     4.49,
+     -0.22,
+     48.99
+    ],
+    [
+     4.54,
+     -0.22,
+     49.46
+    ],
+    [
+     4.6,
+     -0.22,
+     49.94
+    ],
+    [
+     4.65,
+     -0.22,
+     50.42
+    ],
+    [
+     4.62,
+     -0.22,
+     50.87
+    ]
+   ]
+  },
+  {
+   "name": "north-grove",
+   "reached": true,
+   "waypointsReached": 28,
+   "of": 28,
+   "frames": 1569,
+   "stuck": [],
+   "lengthM": 61.7,
+   "camera": {
+    "speedMps": {
+     "p50": 1.21,
+     "p95": 5.07,
+     "max": 13.99
+    },
+    "accelMps2": {
+     "p50": 1.28,
+     "p95": 70.15,
+     "max": 100.04
+    },
+    "verticalAccelMps2": {
+     "p50": 0.14,
+     "p95": 1.78,
+     "max": 4.82
+    },
+    "turnDegPerS": {
+     "p50": 2.22,
+     "p95": 70.96,
+     "max": 195.35
+    },
+    "turnAccelDegPerS2": {
+     "p50": 13.82,
+     "p95": 910.35,
+     "max": 1154.79
+    },
+    "spikes": [
+     {
+      "row": 1027,
+      "accelMps2": 100,
+      "jumpM": 0.168,
+      "before": {
+       "link": [
+        -0.9,
+        10.02,
+        -98.81
+       ],
+       "cam": [
+        3.12,
+        11.77,
+        -99.77
+       ],
+       "hit": null,
+       "keep": 0.988,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        -0.86,
+        10.02,
+        -98.78
+       ],
+       "cam": [
+        3.06,
+        11.76,
+        -99.93
+       ],
+       "hit": null,
+       "keep": 0.976,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0
+      }
+     }
+    ]
+   },
+   "minCameraAboveGroundM": 1.519,
+   "feet": {
+    "stanceSamples": 1489,
+    "soleGapAbsM": {
+     "p50": 0.0037,
+     "p95": 0.0258,
+     "max": 0.0926
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.0195,
+     "max": 0.0926
+    },
+    "shareOver1cm": 0.2787,
+    "shareOver2cm": 0.0826,
+    "footprintMinGapM": -0.0069,
+    "shareFootprintInside5mm": 0.0047
+   },
+   "trace": [
+    [
+     3.6,
+     4.32,
+     -65.2
+    ],
+    [
+     3.31,
+     4.31,
+     -65.51
+    ],
+    [
+     2.99,
+     4.28,
+     -65.86
+    ],
+    [
+     2.66,
+     4.26,
+     -66.21
+    ],
+    [
+     2.33,
+     4.22,
+     -66.56
+    ],
+    [
+     2.01,
+     4.15,
+     -66.91
+    ],
+    [
+     1.68,
+     4.13,
+     -67.27
+    ],
+    [
+     1.35,
+     4.08,
+     -67.62
+    ],
+    [
+     1.03,
+     4.07,
+     -67.97
+    ],
+    [
+     0.7,
+     4.05,
+     -68.32
+    ],
+    [
+     0.37,
+     4.06,
+     -68.67
+    ],
+    [
+     0.05,
+     4.05,
+     -69.03
+    ],
+    [
+     -0.28,
+     4.05,
+     -69.38
+    ],
+    [
+     -0.5,
+     4.05,
+     -69.78
+    ],
+    [
+     -0.27,
+     4.04,
+     -70.18
+    ],
+    [
+     0.06,
+     4.04,
+     -70.52
+    ],
+    [
+     0.2,
+     4.03,
+     -70.98
+    ],
+    [
+     0.43,
+     4.03,
+     -71.37
+    ],
+    [
+     0.63,
+     4.03,
+     -71.81
+    ],
+    [
+     0.83,
+     4.04,
+     -72.17
+    ],
+    [
+     1.03,
+     4.04,
+     -72.61
+    ],
+    [
+     1.14,
+     4.05,
+     -73.05
+    ],
+    [
+     1.27,
+     4.27,
+     -73.48
+    ],
+    [
+     1.3,
+     4.54,
+     -73.9
+    ],
+    [
+     1.39,
+     4.81,
+     -74.33
+    ],
+    [
+     1.47,
+     5.08,
+     -74.76
+    ],
+    [
+     1.45,
+     5.35,
+     -75.18
+    ],
+    [
+     1.4,
+     5.62,
+     -75.59
+    ],
+    [
+     1.39,
+     5.62,
+     -76.03
+    ],
+    [
+     1.38,
+     5.62,
+     -76.47
+    ],
+    [
+     1.36,
+     5.62,
+     -76.91
+    ],
+    [
+     1.35,
+     5.57,
+     -77.35
+    ],
+    [
+     1.21,
+     5.58,
+     -77.79
+    ],
+    [
+     1.05,
+     5.57,
+     -78.21
+    ],
+    [
+     0.85,
+     5.57,
+     -78.62
+    ],
+    [
+     0.67,
+     5.57,
+     -79.07
+    ],
+    [
+     0.5,
+     5.64,
+     -79.51
+    ],
+    [
+     0.33,
+     5.89,
+     -79.95
+    ],
+    [
+     0.26,
+     6.16,
+     -80.36
+    ],
+    [
+     0.15,
+     6.43,
+     -80.78
+    ],
+    [
+     0.15,
+     6.7,
+     -81.2
+    ],
+    [
+     0.09,
+     6.97,
+     -81.64
+    ],
+    [
+     0.02,
+     7.24,
+     -82.07
+    ],
+    [
+     -0.04,
+     7.51,
+     -82.51
+    ],
+    [
+     -0.11,
+     7.78,
+     -82.95
+    ],
+    [
+     -0.17,
+     8.05,
+     -83.38
+    ],
+    [
+     -0.15,
+     8.05,
+     -83.8
+    ],
+    [
+     -0.16,
+     8.05,
+     -84.24
+    ],
+    [
+     -0.17,
+     8.05,
+     -84.68
+    ],
+    [
+     -0.19,
+     8.05,
+     -85.12
+    ],
+    [
+     -0.21,
+     8.19,
+     -85.59
+    ],
+    [
+     -0.32,
+     8.26,
+     -86.03
+    ],
+    [
+     -0.39,
+     8.47,
+     -86.5
+    ],
+    [
+     -0.56,
+     8.6,
+     -86.93
+    ],
+    [
+     -0.6,
+     8.71,
+     -87.32
+    ],
+    [
+     -0.71,
+     8.77,
+     -87.79
+    ],
+    [
+     -0.72,
+     8.9,
+     -88.24
+    ],
+    [
+     -0.78,
+     9,
+     -88.72
+    ],
+    [
+     -0.71,
+     9.07,
+     -89.17
+    ],
+    [
+     -0.52,
+     9.13,
+     -89.57
+    ],
+    [
+     -0.3,
+     9.24,
+     -89.98
+    ],
+    [
+     -0.14,
+     9.29,
+     -90.43
+    ],
+    [
+     0.08,
+     9.38,
+     -90.82
+    ],
+    [
+     0.29,
+     9.5,
+     -91.25
+    ],
+    [
+     0.58,
+     9.58,
+     -91.6
+    ],
+    [
+     0.84,
+     9.61,
+     -92.01
+    ],
+    [
+     1.1,
+     9.67,
+     -92.42
+    ],
+    [
+     1.35,
+     9.76,
+     -92.82
+    ],
+    [
+     1.61,
+     9.8,
+     -93.23
+    ],
+    [
+     1.87,
+     9.91,
+     -93.63
+    ],
+    [
+     2.02,
+     9.95,
+     -94
+    ],
+    [
+     2.26,
+     10,
+     -94.41
+    ],
+    [
+     2.39,
+     10,
+     -94.85
+    ],
+    [
+     2.49,
+     10.04,
+     -95.29
+    ],
+    [
+     2.38,
+     10.04,
+     -95.66
+    ],
+    [
+     2.02,
+     10.02,
+     -95.96
+    ],
+    [
+     1.65,
+     10.01,
+     -96.24
+    ],
+    [
+     1.37,
+     10,
+     -96.63
+    ],
+    [
+     1.08,
+     10,
+     -97.01
+    ],
+    [
+     0.8,
+     10,
+     -97.4
+    ],
+    [
+     0.47,
+     10,
+     -97.71
+    ],
+    [
+     0.14,
+     9.99,
+     -98.06
+    ],
+    [
+     -0.19,
+     10.01,
+     -98.41
+    ],
+    [
+     -0.58,
+     10.02,
+     -98.65
+    ],
+    [
+     -0.98,
+     10.02,
+     -98.87
+    ],
+    [
+     -1.19,
+     10.02,
+     -98.92
+    ],
+    [
+     -0.76,
+     10.02,
+     -98.73
+    ],
+    [
+     -0.38,
+     10.01,
+     -98.48
+    ],
+    [
+     0.03,
+     10,
+     -98.24
+    ],
+    [
+     0.47,
+     9.98,
+     -98.04
+    ],
+    [
+     0.93,
+     9.97,
+     -97.89
+    ],
+    [
+     1.26,
+     9.99,
+     -97.58
+    ],
+    [
+     1.65,
+     10,
+     -97.3
+    ],
+    [
+     2.1,
+     10.01,
+     -97.15
+    ],
+    [
+     2.42,
+     10.01,
+     -96.79
+    ],
+    [
+     2.74,
+     10.02,
+     -96.43
+    ],
+    [
+     3.12,
+     10.01,
+     -96.18
+    ],
+    [
+     3.48,
+     9.99,
+     -95.86
+    ],
+    [
+     3.89,
+     9.98,
+     -95.66
+    ],
+    [
+     4.32,
+     10,
+     -95.49
+    ],
+    [
+     4.74,
+     10.02,
+     -95.26
+    ],
+    [
+     5.16,
+     10.03,
+     -95.03
+    ],
+    [
+     5.58,
+     10.02,
+     -94.79
+    ],
+    [
+     6,
+     10.09,
+     -94.56
+    ],
+    [
+     6.42,
+     10.26,
+     -94.33
+    ],
+    [
+     6.84,
+     10.44,
+     -94.1
+    ],
+    [
+     7.26,
+     10.62,
+     -93.87
+    ],
+    [
+     7.68,
+     10.8,
+     -93.63
+    ],
+    [
+     8.1,
+     10.98,
+     -93.4
+    ],
+    [
+     8.52,
+     11.16,
+     -93.17
+    ],
+    [
+     8.94,
+     11.34,
+     -92.94
+    ],
+    [
+     9.36,
+     11.52,
+     -92.71
+    ],
+    [
+     9.7,
+     11.61,
+     -92.41
+    ],
+    [
+     9.71,
+     11.61,
+     -91.93
+    ],
+    [
+     9.93,
+     11.61,
+     -91.51
+    ],
+    [
+     10.04,
+     11.61,
+     -91.06
+    ],
+    [
+     10.22,
+     11.61,
+     -90.62
+    ],
+    [
+     10.46,
+     11.61,
+     -90.24
+    ],
+    [
+     10.74,
+     11.61,
+     -89.88
+    ],
+    [
+     11.2,
+     11.61,
+     -89.78
+    ],
+    [
+     11.62,
+     11.61,
+     -89.6
+    ],
+    [
+     12.05,
+     11.61,
+     -89.47
+    ],
+    [
+     12.5,
+     11.61,
+     -89.4
+    ],
+    [
+     12.95,
+     11.61,
+     -89.36
+    ],
+    [
+     13.38,
+     11.6,
+     -89.2
+    ],
+    [
+     13.74,
+     11.6,
+     -88.96
+    ],
+    [
+     13.99,
+     11.54,
+     -88.55
+    ],
+    [
+     14.34,
+     11.42,
+     -88.27
+    ],
+    [
+     14.6,
+     11.34,
+     -87.9
+    ],
+    [
+     14.96,
+     11.3,
+     -87.62
+    ],
+    [
+     15.23,
+     11.29,
+     -87.26
+    ]
+   ]
+  }
+ ],
+ "southProbes": {
+  "ok": true,
+  "failed": 0,
+  "rows": [
+   {
+    "where": "deck",
+    "a": 3.31,
+    "c": 0,
+    "x": 3.81,
+    "z": 33.76,
+    "walk": -0.622,
+    "terrain": -7.162,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 3.31,
+    "c": 0.45,
+    "x": 3.36,
+    "z": 33.77,
+    "walk": -0.622,
+    "terrain": -7.063,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 3.31,
+    "c": -0.45,
+    "x": 4.26,
+    "z": 33.75,
+    "walk": -0.622,
+    "terrain": -7.287,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": 0.7,
+    "x": 3.11,
+    "z": 33.78,
+    "walk": -6.924,
+    "terrain": -6.924,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": -0.7,
+    "x": 4.51,
+    "z": 33.74,
+    "walk": -7.373,
+    "terrain": -7.373,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": 1,
+    "x": 2.81,
+    "z": 33.79,
+    "walk": -6.652,
+    "terrain": -6.652,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": -1,
+    "x": 4.81,
+    "z": 33.74,
+    "walk": -7.405,
+    "terrain": -7.405,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": 2.5,
+    "x": 1.31,
+    "z": 33.83,
+    "walk": -5.859,
+    "terrain": -5.859,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": -2.5,
+    "x": 6.31,
+    "z": 33.69,
+    "walk": -7.67,
+    "terrain": -7.67,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 6.63,
+    "c": 0,
+    "x": 3.9,
+    "z": 37.08,
+    "walk": -0.76,
+    "terrain": -9.476,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 6.63,
+    "c": 0.45,
+    "x": 3.45,
+    "z": 37.09,
+    "walk": -0.76,
+    "terrain": -9.553,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 6.63,
+    "c": -0.45,
+    "x": 4.35,
+    "z": 37.06,
+    "walk": -0.76,
+    "terrain": -9.299,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": 0.7,
+    "x": 3.2,
+    "z": 37.09,
+    "walk": -9.524,
+    "terrain": -9.524,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": -0.7,
+    "x": 4.6,
+    "z": 37.06,
+    "walk": -9.158,
+    "terrain": -9.158,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": 1,
+    "x": 2.9,
+    "z": 37.1,
+    "walk": -9.369,
+    "terrain": -9.369,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": -1,
+    "x": 4.9,
+    "z": 37.05,
+    "walk": -9.337,
+    "terrain": -9.337,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": 2.5,
+    "x": 1.4,
+    "z": 37.14,
+    "walk": -9.223,
+    "terrain": -9.223,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": -2.5,
+    "x": 6.4,
+    "z": 37.01,
+    "walk": -9.504,
+    "terrain": -9.504,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 9.94,
+    "c": 0,
+    "x": 3.99,
+    "z": 40.39,
+    "walk": -0.549,
+    "terrain": -7.528,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 9.94,
+    "c": 0.45,
+    "x": 3.54,
+    "z": 40.4,
+    "walk": -0.549,
+    "terrain": -7.704,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 9.94,
+    "c": -0.45,
+    "x": 4.44,
+    "z": 40.38,
+    "walk": -0.549,
+    "terrain": -7.272,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": 0.7,
+    "x": 3.29,
+    "z": 40.41,
+    "walk": -7.879,
+    "terrain": -7.879,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": -0.7,
+    "x": 4.69,
+    "z": 40.37,
+    "walk": -7.148,
+    "terrain": -7.148,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": 1,
+    "x": 2.99,
+    "z": 40.41,
+    "walk": -8.049,
+    "terrain": -8.049,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": -1,
+    "x": 4.99,
+    "z": 40.36,
+    "walk": -6.964,
+    "terrain": -6.964,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": 2.5,
+    "x": 1.49,
+    "z": 40.46,
+    "walk": -8.51,
+    "terrain": -8.51,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": -2.5,
+    "x": 6.49,
+    "z": 40.32,
+    "walk": -6.897,
+    "terrain": -6.897,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rim-by-north-head",
+    "a": 1.5,
+    "c": 3,
+    "x": 0.76,
+    "z": 32.03,
+    "walk": -0.33,
+    "terrain": -0.33,
+    "blocked": false,
+    "expect": "rim",
+    "ok": true
+   },
+   {
+    "where": "rim-by-north-head",
+    "a": 1.5,
+    "c": -3,
+    "x": 6.76,
+    "z": 31.87,
+    "walk": -1.456,
+    "terrain": -1.456,
+    "blocked": true,
+    "expect": "rim",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-north-head",
+    "a": 3,
+    "c": 3,
+    "x": 0.8,
+    "z": 33.53,
+    "walk": -4.318,
+    "terrain": -4.318,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-north-head",
+    "a": 3,
+    "c": -3,
+    "x": 6.8,
+    "z": 33.37,
+    "walk": -6.562,
+    "terrain": -6.562,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 11.75,
+    "c": 3,
+    "x": 1.04,
+    "z": 42.28,
+    "walk": -2.34,
+    "terrain": -2.34,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 11.75,
+    "c": -3,
+    "x": 7.04,
+    "z": 42.12,
+    "walk": -0.377,
+    "terrain": -0.377,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 10.25,
+    "c": 3,
+    "x": 1,
+    "z": 40.78,
+    "walk": -7.639,
+    "terrain": -7.639,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 10.25,
+    "c": -3,
+    "x": 7,
+    "z": 40.62,
+    "walk": -5.359,
+    "terrain": -5.359,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "log-floor",
+    "a": 1,
+    "c": 0,
+    "x": 4.28,
+    "z": 47.9,
+    "walk": -0.221,
+    "terrain": -0.743,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "log-floor",
+    "a": 3,
+    "c": 0,
+    "x": 4.34,
+    "z": 49.9,
+    "walk": -0.221,
+    "terrain": -0.743,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "log-floor",
+    "a": 5.2,
+    "c": 0,
+    "x": 4.41,
+    "z": 52.1,
+    "walk": -0.221,
+    "terrain": -0.743,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "log-wall",
+    "a": 3,
+    "c": 1.2,
+    "x": 3.14,
+    "z": 49.93,
+    "walk": -0.743,
+    "terrain": -0.743,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "log-wall",
+    "a": 3,
+    "c": -1.2,
+    "x": 5.54,
+    "z": 49.86,
+    "walk": -0.489,
+    "terrain": -0.489,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "log-past-dead-end",
+    "a": 5.9,
+    "c": 0,
+    "x": 4.43,
+    "z": 52.8,
+    "walk": -0.743,
+    "terrain": -0.743,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   }
+  ]
+ },
+ "northProbes": {
+  "ok": true,
+  "failed": 0,
+  "rows": [
+   {
+    "where": "veranda",
+    "a": -170,
+    "c": 2.05,
+    "x": 9.98,
+    "z": -91.86,
+    "walk": 11.61,
+    "terrain": 8.666,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda",
+    "a": 160,
+    "c": 2.05,
+    "x": 10.07,
+    "z": -90.8,
+    "walk": 11.61,
+    "terrain": 8.524,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda",
+    "a": 120,
+    "c": 2.05,
+    "x": 10.98,
+    "z": -89.72,
+    "walk": 11.61,
+    "terrain": 8.143,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda",
+    "a": 90,
+    "c": 2.05,
+    "x": 12,
+    "z": -89.45,
+    "walk": 11.61,
+    "terrain": 8.013,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda",
+    "a": 20,
+    "c": 2.05,
+    "x": 13.93,
+    "z": -90.8,
+    "walk": 11.61,
+    "terrain": 8.251,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda",
+    "a": -60,
+    "c": 2.05,
+    "x": 13.03,
+    "z": -93.28,
+    "walk": 11.61,
+    "terrain": 8.808,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda",
+    "a": -100,
+    "c": 2.05,
+    "x": 11.64,
+    "z": -93.52,
+    "walk": 11.61,
+    "terrain": 8.978,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.616,
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": -170,
+    "c": 2.58,
+    "x": 9.46,
+    "z": -91.95,
+    "walk": 11.61,
+    "terrain": 8.854,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": 160,
+    "c": 2.58,
+    "x": 9.58,
+    "z": -90.62,
+    "walk": 11.61,
+    "terrain": 8.561,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": 120,
+    "c": 2.58,
+    "x": 10.71,
+    "z": -89.27,
+    "walk": 11.61,
+    "terrain": 8.079,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": 108,
+    "c": 2.58,
+    "x": 11.2,
+    "z": -89.05,
+    "walk": 11.61,
+    "terrain": 7.981,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": 90,
+    "c": 2.58,
+    "x": 12,
+    "z": -88.92,
+    "walk": 11.61,
+    "terrain": 7.873,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": 20,
+    "c": 2.58,
+    "x": 14.42,
+    "z": -90.62,
+    "walk": 11.61,
+    "terrain": 8.178,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": -60,
+    "c": 2.58,
+    "x": 13.29,
+    "z": -93.73,
+    "walk": 11.61,
+    "terrain": 8.888,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "veranda-rail",
+    "a": -100,
+    "c": 2.58,
+    "x": 11.55,
+    "z": -94.04,
+    "walk": 11.61,
+    "terrain": 9.117,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stilt-wall",
+    "a": -151.4,
+    "c": 1.4,
+    "x": 10.77,
+    "z": -92.17,
+    "walk": 11.61,
+    "terrain": 8.658,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stilt-wall",
+    "a": 90,
+    "c": 1.4,
+    "x": 12,
+    "z": -90.1,
+    "walk": 11.61,
+    "terrain": 8.183,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "stilt-wall",
+    "a": -30,
+    "c": 1.4,
+    "x": 13.21,
+    "z": -92.2,
+    "walk": 11.61,
+    "terrain": 8.58,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.25,
+    "c": 0,
+    "x": 7.05,
+    "z": -94.2,
+    "walk": 10.491,
+    "terrain": 10.018,
+    "blocked": false,
+    "expect": "deck",
+    "want": 10.479,
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.25,
+    "c": 0.28,
+    "x": 6.92,
+    "z": -93.95,
+    "walk": 10.491,
+    "terrain": 10.016,
+    "blocked": false,
+    "expect": "deck",
+    "want": 10.479,
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.25,
+    "c": -0.28,
+    "x": 7.18,
+    "z": -94.44,
+    "walk": 10.491,
+    "terrain": 10.015,
+    "blocked": false,
+    "expect": "deck",
+    "want": 10.479,
+    "ok": true
+   },
+   {
+    "where": "gangway-side",
+    "a": 0.25,
+    "c": 0.47,
+    "x": 6.83,
+    "z": -93.79,
+    "walk": 10.01,
+    "terrain": 10.01,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gangway-side",
+    "a": 0.25,
+    "c": -0.47,
+    "x": 7.27,
+    "z": -94.61,
+    "walk": 10.014,
+    "terrain": 10.014,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.5,
+    "c": 0,
+    "x": 7.94,
+    "z": -93.71,
+    "walk": 10.87,
+    "terrain": 9.975,
+    "blocked": false,
+    "expect": "deck",
+    "want": 10.858,
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.5,
+    "c": 0.28,
+    "x": 7.81,
+    "z": -93.47,
+    "walk": 10.87,
+    "terrain": 9.956,
+    "blocked": false,
+    "expect": "deck",
+    "want": 10.858,
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.5,
+    "c": -0.28,
+    "x": 8.07,
+    "z": -93.96,
+    "walk": 10.87,
+    "terrain": 9.989,
+    "blocked": false,
+    "expect": "deck",
+    "want": 10.858,
+    "ok": true
+   },
+   {
+    "where": "gangway-side",
+    "a": 0.5,
+    "c": 0.47,
+    "x": 7.71,
+    "z": -93.3,
+    "walk": 9.943,
+    "terrain": 9.943,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gangway-side",
+    "a": 0.5,
+    "c": -0.47,
+    "x": 8.16,
+    "z": -94.13,
+    "walk": 9.997,
+    "terrain": 9.997,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.75,
+    "c": 0,
+    "x": 8.83,
+    "z": -93.23,
+    "walk": 11.249,
+    "terrain": 9.683,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.237,
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.75,
+    "c": 0.28,
+    "x": 8.69,
+    "z": -92.98,
+    "walk": 11.249,
+    "terrain": 9.671,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.237,
+    "ok": true
+   },
+   {
+    "where": "gangway",
+    "a": 0.75,
+    "c": -0.28,
+    "x": 8.96,
+    "z": -93.48,
+    "walk": 11.249,
+    "terrain": 9.726,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.237,
+    "ok": true
+   },
+   {
+    "where": "gangway-side",
+    "a": 0.75,
+    "c": 0.47,
+    "x": 8.6,
+    "z": -92.82,
+    "walk": 9.629,
+    "terrain": 9.629,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "gangway-side",
+    "a": 0.75,
+    "c": -0.47,
+    "x": 9.05,
+    "z": -93.64,
+    "walk": 9.735,
+    "terrain": 9.735,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.25,
+    "c": 0,
+    "x": 14.36,
+    "z": -88.4,
+    "walk": 11.442,
+    "terrain": 7.609,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.435,
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.25,
+    "c": 0.25,
+    "x": 14.16,
+    "z": -88.25,
+    "walk": 11.442,
+    "terrain": 7.589,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.435,
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.25,
+    "c": -0.25,
+    "x": 14.56,
+    "z": -88.55,
+    "walk": 11.442,
+    "terrain": 7.627,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.435,
+    "ok": true
+   },
+   {
+    "where": "rope-walk-side",
+    "a": 0.25,
+    "c": 0.46,
+    "x": 14,
+    "z": -88.12,
+    "walk": 7.574,
+    "terrain": 7.574,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rope-walk-side",
+    "a": 0.25,
+    "c": -0.46,
+    "x": 14.73,
+    "z": -88.68,
+    "walk": 7.642,
+    "terrain": 7.642,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.5,
+    "c": 0,
+    "x": 14.7,
+    "z": -87.96,
+    "walk": 11.334,
+    "terrain": 7.519,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.33,
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.5,
+    "c": 0.25,
+    "x": 14.5,
+    "z": -87.81,
+    "walk": 11.334,
+    "terrain": 7.493,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.33,
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.5,
+    "c": -0.25,
+    "x": 14.9,
+    "z": -88.11,
+    "walk": 11.334,
+    "terrain": 7.539,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.33,
+    "ok": true
+   },
+   {
+    "where": "rope-walk-side",
+    "a": 0.5,
+    "c": 0.46,
+    "x": 14.33,
+    "z": -87.68,
+    "walk": 7.471,
+    "terrain": 7.471,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rope-walk-side",
+    "a": 0.5,
+    "c": -0.46,
+    "x": 15.06,
+    "z": -88.24,
+    "walk": 7.546,
+    "terrain": 7.546,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.75,
+    "c": 0,
+    "x": 15.03,
+    "z": -87.52,
+    "walk": 11.292,
+    "terrain": 7.402,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.285,
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.75,
+    "c": 0.25,
+    "x": 14.83,
+    "z": -87.37,
+    "walk": 11.292,
+    "terrain": 7.379,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.285,
+    "ok": true
+   },
+   {
+    "where": "rope-walk",
+    "a": 0.75,
+    "c": -0.25,
+    "x": 15.23,
+    "z": -87.67,
+    "walk": 11.292,
+    "terrain": 7.406,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.285,
+    "ok": true
+   },
+   {
+    "where": "rope-walk-side",
+    "a": 0.75,
+    "c": 0.46,
+    "x": 14.66,
+    "z": -87.24,
+    "walk": 7.351,
+    "terrain": 7.351,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rope-walk-side",
+    "a": 0.75,
+    "c": -0.46,
+    "x": 15.4,
+    "z": -87.8,
+    "walk": 7.409,
+    "terrain": 7.409,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-walkway",
+    "a": -127.3,
+    "c": 1.9,
+    "x": 15.65,
+    "z": -86.71,
+    "walk": 11.3,
+    "terrain": 7.157,
+    "blocked": false,
+    "expect": "deck",
+    "want": 11.3,
+    "ok": true
+   },
+   {
+    "where": "hut-platform",
+    "a": -57.3,
+    "c": 1.5,
+    "x": 17.61,
+    "z": -86.46,
+    "walk": 11.31,
+    "terrain": 7.119,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-platform",
+    "a": 12.7,
+    "c": 1.5,
+    "x": 18.26,
+    "z": -84.87,
+    "walk": 11.31,
+    "terrain": 6.967,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-platform",
+    "a": 52.7,
+    "c": 1.5,
+    "x": 17.71,
+    "z": -84.01,
+    "walk": 11.31,
+    "terrain": 6.704,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-platform",
+    "a": 122.7,
+    "c": 1.5,
+    "x": 15.99,
+    "z": -83.94,
+    "walk": 11.31,
+    "terrain": 6.821,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-rail",
+    "a": -37.3,
+    "c": 1.6,
+    "x": 18.07,
+    "z": -86.17,
+    "walk": 11.31,
+    "terrain": 7.134,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-rail",
+    "a": 52.7,
+    "c": 1.6,
+    "x": 17.77,
+    "z": -83.93,
+    "walk": 11.31,
+    "terrain": 6.692,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-rail",
+    "a": 142.7,
+    "c": 1.6,
+    "x": 15.53,
+    "z": -84.23,
+    "walk": 11.31,
+    "terrain": 6.861,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "hut-door",
+    "a": -127.3,
+    "c": 1.35,
+    "x": 15.98,
+    "z": -86.27,
+    "walk": 11.31,
+    "terrain": 7.042,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "house-bole",
+    "a": 0,
+    "c": 1.9000000000000001,
+    "x": -4.18,
+    "z": -99.52,
+    "walk": 9.999,
+    "terrain": 9.999,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "house-door-front",
+    "a": 0,
+    "c": 0,
+    "x": -1.75,
+    "z": -99.1,
+    "walk": 9.995,
+    "terrain": 9.986,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "a": 0,
+    "c": 0,
+    "x": -0.95,
+    "z": -87.45,
+    "walk": 8.733,
+    "terrain": 8.656,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "a": 0,
+    "c": 0,
+    "x": -0.45,
+    "z": -89.85,
+    "walk": 9.219,
+    "terrain": 9.147,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "a": 0,
+    "c": 0,
+    "x": 1.05,
+    "z": -91.95,
+    "walk": 9.642,
+    "terrain": 9.579,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "trail",
+    "a": 0,
+    "c": 0,
+    "x": 2.3,
+    "z": -93.9,
+    "walk": 9.961,
+    "terrain": 9.916,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "flight",
+    "a": 1.89,
+    "c": 0,
+    "x": 0.27,
+    "z": -81.73,
+    "walk": 6.97,
+    "terrain": 6.681,
+    "blocked": false,
+    "expect": "deck",
+    "want": 6.835,
+    "ok": true
+   }
+  ]
+ },
+ "perf": [
+  {
+   "id": "plaza",
+   "drawnFrameWallMs": [
+    24653,
+    25090.399999976158,
+    25908.80000001192,
+    25012.899999976158
+   ],
+   "jsMs": {
+    "step": 29.599999964237213,
+    "camera": 0.19999998807907104,
+    "update": 3.099999964237213,
+    "render": 26.30000001192093
+   },
+   "draws": 530,
+   "triangles": 7711094
+  },
+  {
+   "id": "stairs2-base",
+   "drawnFrameWallMs": [
+    29523.80000001192,
+    27346.600000023842,
+    26858.599999964237,
+    29166
+   ],
+   "jsMs": {
+    "step": 15.800000011920929,
+    "camera": 0,
+    "update": 4.599999964237213,
+    "render": 11.200000047683716
+   },
+   "draws": 535,
+   "triangles": 9153565
+  },
+  {
+   "id": "saria-side",
+   "drawnFrameWallMs": [
+    28161.600000023842,
+    28913.899999976158,
+    29460.80000001192,
+    23194.5
+   ],
+   "jsMs": {
+    "step": 32.799999952316284,
+    "camera": 0.2999999523162842,
+    "update": 7.400000035762787,
+    "render": 25.099999964237213
+   },
+   "draws": 508,
+   "triangles": 8585962
+  },
+  {
+   "id": "west-house",
+   "drawnFrameWallMs": [
+    13725.699999988079,
+    13874.399999976158,
+    13564.600000023842,
+    13650.399999976158
+   ],
+   "jsMs": {
+    "step": 11.5,
+    "camera": 0.10000002384185791,
+    "update": 1.699999988079071,
+    "render": 9.699999988079071
+   },
+   "draws": 412,
+   "triangles": 4951247
+  }
+ ],
+ "pageErrors": [],
+ "finished": "2026-09-29T19:36:15.325Z"
+}

@@ -125,6 +125,40 @@ banded tree is drawn twice, and `TREE_LOD_DITHER_BAND_M = 2.5` was chosen to be 
 that is still a couple of walking paces, exactly so that this number stays small.
 
 At the owner's north pose, at the shipped gate, the same cost reads 440 / 8 501 347 → 444 / 8 546 381.
+The gauntlet's own `pose-counts.mjs` reads the four hero viewpoints the same to the draw and the
+0.01 M: 561 / 8.72 M, 543 / 7.97 M, 480 / 7.72 M, 468 / 8.26 M.
+
+## 5. What the band does and does not cover
+
+`lodSlots` is called from one place, `bucketFamily`, and `bucketFamily` is called for **three
+families**: the white-barks, the seated columns and the understory. The distant and mid layers have
+their own near gates (`distantNear`, `MID_FAR_LOD_M`), the giants swap by sector and by the near-bole
+rule, and the near canopy swaps through the LOD pool — **none of those is banded**, and nothing here
+claims they are. The audit now says so out loud: `trees.lodBand` publishes `{ on, bandM, families }`
+alongside `lodSwapM`, so a reviewer reading the audit can tell which state a build is in and which
+ladders the band applies to without reading the source.
+
+The rung this fixes is the one that mattered: `lodcheck/` attributed essentially all of the measured
+rung error to the white-barks' and columns' **high→medium** swap, which is the near gate of exactly
+these three families.
+
+## 6. Behaviour, and what the band costs in play
+
+`playtest.mjs --only look,walk,perf` on the shipped build against this morning's recorded run of the
+same tool on the same branch without the band (`../headcheck3/playtest.json`):
+
+| | band off | band on | Δ |
+| --- | --- | --- | --- |
+| plaza | 528 / 7 677 516 | 530 / 7 711 094 | +2 / +33 578 |
+| the flight's foot | 535 / 9 151 000 | 535 / 9 153 565 | +0 / +2 565 |
+| saria-side | 502 / 8 508 917 | **508 / 8 585 962** | **+6 / +77 045** |
+| west-house | 411 / 4 908 289 | 412 / 4 951 247 | +1 / +42 958 |
+
+**11 / 11 walk routes reached, 0 stuck, 10 look spots unflagged, 0 page errors** — the same as without
+the band. None of these four poses is inside W38 (it is scoped to the four hero viewpoints), but the
+flight's foot is the branch's worst tracked frame and the band adds **2 565 triangles** to it, so the
+walking figure that PROJECT_STATE's 30 fps claim rests on is untouched. The most the band costs
+anywhere measured is saria-side's +6 draws.
 
 ## Files
 
@@ -136,6 +170,7 @@ At the owner's north pose, at the shipped gate, the same cost reads 440 / 8 501 
 - `crown-8x.jpg` — the working crown at ~8×: off, on, on one metre later.
 - `bhouse-2x.jpg` — the one fixed frame that moves most, at ~2×, at the crown that sits mid-band.
 - `hero-off.json`, `hero-on.json` — the `frozen.mjs` reads behind §3.
+- `playtest-band-on.json` — the walk / look / perf run behind §6.
 
 ## Reproducing
 

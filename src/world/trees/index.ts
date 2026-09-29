@@ -36,7 +36,7 @@ import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../
 import { inExpansionNorth } from '../layout';
 import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
-import { lodSlots, TREE_LOD_DITHER } from './lodFade';
+import { lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -5087,6 +5087,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
        */
       lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), scale: TREE_LOD_SCALE },
+      /**
+       * The rung transition band (lodFade.ts): whether a tree within half a band of one of
+       * `lodSwapM.tree`'s gates is drawn in BOTH rungs at complementary screen-door weights, and how
+       * wide that band is. It covers the three `bucketFamily` families only — the white-barks, the
+       * seated columns and the understory — not the distant or mid layers' own gates, not the giants
+       * and not the near-canopy pool, each of which swaps by a different rule.
+       */
+      lodBand: { on: TREE_LOD_DITHER, bandM: TREE_LOD_DITHER ? TREE_LOD_DITHER_BAND_M : 0, families: ['whites', 'seatedColumns', 'understory'] },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**
