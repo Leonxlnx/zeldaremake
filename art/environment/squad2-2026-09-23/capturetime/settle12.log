@@ -1,0 +1,7 @@
+world: page loaded in 69.9 s — waiting for __ZR__.ready() (timeout 15 min)
+world: ready in 84.8 s
+  A_stairs: 10.64 s/frame — 12 settle frames ≈ 128 s
+captured A_stairs (The Stairs) in 206.7s — 559 draws, 8.63M tris
+world: page loaded in 70.5 s — waiting for __ZR__.ready() (timeout 15 min)
+world: ready in 83.7 s
+  A_stairs: 10.42 s/frame — 12 settle frames ≈ 125 s

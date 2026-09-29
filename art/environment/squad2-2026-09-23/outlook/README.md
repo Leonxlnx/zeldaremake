@@ -301,11 +301,13 @@ It is not. Priced at the views the player actually stands in (`familycost.mjs --
 | **B_house** | 99 910 | 18 | **11.17 %** |
 | C_lookback | 22 200 | 7 | 2.12 % |
 | **D_log** | 125 757 | 21 | **22.66 %** |
+| E_ground | 99 910 | 18 | **11.17 %** |
+| F_canopy | 55 319 | 7 | 2.51 % |
 | plateau-back | 63 638 | 10 | 5.47 % |
 | plateau-north | 143 818 | 23 | **0.31 %** |
 
-(E_ground and F_canopy were still rendering when this was written; the pattern across the other four is
-not in doubt.)
+(All six fixed views now. E_ground reads identically to B_house because the two viewpoints share a camera —
+the counts table has both at 541 / 7 903 532.)
 
 **The understory is one of the best-value families in the frame** — at D_log it is 22.66 % of the pixels for
 1.5 % of the frame's triangles, and at A_stairs and B_house 11–13 %. It is the forest floor and the saplings
