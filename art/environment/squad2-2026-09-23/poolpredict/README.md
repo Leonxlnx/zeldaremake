@@ -142,3 +142,9 @@ each pool's threshold from `NEAR_LOD_TIER`. Four tests: the scaling, the progres
 The eager-gate test had to be written twice, which is worth knowing if you touch this: **`building`
 counts a slot that has a generator, and `work` creates the generator before it checks the budget**, so
 a deferred item still shows up in `building`. The signal for "was it begun" is the steps the call added.
+
+**And the capture contract holds.** A scheduler change can move what is resident when a settled shot is
+taken, which would show up as different draws or triangles at a fixed viewpoint. `pose-counts.mjs` on
+this head reads **559 / 8 626 622, 541 / 7 903 532, 479 / 7 679 745, 465 / 8 242 550, 541 / 7 903 532,
+500 / 7 831 095** — every one identical to the numbers `headcheck3/` recorded before it
+(`six-views.json`).
