@@ -142,6 +142,10 @@ frame at all:
 | --- | --- | --- | --- | --- | --- |
 | **after load, 0 renders** | **63** | 7.6 ms | 8.0 ms | 265 | 0.1 (no `work` call yet) |
 | after 1 render | 63 | 7.6 | 8.0 | 265 | 8.3 |
+| **after 31 renders, no pose jump** | **63** | 7.6 | 8.0 | **269** | 8.7 |
+
+That third row is the cleanest statement of it: **thirty-one frames of rendering added not one synchronous
+build** — the counter sits at 63 throughout — while the budgeted path quietly finished four more parts.
 
 **All 63 happen inside `trees.create()`**, in the build's own `rebucket(ctx.camera, true)` → `nearCanopyUpdate(reset = true)`, which pins every candidate so an explicit pose draws the same parts whether the pool was cold or warm. That call is `framecost/` §1's **550 ms**, and 550 / 63 ≈ 8.7 ms a part matches the 7.6 ms p95 above. The pool is already full at load: `built` **265**.
 
