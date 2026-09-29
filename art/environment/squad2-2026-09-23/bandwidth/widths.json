@@ -1,0 +1,112 @@
+[
+ {
+  "view": "A_stairs",
+  "bandM": 0,
+  "draws": 559,
+  "triangles": 8626622,
+  "changedPct2": 0,
+  "changedPct8": 0,
+  "ssimToBandOff": 1,
+  "ssimToReference": 0.3132,
+  "deltaToReference": 0
+ },
+ {
+  "view": "A_stairs",
+  "bandM": 2.5,
+  "draws": 561,
+  "triangles": 8724803,
+  "changedPct2": 0.39,
+  "changedPct8": 0.138,
+  "ssimToBandOff": 0.99887,
+  "ssimToReference": 0.3128,
+  "deltaToReference": -0.0004
+ },
+ {
+  "view": "A_stairs",
+  "bandM": 5,
+  "draws": 567,
+  "triangles": 8863807,
+  "changedPct2": 1.25,
+  "changedPct8": 0.425,
+  "ssimToBandOff": 0.99644,
+  "ssimToReference": 0.3125,
+  "deltaToReference": -0.0007
+ },
+ {
+  "view": "A_stairs",
+  "bandM": 8,
+  "draws": 568,
+  "triangles": 8879912,
+  "changedPct2": 2.05,
+  "changedPct8": 0.779,
+  "ssimToBandOff": 0.993,
+  "ssimToReference": 0.3116,
+  "deltaToReference": -0.0016
+ },
+ {
+  "view": "A_stairs",
+  "bandM": 12,
+  "draws": 571,
+  "triangles": 8905736,
+  "changedPct2": 3.22,
+  "changedPct8": 1.375,
+  "ssimToBandOff": 0.98887,
+  "ssimToReference": 0.3109,
+  "deltaToReference": -0.0023
+ },
+ {
+  "view": "D_log",
+  "bandM": 0,
+  "draws": 465,
+  "triangles": 8242550,
+  "changedPct2": 0,
+  "changedPct8": 0,
+  "ssimToBandOff": 1,
+  "ssimToReference": 0.393,
+  "deltaToReference": 0
+ },
+ {
+  "view": "D_log",
+  "bandM": 2.5,
+  "draws": 468,
+  "triangles": 8258565,
+  "changedPct2": 2.64,
+  "changedPct8": 1.184,
+  "ssimToBandOff": 0.99097,
+  "ssimToReference": 0.3911,
+  "deltaToReference": -0.0019
+ },
+ {
+  "view": "D_log",
+  "bandM": 5,
+  "draws": 472,
+  "triangles": 8294308,
+  "changedPct2": 5.22,
+  "changedPct8": 2.686,
+  "ssimToBandOff": 0.97816,
+  "ssimToReference": 0.388,
+  "deltaToReference": -0.005
+ },
+ {
+  "view": "D_log",
+  "bandM": 8,
+  "draws": 474,
+  "triangles": 8466082,
+  "changedPct2": 7.35,
+  "changedPct8": 3.701,
+  "ssimToBandOff": 0.96841,
+  "ssimToReference": 0.3875,
+  "deltaToReference": -0.0055
+ },
+ {
+  "view": "D_log",
+  "bandM": 12,
+  "draws": 483,
+  "triangles": 8644032,
+  "changedPct2": 8.39,
+  "changedPct8": 4.16,
+  "ssimToBandOff": 0.96451,
+  "ssimToReference": 0.3871,
+  "deltaToReference": -0.0059
+ }
+]

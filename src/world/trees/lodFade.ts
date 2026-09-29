@@ -33,9 +33,22 @@
 /** on since 2026-09-29: the drawing half is in and the proposal's four checks passed (gatesweep/) */
 export const TREE_LOD_DITHER = true;
 /**
- * width of the transition band (m), centred on a gate. 2.5 m is a couple of walking paces; wider costs
- * more (a tree inside the band is drawn twice, ~11 K triangles for a medium white-bark) and hero A has
- * 30 K of headroom, so this is the ceiling the budget allows rather than a taste choice.
+ * Width of the transition band (m), centred on a gate: a tree within half of it is drawn in both rungs.
+ *
+ * 2.5 m is a couple of walking paces. It was first chosen as "the ceiling the budget allows" — wrong
+ * reason, right value, and both halves of that reason have since failed:
+ *
+ *   • the budget does not bind. Hero A reads 8.72 M with the band on against W38's 9.0 M, and the cost
+ *     SATURATES: 2.5 → 5 m adds 139 K triangles, 5 → 8 m only 16 K, 8 → 12 m only 26 K, because the
+ *     trees near a gate are clustered rather than spread. Even a 12 m band leaves 94 K spare.
+ *   • wider is not better either. Against `reference/frames/`, the frame moves monotonically FURTHER
+ *     from its reference as the band widens — hero A −0.0004 / −0.0007 / −0.0016 / −0.0023 at
+ *     2.5 / 5 / 8 / 12 m, and D_log −0.0019 / −0.0050 / −0.0055 at 2.5 / 5 / 8 — against a run-to-run
+ *     noise floor of 0.0000 at hero A. PR #198's reading that a 12 m band was *closer* to the reference
+ *     than 2.5 m does not reproduce; the direction is the other way.
+ *
+ * So the width stays 2.5 m because it is the cheapest point on a monotone curve, not because a ceiling
+ * forces it. `art/environment/squad2-2026-09-23/bandwidth/` has the sweep.
  */
 export const TREE_LOD_DITHER_BAND_M = 2.5;
 
