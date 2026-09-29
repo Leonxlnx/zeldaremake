@@ -1524,12 +1524,18 @@ export function placeMidTrees(rng: Rng, terrain: Terrain, variants: DistantVaria
     const H = v.height * scale;
     const crownR = H * (spec?.crownR ?? MID_CROWN_R);
     const trunkR = H * MID_TRUNK_R;
-    if (o.blocked(x, z, trunkR)) continue;
+    // Cheapest test first, and `o.blocked` last. All six are pure and none draws from `r`, so the
+    // order cannot change which candidates are accepted — but it changes how often each runs, and
+    // `o.blocked` (treeGroundBlocked: seven terrain mask probes, then every landmark and polyline)
+    // measured 46 µs against 0.7–3.8 µs for the others. The spacing and occupancy tests reject 93 %
+    // and 27 % of what reaches them, so putting them first takes `o.blocked` from 11 850 calls to
+    // about 600: 544 ms of the sampler's 635 ms.
+    if (tooCloseIn(grid, cell, x, z, spacing)) continue;
+    if (o.occupied.some((d) => Math.hypot(x - d.x, z - d.z) < d.r + trunkR)) continue;
     if (terrain.slope(x, z) > 0.66) continue;
     const y = terrain.height(x, z);
     if (shadesCorridor(x, z, y + H * (spec?.crownY ?? MID_CROWN_Y), crownR)) continue;
-    if (o.occupied.some((d) => Math.hypot(x - d.x, z - d.z) < d.r + trunkR)) continue;
-    if (tooCloseIn(grid, cell, x, z, spacing)) continue;
+    if (o.blocked(x, z, trunkR)) continue;
     // value / hue jitter per tree, then the shared depth cool so the back of the band sits behind
     const shift = r.range(-0.07, 0.07);
     const tint = depthCool(new Color(1 + shift * 0.6, 1 + shift, 1 - shift * 0.7).multiplyScalar(r.range(0.84, 1.1)), x, z);
