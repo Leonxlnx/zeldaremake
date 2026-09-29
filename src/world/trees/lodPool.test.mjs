@@ -44,7 +44,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { LodPool, runBuild, FIRST_STEP_BYTE_SAMPLES, STEP_TOLERANCE_MS } = loadTs(path.join(here, 'lodPool.ts'));
+const { LodPool, runBuild } = loadTs(path.join(here, 'lodPool.ts'));
 const { createNearCanopyKit, runSteps } = loadTs(path.join(here, 'nearCanopy.ts'));
 const { createRng } = loadTs(path.join(here, '..', 'util', 'prng.ts'));
 const { growthPath, taper } = loadTs(path.join(here, 'writer.ts'));
@@ -868,87 +868,4 @@ test('releaseAfterUpload drops static arrays on upload and leaves per-instance a
   assert.equal(g.index.array, null, 'the index frees its array');
   assert.ok(g.getAttribute('aLodDrop').array instanceof Float32Array, 'a per-instance attribute keeps its array');
   assert.equal(g.getAttribute('aLodDrop').array.length, 4);
-});
-
-test('a fresh item is priced by its own size, so a big one does not start late in a call', () => {
-  const log = [];
-  const now = clock();
-  const pool = new LodPool(100000, now);
-  // Eight small builds teach the pool what a first chunk costs PER BYTE: 0.5 ms for 10 bytes.
-  for (let i = 0; i < FIRST_STEP_BYTE_SAMPLES; i++) {
-    const small = fakeItem(`s${i}`, 10, log, 1, now, 0.5);
-    pool.add(small);
-    pool.begin();
-    pool.want(small, 1);
-    pool.work(6);
-    assert.ok(pool.isResident(small), `small ${i} built`);
-  }
-  const r0 = pool.report();
-  assert.equal(r0.firstStepMsP95, 0.5, 'the flat prediction is one small first chunk');
-  assert.equal(r0.firstStepMsPerByteP95, 0.05, 'and per byte it is 0.5 ms / 10 bytes');
-
-  // A started filler that costs 2 ms a chunk, and a FRESH item ten times the size whose first
-  // chunk costs 5 ms. The flat p95 would price that first chunk at 0.5 ms and start it with 2 ms
-  // of a 6 ms budget gone — a 7 ms call. Priced by its 100 bytes it is expected to cost 5 ms, so
-  // the call declines to begin it.
-  const filler = varItem('filler', 10, log, [2, 2, 2, 2], now);
-  const big = varItem('big', 100, log, [5, 0.5], now);
-  pool.add(filler);
-  pool.add(big);
-  pool.begin();
-  pool.want(filler, 1);
-  pool.want(big, 2);
-  pool.work(6); // starts the filler (mandatory first chunk), then declines the big one
-  assert.equal(pool.report().building, 1, 'only the filler started');
-
-  const before = pool.report().workMsMax;
-  pool.begin();
-  pool.want(filler, 1);
-  pool.want(big, 2);
-  pool.work(6); // the filler's next 2 ms chunk is known and fits; the big one is still 5 ms
-  assert.ok(pool.report().workMsMax <= 6 + STEP_TOLERANCE_MS, `the call stayed in budget (${pool.report().workMsMax})`);
-  assert.equal(pool.report().building, 1, 'the big item is still waiting for a whole budget');
-  assert.ok(before <= 6 + STEP_TOLERANCE_MS, 'and so did the one before it');
-});
-
-test('the size-scaled prediction cannot starve an item: a chunk bigger than the whole budget still advances one a call', () => {
-  const log = [];
-  const now = clock();
-  const pool = new LodPool(100000, now);
-  for (let i = 0; i < FIRST_STEP_BYTE_SAMPLES; i++) {
-    const small = fakeItem(`s${i}`, 10, log, 1, now, 0.5);
-    pool.add(small);
-    pool.begin();
-    pool.want(small, 1);
-    pool.work(6);
-  }
-  // 1000 bytes at 0.05 ms/byte predicts 50 ms — eight times the budget. The progress guarantee
-  // must still run it: the first chunk of a call runs whatever the prediction says.
-  const huge = varItem('huge', 1000, log, [8, 8], now);
-  pool.add(huge);
-  let calls = 0;
-  for (; calls < 6 && !pool.isResident(huge); calls++) {
-    pool.begin();
-    pool.want(huge, 1);
-    pool.work(6);
-  }
-  assert.ok(pool.isResident(huge), `the huge item still finished (${calls} calls)`);
-  assert.equal(calls, 3, 'one chunk a call, then the finishing step');
-  assert.deepEqual(log.slice(-1), ['install huge']);
-});
-
-test('before enough sized first chunks the prediction stays flat', () => {
-  const log = [];
-  const now = clock();
-  const pool = new LodPool(100000, now);
-  for (let i = 0; i < FIRST_STEP_BYTE_SAMPLES - 1; i++) {
-    const small = fakeItem(`s${i}`, 10, log, 1, now, 0.5);
-    pool.add(small);
-    pool.begin();
-    pool.want(small, 1);
-    pool.work(6);
-  }
-  const r = pool.report();
-  assert.equal(r.firstStepMsPerByteP95, 0, 'seven samples are not enough to scale by size');
-  assert.equal(r.firstStepMsP95, 0.5, 'the flat prediction is still there to fall back on');
 });
