@@ -285,3 +285,40 @@ the distant crowns — the exact thing the owner's original "the trees do not po
 **The lane's recommendation is to hold it** until something actually needs those draws (a heavier scene, a
 weaker device, or another lane's growth), and to take it then in `distant.ts` rather than in the shared
 shader.
+
+## 10. The understory: the family I expected to be waste, and it is the opposite
+
+§2's table showed the understory at plateau-north spending **23 draws and 143 818 triangles for 0.31 % of
+the pixels** — the second-worst value in the frame after the distant ring — and there is no cull distance
+for it anywhere: `bucketFamily` sorts its five variants into three LOD buckets by camera distance and never
+drops one. That looked like an easy 143 K.
+
+It is not. Priced at the views the player actually stands in (`familycost.mjs --only understory`):
+
+| view | drawn triangles | draws | pixels moved |
+| --- | --- | --- | --- |
+| **A_stairs** | 93 204 | 20 | **12.96 %** |
+| **B_house** | 99 910 | 18 | **11.17 %** |
+| C_lookback | 22 200 | 7 | 2.12 % |
+| **D_log** | 125 757 | 21 | **22.66 %** |
+| plateau-back | 63 638 | 10 | 5.47 % |
+| plateau-north | 143 818 | 23 | **0.31 %** |
+
+(E_ground and F_canopy were still rendering when this was written; the pattern across the other four is
+not in doubt.)
+
+**The understory is one of the best-value families in the frame** — at D_log it is 22.66 % of the pixels for
+1.5 % of the frame's triangles, and at A_stairs and B_house 11–13 %. It is the forest floor and the saplings
+the player walks past, which is exactly what fable-4's round-53 placement work was for.
+
+**plateau-north is the exception, not the rule**, and it is the only pose measured where the family is
+nearly invisible: a look *out over* the forest from the plateau, where the understory is under the canopy and
+behind the nearer trunks. A plain distance cull tuned for that pose would take triangles out of the four
+poses where the family earns its keep, because at those poses the earning instances and the wasted ones are
+at similar distances — the difference is occlusion and elevation, not range.
+
+**So the recommendation is to leave it alone.** The 143 K at plateau-north is real but it needs a
+view-dependent rule (elevation, or occlusion the engine does not have) rather than a range gate, and its own
+shadow casting is already culled per instance by `shadowReach` (`submitFamily`: an instance outside the
+frustum is drawn depth-only when its sweep reaches the frame, and not at all when it does not). Recorded so
+the next person who sees that 0.31 % does not spend an afternoon on it.
