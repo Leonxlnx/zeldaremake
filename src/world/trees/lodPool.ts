@@ -105,6 +105,17 @@ export interface PoolReport {
   workMsP95: number;
   /** what BEGINNING a build costs: the p95 of the last builds' first chunks (`stepMsTypical`) */
   firstStepMsP95: number;
+  /**
+   * What a PIN-FORCED finish put into one frame (ms): the p95 and the worst of them.
+   *
+   * `pin` runs every remaining chunk of an unbuilt item in one loop, and that loop is the only pool
+   * work `recordStep` never sees — so `stepMsP95`, `stepMsMax` and `longSteps` describe `work`'s
+   * chunks alone and say nothing about the path that skips the budget entirely. Two scheduling
+   * policies cannot be compared on those three numbers, because a policy that finishes more items
+   * through `pin` looks *quieter* on all of them (`poolpredict/` §7).
+   */
+  syncMsP95: number;
+  syncMsMax: number;
 }
 
 /** a chunk between two yields longer than this (ms) is counted in `longSteps`: the frame it lands in pays it whole */
@@ -130,6 +141,9 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   private readonly stepMs: number[] = [];
   /** the last builds' FIRST chunks (ms): what starting a fresh item costs (see `stepMsTypical`) */
   private readonly firstStepMs: number[] = [];
+  /** the pin-forced finishes' ms (a ring of `history`) and the worst of them: see `syncMsP95` */
+  private readonly syncMs: number[] = [];
+  private syncMsMax = 0;
   private stepCount = 0;
   private longSteps = 0;
   /** the last `work` calls' ms and the count over budget + STEP_TOLERANCE_MS */
@@ -199,6 +213,9 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     const ms = this.now() - t0;
     this.finish(s, r.value, s.genMs + ms);
     this.syncCount++;
+    this.syncMs.push(ms);
+    if (this.syncMs.length > this.history) this.syncMs.shift();
+    this.syncMsMax = Math.max(this.syncMsMax, ms);
   }
 
   isResident(item: PoolItem<B>) {
@@ -383,6 +400,8 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       longSteps: this.longSteps,
       workOverBudget: this.workOverBudget,
       workMsP95: r(percentile(works, 0.95)),
+      syncMsP95: r(percentile([...this.syncMs].sort((a, b) => a - b), 0.95)),
+      syncMsMax: r(this.syncMsMax),
       firstStepMsP95: r(this.firstStepMs.length ? percentile([...this.firstStepMs].sort((a, b) => a - b), 0.95) : 0),
     };
   }

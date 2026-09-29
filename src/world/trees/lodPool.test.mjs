@@ -869,3 +869,28 @@ test('releaseAfterUpload drops static arrays on upload and leaves per-instance a
   assert.ok(g.getAttribute('aLodDrop').array instanceof Float32Array, 'a per-instance attribute keeps its array');
   assert.equal(g.getAttribute('aLodDrop').array.length, 4);
 });
+
+test('a pin-forced finish is reported: the frame cost that work() never records', () => {
+  const log = [];
+  const now = clock();
+  const pool = new LodPool(1000, now);
+  // six 2 ms chunks: one call at a 3 ms budget takes one, then the pin runs the remaining five
+  const item = fakeItem('p', 10, log, 6, now, 2);
+  pool.add(item);
+  pool.begin();
+  pool.want(item, 1);
+  pool.work(3);
+  const mid = pool.report();
+  assert.equal(mid.syncMsMax, 0, 'nothing has been pinned yet');
+  assert.ok(mid.stepMsMax > 0, 'and work() has recorded its own chunk');
+
+  pool.begin();
+  pool.pin(item);
+  const r = pool.report();
+  assert.equal(r.syncBuilds, 1);
+  assert.equal(r.syncMsMax, 10, 'the five remaining 2 ms chunks landed in one frame');
+  assert.equal(r.syncMsP95, 10);
+  // the point of the metric: that 10 ms is invisible to the chunk numbers
+  assert.equal(r.stepMsMax, 2, 'work() only ever saw a 2 ms chunk');
+  assert.equal(r.longSteps, 0, 'and nothing it recorded was long');
+});
