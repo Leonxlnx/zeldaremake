@@ -23,6 +23,11 @@ import sharp from 'sharp';
 import { serveStatic, launchBrowser, openWorld } from '/workspace/gauntlet/scripts/lib/browser.mjs';
 
 const [dist = 'dist', outDir = '/tmp/airlife'] = process.argv.slice(2);
+// dist and outDir are positional: a flag in their place would be served as the build
+// directory and the world would never signal ready, costing a 15-minute timeout.
+if (dist.startsWith('--') || outDir.startsWith('--')) {
+  throw new Error(`usage: airlife.mjs [dist] [outDir] [--only shot,shot] — got dist="${dist}" outDir="${outDir}"`);
+}
 const W = 960;
 const H = 540;
 const SETTLE = 8;
@@ -77,6 +82,14 @@ try {
   const { page } = await openWorld(browser, server.url, { width: W, height: H });
   const census = await page.evaluate((names) => {
     let root = window.__ZR_TREES__;
+    if (!root) {
+      throw new Error(
+        'no window.__ZR_TREES__: the capture API does not expose the scene, so this probe needs a temporary ' +
+          'hook in src/world/trees/index.ts (never committed). variantfoot.mjs measures the same thing with ' +
+          'no hook at all — two builds and frozen.mjs — and is the better route for a family whose update() ' +
+          'writes object.visible.',
+      );
+    }
     while (root.parent) root = root.parent;
     window.__ZR_ROOT__ = root;
     const out = [];
@@ -105,10 +118,14 @@ try {
       };
       const base = await read();
       for (const family of FAMILIES) {
+        // Hide at the material too: a system's own update() may rewrite object.visible
+        // every frame (motes does), which would silently undo an object-level hide and
+        // report a zero footprint for a family that is in fact drawing.
         const hidden = await page.evaluate((name) => {
           const touched = [];
           const walk = (o) => {
             if (o.name === name && o.visible) {
+              for (const m of [].concat(o.material ?? [])) m.visible = false;
               o.visible = false;
               touched.push(o);
             }
@@ -119,9 +136,18 @@ try {
           return touched.length;
         }, family);
         const off = await read();
-        await page.evaluate(() => {
-          for (const o of window.__ZR_AIR__ ?? []) o.visible = true;
+        const held = await page.evaluate(() => {
+          const air = window.__ZR_AIR__ ?? [];
+          const material = air.every((o) => [].concat(o.material ?? []).every((m) => !m.visible));
+          const rewritten = air.filter((o) => o.visible).map((o) => o.name);
+          for (const o of air) {
+            for (const m of [].concat(o.material ?? [])) m.visible = true;
+            o.visible = true;
+          }
+          return { material, rewritten };
         });
+        if (hidden > 0 && !held.material) throw new Error(`${family}: the material hide did not survive the frame`);
+        if (held.rewritten.length > 0) log(`  note: ${family} update() reset object.visible during the frame (material hide held)`);
         const f = await footprint(base, off);
         rows.push({ shot: shot.name, time: t, family, meshes: hidden, ...f });
         log(`${shot.name} t=${t}s ${family}: ${f.sharePct} % of pixels, mean Δ ${f.meanDelta}/255, max ${f.maxDelta}/255 (${f.pixels} px)`);
