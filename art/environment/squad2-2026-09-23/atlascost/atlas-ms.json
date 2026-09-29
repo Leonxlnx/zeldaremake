@@ -1,0 +1,55 @@
+{
+ "note": "ms per part of createFarCrownAtlas, one page load each, 640x360. The per-op numbers (blit, paintTuft, leaflets) are ENQUEUE times: canvas 2D commands are queued and the first synchronisation point pays for rasterising them, which is what flush1x1 shows. hash = FNV-1a of the finished atlas bytes; it is not stable across loads, so it cannot prove a canvas change pixel-neutral here.",
+ "runs": {
+  "baseline": {
+   "total": 1897.2,
+   "getImageData": 1780.5,
+   "loops": 49.6,
+   "blit": 31,
+   "paintTuft": 12,
+   "leaflets": 19,
+   "stamp": 128,
+   "hint": false,
+   "hash": "3326bd80",
+   "treesBuildMs": 8193.5
+  },
+  "willReadFrequently": {
+   "total": 1852.9,
+   "getImageData": 1752.4,
+   "loops": 29.0,
+   "blit": 29,
+   "paintTuft": 16,
+   "leaflets": 18,
+   "stamp": 128,
+   "hint": true,
+   "hash": "fef99dd6",
+   "treesBuildMs": 7767.4
+  },
+  "flush-1x1-test": {
+   "total": 2008.0,
+   "flush1x1": 1888.7,
+   "getImageData": 17.1,
+   "loops": 31.3,
+   "blit": 35,
+   "paintTuft": 12,
+   "leaflets": 19,
+   "stamp": 128,
+   "hint": false,
+   "hash": "5c4d387e",
+   "treesBuildMs": 8249.6
+  },
+  "stamp64": {
+   "total": 1267.8,
+   "flush1x1": 1150.4,
+   "getImageData": 17.1,
+   "loops": 30.2,
+   "blit": 32,
+   "paintTuft": 13,
+   "leaflets": 18,
+   "stamp": 64,
+   "hint": false,
+   "hash": "9b664448",
+   "treesBuildMs": 7200.8
+  }
+ }
+}
