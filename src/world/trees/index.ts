@@ -2100,6 +2100,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const nearBasePool = new LodPool<GeometryBuilt>(NEAR_BASE_POOL_BYTES);
   const nearCanopyPool = new LodPool<GeometryBuilt>(NEAR_CANOPY_POOL_BYTES);
+  // `want` passes each part's distance as its priority, so the swap-out radius is the range inside
+  // which a part is about to be shown: those are built eagerly whatever their size predicts, and only
+  // the pre-fetch beyond them can be deferred (`poolpredict/`, lodPool.ts `eagerPriority`).
+  nearBasePool.eagerPriority = NEAR_LOD_TIER.baseBand[1];
+  nearCanopyPool.eagerPriority = NEAR_LOD_TIER.canopySwapM[1];
   /**
    * A pooled near part: `mesh` draws the first build's geometry now; every later build runs
    * `steps` and `finalize` (the same world transform, cull sphere and pad the first build got),

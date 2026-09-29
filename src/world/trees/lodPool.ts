@@ -149,6 +149,18 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
    * @param now clock (ms) for the budgets; `performance.now` by default
    * @param history how many build durations the percentiles cover
    */
+  /**
+   * Priorities at or below this are built **eagerly**: the size-scaled prediction never defers them.
+   *
+   * `want(item, priority)` takes the caller's distance, so this is the range inside which a part is
+   * about to be needed — and deferring one of those does not save the frame anything, it moves the
+   * build to the moment the part is pinned, which finishes it synchronously (a whole build in one
+   * frame). `poolpredict/` measured exactly that: scaling every fresh item's prediction halved the
+   * calls over budget and cost 15 parts and 6 synchronous builds over the same walk. Pinned items
+   * come in at −1 and are eager under any threshold; the default 0 leaves only those eager.
+   */
+  eagerPriority = 0;
+
   constructor(
     readonly capBytes: number,
     private readonly now: () => number = () => performance.now(),
@@ -273,7 +285,8 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
         s.started = false;
       }
       const first = !s.started;
-      const expected = first ? (perByte > 0 && s.item.bytes > 0 ? perByte * s.item.bytes : typical) : s.stepMs;
+      const eager = s.priority <= this.eagerPriority;
+      const expected = first ? (perByte > 0 && s.item.bytes > 0 && !eager ? perByte * s.item.bytes : typical) : s.stepMs;
       if (steps > 0 && elapsed + expected > budgetMs) break;
       const c0 = this.now();
       const r = s.gen.next();
