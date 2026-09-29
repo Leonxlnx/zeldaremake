@@ -3,6 +3,11 @@
 Lane 2, 2026-09-29, taking the next unclaimed Backlog item because this lane's own list is empty. **For
 lane 1 (`atmosphere/`) and lane 4 (`vegetation/`)** — this measures their work; it changes nothing.
 
+> **Corrected 2026-09-29 05:20 UTC.** The first version of this file reported that the 180 motes paint
+> nothing and asked lane 1 to look at `motes.ts`. That was a bug in my probe, not in their code: the motes
+> do paint, 0.102 % of A_stairs at mean Δ 22.2/255. See the correction section. **Lane 1 has nothing to fix
+> here.**
+
 The item is built: `atmosphere/leaves.ts` (96 falling leaves), `atmosphere/motes.ts` (180 motes) and
 `vegetation/butterflies.ts` (34 butterflies, whose header cites this very item). What had never been done is
 checking the result against the owner's wording, and "gentle" versus "spectacle" is answerable from a frame:
@@ -13,13 +18,15 @@ holds half a second later.
 take it again. The footprint is the share of pixels that moved; its strength is the mean and max delta on
 those pixels. Repeated at t + 0.5 s.
 
+The motes column is from `variantfoot.mjs` instead, for the reason in the correction below.
+
 | pose | t | falling-leaves | motes | butterflies |
 | --- | --- | --- | --- | --- |
-| A_stairs | 12.5 s | 0.152 % · mean Δ 10.4 · max 99 · 786 px | **0 % · max 0** | 0.022 % · 13.1 · 70 · 116 px |
-| A_stairs | 13.0 s | 0.250 % · 8.9 · 103 · 1296 px | **0 % · max 0** | 0.021 % · 12.3 · 62 · 111 px |
-| owner-0650-north | 12.5 s | 0.092 % · 11.3 · 140 · 475 px | **0 % · max 0** | **0.229 % · 48.2 · 185 · 1189 px** |
-| owner-0650-north | 13.0 s | 0.079 % · 12.4 · 105 · 409 px | **0 % · max 0** | 0.210 % · 46.8 · 182 · 1089 px |
-| F_canopy | 12.5 s | 0.101 % · 8.0 · 61 · 521 px | **0 % · max 0** | 0.006 % · 33.0 · 149 · 33 px |
+| A_stairs | 12.5 s | 0.152 % · mean Δ 10.4 · max 99 · 786 px | 0.102 % · 22.2 · 159 · 529 px | 0.022 % · 13.1 · 70 · 116 px |
+| A_stairs | 13.0 s | 0.250 % · 8.9 · 103 · 1296 px | not re-measured | 0.021 % · 12.3 · 62 · 111 px |
+| owner-0650-north | 12.5 s | 0.092 % · 11.3 · 140 · 475 px | 0.030 % · 17.2 · 105 · 154 px | **0.229 % · 48.2 · 185 · 1189 px** |
+| owner-0650-north | 13.0 s | 0.079 % · 12.4 · 105 · 409 px | not re-measured | 0.210 % · 46.8 · 182 · 1089 px |
+| F_canopy | 12.5 s | 0.101 % · 8.0 · 61 · 521 px | not re-measured | 0.006 % · 33.0 · 149 · 33 px |
 
 ## Gentle, not spectacle: yes, comfortably
 
@@ -30,29 +37,65 @@ a mean delta of 33–48/255, which is a pair of lit wings near the path rather t
 butterflies over the whole village that is the right reading, and nothing here is spectacle by any measure
 this frame can give.
 
-## But one third of the ask is not delivering: the motes paint nothing
+## Correction: the motes do paint — the first reading was my probe's fault
 
-**Hiding all 180 motes leaves the frame byte-identical** — max delta **0**, not one channel value, at three
-poses and two world times, including `F_canopy`, which looks up the stairs into the god rays where dust
-should show if it shows anywhere. The object was visible and was hidden (the probe reports one mesh hidden
-each time), so this is not the probe missing them.
+An earlier version of this file said hiding all 180 motes left the frame byte-identical and called that
+third of the item unfinished. **That was wrong, and the fault was in `airlife.mjs`, not in `motes.ts`.**
 
-The motes are the nearest thing in the world to the owner's "fireflies", so this is the part of item 5 that
-is unfinished. What is visible from `motes.ts` for whoever picks it up — none of it conclusive, all of it
-cheap to check:
+The probe hid a family with `object.visible = false` and then rendered. `motes.ts` writes `points.visible`
+itself on **every** frame, at the end of its `update()`:
 
-- The points are additive with `depthWrite: false` but **`depthTest: true`**, so a mote behind any nearer
-  geometry is rejected. In a closed forest at midday that could be all of them.
-- The whole object is gated on the sun's shadow depth texture existing with `compareFunction === null`
-  (BasicShadowMap). That gate **passed** here — the object was visible — so it is not the cause.
-- The fragment keeps a floor for shaded motes: `mix(0.25, 1.0, vLit) * (0.6 + 0.4 * vPulse) * uIntensity`.
-  So even a fully shaded mote should paint something unless `uIntensity` is ~0 or the points are not on
-  screen — which points at `uIntensity` and at the placement volume against these three poses.
+```ts
+if ( sun && depthTex && depthTex.compareFunction === null ) { …; points.visible = true; }
+else { uniforms.uHasShadow.value = 0; points.visible = false; }
+```
 
-`airlife.mjs` takes `--only <shot>` and prints the table above, so any fix can be read the same way.
+`update()` runs inside `render()`, so the hide was undone before the frame drew. Both frames contained the
+motes, the difference was genuinely zero, and the zero meant "the probe changed nothing" rather than "the
+family paints nothing". The census line that reported *one mesh hidden* was true and irrelevant — it recorded
+the write, not whether it survived. Nothing else in the two families was affected: neither `leaves.ts` nor
+`butterflies.ts` writes `.visible` anywhere, so their numbers stand.
+
+Re-measured the way the branch's shadow work was measured — **two builds that differ only in that family's
+draw**, same pose, same frozen clock, no runtime hook (`variantfoot.mjs`, the variant sets
+`material.visible = false` in `createMotes` and is never committed):
+
+| pose | draws with → without | md5 with → without | footprint |
+| --- | --- | --- | --- |
+| A_stairs | **559 → 558** | `039e1a76` → `ebbc0ce7` | 0.102 % · 529 px · mean Δ 22.2 · max 159 |
+| owner-0650-north | **440 → 439** | `65aee3dc` → `8b37cc48` | 0.030 % · 154 px · mean Δ 17.2 · max 105 |
+
+Exactly one draw call fewer — the motes are a single `Points` — and the frames differ. So the motes are
+submitted, they are drawn, and they paint. Their footprint sits between the other two families in every
+respect: wider than the butterflies, brighter per pixel than the leaves. **All three parts of item 5
+deliver, and the verdict above holds for all three.**
+
+Two fixes went in so this cannot recur: the probe now hides the **material** as well (nothing in the world
+writes `material.visible`) and **asserts after the frame that the material hide survived**, which turns a
+silently-undone hide into a thrown error instead of a zero; and `dist`/`outDir` being positional is now
+checked, because passing a flag there made the page serve the wrong directory and cost a 15-minute
+`openWorld` timeout.
+
+The one substantive thing that survives from the earlier note, still unverified and still cheap: the points
+are additive with `depthTest: true`, so a mote behind nearer geometry is rejected. That is a design choice
+of lane 1's, not a defect, and these two poses show enough motes that it is clearly not suppressing them all.
 
 ## Files
 
-- `airlife.mjs` — the probe.
-- `airlife.json`, `fcanopy/airlife.json` — the numbers above.
+- `airlife.mjs` — the probe (hides material + object, asserts the hide held).
+- `variantfoot.mjs` — the hook-free footprint: compares two `frozen.mjs` output directories.
+- `airlife.json`, `fcanopy/airlife.json` — the leaves/butterflies numbers above.
+- `motes/` — the corrected motes measurement: both frames, the counts, the footprint.
 - `*-t12_5.jpg`, `*-t13_0.jpg` — the base frames each row was measured against.
+
+## Reproducing the motes row
+
+```bash
+node art/environment/squad2-2026-09-23/frozen.mjs dist /tmp/motes-on \
+     --poses /tmp/motespose.json --views A_stairs --size 960x540 --settle 8
+# add `material.visible = false` after the material in createMotes, then:
+npx vite build --outDir dist-motesoff && git checkout src/world/atmosphere/motes.ts
+node art/environment/squad2-2026-09-23/frozen.mjs dist-motesoff /tmp/motes-off \
+     --poses /tmp/motespose.json --views A_stairs --size 960x540 --settle 8
+node art/environment/squad2-2026-09-23/airlife/variantfoot.mjs /tmp/motes-on /tmp/motes-off
+```

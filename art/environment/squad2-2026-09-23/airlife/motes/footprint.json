@@ -1,0 +1,24 @@
+[
+ {
+  "pose": "A_stairs",
+  "drawsWith": 559,
+  "drawsWithout": 558,
+  "md5With": "039e1a76",
+  "md5Without": "ebbc0ce7",
+  "sharePct": 0.102,
+  "pixels": 529,
+  "meanDelta": 22.2,
+  "maxDelta": 159
+ },
+ {
+  "pose": "owner-0650-north",
+  "drawsWith": 440,
+  "drawsWithout": 439,
+  "md5With": "65aee3dc",
+  "md5Without": "8b37cc48",
+  "sharePct": 0.03,
+  "pixels": 154,
+  "meanDelta": 17.2,
+  "maxDelta": 105
+ }
+]

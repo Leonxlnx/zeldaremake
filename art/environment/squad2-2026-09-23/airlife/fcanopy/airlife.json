@@ -1,0 +1,62 @@
+[
+ {
+  "shot": "F_canopy",
+  "time": 12.5,
+  "family": "falling-leaves",
+  "meshes": 1,
+  "sharePct": 0.101,
+  "pixels": 521,
+  "meanDelta": 8,
+  "maxDelta": 61
+ },
+ {
+  "shot": "F_canopy",
+  "time": 12.5,
+  "family": "motes",
+  "meshes": 1,
+  "sharePct": 0,
+  "pixels": 0,
+  "meanDelta": 0,
+  "maxDelta": 0
+ },
+ {
+  "shot": "F_canopy",
+  "time": 12.5,
+  "family": "butterflies",
+  "meshes": 1,
+  "sharePct": 0.006,
+  "pixels": 33,
+  "meanDelta": 33,
+  "maxDelta": 149
+ },
+ {
+  "shot": "F_canopy",
+  "time": 13,
+  "family": "falling-leaves",
+  "meshes": 1,
+  "sharePct": 0.189,
+  "pixels": 981,
+  "meanDelta": 6.2,
+  "maxDelta": 62
+ },
+ {
+  "shot": "F_canopy",
+  "time": 13,
+  "family": "motes",
+  "meshes": 1,
+  "sharePct": 0,
+  "pixels": 0,
+  "meanDelta": 0,
+  "maxDelta": 0
+ },
+ {
+  "shot": "F_canopy",
+  "time": 13,
+  "family": "butterflies",
+  "meshes": 1,
+  "sharePct": 0.008,
+  "pixels": 41,
+  "meanDelta": 15.2,
+  "maxDelta": 50
+ }
+]
