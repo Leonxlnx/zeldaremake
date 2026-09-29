@@ -430,23 +430,28 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size 
   // Its own fork leaves all established clump and leaflet draws below unchanged.
   const tuft = createLeafClusterTexture(rng.fork('far-crown-tuft'), palette, 128);
   const tuftCanvas = tuft.image as HTMLCanvasElement;
+  // Every clump blits this stamp at `pr * 2` px, which the clump radii put at 16–64 px of the
+  // 512 px cell, so painting it at 128² was 4–16× more pixels than any blit could carry. The two
+  // tone fills per clump are ~3000 of the atlas's work: at 128² the atlas costs 2.01 s, at 64²
+  // 1.27 s, and 64² still meets or exceeds every blit's destination size.
+  const STAMP = 64;
   const stamp = document.createElement('canvas');
-  stamp.width = stamp.height = 128;
+  stamp.width = stamp.height = STAMP;
   const sc = stamp.getContext('2d')!;
   // Same card UV crop as the giant cluster: exclude the solid wood patch in its corner. Every clump
   // masks with the same crop of the same source, so resample it once here and blit it 1:1 below:
   // `destination-in` reads only the mask's alpha, which a 1:1 blit carries through unchanged.
   const mask = document.createElement('canvas');
-  mask.width = mask.height = 128;
-  mask.getContext('2d')!.drawImage(tuftCanvas, 128 * CARD_UV0, 0, 128 * (1 - CARD_UV0), 128 * (1 - CARD_UV0), 0, 0, 128, 128);
+  mask.width = mask.height = STAMP;
+  mask.getContext('2d')!.drawImage(tuftCanvas, 128 * CARD_UV0, 0, 128 * (1 - CARD_UV0), 128 * (1 - CARD_UV0), 0, 0, STAMP, STAMP);
   const paintTuft = (base: Color, alpha: number) => {
     // `copy` writes the tone over the whole stamp, which is what clear-then-fill amounted to
     sc.globalCompositeOperation = 'copy';
-    const tone = sc.createLinearGradient(0, 0, 0, 128);
+    const tone = sc.createLinearGradient(0, 0, 0, STAMP);
     tone.addColorStop(0, css(base.clone().multiplyScalar(1.1), alpha));
     tone.addColorStop(1, css(base, alpha));
     sc.fillStyle = tone;
-    sc.fillRect(0, 0, 128, 128);
+    sc.fillRect(0, 0, STAMP, STAMP);
     sc.globalCompositeOperation = 'destination-in';
     sc.drawImage(mask, 0, 0);
   };
