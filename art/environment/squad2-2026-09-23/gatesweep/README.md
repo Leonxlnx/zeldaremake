@@ -125,8 +125,10 @@ banded tree is drawn twice, and `TREE_LOD_DITHER_BAND_M = 2.5` was chosen to be 
 that is still a couple of walking paces, exactly so that this number stays small.
 
 At the owner's north pose, at the shipped gate, the same cost reads 440 / 8 501 347 → 444 / 8 546 381.
-The gauntlet's own `pose-counts.mjs` reads the four hero viewpoints the same to the draw and the
-0.01 M: 561 / 8.72 M, 543 / 7.97 M, 480 / 7.72 M, 468 / 8.26 M.
+The gauntlet's own `pose-counts.mjs`, a different harness on the shipped build, reads all six fixed
+views **to the triangle**: 561 / 8 724 803, 543 / 7 971 464, 480 / 7 721 403, 468 / 8 258 565,
+E_ground 543 / 7 971 464 and 501 / 7 838 848 — the same numbers §3 read with `frozen.mjs`, and
+E_ground still exactly B_house as it was without the band (`pose-counts-band-on.json`).
 
 ## 5. What the band does and does not cover
 
@@ -171,6 +173,7 @@ anywhere measured is saria-side's +6 draws.
 - `bhouse-2x.jpg` — the one fixed frame that moves most, at ~2×, at the crown that sits mid-band.
 - `hero-off.json`, `hero-on.json` — the `frozen.mjs` reads behind §3.
 - `playtest-band-on.json` — the walk / look / perf run behind §6.
+- `pose-counts-band-on.json` — the gauntlet's own tool on the shipped build, all six fixed views.
 
 ## Reproducing
 

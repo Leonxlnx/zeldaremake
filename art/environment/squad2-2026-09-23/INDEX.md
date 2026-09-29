@@ -36,13 +36,14 @@ the draw by the gauntlet's own `pose-counts.mjs`):
 | **W38's four hero viewpoints** | `heroViewpoints` in `rubric.json` — these are the only views under a budget |
 | A_stairs (binding on both lines) | **561** / 8 724 803 — **139 draws and 0.275 M spare** |
 | B_house / C_lookback / D_log | 543 / 7 971 464 · 480 / 7 721 403 · 468 / 8 258 565 |
-| F_canopy (not hero) | 501 / 7 838 848 |
+| E_ground / F_canopy (not hero) | 543 / 7 971 464 · 501 / 7 838 848 |
 | play: plaza / flight's foot (not hero) | 530 / 7 711 094 · 535 / 9 153 565 |
 | play: saria-side / west-house (not hero) | 508 / 8 585 962 · 412 / 4 951 247 |
 
-E_ground was **not** re-read with the band on; it read identically to B_house without it. Behaviour on
-the shipped build: **11 / 11 walk routes reached, 0 stuck, 10 look spots unflagged, 0 page errors**,
-270 / 270 unit tests, anti-cheat green at 102 checks.
+Two independent harnesses agree **to the triangle** on all six fixed views (`frozen.mjs` with the clock
+frozen, and the gauntlet's own `pose-counts.mjs`), and E_ground is still exactly B_house as it was
+without the band. Behaviour on the shipped build: **11 / 11 walk routes reached, 0 stuck, 10 look spots
+unflagged, 0 page errors**, 270 / 270 unit tests, anti-cheat green at 102 checks.
 
 **A scope correction (2026-09-29).** W38's two checks are scoped to `*hero`, which `rubric.json` resolves
 to **`A_stairs`, `B_house`, `C_lookback`, `D_log` — four viewpoints, not six**, and it is the only item in
