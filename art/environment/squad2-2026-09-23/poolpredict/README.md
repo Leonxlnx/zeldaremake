@@ -1,4 +1,9 @@
-# Pricing a fresh pool item by its own size: built, measured, reverted
+# Pricing a fresh pool item by its own size: reverted broad, shipped narrow
+
+> **§5 (one hour later) supersedes §3.** Repeating the baseline showed the "cost" §3 reverted for was
+> inside the baseline's own run-to-run spread, and the narrower version — pre-fetch items only —
+> **is shipped**: calls over budget 5–6 → 1–3 and work p95 7.5–7.9 → 6.2–6.5 ms, with the fill-rate
+> numbers unchanged. Read §5 before quoting §3.
 
 Lane 2, 2026-09-29. Branch `cursor/squad2-treephases-682b`. The change is in the history at
 `c91a9bbe` and reverted at `7f7d54a6`; nothing of it is on the head.
@@ -81,3 +86,59 @@ own, and it needs repeats, not one walk.
 ## Files
 
 - `before.json`, `after.json` — the two walks' pool reports.
+
+---
+
+## 5. Shipped: the eager gate, and what repeating the baseline showed about §3
+
+§3 reverted the broad version on one run each side, and said so. Repeating the **baseline** settles
+what that was worth:
+
+| `nearCanopyPool`, 32-frame walk | base 1 | base 2 | narrow 1 | narrow 2 |
+| --- | --- | --- | --- | --- |
+| **calls over budget** | 6 | 5 | **1** | **3** |
+| **work p95** | 7.9 ms | 7.5 ms | **6.2 ms** | **6.5 ms** |
+| chunk p95 | 0.8 ms | 0.5 ms | 0.7 ms | 0.5 ms |
+| chunk max | 5.8 ms | 6.1 ms | **21.7 ms** | 6.8 ms |
+| chunks over 12 ms (`longSteps`) | 0 | 0 | **1** | 0 |
+| chunks run | 14 765 | 12 862 | 12 759 | 14 349 |
+| parts built | 287 | 265 | 264 | 283 |
+| synchronous (pin-forced) builds | 63 | 72 | 72 | 65 |
+
+**§3's regression was noise.** The two baselines differ by **22 parts built (287 / 265) and 9
+synchronous builds (63 / 72)** on their own, and the broad version's 272 / 69 sits inside both ranges.
+I reverted it for a difference the harness cannot resolve at one run a side, and said at the time that
+one run could not call either direction — it could not, and this is what that looks like when checked.
+
+**The narrow version is a real result.** `eagerPriority` exempts items whose `want` priority is at or
+inside the tier's swap-out radius, so only speculative pre-fetch can be deferred:
+
+- **calls over budget: both narrow runs (1, 3) below both baselines (5, 6)**;
+- **work p95: both narrow runs (6.2, 6.5) below both baselines (7.5, 7.9)** — about 1.3 ms;
+- **parts built and synchronous builds land inside the baselines' own spread** (264 / 283 against
+  265 / 287; 72 / 65 against 63 / 72), so the fill rate that §3 worried about is not paying for it.
+
+Four runs is not many, but the two metrics the change targets move **outside** the baseline range in
+both runs while the two it must not hurt stay **inside** it. That is the shape of a real effect, and it
+is the reason this version ships where the broad one did not.
+
+**One thing left open.** Narrow run 1 has a **21.7 ms chunk** and one `longSteps`, where both baselines
+max at about 6 ms and the other narrow run at 6.8. A deferral cannot make a chunk longer — the chunk is
+the same work whenever it runs — so the likely cause is a collector pause landing in it, the tail
+`framecost/` §7 and `chunks/` both trace to the whole page's allocation. **But it appeared in a run of
+this change and not in the baselines**, and two runs cannot separate "a pause happened to land there"
+from "deferring bunches work so a pause is likelier to land in a big chunk". It wants more runs, and it
+is written here rather than left out because a single 21.7 ms chunk is the one number in this table a
+player could feel.
+
+## 6. What is on the head
+
+`lodPool.ts` gains `eagerPriority` (default 0, so only pinned items are eager and the flat behaviour is
+the default for any other caller) and the per-byte first-chunk history behind it; `trees/index.ts` sets
+each pool's threshold from `NEAR_LOD_TIER`. Four tests: the scaling, the progress guarantee with a chunk
+**eight times** the budget, the fallback before eight sized samples, and the eager gate. The suite is
+**273 / 273** with `tsc --noEmit` and `vite build` green.
+
+The eager-gate test had to be written twice, which is worth knowing if you touch this: **`building`
+counts a slot that has a generator, and `work` creates the generator before it checks the budget**, so
+a deferred item still shows up in `building`. The signal for "was it begun" is the steps the call added.
