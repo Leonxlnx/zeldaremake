@@ -1,0 +1,82 @@
+{
+ "A_stairs": {
+  "draws": 559,
+  "triangles": 8626622,
+  "treeDraws": 77,
+  "treeTriangles": 3265520,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 10,
+   "starved": 21,
+   "starvedNearestM": 15.6
+  },
+  "md5": "56a1cdb9bab32da691ec9e41afa21830"
+ },
+ "B_house": {
+  "draws": 541,
+  "triangles": 7903532,
+  "treeDraws": 68,
+  "treeTriangles": 3020663,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 8,
+   "starved": 11,
+   "starvedNearestM": 14.3
+  },
+  "md5": "0b9014291840117c47a194b2864a2b3f"
+ },
+ "C_lookback": {
+  "draws": 479,
+  "triangles": 7679745,
+  "treeDraws": 67,
+  "treeTriangles": 3124105,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 13,
+   "starved": 16,
+   "starvedNearestM": 18.1
+  },
+  "md5": "bf2f8dfde0cf9b461f199a39861828f9"
+ },
+ "D_log": {
+  "draws": 465,
+  "triangles": 8242550,
+  "treeDraws": 74,
+  "treeTriangles": 3162141,
+  "giantGroupsCasting": 10,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 7,
+   "starved": 10,
+   "starvedNearestM": 16.9
+  },
+  "md5": "694cdf73f114c09cdc9772623b6def89"
+ },
+ "F_canopy": {
+  "draws": 500,
+  "triangles": 7831095,
+  "treeDraws": 74,
+  "treeTriangles": 2966696,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 15,
+   "starved": 16,
+   "starvedNearestM": 16.7
+  },
+  "md5": "835cd10b1b1409ae061da499adbf9b6e"
+ }
+}

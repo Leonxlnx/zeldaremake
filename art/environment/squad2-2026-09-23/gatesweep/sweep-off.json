@@ -1,0 +1,90 @@
+[
+ {
+  "gate": 29,
+  "gateApplied": 29,
+  "draws": 438,
+  "triangles": 8336675,
+  "treeDraws": 72,
+  "treeTriangles": 3085105,
+  "file": "/tmp/sweep-off/gate-29.png",
+  "md5": "ec1030160927973d667ea3bc30ee30fc"
+ },
+ {
+  "gate": 30,
+  "gateApplied": 30,
+  "draws": 438,
+  "triangles": 8377849,
+  "treeDraws": 72,
+  "treeTriangles": 3124743,
+  "file": "/tmp/sweep-off/gate-30.png",
+  "md5": "f1e5043f8b0b601b6602141eb2187d82",
+  "stepSsim": 0.99702,
+  "stepChangedPct": 0.298,
+  "stepIdentical": false
+ },
+ {
+  "gate": 31,
+  "gateApplied": 31,
+  "draws": 440,
+  "triangles": 8501347,
+  "treeDraws": 74,
+  "treeTriangles": 3248241,
+  "file": "/tmp/sweep-off/gate-31.png",
+  "md5": "c051969956b5b4d7486da97c17aec47b",
+  "stepSsim": 0.99967,
+  "stepChangedPct": 0.038,
+  "stepIdentical": false
+ },
+ {
+  "gate": 32,
+  "gateApplied": 32,
+  "draws": 440,
+  "triangles": 8501347,
+  "treeDraws": 74,
+  "treeTriangles": 3248241,
+  "file": "/tmp/sweep-off/gate-32.png",
+  "md5": "c051969956b5b4d7486da97c17aec47b",
+  "stepSsim": 1,
+  "stepChangedPct": 0,
+  "stepIdentical": true
+ },
+ {
+  "gate": 33,
+  "gateApplied": 33,
+  "draws": 440,
+  "triangles": 8503153,
+  "treeDraws": 74,
+  "treeTriangles": 3248241,
+  "file": "/tmp/sweep-off/gate-33.png",
+  "md5": "8244cc86efc7ee3f100ba4866cc588da",
+  "stepSsim": 0.99829,
+  "stepChangedPct": 0.252,
+  "stepIdentical": false
+ },
+ {
+  "gate": 34,
+  "gateApplied": 34,
+  "draws": 441,
+  "triangles": 8518926,
+  "treeDraws": 74,
+  "treeTriangles": 3248241,
+  "file": "/tmp/sweep-off/gate-34.png",
+  "md5": "8244cc86efc7ee3f100ba4866cc588da",
+  "stepSsim": 1,
+  "stepChangedPct": 0,
+  "stepIdentical": true
+ },
+ {
+  "gate": 35,
+  "gateApplied": 35,
+  "draws": 441,
+  "triangles": 8522324,
+  "treeDraws": 74,
+  "treeTriangles": 3248241,
+  "file": "/tmp/sweep-off/gate-35.png",
+  "md5": "8a62d7fbf578023cd212b7041e05c76a",
+  "stepSsim": 0.99142,
+  "stepChangedPct": 0.811,
+  "stepIdentical": false
+ }
+]
