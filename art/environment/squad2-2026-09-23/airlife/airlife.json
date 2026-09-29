@@ -1,0 +1,122 @@
+[
+ {
+  "shot": "A_stairs",
+  "time": 12.5,
+  "family": "falling-leaves",
+  "meshes": 1,
+  "sharePct": 0.152,
+  "pixels": 786,
+  "meanDelta": 10.4,
+  "maxDelta": 99
+ },
+ {
+  "shot": "A_stairs",
+  "time": 12.5,
+  "family": "motes",
+  "meshes": 1,
+  "sharePct": 0,
+  "pixels": 0,
+  "meanDelta": 0,
+  "maxDelta": 0
+ },
+ {
+  "shot": "A_stairs",
+  "time": 12.5,
+  "family": "butterflies",
+  "meshes": 1,
+  "sharePct": 0.022,
+  "pixels": 116,
+  "meanDelta": 13.1,
+  "maxDelta": 70
+ },
+ {
+  "shot": "A_stairs",
+  "time": 13,
+  "family": "falling-leaves",
+  "meshes": 1,
+  "sharePct": 0.25,
+  "pixels": 1296,
+  "meanDelta": 8.9,
+  "maxDelta": 103
+ },
+ {
+  "shot": "A_stairs",
+  "time": 13,
+  "family": "motes",
+  "meshes": 1,
+  "sharePct": 0,
+  "pixels": 0,
+  "meanDelta": 0,
+  "maxDelta": 0
+ },
+ {
+  "shot": "A_stairs",
+  "time": 13,
+  "family": "butterflies",
+  "meshes": 1,
+  "sharePct": 0.021,
+  "pixels": 111,
+  "meanDelta": 12.3,
+  "maxDelta": 62
+ },
+ {
+  "shot": "owner-0650-north",
+  "time": 12.5,
+  "family": "falling-leaves",
+  "meshes": 1,
+  "sharePct": 0.092,
+  "pixels": 475,
+  "meanDelta": 11.3,
+  "maxDelta": 140
+ },
+ {
+  "shot": "owner-0650-north",
+  "time": 12.5,
+  "family": "motes",
+  "meshes": 1,
+  "sharePct": 0,
+  "pixels": 0,
+  "meanDelta": 0,
+  "maxDelta": 0
+ },
+ {
+  "shot": "owner-0650-north",
+  "time": 12.5,
+  "family": "butterflies",
+  "meshes": 1,
+  "sharePct": 0.229,
+  "pixels": 1189,
+  "meanDelta": 48.2,
+  "maxDelta": 185
+ },
+ {
+  "shot": "owner-0650-north",
+  "time": 13,
+  "family": "falling-leaves",
+  "meshes": 1,
+  "sharePct": 0.079,
+  "pixels": 409,
+  "meanDelta": 12.4,
+  "maxDelta": 105
+ },
+ {
+  "shot": "owner-0650-north",
+  "time": 13,
+  "family": "motes",
+  "meshes": 1,
+  "sharePct": 0,
+  "pixels": 0,
+  "meanDelta": 0,
+  "maxDelta": 0
+ },
+ {
+  "shot": "owner-0650-north",
+  "time": 13,
+  "family": "butterflies",
+  "meshes": 1,
+  "sharePct": 0.21,
+  "pixels": 1089,
+  "meanDelta": 46.8,
+  "maxDelta": 182
+ }
+]
