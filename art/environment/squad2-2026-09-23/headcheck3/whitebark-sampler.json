@@ -1,0 +1,17 @@
+{
+ "note": "placeWhiteBark fill() per-predicate over one world build, temporary instrumentation (never committed). ms and call counts; two fill() passes accumulated.",
+ "predicates": {
+  "blocked": 15.199999868869781,
+  "blocked#": 165,
+  "corridor": 0.4999999403953552,
+  "corridor#": 121,
+  "closesGap": 0,
+  "closesGap#": 121,
+  "clash": 0.30000007152557373,
+  "clash#": 117,
+  "attempts": 211,
+  "placed": 80,
+  "total": 19.800000071525574,
+  "total#": 2
+ }
+}

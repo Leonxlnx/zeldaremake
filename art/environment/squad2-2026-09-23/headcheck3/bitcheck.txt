@@ -1,0 +1,2 @@
+75 geometries, 741103 triangles
+TOTAL 9fc119c64da990ab83caf7625ce98b6d

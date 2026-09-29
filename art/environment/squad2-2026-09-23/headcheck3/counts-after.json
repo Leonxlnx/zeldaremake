@@ -1,0 +1,34 @@
+{
+ "F_canopy": {
+  "draws": 500,
+  "triangles": 7831095,
+  "treeDraws": 74,
+  "treeTriangles": 2966696,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 15,
+   "starved": 16,
+   "starvedNearestM": 16.7
+  },
+  "md5": "1d852b4c2b2723b500cf73b681fb4a1e"
+ },
+ "E_ground": {
+  "draws": 541,
+  "triangles": 7903532,
+  "treeDraws": 68,
+  "treeTriangles": 3020663,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 8,
+   "starved": 11,
+   "starvedNearestM": 14.3
+  },
+  "md5": "0b9014291840117c47a194b2864a2b3f"
+ }
+}
