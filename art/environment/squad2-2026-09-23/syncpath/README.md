@@ -1,4 +1,9 @@
-# The pool's frame cost is the pinned path, not the budgeted one
+# The pinned path, attributed properly: it is the world BUILD, not the frame
+
+> **§6 corrects §1–§5.** The 76 pin-forced finishes are not a per-frame cost: **63 of them have already
+> happened when the world finishes loading, before a single frame is rendered.** They are the build's own
+> first `rebucket`, which `framecost/` §1 already priced at 550 ms. Walking adds **single digits**. The
+> headline below — "the pool's frame cost is the pinned path" — is withdrawn; read §6 first.
 
 Lane 2, 2026-09-29, head `3961630f`. **No code changed** — this is the first reading of the metric
 `poolpredict/` §7 added, and it answers the question that round ended on.
@@ -85,10 +90,6 @@ All three trade against each other, and none is a one-line change, so they are w
 Whichever is tried, the measurement to run it against is now in the report, and it wants more than one
 walk a side.
 
-## Files
-
-- `walk.json` — the run behind §1.
-
 ---
 
 ## 5. Option 2 measured: a bigger budget moves the cost, it does not remove it
@@ -123,3 +124,58 @@ around rather than reducing it (`poolpredict/` was the first).
 **Which leaves option 3 as the only one that removes the hitch instead of moving it**: do not finish under
 a pin — let the crown hold its folded far form until the build completes. It pays with a late swap, which
 is the owner's own complaint, so it needs his eye rather than another measurement.
+
+## 6. Correction: 63 of the 76 are gone before the first frame
+
+§1 read 76 pin-forced finishes over a 32-frame walk and called the pinned path the pool's frame cost. Two
+checks say otherwise.
+
+**First, the count barely depends on the walk.** The same 32 renders with **4** pose jumps instead of 32 —
+`setPose` is the only thing that fires `onCameraMove`, and `nearCanopyUpdate`'s `if (reset)` block is the
+only place that pins *unbuilt* candidates — gives **69 finishes against 76**. If the jumps caused them, four
+jumps could not produce nine tenths of the count.
+
+**Second, and decisively: read the counter with zero renders.** Straight after `__ZR__.ready()`, before any
+frame at all:
+
+| | `syncBuilds` | `syncMsP95` | `syncMsMax` | `built` | `workMsP95` |
+| --- | --- | --- | --- | --- | --- |
+| **after load, 0 renders** | **63** | 7.6 ms | 8.0 ms | 265 | 0.1 (no `work` call yet) |
+| after 1 render | 63 | 7.6 | 8.0 | 265 | 8.3 |
+
+**All 63 happen inside `trees.create()`**, in the build's own `rebucket(ctx.camera, true)` → `nearCanopyUpdate(reset = true)`, which pins every candidate so an explicit pose draws the same parts whether the pool was cold or warm. That call is `framecost/` §1's **550 ms**, and 550 / 63 ≈ 8.7 ms a part matches the 7.6 ms p95 above. The pool is already full at load: `built` **265**.
+
+So the walk adds **6 to 14** pin-forced finishes over 32 frames, not 76 — and `chunks/`'s constant
+`syncBuilds` of **63** across four different columns was telling anyone who looked that this number is a
+property of startup, not of walking.
+
+### What this means for §1 and §5
+
+- **§1's headline is withdrawn.** The pool's *per-frame* cost in play is the budgeted path at a
+  **6.6–8.8 ms p95**, plus a handful of pin-forced finishes when the player outruns the prefetch. The
+  13–17 ms `syncMsP95` figures are dominated by the load-time fill.
+- **§5's "fewer parts finished under a pin" shrinks accordingly.** 64 and 69 against 76, 77, 77 is mostly
+  the same 63-part fill plus a different handful, so the budget's effect there is a few finishes, not a
+  dozen. What survives from §5 is what was repeatable for another reason: **more parts completed** (270,
+  272 against 261, 262, 266) and a **doubled budgeted p95** (13.4–16.8 against 6.6–8.8).
+- **Option 3 in §4 was already the shipped behaviour** and I should have read the code before proposing
+  it: `nearCanopyUpdate` builds its shown set with `.filter(resident)`, and only *shown* lobes fold their
+  far laminae, under the comment *"A walking camera keeps far foliage for parts still queued through
+  work()'s frame budget."* A walking player already keeps the far form until the near part is ready. The
+  synchronous finish exists **only** on the reset path, and it is there on purpose, for the capture
+  contract.
+
+### The pattern, stated so it stops repeating
+
+Three times on this branch a pool or bucketing number has been read as a play cost when it belonged to the
+reset path: `framecost/` §2's 22.1 ms frame (corrected in §7), §1 here, and §5's reading of the budget. The
+reset path runs on the build's first call and on every explicit pose jump, which is exactly what a probe
+does every frame. **Before attributing any pool number to play, read it with zero renders first** — that
+one call would have caught all three.
+
+## Files
+
+- `walk.json` — §1's run. `jump4.json` — the four-jump control. `at-load.json` — §6's zero-render reading.
+- `h2.json`, `h3.json`, `b12a.json`, `b12b.json` — §5's runs.
+
+---
