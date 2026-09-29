@@ -1,5 +1,10 @@
 # Pricing a fresh pool item by its own size: reverted broad, shipped narrow
 
+> **§7 is the verdict: with four runs a side the change has no measurable effect and is reverted.**
+> §5's two-run result did not survive, and neither did the long-chunk regression §5 left open — the
+> baseline produces those too. What shipped instead is the metric whose absence made all of this hard
+> to judge (`syncMsP95` / `syncMsMax`). Read §7 first; §3 and §5 are the road to it.
+>
 > **§5 (one hour later) supersedes §3.** Repeating the baseline showed the "cost" §3 reverted for was
 > inside the baseline's own run-to-run spread, and the narrower version — pre-fetch items only —
 > **is shipped**: calls over budget 5–6 → 1–3 and work p95 7.5–7.9 → 6.2–6.5 ms, with the fill-rate
@@ -148,3 +153,60 @@ taken, which would show up as different draws or triangles at a fixed viewpoint.
 this head reads **559 / 8 626 622, 541 / 7 903 532, 479 / 7 679 745, 465 / 8 242 550, 541 / 7 903 532,
 500 / 7 831 095** — every one identical to the numbers `headcheck3/` recorded before it
 (`six-views.json`).
+
+---
+
+## 7. Four runs a side: no measurable effect, reverted — and the metric that was missing
+
+§5 shipped on two runs a side. Two more, **run in pairs** so each base and narrow share the machine's
+conditions, close the question:
+
+| `nearCanopyPool`, 32-frame walk | base 1 | base 2 | base 3* | base 4* | narrow 1 | narrow 2 | narrow 3* | narrow 4* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| calls over budget | 6 | 5 | 2 | 6 | 1 | 3 | 7 | 4 |
+| work p95 (ms) | 7.9 | 7.5 | 5.8 | 7.1 | 6.2 | 6.5 | 7.3 | 6.5 |
+| chunk max (ms) | 5.8 | 6.1 | 8.3 | **15.8** | **21.7** | 6.8 | **24.4** | 7.1 |
+| chunks over 12 ms | 0 | 0 | 0 | **2** | **1** | 0 | **2** | 0 |
+| parts built | 287 | 265 | 254 | 262 | 264 | 283 | 259 | 260 |
+| synchronous builds | 63 | 72 | 81 | 75 | 72 | 65 | 77 | 75 |
+
+\* run as a pair, concurrently, so both saw the same contention.
+
+**The improvement does not survive.** Calls over budget: base 2–6, narrow 1–7. Work p95: base 5.8–7.9,
+narrow 6.2–7.3. The means lean narrow's way (4.75 → 3.75 calls, 7.08 → 6.63 ms) but the ranges overlap
+almost completely, and **the fairest comparison in the set — pair 1, run side by side — has narrow
+worse on both** (7 calls against 2, 7.3 ms against 5.8). Parts built and synchronous builds are
+identical either way (267 against 266, 72.8 against 72.3 on the means).
+
+**And the regression does not survive either.** After pair 1 it looked like the change alone produced
+chunks over 12 ms — 2 of 3 narrow runs against 0 of 3 baselines. **Base 4 has two of them and a 15.8 ms
+maximum.** The baseline does it too; three runs was simply not enough to see it.
+
+So the change is **neutral as measured at n = 4**, and it is reverted: `eagerPriority`, the per-byte
+history and the four tests are off the head, and `src/` is back to the flat prediction. Carrying a
+concept and two code paths for an effect this harness cannot resolve is what this lane has declined
+eight times before; the only difference here is that I shipped it for an hour first, on two runs, and
+said in the same breath that two runs could not call it.
+
+### What was actually missing, and now is not
+
+Three hours of this were hard to judge because of a **blind spot in the pool's own reporting**, and it
+is worth more than the scheduler change was:
+
+`pin` finishes an unbuilt item by running **every remaining chunk in one loop** — and that loop is the
+only pool work `recordStep` never sees (it has exactly one call site, inside `work`). So `stepMsP95`,
+`stepMsMax` and `longSteps` describe `work`'s chunks alone and say nothing about the path that skips the
+budget entirely. **A policy that finishes more items through `pin` therefore looks quieter on all three
+while putting more into single frames** — which is exactly the axis these eight runs differ on
+(synchronous builds 63 to 81 across them).
+
+`report()` carries `syncMsP95` and `syncMsMax` now, with a test that pins both halves of the point: five
+remaining 2 ms chunks land in one frame as `syncMsMax` **10**, while `stepMsMax` stays **2** and
+`longSteps` **0**. No behaviour change — two counters and a percentile — and it is the piece a future
+round needs to compare two scheduling policies on what a frame actually pays.
+
+### If anybody picks the scheduler up again
+
+Do not start from the prediction. Start from **`syncMsP95` against `workMsP95`**: decide first whether
+the pool's frame cost is dominated by the budgeted path or the pinned one, on a walk long enough that
+`longSteps` is not a coin flip — pairs of 32-frame walks were not, at either two or four runs a side.
