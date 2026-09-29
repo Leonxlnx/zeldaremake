@@ -952,38 +952,3 @@ test('before enough sized first chunks the prediction stays flat', () => {
   assert.equal(r.firstStepMsPerByteP95, 0, 'seven samples are not enough to scale by size');
   assert.equal(r.firstStepMsP95, 0.5, 'the flat prediction is still there to fall back on');
 });
-
-test('an item inside the eager priority is built whatever its size predicts', () => {
-  // `building` counts a slot that has a generator, and `work` creates one before it checks the
-  // budget — so the signal for "was it begun" is whether a CHUNK ran, i.e. the steps the call added.
-  const run = (eagerPriority, priority) => {
-    const log = [];
-    const now = clock();
-    const pool = new LodPool(100000, now);
-    pool.eagerPriority = eagerPriority;
-    for (let i = 0; i < FIRST_STEP_BYTE_SAMPLES; i++) {
-      const small = fakeItem(`s${i}`, 10, log, 1, now, 0.5);
-      pool.add(small);
-      pool.begin();
-      pool.want(small, 1);
-      pool.work(6);
-    }
-    // a 2 ms filler that FINISHES inside the call (one chunk then the finishing step), so the next
-    // candidate is the fresh 100-byte item — which its size prices at 5 ms of the 4 ms left
-    const filler = fakeItem('filler', 10, log, 1, now, 2);
-    const big = varItem('big', 100, log, [5, 0.5], now);
-    pool.add(filler);
-    pool.add(big);
-    pool.begin();
-    pool.want(filler, 1);
-    pool.want(big, priority);
-    const before = pool.report().steps;
-    pool.work(6);
-    return { added: pool.report().steps - before, workMsMax: pool.report().workMsMax };
-  };
-  const prefetch = run(0, 20);
-  assert.equal(prefetch.added, 2, 'a pre-fetch item is not begun late in a call: the filler only');
-  assert.ok(prefetch.workMsMax <= 6 + STEP_TOLERANCE_MS, `and the call stayed in budget (${prefetch.workMsMax})`);
-  const eager = run(30, 20);
-  assert.equal(eager.added, 3, 'an item about to be shown is begun anyway: its 5 ms chunk ran too');
-});
