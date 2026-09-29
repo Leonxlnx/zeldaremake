@@ -1,0 +1,4 @@
+look/f0000.png  band y 0.06–0.35  mean 133.5  across-columns sd 14.40  within-column sd 14.76
+review46/r_024.jpg  band y 0.06–0.35  mean 131.3  across-columns sd 3.30  within-column sd 10.70
+look/f0000.png  band y 0.1–0.4  mean 92.9  across-columns sd 32.34  within-column sd 15.82
+review46/r_024.jpg  band y 0.1–0.4  mean 105.1  across-columns sd 21.39  within-column sd 16.13
