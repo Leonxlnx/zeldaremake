@@ -140,15 +140,19 @@ The sweep and the eviction are nothing — the guess that arriving somewhere new
 you left behind is wrong — and the cost is the chunk loop against `NEAR_LOD_BUILD_BUDGET_MS = 6`.
 
 **Where 10.4 ms comes from, and why §4 named the wrong fix.** `chunkcost.mjs` over **12 291 chunk
-readings** of its 65 parts gives p50 **0.05 ms**, p95 **0.26 ms**, max **2.63 ms**, and every one of the
-eight largest is a chunk a collection landed in (that 2.63 ms carries 1.48 ms of GC pause; the largest
-with no collection in it is 2.05 ms). On those numbers alone there is nothing big enough to explain a
-10.4 ms call, which is what made §4 reach for a scheduler change.
+readings** of its 65 parts gives p50 **0.05 ms** and p95 **0.26 ms**, and its maximum depends entirely on
+where collections land: **the largest chunk with none in it is about 2.0 ms and stable across runs**
+(2.05 then 2.01), while the contaminated maximum was **2.63 ms in one run and 7.57 ms in the next**. So a
+chunk's own work is at most about two milliseconds, and a chunk a pause lands in can be several.
 
-But this lane already knows better, in its own notes: `chunks/` §5 records that **the authored plaza
-giants' lobe chunks run 4–7 ms — twice the whole budget of the day — and that `chunkcost.mjs`'s
-synthetic parts cannot see them**. I had to be reminded of it by my own README after the census's
-2.63 ms nearly talked me into the wrong conclusion. Six milliseconds of budget plus one authored lobe chunk is the 10.4 ms, exactly.
+And this lane's own notes add a third fact: `chunks/` §5 records that **the authored plaza giants' lobe
+chunks run 4–7 ms and that `chunkcost.mjs`'s synthetic parts cannot see them**. I had to be reminded of
+that by my own README, after the census's 2.63 ms nearly talked me into concluding there was nothing big
+enough to matter.
+
+So a 10.4 ms call is six milliseconds of budget plus **one long chunk** — long either because a
+collection landed in it or because it is an authored lobe. Those halves have different answers, and only
+the second is schedulable at all. Six milliseconds of budget plus one authored lobe chunk is the 10.4 ms, exactly.
 So the overshoot is real and it is not a collector artefact.
 
 **The fix is narrower than §4 said.** `work` already refuses a chunk that will not fit — `if (steps > 0
@@ -163,4 +167,6 @@ so about 10.4 → 7 ms, without touching the progress guarantee that keeps a poo
 That is a scheduler change with a starvation risk to test, it needs `lodPool.test.mjs` cases for both
 the prediction and the guarantee, and it needs the walk re-measured to show the p95 actually moves.
 **Written down rather than half-built**, and with the right target named this time: not "refuse
-expensive chunks" but "predict a fresh chunk from the item, not from the last ones".
+expensive chunks" but "predict a fresh chunk from the item, not from the last ones" — and knowing it
+addresses only the authored-lobe half of the overshoot, because the collector half is sized by the whole
+page's allocation, where this lane has already taken what it can from its own side.
