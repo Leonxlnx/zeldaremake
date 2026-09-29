@@ -1,0 +1,46 @@
+[
+ {
+  "view": "A_stairs",
+  "bandM": 0,
+  "draws": 495,
+  "triangles": 6441178,
+  "changedPct2": 0,
+  "changedPct8": 0,
+  "ssimToBandOff": 1,
+  "ssimToReference": 0.3132,
+  "deltaToReference": 0
+ },
+ {
+  "view": "A_stairs",
+  "bandM": 2.5,
+  "draws": 499,
+  "triangles": 6474944,
+  "changedPct2": 2.14,
+  "changedPct8": 0.949,
+  "ssimToBandOff": 0.99447,
+  "ssimToReference": 0.3139,
+  "deltaToReference": 0.0007
+ },
+ {
+  "view": "F_canopy",
+  "bandM": 0,
+  "draws": 449,
+  "triangles": 5493128,
+  "changedPct2": 0,
+  "changedPct8": 0,
+  "ssimToBandOff": 1,
+  "ssimToReference": 0.3553,
+  "deltaToReference": 0
+ },
+ {
+  "view": "F_canopy",
+  "bandM": 2.5,
+  "draws": 449,
+  "triangles": 5493128,
+  "changedPct2": 0.44,
+  "changedPct8": 0.402,
+  "ssimToBandOff": 0.997,
+  "ssimToReference": 0.3555,
+  "deltaToReference": 0.0002
+ }
+]
