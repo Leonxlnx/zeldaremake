@@ -3,6 +3,9 @@
 Lane 2, 2026-09-29. Branch `cursor/squad2-treephases-682b`, head `3a467c2d`. **No world code changed
 this round** — this is the measurement that has to come first, and it did not hand me a win.
 
+**§7, written an hour after §1–§6, withdraws §2's headline and renames §4's fix — read it before
+quoting anything below.**
+
 `midplace/` left `distant-mid-and-publish` as the largest unpriced line in the trees' build at 722 ms.
 This prices it, and then prices the same machinery **per frame**, which matters more than load time
 and had never been read in this lane.
@@ -103,3 +106,61 @@ Both need temporary timers (never committed): §1 three `performance.now()` pair
 `distant-mid-and-publish`, §2 one pair per part inside `rebucket`. §2's walk is 48 frames of
 `setPose` + `render(1, 1/60)` driven **one frame per `page.evaluate`** — a single evaluate for the
 whole walk exceeds puppeteer's `protocolTimeout` and the run dies after the last frame.
+
+---
+
+## 7. Correction, one hour later: §2's worst frame was the harness, and §4 named the wrong fix
+
+§2 made **21.3 of a 22.1 ms worst frame** in `nearCanopyUpdate` its headline and §4 proposed "a budget
+that can refuse a chunk it cannot finish". One more measurement revises both.
+
+**The two call paths, timed apart** (same walk, 40 frames; `reset` is the forced `onCameraMove` path a
+`setPose` probe fires every frame, `play` is what `update()` calls):
+
+| `nearCanopyUpdate` | total | calls | mean | max |
+| --- | --- | --- | --- | --- |
+| **play** (`update()`, `force = false`) | 15.9 ms | 40 | 0.398 ms | **0.700 ms** |
+| reset (a capture's pose jump) | 31.7 ms | 40 | 0.792 ms | 4.700 ms |
+
+**In play that call never exceeded 0.7 ms.** §2 accumulated both paths under one key, and the reset
+path — the only one that reaches `nearCanopyPool.work(0)`, behind `if (reset)` — carried the tail. §3
+warned that a harness does about twice the bucketing of play; this is that asymmetry landing squarely
+on the number §2 led with, so **§2's 22.1 ms is not a play figure** and the "visible stutter" reading
+of it is withdrawn.
+
+**Inside the pool**, over 120 `work` calls in those frames:
+
+| part of `LodPool.work` | total | max in one call |
+| --- | --- | --- |
+| the unwanted-generator sweep | 0.5 ms | 0.100 ms |
+| `evictToCap` | 0.3 ms | 0.100 ms |
+| **the chunk loop** | **249.1 ms** | **10.400 ms** |
+
+The sweep and the eviction are nothing — the guess that arriving somewhere new pays for disposing what
+you left behind is wrong — and the cost is the chunk loop against `NEAR_LOD_BUILD_BUDGET_MS = 6`.
+
+**Where 10.4 ms comes from, and why §4 named the wrong fix.** `chunkcost.mjs` over **12 291 chunk
+readings** of its 65 parts gives p50 **0.05 ms**, p95 **0.26 ms**, max **2.63 ms**, and every one of the
+eight largest is a chunk a collection landed in (that 2.63 ms carries 1.48 ms of GC pause; the largest
+with no collection in it is 2.05 ms). On those numbers alone there is nothing big enough to explain a
+10.4 ms call, which is what made §4 reach for a scheduler change.
+
+But this lane already knows better, in its own notes: `chunks/` §5 records that **the authored plaza
+giants' lobe chunks run 4–7 ms — twice the whole budget of the day — and that `chunkcost.mjs`'s
+synthetic parts cannot see them**. I had to be reminded of it by my own README after the census's
+2.63 ms nearly talked me into the wrong conclusion. Six milliseconds of budget plus one authored lobe chunk is the 10.4 ms, exactly.
+So the overshoot is real and it is not a collector artefact.
+
+**The fix is narrower than §4 said.** `work` already refuses a chunk that will not fit — `if (steps > 0
+&& elapsed + expected > budgetMs) break` — but for a *fresh* item `expected` is `stepMsTypical()`, the
+p95 of **recent** first chunks, which is a global figure. A 4–7 ms authored lobe starting after a run of
+small parts is therefore mis-predicted as small, runs, and takes the call to budget-plus-chunk. The pool
+already carries what would predict it: each item's `estimatedBytes`. Scaling the expected first chunk by
+the item's own size, instead of by whatever was built recently, would let the loop defer a big fresh
+lobe to a frame with a whole budget — capping a call nearer `max(budget, chunk)` than `budget + chunk`,
+so about 10.4 → 7 ms, without touching the progress guarantee that keeps a pool from starving.
+
+That is a scheduler change with a starvation risk to test, it needs `lodPool.test.mjs` cases for both
+the prediction and the guarantee, and it needs the walk re-measured to show the p95 actually moves.
+**Written down rather than half-built**, and with the right target named this time: not "refuse
+expensive chunks" but "predict a fresh chunk from the item, not from the last ones".
