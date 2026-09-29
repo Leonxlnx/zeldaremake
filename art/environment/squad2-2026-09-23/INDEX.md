@@ -15,18 +15,29 @@ measured trade inside the lane's budget: the distant crowns were being **drawn t
 rule for `transparent` + `DoubleSide`), so **A_stairs is 575 → 559 draws and plateau-back 702 → 687** for
 SSIM 0.9975–0.9994 (`outlook/` §5). The head as it stands, with all three in:
 
-| the six fixed views | draws / triangles |
+| | draws / triangles |
 | --- | --- |
-| A_stairs (binding) | **559** / 8 626 622 — 141 draws and 0.37 M spare |
-| B_house / C_lookback / D_log | 541 / 7.90 M · 479 / 7.68 M · 465 / 8.24 M |
-| E_ground / F_canopy | 541 / 7.90 M · 500 / 7.83 M |
-| play: plaza / **flight's foot** | 528 / 7.68 M · 535 / **9.151 M** (0.151 M over) |
-| play: saria-side / west-house | 502 / 8.51 M · 411 / 4.91 M |
+| **W38's four hero viewpoints** | `heroViewpoints` in `rubric.json` — these are the only views under a budget |
+| A_stairs (binding on both lines) | **559** / 8 626 622 — **141 draws and 0.373 M spare** |
+| B_house / C_lookback / D_log | 541 / 7 903 532 · 479 / 7 679 745 · 465 / 8 242 550 |
+| E_ground / F_canopy (not hero) | 541 / 7.90 M · 500 / 7.83 M |
+| play: plaza / flight's foot (not hero) | 528 / 7.68 M · 535 / 9.151 M |
+| play: saria-side / west-house (not hero) | 502 / 8.51 M · 411 / 4.91 M |
 
 Re-verified 21:40 with the gauntlet's own `pose-counts.mjs` and `playtest.mjs` after the one change that
-moves pixels (`headcheck2/`): **all six inside W38 on both lines**, 11 walk routes all reached with 0 stuck,
-10 look spots unflagged, 0 page errors. The only number over a line is the flight's foot at 9.151 M
-triangles — vegetation-dominated and an owner call. On top of that the near-LOD **builder** is 14 % cheaper
+moves pixels (`headcheck2/`), and the four hero viewpoints read again on 2026-09-29: 11 walk routes all
+reached with 0 stuck, 10 look spots unflagged, 0 page errors.
+
+**A scope correction (2026-09-29).** W38's two checks are scoped to `*hero`, which `rubric.json` resolves
+to **`A_stairs`, `B_house`, `C_lookback`, `D_log` — four viewpoints, not six**, and it is the only item in
+the rubric that budgets draws or triangles at all. So E_ground, F_canopy and every play pose are outside
+it, and this lane's repeated line that "the flight's foot is 0.151 M over W38" was **out of scope**: the
+foot is a real performance figure against PROJECT_STATE's 30 fps claim, but it is not a rubric ceiling and
+nothing is failing. The same applies to plateau-back, whose 702 → 687 draws were measured against a line
+that never bound it. Worst case among the four that do bind: **559 draws and 8.627 M triangles**, both at
+A_stairs.
+
+On top of that the near-LOD **builder** is 14 % cheaper
 with a whole build's p95 down 26 % (`chunks/`), every frame still md5-identical. The lane's own levers are measured out: the crown-veil ask is
 met (far-centre box s 0.06 / l 0.466 against the owner's 0.05 / 0.474), the LOD rungs are bracketed
 from both sides, and the near-canopy tier is priced in both directions and left alone. What remains at
@@ -37,6 +48,7 @@ the foot is the vegetation row and an owner call.
 | where | the headline |
 | --- | --- |
 | `sceneshade/` | **Every system's shade, priced (a handoff).** The same probe widened to the whole scene: the trees' shade is **55–59 % of the pixels** at camera A and the foot, while **structures spend 719 K for 0.49 % / 0.52 %**, terrain 317 K for 0.08 %, and vegetation 304 K for 0.02 % at A. At A those three are **1.34 M of an 8.63 M frame** for under 0.6 % of pixels, against 0.37 M of W38 headroom. No code changed — the mechanism (`shadowReachesGround`) is offered to whoever owns them. |
+| `atlascost/` | **The owner's "trees load in ASAP", taken at the serial build instead of the pool.** The render loop only starts after `createWorld` resolves and systems build in a serial `await` loop, so `trees.create()`'s 8.4 s is time the first frame waits on — and `crown-materials` is **1 960 ms of it**, one procedural texture (the 1024² far-crown atlas; the mid layer already reuses it). **Shipped: the per-clump stamp is painted at 64² instead of 128²** — the blits land at 16–64 px, so 128² was 4–16× more pixels than any blit could carry, about 3 000 times — taking the atlas **2 008 → 1 268 ms (−37 %)** at **SSIM 1.00000**, draws and triangles identical, and the crown band identical to two decimals. Also records the trap that makes this file easy to misread (canvas commands are queued: a **1×1** readback costs 1 889 ms and the 4 MB one after it 17 ms, so per-op timers here are enqueue times) and the candidate it killed (`willReadFrequently`: 1 781 → 1 752 ms, noise — the same read-after-drawing exists in `vegetation/clump-atlas.ts` and `structures/house.ts`, so run the 1×1 test there before adding the hint). |
 | `airlife/` | **Backlog item 5 measured, for lanes 1 and 4: "gentle life in the air, not spectacle".** Hide one air family with the clock frozen and read the share of pixels it paints and how hard it stands out. **Gentle, comfortably, in all three families** — together 0.1–0.5 % of the frame: the 96 leaves widespread and faint (400–1300 px at mean Δ 8–12/255), the 34 butterflies small and vivid (33–1189 px at 33–48/255), the 180 motes in between (529 px at 22.2/255 on A_stairs). **Contains a correction of my own:** the first pass reported the motes painting nothing and asked lane 1 to fix it, but the probe hid them with `object.visible` and `motes.ts` rewrites that flag every frame inside `update()`, so the hide never survived the frame. Re-measured hook-free with two builds — **559 → 558 draws** and different md5s — they paint. Lane 1 has nothing to fix; the probe now hides the material too and throws if the hide does not hold. |
 | `capturetime/` | **`--settle` is not a warm-up knob, and the capture-based checks finally ran.** `renderAt` sets the clock once then renders the settle frames at dt = 1/60, so a shot lands at `simTime + frames/60`: same build, one flag, **559 draws / 8 626 622 triangles either way and 32.079 % of the pixels different** (SSIM 0.832). So the settle cannot be lowered to speed CI up — every reference image encodes `settle/60` seconds of wind — but it *can* be lowered to make a capture locally: six viewpoints plus the determinism and motion shots in **39.6 minutes** against eight-plus hours, and **`anti-cheat --take` then comes back green with 109 checks** — B3 cross-checking **6 audit claims against the scene graph**, B5 determinism **0.000 % of pixels at `--settle 12`**, C3 four hero viewpoints with layered depth. A one-line fix (re-apply `setTime` after the settle) would separate the two; that is the gauntlet owner's call. | `renderAt` sets the clock once and then renders the settle frames at dt = 1/60, so a shot lands at `simTime + frames/60` — 12.7 s at `--settle 12`, 14.0 s at 90. Same build, same viewpoint, one flag: **559 draws / 8 626 622 triangles either way and 32.079 % of the pixels different** (max Δ 190/255, SSIM 0.832). So the settle cannot be lowered to speed CI up — every reference image encodes `settle/60` seconds of wind — and the cost is **17×** (3591 s a viewpoint against 206.7 s). A one-line fix (re-apply `setTime` after the settle) would separate the two, and it is the gauntlet owner's call. |
 | `chunks/` | **Four rounds on the near-LOD builder, ending in a clear answer.** The frame-budget tail is the **collector** (a chunk a collection lands in reads a median 1.08 ms against 0.05), so the work went to allocation: `allocprof.mjs` names the allocators by function (with `includeObjectsCollectedBy{Major,Minor}GC`, or the profile reports 0.23 MB of an actual 4.3 GB) and `pathgarbage.mjs` settles each on its own path. **`growthPath` 86.6 → 5.0 KB a call (−94 %)** — three's `getSpacedPoints` re-derives a 201-sample table per call and its `CubicPoly` keeps coefficients in closure variables, which V8 boxes. Worth: the pool's builds **−20 % garbage**, tree creation **−15 %**, and on the walk **a whole build −18 % at the median, −21 % at the p95**. Not worth: the world build (8395 → 8367 ms against a 700 ms spread) and the frame budget — the worst chunk in a frame reads 6.9–16.1 ms across six runs of code that cannot make a 7 ms chunk, because that tail is a pause sized by the **whole page's** allocation. Everything bit-identical (`bitcheck.mjs`: 75 geometries, 741 103 triangles, one hash; seven poses md5-identical). Its four rounds are §§1–8 of `chunks/README.md`, in order, including the three experiments that were measured and reverted. |
