@@ -1,0 +1,21 @@
+{
+ "note": "placeMidTrees per-predicate timings over one world build, temporary instrumentation (never committed). ms and call counts.",
+ "predicates": {
+  "occupiedLen": 184,
+  "blocked": 544.3999999761581,
+  "blocked#": 11850,
+  "slope": 5.700000166893005,
+  "slope#": 8113,
+  "height": 3.2000001072883606,
+  "height#": 8113,
+  "corridor": 4.500000178813934,
+  "corridor#": 8113,
+  "occupied": 31.499999582767487,
+  "occupied#": 8097,
+  "tooClose": 19.89999955892563,
+  "tooClose#": 5883,
+  "attempts": 28818,
+  "total": 635.4000000357628,
+  "total#": 1
+ }
+}

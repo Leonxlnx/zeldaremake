@@ -1,0 +1,117 @@
+{
+ "note": "buildphases.mjs --runs 2, one VM session (2026-09-29). Not comparable with the 09-28 numbers in chunks/ -- the machine is slower today; compare these with each other.",
+ "runs": {
+  "head": {
+   "treesMs": 9233,
+   "totalMs": 51456,
+   "phases": {
+    "white-barks": 1050,
+    "understory": 77,
+    "columns": 1648,
+    "giants": 5045,
+    "distant-mid-and-publish": 722
+   },
+   "giantStepMs": {
+    "to-world": 107,
+    "near-pool-register": 169,
+    "yield-frame": 50,
+    "yield-count": 12,
+    "giants-loop-total": 2377,
+    "sector-merge": 82,
+    "tail-sectors": 420,
+    "tail-authored-and-rootkit": 61,
+    "tail-variants": 12,
+    "tail-distant-place": 30,
+    "tail-mid-place": 630,
+    "grove-cull": 7,
+    "crown-materials": 1504,
+    "distant-sets": 2,
+    "giants-tail-total": 2664
+   }
+  },
+  "reordered": {
+   "treesMs": 8518,
+   "totalMs": 50565,
+   "phases": {
+    "white-barks": 971,
+    "understory": 77,
+    "columns": 1571,
+    "giants": 4527,
+    "distant-mid-and-publish": 683
+   },
+   "giantStepMs": {
+    "to-world": 108,
+    "near-pool-register": 157,
+    "yield-frame": 49,
+    "yield-count": 12,
+    "giants-loop-total": 2406,
+    "sector-merge": 85,
+    "tail-sectors": 415,
+    "tail-authored-and-rootkit": 47,
+    "tail-variants": 12,
+    "tail-distant-place": 29,
+    "tail-mid-place": 119,
+    "grove-cull": 7,
+    "crown-materials": 1489,
+    "distant-sets": 2,
+    "giants-tail-total": 2118
+   }
+  },
+  "leaflets-skipped": {
+   "treesMs": 8298,
+   "totalMs": 48321,
+   "phases": {
+    "white-barks": 987,
+    "understory": 75,
+    "columns": 1497,
+    "giants": 4427,
+    "distant-mid-and-publish": 626
+   },
+   "giantStepMs": {
+    "to-world": 141,
+    "near-pool-register": 183,
+    "yield-frame": 48,
+    "yield-count": 12,
+    "giants-loop-total": 2408,
+    "sector-merge": 72,
+    "tail-sectors": 359,
+    "tail-authored-and-rootkit": 43,
+    "tail-variants": 11,
+    "tail-distant-place": 28,
+    "tail-mid-place": 578,
+    "grove-cull": 6,
+    "crown-materials": 990,
+    "distant-sets": 1,
+    "giants-tail-total": 2014
+   }
+  },
+  "leaflet-transform-baked": {
+   "treesMs": 8689,
+   "totalMs": 49168,
+   "phases": {
+    "white-barks": 943,
+    "understory": 78,
+    "columns": 1500,
+    "giants": 4834,
+    "distant-mid-and-publish": 671
+   },
+   "giantStepMs": {
+    "to-world": 109,
+    "near-pool-register": 164,
+    "yield-frame": 49,
+    "yield-count": 12,
+    "giants-loop-total": 2297,
+    "sector-merge": 79,
+    "tail-sectors": 389,
+    "tail-authored-and-rootkit": 43,
+    "tail-variants": 11,
+    "tail-distant-place": 29,
+    "tail-mid-place": 638,
+    "grove-cull": 6,
+    "crown-materials": 1419,
+    "distant-sets": 1,
+    "giants-tail-total": 2533
+   }
+  }
+ }
+}
