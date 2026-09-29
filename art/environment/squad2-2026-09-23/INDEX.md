@@ -1,7 +1,7 @@
 # Lane 2's evidence, indexed
 
 `README.md` in this directory is the mid-canopy round's write-up, not a map (it now opens with a pointer here). This is the map: 38
-measurement directories and 23 tools, with the headline of each, so another lane can find a number
+measurement directories and 32 tools, with the headline of each, so another lane can find a number
 without opening all of them. Newest first within each group.
 
 **Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). Three things.
@@ -83,6 +83,15 @@ the foot is the vegetation row and an owner call.
 | `frozen.mjs` | **The harness behind every "byte-identical" claim here.** Renders a pose list (and/or fixed viewpoints) with the world clock frozen and writes draws, triangles, the trees' own submission, the casting counters and an md5 per frame. Settles *with* time so the pools swap in, then reads with `render(2, 0)`. Verified to reproduce this branch's numbers: A_stairs 575 / 8 631 286 at md5 `a280badd…`, the same bytes as the run behind the PR's table. |
 | `tiers/walkpool.mjs` | The pools as a WALKING player meets them: drives play mode (masking `navigator.webdriver`, or the hook never installs), holds a key for 600 sim frames and reads the pool every 60. `--dist` / `--out` walk two builds in one session. |
 | `chunkcost.mjs` | Every chunk of every pooled part's build, timed, **with no browser** — the unit tests' in-memory TS loader on the real generators. `--repeat 5` takes a median per chunk (one build times the JIT as if it were a chunk). Its limit: its synthetic trees' largest geometry chunk is 1.74 ms, so it cannot see the authored plaza giants' 4–7 ms lobe chunks. |
+| `chunks/bitcheck.mjs` | **Is this checkout's tree geometry the same bytes?** Builds 75 geometries (the merged far trees and every pooled near part, 741 103 triangles) from any `--root` and md5s every buffer. Seconds instead of a ten-minute Chrome run, which is what made rewriting three's curve evaluation safe to attempt. |
+| `chunks/allocprof.mjs` | **What allocates, by function.** V8's sampling heap profiler through the inspector session Node already has. Pass `includeObjectsCollectedBy{Major,Minor}GC` or it reports only survivors — 0.23 MB of an actual 4.3 GB. Its byte attribution shifts under inlining, so it names suspects; `pathgarbage.mjs` convicts them. |
+| `chunks/pathgarbage.mjs` | **One code path, 40 000 calls, two checkouts.** `--what growthPath\|addLeaf --root <repo>` under `--trace-gc`: same workload, same seeds, count the megabytes. An unchanged path gives the noise floor (2.3 %). |
+| `chunks/treecost.mjs` | Creating four trees with every part they register, timed and (under `--trace-gc`) weighed — the middle scale between a pooled part and the whole world build. |
+| `chunks/buildphases.mjs` | The world build per system and per trees phase (`buildMs`, `buildPhases`). Never in parallel with another Chrome job: in parallel the builds inflate from 45 to 56 s and the noise doubles. |
+| `chunks/fixture.mjs` | The one copy of the no-browser fixture the three tools above share: the unit tests' in-memory TS loader plus the same two giants and two seated columns from fixed seeds. |
+| `outlook/familycost.mjs` | **What each tree family costs in the drawn frame, and what it is worth in pixels.** Hide one family with the clock frozen, re-render, read the triangle/draw delta and the share of pixels that moved. `--shadow` drops `castShadow` instead; `--per-mesh <substring>` goes mesh by mesh with its groups and materials; takes fixed viewpoints as well as poses. |
+| `outlook/singlepass.mjs` | `forceSinglePass` measured **against itself in one page load** — same pose, clock frozen, the flag toggled at runtime — so nothing but the flag differs. `--only <shot>`; carries the owner's north pose for the charter check. |
+| `outlook/twopass.mjs` | The **whole scene** swept for materials in three's two-pass state (`transparent` + `DoubleSide`), each flipped alone and together, with SSIM. The answer was two materials worth one draw call. |
 | `sceneshade/scenedepth.mjs` | Every system's shade at a pose: switch one system's casters off at a time and read the triangle delta and the pixel difference. |
 | `sixcheck.mjs` | What a change did to the fixed frames: pixels moved, mean, local detail, and SSIM against `reference/frames`. |
 | `walkpop.mjs` | What arrives late on screen (renders at `dt = 0`, so the wind cannot be mistaken for geometry). |

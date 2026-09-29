@@ -253,3 +253,35 @@ should land on its own.
 It is present on this box — the giants' far-foliage batches carry 100–105 instances each and measure two
 draws apiece, which only multi-draw explains — but fable-4's round-54 note says the same thing their
 batches were never exercised on: a context without the extension.
+
+## 9. A correction to §8: the shared shader is avoidable, and the win still is not needed
+
+§8 said the world-space route "collides with `aRoot`'s meaning" and left the shared-shader change as the
+practical option. On a closer read of the crown shader that is too pessimistic, and the correction matters
+because it moves the work back inside this lane's own files.
+
+The collision is real but local. Baked to world space, `aRoot.xyz` is the crown centre in world space —
+which is what `crownC` wants — but `aRoot.y` is also the **height above the tree's root** that the sway
+amplitude uses, and in world space that becomes world Y (terrain runs −2 to +8 m here, so the amplitude
+would be wrong by most of a crown's height). Keeping `aRoot.y` local instead breaks `vCrownOff`, which is
+`(crownP − crownC) / radius` and needs a true world centre for the spherical shading. Neither slot is free:
+`aRoot.w` already carries the radius.
+
+**But one more float attribute settles it, and it is this lane's geometry.** `crownCards` in `distant.ts`
+writes these vertices; adding `aCrownH` (the local crown height) for the batched geometry only, behind a
+define this material already controls through `customProgramCacheKey`, gives the shader all three numbers:
+the world centre from `aRoot.xyz`, the radius from `aRoot.w`, the height from `aCrownH`. The wood group
+needs nothing at all — `materials.ts` computes its wind height from positions (`treeP.y − treeRoot.y`)
+rather than from a local constant, which is exactly why the giants' merged world-space sectors already work.
+
+So the honest shape of this proposal is now: **it can be done entirely in `distant.ts` and `index.ts`**, at
+the cost of one attribute on the crown geometry, ~250 baked far geometries (≈ 8 000 triangles — the far LOD
+is 32 triangles an instance), and a rewrite of the layers' drawing half.
+
+**And it is still not worth doing yet.** The binding fixed view has **141 draws of headroom** under W38
+(559 of 700) after §5, every hero view passes on both lines, and the play-mode draws came down with them.
+Batching buys 26–30 draws against a budget nothing is pressing on, while risking a wrong sway amplitude on
+the distant crowns — the exact thing the owner's original "the trees do not populate" note was about.
+**The lane's recommendation is to hold it** until something actually needs those draws (a heavier scene, a
+weaker device, or another lane's growth), and to take it then in `distant.ts` rather than in the shared
+shader.
