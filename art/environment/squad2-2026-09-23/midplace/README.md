@@ -87,6 +87,12 @@ the white-barks phase is 1 050 ms in total and most of that is building the tree
 sampler's share is unknown, and this lane does not ship a number it has not read. The measurement is
 one `buildphases.mjs --runs 2` on a variant plus one `frozen.mjs` md5 check, exactly as above.
 
+**Answered, 2026-09-29 — there is nothing there** (`headcheck3/` §5). That sampler is **20 ms** in
+total, with `blocked` running **165** times rather than 11 850, because it accepts **80 of 211**
+candidates where this one accepted 400 of 28 818: a small target in a large annulus barely rejects
+anything. The reorder would be correct and would buy about **10 ms of the 1 050 ms phase**, whose cost
+is building the trees rather than placing them. **Not shipped**, and the question is closed.
+
 ## Files
 
 - `phases.json` — the three `buildphases.mjs` runs (head, reordered, and the leaflet pricing below).
