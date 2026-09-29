@@ -56,8 +56,10 @@ const settle = Number(flag('settle', 8));
 const quality = flag('quality', 'high');
 const steps = Number(flag('steps', 8));
 const stride = Number(flag('stride', 0.5));
-/** metres to advance before the first frame, so a fine strip can start where a coarse one found the swap */
+/** metres (or, with --yaw, steps) to advance before the first frame, so a fine strip can start at the swap */
 const from = Number(flag('from', 0));
+/** degrees of heading per step; non-zero switches the strip from translating to ROTATING (see poseAt) */
+const yawStep = Number(flag('yaw', 0));
 const grid = Number(flag('grid', 8));
 const poseFile = flag('pose');
 const poseName = flag('poseName', null);
@@ -68,17 +70,35 @@ if (!entry) throw new Error(`pose ${poseName} not in ${poseFile}`);
 const base = entry.from ?? entry;
 fs.mkdirSync(out, { recursive: true });
 
-/** the unit view direction, so the walk approaches whatever the pose was aimed at */
-const dir = (() => {
-  const d = [base.t[0] - base.p[0], base.t[1] - base.p[1], base.t[2] - base.p[2]];
-  const n = Math.hypot(...d);
-  return d.map((v) => v / n);
-})();
-const poseAt = (k) => ({
-  p: base.p.map((v, i) => v + dir[i] * (from + stride * k)),
-  t: base.t.map((v, i) => v + dir[i] * (from + stride * k)),
-  fov: base.fov ?? 46,
-});
+/** the view direction and its length, so the walk approaches whatever the pose was aimed at */
+const aim = [base.t[0] - base.p[0], base.t[1] - base.p[1], base.t[2] - base.p[2]];
+const aimLen = Math.hypot(...aim);
+const dir = aim.map((v) => v / aimLen);
+/**
+ * ROTATION mode (`--yaw <degrees per step>`): the camera stands still and only its heading changes, which
+ * is the harshest case for a screen-space mask and the one a translating strip cannot reach. A pure
+ * rotation changes no tree's DISTANCE, so nothing enters or leaves a band: every banded tree keeps the
+ * same drop value while its screen position sweeps across a hash that is fixed to the screen. If the
+ * stipple swims, that is where it swims.
+ *
+ * 0.5° a step is a slow, deliberate look — about 15°/s at 30 fps — and slow is the worst case, because a
+ * fast turn blurs the pattern away. At 46° fov across 960 px it slides a tree ≈ 10 px a frame, which
+ * re-randomises which of its fragments the mask keeps.
+ */
+const poseAt = (k) => {
+  if (yawStep) {
+    const a = (yawStep * (from + k) * Math.PI) / 180;
+    const [dx, , dz] = dir;
+    const rx = dx * Math.cos(a) - dz * Math.sin(a);
+    const rz = dx * Math.sin(a) + dz * Math.cos(a);
+    return { p: [...base.p], t: [base.p[0] + rx * aimLen, base.p[1] + dir[1] * aimLen, base.p[2] + rz * aimLen], fov: base.fov ?? 46 };
+  }
+  return {
+    p: base.p.map((v, i) => v + dir[i] * (from + stride * k)),
+    t: base.t.map((v, i) => v + dir[i] * (from + stride * k)),
+    fov: base.fov ?? 46,
+  };
+};
 
 const server = await serveStatic(dist);
 const browser = await launchBrowser({ width, height });
@@ -105,8 +125,9 @@ try {
     const png = await page.screenshot({ type: 'png' });
     const file = path.join(out, `step-${String(k).padStart(2, '0')}.png`);
     fs.writeFileSync(file, png);
-    rows.push({ step: k, advanced: Number((from + stride * k).toFixed(2)), ...stats, file, md5: crypto.createHash('md5').update(png).digest('hex') });
-    console.error(`step ${k} (+${(from + stride * k).toFixed(3)} m) ${stats.draws}/${stats.triangles}`);
+    const advanced = yawStep ? Number((yawStep * (from + k)).toFixed(3)) : Number((from + stride * k).toFixed(2));
+    rows.push({ step: k, advanced, unit: yawStep ? 'deg' : 'm', ...stats, file, md5: crypto.createHash('md5').update(png).digest('hex') });
+    console.error(`step ${k} (+${advanced}${yawStep ? '°' : ' m'}) ${stats.draws}/${stats.triangles}`);
   }
 } finally {
   await browser.close();
