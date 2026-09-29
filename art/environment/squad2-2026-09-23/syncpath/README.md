@@ -74,9 +74,8 @@ All three trade against each other, and none is a one-line change, so they are w
    pinned. Costs pool memory and moves CPU earlier; `outlook/` §7 already found the tier saturated at 79
    parts with 77–100 % outside the frame, so a wider prefetch buys the fix by building even more that is
    never seen.
-2. **Build faster** — a larger `NEAR_LOD_BUILD_BUDGET_MS`. Raises the budgeted path's honest cost to
-   remove an unbudgeted one that is twice as large; this is the cheapest experiment of the three and the
-   one I would measure first, with **repeats**, after this branch's lesson about single runs.
+2. **Build faster** — a larger `NEAR_LOD_BUILD_BUDGET_MS`. The cheapest of the three, so **§5 measured
+   it**: it relabels the cost rather than removing it.
 3. **Do not finish under a pin at all** — let the crown keep its folded far form until the build
    completes, instead of guaranteeing residency the moment it is pinned. This removes the hitch
    completely and pays for it with a late swap, which is precisely the thing the owner complained about
@@ -89,3 +88,38 @@ walk a side.
 ## Files
 
 - `walk.json` — the run behind §1.
+
+---
+
+## 5. Option 2 measured: a bigger budget moves the cost, it does not remove it
+
+`NEAR_LOD_BUILD_BUDGET_MS` **6 → 12**, one constant in `trees/index.ts`, three head walks against two
+variant walks with the last two pairs run **concurrently** so each pair shared the machine:
+
+| run | work p95 | `syncMsP95` | `syncMsMax` | `buildMsMax` | sync finishes | parts built |
+| --- | --- | --- | --- | --- | --- | --- |
+| head 1 | 6.6 ms | 13.0 | 25.3 | 25.3 | 76 | 266 |
+| head 2 (pair 1) | 7.0 ms | 16.1 | 20.7 | 34.2 | 77 | 261 |
+| head 3 (pair 2) | 8.8 ms | 16.6 | 27.3 | 36.9 | 77 | 262 |
+| **budget 12 a** (pair 1) | **13.4 ms** | 8.7 | 15.2 | 19.2 | **64** | **270** |
+| **budget 12 b** (pair 2) | **16.8 ms** | 14.1 | 24.0 | **51.5** | **69** | **272** |
+
+**Two things repeat.** Every variant run finishes **fewer parts under a pin** (64, 69 against 76, 77, 77)
+and **completes more parts** over the same walk (270, 272 against 261, 262, 266): with twice the budget the
+pool keeps up better, which is the **"trees load in ASAP"** axis. And every variant run pays for it on the
+budgeted path, p95 **13.4–16.8 ms against 6.6–8.8 ms** — which is not a surprise, it is the budget.
+
+**And the thing that matters most does not improve.** The pinned path's magnitude overlaps (`syncMsP95`
+8.7–14.1 against 13.0–16.6) and the **worst single build landing in one frame is noisy in both
+directions**: 19.2 ms in one variant run and **51.5 ms** in the other, against 25.3–36.9 on the head. So
+raising the budget **converts unbudgeted hitches into budgeted ones of similar size** — a 13–17 ms
+budgeted p95 where there was a 13–17 ms unbudgeted one — while the tail stays where it was.
+
+**Not shipped.** What it buys is fill rate, which is real and which the owner has asked for twice; what it
+costs is a routine per-frame cost that doubles. That is a look-and-feel trade for the owner, not a free
+optimisation, and it is the second time this branch has found that the pool's scheduling levers move cost
+around rather than reducing it (`poolpredict/` was the first).
+
+**Which leaves option 3 as the only one that removes the hitch instead of moving it**: do not finish under
+a pin — let the crown hold its folded far form until the build completes. It pays with a late swap, which
+is the owner's own complaint, so it needs his eye rather than another measurement.

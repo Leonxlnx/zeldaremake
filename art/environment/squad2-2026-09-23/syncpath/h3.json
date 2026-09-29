@@ -1,0 +1,34 @@
+{
+ "nearCanopyPool": {
+  "built": 262,
+  "syncBuilds": 77,
+  "steps": 12299,
+  "stepMsP95": 0.5,
+  "stepMsMax": 8.4,
+  "longSteps": 0,
+  "workOverBudget": 6,
+  "workMsP95": 8.8,
+  "workMsMax": 1560.3,
+  "firstStepMsP95": 0.2,
+  "syncMsP95": 16.6,
+  "syncMsMax": 27.3,
+  "buildMsP95": 11.1,
+  "buildMsMax": 36.9
+ },
+ "nearBasePool": {
+  "built": 0,
+  "syncBuilds": 0,
+  "steps": 0,
+  "stepMsP95": 0,
+  "stepMsMax": 0,
+  "longSteps": 0,
+  "workOverBudget": 0,
+  "workMsP95": 0,
+  "workMsMax": 0.1,
+  "firstStepMsP95": 0,
+  "syncMsP95": 0,
+  "syncMsMax": 0,
+  "buildMsP95": 0,
+  "buildMsMax": 0
+ }
+}
