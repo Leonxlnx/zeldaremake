@@ -4,29 +4,45 @@
 measurement directory and every tool in this lane's evidence, with the headline of each, so another lane can
 find a number without opening all of them. Newest first within each group.
 
-**Where the lane stands on 2026-09-29** (branch `cursor/squad2-treephases-682b`, PR #210). Three things
-that change the world, plus `airlife/` — which measures other lanes' work and **withdraws a claim of mine**:
-the motes paint after all (559 → 558 draws with their draw suppressed), and the zero I reported was my
-probe's object-level hide being undone by `motes.ts`'s own `update()`.
-Of the three, two are pixel-identical: the sun's depth pass no longer pays for shade the frame cannot see (79–193 K a
-pose in play, up to 121 K at a fixed view), and the near-LOD builder is cheaper to run (**−14 % in time,
-−20 % in garbage**, a whole build **−18 % / −21 %** at median and p95 — `chunks/`). The third is a
-measured trade inside the lane's budget: the distant crowns were being **drawn twice** (three's two-pass
-rule for `transparent` + `DoubleSide`), so **A_stairs is 575 → 559 draws and plateau-back 702 → 687** for
-SSIM 0.9975–0.9994 (`outlook/` §5). The head as it stands, with all three in:
+**Where the lane stands at the end of 2026-09-29** (branch `cursor/squad2-treephases-682b`, PR #210,
+unmerged). **Six changes to the world**, in the order a reviewer should care about:
+
+1. **The LOD rung band is on** (`gatesweep/`, `TREE_LOD_DITHER = true`) — the last item the lane's own
+ docs listed as open. The worst single metre of approach at the owner's north pose falls from
+ **0.811 % of the frame to 0.239 %**, and from **28.0 % of the cell the swap lands in to 6.8 %**. The
+ hard cut's signature — two metres that change nothing, then one that changes everything — becomes six
+ small even steps. Costs +1…+3 draws and +8 K…+98 K triangles at the hero views.
+2. **The distant crowns were being drawn twice** (three's two-pass rule for `transparent` +
+ `DoubleSide`): A_stairs 575 → 559 draws, plateau-back 702 → 687, at SSIM 0.9975–0.9994 (`outlook/` §5).
+3. **The sun's depth pass no longer pays for shade the frame cannot see** — 79–193 K a pose in play, up
+ to 121 K at a fixed view. Pixel-identical.
+4. **The near-LOD builder is cheaper to run** — −14 % in time, −20 % in garbage, a whole build −18 % /
+ −21 % at median and p95 (`chunks/`). Every frame md5-identical.
+5. **The far-crown atlas is 2 008 → 1 268 ms** (−37 %) off the serial path the first frame waits on: the
+ per-clump stamp was painted at 128² and blitted at 16–64 px (`atlascost/`). SSIM 1.00000 at four
+ high-quality poses and two at `quality=low`.
+6. **The mid-grove sampler tested its most expensive rule first** — `tail-mid-place` 630 → 119 ms
+ (−81 %) by ordering six pure predicates cheapest-first, frames byte-identical (`midplace/`).
+
+Report-only, no pixels: `report()` carries **`syncMsP95` / `syncMsMax`** (`pin` is the only pool work
+`recordStep` never sees — `poolpredict/`), and the trees audit carries **`lodBand`** so a reviewer can
+tell which state the band is in and which three ladders it covers.
+
+The head as it stands, with all six in (`frozen.mjs`, clock frozen, and the four hero views confirmed to
+the draw by the gauntlet's own `pose-counts.mjs`):
 
 | | draws / triangles |
 | --- | --- |
 | **W38's four hero viewpoints** | `heroViewpoints` in `rubric.json` — these are the only views under a budget |
-| A_stairs (binding on both lines) | **559** / 8 626 622 — **141 draws and 0.373 M spare** |
-| B_house / C_lookback / D_log | 541 / 7 903 532 · 479 / 7 679 745 · 465 / 8 242 550 |
-| E_ground / F_canopy (not hero) | 541 / 7.90 M · 500 / 7.83 M |
-| play: plaza / flight's foot (not hero) | 528 / 7.68 M · 535 / 9.151 M |
-| play: saria-side / west-house (not hero) | 502 / 8.51 M · 411 / 4.91 M |
+| A_stairs (binding on both lines) | **561** / 8 724 803 — **139 draws and 0.275 M spare** |
+| B_house / C_lookback / D_log | 543 / 7 971 464 · 480 / 7 721 403 · 468 / 8 258 565 |
+| F_canopy (not hero) | 501 / 7 838 848 |
+| play: plaza / flight's foot (not hero) | 530 / 7 711 094 · 535 / 9 153 565 |
+| play: saria-side / west-house (not hero) | 508 / 8 585 962 · 412 / 4 951 247 |
 
-Re-verified 21:40 with the gauntlet's own `pose-counts.mjs` and `playtest.mjs` after the one change that
-moves pixels (`headcheck2/`), and the four hero viewpoints read again on 2026-09-29: 11 walk routes all
-reached with 0 stuck, 10 look spots unflagged, 0 page errors.
+E_ground was **not** re-read with the band on; it read identically to B_house without it. Behaviour on
+the shipped build: **11 / 11 walk routes reached, 0 stuck, 10 look spots unflagged, 0 page errors**,
+270 / 270 unit tests, anti-cheat green at 102 checks.
 
 **A scope correction (2026-09-29).** W38's two checks are scoped to `*hero`, which `rubric.json` resolves
 to **`A_stairs`, `B_house`, `C_lookback`, `D_log` — four viewpoints, not six**, and it is the only item in
@@ -34,14 +50,25 @@ the rubric that budgets draws or triangles at all. So E_ground, F_canopy and eve
 it, and this lane's repeated line that "the flight's foot is 0.151 M over W38" was **out of scope**: the
 foot is a real performance figure against PROJECT_STATE's 30 fps claim, but it is not a rubric ceiling and
 nothing is failing. The same applies to plateau-back, whose 702 → 687 draws were measured against a line
-that never bound it. Worst case among the four that do bind: **559 draws and 8.627 M triangles**, both at
-A_stairs.
+that never bound it.
 
-On top of that the near-LOD **builder** is 14 % cheaper
-with a whole build's p95 down 26 % (`chunks/`), every frame still md5-identical. The lane's own levers are measured out: the crown-veil ask is
-met (far-centre box s 0.06 / l 0.466 against the owner's 0.05 / 0.474), the LOD rungs are bracketed
-from both sides, and the near-canopy tier is priced in both directions and left alone. What remains at
-the foot is the vegetation row and an owner call.
+**What is left, and whose call it is.** The lane's own levers are measured out: the crown-veil ask is met
+(far-centre box s 0.06 / l 0.466 against the owner's 0.05 / 0.474), the LOD rungs are bracketed from both
+sides, the near-canopy tier is priced in both directions and left alone, and the owner's three poses were
+audited by eye with no lane 2 defect found (`ownerlook/`). Open, none of it this lane's to decide:
+**raise `timeout-minutes`** on the gauntlet workflow, because the branch's `cancelled` CI runs are the
+45-minute cap and not failures (`lowtier/` §2–3, and the single-load capture fix is **withdrawn** —
+`capture.mjs` tried it and abandoned it); the held **distant/mid batching** proposal (26–30 draws,
+waiting on a reason); the atlas's **leaflets at 514 ms** and the pool's **doubled budget**, both look
+calls; `castShadow` on the white-barks for fable-4; and `rec-r024-plaza-fork` in fable-cursor's pose file
+matches `r_020`, not `r_024`.
+
+**The reverted work is the other half of the record**: the first-chunk prediction built three times over
+and withdrawn at n = 4 (`poolpredict/`), `willReadFrequently` (noise), the leaflet hoist (−85 ms inside a
+±80 ms spread, for markedly worse code), the pool's doubled budget, and the single-load capture. Two
+misreadings of my own were withdrawn in the files that made them — `framecost/` §7 and `syncpath/` §6 —
+and the rule they produced is worth carrying: **read any pool number with zero renders before calling it
+a play cost, and read the comments in a file before proposing a change to it.**
 
 ## Cost and budget
 
@@ -77,6 +104,7 @@ the foot is the vegetation row and an owner call.
 
 | where | the headline |
 | --- | --- |
+| `gatesweep/` | **The LOD rung band turned on — `dither/PROPOSAL.md`'s four checks, answered, and the proposal's own defect statement corrected.** Its 1.85 % was the total difference between the shipped rungs and every tree forced high, **not the size of one step**. The step is measured by standing the camera still and walking the **gate** instead (`lodSwapM.tree` is the live array `bucketFamily` reads and `setPose` forces a rebucket), which removes the parallax a walked strip would add. **Check 4:** worst single metre 0.811 % → **0.239 %** of the frame and 28.0 % → **6.8 %** of the cell the swap lands in; off, two metres change nothing and the third changes everything, on, six small even steps. **Check 2 (crawl):** no stipple to crawl — the working crown's Laplacian energy spans 0.00465–0.00493 against the undithered build's own 0.00468–0.00477, at most **+3.4 %**, because these leaves are already alpha-tested high-frequency foliage; FXAA is the project's only AA, so this was the check most likely to fail. **Check 1:** C_lookback and F_canopy **byte-identical md5s**, A / B / D move 0.138 / 0.498 / 0.600 % at SSIM 0.9989 / 0.9964 / 0.9963, each in one cell where a crown sits mid-band, and the proposal's "suppress it under capture" fallback is **not taken**. **Check 3:** +1…+3 draws and +8 K…+98 K triangles, worst case A_stairs **561 / 8 724 803** — 139 draws and 275 197 triangles under W38. Play: 11 / 11 walks, 0 stuck, 0 page errors, +0 draws / +2 565 triangles at the flight's foot. The band covers the three `bucketFamily` families only, which the audit's new `lodBand` says out loud. |
 | `roofsky/` | Backlog item 4: the dark flat mass overhead in the open north was the **canopy roof's underside** (98.5 % of its pixels under level 30). `ROOF_SKY_THROUGH` lights it with the sky the layer transmits; the roof's own render goes 12.8 → 23.1 mean with local detail 2.90 → 4.66, and **all five distinct fixed frames are byte-identical**. |
 | `uplooks/` | Looking up under the log arch, at the bridge mid-span and on the grove shelf: local detail 5.71–6.39, no bald patch — the overhead complaint narrows to the one view already fixed. |
 | `bearings/` | The middle distance populates east, west and south too (band sd 15–23, no haze wash), so the north was not a special case. |
@@ -105,6 +133,8 @@ the foot is the vegetation row and an owner call.
 | `depthfoot/depthprobe.mjs` | Which casters the sun's depth pass pays for at a pose, and whether each one's shade is in the frame at all (frozen clock, one group switched off at a time). |
 | `depthfoot/cullcost.mjs` | The trees system's own per-frame CPU while the camera turns, at a small viewport so the cull's cost is not buried in rasterisation. |
 | `frozen.mjs` | **The harness behind every "byte-identical" claim here.** Renders a pose list (and/or fixed viewpoints) with the world clock frozen and writes draws, triangles, the trees' own submission, the casting counters and an md5 per frame. Settles *with* time so the pools swap in, then reads with `render(2, 0)`. Verified to reproduce this branch's numbers: A_stairs 575 / 8 631 286 at md5 `a280badd…`, the same bytes as the run behind the PR's table. |
+| `gatesweep/gatesweep.mjs` | **What crossing a LOD gate looks like, with the camera standing still.** Writes `lodSwapM.tree[0]` — the live array `bucketFamily` reads — and re-applies the pose to force a rebucket, so a list of gate distances re-buckets the whole world with nothing else in the frame changed, clock frozen, one page load. Prints the step-to-step SSIM and changed share, which is what tells a hard cut (one large step among zeros) from a fade (several small ones). |
+| `gatesweep/crownenergy.mjs` | **Is there any stipple to see?** The Laplacian variance of a box across a whole sweep, per build: a screen-space checker is the highest-frequency signal a raster can hold, so a dither that reads as noise cannot hide here. Use it instead of an impression whenever a change adds a discard pattern. |
 | `airlife/variantfoot.mjs` | **What one family paints, with no runtime hook.** Compares two `frozen.mjs` output directories — same pose, same frozen clock, builds differing only in that family's draw — and prints the share of pixels, the mean and max delta, the draw-call delta and both md5s. Use it instead of hiding an object whenever the system writes `visible`, `castShadow` or a material flag in its own `update()`: a runtime hide is undone before the frame draws and reads as a false zero (this is how the motes reading went wrong). |
 | `tiers/walkpool.mjs` | The pools as a WALKING player meets them: drives play mode (masking `navigator.webdriver`, or the hook never installs), holds a key for 600 sim frames and reads the pool every 60. `--dist` / `--out` walk two builds in one session. |
 | `chunkcost.mjs` | Every chunk of every pooled part's build, timed, **with no browser** — the unit tests' in-memory TS loader on the real generators. `--repeat 5` takes a median per chunk (one build times the JIT as if it were a chunk). Its limit: its synthetic trees' largest geometry chunk is 1.74 ms, so it cannot see the authored plaza giants' 4–7 ms lobe chunks. |
