@@ -86,13 +86,97 @@ made `PART5`'s first attempt and this lane's 0.5 m strip both blind to the crown
 
 on each build. A hard cut should spike; a working fade should flatten it.
 
-Two 30-frame strips, one per build, are rendering as this is written — about 40 minutes each on
-SwiftShader. **The numbers and the verdict land in the next commit on this branch.** This file is
-committed first so the conflict between #206 and this branch is on the record immediately rather than
-waiting on a render: a merger reading either branch today needs to know the other exists.
+Two 28-frame strips, one per build, 0.1 m a step, clock frozen, four cells ranked by how much the mask
+touches them over the strip:
+
+| cell | mask footprint | hard cut: worst frame / median of the others / **ratio** | band: worst frame / median / **ratio** |
+| --- | --- | --- | --- |
+| **`2,0`** | 235.97 | **44.70 %** at step 22 / 26.21 % / **1.71** | 35.12 % at step 21 / 26.54 % / **1.32** |
+| **`2,1`** | 188.05 | **39.29 %** at step 22 / 27.82 % / **1.41** | 30.17 % at step 9 / 27.30 % / **1.11** |
+| `5,1` | 236.18 | 33.03 % at step 9 / 28.48 % / 1.16 | 32.03 % at step 1 / 27.87 % / 1.15 |
+| `5,2` | 61.12 | 26.11 % at step 23 / 23.77 % / 1.10 | 26.32 % at step 22 / 23.70 % / 1.11 |
+
+**One frame in the hard-cut strip changes 44.70 % of a crown cell where every neighbouring frame changes
+26 %.** That is a pop, by any definition — and it lands in cells `2,0` and `2,1` at the same step 22,
+which is one tree spanning two cells. With the band, `2,0`'s largest frame falls to 35.12 % and moves a
+step earlier (a tree enters the band 1.25 m before the gate), and `2,1`'s step 22 falls to **25.90 %** —
+the ongoing rate exactly. **1.71 → 1.32 and 1.41 → 1.11.**
+
+Cells `5,1` and `5,2` have no crossing inside this 2.7 m window — their largest steps are 1.10–1.16× and
+one of them is the strip's first frame — and the band is flat there too, which is the control this table
+needed: the band acts where a crossing happens and nowhere else.
+
+## 5. #206's arithmetic and mine are the same event; only the denominator differs
+
+The two readings reconcile exactly, and it is worth doing because it names the error precisely rather than
+just disagreeing. A grid cell is **1/64 of the frame, 1.56 %**. #206's swap costs **0.22 % of the frame**
+concentrated in one crown, so as a share **of the cell that holds it** that is 0.22 / 1.56 ≈ **14 % of the
+cell** — and the excess measured above is 44.70 − 26.21 = **18.5 points of the cell**. Same event, same
+size, two denominators.
+
+So the error in *"0.22 % against 46 %, therefore 0.5 % of what a walking frame carries"* is that it
+divides a **concentrated** change by a **diffuse** one. The 46 % is spread over the whole screen and is
+mostly ground going past underfoot; the 0.22 % is packed into about a sixtieth of the screen. Dividing
+them understates the concentrated one by roughly the ratio of the two areas — here about 60×, which is
+why the same event reads as "0.5 % of the motion" one way and "a 71 % excess over the local rate" the
+other. **The local rate is the one an eye uses**, because a discontinuity is seen against its own
+surroundings, not against the average of the screen.
+
+## 6. And a human-scale check: the clip, at real speed
+
+Numbers established that a discontinuity exists. Whether it is *visible* is a question for eyes, so the
+28 frames of each build were rendered to a **side-by-side clip at the real 30 fps** and reviewed without
+being told which side was which beyond the labels (`rung-swap-realtime.mp4`, also in the PR):
+
+- the hard cut's pop is **"a very obvious, abrupt one-frame change… the tree crown slightly right of
+  centre suddenly jumps from sparse foliage to a much denser, fuller canopy. It is a very clear and
+  noticeable pop."**
+- with the band **"that sudden one-frame pop is absent. Instead, the additional foliage fades in gradually
+  over the frames leading up to the halfway point."**
+
+**And a correction to my own claim from earlier today.** `gatesweep/` §2 concluded "no stipple" from the
+crown's Laplacian energy moving at most +3.4 %, and `bandwalk/` §4 said the banded crown reads "fuller,
+not stippled" from still crops. In motion a reviewer **does** see it: *"a subtle stipple/checkerboard
+pattern is visible… but only on the new foliage during the frames where it is actively transitioning…
+a mild grainy or 'fizzing' effect"*, and explicitly **not** severe or distracting swimming, helped by the
+distance and the height fog. So the honest statement is **not** that there is no stipple — it is that the
+stipple is small enough to sit under a static energy measurement, is confined to the foliage that is
+fading and to the frames it is fading in, and is far less objectionable than the pop it replaces. My
+"no stipple" phrasing was too strong and is corrected in both files.
+
+## 7. The verdict
+
+**The fade stays on.** #206's measurements were sound and its correction of the proposal came first, but
+its decisive ratio compared a concentrated change with a diffuse one, and with the denominator an eye
+actually uses the event is a 71 % excess over the local rate rather than 0.5 % of the motion — and at real
+speed it is, in an independent reviewer's words, "a very clear and noticeable pop". The band removes it
+for a mild transient grain on the fading foliage, three sealed frames moving 0.39–1.76 % of their pixels
+at >2/255 (two of five byte-identical), `D_log` about 0.003 further from its reference, and +1 to +3 draws
+with +8 K to +98 K triangles against 139 draws and 0.275 M of W38 headroom.
+
+**What fable-cursor needs from this:** #206 is superseded and its branch can be closed — I am not closing
+anyone's PR. If the owner would rather not spend a sealed frame's 1.76 % on a temporal improvement, the
+way back is one line, `TREE_LOD_DITHER = false`, and `lodFade.test.mjs` already passes either way.
 
 ## Files
 
 - `spikeratio.mjs` — §4's tool.
-- `spikeratio.json` — §4's series and ratios.
-- `strip-frame-band.json`, `strip-frame-noband.json` — the two 30-frame strips at 0.1 m.
+- `spikeratio.json` — §4's full per-step series and ratios, all four cells, both builds.
+- `strip-frame-band.json`, `strip-frame-noband.json` — the two 28-frame strips at 0.1 m.
+- `pop-noband.jpg`, `pop-band.jpg` — steps 21, 22, 23 either side of the crossing, on each build.
+- `rung-swap-realtime.mp4` — §6's clip: the two builds side by side at 30 fps, the strip looped four
+  times so a 0.9-second event is watchable without being slowed down.
+
+## Reproducing
+
+```bash
+npm run build                                   # band on
+npx vite build --outDir dist-nodither           # with TREE_LOD_DITHER = false
+P="--pose art/environment/owner-2026-09-23/pass3/owner-0650-poses.json --poseName owner-0650-north --steps 30 --stride 0.1 --settle 8"
+node art/environment/squad2-2026-09-23/bandwalk/walkstrip.mjs dist          /tmp/frame-band   $P
+node art/environment/squad2-2026-09-23/bandwalk/walkstrip.mjs dist-nodither /tmp/frame-noband $P
+node art/environment/squad2-2026-09-23/bandwalk/spikeratio.mjs --band /tmp/frame-band --noband /tmp/frame-noband --cells 4
+```
+
+`--from <metres>` on `walkstrip.mjs` starts a fine strip where a coarse one found the crossing. Two Chrome
+jobs at once and no more; each 28-frame strip is about 40 minutes on SwiftShader.

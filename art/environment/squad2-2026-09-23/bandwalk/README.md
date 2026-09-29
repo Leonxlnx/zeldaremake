@@ -79,8 +79,14 @@ mechanism is live at every step, not just at one crossing.
 <img alt="step 6 crown, band off and on" src="crown-walk-step6.jpg" />
 
 At +3.0 m, with the mask covering 31 % of cell `2,0`, the banded crown reads **fuller and slightly more
-structured** — not stippled. No checkerboard, no speckle, nothing that reads as noise. Same at +3.5 m on
-the other crown (`crown-walk-step7.jpg`, mask footprint 27 % of cell `5,1`).
+structured**. Same at +3.5 m on the other crown (`crown-walk-step7.jpg`, mask footprint 27 % of cell
+`5,1`).
+
+**"No checkerboard, no speckle" — said here first, and too strongly; see `RECONCILING-206.md` §6.** These
+are stills, and stills cannot answer a question about motion. Reviewed as a clip at the real 30 fps, a mild
+grain *is* visible on the foliage while it fades, and only while it fades. The correct claim is that the
+stipple is **small and transient**, which is what the +3.4 % energy bound actually supports — not that it
+is absent.
 
 ## 5. What this does and does not establish
 

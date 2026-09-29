@@ -56,6 +56,8 @@ const settle = Number(flag('settle', 8));
 const quality = flag('quality', 'high');
 const steps = Number(flag('steps', 8));
 const stride = Number(flag('stride', 0.5));
+/** metres to advance before the first frame, so a fine strip can start where a coarse one found the swap */
+const from = Number(flag('from', 0));
 const grid = Number(flag('grid', 8));
 const poseFile = flag('pose');
 const poseName = flag('poseName', null);
@@ -73,8 +75,8 @@ const dir = (() => {
   return d.map((v) => v / n);
 })();
 const poseAt = (k) => ({
-  p: base.p.map((v, i) => v + dir[i] * stride * k),
-  t: base.t.map((v, i) => v + dir[i] * stride * k),
+  p: base.p.map((v, i) => v + dir[i] * (from + stride * k)),
+  t: base.t.map((v, i) => v + dir[i] * (from + stride * k)),
   fov: base.fov ?? 46,
 });
 
@@ -103,8 +105,8 @@ try {
     const png = await page.screenshot({ type: 'png' });
     const file = path.join(out, `step-${String(k).padStart(2, '0')}.png`);
     fs.writeFileSync(file, png);
-    rows.push({ step: k, advanced: Number((stride * k).toFixed(2)), ...stats, file, md5: crypto.createHash('md5').update(png).digest('hex') });
-    console.error(`step ${k} (+${(stride * k).toFixed(1)} m) ${stats.draws}/${stats.triangles}`);
+    rows.push({ step: k, advanced: Number((from + stride * k).toFixed(2)), ...stats, file, md5: crypto.createHash('md5').update(png).digest('hex') });
+    console.error(`step ${k} (+${(from + stride * k).toFixed(3)} m) ${stats.draws}/${stats.triangles}`);
   }
 } finally {
   await browser.close();

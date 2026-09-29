@@ -95,6 +95,14 @@ the band at every one of eight steps** (by 0.10 to 2.59 points). A crawl would b
 also records the metric that had to be thrown away first — the worst cell of a walked strip is always
 foreground, where half a metre changes 91–95 % of the pixels and no rung band reaches.
 
+**And "no stipple" above is too strong — corrected in `../bandwalk/RECONCILING-206.md` §6.** Watching the
+crossing as a clip at the real 30 fps, a reviewer *does* see it: a mild grain, *"only on the new foliage
+during the frames where it is actively transitioning"*, explicitly not severe or swimming. So the +3.4 %
+of Laplacian energy is a true bound and the right reading of it is **the stipple is small and transient,
+not absent** — and much less objectionable than the pop it replaces, which the same reviewer called *"a
+very clear and noticeable pop"*. A static energy measurement cannot answer a question about motion; it can
+only bound it.
+
 ## 3. Check 1 — the fixed frames: two do not move at all, three move 0.14–0.60 %
 
 `frozen.mjs` on the two builds, five distinct fixed frames, clock frozen, same run each side:
