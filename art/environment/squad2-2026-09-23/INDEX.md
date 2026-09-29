@@ -1,11 +1,14 @@
 # Lane 2's evidence, indexed
 
-`README.md` in this directory is the mid-canopy round's write-up, not a map (it now opens with a pointer here). This is the map: 40
-measurement directories and 33 tools, with the headline of each, so another lane can find a number
-without opening all of them. Newest first within each group.
+`README.md` in this directory is the mid-canopy round's write-up, not a map (it now opens with a pointer here). This is the map: every
+measurement directory and every tool in this lane's evidence, with the headline of each, so another lane can
+find a number without opening all of them. Newest first within each group.
 
-**Where the lane stands on 2026-09-28** (branch `cursor/squad2-treephases-682b`, PR #210). Three things.
-Two are pixel-identical: the sun's depth pass no longer pays for shade the frame cannot see (79–193 K a
+**Where the lane stands on 2026-09-29** (branch `cursor/squad2-treephases-682b`, PR #210). Three things
+that change the world, plus `airlife/` — which measures other lanes' work and **withdraws a claim of mine**:
+the motes paint after all (559 → 558 draws with their draw suppressed), and the zero I reported was my
+probe's object-level hide being undone by `motes.ts`'s own `update()`.
+Of the three, two are pixel-identical: the sun's depth pass no longer pays for shade the frame cannot see (79–193 K a
 pose in play, up to 121 K at a fixed view), and the near-LOD builder is cheaper to run (**−14 % in time,
 −20 % in garbage**, a whole build **−18 % / −21 %** at median and p95 — `chunks/`). The third is a
 measured trade inside the lane's budget: the distant crowns were being **drawn twice** (three's two-pass
