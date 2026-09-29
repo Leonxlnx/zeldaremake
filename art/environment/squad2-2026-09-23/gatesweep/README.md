@@ -144,6 +144,15 @@ The rung this fixes is the one that mattered: `lodcheck/` attributed essentially
 rung error to the white-barks' and columns' **high→medium** swap, which is the near gate of exactly
 these three families.
 
+**The shipped build reproduces the tested one.** §3's numbers were read from a build made only to test the
+flag; the committed build also carries the audit's new `lodBand` key. Re-read on it, A_stairs comes back
+at **561 / 8 724 803 and md5 `e72a8dff4d0b31111684b8e31d586d79`** — the same bytes as the tested build, so
+the audit key costs nothing and changes nothing. D_log's md5 differs between those two runs
+(`a2d2cb2d…` against `a1c05849…`) at identical draws and triangles, which is `frozen.mjs`'s documented
+run-order effect rather than a build difference: pool residency carries between poses, and in one run
+D_log was the fourth pose visited and in the other the second. It is why a comparison has to stay inside
+one run of the script, which §1–§3 all do.
+
 ## 6. Behaviour, and what the band costs in play
 
 `playtest.mjs --only look,walk,perf` on the shipped build against this morning's recorded run of the
