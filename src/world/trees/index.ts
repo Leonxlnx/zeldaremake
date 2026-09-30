@@ -2678,20 +2678,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mesh.userData.hull = geometryHull(w.lods[l].geometry);
         w.meshes.push(mesh);
         parent.add(mesh);
-        /**
-         * Round 53 gave the WHITE-BARKS' high bucket a medium-geometry twin to cast from, for the
-         * instances the frustum rejects whose shade still reaches the frame, and the condition was never
-         * widened. The columns and the understory want it for the same reason and at the same price: at
-         * hero A `column-lod0` submits **230 360 depth triangles against 160 934 in colour**, and the
-         * difference is out-of-view instances casting the full high rung. A tree nobody can see does not
-         * need its high silhouette to lay shade.
-         *
-         * The band does not interfere. `aLodDrop` lives on the geometry, which the proxy shares with the
-         * lod1 mesh in a different instance order — but `injectLodDrop` is colour-pass only (see
-         * `materials.ts`, which says so and why), and the proxy's own colour material is the plain
-         * `shadowOnlyMaterial`, which never reads it.
-         */
-        if (l === 0 && ctx.quality.shadows) {
+        if (label === 'whitebark' && l === 0 && ctx.quality.shadows) {
           const proxy = new InstancedMesh(w.lods[1].geometry, shadowOnlyMaterial, n);
           proxy.name = `${label}-${(w.params as { seed: string }).seed}-high-shadow`;
           proxy.customDepthMaterial = depth;
@@ -5005,8 +4992,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // each — and neither had a family.
     claim(family('whitebark-roots'), whiteBarkRoots);
     for (const w of whites) if (w.shadowProxy) claim(family('whitebark-shadow'), w.shadowProxy);
-    for (const c of seatedColumns) if (c.shadowProxy) claim(family('column-shadow'), c.shadowProxy);
-    for (const u of understory) if (u.shadowProxy) claim(family('understory-shadow'), u.shadowProxy);
     sectorMeshes.forEach((m) => claim(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
       const layer = d.variant.kind === 'mid' ? 'mid' : 'distant';
