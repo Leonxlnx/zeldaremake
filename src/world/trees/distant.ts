@@ -625,20 +625,11 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     s.uniforms.uCrownSun = { value: sunDir.clone().normalize() };
     s.vertexShader =
       WIND_GLSL +
-      'attribute vec3 aWind;\nattribute vec4 aRoot;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\n' +
+      'attribute vec3 aWind;\nattribute vec4 aRoot;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\n' +
       s.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
-    // A wood vertex is tagged aRoot.w <= 0 and the BARK specifically at -0.45 (solidUv, and the design
-    // note above). Until 2026-09-30 the distant and mid meshes carried two material groups so the wood
-    // had its own plain material; one material is 16 draws cheaper at hero A (see onemat/), and the price
-    // is this branch: every crown term below is for cards and lobe cores, and bark takes none of them, so
-    // it renders as mats.distant rendered it.
-    vCrownWood = aRoot.w < -0.2 ? 1.0 : 0.0;
-    if (vCrownWood > 0.5) {
-      vCrownOff = vec3(0.0, 0.0, 0.0);
-      vCrownJit = vec2(0.0, 0.0);
-    } else {
+    {
       vec4 crownC = vec4(aRoot.xyz, 1.0);
       vec4 crownP = vec4(transformed, 1.0);
       float crownS = 1.0;
@@ -661,29 +652,23 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       vec2 seed = crownC.xz;
       vCrownJit = vec2(fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453), fract(sin(dot(seed, vec2(39.3468, 11.135))) * 24634.6345));
     }
-    // bark takes no wind here: the plain material it used to be drawn by had none bound
     `,
       );
     s.fragmentShader =
-      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\nfloat crownSunLit = 0.0;\n' +
+      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nfloat crownSunLit = 0.0;\n' +
       s.fragmentShader
         .replace(
           '#include <map_fragment>',
           /* glsl */ `
     #ifdef USE_MAP
-      // bark points its uv at the CLUSTER atlas's opaque WHITE patch (SOLID_UV), and this material's
-      // atlas has no such patch: createFarCrownAtlas clears that corner and its cell crops cover it, so
-      // sampling there returns transparent and CROWN_ALPHA_TEST would discard the trunk outright. White
-      // times the vertex colour IS the vertex colour, so skipping the sample is what the plain material
-      // did.
-      if (vCrownWood < 0.5) diffuseColor *= texture2D(map, vMapUv, ${f(CROWN_MIP_BIAS)});
+      diffuseColor *= texture2D(map, vMapUv, ${f(CROWN_MIP_BIAS)});
     #endif
     `,
         )
         .replace(
           '#include <color_fragment>',
           /* glsl */ `#include <color_fragment>
-    if (vCrownWood < 0.5) {
+    {
       float rr = clamp(length(vCrownOff), 0.0, 1.5);
       vec3 hue = mix(vec3(1.08, 1.0, 0.86), vec3(0.9, 1.0, 1.14), vCrownJit.x);
       diffuseColor.rgb *= mix(vec3(1.0), hue, ${f(CROWN_JITTER[0])}) * (1.0 + (vCrownJit.y - 0.5) * ${f(2 * CROWN_JITTER[1])});
@@ -722,7 +707,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
           '#include <fog_fragment>',
           /* glsl */ `vec3 crownPreFog = gl_FragColor.rgb;
     #include <fog_fragment>
-    if (vCrownWood < 0.5) {
+    {
       // CROWN_UNDER_FOG_CUT: a crown overhead inside the shade gate keeps part of its own shade
       float roofNearF = 1.0 - smoothstep(${f(shadeM[0])}, ${f(shadeM[1])}, length(vViewPosition));
       float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
@@ -734,7 +719,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         .replace(
           '#include <normal_fragment_begin>',
           /* glsl */ `#include <normal_fragment_begin>
-    if (vCrownWood < 0.5) {
+    {
       vec3 sphereW = normalize(vCrownOff * vec3(1.0, 0.8, 1.0) + vec3(0.0, 0.32, 0.0));
       vec3 sphereV = normalize(mat3(viewMatrix) * sphereW);
       // CROWN_FLOOR_OWN_NORMAL: inside the gate a floor card seen from below keeps its own normal —
@@ -752,7 +737,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
           '#include <emissivemap_fragment>',
           /* glsl */ `#include <emissivemap_fragment>
     #if NUM_DIR_LIGHTS > 0
-    if (vCrownWood < 0.5) {
+    {
       float rr = clamp(length(vCrownOff), 0.0, 1.5);
       float rim = smoothstep(0.5, 1.05, rr) * crownSunLit;
       totalEmissiveRadiance += directionalLights[0].color * diffuseColor.rgb * rim * ${f(rimShare)};
