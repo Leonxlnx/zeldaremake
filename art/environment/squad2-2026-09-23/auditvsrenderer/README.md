@@ -86,6 +86,42 @@ Two candidate depth models, computed beside the one in use and both **insufficie
   the 233 272** and **73 040 of the 140 336**. Directionally right, less than half the size. Adopting it would
   fit one number and miss the other, so it is reported rather than adopted.
 
+### The shortfall is in six authored families and in nothing the LOD gates touch
+
+*2026-09-30 13:30 UTC.* `?treelod=<scale>` multiplies every rung gate, so `0.01` empties the high rung
+entirely and `10` puts every tree on it. Run at hero A against the renderer, all three configurations:
+
+| | audit | renderer | gap |
+| --- | --- | --- | --- |
+| shipped | 139 / 2 423 420 (91 colour + 48 depth) | 140 / 2 656 488 | **+1 call / +233 068** |
+| `treelod=0.01` — high rung empty | 95 / 1 500 198 (71 + 24) | 96 / 1 733 266 | **+1 call / +233 068** |
+| `treelod=10` — everything high | 123 / 4 421 500 (70 + 53) | 124 / 4 654 568 | **+1 call / +233 068** |
+
+**Identical to the digit** while the trees' own triangles run from 1.5 M to 4.4 M and the depth calls from 24
+to 53. A shortfall that survives emptying the rung families is not a per-family modelling error in them. And it
+is *pose*-dependent (233 068 at hero A, 140 336 at `stairs1-top`, 120 931 at `stairs2-top`), so it is not a
+constant overhead either.
+
+`byFamily` says exactly which families survive `treelod=0.01` — the authored and pool-built ones, which no gate
+moves:
+
+| family | shipped depth | `treelod=0.01` |
+| --- | --- | --- |
+| `giant-wood` | 270 625 | **270 625** |
+| `giant-far-foliage-batch` | 124 240 | **124 240** |
+| `giant-near-base` | 67 507 | **67 507** |
+| `column-near-base` | 59 228 | **59 228** |
+| `giant-cards` | 11 618 | **11 618** |
+| `whitebark-roots` | 9 664 | **9 664** |
+| `column-lod0` · `column-lod1` · `whitebark-lod0` · `understory-lod0/1` · `whitebark-shadow` | 230 360 · 47 500 · 100 578 · 34 998 · 17 479 · 70 128 | **0** |
+| **total** | 1 043 925 | **542 882** |
+
+Those six sum to 542 882 — the whole `treelod=0.01` depth total — so the **233 272 shortfall is 43 % of six
+named families**, and their *colour* submission is exact (the `shadow=0` run above). The search is now six
+meshes' depth submission rather than the whole system, and the two candidates already refused stay refused: the
+batch's full lobe set would owe 159 760, which is 68 % of the shortfall at hero A but **more than all of it**
+at `stairs2-top` (169 480 against 120 931).
+
 **Where the next hour goes.** The `shadow=0` run validates `perInstance` only for meshes that appear in the
 **colour** pass, so the families that appear *only* in depth are untested by it. `byFamily` now carries
 `colourTriangles` and `depthTriangles` apart, which names them — hero A, every family with a depth draw:
@@ -106,10 +142,10 @@ Two candidate depth models, computed beside the one in use and both **insufficie
 | `whitebark-roots` | 1 | 9 664 | 9 664 |
 | **total** | **48** | **1 043 925** | against the renderer's **1 277 197** |
 
-The two rows with no colour triangles are the untested ones: `whitebark-shadow` (the `proxydraw/` proxies) and
-`giant-near-base`, together **137 635**, the same order as the 233 272 shortfall. The remainder after
-`depthTrisBatchFull` is 73 512 at A and 67 296 at `stairs1-top`, both within a few per cent of
-`giant-near-base`'s 67 507.
+The two rows with no colour triangles are the ones a colour-only run cannot test: `whitebark-shadow` (the
+`proxydraw/` proxies) and `giant-near-base`. **The `treelod` bracket above narrows it further and retires half
+of that guess**: `whitebark-shadow` is gone at `treelod=0.01` and the shortfall did not move, so the proxies
+are **not** in it. `giant-near-base` survives and stays a suspect, at 67 507 of the 233 272.
 
 Pricing them needs per-family truth, which `isolate()` cannot give — it matches `scene.children` by name. The
 instrument that would is a debug switch in this lane's own file turning `castShadow` off one family at a time
