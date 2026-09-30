@@ -79,6 +79,30 @@ lod1 mesh uses — so the proxy's instances would read the lod1 mesh's fade valu
 the same branch that created it. **Read the comments in the file a proposal is aimed at** — this lane's own
 standing rule, nearly broken again.
 
+## A method finding the revert produced: counts reproduce across runs, pixels do not
+
+The revert restores hero A to **561 draws / 8 724 803 triangles / trees 2 423 420 — the before values to the
+triangle** — and `git diff` says its `src/` is byte-identical to the commit before the attempt. But its md5s
+differ from that commit's own earlier run at **both** poses (A_stairs `a2dab090` against `e72a8dff`,
+`stairs1-top` `8318ef2c` against `54a01171`).
+
+So identical source at the same pose in the same list position can render different pixels while agreeing
+exactly on draws and triangles. What differed is the run: the before/after pair were launched **together**,
+the revert check ran **alone**. The leading explanation is the LOD pool's wall-clock budget — `nearCanopy`
+reports `starved` 16 in one probe and 21 in another — carrying load-dependent state from the first pose into
+the second. Stated as the observation, not the diagnosis.
+
+Which claims this touches, precisely:
+
+- **Survives.** `proxydraw/`'s byte-identity used a **one-pose** list and reproduced `c2d51f15…` across three
+  separate runs, two concurrent and one alone. A one-pose list settles before the shot with no earlier pose's
+  pool state to inherit.
+- **Survives.** This round's `stairs1-top` byte-identity (`54a01171` on both builds) and the hero A diff are
+  from a **single paired run** on one list, which is the comparison the numbers came from.
+- **Needs the caveat.** Any md5 compared across *separate* runs on a multi-pose list. This lane's standing rule
+  was "same list, same order"; that is necessary and **not sufficient**. The stronger rule: compare pixels
+  only within one paired run, or use a one-pose list.
+
 ## Reproducing
 
 ```bash

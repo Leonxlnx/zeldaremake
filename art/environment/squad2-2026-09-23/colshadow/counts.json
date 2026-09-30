@@ -29,5 +29,19 @@
    "meanDelta": 33.0
   }
  },
- "verdict": "reverted in b412d938 \u2014 the foreground dapple is gone"
+ "verdict": "reverted in b412d938 \u2014 the foreground dapple is gone",
+ "revertCheck": {
+  "commit": "b412d938",
+  "srcIdenticalTo": "9594cf13",
+  "draws": 561,
+  "triangles": 8724803,
+  "treeTriangles": 2423420,
+  "md5": "a2dab090a7bbd7233e85e009c727807f",
+  "note": "counts restored to the triangle; md5 differs from 9594cf13\u2019s own earlier run (e72a8dff) \u2014 pixels do not reproduce across separate runs on a multi-pose list"
+ },
+ "stairs1Top": {
+  "beforeMd5": "54a01171b5b6dbb40458bb513d8c03f0",
+  "afterMd5": "54a01171b5b6dbb40458bb513d8c03f0",
+  "note": "byte-identical within the paired run; no out-of-view high-rung instances at this pose"
+ }
 }
