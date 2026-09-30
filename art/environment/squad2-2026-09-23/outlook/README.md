@@ -213,7 +213,15 @@ fixed views — the ones W38 is written for — on the shipped head:
 | F_canopy | 500 | 10 | 20 | 30 | 6.0 % | 474 |
 
 Two draws a mesh now (§5 took the third), and **the mid layer is a flat 20 at every view**: all ten of its
-meshes always have instances, so it never culls at the mesh level. The two layers are **5.7–7.3 % of every
+meshes always have instances, so it never culls at the mesh level.
+
+> **STALE, 2026-09-30 — the table above is a factor of two out on the saving** (`../batching/`). Those counts
+> are two calls per mesh, colour *and* depth. §2's depth-pass culls later removed the depth submission for both
+> layers, so the audit reads **one call per mesh** now: **16 draws for the two layers at A_stairs, not 32**, and
+> the same 15–16 at the heaviest play frames. The batched saving is therefore **12 draws, not 28** — A_stairs
+> 561 → 549 rather than 559 → 531. **The hold below still stands, on better ground**: 12 draws against the 35
+> of headroom at `stairs1-top`, the tightest frame measured anywhere, in exchange for the same rewrite and the
+> same `WEBGL_multi_draw` risk. The two layers are **5.7–7.3 % of every
 hero view's draw calls** for 29–44 K triangles, and both are real content — 0.4–4.5 % of the pixels for the
 ring, 2.1–10.1 % for the mid layer. This is a submission-cost change, not a look one.
 
