@@ -51,13 +51,14 @@ frame's triangles between them with no figure of their own.
 ## The one lead worth another lane's hour
 
 **`character` is 63 draws for 179 984 triangles — 11.4 % of the frame's draws for 2.1 % of its triangles.**
-At **2 857 triangles a draw** it is now the thinnest ratio in the frame, the position the canopy roof held until
+At **2 856 triangles a draw** it is now the thinnest ratio in the frame, the position the canopy roof held until
 `roofdraws/` merged it (1 173 a draw, seven draws to one, −6 at every pose). Triangles-per-draw across the
 frame at hero A:
 
-| | `atmosphere` | **`character`** | `props` | `rocks` | `canopy` | `structures` | `trees` | `vegetation` | `hardscape` |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| triangles a draw | 1 704 | **2 857** | 6 517 | 7 474 | 8 210 | 16 875 | 18 975 | 19 331 | 34 968 |
+| | `atmosphere` | **`character`** | `props` | `rocks` | `canopy` | `structures` | `trees` | `terrain` | `vegetation` | `hardscape` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| triangles a draw | 1 704 | **2 856** | 6 516 | 7 473 | 8 210 | 16 875 | 18 974 | 19 038 | 19 331 | 34 968 |
+| draws | 4 | **63** | 15 | 31 | 1 | 119 | 140 | 33 | 127 | 15 |
 
 Draws are the scarce resource where this world is tight: `lookspots/` found `stairs1-top` at **655 of W38's
 700**, 45 spare. 63 of them going to one character is worth its owner's attention — though a rigged GLB with
