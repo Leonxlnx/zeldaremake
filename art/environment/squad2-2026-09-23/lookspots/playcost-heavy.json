@@ -1,0 +1,142 @@
+[
+ {
+  "name": "stairs2-top",
+  "pose": {
+   "p": [
+    19.837,
+    7.15,
+    -9.879
+   ],
+   "t": [
+    16.447,
+    6.9,
+    -7.234
+   ],
+   "fov": 46
+  },
+  "drawn": {
+   "draws": 651,
+   "triangles": 11841590
+  },
+  "parts": [
+   {
+    "system": "vegetation",
+    "drawCalls": 152,
+    "triangles": 4602423,
+    "found": true
+   },
+   {
+    "system": "trees",
+    "drawCalls": 129,
+    "triangles": 3004341,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 160,
+    "triangles": 2265341,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 38,
+    "triangles": 748082,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 20,
+    "triangles": 516695,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 36,
+    "triangles": 494080,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 80,
+    "triangles": 205046,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 20,
+    "triangles": 109658,
+    "found": true
+   }
+  ]
+ },
+ {
+  "name": "stairs1-top",
+  "pose": {
+   "p": [
+    -20.368,
+    3.7,
+    20.588
+   ],
+   "t": [
+    -17.327,
+    3.45,
+    17.547
+   ],
+   "fov": 46
+  },
+  "drawn": {
+   "draws": 665,
+   "triangles": 9875709
+  },
+  "parts": [
+   {
+    "system": "trees",
+    "drawCalls": 151,
+    "triangles": 3625772,
+    "found": true
+   },
+   {
+    "system": "vegetation",
+    "drawCalls": 162,
+    "triangles": 2399338,
+    "found": true
+   },
+   {
+    "system": "structures",
+    "drawCalls": 138,
+    "triangles": 2088156,
+    "found": true
+   },
+   {
+    "system": "terrain",
+    "drawCalls": 41,
+    "triangles": 810290,
+    "found": true
+   },
+   {
+    "system": "hardscape",
+    "drawCalls": 22,
+    "triangles": 346247,
+    "found": true
+   },
+   {
+    "system": "rocks",
+    "drawCalls": 30,
+    "triangles": 304580,
+    "found": true
+   },
+   {
+    "system": "character",
+    "drawCalls": 78,
+    "triangles": 205284,
+    "found": true
+   },
+   {
+    "system": "props",
+    "drawCalls": 24,
+    "triangles": 118144,
+    "found": true
+   }
+  ]
+ }
+]

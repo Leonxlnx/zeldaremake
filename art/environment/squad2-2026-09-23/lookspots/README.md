@@ -45,10 +45,24 @@ certainly goes — the frame is nearly black. Two independent measurements, neit
 And the clue to the cause is in the same record: **`clearance.nearestM` is 0.375** — geometry 37 cm from the
 camera, against 0.93–4.02 m at the other nine. The camera is not underground (1.579 m above its ground), so
 the candidate is **the follow camera lodged against or inside something** when it swings behind Link at the
-stair foot. That is `src/camera/follow.ts`, which fable-cursor owns. A one-frame test is rendering as this is
-written: the same aim with the camera stepped 2 m and 3.5 m toward Link, which separates an occluder at the
-camera from a lighting failure at the place. **The result is in the next commit, and the candidate above is
-not a diagnosis until then.**
+stair foot. That is `src/camera/follow.ts`, which fable-cursor owns. The test that separates an occluder at
+the camera from a lighting failure at the place is the same aim with the camera stepped toward Link, and
+**it lands on the occluder:**
+
+| | band mean | across-col sd | within-col sd | whole-frame mean | local detail |
+| --- | --- | --- | --- | --- | --- |
+| the camera as recorded | **19.1** | **0.77** | 1.88 | 23.8 | **0.54** |
+| the same aim, **2 m toward Link** | **62.9** | **11.64** | 25.82 | 56.1 | **4.13** |
+
+<img alt="stairs1-base as recorded and with the camera 2 m forward" src="stairs1-base-occluder.jpg" />
+
+Two metres forward on the same aim and the frame is normally lit and structured. Nothing about the *place* is
+dark; something is against the lens. And **local detail 0.54 is below the 2 that `uplooks/` calls a flat
+slab** — the frame is the inside face of an opaque object, which is exactly what `nearestM 0.375` says.
+
+**So the play-mode follow camera at `stairs1-base` ends up inside or immediately behind an occluder and its
+push-out does not resolve it.** The 2 m step is a measurement, not a proposed fix — where the camera should go
+is the camera owner's call.
 
 **The second finding is the harness.** `playtest.mjs` recorded that exposure and that 0.375 m clearance and
 **flagged neither** — `flags: None` at every spot. So "10 look spots unflagged" has been reporting less than
@@ -69,7 +83,20 @@ frames a player actually gets there.
 
 **It is not mostly trees.** The trees' own row is **3.18–3.97 M across all ten**, essentially flat, so at
 stairs2-top they are 30 % of an 11.84 M frame and something else contributes 8.3 M.
-`playcost.mjs` is attributing it per system as this is written; that number is the one to hand to lane 10.
+`playcost.mjs` attributes it per system with `isolate()`, one system at a time:
+
+| system | stairs2-top | stairs1-top |
+| --- | --- | --- |
+| **vegetation** | **4.602 M / 152 draws** | 2.399 M / 162 |
+| trees | 3.004 M / 129 | **3.626 M / 151** |
+| structures | 2.265 M / 160 | 2.088 M / 138 |
+| terrain · hardscape · rocks | 0.748 · 0.517 · 0.494 M | 0.810 · 0.346 · 0.305 M |
+| character · props | 0.205 · 0.110 M | 0.205 · 0.118 M |
+
+**At the 11.84 M frame vegetation is the largest single contributor at 4.60 M** — 39 % of it, half again the
+trees' 3.00 M. At stairs1-top the order reverses and the trees lead at 3.63 M. So one is vegetation-first and
+the other trees-first, and neither is one system's fault: three systems supply 8.2–9.9 M of each frame between
+them. For **lane 4** and **lane 10**.
 
 <img alt="stairs2-top, 651 draws and 11.84 M triangles" src="stairs2-top.png" />
 
