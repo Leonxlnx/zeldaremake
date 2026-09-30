@@ -23,7 +23,7 @@ const source = readFileSync(path.join(here, 'lodFade.ts'), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const mod = {};
 new Function('exports', js)(mod);
-const { bandOverlaps, lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } = mod;
+const { bandOverlaps, lodSlots, lodWeightKey, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } = mod;
 
 const GATES = [32, 44];
 /**
@@ -144,12 +144,49 @@ test('a zero band is the hard cut, even with the flag on', () => {
  */
 const indexSource = readFileSync(path.join(here, 'index.ts'), 'utf8');
 
+/**
+ * The weight key. `bucketFamily` stores a banded placement's weight under it and `fillFamily` reads it back;
+ * until 2026-09-30 both wrote the arithmetic out by hand, and if the two had ever drifted every banded tree
+ * would have fallen back to the default weight of 1 — the fade silently off, the frame still plausible.
+ */
+test('the weight key is injective over every rung and placement', () => {
+  for (const count of [1, 2, 11, 400, 28818]) {
+    const seen = new Map();
+    // dedup: for small counts these sample points coincide, and a value colliding with itself is not a bug
+    const indices = [...new Set([0, 1, Math.floor(count / 2), count - 1])].filter((i) => i >= 0 && i < count);
+    for (const level of [0, 1, 2]) {
+      for (const index of indices) {
+        const key = lodWeightKey(level, count, index);
+        assert.equal(seen.has(key), false, `count=${count}: (${level},${index}) collides with ${JSON.stringify(seen.get(key))}`);
+        seen.set(key, [level, index]);
+      }
+    }
+  }
+});
+
+test('a write and a read of the same placement agree, which is the point of sharing the function', () => {
+  const count = 400;
+  const weights = new Map();
+  // what bucketFamily does for a tree in a band: two rungs, complementary weights
+  const slots = lodSlots(32, GATES, 2.5, true);
+  for (const s of slots) weights.set(lodWeightKey(s.level, count, 137), s.weight);
+  // what fillFamily does when it fills each of those rungs
+  for (const s of slots) {
+    const read = weights.get(lodWeightKey(s.level, count, 137)) ?? 1;
+    assert.equal(read, s.weight, `rung ${s.level} read back ${read}, stored ${s.weight}`);
+    assert.ok(1 - read > 0 && 1 - read < 1, 'a banded tree must get a drop strictly between 0 and 1');
+  }
+  // a placement in no band has no entry, and the reader's default means "draw whole"
+  assert.equal(weights.get(lodWeightKey(2, count, 138)) ?? 1, 1);
+});
+
 test('the weight attribute is written only behind the flag', () => {
   const at = indexSource.indexOf('const fillFamily');
   assert.notEqual(at, -1, 'fillFamily is gone');
   const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
   assert.match(body, /if \(TREE_LOD_DITHER\) \{/, 'the attribute write must be guarded by the flag');
-  assert.match(body, /1 - \(w\.lodWeights\?\.get\(l \* w\.placements\.length \+ list\[k\]\) \?\? 1\)/, 'the attribute carries the DROP fraction, so an unrecorded tree writes 0 and draws whole');
+  assert.match(body, /1 - \(w\.lodWeights\?\.get\(lodWeightKey\(.*\)\) \?\? 1\)/, 'the attribute carries the DROP fraction, so an unrecorded tree writes 0 and draws whole');
+  assert.match(indexSource, /\.set\(lodWeightKey\(slot\.level, w\.placements\.length, i\), slot\.weight\)/, 'the write must use the shared key, not its own copy of the arithmetic');
 });
 
 test('the attribute is lazily attached and marked dynamic', () => {

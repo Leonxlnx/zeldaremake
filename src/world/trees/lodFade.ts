@@ -79,6 +79,22 @@ export function bandOverlaps(gates: readonly [number, number], band = TREE_LOD_D
   return band >= gates[1] - gates[0];
 }
 
+/**
+ * The key a placement's screen-door weight is stored under, for the rung `level` of a family holding
+ * `count` placements (`trees/index.ts` `FamilyVariant.lodWeights`).
+ *
+ * It was the same arithmetic written out twice — once where `bucketFamily` stores a weight and once where
+ * `fillFamily` reads it — which is a silent failure waiting to happen: if the two ever disagree, every
+ * banded tree gets the default weight of 1 and the fade quietly stops working while the frame still looks
+ * plausible. One function, used by both, with the flattening pinned by a test.
+ *
+ * `index` must be `< count` for the mapping to be injective, which is the whole basis of the flattening:
+ * `bucketFamily` only ever passes an index into `placements`, so that holds by construction.
+ */
+export function lodWeightKey(level: 0 | 1 | 2, count: number, index: number): number {
+  return level * count + index;
+}
+
 /** a rung a tree draws in this frame, and how much of it shows (the weights of a tree's slots sum to 1) */
 export interface LodSlot {
   level: 0 | 1 | 2;

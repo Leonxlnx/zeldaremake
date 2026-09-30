@@ -36,7 +36,7 @@ import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../
 import { inExpansionNorth } from '../layout';
 import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
-import { bandOverlaps, lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
+import { bandOverlaps, lodSlots, lodWeightKey, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -4210,7 +4210,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // drawing half; with the flag off the array is never written and never read.
         for (const slot of lodSlots(d, [lodDist[0], lodDist[1]], lodBandM)) {
           buckets[slot.level].push(i);
-          if (TREE_LOD_DITHER) (w.lodWeights ??= new Map()).set(slot.level * w.placements.length + i, slot.weight);
+          if (TREE_LOD_DITHER) (w.lodWeights ??= new Map()).set(lodWeightKey(slot.level, w.placements.length, i), slot.weight);
         }
       }
       for (let l = 0; l < 3; l++) {
@@ -4352,7 +4352,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
     if (TREE_LOD_DITHER) {
       const attr = fadeAttribute(mesh);
-      for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1));
+      for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(lodWeightKey(l as 0 | 1 | 2, w.placements.length, list[k])) ?? 1));
       attr.needsUpdate = true;
     }
     mesh.count = list.length;
