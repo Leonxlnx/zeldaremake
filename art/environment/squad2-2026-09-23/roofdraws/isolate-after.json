@@ -1,0 +1,79 @@
+{
+ "dist": "dist",
+ "quality": "high",
+ "settle": 8,
+ "system": "canopy",
+ "auditKey": "canopyRoof",
+ "rows": [
+  {
+   "view": "A_stairs",
+   "frame": {
+    "draws": 555,
+    "triangles": 8724803
+   },
+   "audit": {
+    "calls": 1,
+    "triangles": 8210,
+    "colourCalls": null,
+    "depthCalls": null,
+    "cullExempt": null,
+    "mainZero": null,
+    "noCullCalls": null,
+    "batchCulledTris": null,
+    "batchCulledTrisColour": null,
+    "batchCulledTrisDepth": null,
+    "nonIndexedLobes": null,
+    "depthTrisBatchFull": null,
+    "depthTrisNoFrustum": null,
+    "depthCallsNoFrustum": null,
+    "meshes": 1
+   },
+   "isolate": {
+    "found": true,
+    "calls": 1,
+    "triangles": 8210
+   },
+   "builtTriangles": 8210,
+   "builtMeshes": 1,
+   "gap": {
+    "calls": 0,
+    "triangles": 0
+   }
+  },
+  {
+   "view": "-20.368,3.7,20.588:-17.327,3.45,17.547",
+   "frame": {
+    "draws": 655,
+    "triangles": 9799283
+   },
+   "audit": {
+    "calls": 1,
+    "triangles": 8210,
+    "colourCalls": null,
+    "depthCalls": null,
+    "cullExempt": null,
+    "mainZero": null,
+    "noCullCalls": null,
+    "batchCulledTris": null,
+    "batchCulledTrisColour": null,
+    "batchCulledTrisDepth": null,
+    "nonIndexedLobes": null,
+    "depthTrisBatchFull": null,
+    "depthTrisNoFrustum": null,
+    "depthCallsNoFrustum": null,
+    "meshes": 1
+   },
+   "isolate": {
+    "found": true,
+    "calls": 1,
+    "triangles": 8210
+   },
+   "builtTriangles": 8210,
+   "builtMeshes": 1,
+   "gap": {
+    "calls": 0,
+    "triangles": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,114 @@
+{
+ "dist": "dist",
+ "quality": "high",
+ "settle": 8,
+ "system": "canopy",
+ "auditKey": "canopyRoof",
+ "rows": [
+  {
+   "view": "A_stairs",
+   "frame": {
+    "draws": 561,
+    "triangles": 8724803
+   },
+   "audit": {
+    "calls": null,
+    "triangles": null,
+    "colourCalls": null,
+    "depthCalls": null,
+    "cullExempt": null,
+    "mainZero": null,
+    "noCullCalls": null,
+    "batchCulledTris": null,
+    "batchCulledTrisColour": null,
+    "batchCulledTrisDepth": null,
+    "nonIndexedLobes": null,
+    "depthTrisBatchFull": null,
+    "depthTrisNoFrustum": null,
+    "depthCallsNoFrustum": null,
+    "meshes": null
+   },
+   "isolate": {
+    "found": true,
+    "calls": 7,
+    "triangles": 8210
+   },
+   "builtTriangles": 8210,
+   "builtMeshes": 7,
+   "gap": {
+    "calls": null,
+    "triangles": null
+   }
+  },
+  {
+   "view": "-20.368,3.7,20.588:-17.327,3.45,17.547",
+   "frame": {
+    "draws": 661,
+    "triangles": 9799283
+   },
+   "audit": {
+    "calls": null,
+    "triangles": null,
+    "colourCalls": null,
+    "depthCalls": null,
+    "cullExempt": null,
+    "mainZero": null,
+    "noCullCalls": null,
+    "batchCulledTris": null,
+    "batchCulledTrisColour": null,
+    "batchCulledTrisDepth": null,
+    "nonIndexedLobes": null,
+    "depthTrisBatchFull": null,
+    "depthTrisNoFrustum": null,
+    "depthCallsNoFrustum": null,
+    "meshes": null
+   },
+   "isolate": {
+    "found": true,
+    "calls": 7,
+    "triangles": 8210
+   },
+   "builtTriangles": 8210,
+   "builtMeshes": 7,
+   "gap": {
+    "calls": null,
+    "triangles": null
+   }
+  },
+  {
+   "view": "19.837,7.15,-9.879:16.447,6.9,-7.234",
+   "frame": {
+    "draws": 651,
+    "triangles": 11841590
+   },
+   "audit": {
+    "calls": null,
+    "triangles": null,
+    "colourCalls": null,
+    "depthCalls": null,
+    "cullExempt": null,
+    "mainZero": null,
+    "noCullCalls": null,
+    "batchCulledTris": null,
+    "batchCulledTrisColour": null,
+    "batchCulledTrisDepth": null,
+    "nonIndexedLobes": null,
+    "depthTrisBatchFull": null,
+    "depthTrisNoFrustum": null,
+    "depthCallsNoFrustum": null,
+    "meshes": null
+   },
+   "isolate": {
+    "found": true,
+    "calls": 7,
+    "triangles": 8210
+   },
+   "builtTriangles": 8210,
+   "builtMeshes": 7,
+   "gap": {
+    "calls": null,
+    "triangles": null
+   }
+  }
+ ]
+}
