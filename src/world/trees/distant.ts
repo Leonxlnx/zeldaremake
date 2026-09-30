@@ -817,7 +817,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     // not guaranteed brown, and the plain material never had this injection at all.
     injectTreeLeafWarmth(s, 'vCrownWood < 0.5');
   };
-  material.customProgramCacheKey = () => `trees-distant-crown-v8-wood-gain-roughness-leaf-gate${look ? `-${look.id}` : ''}`;
+  material.customProgramCacheKey = () => `trees-distant-crown-v8-wood-gain-roughness-leaf-warmth-gate${look ? `-${look.id}` : ''}`;
   wind.bind(material);
   return material;
 }
