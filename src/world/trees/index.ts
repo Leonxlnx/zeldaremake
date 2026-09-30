@@ -4814,6 +4814,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     instances: number;
     calls: number;
     triangles: number;
+    colourCalls: number;
+    depthCalls: number;
   }
   const submission = () => {
     const cam = ctx.camera;
@@ -4824,39 +4826,89 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const sc = ctx.sun.shadow.camera;
       shadow = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(sc.projectionMatrix, sc.matrixWorldInverse));
     }
-    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0 });
+    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0, colourCalls: 0, depthCalls: 0 });
     const s = new Sphere();
+    const lobe = new Sphere();
+    const lobeMatrix = new Matrix4();
+    /** meshes three never frustum-tests (`frustumCulled === false`, the BatchedMesh pattern) */
+    let cullExempt = 0;
+    /** meshes whose colour pass is skipped by a main-pass count of 0 (`proxydraw/`) */
+    let mainZero = 0;
+    /** the upper bound: every visible mesh in colour, every caster in depth, no frustum test anywhere */
+    let noCullCalls = 0;
     const add = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
       const batched = (mesh as unknown as BatchedMesh).isBatchedMesh ? (mesh as unknown as BatchedMesh) : null;
       const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
       if (!mesh.visible || inst === 0) return;
-      const bs = batched ? batched.boundingSphere : (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).boundingSphere : mesh.geometry.boundingSphere;
-      if (!bs) return;
-      s.copy(bs).applyMatrix4(mesh.matrixWorld);
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      // three's shadow pass guards on `material.visible` and so does its render list; a mesh with none
+      // visible costs nothing in either pass
+      if (!mats.some((m) => m.visible)) return;
       const g = mesh.geometry;
-      let tris = Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3) * inst;
+      const perInstance = Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+      /**
+       * The count in effect during the COLOUR pass. `installMainPassCount` swaps it in `onBeforeRender`
+       * and back in `onAfterRender`, so a bucket's shadow-only instances draw in depth and not in colour,
+       * and the white-bark shadow proxies draw in neither (`proxydraw/`).
+       */
+      const mainCount = (mesh.userData[MAIN_COUNT] as number | undefined) ?? inst;
+      if (mainCount === 0) mainZero++;
+      if (!mesh.frustumCulled) cullExempt++;
+      noCullCalls += (mainCount > 0 ? 1 : 0) + (mesh.castShadow && shadow ? 1 : 0);
+      const bs = batched ? batched.boundingSphere : (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).boundingSphere : mesh.geometry.boundingSphere;
+      // `frustumCulled === false` means three submits the object whatever the frustum says — those draws
+      // are not optional and a tally that frustum-tests them reports fewer than the renderer makes. With
+      // no bounds at all three cannot cull either.
+      const inView = !mesh.frustumCulled || !bs || (s.copy(bs).applyMatrix4(mesh.matrixWorld), view.intersectsSphere(s));
+      const inShadow = shadow !== null && (!mesh.frustumCulled || !bs || (s.copy(bs).applyMatrix4(mesh.matrixWorld), shadow.intersectsSphere(s)));
+      let colour = 0;
+      let depth = 0;
+      let colourTris = 0;
+      let depthTris = 0;
       if (batched) {
-        // a batch submits its visible instances' ranges (one multi-draw call), not its whole reserve
-        tris = 0;
+        /**
+         * A batch is one multi-draw call over the lobes that survive `perObjectFrustumCulled`, which
+         * `BatchedMesh.onBeforeRender` applies per instance against the CAMERA's frustum — so summing
+         * every visible range overstates it by whatever is off-screen, and `WebGLBufferRenderer
+         * .renderMultiDraw` returns before `info.render` when nothing survives. The shadow pass reuses
+         * the set that left behind (three gives `BatchedMesh` no `onBeforeShadow`), so both passes draw
+         * the same ranges.
+         */
+        let drawn = 0;
         for (let i = 0; i < batched.maxInstanceCount; i++) {
           // a pooled batch's deleted slots throw on lookup; they hold nothing
           try {
-            if (batched.getVisibleAt(i)) tris += Math.floor((batched.getGeometryRangeAt(batched.getGeometryIdAt(i))?.indexCount ?? 0) / 3);
+            if (!batched.getVisibleAt(i)) continue;
           } catch {
             continue;
           }
+          const geometryId = batched.getGeometryIdAt(i);
+          if (batched.perObjectFrustumCulled) {
+            batched.getBoundingSphereAt(geometryId, lobe);
+            batched.getMatrixAt(i, lobeMatrix);
+            lobe.applyMatrix4(lobeMatrix).applyMatrix4(mesh.matrixWorld);
+            if (!view.intersectsSphere(lobe)) continue;
+          }
+          drawn++;
+          colourTris += Math.floor((batched.getGeometryRangeAt(geometryId)?.indexCount ?? 0) / 3);
         }
+        colour = inView && drawn > 0 ? 1 : 0;
+        depth = mesh.castShadow && inShadow && drawn > 0 ? 1 : 0;
+        depthTris = depth ? colourTris : 0;
+        if (!colour) colourTris = 0;
+      } else {
+        colour = inView && mainCount > 0 ? 1 : 0;
+        colourTris = colour ? perInstance * mainCount : 0;
+        // the shadow pass runs first, before `onBeforeRender` swaps the count down, so it draws them all
+        depth = mesh.castShadow && inShadow ? 1 : 0;
+        depthTris = depth ? perInstance * inst : 0;
       }
-      // a mesh whose main-pass count is pinned at 0 (the white-bark shadow proxies) is submitted by
-      // three but returns before it issues a draw, so the colour pass costs it nothing; the tally has
-      // to know that or it reports draws the renderer never makes
-      const drawsColour = mesh.userData[MAIN_COUNT] !== 0;
-      const colour = drawsColour && view.intersectsSphere(s) ? 1 : 0;
-      const depth = mesh.castShadow && shadow && shadow.intersectsSphere(s) ? 1 : 0;
       into.meshes++;
       into.instances += inst;
+      into.colourCalls += colour;
+      into.depthCalls += depth;
       into.calls += colour + depth;
-      into.triangles += tris * (colour + depth);
+      into.triangles += colourTris + depthTris;
     };
     /** every mesh a named family tallied, so the scene-graph walk below can name what no family claimed */
     const tallied = new Set<Object3D>();
@@ -4911,6 +4963,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
      * `unaccounted` should be zero. If it is not, `byFamily` is missing something, and the gauntlet's B3
      * check ("audit claims cross-checked against the scene graph") has a number to fail on.
      */
+    // `add` runs once per mesh for the families and again for the walk below, so the three diagnostic
+    // counters have to be read here or they come out doubled
+    const cullExemptOnce = cullExempt;
+    const mainZeroOnce = mainZero;
+    const noCullCallsOnce = noCullCalls;
     const walked = tally();
     const unclaimed: string[] = [];
     // traverseVisible, not traverse: `add` tests the mesh's OWN `visible` flag, so a plain traverse counts
@@ -4937,6 +4994,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       triangles: total.triangles,
       meshes: total.meshes,
       instances: total.instances,
+      /** the two passes apart, so a disagreement with `isolate('trees')` can be attributed */
+      colourCalls: total.colourCalls,
+      depthCalls: total.depthCalls,
+      /** meshes three never frustum-tests, and meshes whose colour pass a 0 main count skips */
+      cullExempt: cullExemptOnce,
+      mainZero: mainZeroOnce,
+      /** what it would be with no frustum test anywhere: the ceiling the two passes are measured against */
+      noCullCalls: noCullCallsOnce,
       byFamily,
       /** zero when `byFamily` accounts for every visible mesh under the trees group; see above */
       unaccounted,
