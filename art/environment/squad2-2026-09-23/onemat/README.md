@@ -74,7 +74,54 @@ Magnify the worst diff cell and look at it before believing an aggregate, and do
 that disagrees with the picture settle it — here the order was eye, then metric (which said no), then the
 focused diff of the worst cell (which said yes, and was right).
 
-## The path, priced
+## Round two: the mechanism, and a branch that did not fire
+
+*2026-09-30 19:30 UTC.* The 16 draws were worth a round of their own, and it produced the mechanism and a
+failure, in that order.
+
+**Why the trunks vanish rather than darken.** `mats.distant` samples the **cluster** atlas; the crown material
+samples `createFarCrownAtlas`. Bark's uv is `SOLID_UV` — the opaque **white** corner patch that
+`createLeafClusterTexture` and `createLeafClusterDetail` both reserve *"so they survive the alpha test"*. And
+**`createFarCrownAtlas` has no such patch.** It `clearRect`s the whole texture, its own comment says it
+*"exclude[s] the solid wood patch in its corner"* from the card crops, and it never fills it. Nor can it simply
+be painted: the cluster atlases map cards to `[CARD_UV0, 1]²` and never touch the corner, but the far-crown
+atlas's four cells **tile the whole texture** (`cell = size / 2`, and `farCrownCellUv(2)`'s crop starts at the
+margin), so white in that corner would appear inside crowns. So bark drawn by the crown material samples
+transparent and `CROWN_ALPHA_TEST` of 0.3 discards it outright — which is exactly why the picture shows mist
+rather than a differently-toned trunk.
+
+Two of my own hypotheses died on the way, both by reading: `CROWN_MIP_BIAS` is **−0.5**, sharper not blurrier,
+so no mip bleed; and a trunk's uv is *constant across the trunk*, so its derivative is ~0 and the finest mip is
+selected regardless.
+
+**The fix needs no atlas change**, because white times the vertex colour is the vertex colour: for bark the
+faithful thing is to skip the map sample entirely, which is all `mats.distant` amounted to. So the branch —
+`vCrownWood` gating the map, the crown colour block, the sphere normal, the rim, the fog cut, and the wind.
+
+**It does not fire.** Measured: A_stairs **555 → 539** and `stairs1-top` **655 → 639**, −16 draws with triangles
+identical to the digit — and **0.51 % of the frame moves against 0.52 % without the branch**, the same worst
+cell at 15.7 % and 36.3 levels. The trunks are still gone:
+
+![the bark branch did not fire](woodbranch-cell-6x.png)
+
+`writer.ts` says why, and it is a tag-space problem rather than a shader one. Its `aRoot.w` decode is leaf
+`≥ 0.5`, wood `≤ 0`, and the **wood codes are**: plain wood **0**, `woodMoss` **−0.45 × cover**, a moss
+cushion's window **(−0.5, −0.47)**, `woodCollapsible` **−1**, and **−2**. So the −0.45 the design note mentions
+is a **moss** code that only appears where cover > 0 — **plain bark is tagged 0, which is exactly what a lobe
+core is tagged.** The crown shader cannot tell the distant trunk from the crown's own cores, and
+`aRoot.w < -0.2` selected neither.
+
+Reverted; `src/` is byte-identical to before the attempt.
+
+## The path, now one line to find rather than a mystery
+
+Give the distant and mid **trunk** wood its own code in `createDistantVariants`, inside the windows `writer.ts`
+already uses, and the branch has something to read. The 16 draws follow from there with no atlas or `SOLID_UV`
+change. It still wants its own round with the owner-review poses re-rendered, because the tag space is decoded
+by three tree shaders and the crown material is tuned across several of those reviews — but it is now a known
+edit rather than an open question.
+
+## The path as it was priced before that round
 
 The 16 draws are still there for whoever wants them, and the shape of the fix is narrow: the crown shader
 **already tags wood as `w ≤ 0`**, so a branch that skips the foliage-specific haze and under-shade for those
