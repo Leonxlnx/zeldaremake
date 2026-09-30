@@ -1,0 +1,21 @@
+{
+ "pose": "stairs1-top",
+ "list": "one-pose (same index both builds, so the same world time)",
+ "before": {
+  "commit": "0acee2c8",
+  "draws": 665,
+  "triangles": 9875709,
+  "treeDraws": 114,
+  "treeTriangles": 3969181,
+  "md5": "c2d51f15a4b0cf58bc0bb9b340efa1d9"
+ },
+ "after": {
+  "commit": "81e9b3b0",
+  "draws": 661,
+  "triangles": 9799283,
+  "treeDraws": 110,
+  "treeTriangles": 3892755,
+  "md5": "c2d51f15a4b0cf58bc0bb9b340efa1d9"
+ },
+ "identicalPixels": true
+}
