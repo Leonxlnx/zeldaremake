@@ -1,0 +1,67 @@
+{
+ "dist": "dist",
+ "quality": "high",
+ "settle": 8,
+ "rows": [
+  {
+   "view": "A_stairs",
+   "frame": {
+    "draws": 405,
+    "triangles": 5895986
+   },
+   "audit": {
+    "calls": 91,
+    "triangles": 1379495,
+    "colourCalls": 91,
+    "depthCalls": 0,
+    "cullExempt": 5,
+    "mainZero": 8,
+    "noCullCalls": 98,
+    "batchCulledTris": 665451,
+    "batchCulledTrisColour": 665451,
+    "batchCulledTrisDepth": 0,
+    "nonIndexedLobes": 0,
+    "meshes": 79
+   },
+   "isolate": {
+    "found": true,
+    "calls": 91,
+    "triangles": 1379291
+   },
+   "gap": {
+    "calls": 0,
+    "triangles": -204
+   }
+  },
+  {
+   "view": "-20.368,3.7,20.588:-17.327,3.45,17.547",
+   "frame": {
+    "draws": 489,
+    "triangles": 6558127
+   },
+   "audit": {
+    "calls": 98,
+    "triangles": 2045012,
+    "colourCalls": 98,
+    "depthCalls": 0,
+    "cullExempt": 5,
+    "mainZero": 8,
+    "noCullCalls": 101,
+    "batchCulledTris": 410705,
+    "batchCulledTrisColour": 410705,
+    "batchCulledTrisDepth": 0,
+    "nonIndexedLobes": 0,
+    "meshes": 82
+   },
+   "isolate": {
+    "found": true,
+    "calls": 98,
+    "triangles": 2045012
+   },
+   "gap": {
+    "calls": 0,
+    "triangles": 0
+   }
+  }
+ ]
+}

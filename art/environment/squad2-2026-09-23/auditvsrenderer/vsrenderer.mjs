@@ -77,6 +77,9 @@ try {
           batchCulledTrisColour: sub.batchCulledTrisColour ?? null,
           batchCulledTrisDepth: sub.batchCulledTrisDepth ?? null,
           nonIndexedLobes: sub.nonIndexedLobes ?? null,
+          depthTrisBatchFull: sub.depthTrisBatchFull ?? null,
+          depthTrisNoFrustum: sub.depthTrisNoFrustum ?? null,
+          depthCallsNoFrustum: sub.depthCallsNoFrustum ?? null,
           meshes: sub.meshes ?? null,
         },
         isolate: { found: iso.found, calls: iso.drawCalls, triangles: iso.triangles },
@@ -90,6 +93,7 @@ try {
       `${view.padEnd(34)} frame ${String(data.frame.draws).padStart(4)}  ` +
         `audit ${String(a.calls).padStart(4)}/${String(a.triangles).padStart(8)} (colour ${a.colourCalls ?? '?'} depth ${a.depthCalls ?? '?'}, exempt ${a.cullExempt ?? '?'}, mainZero ${a.mainZero ?? '?'}, batchCulled ${a.batchCulledTris ?? '?'} = ${a.batchCulledTrisColour ?? '?'}c + ${a.batchCulledTrisDepth ?? '?'}d, nonIndexed ${a.nonIndexedLobes ?? '?'})  ` +
         `renderer ${String(data.isolate.calls).padStart(4)}/${String(data.isolate.triangles).padStart(8)}  ` +
+        `[depth: mine ${(a.triangles ?? 0) - 0} tot; batchFull ${a.depthTrisBatchFull ?? '?'}; noFrustum ${a.depthTrisNoFrustum ?? '?'} in ${a.depthCallsNoFrustum ?? '?'} calls]  ` +
         `GAP ${gapC >= 0 ? '+' : ''}${gapC} calls / ${gapT >= 0 ? '+' : ''}${gapT} tris`,
     );
   }

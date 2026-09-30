@@ -4847,6 +4847,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let batchCulledTrisDepth = 0;
     /** surviving batch lobes with no index buffer, whose size `indexCount` reports as −1 */
     let nonIndexedLobes = 0;
+    /**
+     * Two candidate depth models, reported beside the one in use. `?shadow=0` localised the whole residual
+     * against `isolate('trees')` to the DEPTH pass — with the sun not casting the colour pass agrees to the
+     * triangle at `stairs1-top` and to 204 in 1.38 M at hero A — so one of these is the next thing to test:
+     *   `depthTrisBatchFull`  every batch lobe in depth, not just the ones the camera cull left
+     *   `depthTrisNoFrustum`  every caster in depth with no shadow-frustum test at all, and its call count
+     */
+    let depthTrisBatchFull = 0;
+    let depthTrisNoFrustum = 0;
+    let depthCallsNoFrustum = 0;
     const add = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
       const batched = (mesh as unknown as BatchedMesh).isBatchedMesh ? (mesh as unknown as BatchedMesh) : null;
       const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
@@ -4897,6 +4907,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
          */
         let drawn = 0;
         let culledTris = 0;
+        /** the lobes that survived, before either pass's gate decides whether the batch is submitted */
+        let surviving = 0;
         for (let i = 0; i < batched.maxInstanceCount; i++) {
           // a pooled batch's deleted slots throw on lookup; they hold nothing
           try {
@@ -4926,21 +4938,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             }
           }
           drawn++;
-          colourTris += lobeTris;
+          surviving += lobeTris;
         }
         colour = inView && drawn > 0 ? 1 : 0;
         depth = mesh.castShadow && inShadow && drawn > 0 ? 1 : 0;
-        depthTris = depth ? colourTris : 0;
-        if (!colour) colourTris = 0;
+        colourTris = colour ? surviving : 0;
+        depthTris = depth ? surviving : 0;
         batchCulledTris += culledTris * (colour + depth);
         batchCulledTrisColour += culledTris * colour;
         batchCulledTrisDepth += culledTris * depth;
+        depthTrisBatchFull += depth ? surviving + culledTris : 0;
+        depthTrisNoFrustum += mesh.castShadow && shadow ? surviving : 0;
+        depthCallsNoFrustum += mesh.castShadow && shadow ? 1 : 0;
       } else {
         colour = inView && mainCount > 0 ? passCalls : 0;
         colourTris = colour ? perInstance * mainCount : 0;
         // the shadow pass runs first, before `onBeforeRender` swaps the count down, so it draws them all
         depth = mesh.castShadow && inShadow ? passCalls : 0;
         depthTris = depth ? perInstance * inst : 0;
+        depthTrisBatchFull += depthTris;
+        depthTrisNoFrustum += mesh.castShadow && shadow ? perInstance * inst : 0;
+        depthCallsNoFrustum += mesh.castShadow && shadow ? passCalls : 0;
       }
       into.meshes++;
       into.instances += inst;
@@ -5009,6 +5027,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const batchCulledColourOnce = batchCulledTrisColour;
     const batchCulledDepthOnce = batchCulledTrisDepth;
     const nonIndexedLobesOnce = nonIndexedLobes;
+    const depthTrisBatchFullOnce = depthTrisBatchFull;
+    const depthTrisNoFrustumOnce = depthTrisNoFrustum;
+    const depthCallsNoFrustumOnce = depthCallsNoFrustum;
     const walked = tally();
     const unclaimed: string[] = [];
     // traverseVisible, not traverse: `add` tests the mesh's OWN `visible` flag, so a plain traverse counts
@@ -5048,6 +5069,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       batchCulledTrisColour: batchCulledColourOnce,
       batchCulledTrisDepth: batchCulledDepthOnce,
       nonIndexedLobes: nonIndexedLobesOnce,
+      depthTrisBatchFull: depthTrisBatchFullOnce,
+      depthTrisNoFrustum: depthTrisNoFrustumOnce,
+      depthCallsNoFrustum: depthCallsNoFrustumOnce,
       byFamily,
       /** zero when `byFamily` accounts for every visible mesh under the trees group; see above */
       unaccounted,

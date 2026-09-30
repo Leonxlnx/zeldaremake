@@ -1,5 +1,7 @@
 {
- "note": "after: the tally replaying three real rules",
+ "dist": "dist",
+ "quality": "high",
+ "settle": 8,
  "rows": [
   {
    "view": "A_stairs",
@@ -18,6 +20,10 @@
     "batchCulledTris": 825211,
     "batchCulledTrisColour": 665451,
     "batchCulledTrisDepth": 159760,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 1203685,
+    "depthTrisNoFrustum": 1043925,
+    "depthCallsNoFrustum": 49,
     "meshes": 79
    },
    "isolate": {
@@ -47,6 +53,10 @@
     "batchCulledTris": 483745,
     "batchCulledTrisColour": 410705,
     "batchCulledTrisDepth": 73040,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 1437038,
+    "depthTrisNoFrustum": 1363998,
+    "depthCallsNoFrustum": 49,
     "meshes": 82
    },
    "isolate": {
@@ -57,35 +67,6 @@
    "gap": {
     "calls": 0,
     "triangles": 140336
-   }
-  },
-  {
-   "view": "19.837,7.15,-9.879:16.447,6.9,-7.234",
-   "frame": {
-    "draws": 651,
-    "triangles": 11841590
-   },
-   "audit": {
-    "calls": 129,
-    "triangles": 2883410,
-    "colourCalls": 84,
-    "depthCalls": 45,
-    "cullExempt": 5,
-    "mainZero": 10,
-    "noCullCalls": 136,
-    "batchCulledTris": 592536,
-    "batchCulledTrisColour": 423056,
-    "batchCulledTrisDepth": 169480,
-    "meshes": 75
-   },
-   "isolate": {
-    "found": true,
-    "calls": 129,
-    "triangles": 3004341
-   },
-   "gap": {
-    "calls": 0,
-    "triangles": 120931
    }
   }
  ]

@@ -55,7 +55,45 @@ tally cannot change what is drawn. And `stairs1-top` re-rendered whole comes bac
 triangles, md5 `c2d51f15a4b0cf58bc0bb9b340efa1d9`**, the same three values `proxydraw/` recorded, while the
 trees' row inside it moved from 110 / 3 892 755 to 147 / 3 409 010. The reporting changed; the frame did not.
 
-## The residual, and the hypothesis that explained 28 % of it and was wrong anyway
+## The residual is entirely in the depth pass — the colour model is exact
+
+*2026-09-30 11:40 UTC.* `perfFlags.ts` takes `?shadow=<size>,<taps>`, and `shadow=0` makes
+`lighting/index.ts` set `sun.castShadow = false`. That removes the depth pass from **both** sides at once —
+the audit's `shadow` frustum is `null`, so it gates every depth call off, and the renderer has no shadow map
+to draw — which turns `vsrenderer.mjs` into a **colour-only** comparison:
+
+| `ZR_URL_EXTRA='shadow=0'` | audit | renderer | gap |
+| --- | --- | --- | --- |
+| `stairs1-top` | 98 calls / 2 045 012 | 98 / 2 045 012 | **0 and 0 — exact** |
+| A_stairs | 91 / 1 379 495 | 91 / 1 379 291 | 0 calls / **204 triangles in 1.38 M** (0.015 %) |
+
+**The colour-pass model is right**, to the triangle at one pose and to one part in 6 800 at the other (a
+borderline sphere against a frustum plane, which is also the +1 call in the full run). So the whole residual
+is the **depth** pass:
+
+| | depth triangles modelled | the renderer's | low by |
+| --- | --- | --- | --- |
+| A_stairs | 1 043 925 | 1 277 197 | **233 272 (22.4 %)** |
+| `stairs1-top` | 1 363 998 | 1 504 334 | **140 336 (9.3 %)** |
+
+Two candidate depth models, computed beside the one in use and both **insufficient**:
+
+- **`depthTrisNoFrustum`** — every caster, no shadow-frustum test — comes out **exactly equal** to the gated
+  total, at 49 calls against my 48 at A and 49 against 49 at `stairs1-top`. So the shadow frustum rejects
+  nothing that carries triangles, and the renderer's depth **call** count equals the ungated one. The *set* of
+  depth draws is right; the triangles per draw are not.
+- **`depthTrisBatchFull`** — every batch lobe in depth rather than the camera-culled set — closes **159 760 of
+  the 233 272** and **73 040 of the 140 336**. Directionally right, less than half the size. Adopting it would
+  fit one number and miss the other, so it is reported rather than adopted.
+
+**Where the next hour goes.** The `shadow=0` run validates `perInstance` only for meshes that appear in the
+**colour** pass. The families that appear *only* in depth are untested by it — at hero A those are
+`whitebark-shadow` (5 draws, 70 128 triangles, the `proxydraw/` proxies) and `giant-near-base` (2 draws,
+67 507), together **137 635** of the same order as the 233 272 shortfall. That is the next thing to price, and
+the remainder after `depthTrisBatchFull` is 73 512 at A and 67 296 at `stairs1-top` — within a few per cent of
+`giant-near-base`'s size at A.
+
+## The hypothesis that explained 28 % of it and was wrong anyway
 
 The residual is 28 % and 29 % of `batchCulledTris` at the two poses — near-equal ratios, which is exactly the
 shape that invites a mechanism. The candidate: three gives `BatchedMesh` no `onBeforeShadow`, so if its
@@ -64,16 +102,30 @@ extra triangles would equal the *depth half* of that number. Splitting it says n
 233 068 residual** at hero A, **73 040 against 140 336** at `stairs1-top`. Refused, and the ratio was a
 coincidence.
 
-Also refused before that, by reading `node_modules/three` rather than guessing: shadow cascades (the sun is
-one `DirectionalLight`, `cascades: 1`), the two-pass `transparent` + `DoubleSide` rule (only `distant.ts`'s
+Refused before that, by reading `node_modules/three` rather than guessing: shadow cascades (the sun is one
+`DirectionalLight`, `cascades: 1`), the two-pass `transparent` + `DoubleSide` rule (only `distant.ts`'s
 material is transparent and it already sets `forceSinglePass`; `materials.ts`'s `DoubleSide` materials are
-not transparent), a constant `isolate()` overhead (no composer, and the lighting group has no meshes), and
-non-`Mesh` drawables under the trees group (there are none).
+not transparent), a constant `isolate()` overhead (no composer, and the lighting group has no meshes),
+non-`Mesh` drawables under the trees group (there are none), a **reversed depth buffer** (`Frustum
+.setFromProjectionMatrix` takes `coordinateSystem` and `reversedDepth`, which `postfx/shadowcull.ts` passes and
+this tally does not — but `main.ts` builds the renderer without `reversedDepthBuffer`, so the defaults are
+right), and a **second shadow-casting light** (`house.ts`'s five `PointLight`s never set `castShadow`; no light
+but the sun casts).
 
-So the last 4–8 % is **unexplained and published as unexplained**. What ships with it is the means to
-continue: the tally reports `colourCalls` / `depthCalls` apart, plus `cullExempt`, `mainZero`, `noCullCalls`
-(the no-frustum-test ceiling) and `batchCulledTris` split by pass, and `vsrenderer.mjs` prints all of it
-beside the renderer's own total.
+Refused by measurement: **non-indexed batch lobes.** `BatchedMesh.addGeometry` sets `geometryInfo.count` — the
+number `renderMultiDraw` sums into `info.render.triangles` — to `indexCount` for an indexed part and to
+`vertexCount` for one without an index, leaving `indexCount` at its initial **−1**. This tally read
+`indexCount`, so a non-indexed lobe was charged `floor(-1/3) = −1` triangle, taking triangles *off* the total
+in exactly the residual's direction. It reads the draw range's `count` now, and `nonIndexedLobes` is **0** at
+all three poses with the totals byte-identical: every part in these batches is indexed, so the change is
+hardening and explains none of the gap.
+
+So the residual is now **localised rather than unexplained**: the colour pass is exact, the depth pass is
+9.3–22.4 % low, its draw *set* is right, and the two families that only ever appear in depth are the next
+thing to price. What ships with it is the means to continue: the tally reports `colourCalls` / `depthCalls`
+apart, plus `cullExempt`, `mainZero`, `noCullCalls`, `nonIndexedLobes`, `batchCulledTris` split by pass, and
+the two candidate depth totals; `vsrenderer.mjs` prints all of it beside the renderer's own number and honours
+`ZR_URL_EXTRA='shadow=0'` for the colour-only split.
 
 ## What this retires
 
@@ -95,9 +147,19 @@ While fixing this the same class of bug appeared a third time: `total` was summe
 names and silently dropped `colourCalls` and `depthCalls` the hour they were added. It now sums over the
 tally's own keys.
 
+## Files
+
+- `before.json` — the three poses on the buggy tally.
+- `after.json` — the same on the fixed one, with both candidate depth totals.
+- `colour-only.json` — the `shadow=0` run that localised the residual to the depth pass.
+
 ## Reproducing
 
 ```bash
 node art/environment/squad2-2026-09-23/auditvsrenderer/vsrenderer.mjs dist /tmp/vs.json \
   --views 'A_stairs;-20.368,3.7,20.588:-17.327,3.45,17.547' --quality high --settle 8
+
+# the colour pass alone, on both sides
+ZR_URL_EXTRA='shadow=0' node art/environment/squad2-2026-09-23/auditvsrenderer/vsrenderer.mjs \
+  dist /tmp/vs-colour.json --views 'A_stairs' --quality high --settle 8
 ```
