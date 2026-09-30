@@ -2654,6 +2654,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return out.length ? out : [geometry.boundingSphere!.clone()];
   };
+  /**
+   * Under test (`farshade/`): does the giants' FAR foliage need to cast at all? With the tally finally
+   * agreeing with the renderer on the depth pass, it reads **357 512 triangles at hero A** — the largest
+   * single depth consumer in the trees, 28 % of their shade and more than the whole 275 197 of W38 headroom
+   * on the binding view. It was tallied at 124 240 until the batch's own depth list was read, so nobody knew.
+   * `colshadow/` is the caution: the columns' out-of-view high rung looked like free triangles and was
+   * laying the dapple on the hero view's flagstones. Set false only to measure.
+   */
+  const FAR_FOLIAGE_CASTS = true;
   /** `FarFoliageBatch.onBeforeShadow` scratch: the sun's frustum and one lobe's sphere, reused every frame */
   const shadowFrustum = new Frustum();
   const shadowViewProj = new Matrix4();
@@ -4570,7 +4579,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const batch of farFoliage) {
       sphere.copy(batch.mesh.boundingSphere!);
       sphere.radius += CULL_PAD_M;
-      batch.mesh.castShadow = shadowReachesGround(sphere);
+      batch.mesh.castShadow = FAR_FOLIAGE_CASTS && shadowReachesGround(sphere);
     }
     // the pooled near parts: the build arms them (`staticCasts`) and this narrows them per frame.
     // They are the last casters with no shadow test — at the main flight's foot the four giant
