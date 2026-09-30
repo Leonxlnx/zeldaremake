@@ -4836,6 +4836,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let mainZero = 0;
     /** the upper bound: every visible mesh in colour, every caster in depth, no frustum test anywhere */
     let noCullCalls = 0;
+    /**
+     * The triangles `perObjectFrustumCulled` takes off the batches, per pass they are drawn in. Three gives
+     * `BatchedMesh` no `onBeforeShadow`, so the depth pass reuses whatever set the last colour pass left —
+     * this is the number to check a residual against before believing that assumption.
+     */
+    let batchCulledTris = 0;
+    /** the same, split by pass: the depth half is what the "depth reuses the colour set" model would owe */
+    let batchCulledTrisColour = 0;
+    let batchCulledTrisDepth = 0;
     const add = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
       const batched = (mesh as unknown as BatchedMesh).isBatchedMesh ? (mesh as unknown as BatchedMesh) : null;
       const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
@@ -4885,6 +4894,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
          * the same ranges.
          */
         let drawn = 0;
+        let culledTris = 0;
         for (let i = 0; i < batched.maxInstanceCount; i++) {
           // a pooled batch's deleted slots throw on lookup; they hold nothing
           try {
@@ -4893,19 +4903,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             continue;
           }
           const geometryId = batched.getGeometryIdAt(i);
+          const lobeTris = Math.floor((batched.getGeometryRangeAt(geometryId)?.indexCount ?? 0) / 3);
           if (batched.perObjectFrustumCulled) {
             batched.getBoundingSphereAt(geometryId, lobe);
             batched.getMatrixAt(i, lobeMatrix);
             lobe.applyMatrix4(lobeMatrix).applyMatrix4(mesh.matrixWorld);
-            if (!view.intersectsSphere(lobe)) continue;
+            if (!view.intersectsSphere(lobe)) {
+              culledTris += lobeTris;
+              continue;
+            }
           }
           drawn++;
-          colourTris += Math.floor((batched.getGeometryRangeAt(geometryId)?.indexCount ?? 0) / 3);
+          colourTris += lobeTris;
         }
         colour = inView && drawn > 0 ? 1 : 0;
         depth = mesh.castShadow && inShadow && drawn > 0 ? 1 : 0;
         depthTris = depth ? colourTris : 0;
         if (!colour) colourTris = 0;
+        batchCulledTris += culledTris * (colour + depth);
+        batchCulledTrisColour += culledTris * colour;
+        batchCulledTrisDepth += culledTris * depth;
       } else {
         colour = inView && mainCount > 0 ? passCalls : 0;
         colourTris = colour ? perInstance * mainCount : 0;
@@ -4976,6 +4993,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const cullExemptOnce = cullExempt;
     const mainZeroOnce = mainZero;
     const noCullCallsOnce = noCullCalls;
+    const batchCulledTrisOnce = batchCulledTris;
+    const batchCulledColourOnce = batchCulledTrisColour;
+    const batchCulledDepthOnce = batchCulledTrisDepth;
     const walked = tally();
     const unclaimed: string[] = [];
     // traverseVisible, not traverse: `add` tests the mesh's OWN `visible` flag, so a plain traverse counts
@@ -5010,6 +5030,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mainZero: mainZeroOnce,
       /** what it would be with no frustum test anywhere: the ceiling the two passes are measured against */
       noCullCalls: noCullCallsOnce,
+      /** what per-lobe culling took off the batches, per pass — the first thing a triangle residual can be */
+      batchCulledTris: batchCulledTrisOnce,
+      batchCulledTrisColour: batchCulledColourOnce,
+      batchCulledTrisDepth: batchCulledDepthOnce,
       byFamily,
       /** zero when `byFamily` accounts for every visible mesh under the trees group; see above */
       unaccounted,

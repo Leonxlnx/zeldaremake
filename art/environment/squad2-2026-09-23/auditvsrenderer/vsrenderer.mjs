@@ -72,6 +72,10 @@ try {
           depthCalls: sub.depthCalls ?? null,
           cullExempt: sub.cullExempt ?? null,
           mainZero: sub.mainZero ?? null,
+          noCullCalls: sub.noCullCalls ?? null,
+          batchCulledTris: sub.batchCulledTris ?? null,
+          batchCulledTrisColour: sub.batchCulledTrisColour ?? null,
+          batchCulledTrisDepth: sub.batchCulledTrisDepth ?? null,
           meshes: sub.meshes ?? null,
         },
         isolate: { found: iso.found, calls: iso.drawCalls, triangles: iso.triangles },
@@ -83,7 +87,7 @@ try {
     const a = data.audit;
     console.log(
       `${view.padEnd(34)} frame ${String(data.frame.draws).padStart(4)}  ` +
-        `audit ${String(a.calls).padStart(4)}/${String(a.triangles).padStart(8)} (colour ${a.colourCalls ?? '?'} depth ${a.depthCalls ?? '?'}, exempt ${a.cullExempt ?? '?'}, mainZero ${a.mainZero ?? '?'})  ` +
+        `audit ${String(a.calls).padStart(4)}/${String(a.triangles).padStart(8)} (colour ${a.colourCalls ?? '?'} depth ${a.depthCalls ?? '?'}, exempt ${a.cullExempt ?? '?'}, mainZero ${a.mainZero ?? '?'}, batchCulled ${a.batchCulledTris ?? '?'} = ${a.batchCulledTrisColour ?? '?'}c + ${a.batchCulledTrisDepth ?? '?'}d)  ` +
         `renderer ${String(data.isolate.calls).padStart(4)}/${String(data.isolate.triangles).padStart(8)}  ` +
         `GAP ${gapC >= 0 ? '+' : ''}${gapC} calls / ${gapT >= 0 ? '+' : ''}${gapT} tris`,
     );
