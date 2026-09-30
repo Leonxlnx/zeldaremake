@@ -33,7 +33,8 @@ const flag = (name, fallback = null) => {
 const dist = positional[0] ?? 'dist';
 const out = positional[1] ?? '/tmp/bucketprobe.json';
 if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error(`no index.html in ${dist} — build first`);
-const view = flag('view', 'F_canopy');
+/** one page load, several viewpoints: `unaccounted` has to hold in every state, not just the first one */
+const views = String(flag('views', flag('view', 'F_canopy'))).split(',');
 const quality = flag('quality', 'low');
 const settle = Number(flag('settle', 8));
 
@@ -43,34 +44,41 @@ try {
   const { page } = await openWorld(browser, server.url, { width: 960, height: 540, quality, log: () => {} });
   page.on('pageerror', (e) => console.error('pageerror', e.message));
   await page.evaluate(() => window.__ZR__.setTime(12.5));
-  await page.evaluate((v) => window.__ZR__.setViewpoint(v), view);
-  await page.evaluate(async (n) => await window.__ZR__.render(n, 1 / 30), settle);
-  const data = await page.evaluate(async () => {
-    await window.__ZR__.render(2, 0);
-    const s = window.__ZR__.stats();
-    const t = window.__ZR__.audit().systems.trees;
-    return {
-      draws: s.drawCalls,
-      triangles: s.triangles,
-      lodBand: t.lodBand ?? null,
-      lodSwapM: t.lodSwapM ?? null,
-      treeSubmission: { drawCalls: t.submission?.drawCalls ?? null, triangles: t.submission?.triangles ?? null },
-      byFamily: t.submission?.byFamily ?? null,
-      unaccounted: t.submission?.unaccounted ?? null,
-    };
-  });
-  fs.writeFileSync(out, JSON.stringify({ dist, view, quality, ...data }, null, 1));
-  const rungs = Object.entries(data.byFamily ?? {})
-    .filter(([k]) => /-lod\d$/.test(k))
-    .sort(([a], [b]) => a.localeCompare(b));
-  console.log(`${dist}  ${view}  quality=${quality}   ${data.draws}/${data.triangles}   trees ${data.treeSubmission.drawCalls}/${data.treeSubmission.triangles}`);
-  console.log(`  lodBand ${JSON.stringify(data.lodBand)}`);
-  console.log(`  gates   ${JSON.stringify(data.lodSwapM?.tree)}`);
-  // the tally's field is `calls`, not `drawCalls` — the first version of this line printed "? draws"
-  for (const [k, v] of rungs) console.log(`  ${k.padEnd(22)} ${String(v.calls ?? '?').padStart(4)} draws  ${String(v.triangles ?? '?').padStart(9)} triangles  ${String(v.instances ?? '?').padStart(4)} instances`);
-  const u = data.unaccounted ?? {};
-  console.log(`  unaccounted            ${u.meshes ?? '?'} meshes / ${u.calls ?? '?'} calls / ${u.triangles ?? '?'} triangles`);
-  console.log(`  unclaimed names        ${JSON.stringify(u.names ?? null)}`);
+  const rows = [];
+  for (const view of views) {
+    await page.evaluate((v) => window.__ZR__.setViewpoint(v), view);
+    await page.evaluate(async (n) => await window.__ZR__.render(n, 1 / 30), settle);
+    const data = await page.evaluate(async () => {
+      await window.__ZR__.render(2, 0);
+      const s = window.__ZR__.stats();
+      const t = window.__ZR__.audit().systems.trees;
+      return {
+        draws: s.drawCalls,
+        triangles: s.triangles,
+        lodBand: t.lodBand ?? null,
+        lodSwapM: t.lodSwapM ?? null,
+        treeSubmission: { drawCalls: t.submission?.drawCalls ?? null, triangles: t.submission?.triangles ?? null },
+        byFamily: t.submission?.byFamily ?? null,
+        unaccounted: t.submission?.unaccounted ?? null,
+        // the branch `byFamily` guards with `if (detachedGroup.visible)`: this check is only meaningful
+        // once it has been exercised in BOTH states, or it proves the walk agrees in one of them
+        detachedBoughsVisible: t.submission?.detachedBoughsVisible ?? null,
+        nearCanopySlotsInFrame: t.nearCanopy?.slotsInFrame ?? null,
+      };
+    });
+    rows.push({ view, ...data });
+    const u = data.unaccounted ?? {};
+    const ok = u.meshes === 0 && u.calls === 0 && u.triangles === 0;
+    console.log(
+      `${view.padEnd(11)} ${String(data.draws).padStart(4)}/${String(data.triangles).padStart(8)}  trees ${String(data.treeSubmission.drawCalls).padStart(4)}/${String(data.treeSubmission.triangles).padStart(8)}  ` +
+        `detached ${data.detachedBoughsVisible === null ? '?' : data.detachedBoughsVisible ? 'SHOWN ' : 'hidden'}  nearCanopy ${String(data.nearCanopySlotsInFrame ?? '?').padStart(3)}  ` +
+        `unaccounted ${ok ? 'ZERO' : `${u.meshes}m/${u.calls}c/${u.triangles}t ${JSON.stringify(u.names)}`}`,
+    );
+  }
+  fs.writeFileSync(out, JSON.stringify({ dist, quality, rows }, null, 1));
+  const bad = rows.filter((r) => !(r.unaccounted && r.unaccounted.meshes === 0 && r.unaccounted.calls === 0 && r.unaccounted.triangles === 0));
+  console.log(bad.length ? `\nNOT ACCOUNTED FOR at ${bad.length} of ${rows.length} view(s)` : `\nunaccounted is zero at all ${rows.length} views`);
+  console.log(`detached boughs shown at: ${rows.filter((r) => r.detachedBoughsVisible).map((r) => r.view).join(', ') || 'NONE of these views — that branch is still unexercised'}`);
 } finally {
   await browser.close();
   await server.close();
