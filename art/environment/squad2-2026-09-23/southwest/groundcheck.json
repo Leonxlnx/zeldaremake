@@ -1,0 +1,116 @@
+{
+ "dist": "dist",
+ "eye": 1.75,
+ "rows": [
+  {
+   "name": "sw-plaza-edge",
+   "x": -2,
+   "z": 4,
+   "cameraY": 1.75,
+   "ground": 0.012,
+   "slope": 0,
+   "above": 1.738,
+   "standing": 1.762,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "sw-approach",
+   "x": -8,
+   "z": 7,
+   "cameraY": 1.75,
+   "ground": 1.727,
+   "slope": 0.299,
+   "above": 0.023,
+   "standing": 3.477,
+   "mask": "plateau 0.09"
+  },
+  {
+   "name": "sw-under",
+   "x": -14,
+   "z": 9,
+   "cameraY": 1.75,
+   "ground": 1.516,
+   "slope": 0.029,
+   "above": 0.234,
+   "standing": 3.266,
+   "mask": "plateau 0.61"
+  },
+  {
+   "name": "A_stairs",
+   "x": 0.4,
+   "z": 8.6,
+   "cameraY": 1.8,
+   "ground": -0.018,
+   "slope": 0,
+   "above": 1.818,
+   "standing": 1.732,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "B_house",
+   "x": 0,
+   "z": 2,
+   "cameraY": 1.5,
+   "ground": -0.019,
+   "slope": 0,
+   "above": 1.519,
+   "standing": 1.731,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "C_lookback",
+   "x": 2.33,
+   "z": -7.67,
+   "cameraY": 1.45,
+   "ground": -0.017,
+   "slope": 0,
+   "above": 1.467,
+   "standing": 1.733,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "D_log",
+   "x": 0.2,
+   "z": -3,
+   "cameraY": 1.45,
+   "ground": 0.014,
+   "slope": 0,
+   "above": 1.436,
+   "standing": 1.764,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "F_canopy",
+   "x": -1.96,
+   "z": 4,
+   "cameraY": 1.8,
+   "ground": 0.013,
+   "slope": 0,
+   "above": 1.787,
+   "standing": 1.763,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "owner-0650-north",
+   "x": 1.4,
+   "z": -10.2,
+   "cameraY": 1.75,
+   "ground": 0.017,
+   "slope": 0,
+   "above": 1.733,
+   "standing": 1.767,
+   "mask": "path 1.00"
+  },
+  {
+   "name": "owner-0650-west",
+   "x": 1.2,
+   "z": -9,
+   "cameraY": 1.75,
+   "ground": 0.017,
+   "slope": 0,
+   "above": 1.733,
+   "standing": 1.767,
+   "mask": "path 1.00"
+  }
+ ]
+}
