@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, type Object3D, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -2715,7 +2715,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     .filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M))
     .forEach((p, toeStream) => whitePlacements.includes(p) && rootPlacements.push({ ...p, toeStream }));
   const rootGround = { height: (x: number, z: number) => (z > 10 && inExpansionSouth(x, z) ? liveTerrain : terrain).height(x, z) };
-  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
+  /** kept in a variable so the audit can tally it: it was `unaccounted` for until 2026-09-30 */
+  const whiteBarkRoots = createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows);
+  whiteGroup.add(whiteBarkRoots);
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
   phase('white-barks');
@@ -4829,28 +4831,39 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       into.calls += colour + depth;
       into.triangles += tris * (colour + depth);
     };
+    /** every mesh a named family tallied, so the scene-graph walk below can name what no family claimed */
+    const tallied = new Set<Object3D>();
+    const claim = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
+      tallied.add(mesh);
+      add(into, mesh);
+    };
     const byFamily: Record<string, SubmissionTally> = {};
     const family = (key: string) => (byFamily[key] ??= tally());
-    for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
-    for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
+    for (const w of whites) w.meshes.forEach((m, l) => claim(family(`whitebark-lod${l}`), m));
+    for (const c of seatedColumns) c.meshes.forEach((m, l) => claim(family(`column-lod${l}`), m));
     // the third `bucketFamily` family, and the third the rung band covers (lodFade.ts). It was missing
     // from this tally until 2026-09-30, and since `total` below is the SUM of byFamily, every
     // `submission.drawCalls` / `submission.triangles` this system reported was short by the understory's
     // share — 10 draws and 63 638 triangles of it at plateau-back by `outlook/`'s family probe. The
     // `unaccounted` field below exists so that omitting a family again is a number rather than a silence.
-    for (const u of understory) u.meshes.forEach((m, l) => add(family(`understory-lod${l}`), m));
-    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
+    for (const u of understory) u.meshes.forEach((m, l) => claim(family(`understory-lod${l}`), m));
+    // two more the walk below caught: the roots mesh every white-bark variant shares, and round 53's
+    // per-variant depth proxies for the high bucket. Both submit real work — the proxies are a depth call
+    // each — and neither had a family.
+    claim(family('whitebark-roots'), whiteBarkRoots);
+    for (const w of whites) if (w.shadowProxy) claim(family('whitebark-shadow'), w.shadowProxy);
+    sectorMeshes.forEach((m) => claim(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
       const layer = d.variant.kind === 'mid' ? 'mid' : 'distant';
-      add(family(`${layer}-near`), d.near);
-      add(family(`${layer}-far`), d.far);
+      claim(family(`${layer}-near`), d.near);
+      claim(family(`${layer}-far`), d.far);
     }
-    for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
-    for (const nc of nearCanopies) if (nc.mesh) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
-    if (nearCanopyBatch) add(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
-    if (columnNearCanopyBatch) add(family('column-near-canopy-batch'), columnNearCanopyBatch.mesh);
-    for (const batch of farFoliage) add(family('giant-far-foliage-batch'), batch.mesh);
-    if (detachedGroup.visible) for (const m of detachedMeshes) add(family(m.userData.kind as string), m);
+    for (const nb of nearBoles) claim(family(nb.mesh.userData.kind as string), nb.mesh);
+    for (const nc of nearCanopies) if (nc.mesh) claim(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
+    if (nearCanopyBatch) claim(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
+    if (columnNearCanopyBatch) claim(family('column-near-canopy-batch'), columnNearCanopyBatch.mesh);
+    for (const batch of farFoliage) claim(family('giant-far-foliage-batch'), batch.mesh);
+    if (detachedGroup.visible) for (const m of detachedMeshes) claim(family(m.userData.kind as string), m);
     const total = tally();
     for (const t of Object.values(byFamily)) {
       total.meshes += t.meshes;
@@ -4872,15 +4885,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
      * check ("audit claims cross-checked against the scene graph") has a number to fail on.
      */
     const walked = tally();
-    group.traverse((o) => {
+    const unclaimed: string[] = [];
+    // traverseVisible, not traverse: `add` tests the mesh's OWN `visible` flag, so a plain traverse counts
+    // meshes inside a hidden parent that the renderer never draws. The detached boughs live under a group
+    // the locality gate hides, and the first version of this check reported all three as unaccounted.
+    group.traverseVisible((o) => {
       const m = o as Mesh | InstancedMesh;
-      if ((m as Mesh).isMesh) add(walked, m);
+      if (!(m as Mesh).isMesh) return;
+      const before = walked.meshes;
+      add(walked, m);
+      // `meshes` is the signal, not `calls`: a mesh outside both frustums counts zero calls but is counted
+      if (walked.meshes !== before && !tallied.has(m)) unclaimed.push(m.name || (m.userData.kind as string) || m.type);
     });
     const unaccounted = {
       meshes: walked.meshes - total.meshes,
       instances: walked.instances - total.instances,
       calls: walked.calls - total.calls,
       triangles: walked.triangles - total.triangles,
+      /** which meshes no family claimed, by name — so the fix is a lookup rather than a hunt */
+      names: [...new Set(unclaimed)].sort(),
     };
     return {
       drawCalls: total.calls,

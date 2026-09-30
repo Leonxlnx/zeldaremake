@@ -68,7 +68,9 @@ try {
   console.log(`  gates   ${JSON.stringify(data.lodSwapM?.tree)}`);
   // the tally's field is `calls`, not `drawCalls` — the first version of this line printed "? draws"
   for (const [k, v] of rungs) console.log(`  ${k.padEnd(22)} ${String(v.calls ?? '?').padStart(4)} draws  ${String(v.triangles ?? '?').padStart(9)} triangles  ${String(v.instances ?? '?').padStart(4)} instances`);
-  console.log(`  unaccounted            ${JSON.stringify(data.unaccounted)}  (zero means byFamily covers every visible mesh under the trees group)`);
+  const u = data.unaccounted ?? {};
+  console.log(`  unaccounted            ${u.meshes ?? '?'} meshes / ${u.calls ?? '?'} calls / ${u.triangles ?? '?'} triangles`);
+  console.log(`  unclaimed names        ${JSON.stringify(u.names ?? null)}`);
 } finally {
   await browser.close();
   await server.close();
