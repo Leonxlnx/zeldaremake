@@ -3742,6 +3742,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         }
         this.casting = casting;
         this.castingTriangles = castingTriangles;
+        /**
+         * What this batch just submitted to the depth pass, for the submission tally to read. It cannot be
+         * derived from outside: the set is built here from `shadowSpheres` against the SHADOW camera, which
+         * is a different rule and a different frustum from the colour pass's fold. A tally that assumed the
+         * depth pass reuses the colour set — true of three, false of this hook — read the far foliage's
+         * shade far too cheaply (`auditvsrenderer/`).
+         */
+        mesh.userData.shadowTriangles = castingTriangles;
+        mesh.userData.shadowDraws = casting > 0 ? 1 : 0;
         // three's own onBeforeShadow builds the depth list through `this.onBeforeRender` — the colour hook
         // above, which would apply the fold — so the depth list is built here directly
         (proto.onBeforeRender as unknown as (...args: unknown[]) => void).call(mesh, renderer, null, shadowCamera, geometry, depthMaterial);
@@ -4943,9 +4952,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           surviving += lobeTris;
         }
         colour = inView && drawn > 0 ? 1 : 0;
-        depth = mesh.castShadow && inShadow && drawn > 0 ? 1 : 0;
         colourTris = colour ? surviving : 0;
-        depthTris = depth ? surviving : 0;
+        /**
+         * A batch that records its own depth submission (`FarFoliageBatch.onBeforeShadow`) knows what it
+         * drew and this tally cannot work it out: that hook rebuilds the multi-draw set from the lobes'
+         * shadow spheres against the SHADOW camera. Trust the batch over the colour-set assumption.
+         */
+        const recordedTris = mesh.userData.shadowTriangles as number | undefined;
+        const recordedDraws = mesh.userData.shadowDraws as number | undefined;
+        if (recordedTris !== undefined && recordedDraws !== undefined) {
+          depth = mesh.castShadow ? recordedDraws : 0;
+          depthTris = depth ? recordedTris : 0;
+        } else {
+          depth = mesh.castShadow && inShadow && drawn > 0 ? 1 : 0;
+          depthTris = depth ? surviving : 0;
+        }
         batchCulledTris += culledTris * (colour + depth);
         batchCulledTrisColour += culledTris * colour;
         batchCulledTrisDepth += culledTris * depth;
