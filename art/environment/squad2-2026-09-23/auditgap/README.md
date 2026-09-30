@@ -56,7 +56,37 @@ whole, so both sides agree on what "visible" means.
 The gauntlet's **B3** check is "audit claims cross-checked against the scene graph". This is that check's
 own subject, in the system's own audit, and it now has a number to fail on rather than a silence.
 
-## 3. Cost
+## 3. Verified across states, not just at one pose
+
+The check shipped proved at **one** pose, `A_stairs`, which is not a proof of a self-check — the branch
+`byFamily` guards with `if (detachedGroup.visible)` is false there, so the walk and the family list had never
+been compared in the state where those three meshes count. Ten reads now, one page load per group:
+
+| where | the trees' own row | detached boughs | `unaccounted` |
+| --- | --- | --- | --- |
+| A_stairs · B_house · C_lookback | 106 / 3 546 361 · 94 / 3 258 160 · 83 / 3 274 981 | hidden | **zero** |
+| D_log · E_ground · F_canopy | 102 / 3 364 044 · 94 / 3 258 160 · 91 / 3 157 377 | hidden | **zero** |
+| `quality=low`: A_stairs · D_log · F_canopy | 81 / 2 799 418 · 87 / 2 692 521 · 72 / 2 404 047 | hidden | **zero** |
+| three poses aimed at the southwest giant | 82 / 3 980 797 · 83 / **4 116 658** · 77 / 3 875 777 | **SHOWN** | **zero** |
+
+The last row is the one that mattered. None of A–F looks at the southwest giant, and `detachedVisible` is a
+frustum test, so the only way to exercise that branch was to aim a camera at it — hence the probe taking
+`x,y,z:tx,ty,tz` poses as well as viewpoint ids. With the boughs shown the trees submit up to **4 116 658**
+triangles, more than at any fixed view, and the two tallies still agree exactly at all three.
+
+**How much each view was under-reporting**, against the same views' `frozen.mjs` rows from earlier rounds:
+**+11 to +27 draws and +73 102 to +201 180 triangles**, smallest at `quality=low`'s F_canopy and largest at
+D_log. Every one of those figures in this lane's earlier evidence is low by that much.
+
+**And the probe itself had two bugs, both found by using it rather than by reading it.** A pose entry
+contains commas, so a comma-separated list of poses split into nonsense (`-2`, `1.75`, `4:-23`, …); the list
+separator is `;` now and a comma with a pose throws. Worse, `setViewpoint('-2')` returns **false** and leaves
+the camera where it was, so the first attempt printed the **default camera's** numbers under the name `-2` —
+identical to `A_stairs`, which is exactly the kind of coincidence that reads as a result. A false return
+throws now. The measurement was wrong in a way that looked right, which is the failure mode this whole file
+is about.
+
+## 4. Cost
 
 `unaccounted` is one `traverseVisible` per `audit()` call, and `audit()` is on demand — the capture tooling
 calls it, never the frame loop. No behaviour change, no pixels: A_stairs is **561 / 8 724 803** before and
@@ -66,14 +96,22 @@ after, and the suite is 272 / 272.
 
 - `ua-A.json`, `ua-D.json` — the first probe, with the understory added and `unaccounted` still 9 / 93 728.
 - `ua2-A.json` — the run whose `unclaimed names` list identified the remaining nine.
-- `ua3-A.json` — the verification: `unaccounted` **0 / 0 / 0**, `names []`.
+- `ua3-A.json` — the first verification: `unaccounted` **0 / 0 / 0**, `names []`.
+- `ck-hi.json`, `ck-lo.json` — §3's six views at high and three at low.
+- `ck-sw.json` — §3's southwest pose, the run that exercises the detached-boughs branch.
 
 ## Reproducing
 
 ```bash
 npm run build
-node art/environment/squad2-2026-09-23/bandwidth/bucketprobe.mjs dist /tmp/ua.json --view A_stairs --quality high
+# several viewpoints in one page load
+node art/environment/squad2-2026-09-23/bandwidth/bucketprobe.mjs dist /tmp/ua.json \
+     --views A_stairs,B_house,C_lookback,D_log,E_ground,F_canopy --quality high
+# and a state no fixed viewpoint reaches: `;` between entries, because a pose contains commas
+node art/environment/squad2-2026-09-23/bandwidth/bucketprobe.mjs dist /tmp/sw.json \
+     --views '-2,1.75,4:-23,9,9' --quality high
 ```
 
 Read `unaccounted` and `unclaimed names`. Anything non-zero is a family missing from `byFamily`, and the
-names say which.
+names say which. The tail line says whether the detached-boughs branch was exercised at all, because a
+self-check that only ran in one state has not been checked.
