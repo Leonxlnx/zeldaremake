@@ -59,9 +59,38 @@ alarm. The habit that would have caught both is the one `auditgap/` shipped as c
 cannot go stale beside any total assembled by hand.** For a cost table the equivalent is cheap — re-read it
 from the audit whenever the branch changes anything it measures, which is two minutes of `bucketprobe.mjs`.
 
+## §4 — every number above is wrong, and the prize goes back up to ~26 draws
+
+*2026-09-30 10:20 UTC.* `auditvsrenderer/` found that the tally §1 read those rows from counted **one call
+per mesh where three makes one per visible material group**, in both passes. These layers are precisely the
+families that have two: `distant.ts` gives each near and far mesh `addGroup(0, nearWood, 0)` and
+`addGroup(nearWood, …, 1)` — wood, then foliage, two materials. Re-read on the fixed tally at hero A:
+
+| family | §1 said | actually | per mesh |
+| --- | --- | --- | --- |
+| `distant-far` | 5 calls / 5 meshes | **12 calls (12 colour, 0 depth) / 6 meshes** | **2.00** |
+| `mid-near` | 5 / 5 | **10 (10 c, 0 d) / 5** | **2.00** |
+| `mid-far` | 5 / 5 | **10 (10 c, 0 d) / 5** | **2.00** |
+| **the layers** | **15–16** | **32 colour draws over 16 meshes** | **2.00** |
+
+So §1's "exactly 1.00 call per mesh" was an artefact of the bug, and **§3's original 32 was the right number
+all along** — reached for the wrong reason (it read the 32 as colour + depth per mesh, when depth is 0 here
+and the two are wood and foliage). §2's finding stands on its own: the depth submission for these layers *is*
+gone, which is why all 32 are colour.
+
+**The prize is ~26 draws, not 12** — with a constraint §3 never had to state: a `BatchedMesh` carries **one**
+material, so wood and foliage cannot share one. Three layers × two materials is six batches, 32 → ~6.
+
+That is the **third** value this one number has taken (26–30 → 12 → ~26), and the second time a correction of
+mine was itself wrong. Both errors came from the same place: a tally that could not be checked against
+anything. It can now — `vsrenderer.mjs` — and the recommendation this file makes is unchanged in *shape* but
+not in strength: 26 draws against 39 of headroom at the tightest frame is worth more than 12 was, so the hold
+is weaker than §3 leaves it, and whoever decides should decide on 26.
+
 ## Files
 
-- `layers.json` — the per-family tallies behind §1, at both heavy spots and hero A.
+- `layers.json` — the per-family tallies behind §1, at both heavy spots and hero A. **Read with §4**: its
+  `calls` column is the buggy tally's, roughly half the truth for every `distant-*` and `mid-*` row.
 
 ## Reproducing
 
