@@ -87,11 +87,34 @@ Two candidate depth models, computed beside the one in use and both **insufficie
   fit one number and miss the other, so it is reported rather than adopted.
 
 **Where the next hour goes.** The `shadow=0` run validates `perInstance` only for meshes that appear in the
-**colour** pass. The families that appear *only* in depth are untested by it — at hero A those are
-`whitebark-shadow` (5 draws, 70 128 triangles, the `proxydraw/` proxies) and `giant-near-base` (2 draws,
-67 507), together **137 635** of the same order as the 233 272 shortfall. That is the next thing to price, and
-the remainder after `depthTrisBatchFull` is 73 512 at A and 67 296 at `stairs1-top` — within a few per cent of
-`giant-near-base`'s size at A.
+**colour** pass, so the families that appear *only* in depth are untested by it. `byFamily` now carries
+`colourTriangles` and `depthTriangles` apart, which names them — hero A, every family with a depth draw:
+
+| family | depth calls | depth triangles | colour triangles |
+| --- | --- | --- | --- |
+| `giant-wood` | 14 | 270 625 | 270 625 |
+| `column-lod0` | 6 | 230 360 | 160 934 |
+| `giant-far-foliage-batch` | 2 | 124 240 | 124 240 |
+| `whitebark-lod0` | 1 | 100 578 | 100 578 |
+| **`whitebark-shadow`** | 5 | **70 128** | **0** |
+| **`giant-near-base`** | 2 | **67 507** | **0** |
+| `column-near-base` | 2 | 59 228 | 26 439 |
+| `column-lod1` | 4 | 47 500 | 47 500 |
+| `understory-lod0` | 4 | 34 998 | 28 430 |
+| `understory-lod1` | 4 | 17 479 | 17 479 |
+| `giant-cards` | 3 | 11 618 | 11 618 |
+| `whitebark-roots` | 1 | 9 664 | 9 664 |
+| **total** | **48** | **1 043 925** | against the renderer's **1 277 197** |
+
+The two rows with no colour triangles are the untested ones: `whitebark-shadow` (the `proxydraw/` proxies) and
+`giant-near-base`, together **137 635**, the same order as the 233 272 shortfall. The remainder after
+`depthTrisBatchFull` is 73 512 at A and 67 296 at `stairs1-top`, both within a few per cent of
+`giant-near-base`'s 67 507.
+
+Pricing them needs per-family truth, which `isolate()` cannot give — it matches `scene.children` by name. The
+instrument that would is a debug switch in this lane's own file turning `castShadow` off one family at a time
+and watching the renderer's depth total fall by that family's real cost. Named, not built: it is temporary
+instrumentation, and this round's result stands without it.
 
 ## The hypothesis that explained 28 % of it and was wrong anyway
 
@@ -106,7 +129,9 @@ Refused before that, by reading `node_modules/three` rather than guessing: shado
 `DirectionalLight`, `cascades: 1`), the two-pass `transparent` + `DoubleSide` rule (only `distant.ts`'s
 material is transparent and it already sets `forceSinglePass`; `materials.ts`'s `DoubleSide` materials are
 not transparent), a constant `isolate()` overhead (no composer, and the lighting group has no meshes),
-non-`Mesh` drawables under the trees group (there are none), a **reversed depth buffer** (`Frustum
+non-`Mesh` drawables under the trees group (there are none), **VSM shadows** (which would draw every
+`receiveShadow` mesh in the depth pass — `lighting/index.ts` sets `BasicShadowMap`), a **reversed depth
+buffer** (`Frustum
 .setFromProjectionMatrix` takes `coordinateSystem` and `reversedDepth`, which `postfx/shadowcull.ts` passes and
 this tally does not — but `main.ts` builds the renderer without `reversedDepthBuffer`, so the defaults are
 right), and a **second shadow-casting light** (`house.ts`'s five `PointLight`s never set `castShadow`; no light

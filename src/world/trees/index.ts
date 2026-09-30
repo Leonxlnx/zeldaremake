@@ -4816,6 +4816,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles: number;
     colourCalls: number;
     depthCalls: number;
+    colourTriangles: number;
+    depthTriangles: number;
   }
   const submission = () => {
     const cam = ctx.camera;
@@ -4826,7 +4828,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const sc = ctx.sun.shadow.camera;
       shadow = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(sc.projectionMatrix, sc.matrixWorldInverse));
     }
-    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0, colourCalls: 0, depthCalls: 0 });
+    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0, colourCalls: 0, depthCalls: 0, colourTriangles: 0, depthTriangles: 0 });
     const s = new Sphere();
     const lobe = new Sphere();
     const lobeMatrix = new Matrix4();
@@ -4965,6 +4967,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       into.colourCalls += colour;
       into.depthCalls += depth;
       into.calls += colour + depth;
+      into.colourTriangles += colourTris;
+      into.depthTriangles += depthTris;
       into.triangles += colourTris + depthTris;
     };
     /** every mesh a named family tallied, so the scene-graph walk below can name what no family claimed */
