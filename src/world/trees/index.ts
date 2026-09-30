@@ -4840,12 +4840,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const batched = (mesh as unknown as BatchedMesh).isBatchedMesh ? (mesh as unknown as BatchedMesh) : null;
       const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
       if (!mesh.visible || inst === 0) return;
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      // three's shadow pass guards on `material.visible` and so does its render list; a mesh with none
-      // visible costs nothing in either pass
-      if (!mats.some((m) => m.visible)) return;
       const g = mesh.geometry;
-      const perInstance = Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+      const indexCount = g.index ? g.index.count : g.attributes.position.count;
+      /**
+       * One draw per VISIBLE material group, in BOTH passes, each over that group's own range — three's
+       * render list and `WebGLShadowMap.renderObject` agree on this. `distant.ts` gives its near and far
+       * meshes two groups (wood, then foliage) and `writeRanges` adds one per range, so a tally of one
+       * call per mesh reports roughly half of what the renderer makes for those families. A single
+       * material that is not visible, or an array with no visible group, is drawn in neither pass.
+       */
+      const matArray = Array.isArray(mesh.material) ? (mesh.material as Material[]) : null;
+      const drawGroups = matArray ? g.groups.filter((gr) => matArray[gr.materialIndex ?? 0]?.visible) : (mesh.material as Material).visible ? null : [];
+      if (drawGroups && drawGroups.length === 0) return;
+      const passCalls = drawGroups ? drawGroups.length : 1;
+      const perInstance = drawGroups
+        ? drawGroups.reduce((n, gr) => n + Math.floor(Math.min(gr.count, Math.max(0, indexCount - gr.start)) / 3), 0)
+        : Math.floor(indexCount / 3);
       /**
        * The count in effect during the COLOUR pass. `installMainPassCount` swaps it in `onBeforeRender`
        * and back in `onAfterRender`, so a bucket's shadow-only instances draw in depth and not in colour,
@@ -4854,7 +4864,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const mainCount = (mesh.userData[MAIN_COUNT] as number | undefined) ?? inst;
       if (mainCount === 0) mainZero++;
       if (!mesh.frustumCulled) cullExempt++;
-      noCullCalls += (mainCount > 0 ? 1 : 0) + (mesh.castShadow && shadow ? 1 : 0);
+      noCullCalls += passCalls * ((mainCount > 0 ? 1 : 0) + (mesh.castShadow && shadow ? 1 : 0));
       const bs = batched ? batched.boundingSphere : (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).boundingSphere : mesh.geometry.boundingSphere;
       // `frustumCulled === false` means three submits the object whatever the frustum says — those draws
       // are not optional and a tally that frustum-tests them reports fewer than the renderer makes. With
@@ -4897,10 +4907,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         depthTris = depth ? colourTris : 0;
         if (!colour) colourTris = 0;
       } else {
-        colour = inView && mainCount > 0 ? 1 : 0;
+        colour = inView && mainCount > 0 ? passCalls : 0;
         colourTris = colour ? perInstance * mainCount : 0;
         // the shadow pass runs first, before `onBeforeRender` swaps the count down, so it draws them all
-        depth = mesh.castShadow && inShadow ? 1 : 0;
+        depth = mesh.castShadow && inShadow ? passCalls : 0;
         depthTris = depth ? perInstance * inst : 0;
       }
       into.meshes++;
@@ -4944,12 +4954,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const batch of farFoliage) claim(family('giant-far-foliage-batch'), batch.mesh);
     if (detachedGroup.visible) for (const m of detachedMeshes) claim(family(m.userData.kind as string), m);
     const total = tally();
-    for (const t of Object.values(byFamily)) {
-      total.meshes += t.meshes;
-      total.instances += t.instances;
-      total.calls += t.calls;
-      total.triangles += t.triangles;
-    }
+    // summed over the tally's own keys rather than a hand-written list of four: the field-by-field version
+    // silently dropped `colourCalls` and `depthCalls` the hour they were added, which is the same way
+    // `byFamily` came to be missing three whole families (`auditgap/`)
+    for (const t of Object.values(byFamily)) for (const k of Object.keys(total) as (keyof SubmissionTally)[]) total[k] += t[k];
     /**
      * The same tally taken from the SCENE GRAPH instead of from a hand-written list of families, so that a
      * family nobody remembered to add shows up as a difference rather than as a quietly low total.
