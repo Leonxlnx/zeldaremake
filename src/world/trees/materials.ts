@@ -31,7 +31,7 @@ import { createWhiteBarkTextures } from './bark-texture';
 import { createLeafClusterDetail, createLeafClusterTexture } from './leaf-cluster-texture';
 import { BARK_AO_LIFT } from './bole';
 import { CUSHION_ROOT_W, CUSHION_ROOT_W_PER_M } from './writer';
-import { canopyVeilGlsl, DISTANT_NEAR_GAIN } from './distant';
+import { canopyVeilGlsl, DISTANT_BARK_M, DISTANT_NEAR_GAIN, DISTANT_WOOD_ROUGHNESS } from './distant';
 import { injectTreeLeafWarmth } from './leaf-color';
 
 export interface TreeMaterials {
@@ -499,13 +499,11 @@ export const BARK_GRAIN_FURROW = 0.34;
  *  38 m — the owner's "the trees stay green, they never render to brown even a foot away". Same
  *  bug as structures' SLEEVE_BARK_MEAN (fixed by structures-33). */
 const BARK_DETAIL_MEAN = 0.254;
-/**
- * Distant trees' bark (round 44, survey #2 crops 04/05): the solid vertices of a distant tree
- * read the bark map within these view distances (m) — full at the near end, none at the far end.
- * The nearest depth row stands 43 m from camera D, the radial pool 51 m from A: zero in every
- * fixed frame.
- */
-export const DISTANT_BARK_M: [number, number] = [22, 38];
+// DISTANT_BARK_M moved to distant.ts on 2026-09-30 (lane 2, onemat/): the distant CROWN material has to
+// apply DISTANT_NEAR_GAIN's division on the same window now that one material draws wood and cards, and
+// materials.ts already imports from distant.ts, so the window lives there and is re-exported here for
+// every existing reader.
+export { DISTANT_BARK_M } from './distant';
 /**
  * Round 45 (trees-27's leftover, measured at w19-spine-r / sn-arch-outside: the depth rows'
  * boles 15–30 m from a walker read as pale cylinders): within the same DISTANT_BARK_M blend the
@@ -1572,7 +1570,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantCanopyDepth, wind, giantWind, depthSlots, biasedMap, 'giant-canopy-depth');
 
   // --- distant trees: leaf-cluster cards + solid trunks/cores (uv on the opaque patch); fog tints ---
-  const distant = new MeshStandardMaterial({ map: cluster, alphaTest: CARD_ALPHA_TEST, vertexColors: true, roughness: 0.95, metalness: 0, side: DoubleSide });
+  const distant = new MeshStandardMaterial({ map: cluster, alphaTest: CARD_ALPHA_TEST, vertexColors: true, roughness: DISTANT_WOOD_ROUGHNESS, metalness: 0, side: DoubleSide });
   distant.onBeforeCompile = (s) => {
     biasedMap(s);
     // round 44 (survey #2, crops 04/05: the depth rows' trunks 10–20 m from a walker are "grey

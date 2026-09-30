@@ -1,0 +1,98 @@
+{
+ "A_stairs": {
+  "draws": 539,
+  "triangles": 8724803,
+  "treeDraws": 124,
+  "treeTriangles": 2656692,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 10,
+   "starved": 21,
+   "starvedNearestM": 15.6
+  },
+  "md5": "19903555813d816226a9ef638bd80b67"
+ },
+ "B_house": {
+  "draws": 521,
+  "triangles": 7971464,
+  "treeDraws": 113,
+  "treeTriangles": 2361903,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 8,
+   "starved": 11,
+   "starvedNearestM": 14.3
+  },
+  "md5": "e0b0022a63baccf2e27f03a12683986c"
+ },
+ "C_lookback": {
+  "draws": 459,
+  "triangles": 7683890,
+  "treeDraws": 100,
+  "treeTriangles": 2510320,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 13,
+   "starved": 16,
+   "starvedNearestM": 18.1
+  },
+  "md5": "6958ceb6b0a04e05c5734530902476f4"
+ },
+ "D_log": {
+  "draws": 445,
+  "triangles": 8258565,
+  "treeDraws": 121,
+  "treeTriangles": 2472542,
+  "giantGroupsCasting": 10,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 7,
+   "starved": 10,
+   "starvedNearestM": 16.9
+  },
+  "md5": "92f02a94b5eb2509cab13aba39e94fdd"
+ },
+ "E_ground": {
+  "draws": 521,
+  "triangles": 7971464,
+  "treeDraws": 113,
+  "treeTriangles": 2361903,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 8,
+   "starved": 11,
+   "starvedNearestM": 14.3
+  },
+  "md5": "8feaa089527a82536f2ce2789d85ea0e"
+ },
+ "F_canopy": {
+  "draws": 480,
+  "triangles": 7819365,
+  "treeDraws": 108,
+  "treeTriangles": 2301613,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 15,
+   "starved": 16,
+   "starvedNearestM": 16.7
+  },
+  "md5": "4993f09501755b125656d5aa678e6c84"
+ }
+}

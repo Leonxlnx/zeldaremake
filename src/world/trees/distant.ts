@@ -98,6 +98,21 @@ export const CROWN_JITTER: [number, number] = [0.55, 0.14];
 /** the cards' alpha test — below it the fringe is blended, so the outline is soft, not a cut-out */
 export const CROWN_ALPHA_TEST = 0.3;
 export const CROWN_MIP_BIAS = -0.5;
+/**
+ * The roughness the distant and mid TRUNKS are shaded at — `mats.distant`'s own `roughness` in
+ * materials.ts, which imports it from here. Since 2026-09-30 one material draws both wood and crown
+ * (markWood), and the crown wants 1.0 while the wood was built at 0.95, so the wood's value is restored
+ * per fragment behind the same `vCrownWood` gate every other crown term sits behind.
+ */
+export const DISTANT_WOOD_ROUGHNESS = 0.95;
+/**
+ * Distant trees' bark (round 44, survey #2 crops 04/05): the solid vertices of a distant tree
+ * read the bark map within these view distances (m) — full at the near end, none at the far end.
+ * The nearest depth row stands 43 m from camera D, the radial pool 51 m from A: zero in every
+ * fixed frame. It is also the window DISTANT_NEAR_GAIN's division is keyed to, which is why it lives
+ * here rather than in materials.ts (which re-exports it): the crown material needs it too.
+ */
+export const DISTANT_BARK_M: [number, number] = [22, 38];
 /** the whole-crown sway's stiffness (WIND_GLSL windBranch): the far layer barely moves */
 export const CROWN_STIFFNESS = 0.78;
 /**
@@ -625,15 +640,26 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     s.uniforms.uCrownSun = { value: sunDir.clone().normalize() };
     s.vertexShader =
       WIND_GLSL +
-      'attribute vec3 aWind;\nattribute vec4 aRoot;\nattribute float aWood;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\n' +
+      'attribute vec3 aWind;\nattribute vec4 aRoot;\nattribute float aWood;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\nvarying float vCrownBark;\n' +
       s.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
     // markWood's flag: 1 on the trunk, 0 on every card and lobe core. Until 2026-09-30 the distant and mid
-    // meshes carried two material groups so the wood had its own plain material; one material is 16 draws
-    // cheaper at hero A (see onemat/), and the price is this branch — every crown term below is for cards
-    // and lobe cores, and bark takes none of them, so it renders as mats.distant rendered it.
+    // meshes carried two material groups so the wood had its own plain material; one material is 15-17 draws
+    // cheaper at the six fixed views (see onemat/), and the price is this branch — every crown term below is
+    // for cards and lobe cores, and bark takes none of them.
+    //
+    // What bark does NOT get back, measured at the six views: mats.distant's own bark treatments (the
+    // cylindrical bark map, the near tone bands, the shade floor, DISTANT_NEAR_GAIN, DISTANT_SHADE_SIDE) all
+    // sit inside the DISTANT_BARK_M [22, 38] m near blend, which is exactly zero at every fixed camera's
+    // range to a depth row — so at those views there is nothing to reproduce. Two differences were NOT
+    // distance-gated and are restored below: the wood's roughness (DISTANT_WOOD_ROUGHNESS) and the leaf
+    // warmth injection. What remains is that the trunk now renders in the TRANSPARENT pass with the cards
+    // instead of the opaque one, which moves the silhouette's AA seam against the haze behind it.
     vCrownWood = aWood;
+    // the bark parts the geometry writes at DISTANT_NEAR_GAIN over the far tint, tagged aRoot.w = −0.45
+    // (writer.ts woodMoss = 1). mats.distant reads the same test — keep the two identical.
+    vCrownBark = aRoot.w < -0.2 ? 1.0 : 0.0;
     if (vCrownWood > 0.5) {
       vCrownOff = vec3(0.0, 0.0, 0.0);
       vCrownJit = vec2(0.0, 0.0);
@@ -664,7 +690,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     `,
       );
     s.fragmentShader =
-      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\nfloat crownSunLit = 0.0;\n' +
+      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\nvarying float vCrownBark;\nfloat crownSunLit = 0.0;\n' +
       s.fragmentShader
         .replace(
           '#include <map_fragment>',
@@ -679,8 +705,28 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     `,
         )
         .replace(
+          '#include <roughnessmap_fragment>',
+          /* glsl */ `#include <roughnessmap_fragment>
+    // DISTANT_WOOD_ROUGHNESS: the trunks were built at 0.95 and this material is 1.0 for the cards.
+    // Measured (onemat/, 09-30) as one of the two bark-only differences left after the one-material
+    // change; the other, the leaf warmth, is gated below.
+    if (vCrownWood > 0.5) roughnessFactor = ${f(DISTANT_WOOD_ROUGHNESS)};
+    `,
+        )
+        .replace(
           '#include <color_fragment>',
           /* glsl */ `#include <color_fragment>
+    // DISTANT_NEAR_GAIN, the line mats.distant applies in this same slot: the near LOD's bark is written
+    // ${DISTANT_NEAR_GAIN}x over the far tint so the map, cords and bands have albedo to work with close up,
+    // and the material divides it back out where the DISTANT_BARK_M near blend is zero. Without this the
+    // trunks of every mid tree and of the distant family's near rung render ${DISTANT_NEAR_GAIN}x bright —
+    // measured at F_canopy as a washed-out grey cylinder where the reference build has warm modelled bark.
+    // Inside the blend the gain is KEPT, as there, but this material does not carry the near treatment that
+    // consumes it — see the note at markWood's flag.
+    if (vCrownBark > 0.5) {
+      float barkNear = 1.0 - smoothstep(${f(DISTANT_BARK_M[0])}, ${f(DISTANT_BARK_M[1])}, length(vViewPosition));
+      diffuseColor.rgb *= mix(1.0 / ${DISTANT_NEAR_GAIN.toFixed(1)}, 1.0, barkNear);
+    }
     if (vCrownWood < 0.5) {
       float rr = clamp(length(vCrownOff), 0.0, 1.5);
       vec3 hue = mix(vec3(1.08, 1.0, 0.86), vec3(0.9, 1.0, 1.14), vCrownJit.x);
@@ -766,9 +812,12 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     #endif
     `,
         );
-    injectTreeLeafWarmth(s);
+    // the helper's own contract for a material that draws wood as well as leaves: pass the leaf gate.
+    // Its green test (`g > max(r, b)`) already spares brown bark, but a trunk in the greenish haze is
+    // not guaranteed brown, and the plain material never had this injection at all.
+    injectTreeLeafWarmth(s, 'vCrownWood < 0.5');
   };
-  material.customProgramCacheKey = () => `trees-distant-crown-v6-under-fog-floor-normal-leaf-warmth${look ? `-${look.id}` : ''}`;
+  material.customProgramCacheKey = () => `trees-distant-crown-v8-wood-gain-roughness-leaf-gate${look ? `-${look.id}` : ''}`;
   wind.bind(material);
   return material;
 }
