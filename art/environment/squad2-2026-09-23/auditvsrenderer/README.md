@@ -41,17 +41,19 @@ the same two mechanisms at every pose.
 
 | | audit | renderer | gap |
 | --- | --- | --- | --- |
-| **A_stairs** | 139 draws (91 colour + 48 depth) / 2 423 420 | 140 / 2 656 488 | **+1 call** / +233 068 tris |
-| **`stairs1-top`** | 147 (98 + 49) / 3 409 010 | 147 / 3 549 346 | **0 calls** / +140 336 tris |
+| **A_stairs** | 139 draws (91 colour + 48 depth) / 2 423 420 | 140 / 2 656 488 | **+1 call** / +233 068 tris (8.8 %) |
+| **`stairs1-top`** | 147 (98 + 49) / 3 409 010 | 147 / 3 549 346 | **0 calls** / +140 336 (4.0 %) |
+| **`stairs2-top`** | 129 (84 + 45) / 2 883 410 | 129 / 3 004 341 | **0 calls** / +120 931 (4.0 %) |
 
-**Draws now agree**: 0 and +1 of ~140, from +36 and +37. Triangles are **4.0–8.8 % low**, having been 31 %
-high, so the direction flipped and the size fell by three quarters.
+**Draws now agree**: exact at two poses and +1 of 140 at the third, from +36 and +37. Triangles are
+**4.0–8.8 % low**, having been 31 % high at hero A, so the direction flipped and the size fell by three
+quarters.
 
 **Nothing in the world moved**, which two independent controls say. The renderer's own column is *identical*
-before and after — 140 / 2 656 488 at A, 147 / 3 549 346 at `stairs1-top` — because a read-only tally cannot
-change what is drawn. And `stairs1-top` re-rendered whole comes back at **661 draws / 9 799 283 triangles,
-md5 `c2d51f15a4b0cf58bc0bb9b340efa1d9`**, the same three values `proxydraw/` recorded, while the trees' row
-inside it moved from 110 / 3 892 755 to 147 / 3 409 010. The reporting changed; the frame did not.
+before and after at all three poses — 140 / 2 656 488, 147 / 3 549 346, 129 / 3 004 341 — because a read-only
+tally cannot change what is drawn. And `stairs1-top` re-rendered whole comes back at **661 draws / 9 799 283
+triangles, md5 `c2d51f15a4b0cf58bc0bb9b340efa1d9`**, the same three values `proxydraw/` recorded, while the
+trees' row inside it moved from 110 / 3 892 755 to 147 / 3 409 010. The reporting changed; the frame did not.
 
 ## The residual, and the hypothesis that explained 28 % of it and was wrong anyway
 
