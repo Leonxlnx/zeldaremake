@@ -237,8 +237,14 @@ before any of it) and on the branch head:
 | plaza-east | 440 / 9 635 502 | 434 / 9 556 777 | **−78 725** | −6 | 14 of 14 | 6 | identical |
 | plaza-south | 397 / 6 227 228 | 397 / 6 114 234 | **−112 994** | 0 | 8 of 14 | 5 | identical |
 | clearing-north | 468 / 5 765 970 | 462 / 5 572 935 | **−193 035** | −6 | 2 of 14 | 2 | identical |
-| up-open-north | 246 / 3 683 298 | 241 / 3 519 960 | **−163 338** | −5 | 2 of 14 | 3 | identical |
+| up-open-north † | 246 / 3 683 298 | 241 / 3 519 960 | **−163 338** | −5 | 2 of 14 | 3 | identical |
 | owner-0650-north | 457 / 8 624 308 | 457 / 8 504 699 | **−119 609** | 0 | 8 of 14 | 6 | identical |
+
+† **`up-open-north` is 1.451 m below its own ground** (`../poseaudit/`, 2026-09-30) — a pose authored by
+aiming. The cull's byte-identical property holds at any camera, so nothing in this table's conclusion
+changes, and the headline range below comes from `plaza-east` (−78 725) and `clearing-north` (−193 035),
+both valid. But **the −163 338 on that row is not a saving any player receives** and should be read as a
+seventh data point on the mechanism rather than as a player-facing number.
 
 **Every frame is byte-identical** (md5 per pose in `walk-before.json` / `walk-after.json`), and the
 six poses shed 0.84 M triangles between them — 79–193 K each, two to four times what the fixed views

@@ -1,0 +1,34 @@
+{
+ "grove-shelf-up-buried": {
+  "draws": 160,
+  "triangles": 1677983,
+  "treeDraws": 15,
+  "treeTriangles": 85959,
+  "giantGroupsCasting": 0,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 0,
+  "slotsInFrame": {
+   "shown": 3,
+   "inView": 0,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "bfaffadaa25973347e4d6d373167c8e2"
+ },
+ "grove-shelf-up-standing": {
+  "draws": 85,
+  "triangles": 939570,
+  "treeDraws": 14,
+  "treeTriangles": 78094,
+  "giantGroupsCasting": 0,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 0,
+  "slotsInFrame": {
+   "shown": 3,
+   "inView": 0,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "e1b7b483586ea4431382b5127861e945"
+ }
+}
