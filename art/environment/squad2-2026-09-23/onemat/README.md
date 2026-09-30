@@ -113,7 +113,49 @@ core is tagged.** The crown shader cannot tell the distant trunk from the crown'
 
 Reverted; `src/` is byte-identical to before the attempt.
 
-## The path, now one line to find rather than a mystery
+## Round three: the attribute route, and one frame that ended the guessing
+
+*2026-09-30 20:30 UTC.* Round two's blocker was the tag space, so this round avoided it: `markWood()` puts a
+**one-float attribute** on the distant and mid geometries alone — 1 on the trunk, 0 on every card and lobe core
+— rather than adding a sixth code to an encoding three tree shaders decode. Both builders write the whole trunk
+before the first card, so it is a fill rather than a per-vertex test, and a geometry without the attribute feeds
+the shader WebGL's default 0, which means "not wood". `createDistantCrownMaterial` is the only consumer of these
+materials, so nothing else could be touched.
+
+Measured, and the prize is the same: **A_stairs 555 → 539 draws and `stairs1-top` 655 → 639**, triangles
+identical to the digit. And **0.49 % of the frame moved** against 0.51 % and 0.52 % for the two earlier
+attempts — the same worst cell at 15.6 % and 36.4 levels, the same two trunks gone:
+
+![the third attempt, same result](awood-cell-6x.png)
+
+**Then one diagnostic frame settled what three rounds of reasoning could not.** Painting the wood branch magenta
+— alpha 1, and three runs `<map_fragment>` before `<alphatest_fragment>`, so any rasterised wood fragment would
+show — gives **zero magenta pixels in 518 400**.
+
+So no wood fragment takes the wood path at all. The flag is not arriving as 1; the trunk is drawn down the
+**crown** path, samples the far-crown atlas's cleared corner, and `CROWN_ALPHA_TEST` discards it. The alpha test
+is the proximate cause and **the flag is the reason** — which is a different statement from either earlier
+round, and it clears my shader gating of blame: the gates are fine, nothing reaches them.
+
+Reverted; `src/` is byte-identical to before the attempt.
+
+## What the next round needs, and what it does not
+
+Not another mechanism. A **runtime check of the attribute itself**: report `markWood`'s `woodVertices` and the
+uploaded attribute's sum in the trees audit, and see which of the two is wrong before touching the shader again.
+Two candidates, and the check separates them in one probe rather than one render:
+
+- `woodVertices` is wrong — `roots.length / 4` is read at the right moment in both builders, but that is an
+  assumption about `GeometryWriter`'s accumulation order that nothing has verified.
+- the attribute is not bound — `markWood` sets it after `finish()`, and `finishSteps` packs a fixed attribute
+  list; whether a late `setAttribute` on an `InstancedMesh`'s shared geometry reaches this program is untested.
+
+**The lesson worth more than the draws**: three rounds went on *reasoning* about which term removed the trunks —
+mip bleed, the atlas corner, the aRoot.w tag, the shader gates — and one instrumented frame answered it in three
+minutes. When a change does nothing visible, make the branch itself visible before theorising about what it
+does.
+
+## The path as round two left it
 
 Give the distant and mid **trunk** wood its own code in `createDistantVariants`, inside the windows `writer.ts`
 already uses, and the branch has something to read. The 16 draws follow from there with no atlas or `SOLID_UV`
