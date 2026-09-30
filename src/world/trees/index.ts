@@ -4167,14 +4167,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const n = Math.max(1, placements.length);
     const mid = variant.kind === 'mid';
     const make = (geometry: DistantVariant['near'], label: string, lodLevel: number) => {
-      /**
-       * ONE material, not two. Each geometry still carries its two groups (wood, then cards) but three
-       * ignores them when the material is not an array, so this is one draw per mesh instead of two — 16
-       * fewer at hero A (onemat/). The crown material branches on distant.ts's markWood flag so bark
-       * renders as mats.distant rendered it; without that branch the trunks vanish, because bark's uv
-       * points at the cluster atlas's white patch and the far-crown atlas has none.
-       */
-      const mesh = new InstancedMesh(geometry, mid ? midCrown : distantCrown, n);
+      const mesh = new InstancedMesh(geometry, [mats.distant, mid ? midCrown : distantCrown], n);
       mesh.name = `${mid ? 'mid' : 'distant'}-${i}-${label}`;
       mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
       mesh.castShadow = false;
