@@ -10,7 +10,7 @@
  * wood (the distant material) and crown (the crown material). Fog does the atmospheric tinting.
  * Placement is seeded, clumped by noise, spaced by a hash grid, and seated on the terrain.
  */
-import { BufferAttribute, BufferGeometry, Color, DoubleSide, MeshStandardMaterial, Vector3, type Texture } from 'three';
+import { BufferGeometry, Color, DoubleSide, MeshStandardMaterial, Vector3, type Texture } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import type { Terrain } from '../terrain/heightfield';
@@ -625,19 +625,11 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     s.uniforms.uCrownSun = { value: sunDir.clone().normalize() };
     s.vertexShader =
       WIND_GLSL +
-      'attribute vec3 aWind;\nattribute vec4 aRoot;\nattribute float aWood;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\n' +
+      'attribute vec3 aWind;\nattribute vec4 aRoot;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\n' +
       s.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
-    // markWood's flag: 1 on the trunk, 0 on every card and lobe core. Until 2026-09-30 the distant and mid
-    // meshes carried two material groups so the wood had its own plain material; one material is 16 draws
-    // cheaper at hero A (see onemat/), and the price is this branch — every crown term below is for cards
-    // and lobe cores, and bark takes none of them, so it renders as mats.distant rendered it.
-    vCrownWood = aWood;
-    if (vCrownWood > 0.5) {
-      vCrownOff = vec3(0.0, 0.0, 0.0);
-      vCrownJit = vec2(0.0, 0.0);
-    } else {
+    {
       vec4 crownC = vec4(aRoot.xyz, 1.0);
       vec4 crownP = vec4(transformed, 1.0);
       float crownS = 1.0;
@@ -660,28 +652,23 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       vec2 seed = crownC.xz;
       vCrownJit = vec2(fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453), fract(sin(dot(seed, vec2(39.3468, 11.135))) * 24634.6345));
     }
-    // bark takes no wind here: the plain material it used to be drawn by had none bound
     `,
       );
     s.fragmentShader =
-      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nvarying float vCrownWood;\nfloat crownSunLit = 0.0;\n' +
+      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nfloat crownSunLit = 0.0;\n' +
       s.fragmentShader
         .replace(
           '#include <map_fragment>',
           /* glsl */ `
     #ifdef USE_MAP
-      // bark points its uv at the CLUSTER atlas's opaque WHITE patch (SOLID_UV), and this material's atlas
-      // has none: createFarCrownAtlas clears that corner and its four cells tile the whole texture, so
-      // sampling there returns transparent and CROWN_ALPHA_TEST would discard the trunk outright. White
-      // times the vertex colour IS the vertex colour, so skipping the sample is what the plain material did.
-      if (vCrownWood < 0.5) diffuseColor *= texture2D(map, vMapUv, ${f(CROWN_MIP_BIAS)});
+      diffuseColor *= texture2D(map, vMapUv, ${f(CROWN_MIP_BIAS)});
     #endif
     `,
         )
         .replace(
           '#include <color_fragment>',
           /* glsl */ `#include <color_fragment>
-    if (vCrownWood < 0.5) {
+    {
       float rr = clamp(length(vCrownOff), 0.0, 1.5);
       vec3 hue = mix(vec3(1.08, 1.0, 0.86), vec3(0.9, 1.0, 1.14), vCrownJit.x);
       diffuseColor.rgb *= mix(vec3(1.0), hue, ${f(CROWN_JITTER[0])}) * (1.0 + (vCrownJit.y - 0.5) * ${f(2 * CROWN_JITTER[1])});
@@ -720,7 +707,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
           '#include <fog_fragment>',
           /* glsl */ `vec3 crownPreFog = gl_FragColor.rgb;
     #include <fog_fragment>
-    if (vCrownWood < 0.5) {
+    {
       // CROWN_UNDER_FOG_CUT: a crown overhead inside the shade gate keeps part of its own shade
       float roofNearF = 1.0 - smoothstep(${f(shadeM[0])}, ${f(shadeM[1])}, length(vViewPosition));
       float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
@@ -732,7 +719,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         .replace(
           '#include <normal_fragment_begin>',
           /* glsl */ `#include <normal_fragment_begin>
-    if (vCrownWood < 0.5) {
+    {
       vec3 sphereW = normalize(vCrownOff * vec3(1.0, 0.8, 1.0) + vec3(0.0, 0.32, 0.0));
       vec3 sphereV = normalize(mat3(viewMatrix) * sphereW);
       // CROWN_FLOOR_OWN_NORMAL: inside the gate a floor card seen from below keeps its own normal —
@@ -750,7 +737,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
           '#include <emissivemap_fragment>',
           /* glsl */ `#include <emissivemap_fragment>
     #if NUM_DIR_LIGHTS > 0
-    if (vCrownWood < 0.5) {
+    {
       float rr = clamp(length(vCrownOff), 0.0, 1.5);
       float rim = smoothstep(0.5, 1.05, rr) * crownSunLit;
       totalEmissiveRadiance += directionalLights[0].color * diffuseColor.rgb * rim * ${f(rimShare)};
@@ -774,27 +761,6 @@ function solidUv(writer: GeometryWriter) {
       writer.uvs[i * 2 + 1] = SOLID_UV;
     }
   }
-}
-
-/**
- * Marks the wood vertices of a distant / mid geometry, so the crown material can tell a trunk from a crown
- * card and ONE material can draw both — one draw per mesh instead of two, 16 fewer at hero A (see onemat/).
- *
- * Why an attribute of its own rather than the `aRoot.w` tag: writer.ts's wood codes are plain wood **0**,
- * `woodMoss` −0.45 × cover, a moss cushion's window (−0.5, −0.47), −1 and −2 — so plain bark is tagged 0,
- * exactly what a lobe core is tagged, and no value there separates them. Adding a code would touch an
- * encoding three tree shaders decode; this attribute is read by `createDistantCrownMaterial` alone, and a
- * geometry without it feeds the shader WebGL's default 0, which means "not wood" — the crown's own behaviour.
- *
- * Both builders write the whole trunk before the first card, so the wood owns the first `woodVertices`
- * vertices and the split is a fill rather than a per-vertex test.
- */
-function markWood(geometry: BufferGeometry, woodVertices: number): BufferGeometry {
-  const n = geometry.getAttribute('position').count;
-  const flag = new Float32Array(n);
-  flag.fill(1, 0, Math.min(woodVertices, n));
-  geometry.setAttribute('aWood', new BufferAttribute(flag, 1));
-  return geometry;
 }
 
 export function createDistantVariants(rng: Rng, palette: Palette): DistantVariant[] {
@@ -949,7 +915,6 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     solidUv(near);
     // ---- the crown (round 47): crossed atlas cards over the wood, in the geometry's second group
     const nearWood = near.indices.length;
-    const nearWoodVertices = near.roots.length / 4;
     const crownCentre = new Vector3(0, crownY + crownR * 0.1, 0);
     const cells = slender ? [3] : broadCells[index % broadCells.length];
     // round 48: + FAR_CROWN_FLOOR dark near-horizontal cards under the broad crowns (their own fork inside crownCards)
@@ -995,14 +960,13 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     }
     solidUv(far);
     const farWood = far.indices.length;
-    const farWoodVertices = far.roots.length / 4;
     // the same stream as the near LOD's main cards: the far LOD's crown is the near one's without its lobes, so the switch at 120 m never turns a crown
     crownCards(far, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[1], 0, cardTint, cardTopTint, FAR_CROWN_FLOOR_FAR);
 
-    const nearGeometry = markWood(near.finish(`distant-near-${index}`), nearWoodVertices);
+    const nearGeometry = near.finish(`distant-near-${index}`);
     nearGeometry.addGroup(0, nearWood, 0);
     nearGeometry.addGroup(nearWood, near.indices.length - nearWood, 1);
-    const farGeometry = markWood(far.finish(`distant-far-${index}`), farWoodVertices);
+    const farGeometry = far.finish(`distant-far-${index}`);
     farGeometry.addGroup(0, farWood, 0);
     farGeometry.addGroup(farWood, far.indices.length - farWood, 1);
     variants.push({
@@ -1471,7 +1435,6 @@ export function createMidVariants(rng: Rng, palette: Palette): DistantVariant[] 
     const near = new GeometryWriter('high');
     wood(near, MID_SIDES, 6);
     const nearWood = near.indices.length;
-    const nearWoodVertices = near.roots.length / 4;
     midCrownCards(near, r.fork('crown'), crownCentre, crownR, cells, cardTint, cardTopTint);
 
     // the far LOD: the same skeleton at a third of the sides and half the rings, and the same
@@ -1479,13 +1442,12 @@ export function createMidVariants(rng: Rng, palette: Palette): DistantVariant[] 
     const far = new GeometryWriter('high');
     wood(far, 5, 3);
     const farWood = far.indices.length;
-    const farWoodVertices = far.roots.length / 4;
     midCrownCards(far, r.fork('crown'), crownCentre, crownR, cells, cardTint, cardTopTint);
 
-    const nearGeometry = markWood(near.finish(`mid-near-${index}`), nearWoodVertices);
+    const nearGeometry = near.finish(`mid-near-${index}`);
     nearGeometry.addGroup(0, nearWood, 0);
     nearGeometry.addGroup(nearWood, near.indices.length - nearWood, 1);
-    const farGeometry = markWood(far.finish(`mid-far-${index}`), farWoodVertices);
+    const farGeometry = far.finish(`mid-far-${index}`);
     farGeometry.addGroup(0, farWood, 0);
     farGeometry.addGroup(farWood, far.indices.length - farWood, 1);
     return { kind: 'mid' as DistantKind, near: nearGeometry, far: farGeometry, height: H, nearTriangles: near.triangles, farTriangles: far.triangles, bandOnly: true };
