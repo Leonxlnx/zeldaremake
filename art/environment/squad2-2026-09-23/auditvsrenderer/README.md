@@ -122,6 +122,17 @@ meshes' depth submission rather than the whole system, and the two candidates al
 batch's full lobe set would owe 159 760, which is 68 % of the shortfall at hero A but **more than all of it**
 at `stairs2-top` (169 480 against 120 931).
 
+**What the shape of it rules out.** Four of the six have modelled depth *equal* to their colour — `giant-wood`
+270 625 both ways, `giant-far-foliage-batch` 124 240, `giant-cards` 11 618, `whitebark-roots` 9 664 — and the
+two that differ (`column-near-base` 26 439 colour against 59 228 depth, `giant-near-base` 0 against 67 507)
+total only **126 735, less than the shortfall**. So this is not a bucket of shadow-only instances I have
+mis-sized. The depth *call set* is right too: `depthTrisNoFrustum` equals the gated total, and the renderer's
+depth call count matches at `stairs1-top` and `stairs2-top` exactly. Same draws, more triangles per draw ⇒ the
+renderer draws some of these meshes with **more than `perInstance × inst`**, and the leading suspect is
+`giant-wood`: the largest at 270 625, **seven material groups** per mesh, and only two of its three meshes
+counted as casting. What it is not: the proxies, anything on the rung ladder, the shadow frustum, the call set,
+or a constant overhead.
+
 **Where the next hour goes.** The `shadow=0` run validates `perInstance` only for meshes that appear in the
 **colour** pass, so the families that appear *only* in depth are untested by it. `byFamily` now carries
 `colourTriangles` and `depthTriangles` apart, which names them — hero A, every family with a depth draw:
