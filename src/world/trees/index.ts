@@ -4394,6 +4394,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
               proxy.computeBoundingSphere();
               proxy.boundingSphere!.radius += CULL_PAD_M;
             }
+            /**
+             * The proxy exists ONLY to cast: every instance in it is a tree the view frustum rejected whose
+             * shade still reaches the frame, and its material is `colorWrite: false, depthWrite: false`. But
+             * its aggregate sphere encloses several out-of-view trees and carries `CULL_PAD_M`, so it clips
+             * the frustum edge often — and three then submits it in the COLOUR pass too, where it draws
+             * nothing at all. At `lookspots/`'s `stairs1-top`, the frame closest to the 700-draw line at
+             * 665, that was **8 wasted draws of 12** this family spent.
+             *
+             * Two obvious ways out are both closed by three's source, which is why this is the third:
+             * `object.layers` is tested in the shadow pass against the MAIN camera's layers
+             * (`WebGLShadowMap.renderObject`), so hiding it from the camera hides it from the shadow map;
+             * and the same function guards its single-material branch with `else if (material.visible)`, so
+             * `material.visible = false` deletes the shade as well.
+             *
+             * `installMainPassCount` already solves it for the ordinary buckets: a count of 0 makes
+             * `WebGLBufferRenderer.renderInstances` return before it issues a draw or touches `info.render`,
+             * and the shadow pass is unaffected because it runs first and calls `onBeforeShadow`, never
+             * `onBeforeRender`. So the proxy's main-pass count is pinned at 0 and its full count follows
+             * whatever this submission just set.
+             */
+            installMainPassCount(proxy);
+            proxy.userData[FULL_COUNT] = shadowOnly.length;
+            proxy.userData[MAIN_COUNT] = 0;
             w.submittedShadow = shadowOnly;
           }
           continue;
