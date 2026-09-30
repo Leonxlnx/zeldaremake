@@ -56,6 +56,7 @@ try {
       lodSwapM: t.lodSwapM ?? null,
       treeSubmission: { drawCalls: t.submission?.drawCalls ?? null, triangles: t.submission?.triangles ?? null },
       byFamily: t.submission?.byFamily ?? null,
+      unaccounted: t.submission?.unaccounted ?? null,
     };
   });
   fs.writeFileSync(out, JSON.stringify({ dist, view, quality, ...data }, null, 1));
@@ -65,7 +66,9 @@ try {
   console.log(`${dist}  ${view}  quality=${quality}   ${data.draws}/${data.triangles}   trees ${data.treeSubmission.drawCalls}/${data.treeSubmission.triangles}`);
   console.log(`  lodBand ${JSON.stringify(data.lodBand)}`);
   console.log(`  gates   ${JSON.stringify(data.lodSwapM?.tree)}`);
-  for (const [k, v] of rungs) console.log(`  ${k.padEnd(22)} ${String(v.drawCalls ?? v.draws ?? '?').padStart(4)} draws  ${String(v.triangles ?? '?').padStart(9)} triangles  ${JSON.stringify(v.instances ?? v.count ?? '')}`);
+  // the tally's field is `calls`, not `drawCalls` — the first version of this line printed "? draws"
+  for (const [k, v] of rungs) console.log(`  ${k.padEnd(22)} ${String(v.calls ?? '?').padStart(4)} draws  ${String(v.triangles ?? '?').padStart(9)} triangles  ${String(v.instances ?? '?').padStart(4)} instances`);
+  console.log(`  unaccounted            ${JSON.stringify(data.unaccounted)}  (zero means byFamily covers every visible mesh under the trees group)`);
 } finally {
   await browser.close();
   await server.close();

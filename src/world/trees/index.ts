@@ -4833,6 +4833,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const family = (key: string) => (byFamily[key] ??= tally());
     for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
     for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
+    // the third `bucketFamily` family, and the third the rung band covers (lodFade.ts). It was missing
+    // from this tally until 2026-09-30, and since `total` below is the SUM of byFamily, every
+    // `submission.drawCalls` / `submission.triangles` this system reported was short by the understory's
+    // share — 10 draws and 63 638 triangles of it at plateau-back by `outlook/`'s family probe. The
+    // `unaccounted` field below exists so that omitting a family again is a number rather than a silence.
+    for (const u of understory) u.meshes.forEach((m, l) => add(family(`understory-lod${l}`), m));
     sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
       const layer = d.variant.kind === 'mid' ? 'mid' : 'distant';
@@ -4852,15 +4858,42 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       total.calls += t.calls;
       total.triangles += t.triangles;
     }
+    /**
+     * The same tally taken from the SCENE GRAPH instead of from a hand-written list of families, so that a
+     * family nobody remembered to add shows up as a difference rather than as a quietly low total.
+     *
+     * `total` above is the sum of `byFamily`, and `byFamily` is eleven explicit loops over the collections
+     * this file happens to hold. The understory was absent from those loops from the day it was added until
+     * 2026-09-30, so `submission.triangles` under-reported the trees for weeks and nothing said so — the
+     * whole-frame numbers were never affected (those come from the renderer's own info), but this system's
+     * own row was. Walking the group cannot forget a family.
+     *
+     * `unaccounted` should be zero. If it is not, `byFamily` is missing something, and the gauntlet's B3
+     * check ("audit claims cross-checked against the scene graph") has a number to fail on.
+     */
+    const walked = tally();
+    group.traverse((o) => {
+      const m = o as Mesh | InstancedMesh;
+      if ((m as Mesh).isMesh) add(walked, m);
+    });
+    const unaccounted = {
+      meshes: walked.meshes - total.meshes,
+      instances: walked.instances - total.instances,
+      calls: walked.calls - total.calls,
+      triangles: walked.triangles - total.triangles,
+    };
     return {
       drawCalls: total.calls,
       triangles: total.triangles,
       meshes: total.meshes,
       instances: total.instances,
       byFamily,
+      /** zero when `byFamily` accounts for every visible mesh under the trees group; see above */
+      unaccounted,
       /** bucket sizes → submitted after culling, per LOD */
       whiteBarkLodSubmitted: [0, 1, 2].map((l) => whites.reduce((n, w) => n + w.submitted[l].length, 0)),
       columnLodSubmitted: [0, 1, 2].map((l) => seatedColumns.reduce((n, c) => n + c.submitted[l].length, 0)),
+      understoryLodSubmitted: [0, 1, 2].map((l) => understory.reduce((n, u) => n + u.submitted[l].length, 0)),
       distantSubmitted: [0, 1].map((l) => distantSets.reduce((n, d) => n + d.submitted[l].length, 0)),
       giantSectorsCasting: sectorMeshes.filter((m) => m.castShadow).length,
       /** of the sectors' per-giant groups, how many the last depth pass drew (the rest: shade outside the frame) */
