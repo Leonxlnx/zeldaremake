@@ -10,18 +10,18 @@
     "triangles": 8724803
    },
    "audit": {
-    "calls": 139,
-    "triangles": 2423420,
+    "calls": 140,
+    "triangles": 2656692,
     "colourCalls": 91,
-    "depthCalls": 48,
+    "depthCalls": 49,
     "cullExempt": 5,
     "mainZero": 8,
     "noCullCalls": 147,
-    "batchCulledTris": 825211,
+    "batchCulledTris": 936931,
     "batchCulledTrisColour": 665451,
-    "batchCulledTrisDepth": 159760,
+    "batchCulledTrisDepth": 271480,
     "nonIndexedLobes": 0,
-    "depthTrisBatchFull": 1203685,
+    "depthTrisBatchFull": 1315405,
     "depthTrisNoFrustum": 1043925,
     "depthCallsNoFrustum": 49,
     "meshes": 79
@@ -32,8 +32,8 @@
     "triangles": 2656488
    },
    "gap": {
-    "calls": 1,
-    "triangles": 233068
+    "calls": 0,
+    "triangles": -204
    }
   },
   {
@@ -44,7 +44,7 @@
    },
    "audit": {
     "calls": 147,
-    "triangles": 3409010,
+    "triangles": 3549346,
     "colourCalls": 98,
     "depthCalls": 49,
     "cullExempt": 5,
@@ -66,7 +66,40 @@
    },
    "gap": {
     "calls": 0,
-    "triangles": 140336
+    "triangles": 0
+   }
+  },
+  {
+   "view": "19.837,7.15,-9.879:16.447,6.9,-7.234",
+   "frame": {
+    "draws": 651,
+    "triangles": 11841590
+   },
+   "audit": {
+    "calls": 129,
+    "triangles": 3081070,
+    "colourCalls": 84,
+    "depthCalls": 45,
+    "cullExempt": 5,
+    "mainZero": 10,
+    "noCullCalls": 136,
+    "batchCulledTris": 592536,
+    "batchCulledTrisColour": 423056,
+    "batchCulledTrisDepth": 169480,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 1390982,
+    "depthTrisNoFrustum": 1221502,
+    "depthCallsNoFrustum": 45,
+    "meshes": 75
+   },
+   "isolate": {
+    "found": true,
+    "calls": 129,
+    "triangles": 3004341
+   },
+   "gap": {
+    "calls": 0,
+    "triangles": -76729
    }
   }
  ]

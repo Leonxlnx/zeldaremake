@@ -86,7 +86,52 @@ Two candidate depth models, computed beside the one in use and both **insufficie
   the 233 272** and **73 040 of the 140 336**. Directionally right, less than half the size. Adopting it would
   fit one number and miss the other, so it is reported rather than adopted.
 
-### The shortfall is in six authored families and in nothing the LOD gates touch
+### Closed: the far foliage's depth list is its own, and the answer was in this lane's file
+
+*2026-09-30 14:30 UTC.* `FarFoliageBatch` — written by this branch in round 54 — installs its **own**
+`onBeforeShadow`:
+
+```ts
+mesh.onBeforeShadow = (renderer, _object, _camera, shadowCamera, geometry, depthMaterial) => {
+  for (let id = 0; id < count; id++) mesh.setVisibleAt(id, reaches(this.shadowSpheres[id]));
+  // three's own onBeforeShadow builds the depth list through `this.onBeforeRender` — the colour hook
+  // above, which would apply the fold — so the depth list is built here directly
+  (proto.onBeforeRender).call(mesh, renderer, null, shadowCamera, geometry, depthMaterial);
+};
+```
+
+It sets every lobe's visibility from a **different rule** (`reaches(shadowSpheres[id])`, the shade sweep) and
+rebuilds the multi-draw against a **different frustum** (the shadow camera's). The tally assumed the depth pass
+reuses whatever the colour pass left behind — true of three, false of this hook — so the far foliage's shade was
+tallied at the colour set's size. The batch already counted the right thing (`casting`, `castingTriangles`,
+published per batch in the audit since round 54); it now records it as `shadowTriangles` / `shadowDraws` for the
+tally, which cannot derive it.
+
+One more detail closed a third of what was left: `reaches` *arms* a lobe, and `perObjectFrustumCulled` then
+drops any armed lobe the shadow camera cannot see — against the lobe's own sphere, not the swept one. Counting
+the armed set overstated the depth list, in `castingTriangles` as well as in the tally. The same test runs in
+the hook now.
+
+| | before yesterday | after the per-group fix | after the batch's own list | **after the sun's-view test** |
+| --- | --- | --- | --- | --- |
+| **A_stairs** | +36 calls / −820 447 | +1 / +233 068 | 0 / −204 | **0 calls / −204** (0.008 %) |
+| **`stairs1-top`** | +37 / −343 409 | 0 / +140 336 | 0 / −13 220 | **0 / 0 — exact** |
+| **`stairs2-top`** | +37 / −479 073 | 0 / +120 931 | 0 / −76 729 | **0 / −76 729** (2.6 %) |
+
+**Draws agree exactly at all three poses and one pose agrees on the triangle**: audit 147 / 3 549 346 against
+the renderer's 147 / 3 549 346. Hero A's −204 is the same single borderline sphere the colour-only run shows.
+`stairs2-top` keeps 2.6 %, where the armed lobes were all inside the sun's view anyway, so this correction is
+zero there and something smaller remains.
+
+Both changes are **report-only**, and the control is in the data: `setVisibleAt` is still called for every id
+exactly as before — the loop only skips the counters — and the renderer's own column is *identical* across
+every run in the table.
+
+**I spent two rounds reading `node_modules/three` for this and never read the hook in my own lane's file**,
+which carries a comment explaining exactly why it exists. Same rule as `colshadow/`, sharper: read the file the
+question is about before the library it calls.
+
+### How it was narrowed: six authored families, and nothing the LOD gates touch
 
 *2026-09-30 13:30 UTC.* `?treelod=<scale>` multiplies every rung gate, so `0.01` empties the high rung
 entirely and `10` puts every tree on it. Run at hero A against the renderer, all three configurations:
@@ -122,16 +167,13 @@ meshes' depth submission rather than the whole system, and the two candidates al
 batch's full lobe set would owe 159 760, which is 68 % of the shortfall at hero A but **more than all of it**
 at `stairs2-top` (169 480 against 120 931).
 
-**What the shape of it rules out.** Four of the six have modelled depth *equal* to their colour — `giant-wood`
-270 625 both ways, `giant-far-foliage-batch` 124 240, `giant-cards` 11 618, `whitebark-roots` 9 664 — and the
-two that differ (`column-near-base` 26 439 colour against 59 228 depth, `giant-near-base` 0 against 67 507)
-total only **126 735, less than the shortfall**. So this is not a bucket of shadow-only instances I have
-mis-sized. The depth *call set* is right too: `depthTrisNoFrustum` equals the gated total, and the renderer's
-depth call count matches at `stairs1-top` and `stairs2-top` exactly. Same draws, more triangles per draw ⇒ the
-renderer draws some of these meshes with **more than `perInstance × inst`**, and the leading suspect is
-`giant-wood`: the largest at 270 625, **seven material groups** per mesh, and only two of its three meshes
-counted as casting. What it is not: the proxies, anything on the rung ladder, the shadow frustum, the call set,
-or a constant overhead.
+**What the shape of it ruled out — and the one row it should have pointed at.** Four of the six had modelled
+depth *equal* to their colour, and the two that differ totalled only 126 735, less than the shortfall, so it was
+not a bucket of shadow-only instances mis-sized. That left `giant-far-foliage-batch`, whose colour was validated
+at 124 240 but whose **depth** rested on the one assumption in the tally that nothing had tested: that the depth
+pass reuses the colour set. I wrote "leading suspect `giant-wood`" instead, on a size argument, when
+`giant-wood` is drawn in colour and therefore already validated. The batch was the only row in the six with an
+untested depth *rule* rather than an untested number, and that is where it was.
 
 **Where the next hour goes.** The `shadow=0` run validates `perInstance` only for meshes that appear in the
 **colour** pass, so the families that appear *only* in depth are untested by it. `byFamily` now carries
