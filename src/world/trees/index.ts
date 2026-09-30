@@ -4847,7 +4847,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           }
         }
       }
-      const colour = view.intersectsSphere(s) ? 1 : 0;
+      // a mesh whose main-pass count is pinned at 0 (the white-bark shadow proxies) is submitted by
+      // three but returns before it issues a draw, so the colour pass costs it nothing; the tally has
+      // to know that or it reports draws the renderer never makes
+      const drawsColour = mesh.userData[MAIN_COUNT] !== 0;
+      const colour = drawsColour && view.intersectsSphere(s) ? 1 : 0;
       const depth = mesh.castShadow && shadow && shadow.intersectsSphere(s) ? 1 : 0;
       into.meshes++;
       into.instances += inst;
