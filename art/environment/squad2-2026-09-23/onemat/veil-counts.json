@@ -1,0 +1,73 @@
+{
+ "note": "one material for the distant/mid layers, with the crown veil gated for bark",
+ "A_stairs": {
+  "before": {
+   "draws": 555,
+   "triangles": 8724803,
+   "treeDraws": 140,
+   "md5": "e72a8dff4d0b31111684b8e31d586d79"
+  },
+  "after": {
+   "draws": 539,
+   "triangles": 8724803,
+   "treeDraws": 124,
+   "md5": "19903555813d816226a9ef638bd80b67"
+  },
+  "saving": {
+   "draws": 16,
+   "triangles": 0
+  },
+  "changedShareAtTol2": 0.0026,
+  "worstCell": {
+   "x": [
+    0.75,
+    0.88
+   ],
+   "y": [
+    0.13,
+    0.25
+   ],
+   "changed": 0.09,
+   "meanDelta": 5.2
+  }
+ },
+ "stairs1-top": {
+  "before": {
+   "draws": 655,
+   "triangles": 9799283,
+   "md5": "54a01171b5b6dbb40458bb513d8c03f0"
+  },
+  "after": {
+   "draws": 639,
+   "triangles": 9799283,
+   "md5": "77f1631003a877b959f670e60fb1a50e"
+  },
+  "saving": {
+   "draws": 16,
+   "triangles": 0
+  }
+ },
+ "progression": {
+  "ungated": {
+   "changed": 0.0052,
+   "worstCellMeanDelta": 37.9
+  },
+  "aRootBranch": {
+   "changed": 0.0051,
+   "worstCellMeanDelta": 36.3
+  },
+  "aWoodAttribute": {
+   "changed": 0.0049,
+   "worstCellMeanDelta": 36.4
+  },
+  "veilGated": {
+   "changed": 0.0026,
+   "worstCellMeanDelta": 5.2
+  }
+ },
+ "diagnostic": {
+  "unsound": "diffuseColor set in map_fragment, then multiplied by vColor and lit/fogged \u2014 0 strict magenta",
+  "sound": "gl_FragColor set after the fog \u2014 1161 strict magenta, so the branch fires and the trunk is rasterised"
+ },
+ "verdict": "trunks preserved; needs the six fixed views pixel-checked before it can be called safe"
+}
