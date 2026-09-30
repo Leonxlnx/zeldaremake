@@ -139,7 +139,65 @@ round, and it clears my shader gating of blame: the gates are fine, nothing reac
 
 Reverted; `src/` is byte-identical to before the attempt.
 
-## What the next round needs, and what it does not
+## Round four: the veil, and two of my own mechanisms corrected
+
+*2026-09-30 21:30 UTC.* **Both published mechanisms were wrong, and this round's first act was finding that
+out.**
+
+Round three concluded *"zero magenta pixels, so the wood branch never runs"*. **That inference was unsound.**
+The diagnostic set `diffuseColor` inside `<map_fragment>`, and three's pipeline then runs `<color_fragment>`
+(which multiplies by `vColor` — dark bark), the lights, `<tonemapping_fragment>`, `<colorspace_fragment>` and
+`<fog_fragment>`. A dark bark vertex could never reach (255, 0, 255), so a detector looking for it could not
+have seen the branch fire whether it fired or not. Setting `gl_FragColor` **after** the fog instead gives
+**1 161 strict magenta pixels**, including at x ≈ 726 — exactly where the trunks vanish. **The flag is right,
+the branch fires, and the trunk is rasterised.**
+
+Which makes round two's mechanism wrong too: **the trunk is never discarded by `CROWN_ALPHA_TEST`.** It is
+**repainted**. `CROWN_VEIL` is the last thing that touches a crown fragment:
+
+```ts
+share: 1.0,  m: [16, 26],  ray: [0.45, 0.06],  lift: [0.55, 0.82]
+gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * tint, share * veilClimb * veilDepth * veilLift);
+```
+
+For a trunk **beyond 26 m** (`veilDepth` 1), **darker than 0.55 of the air's level** (`veilLift` 1) and seen
+roughly **level** (the falling ray window puts `veilClimb` at 1), every factor saturates and the mix reaches
+**1.0** — `gl_FragColor` is replaced outright by `kfColor × tint`, the mist. `mats.distant` had no veil bound,
+which is exactly why the trunk kept its colour when a second material drew it. The veil is the **one term I
+deliberately left ungated**, on the reasoning that it is "a distance wash every material gets".
+
+## With it gated, the trunks return and the prize holds
+
+| | shipped | one material, veil gated for bark |
+| --- | --- | --- |
+| **A_stairs** | 555 draws / 8 724 803 | **539** / 8 724 803 |
+| **`stairs1-top`** | 655 / 9 799 283 | **639** / 9 799 283 |
+
+**−16 draws at both poses, triangles identical to the digit**, and the trunks are there:
+
+![the trunks are back at 16 fewer draws](veil-cell-6x.png)
+
+The four attempts, measured the same way each time:
+
+| | changed share | worst cell's mean Δ |
+| --- | --- | --- |
+| one material, no branch | 0.52 % | 37.9 levels |
+| an `aRoot.w` test | 0.51 % | 36.3 |
+| an `aWood` attribute | 0.49 % | 36.4 |
+| **the veil gated too** | **0.26 %** | **5.2** |
+
+A sevenfold drop in the worst cell's magnitude and half the changed share: a tonal whisper where a feature
+used to be missing.
+
+## Why this is not yet called shippable
+
+It is a **shader change to a material tuned across several owner reviews** (`CROWN_SHADE_M`, `CROWN_UNDER_M`,
+the leaf-warmth and floor terms, `CROWN_VEIL` itself), and **only two poses are measured**. The gate before
+anyone calls it safe is the **six fixed views' pixels**. Two named candidates for the 5.2-level residual, both
+cheap to settle at that point: `mats.distant` sets `roughness: 0.95` against the crown material's 1.0, and
+`injectTreeLeafWarmth` is the one injection still ungated for bark.
+
+## What round three thought the next step was
 
 Not another mechanism. A **runtime check of the attribute itself**: report `markWood`'s `woodVertices` and the
 uploaded attribute's sum in the trees audit, and see which of the two is wrong before touching the shader again.
