@@ -4845,6 +4845,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** the same, split by pass: the depth half is what the "depth reuses the colour set" model would owe */
     let batchCulledTrisColour = 0;
     let batchCulledTrisDepth = 0;
+    /** surviving batch lobes with no index buffer, whose size `indexCount` reports as −1 */
+    let nonIndexedLobes = 0;
     const add = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
       const batched = (mesh as unknown as BatchedMesh).isBatchedMesh ? (mesh as unknown as BatchedMesh) : null;
       const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
@@ -4903,7 +4905,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             continue;
           }
           const geometryId = batched.getGeometryIdAt(i);
-          const lobeTris = Math.floor((batched.getGeometryRangeAt(geometryId)?.indexCount ?? 0) / 3);
+          /**
+           * `geometryInfo.count` is exactly what the multi-draw submits for this part, and
+           * `renderMultiDraw` sums those counts into `info.render.triangles`:
+           * `BatchedMesh.addGeometry` sets it to `indexCount` for an indexed part and to `vertexCount`
+           * for one without an index — where `indexCount` is left at its initial **−1**. Reading
+           * `indexCount` therefore charged a non-indexed lobe `floor(-1/3) = -1` triangle instead of its
+           * real size, taking triangles OFF the total.
+           */
+          const range = batched.getGeometryRangeAt(geometryId);
+          if ((range?.indexCount ?? 0) < 0) nonIndexedLobes++;
+          const lobeTris = Math.floor(Math.max(0, range?.count ?? 0) / 3);
           if (batched.perObjectFrustumCulled) {
             batched.getBoundingSphereAt(geometryId, lobe);
             batched.getMatrixAt(i, lobeMatrix);
@@ -4996,6 +5008,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const batchCulledTrisOnce = batchCulledTris;
     const batchCulledColourOnce = batchCulledTrisColour;
     const batchCulledDepthOnce = batchCulledTrisDepth;
+    const nonIndexedLobesOnce = nonIndexedLobes;
     const walked = tally();
     const unclaimed: string[] = [];
     // traverseVisible, not traverse: `add` tests the mesh's OWN `visible` flag, so a plain traverse counts
@@ -5034,6 +5047,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       batchCulledTris: batchCulledTrisOnce,
       batchCulledTrisColour: batchCulledColourOnce,
       batchCulledTrisDepth: batchCulledDepthOnce,
+      nonIndexedLobes: nonIndexedLobesOnce,
       byFamily,
       /** zero when `byFamily` accounts for every visible mesh under the trees group; see above */
       unaccounted,
