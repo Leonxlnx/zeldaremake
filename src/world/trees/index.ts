@@ -2654,6 +2654,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return out.length ? out : [geometry.boundingSphere!.clone()];
   };
+  /** `FarFoliageBatch.onBeforeShadow` scratch: the sun's frustum and one lobe's sphere, reused every frame */
+  const shadowFrustum = new Frustum();
+  const shadowViewProj = new Matrix4();
+  const lobeSphere = new Sphere();
+  const lobeMatrix4 = new Matrix4();
   /** the shadow proxies' colour-pass material: writes neither colour nor depth — only the shadow pass sees them */
   const shadowOnlyMaterial = new MeshBasicMaterial({ colorWrite: false, depthWrite: false });
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
@@ -3732,10 +3737,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.onBeforeShadow = (renderer, _object, _camera, shadowCamera, geometry, depthMaterial) => {
         let casting = 0;
         let castingTriangles = 0;
+        /**
+         * `reaches` arms a lobe whose shade sweeps into the frame, but `perObjectFrustumCulled` then drops
+         * any armed lobe the SHADOW camera cannot see — against the lobe's own sphere, not the swept one —
+         * so counting the armed set overstates the depth list by whatever falls outside the sun's view.
+         * Both numbers this records are meant to be what the pass DRAWS, so the same test runs here.
+         */
+        shadowFrustum.setFromProjectionMatrix(shadowViewProj.multiplyMatrices(shadowCamera.projectionMatrix, shadowCamera.matrixWorldInverse));
         for (let id = 0; id < count; id++) {
           const cast = reaches(this.shadowSpheres[id]);
           mesh.setVisibleAt(id, cast);
           if (cast) {
+            mesh.getBoundingSphereAt(mesh.getGeometryIdAt(id), lobeSphere);
+            mesh.getMatrixAt(id, lobeMatrix4);
+            lobeSphere.applyMatrix4(lobeMatrix4).applyMatrix4(mesh.matrixWorld);
+            if (!shadowFrustum.intersectsSphere(lobeSphere)) continue;
             casting++;
             castingTriangles += this.triangles[id];
           }
