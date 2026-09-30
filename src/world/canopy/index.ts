@@ -14,7 +14,7 @@
  * black cut-out. The height fog reaches it through the shared shader chunks like every other
  * material.
  */
-import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DoubleSide, Frustum, Group, Matrix4, Mesh, MeshStandardMaterial, Sphere, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { WIND_GLSL } from '../wind/wind';
 import { createRoofAtlas, type RoofAtlas } from './atlas';
@@ -146,6 +146,45 @@ function createRoofMaterial(ctx: WorldContext, atlas: RoofAtlas, sunDir: Vector3
   return mat;
 }
 
+/**
+ * The sector geometries concatenated into one. Every sector carries the same five attributes and an index,
+ * so this is an array copy and an index offset per part — no dependency, and the vertex data is identical,
+ * which is why the merged mesh draws the same pixels as the seven did.
+ */
+function mergeSectors(parts: BufferGeometry[]): BufferGeometry {
+  const sizes = { position: 3, normal: 3, uv: 2, color: 3, aRoot: 3 } as const;
+  const out = new BufferGeometry();
+  let vertices = 0;
+  let indices = 0;
+  for (const p of parts) {
+    vertices += p.getAttribute('position').count;
+    indices += p.index!.count;
+  }
+  for (const name of Object.keys(sizes) as (keyof typeof sizes)[]) {
+    const merged = new Float32Array(vertices * sizes[name]);
+    let at = 0;
+    for (const p of parts) {
+      const a = p.getAttribute(name).array as Float32Array;
+      merged.set(a, at);
+      at += a.length;
+    }
+    out.setAttribute(name, new BufferAttribute(merged, sizes[name]));
+  }
+  const index = vertices > 65535 ? new Uint32Array(indices) : new Uint16Array(indices);
+  let at = 0;
+  let base = 0;
+  for (const p of parts) {
+    const a = p.index!.array;
+    for (let i = 0; i < a.length; i++) index[at + i] = a[i] + base;
+    at += a.length;
+    base += p.getAttribute('position').count;
+  }
+  out.setIndex(new BufferAttribute(index, 1));
+  out.computeBoundingSphere();
+  out.computeBoundingBox();
+  return out;
+}
+
 export function create(ctx: WorldContext): WorldSystem {
   const group = new Group();
   group.name = 'canopy';
@@ -154,23 +193,61 @@ export function create(ctx: WorldContext): WorldSystem {
   const sunDir = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : new Vector3(0.6, 0.6, 0.5).normalize();
   const built: RoofBuild = buildRoof(ctx, rng, { sunDir, density: Math.min(1, Math.max(0.5, ctx.quality.density)), sectors: ROOF_SECTORS });
   const material = createRoofMaterial(ctx, atlas, sunDir);
-  const meshes: Mesh[] = [];
-  built.sectors.forEach((s, i) => {
-    const mesh = new Mesh(s.geometry, material);
-    mesh.name = s.stand ? 'canopy-roof-stand' : `canopy-roof-${i}`;
-    // no shadow casting or receiving: the ground dapple / sun pools / ray mask are measured
-    // contracts of the fixed frames, and an underside facing away from the sun needs no lookup
-    mesh.castShadow = false;
-    mesh.receiveShadow = false;
-    mesh.userData.kind = 'canopy-roof';
-    meshes.push(mesh);
-    group.add(mesh);
-  });
+  /**
+   * ONE mesh, not one per sector. `roof.ts` splits the cards into sectors "for frustum culling", and the
+   * renderer never drops one: `isolate('canopy')` reads **7 calls / 8 210 triangles** at hero A, at
+   * `stairs1-top` and at `stairs2-top` alike — seven meshes, seven draws, every time. A sector's bounding
+   * sphere spans most of the forest, so the test cannot fire from inside it.
+   *
+   * Seven draws for 8 210 triangles is **1 173 a draw**, the thinnest ratio in the frame, and draws are the
+   * scarcer resource where it is tight (`lookspots/`: `stairs1-top` runs at 661 of W38's 700). The split's
+   * worst case if culling ever did fire is the whole roof's 8 210 triangles, 0.09 % of an 8.7 M frame,
+   * against six draws saved at every pose. The sector *build* is untouched — the stand still writes its own
+   * writer so the plaza sectors' geometry never changes — this merges only what is handed to the renderer.
+   */
+  const roofGeometry = mergeSectors(built.sectors.map((s) => s.geometry));
+  for (const s of built.sectors) s.geometry.dispose();
+  const roof = new Mesh(roofGeometry, material);
+  roof.name = 'canopy-roof';
+  // no shadow casting or receiving: the ground dapple / sun pools / ray mask are measured
+  // contracts of the fixed frames, and an underside facing away from the sun needs no lookup
+  roof.castShadow = false;
+  roof.receiveShadow = false;
+  roof.userData.kind = 'canopy-roof';
+  const meshes: Mesh[] = [roof];
+  group.add(roof);
+
+  /**
+   * What the renderer gets for the current camera, which `triangles` below is NOT: that is the roof as
+   * built, and until this was added the roof had no per-frame figure at all. With one mesh, no casting and a
+   * single material it is one draw when the sphere is in view and nothing when it is not — the whole rule,
+   * so this can be checked against `isolate('canopy')` and should agree exactly
+   * (`auditvsrenderer/vsrenderer.mjs --system canopy --audit-key canopyRoof`).
+   */
+  const submission = () => {
+    const cam = ctx.camera;
+    if (!cam) return { drawCalls: 0, triangles: 0, meshes: meshes.length };
+    cam.updateMatrixWorld();
+    const view = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    const s = new Sphere();
+    let drawCalls = 0;
+    let triangles = 0;
+    for (const m of meshes) {
+      if (!m.visible || !material.visible) continue;
+      const bs = m.geometry.boundingSphere;
+      if (bs && m.frustumCulled && !view.intersectsSphere(s.copy(bs).applyMatrix4(m.matrixWorld))) continue;
+      drawCalls++;
+      triangles += Math.floor(m.geometry.index!.count / 3);
+    }
+    return { drawCalls, triangles, meshes: meshes.length };
+  };
 
   ctx.audit('canopyRoof', () => ({
     clumps: built.clumps.length,
     cards: built.cards,
+    /** the roof AS BUILT; `submission` is what a frame pays */
     triangles: built.triangles,
+    submission: submission(),
     meshes: meshes.length,
     castsShadow: false,
     dropped: built.dropped,
@@ -198,7 +275,7 @@ export function create(ctx: WorldContext): WorldSystem {
     name: 'canopy',
     group,
     dispose() {
-      for (const s of built.sectors) s.geometry.dispose();
+      roofGeometry.dispose();
       material.dispose();
       atlas.color.dispose();
       atlas.depth.dispose();

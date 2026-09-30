@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * vsrenderer.mjs — the trees' hand-assembled audit against the renderer's own count for the same system.
+ * vsrenderer.mjs — a system's hand-assembled audit against the renderer's own count for the same system.
  *
  *   node art/environment/squad2-2026-09-23/auditvsrenderer/vsrenderer.mjs <dist> <out.json> \
  *        [--views 'A_stairs;x,y,z:tx,ty,tz'] [--quality high] [--settle 8]
@@ -38,6 +38,13 @@ if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error(`no index.htm
 const viewArg = String(flag('views', flag('view', 'A_stairs')));
 const views = viewArg.includes(';') ? viewArg.split(';').filter(Boolean) : [viewArg];
 const quality = flag('quality', 'high');
+/**
+ * Which system to weigh. `isolate(name)` matches a scene child by name, and `audit().systems[key]` is keyed
+ * by whatever the system passed to `ctx.audit` — not always the same string (the canopy's group is `canopy`
+ * and its audit key is `canopyRoof`), so both are settable.
+ */
+const system = flag('system', 'trees');
+const auditKey = flag('audit-key', system);
 const settle = Number(flag('settle', 8));
 
 const server = await serveStatic(dist);
@@ -56,13 +63,13 @@ try {
       if (ok === false) throw new Error(`no viewpoint "${view}" — setViewpoint returned false and the camera did not move`);
     }
     await page.evaluate(async (n) => await window.__ZR__.render(n, 1 / 30), settle);
-    const data = await page.evaluate(async () => {
+    const data = await page.evaluate(async ([name, key]) => {
       await window.__ZR__.render(2, 0);
       const s = window.__ZR__.stats();
-      const t = window.__ZR__.audit().systems.trees;
+      const t = window.__ZR__.audit().systems[key] ?? {};
       const sub = t.submission ?? {};
       // the isolate render happens AFTER the audit read, so the audit describes the same settled state
-      const iso = window.__ZR__.isolate('trees');
+      const iso = window.__ZR__.isolate(name);
       return {
         frame: { draws: s.drawCalls, triangles: s.triangles },
         audit: {
@@ -83,23 +90,30 @@ try {
           meshes: sub.meshes ?? null,
         },
         isolate: { found: iso.found, calls: iso.drawCalls, triangles: iso.triangles },
+        /** what the system's own audit says it BUILT, for systems with no submission tally */
+        builtTriangles: (t.triangles ?? null),
+        builtMeshes: (t.meshes ?? null),
       };
-    });
-    const gapC = data.isolate.calls - (data.audit.calls ?? 0);
-    const gapT = data.isolate.triangles - (data.audit.triangles ?? 0);
+    }, [system, auditKey]);
+    // a system with no submission tally has nothing to compare: report the renderer's own number and the
+    // BUILT total beside it, which is the only figure such a system publishes
+    const hasTally = data.audit.calls !== null && data.audit.calls !== undefined;
+    const gapC = hasTally ? data.isolate.calls - data.audit.calls : null;
+    const gapT = hasTally ? data.isolate.triangles - data.audit.triangles : null;
     rows.push({ view, ...data, gap: { calls: gapC, triangles: gapT } });
     const a = data.audit;
     console.log(
       `${view.padEnd(34)} frame ${String(data.frame.draws).padStart(4)}  ` +
-        `audit ${String(a.calls).padStart(4)}/${String(a.triangles).padStart(8)} (colour ${a.colourCalls ?? '?'} depth ${a.depthCalls ?? '?'}, exempt ${a.cullExempt ?? '?'}, mainZero ${a.mainZero ?? '?'}, batchCulled ${a.batchCulledTris ?? '?'} = ${a.batchCulledTrisColour ?? '?'}c + ${a.batchCulledTrisDepth ?? '?'}d, nonIndexed ${a.nonIndexedLobes ?? '?'})  ` +
+        `audit ${String(a.calls ?? '—').padStart(4)}/${String(a.triangles ?? '—').padStart(8)} (colour ${a.colourCalls ?? '?'} depth ${a.depthCalls ?? '?'}, exempt ${a.cullExempt ?? '?'}, mainZero ${a.mainZero ?? '?'}, batchCulled ${a.batchCulledTris ?? '?'} = ${a.batchCulledTrisColour ?? '?'}c + ${a.batchCulledTrisDepth ?? '?'}d, nonIndexed ${a.nonIndexedLobes ?? '?'})  ` +
         `renderer ${String(data.isolate.calls).padStart(4)}/${String(data.isolate.triangles).padStart(8)}  ` +
         `[depth: mine ${(a.triangles ?? 0) - 0} tot; batchFull ${a.depthTrisBatchFull ?? '?'}; noFrustum ${a.depthTrisNoFrustum ?? '?'} in ${a.depthCallsNoFrustum ?? '?'} calls]  ` +
-        `GAP ${gapC >= 0 ? '+' : ''}${gapC} calls / ${gapT >= 0 ? '+' : ''}${gapT} tris`,
+        (hasTally ? `GAP ${gapC >= 0 ? '+' : ''}${gapC} calls / ${gapT >= 0 ? '+' : ''}${gapT} tris` : `NO SUBMISSION TALLY — built ${data.builtTriangles} tris in ${data.builtMeshes} meshes`),
     );
   }
-  fs.writeFileSync(out, JSON.stringify({ dist, quality, settle, rows }, null, 1));
+  fs.writeFileSync(out, JSON.stringify({ dist, quality, settle, system, auditKey, rows }, null, 1));
   const exact = rows.filter((r) => r.gap.calls === 0 && r.gap.triangles === 0).length;
-  console.log(`\n${exact} of ${rows.length} views agree exactly with the renderer`);
+  const measured = rows.filter((r) => r.gap.calls !== null).length;
+  console.log(measured ? `\n${exact} of ${measured} views agree exactly with the renderer` : `\nno submission tally for "${auditKey}" — nothing to compare`);
   console.log(`→ ${out}`);
 } finally {
   await browser.close();
