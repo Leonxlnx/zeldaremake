@@ -1,4 +1,4 @@
-# Three poses nobody in this lane had ever looked at — and one of them is bad
+# Three poses nobody in this lane had ever looked at — one of them is bad, and not for the reason I guessed
 
 Lane 2, 2026-09-30. Branch `cursor/squad2-treephases-682b`. **No code changed here.**
 
@@ -35,9 +35,10 @@ charter line this lane is measured on ("layered trees with readable crowns and t
 ring never reads as flat cards from below") and it is the same *shape* of complaint as the owner's backlog
 item 4, the dark flat mass overhead, which `roofsky/` fixed for the canopy roof.
 
-**What is not established yet, and I am not going to guess it.** Twice this week a mechanism written before
-the measurement turned out to be wrong (`bandwidth/LOWTIER.md` §4, and `poolpredict/`), so what follows is
-the candidate list, not a diagnosis:
+**The candidate list I wrote before measuring, kept because the measurement below rejects most of it.**
+Twice this week a mechanism written before the measurement turned out to be wrong (`bandwidth/LOWTIER.md` §4,
+and `poolpredict/`), so it was written as a list rather than a diagnosis — and the list was still wrong at
+the top:
 
 - a mid or distant **crown card** drawn at close range, where the rung should long since have swapped to
   real geometry — that would be a LOD-gate failure and squarely this lane's;
@@ -47,10 +48,43 @@ the candidate list, not a diagnosis:
 - or a pose a player cannot actually stand in, in which case it is not a defect at all — `(-8, 1.75, 7)`
   was chosen to frame the boughs, not by walking there, and that has to be checked before anything else.
 
-`outlook/familycost.mjs` is running at these three poses to attribute the pixels family by family, which is
-the measurement that turns the list above into one answer. **Until that lands this file claims only what the
-frame shows**, and the next round's first job is the reachability question, because if the camera is inside a
-crown that a player can never enter then the right outcome is to say so and delete the pose.
+## The attribution, and it kills the leading candidate
+
+`outlook/familycost.mjs` crashed — it needs a temporary handle on the trees group that was added for a
+measurement and taken out again (`INDEX.md` records that), so it reads `undefined.visible` and dies after
+the control frame. That is a second, smaller finding: **the lane has a committed probe that cannot run on
+the current `src/`**, and a reader would not know until they tried.
+
+The submission split from `auditgap/ck-sw.json` answers the question anyway, because it is per family and per
+LOD. At `sw-approach`, of the trees' 4 116 658 triangles:
+
+| family | calls | triangles | instances |
+| --- | --- | --- | --- |
+| **`whitebark-lod0`** | 18 | **1 668 472** | **16** |
+| `giant-far-foliage-batch` | 6 | 740 888 | 3 |
+| `giant-near-canopy-batch` | 1 | 695 915 | 1 |
+| `giant-wood` | 6 | 541 250 | 3 |
+| `whitebark-lod1` | 7 | 127 992 | 10 |
+| **`mid-near`** | 5 | **39 630** | 75 |
+| `distant-*` | — | not in the top twelve | — |
+
+**So it is not a card drawn too close, and not a LOD-gate failure.** The mid grove's near rung contributes
+**39 630 of 4 116 658 triangles — under 1 %** — and the distant layer does not reach the top twelve. What
+fills the frame is **sixteen white-barks at their highest rung** (104 K triangles each) plus the giant's
+near-canopy and far-foliage batches: **real geometry at close range, which is the rungs doing exactly the
+right thing.**
+
+That moves the defect out of this lane's machinery. What the frame shows is the **close-range appearance of
+white-bark leaf geometry and the giants' laminae** — `whitebark.ts` and `giant.ts`, lanes 3 and 4 — at a
+distance the art was probably never judged at, with sixteen of them overlapping at once. My own leading
+candidate above was wrong, and the measurement took ten seconds because the data was already on disk from
+the previous round.
+
+**What is still not established:** whether a player can stand at `(-8, 1.75, 7)` at all. That pose was
+authored to frame the boughs, not by walking there. If the camera is inside a crown cluster no player can
+enter, there is nothing to fix and the right outcome is to say so. That is the next round's first job, and
+it comes before any suggestion to another lane — a defect report at an unreachable pose wastes somebody's
+evening.
 
 ## Files
 
@@ -64,6 +98,10 @@ crown that a player can never enter then the right outcome is to say so and dele
 npm run build
 node art/environment/squad2-2026-09-23/frozen.mjs dist /tmp/sw \
      --poses art/environment/squad2-2026-09-23/southwest/southwest-poses.json --settle 8
-node art/environment/squad2-2026-09-23/outlook/familycost.mjs dist \
-     art/environment/squad2-2026-09-23/southwest/southwest-poses.json /tmp/swfam
+# the attribution, per family AND per LOD, without the hook familycost.mjs needs:
+node art/environment/squad2-2026-09-23/bandwidth/bucketprobe.mjs dist /tmp/sw.json \
+     --views '-8,1.75,7:-23,7,9' --quality high
 ```
+
+`outlook/familycost.mjs` does **not** run on the current `src/` — it needs a temporary handle on the trees
+group that no longer exists.
