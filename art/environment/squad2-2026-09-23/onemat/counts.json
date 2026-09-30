@@ -1,0 +1,62 @@
+{
+ "note": "distant/mid meshes: two material groups -> one material. Measured, not shipped.",
+ "A_stairs": {
+  "shipped": {
+   "draws": 555,
+   "triangles": 8724803,
+   "treeDraws": 140,
+   "md5": "e72a8dff4d0b31111684b8e31d586d79"
+  },
+  "oneMaterial": {
+   "draws": 539,
+   "triangles": 8724803,
+   "treeDraws": 124,
+   "md5": "dd64d82cfadb7199065fa2715ff35e13"
+  },
+  "saving": {
+   "draws": 16,
+   "triangles": 0
+  },
+  "changedShareAtTol2": 0.0052,
+  "worstCell": {
+   "x": [
+    0.75,
+    0.88
+   ],
+   "y": [
+    0.13,
+    0.25
+   ],
+   "changed": 0.143,
+   "meanDelta": 37.9
+  }
+ },
+ "band": {
+  "x0.70-0.95": {
+   "shipped": [
+    83.8,
+    19.55,
+    23.7
+   ],
+   "oneMaterial": [
+    85.7,
+    20.17,
+    23.92
+   ]
+  },
+  "x0.10-0.90": {
+   "shipped": [
+    110.1,
+    26.0,
+    22.96
+   ],
+   "oneMaterial": [
+    110.6,
+    25.66,
+    23.05
+   ]
+  },
+  "note": "band.mjs did not detect it; across-columns sd went UP in the window the trunks stood in"
+ },
+ "verdict": "not shipped \u2014 two distant trunks disappear; the crown material washes solid trunk geometry into the mist"
+}
