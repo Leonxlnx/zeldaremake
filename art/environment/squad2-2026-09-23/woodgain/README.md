@@ -41,11 +41,22 @@ The pixels. 0.10–0.44 % of each frame changed by more than 2 levels, which sou
 this lane's own standing rule is that a small changed share is not a small change. Two cheap classifiers
 said where to look before any magnification:
 
-* **By hue, in the before frame:** bark 54–89 % of the changed pixels, leaves 1–6 %. The crowns were
-  untouched — the gates work — and everything that moved was trunk.
-* **By local gradient:** 43–59 % of the changed pixels sit on a silhouette, the rest in a trunk's interior
-  at mean 4.6–7.4 levels. So it was not only an anti-aliasing seam; **trunk interiors were shaded
+* **By hue, in the before frame:** bark 54.2–90.8 % of the changed pixels, leaves 1.3–9.2 %. The crowns were
+  untouched — the gates work — and almost everything that moved was trunk.
+* **By local gradient:** 42.9–58.8 % of the changed pixels sit on a silhouette, the rest in a trunk's
+  interior at mean 4.6–8.6 levels. So it was not only an anti-aliasing seam; **trunk interiors were shaded
   differently**, and that had to be explained before the change could ship.
+
+| view | changed px | bark-hue | leaf-hue | low-sat | on a silhouette | interior (mean Δ) |
+|---|---|---|---|---|---|---|
+| A_stairs | 1 362 | 81.4 % | 5.7 % | 13.0 % | 42.9 % | 57.1 % (4.9) |
+| B_house | 505 | 65.3 % | 6.1 % | 28.5 % | 58.8 % | 41.2 % (7.3) |
+| C_lookback | 1 807 | 89.8 % | 1.3 % | 8.4 % | 46.4 % | 53.6 % (5.7) |
+| D_log | 1 436 | 54.2 % | 6.3 % | 38.6 % | 46.7 % | 53.3 % (4.6) |
+| E_ground | 509 | 68.0 % | 3.5 % | 28.5 % | 58.3 % | 41.7 % (7.4) |
+| **F_canopy** | **2 259** | **90.8 %** | 9.2 % | 0.0 % | 53.6 % | 46.4 % (8.6) |
+
+F_canopy is the only view with no low-saturation share at all: every pixel that moved there is on the bole.
 
 Magnified at 8×, F_canopy says it plainly. The mid bole left of centre is warm, modelled bark in the
 two-material build and a flat grey-olive cylinder in the one-material build:
