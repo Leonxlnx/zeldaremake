@@ -94,6 +94,54 @@ drew **nearly twice the triangles**, because it was inside the vegetation rather
 player stands the grove shelf reads as a canopy with real sky holes and a bough crossing it, which is
 neither the darkest nor the tightest of the three up-looks.
 
+## The replacement row, and what it says about the metric
+
+The withdrawn row has to be replaced with one measured the same way, and nobody could do that: the three
+numbers were computed ad hoc and **no script was committed**. `uplookmetrics.mjs` now defines them — mean
+luminance, the mean absolute luminance difference between adjacent pixels ("local detail"), and the share
+brighter than 150 — and reproduces all three published rows to within **0.4 mean and 0.1 detail**:
+
+| image | published | `uplookmetrics.mjs` |
+| --- | --- | --- |
+| the log arch | 77.7 / 6.39 / 13.1 % | 78.1 / 6.47 / 13.2 % |
+| the bridge | 78.7 / 6.36 / 15.6 % | 79.1 / 6.51 / 15.6 % |
+| the grove shelf (buried) | 60.4 / 5.71 / 5.7 % | 60.8 / 5.73 / 5.7 % |
+
+My own re-render of the buried pose reads **61.0 / 5.73 / 5.9 %** — the published frame reproduces, which
+is what makes the replacement trustworthy. **The corrected standing pose reads 57.8 / 3.37 / 6.1 %.**
+
+**And that 3.37 is where this round nearly went wrong a second time.** `uplooks/`'s own yardstick is *"a flat
+slab reads under 2, leaves read 5–6"*, so 3.37 looks like a canopy halfway to a slab — a fresh lane-2 defect
+in the charter's own territory, at a pose now verified reachable. It is not one. **Looked at**, the standing
+frame is a dense layered canopy of individual leaf clusters with real sky holes, a god ray and a bough
+crossing it.
+
+My first explanation for the gap was dilution — the big smooth bough and the pale mist dragging a whole-frame
+average down — and **that was wrong too**: canopy-only crops read **3.19** and **3.09**, *lower* than the
+whole frame, against the arch's **6.46** on the same crop. The difference is in the canopy.
+
+<img alt="the grove shelf and the log arch, same metric, very different sky behind the leaves" src="grove-vs-arch.jpg" />
+
+The frames say what it is. The arch's leaves sit against **bright pale sky**, so every leaf edge is a large
+luminance step; the grove shelf's canopy is dark leaves against dark leaves. **"Local detail" is largely
+measuring how much sky is behind the canopy**, and it tracks the column beside it almost monotonically:
+
+| up-look | pale > 150 | local detail |
+| --- | --- | --- |
+| the bridge | 15.6 % | 6.51 |
+| the log arch | 13.2 % | 6.47 |
+| the grove shelf (standing, whole frame) | 6.1 % | 3.37 |
+| the grove shelf (canopy crop only) | **0.5 %** | **3.19** |
+
+**The refinement worth keeping:** the "leaves read 5–6" band requires sky *behind* the leaves. Dark canopy on
+dark canopy reads about **3.2**, and a flat slab still reads **under 2** — so the metric does discriminate a
+slab from foliage, just not at the level the README implies, and a low reading at a closed canopy is not
+evidence of flatness. Any future use of this number has to hold the pale share roughly constant or say
+nothing.
+
+**So `uplooks/`'s conclusion stands** — there is nothing for lane 2 to change overhead — now on a pose a
+player can occupy, supported by looking at the frame rather than by a number that mostly reports the sky.
+
 ## The rule
 
 Every rule this branch has written down is a variant of the same one, and this is the cheapest of them:
