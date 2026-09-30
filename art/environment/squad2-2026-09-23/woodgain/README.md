@@ -145,6 +145,11 @@ refactor of another lane's 1 700-line hot file, so it needs a yes.**
   prints that cell's own changed share, mean delta and max. It exists because the aggregate is not the
   question — three of this round's four wrong turns would have been caught by looking at the worst cell
   first.
+* One difference between the measured build and the committed source, declared: the crown material's
+  `customProgramCacheKey` gained `leaf-warmth` after the renders, because `leaf-color.test.mjs` matches on it.
+  A program cache key decides only whether three reuses a compiled program between materials; both strings
+  are unique to this material, so no fragment changes. Tests on the attempt branch are 274 / 274 with the
+  test's contract for a *combined* material (bark exact, a card warmed) pinned in both senses.
 * **Two classifiers were worth more than any amount of code reading**: splitting the changed pixels by the
   before frame's hue (bark against leaf) ruled the crowns out in one second, and splitting them by local
   gradient (silhouette against interior) proved there was a shading difference and not just a seam. Only
