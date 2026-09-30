@@ -33,8 +33,16 @@ const flag = (name, fallback = null) => {
 const dist = positional[0] ?? 'dist';
 const out = positional[1] ?? '/tmp/bucketprobe.json';
 if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error(`no index.html in ${dist} — build first`);
-/** one page load, several viewpoints: `unaccounted` has to hold in every state, not just the first one */
-const views = String(flag('views', flag('view', 'F_canopy'))).split(',');
+/**
+ * One page load, several viewpoints: `unaccounted` has to hold in every state, not just the first one.
+ *
+ * Separate the list with `;`, not `,`, when any entry is a pose — a pose is `x,y,z:tx,ty,tz` and already
+ * uses commas, so a comma-separated list of poses parses into nonsense. The first version of this flag did
+ * exactly that and quietly measured the default camera six times.
+ */
+const viewArg = String(flag('views', flag('view', 'F_canopy')));
+const views = viewArg.includes(';') ? viewArg.split(';').filter(Boolean) : viewArg.split(',').filter(Boolean);
+if (views.some((v) => v.includes(':')) && !viewArg.includes(';')) throw new Error('a pose entry needs `;` between list items, not `,` — see the comment above');
 const quality = flag('quality', 'low');
 const settle = Number(flag('settle', 8));
 
@@ -46,7 +54,15 @@ try {
   await page.evaluate(() => window.__ZR__.setTime(12.5));
   const rows = [];
   for (const view of views) {
-    await page.evaluate((v) => window.__ZR__.setViewpoint(v), view);
+    // `x,y,z:tx,ty,tz` aims an arbitrary camera, for states no fixed viewpoint reaches — the detached
+    // boughs' gate is a frustum test against the southwest giant, which none of A–F looks at
+    if (view.includes(':')) {
+      const [p0, t0] = view.split(':').map((part) => part.split(',').map(Number));
+      await page.evaluate(([pp, tt]) => window.__ZR__.setPose(pp, tt, 46), [p0, t0]);
+    } else {
+      const ok = await page.evaluate((v) => window.__ZR__.setViewpoint(v), view);
+      if (ok === false) throw new Error(`no viewpoint "${view}" — setViewpoint returned false and the camera did not move`);
+    }
     await page.evaluate(async (n) => await window.__ZR__.render(n, 1 / 30), settle);
     const data = await page.evaluate(async () => {
       await window.__ZR__.render(2, 0);
@@ -63,7 +79,7 @@ try {
         // the branch `byFamily` guards with `if (detachedGroup.visible)`: this check is only meaningful
         // once it has been exercised in BOTH states, or it proves the walk agrees in one of them
         detachedBoughsVisible: t.submission?.detachedBoughsVisible ?? null,
-        nearCanopySlotsInFrame: t.nearCanopy?.slotsInFrame ?? null,
+        nearCanopySlots: JSON.stringify(t.nearCanopy?.slotsInFrame ?? null).slice(0, 40),
       };
     });
     rows.push({ view, ...data });
@@ -71,7 +87,7 @@ try {
     const ok = u.meshes === 0 && u.calls === 0 && u.triangles === 0;
     console.log(
       `${view.padEnd(11)} ${String(data.draws).padStart(4)}/${String(data.triangles).padStart(8)}  trees ${String(data.treeSubmission.drawCalls).padStart(4)}/${String(data.treeSubmission.triangles).padStart(8)}  ` +
-        `detached ${data.detachedBoughsVisible === null ? '?' : data.detachedBoughsVisible ? 'SHOWN ' : 'hidden'}  nearCanopy ${String(data.nearCanopySlotsInFrame ?? '?').padStart(3)}  ` +
+        `detached ${data.detachedBoughsVisible === null ? '?' : data.detachedBoughsVisible ? 'SHOWN ' : 'hidden'}  nearCanopy ${String(data.nearCanopySlots ?? '?').padEnd(18)}  ` +
         `unaccounted ${ok ? 'ZERO' : `${u.meshes}m/${u.calls}c/${u.triangles}t ${JSON.stringify(u.names)}`}`,
     );
   }
