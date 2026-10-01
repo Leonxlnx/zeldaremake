@@ -42,7 +42,7 @@ import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopy
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_FAR_LOD_M, MID_HEIGHTS, MID_SPECS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, TREE_ONE_MATERIAL_FAR, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_FAR_LOD_M, MID_HEIGHTS, MID_SPECS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -4167,7 +4167,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const n = Math.max(1, placements.length);
     const mid = variant.kind === 'mid';
     const make = (geometry: DistantVariant['near'], label: string, lodLevel: number) => {
-      const mesh = new InstancedMesh(geometry, [mats.distant, mid ? midCrown : distantCrown], n);
+      const crown = mid ? midCrown : distantCrown;
+      const mesh = new InstancedMesh(geometry, [mats.distant, crown], n);
       mesh.name = `${mid ? 'mid' : 'distant'}-${i}-${label}`;
       mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
       mesh.castShadow = false;
@@ -4176,6 +4177,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.visible = false;
       mesh.userData.kind = mid ? 'mid-tree' : 'distant-tree';
       mesh.userData.lodLevel = lodLevel;
+      // the two states `updateDistantMaterials` picks between each frame: the geometry's two groups on
+      // their own materials, or ONE material drawing both (distant.ts markWood tells bark from cards)
+      mesh.userData.matBoth = [mats.distant, crown];
+      mesh.userData.matCrown = crown;
       return mesh;
     };
     const near = make(variant.near, 'near', 0);
@@ -4485,6 +4490,95 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
   };
+  /**
+   * How far the nearest BARK FRAGMENT of each distant / mid mesh stands from the camera, and how many of
+   * those meshes have every fragment beyond `DISTANT_BARK_M[1]`.
+   *
+   * Report-only. It prices the one way left to collect the 15–17 draws `woodgain/` measured and could not
+   * ship: a mesh drawn by ONE material instead of `[mats.distant, crown]` is one draw instead of two, and the
+   * only thing `mats.distant` does to bark that the crown material cannot reproduce is its near treatment —
+   * the cylindrical bark map, the tone bands, the cord stripe, the furrow and the shade floor — every term of
+   * which is scaled by `1 - smoothstep(DISTANT_BARK_M[0], [1], length(vViewPosition))` and so is exactly zero
+   * beyond the far edge. Where a whole mesh is out there the swap is safe; where it is not, F_canopy's mid
+   * bole is what happens (a flat grey cylinder).
+   *
+   * The test is per FRAGMENT, not per instance centre: `|cam − centre| − radius` is the nearest a fragment of
+   * that instance can be, so a mesh qualifies only if its closest possible bark is past the window.
+   */
+  const barkNear = new Vector3();
+  /** the nearest bark fragment of a mesh can be, per instance, |cam − centre| − radius */
+  const nearestBarkOf = (set: DistantSet, l: 0 | 1, eye: Vector3) => {
+    const bs = (l === 0 ? set.variant.near : set.variant.far).boundingSphere!;
+    let closest = Infinity;
+    for (const i of set.submitted[l]) {
+      sphere.center.copy(bs.center).applyMatrix4(set.matrices[i]);
+      closest = Math.min(closest, eye.distanceTo(sphere.center) - bs.radius * set.placements[i].scale);
+    }
+    return closest;
+  };
+  /**
+   * Pick each distant / mid mesh's material for this frame: ONE material where its nearest bark fragment is
+   * past the window, both where it is not.
+   *
+   * `ONE_MATERIAL_ENTER_M` / `_LEAVE_M` are a hysteresis band, not a single threshold, so a mesh drifting
+   * across the edge does not flip every frame — the flip is sub-visible (`matswap/`) but it is a
+   * discontinuity, and this lane spent four rounds removing the LOD rungs' one-frame pop.
+   */
+  const ONE_MATERIAL_ENTER_M = DISTANT_BARK_M[1] + 2;
+  const ONE_MATERIAL_LEAVE_M = DISTANT_BARK_M[1];
+  const updateDistantMaterials = () => {
+    if (!TREE_ONE_MATERIAL_FAR) return;
+    const eye = ctx.camera.getWorldPosition(barkNear);
+    for (const set of distantSets) {
+      for (const l of [0, 1] as const) {
+        const mesh = l === 0 ? set.near : set.far;
+        const one = Array.isArray(mesh.material) === false;
+        if (!mesh.visible || mesh.count === 0) {
+          // an empty mesh draws nothing either way; leave its state alone so it does not flip on re-entry
+          continue;
+        }
+        const closest = nearestBarkOf(set, l, eye);
+        const want = closest === Infinity ? one : one ? closest >= ONE_MATERIAL_LEAVE_M : closest >= ONE_MATERIAL_ENTER_M;
+        if (want === one) continue;
+        mesh.material = want ? (mesh.userData.matCrown as Material) : (mesh.userData.matBoth as Material[]);
+      }
+    }
+  };
+  const distantBarkWindow = () => {
+    const cam = ctx.camera;
+    cam.updateMatrixWorld();
+    const eye = cam.getWorldPosition(barkNear);
+    let beyond = 0;
+    let within = 0;
+    let oneMaterial = 0;
+    let nearestM = Infinity;
+    const perMesh: Record<string, number> = {};
+    for (const set of distantSets) {
+      for (const l of [0, 1] as const) {
+        const mesh = l === 0 ? set.near : set.far;
+        if (!mesh.visible || mesh.count === 0) continue;
+        const closest = nearestBarkOf(set, l, eye);
+        if (closest === Infinity) continue;
+        perMesh[mesh.name] = Math.round(closest * 10) / 10;
+        nearestM = Math.min(nearestM, closest);
+        if (closest >= DISTANT_BARK_M[1]) beyond++;
+        else within++;
+        if (!Array.isArray(mesh.material)) oneMaterial++;
+      }
+    }
+    return {
+      /** meshes whose closest bark fragment is past DISTANT_BARK_M[1] — one draw each is available */
+      beyond,
+      /** meshes with bark inside the window, which must keep both materials */
+      within,
+      /** how many are actually on one material this frame (the hysteresis band makes this ≤ beyond, briefly) */
+      oneMaterial,
+      enabled: TREE_ONE_MATERIAL_FAR,
+      nearestM: nearestM === Infinity ? null : Math.round(nearestM * 10) / 10,
+      windowM: [DISTANT_BARK_M[0], DISTANT_BARK_M[1]] as [number, number],
+      perMesh,
+    };
+  };
   // giant sectors: world-space geometry; three culls the colour pass by the same sphere itself
   /**
    * Exact box-vs-frustum (separating axes): `Frustum.intersectsBox` only asks whether the box is
@@ -4615,6 +4709,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     submitFamily(understory);
     submitFamily(seatedColumns);
     submitDistant();
+    updateDistantMaterials();
     submitGiants();
   };
 
@@ -5198,6 +5293,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       distantFarCount += s.counts[1];
       distantTriangles += s.counts[0] * s.variant.nearTriangles + s.counts[1] * s.variant.farTriangles;
     }
+    const barkWindow = distantBarkWindow();
     const canopyPool = nearCanopyPool.report();
     return {
       geometry: 'procedural-v1',
@@ -5205,6 +5301,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       giantRoots: giantRootsMin >= 5,
       giantRootsMin,
       giantLimbsMin,
+      /** see distantBarkWindow(): what a one-material swap on the distant / mid meshes is worth at this pose */
+      barkWindow,
       /** per giant, its un-authored big limbs' azimuths (0° = +x, 90° = +z); 'g' = ghosted (GiantProfile.wildLimbGhost) */
       giantWildLimbs: Object.fromEntries(giants.map((g) => [g.def.id, g.asset.wildLimbs.map((l) => `${l.azimuthDeg}${l.ghost ? 'g' : ''}`)])),
       giantLeaves,

@@ -98,7 +98,10 @@ test('only crown colour programs change; vertex, depth, normals, alpha and exist
       assert.match(material.customProgramCacheKey(), /leaf-warmth/, `${name}: cache key`);
       assert.ok(shader.fragmentShader.indexOf(block) > shader.fragmentShader.indexOf('vec3 outgoingLight ='), `${name}: after completed lighting`);
       assert.ok(shader.fragmentShader.indexOf(block) < shader.fragmentShader.indexOf('#include <fog_fragment>'), `${name}: before fog`);
-      assert.match(block, name === 'giantCanopy' || name === 'distantCrown' ? /if \(true &&/ : /if \(vIsLeaf > 0\.5 &&/, `${name}: leaf gate`);
+      // giantCanopy draws crowns only, so its gate is the constant; distantCrown draws a tree's wood as
+      // well since 2026-09-30 (distant.ts markWood) and gates on the flag that tells bark from cards
+      const gate = name === 'giantCanopy' ? /if \(true &&/ : name === 'distantCrown' ? /if \(vCrownWood < 0\.5 &&/ : /if \(vIsLeaf > 0\.5 &&/;
+      assert.match(block, gate, `${name}: leaf gate`);
     } else {
       assert.equal(uTreeLeafWarmth, undefined, `${name}: ground foliage / wood / depth excluded`);
       assert.equal(shader.fragmentShader, old.fragmentShader, `${name}: entire fragment unchanged`);
@@ -110,14 +113,16 @@ test('only crown colour programs change; vertex, depth, normals, alpha and exist
 
 // Execute the actual inserted scalar math on the CPU: remove GLSL types and express the
 // two vector operations in JS. This is not a second, independently maintained colour formula.
-function evaluator(shader) {
+// `gateVar` is the varying the material's own gate reads, and `gateLeaf` the value of it that means
+// "this fragment is a leaf" — `distantCrown` draws wood too and inverts the sense (vCrownWood < 0.5).
+function evaluator(shader, gateVar = 'vIsLeaf') {
   const block = shader.fragmentShader.match(blockPattern)[0];
   const body = block.slice(0, block.indexOf('#include'))
     .replace('const vec3 ', 'const ')
     .replace(/\bfloat /g, 'let ')
     .replace('vec3 warmLeaf = outgoingLight;', 'const warmLeaf = { ...outgoingLight };')
     .replace(/outgoingLight = warmLeaf \* \((.*)\);/, 'outgoingLight = mul(warmLeaf, ($1));');
-  const run = new Function('outgoingLight', 'uTreeLeafWarmth', 'vIsLeaf', 'vec3', 'dot', 'max', 'clamp', 'mul', `${body}\nreturn outgoingLight;`);
+  const run = new Function('outgoingLight', 'uTreeLeafWarmth', gateVar, 'vec3', 'dot', 'max', 'clamp', 'mul', `${body}\nreturn outgoingLight;`);
   return (rgb, amount, leaf = 1) => run({ ...rgb }, amount, leaf,
     (r, g, b) => ({ r, g, b }),
     (a, b) => a.r * b.r + a.g * b.g + a.b * b.b,
@@ -137,7 +142,11 @@ test('black, tiny values, neutrals, non-green colours, bark and the zero control
   assert.deepEqual(evaluate(olive, -1), olive);
   assert.deepEqual(evaluate(olive, 0.65, 0), olive, 'combined-material bark gate');
   assert.deepEqual(evaluate(olive, 2), evaluate(olive, 1), 'bounded strength cannot push red past green');
-  for (const name of ['giantCanopy', 'distantCrown']) assert.deepEqual(evaluator(shaders[name])(olive, 0.65, 0), evaluate(olive, 0.65), `${name}: crown-only gate`);
+  assert.deepEqual(evaluator(shaders.giantCanopy)(olive, 0.65, 0), evaluate(olive, 0.65), 'giantCanopy: crown-only gate');
+  // distantCrown's flag is the wood flag, so 1 is bark (left exact) and 0 is a card (warmed)
+  const crown = evaluator(shaders.distantCrown, 'vCrownWood');
+  assert.deepEqual(crown(olive, 0.65, 1), olive, 'distantCrown: bark takes no leaf warmth');
+  assert.deepEqual(crown(olive, 0.65, 0), evaluate(olive, 0.65), 'distantCrown: a card takes the same warmth');
 });
 
 test('olive colours keep linear luminance and HSV saturation while warming monotonically at all radiance scales', () => {
