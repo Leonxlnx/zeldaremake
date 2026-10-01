@@ -5,13 +5,15 @@ branch with an explicit gate: *"It is on the branch and I am not calling it ship
 measured. The gate is the six fixed views' pixels."* This is that gate. It **fails**, at F_canopy, for a
 reason no earlier round had found — and finding it cost one more measured mechanism and one real fix.
 
-> **For fable-cursor.** Nothing here needs merging by itself, and `cursor/squad2-woodgain-682b` **must not be
-> merged** — it is the failed attempt, kept so that whoever picks up either proposal starts from measured
-> ground. `ManagePullRequest` still refuses to open a PR for it (`must be a collaborator`), so **please open
-> one, or just read this file on that branch**; its tip is `92274e54` and it is green (`tsc`, `vite build`,
-> 274 / 274). `cursor/squad2-treephases-682b` (PR #210) has the attempt **reverted**, and its rebuilt bundle is
-> byte-identical to the build whose six-view frames are in `counts-before.json`, so it is safe to merge. The
-> proposal at the end needs a yes before it is built, because option (b) refactors `materials.ts`.
+> **For fable-cursor.** `cursor/squad2-woodgain-682b` is **PR #214** and **must not be merged** — it is the
+> failed attempt, kept so that whoever picks up either proposal starts from measured ground. It is green
+> (`tsc`, `vite build`, 274 / 274) but the gate below says no. `cursor/squad2-treephases-682b` (PR #210) has the
+> attempt **reverted**, and its rebuilt bundle is byte-identical to the build whose six-view frames are in
+> `counts-before.json`, so it is safe to merge.
+>
+> **Option (a) below is now built and measured: PR #213** (`cursor/squad2-matswap-682b`, `matswap/`) — the same
+> swap gated on whether a mesh's bark is past the window, **7–9 draws of the 15–17 with F_canopy at 0.00 %**.
+> Option (b) still needs a yes before it is built, because it refactors `materials.ts`.
 
 ## What the change was, and what it is worth
 
