@@ -1,0 +1,17 @@
+Pose check for the far-crown atlas change (commit 65df16d4 "before" vs fca3055f "after"),
+960x540, --settle 6, shots /tmp/poses2.json = the first two owner-0650 poses.
+
+  pose                   before md5                        after md5                         diff
+  owner-0650-north       5480b3739daeae87d00ad35fbac14c52  5480b3739daeae87d00ad35fbac14c52  byte-identical
+  rec-r024-plaza-fork    d9ac466d93005671a23a61670404400e  d9ac466d93005671a23a61670404400e  byte-identical
+
+diffmap.mjs, both poses: "changed > 8 levels: 0.00 % of the frame", every 8x8 cell 0.0 % / mean 0.0 levels.
+compare.mjs --stats: north mean 80.2 / top third 97.1 / middle third 71.7 on both sides;
+fork mean 88.8 / 88.5 / 81.3 on both sides.
+
+The rendered frames are identical byte for byte, which is what the atlas hash (e074ede8 on both
+sides, twice each) predicted: the change resamples the clump mask once instead of 3002 times and
+replaces clear-then-fill with `copy`, and neither can move a texel.
+
+Render cost, for the record: 127.5 and 124.3 s/frame before, 123.5 and 121.0 s/frame after
+(SwiftShader; not a claim, the two jobs ran in parallel on the same box).

@@ -1,0 +1,20 @@
+✓ A1 rubric.json hash-locked (96467cfa0ee4…, 50 items)
+✓ A2 no threshold is easier than rubric.baseline.json
+✓ A4 item id set equals the baseline
+✓ A3 0 rubric edit(s) after introduction, all human-approved
+✓ C1 138 raster(s) under public/, src/, dist/, site/ — none within Hamming 12 of a reference frame
+✓ C2 242 source file(s) free of video/iframe/reference imports
+✓ C4 69 texture file(s) credited
+✓ C5 144 asset file(s) — no nintendo|zelda|oot|kokiri asset names or metadata
+✓ D1 ledger chain intact (134 entries, gauntlet/ledger.json)
+✓ D2 regression tags consistent (6 regressed take(s))
+✓ D8 PROJECT_STATE.md does not declare Phase 1 complete
+✓ B1 6 screenshot(s) match the hashes recorded by capture.mjs
+✓ B2 capture not yet in the ledger (attestation assigned by take.mjs; this run is local)
+✓ B3 6 audit claim(s) cross-checked against the scene graph
+✓ B4 5 placement sample set(s) spot-checked
+✓ B5 A_stairs re-capture differs in 0.000 % of pixels
+✓ B6 console clean during capture
+✓ C2 runtime scene has no video/reference textures
+✓ C3 4 hero viewpoint(s) have layered depth (max bucket beyond 20 m ≤ 35 %)
+✓ anti-cheat green (109 checks, 90 warnings)

@@ -1,0 +1,70 @@
+[
+ {
+  "shot": "A_stairs",
+  "single": {
+   "draws": 559,
+   "triangles": 8626622
+  },
+  "twoPass": {
+   "draws": 575,
+   "triangles": 8631286
+  },
+  "drawsSaved": 16,
+  "trianglesSaved": 4664,
+  "pixelsMoved": 0.213,
+  "pixelsMovedOver8": 0.036,
+  "maxChannelDelta": 28,
+  "materialsFlipped": 2
+ },
+ {
+  "shot": "F_canopy",
+  "single": {
+   "draws": 500,
+   "triangles": 7831095
+  },
+  "twoPass": {
+   "draws": 515,
+   "triangles": 7836917
+  },
+  "drawsSaved": 15,
+  "trianglesSaved": 5822,
+  "pixelsMoved": 0.526,
+  "pixelsMovedOver8": 0.125,
+  "maxChannelDelta": 39,
+  "materialsFlipped": 2
+ },
+ {
+  "shot": "plateau-north",
+  "single": {
+   "draws": 439,
+   "triangles": 6242395
+  },
+  "twoPass": {
+   "draws": 456,
+   "triangles": 6246699
+  },
+  "drawsSaved": 17,
+  "trianglesSaved": 4304,
+  "pixelsMoved": 0.092,
+  "pixelsMovedOver8": 0.038,
+  "maxChannelDelta": 46,
+  "materialsFlipped": 2
+ },
+ {
+  "shot": "plateau-back",
+  "single": {
+   "draws": 687,
+   "triangles": 10888866
+  },
+  "twoPass": {
+   "draws": 702,
+   "triangles": 10895532
+  },
+  "drawsSaved": 15,
+  "trianglesSaved": 6666,
+  "pixelsMoved": 0.578,
+  "pixelsMovedOver8": 0.072,
+  "maxChannelDelta": 37,
+  "materialsFlipped": 2
+ }
+]

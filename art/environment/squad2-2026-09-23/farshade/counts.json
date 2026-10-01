@@ -1,0 +1,42 @@
+{
+ "pose": "paired run, one list, two builds",
+ "A_stairs": {
+  "with": {
+   "draws": 561,
+   "triangles": 8724803,
+   "treeTriangles": 2656692,
+   "md5": "e72a8dff4d0b31111684b8e31d586d79"
+  },
+  "without": {
+   "draws": 558,
+   "triangles": 8367291,
+   "treeTriangles": 2299180,
+   "md5": "e054a89ff59ef2bb6e57ee7e5674ec28"
+  },
+  "saving": {
+   "draws": 3,
+   "triangles": 357512
+  },
+  "changedShareAtTol2": 0.18
+ },
+ "stairs1-top": {
+  "with": {
+   "draws": 661,
+   "triangles": 9799283,
+   "treeTriangles": 3549346,
+   "md5": "54a01171b5b6dbb40458bb513d8c03f0"
+  },
+  "without": {
+   "draws": 658,
+   "triangles": 9347687,
+   "treeTriangles": 3097750,
+   "md5": "e87d81061359a6c7cbca2b23b8306603"
+  },
+  "saving": {
+   "draws": 3,
+   "triangles": 451596
+  },
+  "changedShareAtTol2": 0.1246
+ },
+ "verdict": "not shipped \u2014 the far foliage casting is the canopy self-shadowing; the crowns flatten without it"
+}

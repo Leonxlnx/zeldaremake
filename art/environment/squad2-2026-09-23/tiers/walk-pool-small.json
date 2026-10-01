@@ -1,0 +1,211 @@
+[
+ {
+  "frames": 0,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 129,
+  "evicted": 76,
+  "pending": 144,
+  "resident": 163,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 14,
+  "workOverBudget": 3,
+  "longSteps": 2,
+  "shown": 79
+ },
+ {
+  "frames": 60,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 134,
+  "evicted": 81,
+  "pending": 156,
+  "resident": 163,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 13,
+  "workOverBudget": 6,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 120,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 141,
+  "evicted": 86,
+  "pending": 176,
+  "resident": 165,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 10.4,
+  "workOverBudget": 8,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 180,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 155,
+  "evicted": 98,
+  "pending": 181,
+  "resident": 167,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.5,
+  "workOverBudget": 8,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 240,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 163,
+  "evicted": 105,
+  "pending": 192,
+  "resident": 168,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workOverBudget": 11,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 300,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 175,
+  "evicted": 120,
+  "pending": 197,
+  "resident": 165,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.5,
+  "workOverBudget": 12,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 360,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 183,
+  "evicted": 130,
+  "pending": 199,
+  "resident": 163,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workOverBudget": 16,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 420,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 196,
+  "evicted": 140,
+  "pending": 185,
+  "resident": 166,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workOverBudget": 20,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 480,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 213,
+  "evicted": 156,
+  "pending": 175,
+  "resident": 167,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.9,
+  "workOverBudget": 23,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 540,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 227,
+  "evicted": 168,
+  "pending": 162,
+  "resident": 169,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.8,
+  "workOverBudget": 25,
+  "longSteps": 3,
+  "shown": 79
+ },
+ {
+  "frames": 600,
+  "at": [
+   0,
+   0
+  ],
+  "syncBuilds": 63,
+  "built": 243,
+  "evicted": 183,
+  "pending": 144,
+  "resident": 170,
+  "pinned": 79,
+  "pinnedPending": 0,
+  "poolMiB": 64,
+  "workMsP95": 6.7,
+  "workOverBudget": 26,
+  "longSteps": 3,
+  "shown": 79
+ }
+]

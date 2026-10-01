@@ -1,0 +1,34 @@
+{
+ "hero-A": {
+  "draws": 559,
+  "triangles": 8626622,
+  "treeDraws": 77,
+  "treeTriangles": 3265520,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 10,
+   "starved": 21,
+   "starvedNearestM": 15.6
+  },
+  "md5": "039e1a7603da8893e68ffd2c33cb2bb6"
+ },
+ "plateau-back": {
+  "draws": 687,
+  "triangles": 10888866,
+  "treeDraws": 81,
+  "treeTriangles": 3342429,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 22,
+   "starved": 34,
+   "starvedNearestM": 14
+  },
+  "md5": "01d96dae9a0270edcb2b55e76d537a5c"
+ }
+}

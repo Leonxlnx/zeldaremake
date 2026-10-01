@@ -1,0 +1,26 @@
+{
+ "nearCanopyPool": {
+  "built": 254,
+  "syncBuilds": 81,
+  "steps": 11546,
+  "stepMsP95": 0.6,
+  "stepMsMax": 8.3,
+  "longSteps": 0,
+  "workOverBudget": 2,
+  "workMsP95": 5.8,
+  "workMsMax": 1503.2,
+  "firstStepMsP95": 0.2
+ },
+ "nearBasePool": {
+  "built": 0,
+  "syncBuilds": 0,
+  "steps": 0,
+  "stepMsP95": 0,
+  "stepMsMax": 0,
+  "longSteps": 0,
+  "workOverBudget": 0,
+  "workMsP95": 0,
+  "workMsMax": 0.1,
+  "firstStepMsP95": 0
+ }
+}

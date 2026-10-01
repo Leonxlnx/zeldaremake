@@ -1,0 +1,180 @@
+{
+ "dist": "dist",
+ "view": "A_stairs",
+ "quality": "high",
+ "settle": 8,
+ "frame": {
+  "draws": 555,
+  "triangles": 8724803
+ },
+ "rows": [
+  {
+   "group": "lighting",
+   "key": "lighting",
+   "found": true,
+   "renderer": {
+    "draws": 0,
+    "triangles": 0
+   },
+   "claim": {
+    "draws": null,
+    "triangles": null,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "atmosphere",
+   "key": "atmosphere",
+   "found": true,
+   "renderer": {
+    "draws": 4,
+    "triangles": 6816
+   },
+   "claim": {
+    "draws": null,
+    "triangles": null,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "terrain",
+   "key": "terrain",
+   "found": true,
+   "renderer": {
+    "draws": 33,
+    "triangles": 628274
+   },
+   "claim": {
+    "draws": null,
+    "triangles": 622088,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "hardscape",
+   "key": "hardscape",
+   "found": true,
+   "renderer": {
+    "draws": 15,
+    "triangles": 524524
+   },
+   "claim": {
+    "draws": null,
+    "triangles": null,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "rocks",
+   "key": "rocks",
+   "found": true,
+   "renderer": {
+    "draws": 31,
+    "triangles": 231680
+   },
+   "claim": {
+    "draws": null,
+    "triangles": null,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "trees",
+   "key": "trees",
+   "found": true,
+   "renderer": {
+    "draws": 140,
+    "triangles": 2656488
+   },
+   "claim": {
+    "draws": 140,
+    "triangles": 2656692,
+    "fromSubmission": true
+   }
+  },
+  {
+   "group": "canopy",
+   "key": "canopyRoof",
+   "found": true,
+   "renderer": {
+    "draws": 1,
+    "triangles": 8210
+   },
+   "claim": {
+    "draws": 1,
+    "triangles": 8210,
+    "fromSubmission": true
+   }
+  },
+  {
+   "group": "structures",
+   "key": "structures",
+   "found": true,
+   "renderer": {
+    "draws": 119,
+    "triangles": 2008148
+   },
+   "claim": {
+    "draws": null,
+    "triangles": 2427971,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "props",
+   "key": "props",
+   "found": true,
+   "renderer": {
+    "draws": 15,
+    "triangles": 97752
+   },
+   "claim": {
+    "draws": null,
+    "triangles": 72356,
+    "fromSubmission": false
+   }
+  },
+  {
+   "group": "vegetation",
+   "key": "vegetation",
+   "found": true,
+   "renderer": {
+    "draws": 127,
+    "triangles": 2455038
+   },
+   "claim": {
+    "draws": 126,
+    "triangles": 2454630,
+    "fromSubmission": true
+   }
+  },
+  {
+   "group": "character",
+   "key": "character",
+   "found": true,
+   "renderer": {
+    "draws": 63,
+    "triangles": 179984
+   },
+   "claim": {
+    "draws": null,
+    "triangles": 154442,
+    "fromSubmission": false
+   }
+  }
+ ],
+ "auditKeys": [
+  "atmosphere",
+  "canopyRoof",
+  "character",
+  "hardscape",
+  "lighting",
+  "props",
+  "rocks",
+  "structures",
+  "terrain",
+  "textures",
+  "trees",
+  "vegetation"
+ ]
+}

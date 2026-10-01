@@ -1,0 +1,50 @@
+{
+ "A_stairs": {
+  "draws": 495,
+  "triangles": 6441178,
+  "treeDraws": 66,
+  "treeTriangles": 2707772,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 9,
+   "starved": 26,
+   "starvedNearestM": 15.6
+  },
+  "md5": "fc1a957beefb42a610ebfaa32f057c01"
+ },
+ "F_canopy": {
+  "draws": 449,
+  "triangles": 5493128,
+  "treeDraws": 61,
+  "treeTriangles": 2292225,
+  "giantGroupsCasting": 13,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 16,
+   "starved": 16,
+   "starvedNearestM": 16.9
+  },
+  "md5": "4d6e9daee2a323dd6e8d69f459b8aaee"
+ },
+ "owner-0650-north": {
+  "draws": 392,
+  "triangles": 5637435,
+  "treeDraws": 62,
+  "treeTriangles": 2550551,
+  "giantGroupsCasting": 6,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 4,
+   "starved": 4,
+   "starvedNearestM": 22.6
+  },
+  "md5": "1df743468b33af45b29ad24ba7bf615e"
+ }
+}

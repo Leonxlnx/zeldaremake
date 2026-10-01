@@ -1,0 +1,152 @@
+[
+ {
+  "pose": "A_stairs",
+  "base": {
+   "draws": 559,
+   "triangles": 8626622
+  },
+  "control": 0,
+  "md5": "f1e21373",
+  "families": [
+   {
+    "family": "understory",
+    "meshes": 13,
+    "submitted": 53620,
+    "drawnTriangles": 93204,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 12.96,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us0-542438786-medium",
+     "understory-us0-542438786-low"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "B_house",
+  "base": {
+   "draws": 541,
+   "triangles": 7903532
+  },
+  "control": 0,
+  "md5": "6870933e",
+  "families": [
+   {
+    "family": "understory",
+    "meshes": 12,
+    "submitted": 56785,
+    "drawnTriangles": 99910,
+    "drawnDraws": 18,
+    "mode": "hidden",
+    "pixelsMoved": 11.17,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us0-542438786-medium",
+     "understory-us0-542438786-low"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "C_lookback",
+  "base": {
+   "draws": 479,
+   "triangles": 7679745
+  },
+  "control": 0,
+  "md5": "acd4b8b9",
+  "families": [
+   {
+    "family": "understory",
+    "meshes": 7,
+    "submitted": 22200,
+    "drawnTriangles": 22200,
+    "drawnDraws": 7,
+    "mode": "hidden",
+    "pixelsMoved": 2.12,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us1-404692179-high",
+     "understory-us1-404692179-low"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "D_log",
+  "base": {
+   "draws": 465,
+   "triangles": 8242550
+  },
+  "control": 0,
+  "md5": "c0ddb2ac",
+  "families": [
+   {
+    "family": "understory",
+    "meshes": 13,
+    "submitted": 72640,
+    "drawnTriangles": 125757,
+    "drawnDraws": 21,
+    "mode": "hidden",
+    "pixelsMoved": 22.66,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us0-542438786-medium",
+     "understory-us0-542438786-low"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "E_ground",
+  "base": {
+   "draws": 541,
+   "triangles": 7903532
+  },
+  "control": 0,
+  "md5": "6870933e",
+  "families": [
+   {
+    "family": "understory",
+    "meshes": 12,
+    "submitted": 56785,
+    "drawnTriangles": 99910,
+    "drawnDraws": 18,
+    "mode": "hidden",
+    "pixelsMoved": 11.17,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us0-542438786-medium",
+     "understory-us0-542438786-low"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "F_canopy",
+  "base": {
+   "draws": 500,
+   "triangles": 7831095
+  },
+  "control": 0,
+  "md5": "cbdc1131",
+  "families": [
+   {
+    "family": "understory",
+    "meshes": 6,
+    "submitted": 47851,
+    "drawnTriangles": 55319,
+    "drawnDraws": 7,
+    "mode": "hidden",
+    "pixelsMoved": 2.51,
+    "names": [
+     "understory-us0-542438786-high",
+     "understory-us1-404692179-high",
+     "understory-us2-60540489-medium"
+    ]
+   }
+  ]
+ }
+]

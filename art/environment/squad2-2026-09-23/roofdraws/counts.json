@@ -1,0 +1,44 @@
+{
+ "note": "canopy roof: 7 sector meshes -> 1, paired run",
+ "A_stairs": {
+  "before": {
+   "draws": 561,
+   "triangles": 8724803,
+   "md5": "e72a8dff4d0b31111684b8e31d586d79"
+  },
+  "after": {
+   "draws": 555,
+   "triangles": 8724803,
+   "md5": "e72a8dff4d0b31111684b8e31d586d79"
+  },
+  "saving": {
+   "draws": 6
+  }
+ },
+ "stairs1-top": {
+  "before": {
+   "draws": 661,
+   "triangles": 9799283,
+   "md5": "54a01171b5b6dbb40458bb513d8c03f0"
+  },
+  "after": {
+   "draws": 655,
+   "triangles": 9799283,
+   "md5": "54a01171b5b6dbb40458bb513d8c03f0"
+  },
+  "saving": {
+   "draws": 6
+  }
+ },
+ "isolateCanopyBefore": {
+  "calls": 7,
+  "triangles": 8210,
+  "atThreePoses": true
+ },
+ "isolateCanopyAfter": {
+  "calls": 1,
+  "triangles": 8210,
+  "auditAgrees": true
+ },
+ "byteIdentical": true
+}

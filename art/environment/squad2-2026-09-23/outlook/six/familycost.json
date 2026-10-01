@@ -1,0 +1,236 @@
+[
+ {
+  "pose": "A_stairs",
+  "base": {
+   "draws": 559,
+   "triangles": 8626622
+  },
+  "control": 0,
+  "md5": "039e1a76",
+  "families": [
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 23352,
+    "drawnTriangles": 23352,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 4.35,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 6,
+    "submitted": 5832,
+    "drawnTriangles": 5832,
+    "drawnDraws": 12,
+    "mode": "hidden",
+    "pixelsMoved": 3.26,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "B_house",
+  "base": {
+   "draws": 541,
+   "triangles": 7903532
+  },
+  "control": 0,
+  "md5": "0e3852ca",
+  "families": [
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 22296,
+    "drawnTriangles": 22296,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 2.11,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 6,
+    "submitted": 5808,
+    "drawnTriangles": 5808,
+    "drawnDraws": 12,
+    "mode": "hidden",
+    "pixelsMoved": 4.39,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "C_lookback",
+  "base": {
+   "draws": 479,
+   "triangles": 7679745
+  },
+  "control": 0,
+  "md5": "a69cd3ea",
+  "families": [
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 29756,
+    "drawnTriangles": 29756,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 10.07,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 5,
+    "submitted": 4488,
+    "drawnTriangles": 4488,
+    "drawnDraws": 10,
+    "mode": "hidden",
+    "pixelsMoved": 2.1,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "D_log",
+  "base": {
+   "draws": 465,
+   "triangles": 8242550
+  },
+  "control": 0,
+  "md5": "bf959c8f",
+  "families": [
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 20917,
+    "drawnTriangles": 20917,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 4.64,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 7,
+    "submitted": 7514,
+    "drawnTriangles": 7514,
+    "drawnDraws": 14,
+    "mode": "hidden",
+    "pixelsMoved": 4.49,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "E_ground",
+  "base": {
+   "draws": 541,
+   "triangles": 7903532
+  },
+  "control": 0,
+  "md5": "0e3852ca",
+  "families": [
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 22296,
+    "drawnTriangles": 22296,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 2.11,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 6,
+    "submitted": 5808,
+    "drawnTriangles": 5808,
+    "drawnDraws": 12,
+    "mode": "hidden",
+    "pixelsMoved": 4.39,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "F_canopy",
+  "base": {
+   "draws": 500,
+   "triangles": 7831095
+  },
+  "control": 0,
+  "md5": "a9772b46",
+  "families": [
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 39553,
+    "drawnTriangles": 39553,
+    "drawnDraws": 20,
+    "mode": "hidden",
+    "pixelsMoved": 9.24,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 5,
+    "submitted": 4512,
+    "drawnTriangles": 4512,
+    "drawnDraws": 10,
+    "mode": "hidden",
+    "pixelsMoved": 0.42,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   }
+  ]
+ }
+]

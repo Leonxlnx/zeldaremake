@@ -25,7 +25,7 @@
  * in every shading term that the colour pass drops while the lobe's near version is drawn
  * (round 41, materials.ts uNearCanopy).
  */
-import { BufferGeometry, CatmullRomCurve3, Color, Float32BufferAttribute, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const TAU = Math.PI * 2;
@@ -47,6 +47,145 @@ export const CUSHION_ROOT_W_PER_M = 0.0035;
 export const CUSHION_ROOT_MAX_H = (CUSHION_ROOT_W[1] - CUSHION_ROOT_W[0] - 0.002) / CUSHION_ROOT_W_PER_M;
 export const cushionRootW = (heightAboveOrigin: number) => CUSHION_ROOT_W[0] + 0.001 + CUSHION_ROOT_W_PER_M * Math.min(CUSHION_ROOT_MAX_H, Math.max(0, heightAboveOrigin));
 export const isCushionRoot = (w: number) => w > CUSHION_ROOT_W[0] && w < CUSHION_ROOT_W[1];
+
+/** floats copied into a packed attribute between two yields of `packSteps` */
+export const PACK_FLOATS_PER_STEP = 8192;
+
+/**
+ * `new Float32BufferAttribute(values, itemSize)`'s work as a chunked copy. The same float32 conversion of
+ * the same values in the same order — `array[k] = values[k]` is what the bulk constructor does per
+ * element — so the bytes are identical.
+ *
+ * It is chunked for the same reason the normals are: measured on a walk, the long chunks left in the
+ * builder clustered at the END of every near-canopy lobe's build (indices 56–64 of ~64, 2.5–3.5 ms),
+ * which is `finishSteps` packing five attributes of 100–300 k floats in two chunks.
+ */
+function* packSteps(values: number[], itemSize: number): Generator<void, BufferAttribute> {
+  const array = new Float32Array(values.length);
+  for (let i = 0; i < values.length; i += PACK_FLOATS_PER_STEP) {
+    const end = Math.min(values.length, i + PACK_FLOATS_PER_STEP);
+    for (let k = i; k < end; k++) array[k] = values[k];
+    if (end < values.length) yield;
+  }
+  // as in `indexSteps`: `Float32BufferAttribute(array)` would copy the array a second time
+  return new BufferAttribute(array, itemSize);
+}
+
+/**
+ * `BufferGeometry.setIndex(number[])` as a chunked copy, and the last operation of `finishSteps` that
+ * was still one call: three picks `Uint16` or `Uint32` by scanning for a value ≥ 65535 (backwards —
+ * the largest is usually last, so it normally exits at once) and then copies the whole array.
+ */
+function* indexSteps(indices: number[]): Generator<void, BufferAttribute> {
+  let needs32 = false;
+  for (let i = indices.length - 1; i >= 0; i--) {
+    if (indices[i] >= 65535) {
+      needs32 = true;
+      break;
+    }
+  }
+  const array = needs32 ? new Uint32Array(indices.length) : new Uint16Array(indices.length);
+  for (let i = 0; i < indices.length; i += PACK_FLOATS_PER_STEP) {
+    const end = Math.min(indices.length, i + PACK_FLOATS_PER_STEP);
+    for (let k = i; k < end; k++) array[k] = indices[k];
+    if (end < indices.length) yield;
+  }
+  // `BufferAttribute` over the array just filled, rather than `Uint32BufferAttribute(array)` which
+  // copies it again; three's own `mergeGeometries` hands back plain `BufferAttribute`s too, and the
+  // renderer picks the GL type from `array.constructor`
+  return new BufferAttribute(array, 1);
+}
+
+/**
+ * Triangles accumulated, and vertices normalised, between two yields of `vertexNormalSteps`.
+ * Sized so a chunk costs about what one of the relief bole's chunks does (its 4 rings ≈ 800
+ * vertices), which is what the rest of a pooled part's build already yields at.
+ */
+export const VERTEX_NORMAL_FACES_PER_STEP = 1024;
+export const VERTEX_NORMAL_VERTICES_PER_STEP = 4096;
+
+/**
+ * `BufferGeometry.computeVertexNormals` as a chunked build (lodPool.ts), bit-identical to three's.
+ *
+ * It is here because three's is ONE call, and `LodPool.work` always runs the first chunk of a
+ * frame (its progress guarantee: a build whose chunks all exceed the budget must still advance, or
+ * it starves into a synchronous build at its pin). So the longest unsplittable chunk is a floor
+ * under the frame's pool time, and measured over 65 real pooled parts this was it — the longest
+ * chunk of EVERY part (p50 0.81 ms, max 3.23 ms against the rest of a build's 0.1 ms median, ≈ 13 %
+ * of the builder's whole time; `art/environment/squad2-2026-09-23/chunks/`).
+ *
+ * Identical, not equivalent: the same face loop in the same triangle order, the same `Vector3`
+ * methods, and the same accumulate-through-the-Float32Array (read the running normal, add the face
+ * normal, round back to float32 with `setXYZ`) three does — a faster float64 accumulator would
+ * change the bytes. `writer.test.mjs` pins it against three's own call on real tree geometry.
+ */
+export function* vertexNormalSteps(geometry: BufferGeometry): Generator<void, void> {
+  const position = geometry.getAttribute('position');
+  const index = geometry.index;
+  if (!position) return;
+  // the tree writer always indexes; anything else keeps three's own path rather than a second one
+  if (!index) {
+    geometry.computeVertexNormals();
+    return;
+  }
+  let normal = geometry.getAttribute('normal') as BufferAttribute | undefined;
+  if (normal === undefined || normal.count !== position.count) {
+    normal = new BufferAttribute(new Float32Array(position.count * 3), 3);
+    geometry.setAttribute('normal', normal);
+  } else {
+    for (let i = 0, il = normal.count; i < il; i++) normal.setXYZ(i, 0, 0, 0);
+  }
+  const pA = new Vector3();
+  const pB = new Vector3();
+  const pC = new Vector3();
+  const nA = new Vector3();
+  const nB = new Vector3();
+  const nC = new Vector3();
+  const cb = new Vector3();
+  const ab = new Vector3();
+  // the loops are plain functions, not the generator's own body: a generator's body is slower per
+  // iteration, and this pass must not cost more in total than the one call it replaces
+  const faces = (from: number, to: number) => {
+    for (let i = from; i < to; i += 3) {
+      const vA = index.getX(i + 0);
+      const vB = index.getX(i + 1);
+      const vC = index.getX(i + 2);
+      pA.fromBufferAttribute(position, vA);
+      pB.fromBufferAttribute(position, vB);
+      pC.fromBufferAttribute(position, vC);
+      cb.subVectors(pC, pB);
+      ab.subVectors(pA, pB);
+      cb.cross(ab);
+      nA.fromBufferAttribute(normal!, vA);
+      nB.fromBufferAttribute(normal!, vB);
+      nC.fromBufferAttribute(normal!, vC);
+      nA.add(cb);
+      nB.add(cb);
+      nC.add(cb);
+      normal!.setXYZ(vA, nA.x, nA.y, nA.z);
+      normal!.setXYZ(vB, nB.x, nB.y, nB.z);
+      normal!.setXYZ(vC, nC.x, nC.y, nC.z);
+    }
+  };
+  const v = new Vector3();
+  const unit = (from: number, to: number) => {
+    for (let i = from; i < to; i++) {
+      v.fromBufferAttribute(normal!, i);
+      v.normalize();
+      normal!.setXYZ(i, v.x, v.y, v.z);
+    }
+  };
+  const faceStep = VERTEX_NORMAL_FACES_PER_STEP * 3;
+  for (let i = 0; i < index.count; i += faceStep) {
+    faces(i, Math.min(index.count, i + faceStep));
+    yield;
+  }
+  for (let i = 0; i < normal.count; i += VERTEX_NORMAL_VERTICES_PER_STEP) {
+    unit(i, Math.min(normal.count, i + VERTEX_NORMAL_VERTICES_PER_STEP));
+    if (i + VERTEX_NORMAL_VERTICES_PER_STEP < normal.count) yield;
+  }
+  normal.needsUpdate = true;
+}
 
 export class GeometryWriter {
   positions: number[] = [];
@@ -173,21 +312,22 @@ export class GeometryWriter {
   }
 
   /**
-   * `finish` as a chunked build (lodPool.ts): yields after the attributes are packed and again
-   * after the normals are computed, so a runtime build's last few milliseconds can straddle frames.
+   * `finish` as a chunked build (lodPool.ts): yields after the attributes are packed, between the
+   * chunks of the vertex normals and again after them, so a runtime build's last few milliseconds
+   * can straddle frames.
    */
   *finishSteps(name: string): Generator<void, BufferGeometry> {
     const g = new BufferGeometry();
     g.name = name;
-    g.setAttribute('position', new Float32BufferAttribute(this.positions, 3));
-    g.setAttribute('color', new Float32BufferAttribute(this.colors, 3));
-    g.setAttribute('uv', new Float32BufferAttribute(this.uvs, 2));
+    g.setAttribute('position', yield* packSteps(this.positions, 3));
+    g.setAttribute('color', yield* packSteps(this.colors, 3));
+    g.setAttribute('uv', yield* packSteps(this.uvs, 2));
     yield;
-    g.setAttribute('aWind', new Float32BufferAttribute(this.winds, 3));
-    g.setAttribute('aRoot', new Float32BufferAttribute(this.roots, 4));
-    g.setIndex(this.indices);
+    g.setAttribute('aWind', yield* packSteps(this.winds, 3));
+    g.setAttribute('aRoot', yield* packSteps(this.roots, 4));
+    g.setIndex(yield* indexSteps(this.indices));
     yield;
-    g.computeVertexNormals();
+    yield* vertexNormalSteps(g);
     yield;
     const normals = g.getAttribute('normal');
     if (this.authoredNormals) {
@@ -229,10 +369,20 @@ export function tangent(points: Vector3[], t: number): Vector3 {
   return sample(points, Math.min(1, t + 0.02)).sub(sample(points, Math.max(0, t - 0.02))).normalize();
 }
 
+const _frameRefZ = new Vector3(0, 0, 1);
+
+/** `frame` into caller-owned vectors: the same two cross products, no allocation (hot paths) */
+export function frameInto(axis: Vector3, u: Vector3, v: Vector3): void {
+  const reference = Math.abs(axis.y) < 0.92 ? UP : _frameRefZ;
+  u.crossVectors(axis, reference).normalize();
+  v.crossVectors(axis, u).normalize();
+}
+
 export function frame(axis: Vector3): [Vector3, Vector3] {
-  const reference = Math.abs(axis.y) < 0.92 ? UP : new Vector3(0, 0, 1);
-  const u = new Vector3().crossVectors(axis, reference).normalize();
-  return [u, new Vector3().crossVectors(axis, u).normalize()];
+  const u = new Vector3();
+  const v = new Vector3();
+  frameInto(axis, u, v);
+  return [u, v];
 }
 
 /** stiffness for the branch wind layer from the local wood radius */
@@ -387,25 +537,169 @@ export function taper(points: Vector3[], radius: number, terminal = 0.004, power
 }
 
 /** A tortuous woody axis between two growth targets, continuing its parent. */
+/**
+ * `curve.getSpacedPoints(divisions)` without its allocations, arithmetic for arithmetic.
+ *
+ * three's version walks `getPointAt` → `getUtoTmapping` → `getLengths`, and `getLengths` samples the
+ * curve `arcLengthDivisions` (200) times with no target vector: 201 throwaway `Vector3`s and a fresh
+ * cache array **per call**, and `growthPath` is called once per stem, secondary, twig and twiglet —
+ * thousands of times a tree. The allocation profile put `Curve.getPoint` and its `init` at **12.4 % of
+ * everything the builders allocate** (`art/environment/squad2-2026-09-23/chunks/alloc-*.json`), and
+ * garbage is what the frame budget actually trips over (chunks/README.md §6).
+ *
+ * This keeps three's algorithm exactly — the same 200-sample cumulative length cache summed in the same
+ * order, the same binary search, the same segment interpolation, the same `getPoint` — and only reuses
+ * the vectors and the array. The returned points are fresh, because the caller keeps them.
+ */
+let _arcLengths = new Float64Array(201);
+const _arcA = new Vector3();
+const _arcB = new Vector3();
+
+/**
+ * One axis of a centripetal Catmull-Rom segment, evaluated in local variables.
+ *
+ * three's `CubicPoly` keeps its four coefficients in closure variables, and V8 boxes a double assigned
+ * to a captured variable: `getPoint` allocated ~240 bytes a call — twelve coefficients and three
+ * components — which over `growthPath`'s 206 samples is **49 KB of garbage per path**. The arithmetic
+ * here is `initNonuniformCatmullRom` followed by `calc`, operation for operation in the same order, with
+ * nothing captured, so the doubles stay in registers. The output is the same bits, which
+ * `chunks/bitcheck.mjs` checks over 75 geometries and 741 103 triangles.
+ */
+function cubicAxis(x0: number, x1: number, x2: number, x3: number, dt0: number, dt1: number, dt2: number, w: number): number {
+  let t1 = (x1 - x0) / dt0 - (x2 - x0) / (dt0 + dt1) + (x2 - x1) / dt1;
+  let t2 = (x2 - x1) / dt1 - (x3 - x1) / (dt1 + dt2) + (x3 - x2) / dt2;
+  t1 *= dt1;
+  t2 *= dt1;
+  const c0 = x1;
+  const c1 = t1;
+  const c2 = -3 * x1 + 3 * x2 - 2 * t1 - t2;
+  const c3 = 2 * x1 - 2 * x2 + t1 + t2;
+  const w2 = w * w;
+  const w3 = w2 * w;
+  return c0 + c1 * w + c2 * w2 + c3 * w3;
+}
+
+/** the two extrapolated end points three's `getPoint` builds in its module scratch */
+const _curveEndA = new Vector3();
+const _curveEndB = new Vector3();
+
+/**
+ * `CatmullRomCurve3.getPoint(t, target)` for a non-closed centripetal curve, without the boxing.
+ * Same branch structure as three's: the first and last control points extrapolated the same way, the
+ * same `Math.pow(distanceToSquared, 0.25)` knot spacing, the same repeated-point safety checks.
+ */
+function curvePoint(points: Vector3[], t: number, target: Vector3): Vector3 {
+  const l = points.length;
+  const p = (l - 1) * t;
+  let intPoint = Math.floor(p);
+  let weight = p - intPoint;
+  if (weight === 0 && intPoint === l - 1) {
+    intPoint = l - 2;
+    weight = 1;
+  }
+  let p0: Vector3;
+  let p3: Vector3;
+  if (intPoint > 0) p0 = points[(intPoint - 1) % l];
+  else p0 = _curveEndB.subVectors(points[0], points[1]).add(points[0]);
+  const p1 = points[intPoint % l];
+  const p2 = points[(intPoint + 1) % l];
+  if (intPoint + 2 < l) p3 = points[(intPoint + 2) % l];
+  else p3 = _curveEndA.subVectors(points[l - 1], points[l - 2]).add(points[l - 1]);
+  let dt0 = Math.pow(p0.distanceToSquared(p1), 0.25);
+  let dt1 = Math.pow(p1.distanceToSquared(p2), 0.25);
+  let dt2 = Math.pow(p2.distanceToSquared(p3), 0.25);
+  if (dt1 < 1e-4) dt1 = 1.0;
+  if (dt0 < 1e-4) dt0 = dt1;
+  if (dt2 < 1e-4) dt2 = dt1;
+  return target.set(
+    cubicAxis(p0.x, p1.x, p2.x, p3.x, dt0, dt1, dt2, weight),
+    cubicAxis(p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2, weight),
+    cubicAxis(p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2, weight),
+  );
+}
+
+/**
+ * three's `getUtoTmapping` over the table `spacedPoints` just filled: the same binary search for the
+ * largest cumulative length under the target, then the same interpolation inside that segment. A
+ * module function rather than a closure, because a closure is an allocation per path.
+ */
+function uToT(u: number, il: number): number {
+  const targetArcLength = u * _arcLengths[il - 1];
+  let i = 0;
+  let low = 0;
+  let high = il - 1;
+  while (low <= high) {
+    i = Math.floor(low + (high - low) / 2);
+    const comparison = _arcLengths[i] - targetArcLength;
+    if (comparison < 0) low = i + 1;
+    else if (comparison > 0) high = i - 1;
+    else {
+      high = i;
+      break;
+    }
+  }
+  i = high;
+  if (_arcLengths[i] === targetArcLength) return i / (il - 1);
+  const lengthBefore = _arcLengths[i];
+  const segmentFraction = (targetArcLength - lengthBefore) / (_arcLengths[i + 1] - lengthBefore);
+  return (i + segmentFraction) / (il - 1);
+}
+
+function spacedPoints(curve: CatmullRomCurve3, divisions: number): Vector3[] {
+  const n = curve.arcLengthDivisions;
+  const control = curve.points;
+  // a plain array's `length = 0` lets V8 trim the backing store, so every path re-grew it; the table
+  // is a fixed buffer with its used length carried separately
+  if (_arcLengths.length < n + 1) _arcLengths = new Float64Array(n + 1);
+  _arcLengths[0] = 0;
+  let last = curvePoint(control, 0, _arcA);
+  let sum = 0;
+  for (let p = 1; p <= n; p++) {
+    const current = curvePoint(control, p / n, last === _arcA ? _arcB : _arcA);
+    sum += current.distanceTo(last);
+    _arcLengths[p] = sum;
+    last = current;
+  }
+  const il = n + 1;
+  const points: Vector3[] = [];
+  for (let d = 0; d <= divisions; d++) points.push(curvePoint(control, uToT(d / divisions, il), new Vector3()));
+  return points;
+}
+
+/** the curve `growthPath` samples, reused: five points copied in place instead of a new curve a call */
+const _growthCurve = new CatmullRomCurve3([new Vector3(), new Vector3(), new Vector3(), new Vector3(), new Vector3()], false, 'centripetal');
+
+const _gpDisplacement = new Vector3();
+const _gpDirection = new Vector3();
+const _gpSide = new Vector3();
+const _gpBend = new Vector3();
+const _gpOutgoing = new Vector3();
+
 export function growthPath(origin: Vector3, target: Vector3, parentDirection: Vector3, rng: RandomFn, segments = 8, tortuosity = 1): Vector3[] {
-  const displacement = target.clone().sub(origin);
+  const displacement = _gpDisplacement.copy(target).sub(origin);
   const length = displacement.length();
-  const direction = displacement.clone().normalize();
-  const [side, bend] = frame(direction);
-  const outgoing = parentDirection.clone().normalize().lerp(direction, 0.42).normalize();
-  const a = origin.clone().addScaledVector(outgoing, length * 0.19);
-  const b = origin
-    .clone()
+  const direction = _gpDirection.copy(displacement).normalize();
+  const side = _gpSide;
+  const bend = _gpBend;
+  frameInto(direction, side, bend);
+  const outgoing = _gpOutgoing.copy(parentDirection).normalize().lerp(direction, 0.42).normalize();
+  // the three inner control points are written straight into the reused curve, in the order the
+  // random stream expects (b's two draws before c's two)
+  const control = _growthCurve.points;
+  control[0].copy(origin);
+  control[1].copy(origin).addScaledVector(outgoing, length * 0.19);
+  control[2]
+    .copy(origin)
     .lerp(target, 0.45)
     .addScaledVector(side, (rng() - 0.5) * length * 0.28 * tortuosity)
     .addScaledVector(bend, (rng() - 0.46) * length * 0.14 * tortuosity);
-  const c = origin
-    .clone()
+  control[3]
+    .copy(origin)
     .lerp(target, 0.76)
     .addScaledVector(side, (rng() - 0.5) * length * 0.23 * tortuosity)
     .addScaledVector(bend, (rng() - 0.4) * length * 0.12 * tortuosity);
-  const curve = new CatmullRomCurve3([origin.clone(), a, b, c, target.clone()], false, 'centripetal');
-  const points = curve.getSpacedPoints(segments);
+  control[4].copy(target);
+  const points = spacedPoints(_growthCurve, segments);
   points[0].copy(origin);
   points[points.length - 1].copy(target);
   return points;
@@ -523,6 +817,25 @@ export interface LeafOptions {
  * One curved leaf lamina with a raised midrib, cup and twist. Distant LODs select stable subsets
  * of the seeded population and widen the retained laminae so crown coverage stays constant.
  */
+/**
+ * `addLeaf`'s scratch. A lamina used to allocate ~15 short-lived objects (eight points, four colours,
+ * three frame vectors) and a near-canopy lobe carries over a thousand laminae, so the leaf path was
+ * the builder's allocator — and its garbage is what the frame budget actually trips over: measured
+ * over 65 real parts, 251 collections cost 220 ms of pause against 2013 ms of building, and the
+ * chunks a collection landed in read a median 1.08 ms against 0.05 ms for the rest
+ * (`art/environment/squad2-2026-09-23/chunks/`). Every one of these is consumed before the next
+ * statement — `writer.vertex` copies the components out — so none is ever held across a call.
+ */
+const _leafForward = new Vector3();
+const _leafSide = new Vector3();
+const _leafNormal = new Vector3();
+const _leafPoint = new Vector3();
+const _leafColor = new Color();
+const _leafTip = new Color();
+const _leafShade = new Color();
+/** the default tip tint, parsed once instead of per lamina (`lerp` reads it, never writes) */
+const LEAF_TIP_DEFAULT = new Color('#7d8f4a');
+
 export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector3, sizeIn: number, color: Color, rng: RandomFn, o: LeafOptions, build = true): boolean {
   const ordinal = writer.leafOrdinal++;
   const mediumEvery = o.mediumEvery ?? 4;
@@ -532,25 +845,29 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
   let leafDetail: Detail = writer.detail === 'high' ? (ordinal % 4 === 0 ? 'high' : 'medium') : writer.detail === 'medium' ? 'medium' : 'low';
   if (o.detailOverride) leafDetail = writer.detail === 'high' ? o.detailOverride : leafDetail;
   const size = sizeIn * (writer.detail === 'medium' ? o.mediumScale ?? 1.8 : writer.detail === 'low' ? o.lowScale ?? 2.6 : 1);
-  const forward = direction.clone().normalize();
+  const forward = _leafForward.copy(direction).normalize();
   // Most laminae face the sky, while the roll and pitch retain oblique leaves.
-  const side = new Vector3().crossVectors(UP, forward);
+  const side = _leafSide.crossVectors(UP, forward);
   if (side.lengthSq() < 0.015) side.set(1, 0, 0);
   side.normalize().applyAxisAngle(forward, (rng() - 0.5) * 1.8);
-  const normal = new Vector3().crossVectors(forward, side).normalize();
+  const normal = _leafNormal.crossVectors(forward, side).normalize();
   const twist = (rng() - 0.5) * 0.42;
   const cup = size * (0.045 + rng() * 0.075);
   const curve = size * (rng() * 0.2 - 0.045);
   const width = size * o.widthRatio;
   const phase = rng();
+  // each point is handed straight to `writer.vertex`, which copies its components out, so one
+  // scratch vector serves every call (a lamina used to allocate eight of them)
   const localPoint = (s: number, t: number) =>
-    base
-      .clone()
+    _leafPoint
+      .copy(base)
       .addScaledVector(forward, size * t)
       .addScaledVector(side, s * width * 0.5)
       .addScaledVector(normal, curve * t * t + cup * (1 - Math.abs(s)) * Math.sin(t * Math.PI) + s * twist * size * t);
-  const leafColor = color.clone().multiplyScalar(0.8 + rng() * 0.38);
-  const tipColor = leafColor.clone().lerp(o.tipColor ?? new Color('#7d8f4a'), 0.08 + rng() * 0.14);
+  const leafColor = _leafColor.copy(color).multiplyScalar(0.8 + rng() * 0.38);
+  const tipColor = _leafTip.copy(leafColor).lerp(o.tipColor ?? LEAF_TIP_DEFAULT, 0.08 + rng() * 0.14);
+  /** a shade of one of the two colours, consumed by the next `V` call (never held) */
+  const lift = (c: Color, by: number) => _leafShade.copy(c).multiplyScalar(by);
   // `build` false: the lamina was culled (sun corridor) after its draws, so the stream stays aligned
   if (!retained || !build) return false;
   writer.leafCount++;
@@ -564,7 +881,7 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
     const r = V(localPoint(1, 0.43), leafColor, 1, 0.43);
     const tip = V(localPoint(0, 1), tipColor, 0.5, 1);
     if (leafDetail === 'medium') {
-      const center = V(localPoint(0, 0.43), leafColor.clone().multiplyScalar(1.045), 0.5, 0.43);
+      const center = V(localPoint(0, 0.43), lift(leafColor, 1.045), 0.5, 0.43);
       writer.triangle(b, l, center);
       writer.triangle(b, center, r);
       writer.triangle(l, tip, center);
@@ -577,10 +894,10 @@ export function addLeaf(writer: GeometryWriter, base: Vector3, direction: Vector
   }
   const b = V(base, leafColor, 0.5, 0);
   const l1 = V(localPoint(-o.wideFirst, 0.34), leafColor, 0, 0.34);
-  const c1 = V(localPoint(0, 0.34), leafColor.clone().multiplyScalar(1.045), 0.5, 0.34);
+  const c1 = V(localPoint(0, 0.34), lift(leafColor, 1.045), 0.5, 0.34);
   const r1 = V(localPoint(o.wideFirst, 0.34), leafColor, 1, 0.34);
   const l2 = V(localPoint(-o.wideSecond, 0.73), tipColor, 0.15, 0.73);
-  const c2 = V(localPoint(0, 0.73), tipColor.clone().multiplyScalar(1.025), 0.5, 0.73);
+  const c2 = V(localPoint(0, 0.73), lift(tipColor, 1.025), 0.5, 0.73);
   const r2 = V(localPoint(o.wideSecond, 0.73), tipColor, 0.85, 0.73);
   const tip = V(localPoint(0, 1), tipColor, 0.5, 1);
   writer.triangle(b, l1, c1);

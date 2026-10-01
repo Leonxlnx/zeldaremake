@@ -1,0 +1,50 @@
+{
+ "plateau-north": {
+  "draws": 456,
+  "triangles": 6246699,
+  "treeDraws": 68,
+  "treeTriangles": 2732851,
+  "giantGroupsCasting": 6,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 15,
+   "starved": 18,
+   "starvedNearestM": 15.3
+  },
+  "md5": "44a62d3fac0bb08750b9f40ac8859ba0"
+ },
+ "plateau-back": {
+  "draws": 702,
+  "triangles": 10895532,
+  "treeDraws": 81,
+  "treeTriangles": 3342429,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 4,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 22,
+   "starved": 34,
+   "starvedNearestM": 14
+  },
+  "md5": "b96e8b1c287a6d1fb88583ac5d130332"
+ },
+ "ledge-look-south": {
+  "draws": 635,
+  "triangles": 11046057,
+  "treeDraws": 79,
+  "treeTriangles": 2981804,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 0,
+  "slotsInFrame": {
+   "shown": 3,
+   "inView": 3,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "ab840952f02f5cfd1385b27245b952c3"
+ }
+}

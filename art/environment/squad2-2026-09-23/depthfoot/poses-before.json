@@ -1,0 +1,58 @@
+{
+ "A_stairs": {
+  "draws": 575,
+  "triangles": 8635674,
+  "groupsCasting": 14,
+  "groupsTotal": 14,
+  "nearBolesCasting": 4,
+  "md5": "a280badd8db2655329902ffdb743a6fd"
+ },
+ "B_house": {
+  "draws": 557,
+  "triangles": 7909298,
+  "groupsCasting": 12,
+  "groupsTotal": 14,
+  "nearBolesCasting": 3,
+  "md5": "691887f684f3a76e28b57a7c0f76102a"
+ },
+ "C_lookback": {
+  "draws": 494,
+  "triangles": 7685827,
+  "groupsCasting": 12,
+  "groupsTotal": 14,
+  "nearBolesCasting": 6,
+  "md5": "79d5da7027ee3f975e2127b4908de9b6"
+ },
+ "D_log": {
+  "draws": 484,
+  "triangles": 8279584,
+  "groupsCasting": 10,
+  "groupsTotal": 14,
+  "nearBolesCasting": 4,
+  "md5": "474c75f58ad3bfd6539162a231709dbe"
+ },
+ "E_ground": {
+  "draws": 557,
+  "triangles": 7909298,
+  "groupsCasting": 12,
+  "groupsTotal": 14,
+  "nearBolesCasting": 3,
+  "md5": "24928fa94ead83a6e48c8a6e8d3a7317"
+ },
+ "F_canopy": {
+  "draws": 516,
+  "triangles": 7840487,
+  "groupsCasting": 14,
+  "groupsTotal": 14,
+  "nearBolesCasting": 6,
+  "md5": "cff4aeadde6a71f30d86bde029a178b2"
+ },
+ "foot": {
+  "draws": 546,
+  "triangles": 9178166,
+  "groupsCasting": 12,
+  "groupsTotal": 14,
+  "nearBolesCasting": 5,
+  "md5": "22e102ef818dc572f305b5e17a03a980"
+ }
+}

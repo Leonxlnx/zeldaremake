@@ -1,0 +1,188 @@
+{
+ "dist": "dist",
+ "view": "A_stairs",
+ "quality": "high",
+ "draws": 561,
+ "triangles": 8724803,
+ "lodBand": {
+  "on": true,
+  "bandM": 2.5,
+  "gateGapM": 12,
+  "families": [
+   "whites",
+   "seatedColumns",
+   "understory"
+  ]
+ },
+ "lodSwapM": {
+  "tree": [
+   32,
+   44
+  ],
+  "distant": 45,
+  "mid": 40,
+  "scale": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "treeSubmission": {
+  "drawCalls": 106,
+  "triangles": 3546361
+ },
+ "byFamily": {
+  "whitebark-lod0": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 2,
+   "triangles": 201156
+  },
+  "whitebark-lod1": {
+   "meshes": 2,
+   "instances": 4,
+   "calls": 2,
+   "triangles": 8608
+  },
+  "whitebark-lod2": {
+   "meshes": 7,
+   "instances": 14,
+   "calls": 7,
+   "triangles": 30594
+  },
+  "column-lod0": {
+   "meshes": 6,
+   "instances": 6,
+   "calls": 12,
+   "triangles": 460720
+  },
+  "column-lod1": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 8,
+   "triangles": 95000
+  },
+  "column-lod2": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 5663
+  },
+  "understory-lod0": {
+   "meshes": 4,
+   "instances": 7,
+   "calls": 7,
+   "triangles": 63428
+  },
+  "understory-lod1": {
+   "meshes": 4,
+   "instances": 6,
+   "calls": 8,
+   "triangles": 34958
+  },
+  "understory-lod2": {
+   "meshes": 5,
+   "instances": 17,
+   "calls": 5,
+   "triangles": 8025
+  },
+  "whitebark-roots": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 2,
+   "triangles": 19328
+  },
+  "whitebark-shadow": {
+   "meshes": 5,
+   "instances": 5,
+   "calls": 5,
+   "triangles": 70128
+  },
+  "giant-wood": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 541250
+  },
+  "giant-cards": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 23236
+  },
+  "giant-authored-leaves": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 4,
+   "triangles": 315588
+  },
+  "giant-authored-cards": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 2,
+   "triangles": 1972
+  },
+  "distant-near": {
+   "meshes": 0,
+   "instances": 0,
+   "calls": 0,
+   "triangles": 0
+  },
+  "distant-far": {
+   "meshes": 6,
+   "instances": 243,
+   "calls": 6,
+   "triangles": 5832
+  },
+  "mid-near": {
+   "meshes": 5,
+   "instances": 23,
+   "calls": 5,
+   "triangles": 12035
+  },
+  "mid-far": {
+   "meshes": 5,
+   "instances": 57,
+   "calls": 5,
+   "triangles": 11317
+  },
+  "column-near-base": {
+   "meshes": 2,
+   "instances": 2,
+   "calls": 3,
+   "triangles": 85667
+  },
+  "giant-near-base": {
+   "meshes": 4,
+   "instances": 4,
+   "calls": 2,
+   "triangles": 67507
+  },
+  "giant-near-canopy-batch": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 688045
+  },
+  "column-near-canopy-batch": {
+   "meshes": 1,
+   "instances": 1,
+   "calls": 1,
+   "triangles": 4864
+  },
+  "giant-far-foliage-batch": {
+   "meshes": 3,
+   "instances": 3,
+   "calls": 6,
+   "triangles": 791440
+  }
+ },
+ "unaccounted": {
+  "meshes": 0,
+  "instances": 0,
+  "calls": 0,
+  "triangles": 0,
+  "names": []
+ }
+}

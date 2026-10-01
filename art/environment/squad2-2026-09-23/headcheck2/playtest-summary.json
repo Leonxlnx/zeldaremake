@@ -1,0 +1,78 @@
+{
+ "dist": "/workspace/dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "baselineSha": null,
+ "walk": {
+  "routes": 11,
+  "reached": 11,
+  "stuck": 0,
+  "routeNames": [
+   "plaza-to-upper-house",
+   "plaza-to-south-bank-top",
+   "saria-front-arc",
+   "west-deck",
+   "plaza-loop",
+   "south-approach",
+   "house-west-to-saria-door",
+   "west-house-to-plaza",
+   "north-clearing-ledge",
+   "south-bridge-to-log",
+   "north-grove"
+  ]
+ },
+ "look": {
+  "spots": 10,
+  "flagged": 0
+ },
+ "perf": [
+  {
+   "id": "plaza",
+   "draws": 528,
+   "triangles": 7677516,
+   "jsMs": {
+    "step": 17.30000001192093,
+    "camera": 0.20000004768371582,
+    "update": 1.899999976158142,
+    "render": 15.199999988079071
+   }
+  },
+  {
+   "id": "stairs2-base",
+   "draws": 535,
+   "triangles": 9151000,
+   "jsMs": {
+    "step": 23.5,
+    "camera": 0,
+    "update": 3.5,
+    "render": 20
+   }
+  },
+  {
+   "id": "saria-side",
+   "draws": 502,
+   "triangles": 8508917,
+   "jsMs": {
+    "step": 23.69999998807907,
+    "camera": 0.10000002384185791,
+    "update": 8.799999952316284,
+    "render": 14.800000011920929
+   }
+  },
+  {
+   "id": "west-house",
+   "draws": 411,
+   "triangles": 4908289,
+   "jsMs": {
+    "step": 10.699999988079071,
+    "camera": 0.10000002384185791,
+    "update": 2.699999988079071,
+    "render": 7.899999976158142
+   }
+  }
+ ],
+ "pageErrors": []
+}

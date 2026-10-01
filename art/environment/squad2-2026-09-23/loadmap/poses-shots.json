@@ -1,0 +1,16 @@
+{
+  "fps": 12,
+  "width": 960,
+  "height": 540,
+  "quality": "high",
+  "shots": [
+    {
+      "name": "owner-0650-north",
+      "frames": 1
+    },
+    {
+      "name": "rec-r024-plaza-fork",
+      "frames": 1
+    }
+  ]
+}

@@ -72,6 +72,21 @@ const fakeItem = (id, bytes, log, chunks = 1, now = null, chunkMs = 0) => ({
   uninstall: () => log.push(`uninstall ${id}`),
 });
 
+/** a pool item whose chunks cost what `msPerChunk` says, in order (the real parts are uneven) */
+const varItem = (id, bytes, log, msPerChunk, now) => ({
+  id,
+  bytes,
+  build: function* () {
+    for (const ms of msPerChunk) {
+      now.advance(ms);
+      yield;
+    }
+    return { bytes, dispose: () => log.push(`dispose ${id}`) };
+  },
+  install: () => log.push(`install ${id}`),
+  uninstall: () => log.push(`uninstall ${id}`),
+});
+
 /** a synthetic lobe record in the shape giant.ts records: a stem, two secondaries, six twigs */
 const lobeRecord = (rng) => {
   const center = new THREE.Vector3(3, 9, 1);
@@ -389,9 +404,9 @@ test('the budget is checked before a chunk with its expected cost; the first chu
   assert.equal(pool.report().stepMsMax, 5);
   assert.equal(pool.report().longSteps, 0, 'five ms is under LONG_STEP_MS');
 
-  // a build's first chunk is expected to cost the pool's median chunk: after the 2 ms and 5 ms
-  // chunks above (median 2), a new build's first chunk runs and its second waits when it would
-  // end past a 3 ms budget
+  // a build's first chunk is expected to cost what beginning a build has cost lately (the p95 of the
+  // last builds' first chunks — here 2 and 5 ms): at the start of a call it runs regardless, and its
+  // second chunk waits when it would end past a 3 ms budget
   const v = fakeItem('v', 10, log, 2, now, 2);
   pool.add(v);
   pool.begin();
@@ -399,6 +414,99 @@ test('the budget is checked before a chunk with its expected cost; the first chu
   pool.work(3);
   assert.ok(!pool.isResident(v));
   assert.equal(pool.report().building, 1);
+});
+
+// 2026-09-28 (lane 2): `computeVertexNormals` was the longest chunk of every pooled part, and
+// `work` always runs the first chunk of a frame, so it was a floor under the frame's pool time.
+// It is chunked now, and the whole world's tree geometry goes through it: bit-identical or nothing.
+test('the chunked vertex normals are bit-identical to three\'s own call, on real tree geometry', () => {
+  const { vertexNormalSteps, VERTEX_NORMAL_FACES_PER_STEP } = loadTs(path.join(here, 'writer.ts'));
+  const { createGiantTree } = loadTs(path.join(here, 'giant.ts'));
+  const def = { id: 'normals-giant', position: [0, 0, 0], trunkRadius: 1.4, height: 30 };
+  const asset = createGiantTree(def, createRng('lodPool-test/normals'), {
+    groundAt: ground, palette, leafDensity: 0.8, cardDensity: 0.8,
+    sunDir: new THREE.Vector3(0.3, 0.8, 0.5).normalize(), pathAt: () => 0, heroDistance: Infinity, nearCanopy: {},
+  });
+  // the near base (wood, no authored normals) and a near-canopy lobe (leaf cards, authored ones)
+  const cases = [['near base', runSteps(asset.nearBaseBuild())], ['near-canopy lobe', asset.nearCanopy[0].geometry]];
+  for (const [what, source] of cases) {
+    assert.ok(source.index && source.getAttribute('position').count > 0, `${what} has indexed geometry`);
+    const bare = () => {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(source.getAttribute('position').array.slice(), 3));
+      g.setIndex(new THREE.BufferAttribute(source.index.array.slice(), 1));
+      return g;
+    };
+    const theirs = bare();
+    theirs.computeVertexNormals();
+    const ours = bare();
+    let chunks = 0;
+    for (const _ of vertexNormalSteps(ours)) chunks++;
+    const faces = source.index.count / 3;
+    assert.ok(chunks >= Math.ceil(faces / VERTEX_NORMAL_FACES_PER_STEP), `${what} yielded per chunk (${chunks} for ${faces} faces)`);
+    assert.ok(chunks > 1, `${what} really is split (${chunks} chunks)`);
+    const a = Buffer.from(theirs.getAttribute('normal').array.buffer);
+    const b = Buffer.from(ours.getAttribute('normal').array.buffer);
+    assert.equal(b.byteLength, a.byteLength, `${what} normal length`);
+    assert.ok(a.equals(b), `${what}: the chunked normals differ from three's own`);
+  }
+});
+
+test('a geometry without an index keeps three\'s own path', () => {
+  const { vertexNormalSteps } = loadTs(path.join(here, 'writer.ts'));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
+  assert.deepEqual([...vertexNormalSteps(g)], [], 'nothing to chunk');
+  const n = g.getAttribute('normal');
+  assert.ok(n, 'three computed them');
+  assert.equal(n.getY(0), -1, 'the face normal of a triangle wound this way');
+});
+
+// 2026-09-28 (lane 2): with the vertex normals chunked, most chunks are tiny and the median of all
+// of them predicted a FRESH item's first chunk an order of magnitude too low, so `work` spent its
+// budget on cheap chunks and then began an expensive build at the edge of it (measured on a walk:
+// chunk p95 0.7 → 0.3 ms but calls over budget 19 → 34 of 600). Beginning a build is predicted from
+// the last builds' first chunks now. See chunks/README.md §4.
+test('work will not BEGIN a build at the edge of its budget: a fresh item is priced by first chunks', () => {
+  const log = [];
+  const now = clock();
+  const pool = new LodPool(1000, now);
+  // one item whose first chunk is expensive and whose rest is cheap (a near base: the bole's first
+  // rings), and one of all-cheap chunks (the chunked normals): the median chunk is 0.2 ms
+  const heavyA = varItem('heavy-a', 10, log, [6, 0.2, 0.2], now);
+  const cheap = varItem('cheap', 10, log, Array(10).fill(0.2), now);
+  const heavyB = varItem('heavy-b', 10, log, [6, 0.2, 0.2], now);
+  for (const it of [heavyA, cheap, heavyB]) pool.add(it);
+
+  // heavy-a first, so the pool learns what beginning a build costs
+  for (let f = 0; f < 4 && !pool.isResident(heavyA); f++) {
+    pool.begin();
+    pool.want(heavyA, 1);
+    pool.work(3);
+  }
+  assert.ok(pool.isResident(heavyA));
+  assert.equal(pool.report().firstStepMsP95, 6, 'beginning a build has cost 6 ms');
+
+  // now a frame where the cheap build finishes mid-call and heavy-b is the next pending item:
+  // the call must end inside its budget instead of paying heavy-b's first chunk on top
+  pool.begin();
+  pool.want(cheap, 1);
+  pool.want(heavyB, 2);
+  const t0 = now();
+  pool.work(3);
+  const ms = now() - t0;
+  assert.ok(pool.isResident(cheap), 'the cheap build still finished in the frame');
+  assert.ok(!pool.isResident(heavyB), 'and the expensive one did not run in it');
+  assert.ok(ms <= 3, `the call stayed inside its 3 ms budget (${ms} ms)`);
+  assert.equal(pool.report().workOverBudget, 1, 'only heavy-a\'s own mandatory first chunk ever ran over');
+
+  // the next frame runs that first chunk as its mandatory one — the work is not lost, it moves to
+  // the front of a call, where the progress guarantee was always going to pay for it
+  pool.begin();
+  pool.want(heavyB, 2);
+  const t1 = now();
+  pool.work(3);
+  assert.equal(now() - t1, 6, 'the 6 ms first chunk ran, once, at the front');
 });
 
 test('runBuild finishes a generator and returns its value', () => {
@@ -681,6 +789,25 @@ test('the fold group decodes as the shader does: 3 + group, a flat lobe 1000 + g
   assert.equal(foldGroupOf(1000 + 12), 12);
 });
 
+test('pinnedPending separates "a shown part is not ready" from "the pre-fetch is busy"', () => {
+  const log = [];
+  const pool = new LodPool(100, clock());
+  const items = ['a', 'b', 'c'].map((id) => fakeItem(id, 40, log));
+  for (const it of items) pool.add(it);
+  // one part shown, two more wanted that cannot fit beside it
+  pool.begin();
+  pool.pin(items[0]);
+  pool.want(items[1], 20);
+  pool.want(items[2], 30);
+  pool.work(10);
+  const r = pool.report();
+  // a pin that was not resident is built synchronously, so what is SHOWN is never unbuilt: this is
+  // the invariant the capture contract rests on (the same pose draws the same parts, warm or cold)
+  assert.equal(r.pinnedPending, 0, 'a pinned part is built before the frame draws');
+  assert.ok(r.pending > 0, 'while the pre-fetch behind it is still busy');
+  assert.equal(r.pinned, 1);
+});
+
 test('a giant\'s tagged far laminae leave for one sub-geometry per lobe group; wood, ordinary leaves and mixed triangles stay', () => {
   const { extractTaggedFoliage } = foliageSplitters();
   // quads: wood, ordinary leaf, group 2 (×2), group 0 (flat), group 2 again, ordinary leaf
@@ -741,4 +868,29 @@ test('releaseAfterUpload drops static arrays on upload and leaves per-instance a
   assert.equal(g.index.array, null, 'the index frees its array');
   assert.ok(g.getAttribute('aLodDrop').array instanceof Float32Array, 'a per-instance attribute keeps its array');
   assert.equal(g.getAttribute('aLodDrop').array.length, 4);
+});
+
+test('a pin-forced finish is reported: the frame cost that work() never records', () => {
+  const log = [];
+  const now = clock();
+  const pool = new LodPool(1000, now);
+  // six 2 ms chunks: one call at a 3 ms budget takes one, then the pin runs the remaining five
+  const item = fakeItem('p', 10, log, 6, now, 2);
+  pool.add(item);
+  pool.begin();
+  pool.want(item, 1);
+  pool.work(3);
+  const mid = pool.report();
+  assert.equal(mid.syncMsMax, 0, 'nothing has been pinned yet');
+  assert.ok(mid.stepMsMax > 0, 'and work() has recorded its own chunk');
+
+  pool.begin();
+  pool.pin(item);
+  const r = pool.report();
+  assert.equal(r.syncBuilds, 1);
+  assert.equal(r.syncMsMax, 10, 'the five remaining 2 ms chunks landed in one frame');
+  assert.equal(r.syncMsP95, 10);
+  // the point of the metric: that 10 ms is invisible to the chunk numbers
+  assert.equal(r.stepMsMax, 2, 'work() only ever saw a 2 ms chunk');
+  assert.equal(r.longSteps, 0, 'and nothing it recorded was long');
 });

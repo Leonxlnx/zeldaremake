@@ -1,0 +1,108 @@
+[
+ {
+  "pose": "plateau-north",
+  "base": {
+   "draws": 456,
+   "triangles": 6246699
+  },
+  "control": 0,
+  "md5": "44a62d3f",
+  "families": [
+   {
+    "family": "white-barks",
+    "meshes": 12,
+    "submitted": 117519,
+    "drawnTriangles": 40224,
+    "drawnDraws": 3,
+    "mode": "castShadow off",
+    "pixelsMoved": 0,
+    "names": [
+     "whitebark-wb-0-969193859-high",
+     "whitebark-wb-1-813437645-high",
+     "whitebark-wb-2-462283019-medium"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 7,
+    "submitted": 7346,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "mode": "castShadow off",
+    "pixelsMoved": 0,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   },
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 22869,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "mode": "castShadow off",
+    "pixelsMoved": 0,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   }
+  ]
+ },
+ {
+  "pose": "plateau-back",
+  "base": {
+   "draws": 702,
+   "triangles": 10895532
+  },
+  "control": 0,
+  "md5": "25f84da5",
+  "families": [
+   {
+    "family": "white-barks",
+    "meshes": 15,
+    "submitted": 159174,
+    "drawnTriangles": 9664,
+    "drawnDraws": 1,
+    "mode": "castShadow off",
+    "pixelsMoved": 0,
+    "names": [
+     "whitebark-wb-0-969193859-low",
+     "whitebark-wb-1-813437645-low",
+     "whitebark-wb-2-462283019-medium"
+    ]
+   },
+   {
+    "family": "distant ring",
+    "meshes": 5,
+    "submitted": 4800,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "mode": "castShadow off",
+    "pixelsMoved": 0,
+    "names": [
+     "distant-0-far",
+     "distant-1-far",
+     "distant-2-far"
+    ]
+   },
+   {
+    "family": "mid layer",
+    "meshes": 10,
+    "submitted": 39782,
+    "drawnTriangles": 0,
+    "drawnDraws": 0,
+    "mode": "castShadow off",
+    "pixelsMoved": 0,
+    "names": [
+     "mid-6-near",
+     "mid-6-far",
+     "mid-7-near"
+    ]
+   }
+  ]
+ }
+]

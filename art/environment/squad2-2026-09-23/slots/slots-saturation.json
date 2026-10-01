@@ -1,0 +1,102 @@
+{
+ "foot": {
+  "camera": {
+   "position": [
+    2.648,
+    1.85,
+    3.529
+   ],
+   "direction": [
+    0.7870828056907669,
+    -0.05804445469695918,
+    -0.6141103306938284
+   ],
+   "fov": 46
+  },
+  "draws": 545,
+  "triangles": 9129877,
+  "counts": {
+   "batches": 2,
+   "perPartMeshes": 0,
+   "visibleInstances": 79,
+   "instances": 352,
+   "visibleMeshes": 0
+  },
+  "hasThree": false
+ },
+ "plaza-west": {
+  "camera": {
+   "position": [
+    -4,
+    1.75,
+    4
+   ],
+   "direction": [
+    -0.9695477168469664,
+    0.035011445330584985,
+    0.24238692921174237
+   ],
+   "fov": 46
+  },
+  "draws": 484,
+  "triangles": 6049665,
+  "counts": {
+   "batches": 2,
+   "perPartMeshes": 0,
+   "visibleInstances": 79,
+   "instances": 356,
+   "visibleMeshes": 0
+  },
+  "hasThree": false
+ },
+ "owner-north": {
+  "camera": {
+   "position": [
+    1.4,
+    1.75,
+    -10.2
+   ],
+   "direction": [
+    0.06108155675660995,
+    -0.03054077837830498,
+    -0.9976654270246297
+   ],
+   "fov": 46
+  },
+  "draws": 457,
+  "triangles": 8504699,
+  "counts": {
+   "batches": 2,
+   "perPartMeshes": 0,
+   "visibleInstances": 79,
+   "instances": 361,
+   "visibleMeshes": 0
+  },
+  "hasThree": false
+ },
+ "A_stairs": {
+  "camera": {
+   "position": [
+    0.4,
+    1.8,
+    8.6
+   ],
+   "direction": [
+    0.4001487551488514,
+    -0.05779926463261199,
+    -0.9146257260545179
+   ],
+   "fov": 46
+  },
+  "draws": 575,
+  "triangles": 8631286,
+  "counts": {
+   "batches": 2,
+   "perPartMeshes": 0,
+   "visibleInstances": 79,
+   "instances": 366,
+   "visibleMeshes": 0
+  },
+  "hasThree": false
+ }
+}

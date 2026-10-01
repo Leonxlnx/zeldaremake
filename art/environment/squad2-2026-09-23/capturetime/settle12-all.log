@@ -1,0 +1,9 @@
+captured A_stairs (The Stairs) in 202.2s — 559 draws, 8.63M tris
+captured B_house (Saria's House) in 204.0s — 541 draws, 7.90M tris
+captured C_lookback (Look Back) in 189.6s — 479 draws, 7.68M tris
+captured D_log (The Log Arch) in 224.2s — 465 draws, 8.24M tris
+captured E_ground (Saria's House (hold)) in 203.4s — 541 draws, 7.90M tris
+captured F_canopy (Up the Stairs) in 222.7s — 500 draws, 7.83M tris
+captured A_stairs.det (determinism) in 200.7s
+captured A_stairs.motion (t+0.5s) in 198.7s
+  "durationMs": 2374596,

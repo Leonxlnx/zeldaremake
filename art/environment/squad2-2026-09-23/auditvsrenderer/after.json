@@ -1,0 +1,106 @@
+{
+ "dist": "dist",
+ "quality": "high",
+ "settle": 8,
+ "rows": [
+  {
+   "view": "A_stairs",
+   "frame": {
+    "draws": 561,
+    "triangles": 8724803
+   },
+   "audit": {
+    "calls": 140,
+    "triangles": 2656692,
+    "colourCalls": 91,
+    "depthCalls": 49,
+    "cullExempt": 5,
+    "mainZero": 8,
+    "noCullCalls": 147,
+    "batchCulledTris": 936931,
+    "batchCulledTrisColour": 665451,
+    "batchCulledTrisDepth": 271480,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 1315405,
+    "depthTrisNoFrustum": 1043925,
+    "depthCallsNoFrustum": 49,
+    "meshes": 79
+   },
+   "isolate": {
+    "found": true,
+    "calls": 140,
+    "triangles": 2656488
+   },
+   "gap": {
+    "calls": 0,
+    "triangles": -204
+   }
+  },
+  {
+   "view": "-20.368,3.7,20.588:-17.327,3.45,17.547",
+   "frame": {
+    "draws": 661,
+    "triangles": 9799283
+   },
+   "audit": {
+    "calls": 147,
+    "triangles": 3549346,
+    "colourCalls": 98,
+    "depthCalls": 49,
+    "cullExempt": 5,
+    "mainZero": 8,
+    "noCullCalls": 150,
+    "batchCulledTris": 483745,
+    "batchCulledTrisColour": 410705,
+    "batchCulledTrisDepth": 73040,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 1437038,
+    "depthTrisNoFrustum": 1363998,
+    "depthCallsNoFrustum": 49,
+    "meshes": 82
+   },
+   "isolate": {
+    "found": true,
+    "calls": 147,
+    "triangles": 3549346
+   },
+   "gap": {
+    "calls": 0,
+    "triangles": 0
+   }
+  },
+  {
+   "view": "19.837,7.15,-9.879:16.447,6.9,-7.234",
+   "frame": {
+    "draws": 651,
+    "triangles": 11841590
+   },
+   "audit": {
+    "calls": 129,
+    "triangles": 3081070,
+    "colourCalls": 84,
+    "depthCalls": 45,
+    "cullExempt": 5,
+    "mainZero": 10,
+    "noCullCalls": 136,
+    "batchCulledTris": 592536,
+    "batchCulledTrisColour": 423056,
+    "batchCulledTrisDepth": 169480,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 1390982,
+    "depthTrisNoFrustum": 1221502,
+    "depthCallsNoFrustum": 45,
+    "meshes": 75
+   },
+   "isolate": {
+    "found": true,
+    "calls": 129,
+    "triangles": 3004341
+   },
+   "gap": {
+    "calls": 0,
+    "triangles": -76729
+   }
+  }
+ ]
+}

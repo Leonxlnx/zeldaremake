@@ -1,0 +1,47 @@
+{
+ "note": "A_stairs before/after the widened proxy; stairs1-top byte-identical either way",
+ "before": {
+  "commit": "9594cf13",
+  "draws": 561,
+  "triangles": 8724803,
+  "treeTriangles": 2423420,
+  "md5": "e72a8dff4d0b31111684b8e31d586d79"
+ },
+ "after": {
+  "commit": "159588cd",
+  "draws": 561,
+  "triangles": 8675407,
+  "treeTriangles": 2374024,
+  "md5": "f38b6dd71ce4aa9e15ffb8b230227216"
+ },
+ "diff": {
+  "changedShareAtTol2": 0.0765,
+  "worstCell": {
+   "x": [
+    0.25,
+    0.38
+   ],
+   "y": [
+    0.88,
+    1.0
+   ],
+   "changed": 0.996,
+   "meanDelta": 33.0
+  }
+ },
+ "verdict": "reverted in b412d938 \u2014 the foreground dapple is gone",
+ "revertCheck": {
+  "commit": "b412d938",
+  "srcIdenticalTo": "9594cf13",
+  "draws": 561,
+  "triangles": 8724803,
+  "treeTriangles": 2423420,
+  "md5": "a2dab090a7bbd7233e85e009c727807f",
+  "note": "counts restored to the triangle; md5 differs from 9594cf13\u2019s own earlier run (e72a8dff) \u2014 pixels do not reproduce across separate runs on a multi-pose list"
+ },
+ "stairs1Top": {
+  "beforeMd5": "54a01171b5b6dbb40458bb513d8c03f0",
+  "afterMd5": "54a01171b5b6dbb40458bb513d8c03f0",
+  "note": "byte-identical within the paired run; no out-of-view high-rung instances at this pose"
+ }
+}

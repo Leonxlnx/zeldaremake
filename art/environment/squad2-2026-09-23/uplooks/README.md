@@ -1,4 +1,4 @@
-# Looking up at three places nobody had rendered
+# Looking up at three places nobody had rendered (one of them from underground — see the note below)
 
 The owner's 01:12 directive lists "fix looking UP (camera range and the content overhead)". The roof's
 underside was the open north's answer (`../roofsky/`). These are the other places a walker stands and
@@ -14,8 +14,28 @@ mean, neighbour-to-neighbour luminance difference (local detail — a flat slab 
 | *the open north at 60° up, for scale* | 77.0 | 4.04 | — |
 
 All three read as layered leaf mass with sky holes: local detail 5.7–6.4, which is above the open
-north's 4.04 even after the roof's sky term, and no bald patch or flat disc. The grove shelf is the
-darkest and the tightest (5.7 % air), which is what a closed canopy over a shelf should be.
+north's 4.04 even after the roof's sky term, and no bald patch or flat disc. ~~The grove shelf is the
+darkest and the tightest (5.7 % air), which is what a closed canopy over a shelf should be.~~
+
+> **WITHDRAWN 2026-09-30 — the grove-shelf row is from a camera three metres underground.**
+> The shelf's ground is at **10.028 m** and that pose sits at **7** (`../poseaudit/`). Its 60.4 mean,
+> 5.71 local detail and 5.7 % air are a view up through soil, and calling it "the darkest and the tightest …
+> what a closed canopy should be" explained the artefact away as a virtue. From a standing eye at ground +
+> 1.75 the same up-look reads **top third 53.0 against 41.4** — considerably more sky — and draws
+> 85 / 939 570 against 160 / 1 677 983. The other two rows stand (the log arch is 1.735 m above its ground;
+> the bridge is 12 m above its ravine because it is a bridge), and so does the conclusion below — it is now
+> supported by two places rather than three.
+>
+> **Replaced, 2026-09-30.** The corrected up-look (ground + 1.75 = **11.78**) reads **57.8 / 3.37 / 6.1 %**
+> with a committed, reproducible measure (`../poseaudit/uplookmetrics.mjs`, which reproduces all three rows
+> above to within 0.4 mean and 0.1 detail). **3.37 is not a canopy approaching a slab**: looked at, the frame
+> is a dense layered canopy with real sky holes, and canopy-only crops read *lower* (3.19, 3.09) than the
+> whole frame, so it is not dilution by the bough either. **"Local detail" largely measures how much sky is
+> behind the leaves** — the arch's 6.47 comes with 13.2 % pale, the bridge's 6.51 with 15.6 %, this 3.37 with
+> 6.1 %, and a canopy crop at 0.5 % pale reads 3.19. The "leaves read 5–6" band needs sky behind them; dark
+> canopy on dark canopy reads about 3.2 and a flat slab still reads under 2. **The conclusion below stands**,
+> now on a pose a player can occupy and on looking at the frame rather than on a number that mostly reports
+> the sky.
 
 Nothing to change in lane 2 from this; it narrows "content overhead" to the one view already fixed.
 

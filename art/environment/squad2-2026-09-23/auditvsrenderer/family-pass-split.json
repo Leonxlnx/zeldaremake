@@ -1,0 +1,290 @@
+{
+ "dist": "dist",
+ "quality": "high",
+ "rows": [
+  {
+   "view": "A_stairs",
+   "draws": 561,
+   "triangles": 8724803,
+   "lodBand": {
+    "on": true,
+    "bandM": 2.5,
+    "gateGapM": 12,
+    "families": [
+     "whites",
+     "seatedColumns",
+     "understory"
+    ]
+   },
+   "lodSwapM": {
+    "tree": [
+     32,
+     44
+    ],
+    "distant": 45,
+    "mid": 40,
+    "scale": [
+     1,
+     1,
+     1,
+     1
+    ]
+   },
+   "treeSubmission": {
+    "drawCalls": 139,
+    "triangles": 2423420
+   },
+   "byFamily": {
+    "whitebark-lod0": {
+     "meshes": 1,
+     "instances": 1,
+     "calls": 2,
+     "triangles": 201156,
+     "colourCalls": 1,
+     "depthCalls": 1,
+     "colourTriangles": 100578,
+     "depthTriangles": 100578
+    },
+    "whitebark-lod1": {
+     "meshes": 2,
+     "instances": 4,
+     "calls": 2,
+     "triangles": 8608,
+     "colourCalls": 2,
+     "depthCalls": 0,
+     "colourTriangles": 8608,
+     "depthTriangles": 0
+    },
+    "whitebark-lod2": {
+     "meshes": 7,
+     "instances": 14,
+     "calls": 7,
+     "triangles": 30594,
+     "colourCalls": 7,
+     "depthCalls": 0,
+     "colourTriangles": 30594,
+     "depthTriangles": 0
+    },
+    "column-lod0": {
+     "meshes": 6,
+     "instances": 6,
+     "calls": 10,
+     "triangles": 391294,
+     "colourCalls": 4,
+     "depthCalls": 6,
+     "colourTriangles": 160934,
+     "depthTriangles": 230360
+    },
+    "column-lod1": {
+     "meshes": 4,
+     "instances": 4,
+     "calls": 8,
+     "triangles": 95000,
+     "colourCalls": 4,
+     "depthCalls": 4,
+     "colourTriangles": 47500,
+     "depthTriangles": 47500
+    },
+    "column-lod2": {
+     "meshes": 1,
+     "instances": 1,
+     "calls": 1,
+     "triangles": 5663,
+     "colourCalls": 1,
+     "depthCalls": 0,
+     "colourTriangles": 5663,
+     "depthTriangles": 0
+    },
+    "understory-lod0": {
+     "meshes": 4,
+     "instances": 7,
+     "calls": 7,
+     "triangles": 63428,
+     "colourCalls": 3,
+     "depthCalls": 4,
+     "colourTriangles": 28430,
+     "depthTriangles": 34998
+    },
+    "understory-lod1": {
+     "meshes": 4,
+     "instances": 6,
+     "calls": 8,
+     "triangles": 34958,
+     "colourCalls": 4,
+     "depthCalls": 4,
+     "colourTriangles": 17479,
+     "depthTriangles": 17479
+    },
+    "understory-lod2": {
+     "meshes": 5,
+     "instances": 17,
+     "calls": 5,
+     "triangles": 8025,
+     "colourCalls": 5,
+     "depthCalls": 0,
+     "colourTriangles": 8025,
+     "depthTriangles": 0
+    },
+    "whitebark-roots": {
+     "meshes": 1,
+     "instances": 1,
+     "calls": 2,
+     "triangles": 19328,
+     "colourCalls": 1,
+     "depthCalls": 1,
+     "colourTriangles": 9664,
+     "depthTriangles": 9664
+    },
+    "whitebark-shadow": {
+     "meshes": 5,
+     "instances": 5,
+     "calls": 5,
+     "triangles": 70128,
+     "colourCalls": 0,
+     "depthCalls": 5,
+     "colourTriangles": 0,
+     "depthTriangles": 70128
+    },
+    "giant-wood": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 28,
+     "triangles": 541250,
+     "colourCalls": 14,
+     "depthCalls": 14,
+     "colourTriangles": 270625,
+     "depthTriangles": 270625
+    },
+    "giant-cards": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 6,
+     "triangles": 23236,
+     "colourCalls": 3,
+     "depthCalls": 3,
+     "colourTriangles": 11618,
+     "depthTriangles": 11618
+    },
+    "giant-authored-leaves": {
+     "meshes": 4,
+     "instances": 4,
+     "calls": 4,
+     "triangles": 315588,
+     "colourCalls": 4,
+     "depthCalls": 0,
+     "colourTriangles": 315588,
+     "depthTriangles": 0
+    },
+    "giant-authored-cards": {
+     "meshes": 2,
+     "instances": 2,
+     "calls": 2,
+     "triangles": 1972,
+     "colourCalls": 2,
+     "depthCalls": 0,
+     "colourTriangles": 1972,
+     "depthTriangles": 0
+    },
+    "distant-near": {
+     "meshes": 0,
+     "instances": 0,
+     "calls": 0,
+     "triangles": 0,
+     "colourCalls": 0,
+     "depthCalls": 0,
+     "colourTriangles": 0,
+     "depthTriangles": 0
+    },
+    "distant-far": {
+     "meshes": 6,
+     "instances": 243,
+     "calls": 12,
+     "triangles": 5832,
+     "colourCalls": 12,
+     "depthCalls": 0,
+     "colourTriangles": 5832,
+     "depthTriangles": 0
+    },
+    "mid-near": {
+     "meshes": 5,
+     "instances": 23,
+     "calls": 10,
+     "triangles": 12035,
+     "colourCalls": 10,
+     "depthCalls": 0,
+     "colourTriangles": 12035,
+     "depthTriangles": 0
+    },
+    "mid-far": {
+     "meshes": 5,
+     "instances": 57,
+     "calls": 10,
+     "triangles": 11317,
+     "colourCalls": 10,
+     "depthCalls": 0,
+     "colourTriangles": 11317,
+     "depthTriangles": 0
+    },
+    "column-near-base": {
+     "meshes": 2,
+     "instances": 2,
+     "calls": 3,
+     "triangles": 85667,
+     "colourCalls": 1,
+     "depthCalls": 2,
+     "colourTriangles": 26439,
+     "depthTriangles": 59228
+    },
+    "giant-near-base": {
+     "meshes": 4,
+     "instances": 4,
+     "calls": 2,
+     "triangles": 67507,
+     "colourCalls": 0,
+     "depthCalls": 2,
+     "colourTriangles": 0,
+     "depthTriangles": 67507
+    },
+    "giant-near-canopy-batch": {
+     "meshes": 1,
+     "instances": 1,
+     "calls": 1,
+     "triangles": 182354,
+     "colourCalls": 1,
+     "depthCalls": 0,
+     "colourTriangles": 182354,
+     "depthTriangles": 0
+    },
+    "column-near-canopy-batch": {
+     "meshes": 1,
+     "instances": 1,
+     "calls": 0,
+     "triangles": 0,
+     "colourCalls": 0,
+     "depthCalls": 0,
+     "colourTriangles": 0,
+     "depthTriangles": 0
+    },
+    "giant-far-foliage-batch": {
+     "meshes": 3,
+     "instances": 3,
+     "calls": 4,
+     "triangles": 248480,
+     "colourCalls": 2,
+     "depthCalls": 2,
+     "colourTriangles": 124240,
+     "depthTriangles": 124240
+    }
+   },
+   "unaccounted": {
+    "meshes": 0,
+    "instances": 0,
+    "calls": 0,
+    "triangles": 0,
+    "names": []
+   },
+   "detachedBoughsVisible": false,
+   "nearCanopySlots": "{\"shown\":79,\"inView\":10,\"starved\":21,\"st"
+  }
+ ]
+}

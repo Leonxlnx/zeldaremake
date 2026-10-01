@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { BatchedMesh, Box3, BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, type Object3D, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -36,7 +36,7 @@ import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../
 import { inExpansionNorth } from '../layout';
 import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
-import { lodSlots, TREE_LOD_DITHER } from './lodFade';
+import { bandOverlaps, lodSlots, lodWeightKey, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -54,6 +54,7 @@ const ROOT_KIT = import.meta.env.VITE_ROOT_KIT === '1';
 const ROOT_KIT_BOLES = ['stair-bank-giant', 'plaza-south'];
 import { CANOPY_OPENINGS, CANOPY_OPENING_COLLAR, CANOPY_OPENING_DENSIFY, SHAFT_COLUMNS } from './corridors';
 import { trunkSeatFromRings, tubePathFromRings } from './tubePath';
+import { createShadowReach } from '../util/shadowReach';
 
 const DETAILS: Detail[] = ['high', 'medium', 'low'];
 const WHITE_VARIANTS = 10;
@@ -1648,6 +1649,16 @@ const DISTANT_NEAR_M = 45;
  * medium and high LODs of a tree at 44-60 m read the same at that range; the close-only detail those
  * two per cent measure belongs to another gate, and finding which is the open question (the candidates
  * are `DISTANT_NEAR_M` and the giants' near-canopy swap band, both reachable with `?treelod=`).
+ *
+ * 2026-09-27: bracketed from both sides at the owner's 06:50 north pose (`?treelod=1,<k>,1`,
+ * `diffmap.mjs`, > 8 levels), because "the rung is neutral outward" invites the guess that it is
+ * neutral inward too and can be pulled in for free. It cannot:
+ *
+ *   70 m (k 1.6)  0.01 % of the frame   — outward buys nothing, as round 53's 59 m test found
+ *   35 m (k 0.8)  0.71 % of the frame   — inward thins the 35-44 m trees visibly
+ *
+ * so 44 m is the edge itself: the medium rung's extra laminae still read at 35-44 m and stop reading
+ * past it. Moving this gate costs either triangles for no frame or frame for a few triangles.
  */
 const TREE_LOD_MID_M = 44;
 /**
@@ -2016,6 +2027,40 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const mats = await createTreeMaterials(ctx);
   ctx.progress('trees', 0.05);
+  /**
+   * Wall-clock per build phase, for the load question the owner's first priority asks ("make all the trees
+   * load in ASAP"): `buildMs` in `__ZR__.perf()` gives this system 8.3 s of a 42.7 s build
+   * (art/environment/squad2-2026-09-23/buildtime/) but not where inside it. The boundaries are the
+   * `ctx.progress` checkpoints that already exist, so the split costs one `performance.now()` each.
+   *
+   * It is wall clock, `await yieldFrame()` included: that is what a player waits, and the yields are part
+   * of the load rather than an artefact of measuring it.
+   */
+  const buildPhases: Record<string, number> = {};
+  /** per giant, its own `createGiantTree` wall clock (ms) — the giants are two thirds of this build */
+  const giantBuildMs: Record<string, number> = {};
+  /**
+   * The giants' loop spends ~2/3 of its time OUTSIDE `createGiantTree` (TREE-PHASES.md): this accumulates
+   * the steps around it — the world-space translation of every geometry and its `aRoot`, the pooled near
+   * part registration, and the sector merge with its group split and cull install — so the load question
+   * lands on a line rather than on the loop.
+   */
+  const giantStepMs: Record<string, number> = {};
+  const step = (name: string, t0: number) => {
+    giantStepMs[name] = Math.round((giantStepMs[name] ?? 0) + (performance.now() - t0));
+  };
+  let markAt = performance.now();
+  const mark = (name: string) => {
+    const now = performance.now();
+    giantStepMs[name] = Math.round((giantStepMs[name] ?? 0) + (now - markAt));
+    markAt = now;
+  };
+  let phaseAt = performance.now();
+  const phase = (name: string) => {
+    const now = performance.now();
+    buildPhases[name] = Math.round((buildPhases[name] ?? 0) + (now - phaseAt));
+    phaseAt = now;
+  };
   /**
    * Near-bole LOD (giant.ts NEAR_BASE_CUT_Y): every giant and seated column has a near-base mesh
    * (relief bole, buttress fins, plant ring) that is shown — and its plain lower bole collapsed
@@ -2609,6 +2654,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return out.length ? out : [geometry.boundingSphere!.clone()];
   };
+  /** `FarFoliageBatch.onBeforeShadow` scratch: the sun's frustum and one lobe's sphere, reused every frame */
+  const shadowFrustum = new Frustum();
+  const shadowViewProj = new Matrix4();
+  const lobeSphere = new Sphere();
+  const lobeMatrix4 = new Matrix4();
   /** the shadow proxies' colour-pass material: writes neither colour nor depth — only the shadow pass sees them */
   const shadowOnlyMaterial = new MeshBasicMaterial({ colorWrite: false, depthWrite: false });
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
@@ -2670,9 +2720,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     .filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M))
     .forEach((p, toeStream) => whitePlacements.includes(p) && rootPlacements.push({ ...p, toeStream }));
   const rootGround = { height: (x: number, z: number) => (z > 10 && inExpansionSouth(x, z) ? liveTerrain : terrain).height(x, z) };
-  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
+  /** kept in a variable so the audit can tally it: it was `unaccounted` for until 2026-09-30 */
+  const whiteBarkRoots = createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows);
+  whiteGroup.add(whiteBarkRoots);
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
+  phase('white-barks');
   await yieldFrame();
 
   // ------------------------------------------------------------------ understory (round 53)
@@ -2781,6 +2834,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }),
   ];
   ctx.progress('trees', 0.52);
+  phase('understory');
   await yieldFrame();
 
   // ------------------------------------------------------------------ column trees
@@ -2894,6 +2948,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.receiveShadow = true;
     mesh.visible = false;
     mesh.userData.kind = 'column-near-base';
+    mesh.userData.staticCasts = mesh.castShadow;
     columnGroup.add(mesh);
     const [item, first] = poolItem(`column-near-base/${p.id}`, mesh, asset.nearBaseBuild!, () => {});
     nearBasePool.add(item, first);
@@ -2981,6 +3036,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.shared.trunkSeats = trunkSeats;
   ctx.progress('trees', 0.55);
+  phase('columns');
   await yieldFrame();
 
   // ------------------------------------------------------------------ giants
@@ -3034,6 +3090,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.name = `giant-near-base-${g.def.id}`;
       mesh.customDepthMaterial = mats.giantTreeDepth;
       mesh.castShadow = ctx.quality.shadows;
+      mesh.userData.staticCasts = mesh.castShadow;
       mesh.receiveShadow = true;
       mesh.visible = false;
       mesh.userData.kind = 'giant-near-base';
@@ -3127,6 +3184,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     nearBasePool.work(0);
   };
+  const loopT0 = performance.now();
   for (const def of giantDefs) {
     const [px, , pz] = def.position;
     // round 56: a giant standing in the south exit's boxes (`plaza-south`, `south-centre`) seats its
@@ -3200,6 +3258,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
       }),
     );
+    const giantT0 = performance.now();
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => giantTerrain.height(px + lx, pz + lz) - gy,
       limbSpec,
@@ -3246,12 +3305,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       heroDistance,
       nearCanopy: { defer: true },
     });
+    // lodFade/buildtime: this giant's own build, for the load split — the giants are 63 % of this system's
+    // 8.3 s (art/environment/squad2-2026-09-23/buildtime/TREE-PHASES.md) and twelve authored trees is few
+    // enough that one of them can be the reason
+    giantBuildMs[def.id] = Math.round(performance.now() - giantT0);
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
+    const translateT0 = performance.now();
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
       rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, px, gy, pz);
     }
+    step('to-world', translateT0);
     // the detached boughs (DETACHED_BOUGHS): three meshes of their own in `detachedGroup`, shown
     // by the gate below — wood (never casts: its footprint is what comes nearest camera C),
     // laminae and cards (cast: the curtains' shade on the bank is the point of them)
@@ -3336,21 +3401,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the giant's bole joins the seats under its layout id (giants are only translated: yaw 0, scale 1)
     trunkSeats.push(trunkSeatFromRings(def.id, origin, 0, 1, asset.trunkPath.map((p) => p.clone().add(origin)), asset.trunkRadii, asset.bareHeight));
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px), heroDistance });
+    const poolT0 = performance.now();
     attachGiantNearParts(giants[giants.length - 1]);
     pruneNearPools();
+    step('near-pool-register', poolT0);
     for (const c of asset.contacts) {
       const at: [number, number, number] = [px + c.x, gy + c.y, pz + c.z];
       contacts.push(at);
       if (southSeat) liveContacts.add(at);
     }
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
+    const yieldT0 = performance.now();
     await yieldFrame();
+    step('yield-frame', yieldT0);
+    giantStepMs['yield-count'] = (giantStepMs['yield-count'] ?? 0) + 1;
   }
+  step('giants-loop-total', loopT0);
   /**
-   * Per-group colour-pass culling for a merged world-space mesh: `groupBoxes[i]` bounds group i
-   * (materialIndex i). `cull()` marks each box against the camera frustum (GROUP_PAD_M for wind);
-   * the colour pass draws a marked-out group with count 0 (onBeforeRender / onAfterRender run per
-   * group), the shadow pass — rendered first, hook-free — draws them all.
+   * Per-group culling for a merged world-space mesh, in both passes: `groupBoxes[i]` bounds group i
+   * (materialIndex i). `cull()` marks each box against the camera frustum (GROUP_PAD_M for wind)
+   * and each group's shadow sweep against the same frustum; a marked-out group is drawn with count
+   * 0 — `onBeforeRender` / `onAfterRender` per group for the colour pass, `onBeforeShadow` /
+   * `onAfterShadow` (three r163+, called per group the same way) for the sun's depth pass.
    */
   const GROUP_PAD_M = 1.5;
   /** height bands a giant's leaves split into for the colour-pass cull (draws: 1 wood + bands per giant) */
@@ -3363,6 +3435,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       return out;
     });
     mesh.userData.groupInView = bounds.boxes.map(() => true);
+    /** per group: its shadow sweep meets the frustum, so the sun's depth pass must draw it */
+    mesh.userData.groupCasts = bounds.boxes.map(() => true);
     // three types the hook's last argument as an Object3D Group; at runtime it is the geometry
     // group record ({ start, count, materialIndex }) of the draw being issued
     type GeometryGroup = { start: number; count: number; materialIndex: number };
@@ -3383,6 +3457,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (count === undefined) return;
       g.count = count;
       saved[g.materialIndex] = undefined;
+    };
+    // The same trick for the sun's depth pass. A group whose shadow capsule (its padded sphere
+    // swept to the shadow floor along the sun) lies wholly outside one frustum plane cannot darken
+    // a visible pixel, so its triangles are pure cost: at the main flight's foot the south sector's
+    // four giants were 86 K of depth for a frame their shade never enters.
+    const savedShadow: (number | undefined)[] = [];
+    mesh.onBeforeShadow = (_r, _o, _c, _sc, _g, _m, group) => {
+      const g = group as unknown as GeometryGroup | null;
+      if (!g) return;
+      const casts = mesh.userData.groupCasts as boolean[];
+      if (casts[g.materialIndex] === false) {
+        savedShadow[g.materialIndex] = g.count;
+        g.count = 0;
+      }
+    };
+    mesh.onAfterShadow = (_r, _o, _c, _sc, _g, _m, group) => {
+      const g = group as unknown as GeometryGroup | null;
+      if (!g) return;
+      const count = savedShadow[g.materialIndex];
+      if (count === undefined) return;
+      g.count = count;
+      savedShadow[g.materialIndex] = undefined;
     };
   };
   /**
@@ -3641,16 +3737,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.onBeforeShadow = (renderer, _object, _camera, shadowCamera, geometry, depthMaterial) => {
         let casting = 0;
         let castingTriangles = 0;
+        /**
+         * `reaches` arms a lobe whose shade sweeps into the frame, but `perObjectFrustumCulled` then drops
+         * any armed lobe the SHADOW camera cannot see — against the lobe's own sphere, not the swept one —
+         * so counting the armed set overstates the depth list by whatever falls outside the sun's view.
+         * Both numbers this records are meant to be what the pass DRAWS, so the same test runs here.
+         */
+        shadowFrustum.setFromProjectionMatrix(shadowViewProj.multiplyMatrices(shadowCamera.projectionMatrix, shadowCamera.matrixWorldInverse));
         for (let id = 0; id < count; id++) {
           const cast = reaches(this.shadowSpheres[id]);
           mesh.setVisibleAt(id, cast);
           if (cast) {
+            mesh.getBoundingSphereAt(mesh.getGeometryIdAt(id), lobeSphere);
+            mesh.getMatrixAt(id, lobeMatrix4);
+            lobeSphere.applyMatrix4(lobeMatrix4).applyMatrix4(mesh.matrixWorld);
+            if (!shadowFrustum.intersectsSphere(lobeSphere)) continue;
             casting++;
             castingTriangles += this.triangles[id];
           }
         }
         this.casting = casting;
         this.castingTriangles = castingTriangles;
+        /**
+         * What this batch just submitted to the depth pass, for the submission tally to read. It cannot be
+         * derived from outside: the set is built here from `shadowSpheres` against the SHADOW camera, which
+         * is a different rule and a different frustum from the colour pass's fold. A tally that assumed the
+         * depth pass reuses the colour set — true of three, false of this hook — read the far foliage's
+         * shade far too cheaply (`auditvsrenderer/`).
+         */
+        mesh.userData.shadowTriangles = castingTriangles;
+        mesh.userData.shadowDraws = casting > 0 ? 1 : 0;
         // three's own onBeforeShadow builds the depth list through `this.onBeforeRender` — the colour hook
         // above, which would apply the fold — so the depth list is built here directly
         (proto.onBeforeRender as unknown as (...args: unknown[]) => void).call(mesh, renderer, null, shadowCamera, geometry, depthMaterial);
@@ -3680,6 +3796,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       return Object.values(g.attributes).reduce((b, a) => b + bytes(a as BufferAttribute), 0) + bytes(g.index);
     }
   }
+  const tailT0 = performance.now();
+  markAt = tailT0;
   const groupMeshes: Mesh[] = [];
   // three angular sectors around the plaza → three meshes, each frustum-culled as a unit
   const byAngle = [...giants].sort((a, b) => a.angle - b.angle);
@@ -3712,6 +3830,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // 55 m and always meets the frustum; at A the south sector's four giants all stand behind the
     // camera and drew 488 K triangles for no pixel). The shadow pass still draws every group —
     // three renders the shadow maps before the scene and never calls onBeforeRender from them.
+    const mergeT0 = performance.now();
     const geometry = mergeParts(
       `giants-sector-${s}`,
       members.map((m) => m.asset.geometry),
@@ -3735,12 +3854,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.userData.kind = 'giant';
     mesh.userData.giants = members.map((m) => m.def.id);
     installGroupCulling(mesh, woodBounds);
+    step('sector-merge', mergeT0);
     groupMeshes.push(mesh);
     if (layout) {
       compactToLayout(geometry, layout);
       layoutFixed.add(geometry);
       if (farParts.length) {
-        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows, (sphere) => shadowReaches(sphere));
+        const batch = new FarFoliageBatch(`giant-far-foliage-${s}-${label}`, mats.giantTree, mats.giantTreeDepth, farParts, layout, ctx.quality.shadows, (sphere) => shadowReachesGround(sphere));
         batch.mesh.userData.giants = members.map((m) => m.def.id);
         farFoliage.push(batch);
         giantGroup.add(batch.mesh);
@@ -3771,6 +3891,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // met every hero frustum, so each view would have drawn every giant's curtains (F and C the
   // plateau-oak's 0.29 M triangles of shot-D curtains, A / B / D the bank's). Per giant, a view
   // draws the curtains whose own sphere meets it: +1 call per giant that has any.
+  mark('tail-sectors');
   const authoredParts = giants.filter((g) => g.asset.authoredLeaves.getAttribute('position').count > 0);
   for (const g of giants) if (!authoredParts.includes(g)) g.asset.authoredLeaves.dispose();
   for (const g of authoredParts) {
@@ -3865,12 +3986,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.add(detachedGroup);
 
   // ------------------------------------------------------------------ distant trees
+  mark('tail-authored-and-rootkit');
   const distantGroup = new Group();
   distantGroup.name = 'distant';
   // the 60–220 m layer, then the mid-canopy layer appended (distant.ts createMidVariants: the
   // 14–58 m band the owner's 06:50 screenshot circles as empty grey haze). Their streams are forked
   // by name off `rng`, so every distant / white-bark / giant / column draw is where it was.
   const distantVariants = [...createDistantVariants(rng, palette), ...createMidVariants(rng, palette)];
+  mark('tail-variants');
   const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
   // Round 45 (structures-28's ray pick at w21-spine-f): the first depth row ran through the log
   // arch's north mouth — its instance at (0.73, −59.8) was a hex-prism trunk 5 m off the spine,
@@ -3896,6 +4019,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     footprints: [{ x: arch.position[0], z: arch.position[2], ax: Math.cos(archYaw), az: -Math.sin(archYaw), halfLength: arch.length / 2 + 2, halfWidth: arch.radius + 1 }],
   };
   const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
+  mark('tail-distant-place');
   const distantCleared = distantClearanceTally();
 
   // ------------------------------------------------------------------ mid-canopy grove (14–58 m)
@@ -3965,6 +4089,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
   // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
   // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
+  mark('tail-mid-place');
   const midSpec0 = distantVariants.length - MID_SPECS.length;
   /** the mid boles standing on the south exit's live ground, for the base-gap audit */
   const midLive = new Set<(typeof midSampled)[number]>();
@@ -4030,11 +4155,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
+  mark('grove-cull');
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
   // the mid-canopy crowns share that atlas and turn off the treatments the far layer applies inside
   // its 48 m gate (distant.ts MID_CROWN_LOOK) — at 12 m they would darken the mass to a quarter of
   // its albedo and fade its vertical cards out as the view climbs to it
   const midCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir, { ...MID_CROWN_LOOK, atlas: distantCrown.map ?? undefined });
+  mark('crown-materials');
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
@@ -4062,11 +4189,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     });
     return { variant, near, far, placements, matrices, counts: [0, 0], lists: [[], []], submitted: [[], []] };
   });
+  mark('distant-sets');
   group.add(distantGroup);
   ctx.progress('trees', 0.95);
+  step('giants-tail-total', tailT0);
+  phase('giants');
 
   // ------------------------------------------------------------------ LOD bucketing
   const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[0], TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE[1]];
+  /**
+   * The rung band this build actually uses (lodFade.ts). Resolved once, because the gates are scaled by
+   * `quality.distance` and `?treelod=`, so whether a band fits between them is a property of the build
+   * rather than of the constant: at `quality=low` the gates are 7.2 m apart against 12 m at high.
+   *
+   * `lodSlots` returns on the first gate whose band contains `d`, so overlapping bands do not glitch —
+   * they silently skip the far gate's fade. Rather than let that ship, fall back to the hard cut, which is
+   * the behaviour the flag has always been able to return to, and say so on the console: the gauntlet's B6
+   * check ("console clean during capture") then turns a mis-set constant into a failed take instead of a
+   * defect nobody sees. Zero per-frame cost — `lodSlots` already takes the band as an argument.
+   */
+  const lodBandM = (() => {
+    if (!TREE_LOD_DITHER) return 0;
+    if (!bandOverlaps([lodDist[0], lodDist[1]], TREE_LOD_DITHER_BAND_M)) return TREE_LOD_DITHER_BAND_M;
+    console.error(
+      `trees: TREE_LOD_DITHER_BAND_M ${TREE_LOD_DITHER_BAND_M} m does not fit between this build's rung gates ` +
+        `(${lodDist[0].toFixed(1)} m and ${lodDist[1].toFixed(1)} m, ${(lodDist[1] - lodDist[0]).toFixed(1)} m apart at ` +
+        `quality=${ctx.quality.tier}); the far gate's fade would be skipped, so the band is off for this build`,
+    );
+    return 0;
+  })();
   const distantNear = DISTANT_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[2];
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
@@ -4082,9 +4233,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // lodFade.ts: one rung with TREE_LOD_DITHER off (the rule this line has always used), a pair
         // inside a gate's transition band with it on. The weights travel in `w.lodWeights` for the
         // drawing half; with the flag off the array is never written and never read.
-        for (const slot of lodSlots(d, [lodDist[0], lodDist[1]])) {
+        for (const slot of lodSlots(d, [lodDist[0], lodDist[1]], lodBandM)) {
           buckets[slot.level].push(i);
-          if (TREE_LOD_DITHER) (w.lodWeights ??= new Map()).set(slot.level * w.placements.length + i, slot.weight);
+          if (TREE_LOD_DITHER) (w.lodWeights ??= new Map()).set(lodWeightKey(slot.level, w.placements.length, i), slot.weight);
         }
       }
       for (let l = 0; l < 3; l++) {
@@ -4133,17 +4284,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** the sphere (already padded) meets the frustum */
   const inView = (s: Sphere) => frustum.intersectsSphere(s);
   /**
-   * The volume the sphere's shadow sweeps along the sun direction (from the sphere down to
-   * SHADOW_FLOOR_Y) meets the frustum: a capsule is outside a plane iff both end spheres are.
+   * Does a caster's shade reach the frame? The test itself is `util/shadowReach.ts` — the caster's
+   * padded sphere swept down-sun, the sweep ended where the ground stops it, the capsule walked with
+   * covering spheres, short-circuited when the caster is already on screen — lifted out of here on
+   * 2026-09-28 so every system that casts can ask the same question (`sceneshade/` prices the rest:
+   * structures spend 719 K depth triangles for 0.49 % of camera A, this lane's 1.20 M buys 55 %).
+   *
+   * Applied at structures' current mesh granularity it recovered only 25 K at F_canopy and nothing at
+   * A or the flight's foot: a merged house or fence run has a sphere too large for the capsule to miss
+   * the frame. What made it pay here was round 52's split of each sector into one group per giant — the
+   * lesson for any lane that wants this is granularity, not the test.
    */
-  const shadowReaches = (s: Sphere) => {
-    const span = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / Math.max(0.05, sunNow.y));
-    shadowEnd.copy(s.center).addScaledVector(sunNow, -span);
-    for (const plane of frustum.planes) {
-      if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(shadowEnd) < -s.radius) return false;
-    }
-    return true;
-  };
+  const shade = createShadowReach({ groundAt: (x, z) => liveTerrain.height(x, z), floorY: SHADOW_FLOOR_Y, padM: CULL_PAD_M });
+  const shadowReachesGround = (s: Sphere) => shade.reaches(s);
   /** world bounding sphere of placement `i` of `w` at LOD `l`, padded */
   const instanceSphere = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number, out: Sphere) => {
     const bs = w.lods[l].geometry.boundingSphere!;
@@ -4224,7 +4377,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
     if (TREE_LOD_DITHER) {
       const attr = fadeAttribute(mesh);
-      for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(l * w.placements.length + list[k]) ?? 1));
+      for (let k = 0; k < list.length; k++) attr.setX(k, 1 - (w.lodWeights?.get(lodWeightKey(l as 0 | 1 | 2, w.placements.length, list[k])) ?? 1));
       attr.needsUpdate = true;
     }
     mesh.count = list.length;
@@ -4251,7 +4404,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         for (const i of w.lists[l]) {
           instanceSphere(w, l, i, sphere);
           if (inView(sphere) && hullInView(w, l, i)) kept.push(i);
-          else if (casts && shadowReaches(sphere)) shadowOnly.push(i);
+          else if (casts && shadowReachesGround(sphere)) shadowOnly.push(i);
         }
         if (l === 0 && w.shadowProxy) {
           // the high bucket's shadow-only instances cast from the medium-geometry twin
@@ -4266,6 +4419,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
               proxy.computeBoundingSphere();
               proxy.boundingSphere!.radius += CULL_PAD_M;
             }
+            /**
+             * The proxy exists ONLY to cast: every instance in it is a tree the view frustum rejected whose
+             * shade still reaches the frame, and its material is `colorWrite: false, depthWrite: false`. But
+             * its aggregate sphere encloses several out-of-view trees and carries `CULL_PAD_M`, so it clips
+             * the frustum edge often — and three then submits it in the COLOUR pass too, where it draws
+             * nothing at all. At `lookspots/`'s `stairs1-top`, the frame closest to the 700-draw line at
+             * 665, that was **8 wasted draws of 12** this family spent.
+             *
+             * Two obvious ways out are both closed by three's source, which is why this is the third:
+             * `object.layers` is tested in the shadow pass against the MAIN camera's layers
+             * (`WebGLShadowMap.renderObject`), so hiding it from the camera hides it from the shadow map;
+             * and the same function guards its single-material branch with `else if (material.visible)`, so
+             * `material.visible = false` deletes the shade as well.
+             *
+             * `installMainPassCount` already solves it for the ordinary buckets: a count of 0 makes
+             * `WebGLBufferRenderer.renderInstances` return before it issues a draw or touches `info.render`,
+             * and the shadow pass is unaffected because it runs first and calls `onBeforeShadow`, never
+             * `onBeforeRender`. So the proxy's main-pass count is pinned at 0 and its full count follows
+             * whatever this submission just set.
+             */
+            installMainPassCount(proxy);
+            proxy.userData[FULL_COUNT] = shadowOnly.length;
+            proxy.userData[MAIN_COUNT] = 0;
             w.submittedShadow = shadowOnly;
           }
           continue;
@@ -4375,12 +4551,50 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (mesh.userData.kind === 'giant-authored-leaves' || mesh.userData.kind === 'giant-authored-cards') continue; // never cast
       sphere.copy(mesh.geometry.boundingSphere!);
       sphere.radius += CULL_PAD_M;
-      mesh.castShadow = shadowReaches(sphere);
+      mesh.castShadow = shadowReachesGround(sphere);
+      // then per giant, for the sectors that carry groups: the sector's own sphere spans ~50 × 55 m
+      // and reaches nearly every frame, while a single giant's crown or wood often does not
+      const casts = mesh.userData.groupCasts as boolean[] | undefined;
+      const spheres = mesh.userData.groupSpheres as Sphere[] | undefined;
+      if (!casts || !spheres) continue;
+      let any = false;
+      if (mesh.castShadow) {
+        for (let i = 0; i < spheres.length; i++) {
+          casts[i] = shadowReachesGround(spheres[i]);
+          if (casts[i]) any = true;
+        }
+        // nothing left to draw: drop the mesh instead of issuing count-0 draws per group
+        if (!any) mesh.castShadow = false;
+      } else casts.fill(true);
     }
     for (const batch of farFoliage) {
       sphere.copy(batch.mesh.boundingSphere!);
       sphere.radius += CULL_PAD_M;
-      batch.mesh.castShadow = shadowReaches(sphere);
+      /**
+       * This is the trees' largest single depth consumer — **357 512 triangles at hero A**, 28 % of their
+       * shade, and more than the whole 275 197 of W38 headroom on the binding view. It read 124 240 until
+       * the batch's own depth list was read (`auditvsrenderer/`), so its size was not knowable before.
+       *
+       * Measured without it (`farshade/`): hero A 8 724 803 → 8 367 291 and `stairs1-top` 9 799 283 →
+       * 9 347 687, −3 draws each — and **18.00 % / 12.46 % of those frames move**. It is the canopy's
+       * self-shadowing: the crowns lose their internal shading and read as flat green masses, which is the
+       * defect the white-bark laminae exist to avoid. Load-bearing; do not gate it further without a
+       * cheaper caster that keeps the crown's interior dark.
+       */
+      batch.mesh.castShadow = shadowReachesGround(sphere);
+    }
+    // the pooled near parts: the build arms them (`staticCasts`) and this narrows them per frame.
+    // They are the last casters with no shadow test — at the main flight's foot the four giant
+    // bases and two column bases shown were 155 K of depth for a frame their shade never enters.
+    for (const nb of nearBoles) {
+      const mesh = nb.mesh;
+      if (!mesh.visible || mesh.userData.staticCasts !== true) continue;
+      const bs = mesh.geometry.boundingSphere;
+      if (!bs) continue;
+      mesh.updateMatrixWorld();
+      sphere.copy(bs).applyMatrix4(mesh.matrixWorld);
+      sphere.radius += CULL_PAD_M;
+      mesh.castShadow = shadowReachesGround(sphere);
     }
   };
   /** trim every bucket for `camera`; skipped while the view-projection is unchanged (unless forced) */
@@ -4390,6 +4604,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (!force && viewProj.equals(lastViewProj)) return;
     lastViewProj.copy(viewProj);
     frustum.setFromProjectionMatrix(viewProj);
+    shade.prepare(camera, ctx.sun ? sunNow.subVectors(ctx.sun.position, ctx.sun.target.position) : sunDir);
     frustumCornersFor(camera);
     if (ctx.sun) {
       sunNow.subVectors(ctx.sun.position, ctx.sun.target.position);
@@ -4480,6 +4695,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    *   • ranking by coverage per triangle collapses to 3 shown lobes: it prefers cheap far crowns, which
    *     the pool (prefetching by distance) has not built, so `resident` filters them out. Any ranking
    *     that disagrees with the prefetch starves itself.
+   *   • ranking by WHETHER THE PART IS IN THE FRAME, distance second, was tried on 2026-09-27 with the
+   *     frustum grown 6 m so a crown is promoted before it comes into shot
+   *     (`art/environment/squad2-2026-09-23/slots`). It works as designed and it is not worth it: the
+   *     tier is saturated at 79 parts and 77–100 % of them are OUTSIDE the frame (the plaza's authored
+   *     boughs surround the camera), so at camera A it lifted the parts in frame from 10 to 29 and cut
+   *     the in-frame parts with no slot from 21 to 2 — and the frame moved **0.46 %** for **+189 697
+   *     triangles**, half of A's headroom under W38; F_canopy moved 0.01 % for +109 968. Nineteen more
+   *     crowns in their near form at 15.6–26 m are indistinguishable from their folded far foliage
+   *     (means 95.8 vs 95.7, thirds equal to 0.3), which also says the near form does not earn its keep
+   *     at that range: the direction worth pricing there is DOWN (fable-4's slot cap), not outward.
    * Distance agrees with the prefetch and puts the detail nearest the eye, so it stays.
    */
   /** the parts shown by the previous non-reset update (byRank's incumbents) */
@@ -4503,6 +4728,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
      * 17 m of the camera. (It also means the effective swap boundary is not the nominal 26 m: the
      * farthest shown part ran 16.3 m in the village and 42.2 m in the clearing, wherever the 64th
      * nearest lobe happened to fall — which is why widening the 26 / 30 band changed 0.00 %.)
+     *
+     * 2026-09-27, the other side of that band, because the view-first ranking above showed the near
+     * form is indistinguishable from the folded far foliage at 15.6-26 m and so suggested the tier
+     * could be CHEAPER (`?treelod=,,,<k>` scales this band; A / F / the foot, frozen clock):
+     *
+     *   20.8 m (k 0.8)  A 8 631 286, F 7 836 917, foot 9 129 709 — the same frames to the digit
+     *   15.6 m (k 0.6)  A 8 621 260, F 7 800 344, foot 9 125 523 — 0.00 % of every frame moved
+     *
+     * so narrowing the band 40 % is free in pixels and saves only 4-37 K triangles: the parts it drops
+     * are off screen, where the batch's `perObjectFrustumCulled` already drew nothing, and the in-view
+     * count is unchanged at A (10) and at the foot (18). The tier's drawn cost lives in the handful of
+     * in-view parts nearest the camera, which any cap must keep — so a slot or distance cap on this
+     * tier buys pool memory and CPU, not triangles, and both directions are now priced
+     * (art/environment/squad2-2026-09-23/slots).
      *
      * An incumbent now ranks as if it were `NEAR_CANOPY_KEEP` nearer than it is, so a challenger must
      * be meaningfully nearer to take its slot. Both are inside their own in-radius either way, so the
@@ -4611,6 +4850,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     instances: number;
     calls: number;
     triangles: number;
+    colourCalls: number;
+    depthCalls: number;
+    colourTriangles: number;
+    depthTriangles: number;
   }
   const submission = () => {
     const cam = ctx.camera;
@@ -4621,70 +4864,280 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const sc = ctx.sun.shadow.camera;
       shadow = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(sc.projectionMatrix, sc.matrixWorldInverse));
     }
-    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0 });
+    const tally = (): SubmissionTally => ({ meshes: 0, instances: 0, calls: 0, triangles: 0, colourCalls: 0, depthCalls: 0, colourTriangles: 0, depthTriangles: 0 });
     const s = new Sphere();
+    const lobe = new Sphere();
+    const lobeMatrix = new Matrix4();
+    /** meshes three never frustum-tests (`frustumCulled === false`, the BatchedMesh pattern) */
+    let cullExempt = 0;
+    /** meshes whose colour pass is skipped by a main-pass count of 0 (`proxydraw/`) */
+    let mainZero = 0;
+    /** the upper bound: every visible mesh in colour, every caster in depth, no frustum test anywhere */
+    let noCullCalls = 0;
+    /**
+     * The triangles `perObjectFrustumCulled` takes off the batches, per pass they are drawn in. Three gives
+     * `BatchedMesh` no `onBeforeShadow`, so the depth pass reuses whatever set the last colour pass left —
+     * this is the number to check a residual against before believing that assumption.
+     */
+    let batchCulledTris = 0;
+    /** the same, split by pass: the depth half is what the "depth reuses the colour set" model would owe */
+    let batchCulledTrisColour = 0;
+    let batchCulledTrisDepth = 0;
+    /** surviving batch lobes with no index buffer, whose size `indexCount` reports as −1 */
+    let nonIndexedLobes = 0;
+    /**
+     * Two candidate depth models, reported beside the one in use. `?shadow=0` localised the whole residual
+     * against `isolate('trees')` to the DEPTH pass — with the sun not casting the colour pass agrees to the
+     * triangle at `stairs1-top` and to 204 in 1.38 M at hero A — so one of these is the next thing to test:
+     *   `depthTrisBatchFull`  every batch lobe in depth, not just the ones the camera cull left
+     *   `depthTrisNoFrustum`  every caster in depth with no shadow-frustum test at all, and its call count
+     */
+    let depthTrisBatchFull = 0;
+    let depthTrisNoFrustum = 0;
+    let depthCallsNoFrustum = 0;
     const add = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
       const batched = (mesh as unknown as BatchedMesh).isBatchedMesh ? (mesh as unknown as BatchedMesh) : null;
       const inst = (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).count : 1;
       if (!mesh.visible || inst === 0) return;
-      const bs = batched ? batched.boundingSphere : (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).boundingSphere : mesh.geometry.boundingSphere;
-      if (!bs) return;
-      s.copy(bs).applyMatrix4(mesh.matrixWorld);
       const g = mesh.geometry;
-      let tris = Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3) * inst;
+      const indexCount = g.index ? g.index.count : g.attributes.position.count;
+      /**
+       * One draw per VISIBLE material group, in BOTH passes, each over that group's own range — three's
+       * render list and `WebGLShadowMap.renderObject` agree on this. `distant.ts` gives its near and far
+       * meshes two groups (wood, then foliage) and `writeRanges` adds one per range, so a tally of one
+       * call per mesh reports roughly half of what the renderer makes for those families. A single
+       * material that is not visible, or an array with no visible group, is drawn in neither pass.
+       */
+      const matArray = Array.isArray(mesh.material) ? (mesh.material as Material[]) : null;
+      const drawGroups = matArray ? g.groups.filter((gr) => matArray[gr.materialIndex ?? 0]?.visible) : (mesh.material as Material).visible ? null : [];
+      if (drawGroups && drawGroups.length === 0) return;
+      const passCalls = drawGroups ? drawGroups.length : 1;
+      const perInstance = drawGroups
+        ? drawGroups.reduce((n, gr) => n + Math.floor(Math.min(gr.count, Math.max(0, indexCount - gr.start)) / 3), 0)
+        : Math.floor(indexCount / 3);
+      /**
+       * The count in effect during the COLOUR pass. `installMainPassCount` swaps it in `onBeforeRender`
+       * and back in `onAfterRender`, so a bucket's shadow-only instances draw in depth and not in colour,
+       * and the white-bark shadow proxies draw in neither (`proxydraw/`).
+       */
+      const mainCount = (mesh.userData[MAIN_COUNT] as number | undefined) ?? inst;
+      if (mainCount === 0) mainZero++;
+      if (!mesh.frustumCulled) cullExempt++;
+      noCullCalls += passCalls * ((mainCount > 0 ? 1 : 0) + (mesh.castShadow && shadow ? 1 : 0));
+      const bs = batched ? batched.boundingSphere : (mesh as InstancedMesh).isInstancedMesh ? (mesh as InstancedMesh).boundingSphere : mesh.geometry.boundingSphere;
+      // `frustumCulled === false` means three submits the object whatever the frustum says — those draws
+      // are not optional and a tally that frustum-tests them reports fewer than the renderer makes. With
+      // no bounds at all three cannot cull either.
+      const inView = !mesh.frustumCulled || !bs || (s.copy(bs).applyMatrix4(mesh.matrixWorld), view.intersectsSphere(s));
+      const inShadow = shadow !== null && (!mesh.frustumCulled || !bs || (s.copy(bs).applyMatrix4(mesh.matrixWorld), shadow.intersectsSphere(s)));
+      let colour = 0;
+      let depth = 0;
+      let colourTris = 0;
+      let depthTris = 0;
       if (batched) {
-        // a batch submits its visible instances' ranges (one multi-draw call), not its whole reserve
-        tris = 0;
+        /**
+         * A batch is one multi-draw call over the lobes that survive `perObjectFrustumCulled`, which
+         * `BatchedMesh.onBeforeRender` applies per instance against the CAMERA's frustum — so summing
+         * every visible range overstates it by whatever is off-screen, and `WebGLBufferRenderer
+         * .renderMultiDraw` returns before `info.render` when nothing survives. The shadow pass reuses
+         * the set that left behind (three gives `BatchedMesh` no `onBeforeShadow`), so both passes draw
+         * the same ranges.
+         */
+        let drawn = 0;
+        let culledTris = 0;
+        /** the lobes that survived, before either pass's gate decides whether the batch is submitted */
+        let surviving = 0;
         for (let i = 0; i < batched.maxInstanceCount; i++) {
           // a pooled batch's deleted slots throw on lookup; they hold nothing
           try {
-            if (batched.getVisibleAt(i)) tris += Math.floor((batched.getGeometryRangeAt(batched.getGeometryIdAt(i))?.indexCount ?? 0) / 3);
+            if (!batched.getVisibleAt(i)) continue;
           } catch {
             continue;
           }
+          const geometryId = batched.getGeometryIdAt(i);
+          /**
+           * `geometryInfo.count` is exactly what the multi-draw submits for this part, and
+           * `renderMultiDraw` sums those counts into `info.render.triangles`:
+           * `BatchedMesh.addGeometry` sets it to `indexCount` for an indexed part and to `vertexCount`
+           * for one without an index — where `indexCount` is left at its initial **−1**. Reading
+           * `indexCount` therefore charged a non-indexed lobe `floor(-1/3) = -1` triangle instead of its
+           * real size, taking triangles OFF the total.
+           */
+          const range = batched.getGeometryRangeAt(geometryId);
+          if ((range?.indexCount ?? 0) < 0) nonIndexedLobes++;
+          const lobeTris = Math.floor(Math.max(0, range?.count ?? 0) / 3);
+          if (batched.perObjectFrustumCulled) {
+            batched.getBoundingSphereAt(geometryId, lobe);
+            batched.getMatrixAt(i, lobeMatrix);
+            lobe.applyMatrix4(lobeMatrix).applyMatrix4(mesh.matrixWorld);
+            if (!view.intersectsSphere(lobe)) {
+              culledTris += lobeTris;
+              continue;
+            }
+          }
+          drawn++;
+          surviving += lobeTris;
         }
+        colour = inView && drawn > 0 ? 1 : 0;
+        colourTris = colour ? surviving : 0;
+        /**
+         * A batch that records its own depth submission (`FarFoliageBatch.onBeforeShadow`) knows what it
+         * drew and this tally cannot work it out: that hook rebuilds the multi-draw set from the lobes'
+         * shadow spheres against the SHADOW camera. Trust the batch over the colour-set assumption.
+         */
+        const recordedTris = mesh.userData.shadowTriangles as number | undefined;
+        const recordedDraws = mesh.userData.shadowDraws as number | undefined;
+        if (recordedTris !== undefined && recordedDraws !== undefined) {
+          depth = mesh.castShadow ? recordedDraws : 0;
+          depthTris = depth ? recordedTris : 0;
+        } else {
+          depth = mesh.castShadow && inShadow && drawn > 0 ? 1 : 0;
+          depthTris = depth ? surviving : 0;
+        }
+        batchCulledTris += culledTris * (colour + depth);
+        batchCulledTrisColour += culledTris * colour;
+        batchCulledTrisDepth += culledTris * depth;
+        depthTrisBatchFull += depth ? surviving + culledTris : 0;
+        depthTrisNoFrustum += mesh.castShadow && shadow ? surviving : 0;
+        depthCallsNoFrustum += mesh.castShadow && shadow ? 1 : 0;
+      } else {
+        colour = inView && mainCount > 0 ? passCalls : 0;
+        colourTris = colour ? perInstance * mainCount : 0;
+        // the shadow pass runs first, before `onBeforeRender` swaps the count down, so it draws them all
+        depth = mesh.castShadow && inShadow ? passCalls : 0;
+        depthTris = depth ? perInstance * inst : 0;
+        depthTrisBatchFull += depthTris;
+        depthTrisNoFrustum += mesh.castShadow && shadow ? perInstance * inst : 0;
+        depthCallsNoFrustum += mesh.castShadow && shadow ? passCalls : 0;
       }
-      const colour = view.intersectsSphere(s) ? 1 : 0;
-      const depth = mesh.castShadow && shadow && shadow.intersectsSphere(s) ? 1 : 0;
       into.meshes++;
       into.instances += inst;
+      into.colourCalls += colour;
+      into.depthCalls += depth;
       into.calls += colour + depth;
-      into.triangles += tris * (colour + depth);
+      into.colourTriangles += colourTris;
+      into.depthTriangles += depthTris;
+      into.triangles += colourTris + depthTris;
+    };
+    /** every mesh a named family tallied, so the scene-graph walk below can name what no family claimed */
+    const tallied = new Set<Object3D>();
+    const claim = (into: SubmissionTally, mesh: Mesh | InstancedMesh) => {
+      tallied.add(mesh);
+      add(into, mesh);
     };
     const byFamily: Record<string, SubmissionTally> = {};
     const family = (key: string) => (byFamily[key] ??= tally());
-    for (const w of whites) w.meshes.forEach((m, l) => add(family(`whitebark-lod${l}`), m));
-    for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
-    sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
+    for (const w of whites) w.meshes.forEach((m, l) => claim(family(`whitebark-lod${l}`), m));
+    for (const c of seatedColumns) c.meshes.forEach((m, l) => claim(family(`column-lod${l}`), m));
+    // the third `bucketFamily` family, and the third the rung band covers (lodFade.ts). It was missing
+    // from this tally until 2026-09-30, and since `total` below is the SUM of byFamily, every
+    // `submission.drawCalls` / `submission.triangles` this system reported was short by the understory's
+    // share — 10 draws and 63 638 triangles of it at plateau-back by `outlook/`'s family probe. The
+    // `unaccounted` field below exists so that omitting a family again is a number rather than a silence.
+    for (const u of understory) u.meshes.forEach((m, l) => claim(family(`understory-lod${l}`), m));
+    // two more the walk below caught: the roots mesh every white-bark variant shares, and round 53's
+    // per-variant depth proxies for the high bucket. Both submit real work — the proxies are a depth call
+    // each — and neither had a family.
+    claim(family('whitebark-roots'), whiteBarkRoots);
+    for (const w of whites) if (w.shadowProxy) claim(family('whitebark-shadow'), w.shadowProxy);
+    sectorMeshes.forEach((m) => claim(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
       const layer = d.variant.kind === 'mid' ? 'mid' : 'distant';
-      add(family(`${layer}-near`), d.near);
-      add(family(`${layer}-far`), d.far);
+      claim(family(`${layer}-near`), d.near);
+      claim(family(`${layer}-far`), d.far);
     }
-    for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
-    for (const nc of nearCanopies) if (nc.mesh) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
-    if (nearCanopyBatch) add(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
-    if (columnNearCanopyBatch) add(family('column-near-canopy-batch'), columnNearCanopyBatch.mesh);
-    for (const batch of farFoliage) add(family('giant-far-foliage-batch'), batch.mesh);
-    if (detachedGroup.visible) for (const m of detachedMeshes) add(family(m.userData.kind as string), m);
+    for (const nb of nearBoles) claim(family(nb.mesh.userData.kind as string), nb.mesh);
+    for (const nc of nearCanopies) if (nc.mesh) claim(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
+    if (nearCanopyBatch) claim(family('giant-near-canopy-batch'), nearCanopyBatch.mesh);
+    if (columnNearCanopyBatch) claim(family('column-near-canopy-batch'), columnNearCanopyBatch.mesh);
+    for (const batch of farFoliage) claim(family('giant-far-foliage-batch'), batch.mesh);
+    if (detachedGroup.visible) for (const m of detachedMeshes) claim(family(m.userData.kind as string), m);
     const total = tally();
-    for (const t of Object.values(byFamily)) {
-      total.meshes += t.meshes;
-      total.instances += t.instances;
-      total.calls += t.calls;
-      total.triangles += t.triangles;
-    }
+    // summed over the tally's own keys rather than a hand-written list of four: the field-by-field version
+    // silently dropped `colourCalls` and `depthCalls` the hour they were added, which is the same way
+    // `byFamily` came to be missing three whole families (`auditgap/`)
+    for (const t of Object.values(byFamily)) for (const k of Object.keys(total) as (keyof SubmissionTally)[]) total[k] += t[k];
+    /**
+     * The same tally taken from the SCENE GRAPH instead of from a hand-written list of families, so that a
+     * family nobody remembered to add shows up as a difference rather than as a quietly low total.
+     *
+     * `total` above is the sum of `byFamily`, and `byFamily` is eleven explicit loops over the collections
+     * this file happens to hold. The understory was absent from those loops from the day it was added until
+     * 2026-09-30, so `submission.triangles` under-reported the trees for weeks and nothing said so — the
+     * whole-frame numbers were never affected (those come from the renderer's own info), but this system's
+     * own row was. Walking the group cannot forget a family.
+     *
+     * `unaccounted` should be zero. If it is not, `byFamily` is missing something, and the gauntlet's B3
+     * check ("audit claims cross-checked against the scene graph") has a number to fail on.
+     */
+    // `add` runs once per mesh for the families and again for the walk below, so the three diagnostic
+    // counters have to be read here or they come out doubled
+    const cullExemptOnce = cullExempt;
+    const mainZeroOnce = mainZero;
+    const noCullCallsOnce = noCullCalls;
+    const batchCulledTrisOnce = batchCulledTris;
+    const batchCulledColourOnce = batchCulledTrisColour;
+    const batchCulledDepthOnce = batchCulledTrisDepth;
+    const nonIndexedLobesOnce = nonIndexedLobes;
+    const depthTrisBatchFullOnce = depthTrisBatchFull;
+    const depthTrisNoFrustumOnce = depthTrisNoFrustum;
+    const depthCallsNoFrustumOnce = depthCallsNoFrustum;
+    const walked = tally();
+    const unclaimed: string[] = [];
+    // traverseVisible, not traverse: `add` tests the mesh's OWN `visible` flag, so a plain traverse counts
+    // meshes inside a hidden parent that the renderer never draws. The detached boughs live under a group
+    // the locality gate hides, and the first version of this check reported all three as unaccounted.
+    group.traverseVisible((o) => {
+      const m = o as Mesh | InstancedMesh;
+      if (!(m as Mesh).isMesh) return;
+      const before = walked.meshes;
+      add(walked, m);
+      // `meshes` is the signal, not `calls`: a mesh outside both frustums counts zero calls but is counted
+      if (walked.meshes !== before && !tallied.has(m)) unclaimed.push(m.name || (m.userData.kind as string) || m.type);
+    });
+    const unaccounted = {
+      meshes: walked.meshes - total.meshes,
+      instances: walked.instances - total.instances,
+      calls: walked.calls - total.calls,
+      triangles: walked.triangles - total.triangles,
+      /** which meshes no family claimed, by name — so the fix is a lookup rather than a hunt */
+      names: [...new Set(unclaimed)].sort(),
+    };
     return {
       drawCalls: total.calls,
       triangles: total.triangles,
       meshes: total.meshes,
       instances: total.instances,
+      /** the two passes apart, so a disagreement with `isolate('trees')` can be attributed */
+      colourCalls: total.colourCalls,
+      depthCalls: total.depthCalls,
+      /** meshes three never frustum-tests, and meshes whose colour pass a 0 main count skips */
+      cullExempt: cullExemptOnce,
+      mainZero: mainZeroOnce,
+      /** what it would be with no frustum test anywhere: the ceiling the two passes are measured against */
+      noCullCalls: noCullCallsOnce,
+      /** what per-lobe culling took off the batches, per pass — the first thing a triangle residual can be */
+      batchCulledTris: batchCulledTrisOnce,
+      batchCulledTrisColour: batchCulledColourOnce,
+      batchCulledTrisDepth: batchCulledDepthOnce,
+      nonIndexedLobes: nonIndexedLobesOnce,
+      depthTrisBatchFull: depthTrisBatchFullOnce,
+      depthTrisNoFrustum: depthTrisNoFrustumOnce,
+      depthCallsNoFrustum: depthCallsNoFrustumOnce,
       byFamily,
+      /** zero when `byFamily` accounts for every visible mesh under the trees group; see above */
+      unaccounted,
       /** bucket sizes → submitted after culling, per LOD */
       whiteBarkLodSubmitted: [0, 1, 2].map((l) => whites.reduce((n, w) => n + w.submitted[l].length, 0)),
       columnLodSubmitted: [0, 1, 2].map((l) => seatedColumns.reduce((n, c) => n + c.submitted[l].length, 0)),
+      understoryLodSubmitted: [0, 1, 2].map((l) => understory.reduce((n, u) => n + u.submitted[l].length, 0)),
       distantSubmitted: [0, 1].map((l) => distantSets.reduce((n, d) => n + d.submitted[l].length, 0)),
       giantSectorsCasting: sectorMeshes.filter((m) => m.castShadow).length,
+      /** of the sectors' per-giant groups, how many the last depth pass drew (the rest: shade outside the frame) */
+      giantGroupsCasting: groupMeshes.reduce((n, m) => n + ((m.userData.groupCasts as boolean[] | undefined)?.filter((c, i) => c && m.castShadow && (m.userData.groupCasts as boolean[]).length > i).length ?? 0), 0),
+      giantGroupsTotal: groupMeshes.reduce((n, m) => n + ((m.userData.groupCasts as boolean[] | undefined)?.length ?? 0), 0),
+      /** of the pooled near bases shown, how many cast: the rest's shade never enters the frame */
+      nearBolesCasting: nearBoles.filter((nb) => nb.mesh.visible && nb.mesh.castShadow).length,
       /**
        * round 50 (trees-32): the detached boughs (DETACHED_BOUGHS) — per giant, their geometry and
        * lobes as built (world centres), whether the gate shows them for the current camera, and
@@ -4755,6 +5208,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** per giant, its un-authored big limbs' azimuths (0° = +x, 90° = +z); 'g' = ghosted (GiantProfile.wildLimbGhost) */
       giantWildLimbs: Object.fromEntries(giants.map((g) => [g.def.id, g.asset.wildLimbs.map((l) => `${l.azimuthDeg}${l.ghost ? 'g' : ''}`)])),
       giantLeaves,
+      /**
+       * Wall-clock ms per build phase (the `ctx.progress` checkpoints): white-barks, understory, columns,
+       * giants, then the distant / mid layers with the pools and the publish. `buildMs.trees` in
+       * `__ZR__.perf()` is their sum, and this says which of them a load pass should attack.
+       */
+      buildPhases: { ...buildPhases },
+      /** per giant id, its own build in ms, heaviest first — which of the twelve the giants' phase is */
+      giantBuildMs: Object.fromEntries(Object.entries(giantBuildMs).sort((a, b) => b[1] - a[1])),
+      /** the giants' loop outside `createGiantTree`: to-world translation, pool registration, the sector merge */
+      giantStepMs: { ...giantStepMs },
       /**
        * Where a giant's WOOD triangles are, one row per giant, heaviest first — the question the
        * family total (`submission.byFamily['giant-wood']`, 1.51 M) cannot answer and the reason a rung
@@ -4915,6 +5378,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
        */
       lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), scale: TREE_LOD_SCALE },
+      /**
+       * The rung transition band (lodFade.ts): whether a tree within half a band of one of
+       * `lodSwapM.tree`'s gates is drawn in BOTH rungs at complementary screen-door weights, and how
+       * wide that band is. It covers the three `bucketFamily` families only — the white-barks, the
+       * seated columns and the understory — not the distant or mid layers' own gates, not the giants
+       * and not the near-canopy pool, each of which swaps by a different rule.
+       */
+      lodBand: { on: TREE_LOD_DITHER && lodBandM > 0, bandM: lodBandM, gateGapM: Number((lodDist[1] - lodDist[0]).toFixed(2)), families: ['whites', 'seatedColumns', 'understory'] },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**
@@ -5008,6 +5479,40 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         distanceTo: 'crown-envelope',
         slots: NEAR_CANOPY_SLOTS,
         limbsMax: NEAR_CANOPY_LIMBS_MAX,
+        /**
+         * Where the tier's slots actually land, for the camera the last frame drew: of the parts it
+         * shows, how many are inside the frustum, and how many parts are inside their swap band AND
+         * inside the frame but hold no slot because the nearest `slots` filled up first. The tier
+         * ranks by distance and the plaza's authored boughs surround the camera, so most of what it
+         * shows is behind or above the frame: measured at camera A, 10 of 79 shown are in view and
+         * 21 in-view parts (nearest 15.6 m) keep their far foliage
+         * (art/environment/squad2-2026-09-23/slots). Aiming the same slots at the frame is a look
+         * call with a price — those 21 parts are ≈ 37 K triangles each as drawn — so this reports
+         * the state rather than changing it.
+         */
+        slotsInFrame: (() => {
+          const cam = ctx.camera;
+          cam.updateMatrixWorld();
+          const f = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+          const sp = new Sphere();
+          let shown = 0;
+          let inView = 0;
+          let starved = 0;
+          let starvedNearestM = Infinity;
+          for (const nc of nearCanopies) {
+            sp.center.copy(nc.center);
+            sp.radius = nc.radius;
+            const seen = f.intersectsSphere(sp);
+            if (nc.shown) {
+              shown++;
+              if (seen) inView++;
+            } else if (nc.active && seen) {
+              starved++;
+              starvedNearestM = Math.min(starvedNearestM, nc.dist);
+            }
+          }
+          return { shown, inView, starved, starvedNearestM: Number.isFinite(starvedNearestM) ? Math.round(starvedNearestM * 10) / 10 : null };
+        })(),
         leafFloor: [NEAR_CANOPY_LEAF_FLOOR.lift, NEAR_CANOPY_LEAF_FLOOR.texture],
         leafNearM: NEAR_CANOPY_LEAF_NEAR_M,
         sunThrough: NEAR_CANOPY_SUN_THROUGH,
@@ -5137,7 +5642,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     releaseAfterUpload(g);
   });
   ctx.progress('trees', 1);
-
+  phase('distant-mid-and-publish');
   let prebuilt = false;
   return {
     name: 'trees',

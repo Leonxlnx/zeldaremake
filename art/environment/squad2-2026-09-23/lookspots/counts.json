@@ -1,0 +1,162 @@
+{
+ "plaza": {
+  "draws": 535,
+  "triangles": 7728412,
+  "treeDraws": 101,
+  "treeTriangles": 3376716,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 7,
+   "starved": 14,
+   "starvedNearestM": 17.2
+  },
+  "md5": "d4362002397c042af0a77aead1f2bbd5"
+ },
+ "stairs2-base": {
+  "draws": 529,
+  "triangles": 9127913,
+  "treeDraws": 94,
+  "treeTriangles": 3337280,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 5,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 17,
+   "starved": 9,
+   "starvedNearestM": 17.7
+  },
+  "md5": "b321f19bce53a1f256f251387309ad68"
+ },
+ "stairs2-mid": {
+  "draws": 453,
+  "triangles": 8805249,
+  "treeDraws": 93,
+  "treeTriangles": 3185155,
+  "giantGroupsCasting": 12,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 5,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 16,
+   "starved": 11,
+   "starvedNearestM": 14.9
+  },
+  "md5": "b6cb62b42a499336ea94dc3d35e83842"
+ },
+ "stairs2-top": {
+  "draws": 651,
+  "triangles": 11841590,
+  "treeDraws": 95,
+  "treeTriangles": 3579312,
+  "giantGroupsCasting": 13,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 6,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 29,
+   "starved": 44,
+   "starvedNearestM": 15.7
+  },
+  "md5": "709791823b92c4daf01a8d445e8befc8"
+ },
+ "stairs1-base": {
+  "draws": 399,
+  "triangles": 4640054,
+  "treeDraws": 70,
+  "treeTriangles": 3275438,
+  "giantGroupsCasting": 4,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 2,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 5,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "533ff6e3696eb6a94475cc67c626a14f"
+ },
+ "stairs1-top": {
+  "draws": 665,
+  "triangles": 9875709,
+  "treeDraws": 114,
+  "treeTriangles": 3969181,
+  "giantGroupsCasting": 14,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 5,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 25,
+   "starved": 11,
+   "starvedNearestM": 22.9
+  },
+  "md5": "016841d5eb949521ad86852cdab8fec1"
+ },
+ "saria-side": {
+  "draws": 489,
+  "triangles": 8469633,
+  "treeDraws": 95,
+  "treeTriangles": 3316668,
+  "giantGroupsCasting": 11,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 7,
+   "starved": 10,
+   "starvedNearestM": 17.4
+  },
+  "md5": "7725991f4ca8f70ff6b5f29150a9b803"
+ },
+ "upper-house": {
+  "draws": 468,
+  "triangles": 6909549,
+  "treeDraws": 101,
+  "treeTriangles": 3352990,
+  "giantGroupsCasting": 8,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 18,
+   "starved": 25,
+   "starvedNearestM": 16.2
+  },
+  "md5": "ef9bbd19f7bec46338cd5dbdc307bac0"
+ },
+ "west-house": {
+  "draws": 393,
+  "triangles": 4815280,
+  "treeDraws": 80,
+  "treeTriangles": 3663611,
+  "giantGroupsCasting": 4,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 2,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 11,
+   "starved": 2,
+   "starvedNearestM": 19
+  },
+  "md5": "fdae501bfefe3ed12e62ce24dc651272"
+ },
+ "open-north": {
+  "draws": 455,
+  "triangles": 6192944,
+  "treeDraws": 70,
+  "treeTriangles": 2776735,
+  "giantGroupsCasting": 2,
+  "giantGroupsTotal": 14,
+  "nearBolesCasting": 3,
+  "slotsInFrame": {
+   "shown": 79,
+   "inView": 2,
+   "starved": 0,
+   "starvedNearestM": null
+  },
+  "md5": "d7356d817b73d8627d364b2910c111b0"
+ }
+}

@@ -1,0 +1,168 @@
+{
+ "foot": {
+  "draws": 545,
+  "triangles": 9129877,
+  "rows": {
+   "lighting": {
+    "casters": 0,
+    "tris": 0,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "atmosphere": {
+    "casters": 1,
+    "tris": 2304,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "terrain": {
+    "casters": 12,
+    "tris": 345600,
+    "idle": 1,
+    "idleTris": 28800,
+    "noSphere": 0
+   },
+   "hardscape": {
+    "casters": 8,
+    "tris": 48532,
+    "idle": 6,
+    "idleTris": 29571,
+    "noSphere": 0
+   },
+   "rocks": {
+    "casters": 11,
+    "tris": 93980,
+    "idle": 1,
+    "idleTris": 16820,
+    "noSphere": 0
+   },
+   "trees": {
+    "casters": 34,
+    "tris": 854109,
+    "idle": 2,
+    "idleTris": 4272,
+    "noSphere": 3
+   },
+   "canopy": {
+    "casters": 0,
+    "tris": 0,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "structures": {
+    "casters": 47,
+    "tris": 735822,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 62
+   },
+   "props": {
+    "casters": 17,
+    "tris": 71834,
+    "idle": 11,
+    "idleTris": 20118,
+    "noSphere": 0
+   },
+   "vegetation": {
+    "casters": 14,
+    "tris": 723378,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "character": {
+    "casters": 5,
+    "tris": 70442,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 18
+   }
+  }
+ },
+ "A_stairs": {
+  "draws": 575,
+  "triangles": 8631286,
+  "rows": {
+   "lighting": {
+    "casters": 0,
+    "tris": 0,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "atmosphere": {
+    "casters": 1,
+    "tris": 2304,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "terrain": {
+    "casters": 12,
+    "tris": 345600,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "hardscape": {
+    "casters": 8,
+    "tris": 48532,
+    "idle": 2,
+    "idleTris": 6174,
+    "noSphere": 0
+   },
+   "rocks": {
+    "casters": 11,
+    "tris": 93980,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "trees": {
+    "casters": 36,
+    "tris": 877297,
+    "idle": 2,
+    "idleTris": 4272,
+    "noSphere": 3
+   },
+   "canopy": {
+    "casters": 0,
+    "tris": 0,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "structures": {
+    "casters": 47,
+    "tris": 735822,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 62
+   },
+   "props": {
+    "casters": 17,
+    "tris": 71834,
+    "idle": 5,
+    "idleTris": 13958,
+    "noSphere": 0
+   },
+   "vegetation": {
+    "casters": 12,
+    "tris": 304444,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 0
+   },
+   "character": {
+    "casters": 5,
+    "tris": 70442,
+    "idle": 0,
+    "idleTris": 0,
+    "noSphere": 12
+   }
+  }
+ }
+}

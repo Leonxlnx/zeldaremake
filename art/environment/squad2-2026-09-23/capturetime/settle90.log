@@ -1,0 +1,22 @@
+world: ready in 89.1 s
+  A_stairs: 11.10 s/frame — 90 settle frames ≈ 999 s
+  A_stairs: frames 81-85 took 2141 s (428.3 s/frame)
+captured A_stairs (The Stairs) in 3591.0s — 559 draws, 8.63M tris
+world: ready in 117.1 s
+  B_house: 18.84 s/frame — 90 settle frames ≈ 1695 s
+  B_house: frames 6-10 took 145 s (29.0 s/frame)
+  B_house: frames 11-15 took 178 s (35.6 s/frame)
+  B_house: frames 16-20 took 144 s (28.7 s/frame)
+  B_house: frames 21-25 took 126 s (25.3 s/frame)
+  B_house: frames 26-30 took 153 s (30.7 s/frame)
+  B_house: frames 31-35 took 155 s (31.1 s/frame)
+  B_house: frames 36-40 took 149 s (29.8 s/frame)
+  B_house: frames 41-45 took 147 s (29.4 s/frame)
+  B_house: frames 46-50 took 152 s (30.4 s/frame)
+  B_house: frames 51-55 took 142 s (28.4 s/frame)
+  B_house: frames 56-60 took 149 s (29.8 s/frame)
+  B_house: frames 61-65 took 152 s (30.5 s/frame)
+  B_house: frames 66-70 took 146 s (29.2 s/frame)
+  B_house: frames 71-75 took 125 s (25.0 s/frame)
+  B_house: frames 86-90 took 983 s (196.6 s/frame)
+captured B_house (Saria's House) in 3343.8s — 541 draws, 7.90M tris

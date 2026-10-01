@@ -1,3 +1,14 @@
+> **This file is the mid-canopy round's write-up (2026-09-23), kept as that round's record.** For where
+> this lane stands now, read `INDEX.md` — it maps 35 measurement directories and 16 tools and opens with a
+> "where the lane stands" table. The short version, as of 2026-09-28 (branch
+> `cursor/squad2-treephases-682b`, PR #210): the sun's depth pass no longer pays for shade the frame
+> cannot see — **79–193 K triangles a pose in play, up to 121 K at a fixed view, every frame
+> byte-identical** — the six fixed views sit inside W38 with camera A binding at 575 draws / 8.63 M, and
+> play mode reads plaza 7.64 M, the flight's foot 9.151 M, saria-side 8.51 M, west-house 4.90 M. The
+> lane's own levers are measured out: the crown-veil ask is met, the LOD rungs are bracketed from both
+> sides, the near-canopy tier is priced in both directions, and four further experiments were built,
+> measured and reverted rather than shipped on a hunch. `frozen.mjs` reproduces any of those numbers.
+
 # squad2 — "the trees do not populate": a mid-canopy layer for the 14–58 m band
 
 Lane 2 of `docs/SQUAD_2026-09-23.md` (trees in the distance). Everything here was rendered on this

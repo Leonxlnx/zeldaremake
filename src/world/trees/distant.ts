@@ -605,6 +605,21 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
   const rimShare = look?.rim ?? CROWN_RIM;
   const material = new MeshStandardMaterial({ map: atlas, alphaTest: CROWN_ALPHA_TEST, transparent: true, depthWrite: true, vertexColors: true, roughness: 1, metalness: 0, side: DoubleSide });
   material.name = look ? `distant-crown-${look.id}` : 'distant-crown';
+  /**
+   * One draw per crown group instead of two (2026-09-28, lane 2).
+   *
+   * three renders a material with `transparent` AND `side: DoubleSide` **twice** — back faces, then
+   * front faces — unless `forceSinglePass` is set (WebGLRenderer, `renderObject`). Measured per mesh
+   * with `outlook/familycost.mjs`, every distant and mid tree mesh cost **three** draw calls for its two
+   * material groups: one for the wood and two for this crown. Across the two layers that is 45–51 draws
+   * at the look-backs to draw 1.3 % of the trees' triangles.
+   *
+   * The second pass exists so blended back faces sort behind front faces. These cards do not blend:
+   * `alphaTest` makes every fragment opaque or discarded and `depthWrite` is on, so the depth test
+   * resolves the ordering within one pass and the picture is the same — which is checked, not assumed
+   * (`outlook/README.md` §5: the frames' md5s).
+   */
+  material.forceSinglePass = true;
   const f = (x: number) => x.toFixed(3);
   material.onBeforeCompile = (s) => {
     s.uniforms.uCrownSun = { value: sunDir.clone().normalize() };
@@ -1509,12 +1524,18 @@ export function placeMidTrees(rng: Rng, terrain: Terrain, variants: DistantVaria
     const H = v.height * scale;
     const crownR = H * (spec?.crownR ?? MID_CROWN_R);
     const trunkR = H * MID_TRUNK_R;
-    if (o.blocked(x, z, trunkR)) continue;
+    // Cheapest test first, and `o.blocked` last. All six are pure and none draws from `r`, so the
+    // order cannot change which candidates are accepted — but it changes how often each runs, and
+    // `o.blocked` (treeGroundBlocked: seven terrain mask probes, then every landmark and polyline)
+    // measured 46 µs against 0.7–3.8 µs for the others. The spacing and occupancy tests reject 93 %
+    // and 27 % of what reaches them, so putting them first takes `o.blocked` from 11 850 calls to
+    // about 600: 544 ms of the sampler's 635 ms.
+    if (tooCloseIn(grid, cell, x, z, spacing)) continue;
+    if (o.occupied.some((d) => Math.hypot(x - d.x, z - d.z) < d.r + trunkR)) continue;
     if (terrain.slope(x, z) > 0.66) continue;
     const y = terrain.height(x, z);
     if (shadesCorridor(x, z, y + H * (spec?.crownY ?? MID_CROWN_Y), crownR)) continue;
-    if (o.occupied.some((d) => Math.hypot(x - d.x, z - d.z) < d.r + trunkR)) continue;
-    if (tooCloseIn(grid, cell, x, z, spacing)) continue;
+    if (o.blocked(x, z, trunkR)) continue;
     // value / hue jitter per tree, then the shared depth cool so the back of the band sits behind
     const shift = r.range(-0.07, 0.07);
     const tint = depthCool(new Color(1 + shift * 0.6, 1 + shift, 1 - shift * 0.7).multiplyScalar(r.range(0.84, 1.1)), x, z);

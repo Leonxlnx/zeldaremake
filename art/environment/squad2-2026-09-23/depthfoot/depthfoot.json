@@ -1,0 +1,166 @@
+[
+ {
+  "name": "stairs2-base-follow",
+  "base": {
+   "draws": 547,
+   "triangles": 9222633
+  },
+  "groups": [
+   {
+    "group": "far-foliage-batch",
+    "meshes": [
+     "giant-far-foliage-0-lantern-tree+north-west-near+north-west+north-east",
+     "giant-far-foliage-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+     "giant-far-foliage-2-south-giant+plaza-south+south-centre+southwest-giant"
+    ],
+    "triangles": 483860,
+    "meshCount": 3,
+    "off": {
+     "draws": 544,
+     "triangles": 8867693,
+     "dropped": 3
+    },
+    "pngBytes": 857966
+   },
+   {
+    "group": "family-lod",
+    "meshes": [
+     "whitebark-roots",
+     "understory-us0-542438786-high",
+     "understory-us0-542438786-medium",
+     "understory-us1-404692179-high",
+     "understory-us2-60540489-medium",
+     "understory-us3-603774473-high",
+     "understory-us3-603774473-medium",
+     "understory-us4-727289251-high",
+     "column-col-0-619356256-medium@22.191,-34.941",
+     "column-col-0-619356256-high@21.200,6.800",
+     "column-col-1-678757811-medium@-5.700,-31.900",
+     "column-col-2-328830636-high@11.097,-25.000",
+     "column-col-2-328830636-medium@-1.000,-35.500",
+     "column-col-2-328830636-high@24.200,11.000",
+     "column-col-3-37923781-high@-3.500,-24.700",
+     "column-col-3-37923781-high@8.800,-26.900",
+     "column-col-3-37923781-high@15.700,5.200",
+     "column-col-emergent-294552360-high@-3.100,-7.900"
+    ],
+    "triangles": 366037,
+    "meshCount": 18,
+    "off": {
+     "draws": 529,
+     "triangles": 8856596,
+     "dropped": 18
+    },
+    "pngBytes": 860646
+   },
+   {
+    "group": "giant-near-base",
+    "meshes": [
+     "giant-near-base-lantern-tree",
+     "giant-near-base-plaza-south",
+     "giant-near-base-north-west-near",
+     "giant-near-base-stair-bank-giant"
+    ],
+    "triangles": 130744,
+    "meshCount": 4,
+    "off": {
+     "draws": 544,
+     "triangles": 9126872,
+     "dropped": 4
+    },
+    "pngBytes": 852454
+   },
+   {
+    "group": "other:giants-sector-#-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+    "meshes": [
+     "giants-sector-1-plateau-oak+far-plateau+east-giant+stair-bank-giant"
+    ],
+    "triangles": 97152,
+    "meshCount": 1,
+    "off": {
+     "draws": 543,
+     "triangles": 9125481,
+     "dropped": 1
+    },
+    "pngBytes": 853251
+   },
+   {
+    "group": "family-shadow-proxy",
+    "meshes": [
+     "whitebark-wb-2-462283019-high-shadow",
+     "whitebark-wb-4-967349105-high-shadow",
+     "whitebark-wb-5-541590326-high-shadow",
+     "whitebark-wb-6-226724416-high-shadow",
+     "whitebark-wb-7-312981887-high-shadow"
+    ],
+    "triangles": 89929,
+    "meshCount": 5,
+    "off": {
+     "draws": 542,
+     "triangles": 9132704,
+     "dropped": 5
+    },
+    "pngBytes": 852454
+   },
+   {
+    "group": "other:giants-sector-#-lantern-tree+north-west-near+north-west+north-east",
+    "meshes": [
+     "giants-sector-0-lantern-tree+north-west-near+north-west+north-east"
+    ],
+    "triangles": 87300,
+    "meshCount": 1,
+    "off": {
+     "draws": 541,
+     "triangles": 9135333,
+     "dropped": 1
+    },
+    "pngBytes": 861493
+   },
+   {
+    "group": "other:giants-sector-#-south-giant+plaza-south+south-centre+southwest-giant",
+    "meshes": [
+     "giants-sector-2-south-giant+plaza-south+south-centre+southwest-giant"
+    ],
+    "triangles": 86173,
+    "meshCount": 1,
+    "off": {
+     "draws": 543,
+     "triangles": 9136460,
+     "dropped": 1
+    },
+    "pngBytes": 852454
+   },
+   {
+    "group": "column-near-base",
+    "meshes": [
+     "column-near-base-seat-6",
+     "column-near-base-seat-7"
+    ],
+    "triangles": 59228,
+    "meshCount": 2,
+    "off": {
+     "draws": 545,
+     "triangles": 9163405,
+     "dropped": 2
+    },
+    "pngBytes": 852446
+   },
+   {
+    "group": "giant-sector-canopy",
+    "meshes": [
+     "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+     "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+     "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant"
+    ],
+    "triangles": 11618,
+    "meshCount": 3,
+    "off": {
+     "draws": 544,
+     "triangles": 9211015,
+     "dropped": 3
+    },
+    "pngBytes": 866878
+   }
+  ]
+ }
+]

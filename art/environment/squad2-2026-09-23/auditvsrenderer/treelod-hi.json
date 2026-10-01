@@ -1,0 +1,40 @@
+{
+ "dist": "dist",
+ "quality": "high",
+ "settle": 8,
+ "rows": [
+  {
+   "view": "A_stairs",
+   "frame": {
+    "draws": 545,
+    "triangles": 10722883
+   },
+   "audit": {
+    "calls": 123,
+    "triangles": 4421500,
+    "colourCalls": 70,
+    "depthCalls": 53,
+    "cullExempt": 5,
+    "mainZero": 9,
+    "noCullCalls": 131,
+    "batchCulledTris": 825211,
+    "batchCulledTrisColour": 665451,
+    "batchCulledTrisDepth": 159760,
+    "nonIndexedLobes": 0,
+    "depthTrisBatchFull": 2139983,
+    "depthTrisNoFrustum": 1980223,
+    "depthCallsNoFrustum": 54,
+    "meshes": 64
+   },
+   "isolate": {
+    "found": true,
+    "calls": 124,
+    "triangles": 4654568
+   },
+   "gap": {
+    "calls": 1,
+    "triangles": 233068
+   }
+  }
+ ]
+}

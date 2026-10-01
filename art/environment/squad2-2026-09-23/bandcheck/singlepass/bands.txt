@@ -1,0 +1,14 @@
+fable-5's bands.py on the two frames. The table in ../README.md was measured on the PNGs straight out of
+the renderer; these lines are the committed JPEGs re-read, because the PNGs are 800 KB each and the
+numbers that matter survive the compression.
+
+What is identical either way: the FAR-CENTRE BOX, which is the charter number — #7e7b6f, 46 deg,
+s 0.06 / l 0.466 — and the band's mean lightness, 0.321.
+
+What compression shifts is the threshold-counted shares: dark% reads 21.6 on the PNGs and 22.1 here,
+leaf% 20.9 and 18.8, because both count pixels against a fixed cut (l < 0.20, s > 0.15) and JPEG moves
+pixels across it. Those two columns are comparable between these two lines but not against the PNG table.
+
+image                                                      mist%  brown%  dark%  leaf%  mean-l | far-centre box hex  hue  s     l     B/R
+026-09-23/bandcheck/singlepass/owner-0650-north-single.jpg  14.8   26.2    22.1   18.8  0.321  | #7e7b6f    46° 0.06  0.466 0.88
+26-09-23/bandcheck/singlepass/owner-0650-north-twopass.jpg  14.7   26.2    22.1   18.8  0.321  | #7e7b6f    46° 0.06  0.466 0.88

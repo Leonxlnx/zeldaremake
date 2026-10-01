@@ -1,0 +1,28 @@
+{
+ "state": "ready",
+ "raster": {
+  "getImageData": 3216.0000000298023,
+  "getImageDataN": 5,
+  "texImage2D": 0,
+  "texImage2DN": 0,
+  "texSubImage2D": 3051.7000000178814,
+  "texSubImage2DN": 76,
+  "toDataURL": 0,
+  "toDataURLN": 0,
+  "createImageBitmap": 0,
+  "createImageBitmapN": 0
+ },
+ "build": {
+  "lighting": 32.29999998211861,
+  "atmosphere": 970,
+  "terrain": 4187.200000017881,
+  "hardscape": 3114.699999988079,
+  "rocks": 6592.799999982119,
+  "trees": 8187.9000000059605,
+  "canopy": 55.29999998211861,
+  "structures": 7870.0999999940395,
+  "props": 347.2999999821186,
+  "vegetation": 10598.899999976158,
+  "character": 564
+ }
+}

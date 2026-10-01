@@ -1,12 +1,12 @@
 /**
  * Run: node --test src/world/trees/lodFade.test.mjs (Node 20+, no browser needed).
  *
- * The rung transition band (art/environment/squad2-2026-09-23/dither/PROPOSAL.md). Two things have to
- * hold or the feature is worse than the hard cut it replaces:
+ * The rung transition band (art/environment/squad2-2026-09-23/dither/PROPOSAL.md, checked out in
+ * gatesweep/). Two things have to hold or the feature is worse than the hard cut it replaces:
  *
- *   • with the flag off, `lodSlots` must return exactly the old single-bucket answer — one rung, full
- *     weight — for every distance, including the gates themselves, so a build with the flag off cannot
- *     differ by a pixel;
+ *   • with the band disabled, `lodSlots` must return exactly the old single-bucket answer — one rung,
+ *     full weight — for every distance, including the gates themselves, so the flag remains a one-line
+ *     way back to a build that cannot differ by a pixel;
  *   • with it on, a tree's weights must sum to 1 at every distance (a sum under 1 thins the tree into
  *     the background mid-swap, a sum over 1 draws it twice at full strength and doubles its cost), and
  *     the crossover must sit ON the gate, or the fade is off-centre and the swap still reads as a step.
@@ -23,13 +23,20 @@ const source = readFileSync(path.join(here, 'lodFade.ts'), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const mod = {};
 new Function('exports', js)(mod);
-const { lodSlots, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } = mod;
+const { bandOverlaps, lodSlots, lodWeightKey, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } = mod;
 
 const GATES = [32, 44];
-
-test('the flag ships off until the drawing half lands', () => {
-  assert.equal(TREE_LOD_DITHER, false, 'the band must not be on before a per-instance weight reaches the shader');
-});
+/**
+ * The gates as each quality tier resolves them: `TREE_LOD_NEAR_M` 32 and `TREE_LOD_MID_M` 44 scaled by
+ * `quality.distance` (world/index.ts `qualityFor`). The gap is what limits the band, and it is tightest on
+ * the WEAKEST tier — which is the one a band chosen at `quality=high` would silently break.
+ */
+const TIER_GATES = {
+  low: [32 * 0.6, 44 * 0.6],
+  medium: [32 * 0.8, 44 * 0.8],
+  high: [32, 44],
+  ultra: [32 * 1.25, 44 * 1.25],
+};
 
 test('with the flag off every distance gives one rung at full weight', () => {
   for (let d = -5; d <= 80; d += 0.25) {
@@ -74,6 +81,54 @@ test('a tree the camera stands inside takes the nearest rung', () => {
   assert.equal(slots[0].level, 0);
 });
 
+/**
+ * The band's real ceiling, and the failure it prevents. `lodSlots` walks the gates in order and returns on
+ * the first one whose band contains `d`, so two overlapping bands are not a glitch — the far gate's fade is
+ * silently skipped and nothing in the frame says so. The gap between gates scales with `quality.distance`,
+ * so the tightest case is `quality=low`, and a width validated only at high can be broken there.
+ */
+test('the shipped band fits between the gates on every quality tier', () => {
+  for (const [tier, gates] of Object.entries(TIER_GATES)) {
+    assert.equal(bandOverlaps(gates, TREE_LOD_DITHER_BAND_M), false, `the shipped band does not fit at quality=${tier} (gates ${gates[0]}–${gates[1]} m)`);
+  }
+  // low is the binding tier: 19.2 and 26.4 m, 7.2 m apart, against 12 m at high and 15 m at ultra
+  const [lo, hi] = TIER_GATES.low;
+  assert.ok(hi - lo < TIER_GATES.high[1] - TIER_GATES.high[0], 'low must be the tightest gap, or this test is checking the wrong tier');
+  assert.equal(bandOverlaps(TIER_GATES.low, hi - lo - 0.01), false, 'a band just under the gap must still fit');
+  assert.equal(bandOverlaps(TIER_GATES.low, hi - lo), true, 'a band equal to the gap must be rejected — the bands touch');
+});
+
+test('an overlapping band is why the predicate exists: trees in the overlap take the wrong rung', () => {
+  const gates = TIER_GATES.low; // 19.2 and 26.4 m
+  const wide = gates[1] - gates[0] + 2; // 9.2 m — inside what yesterday's 8 m and 12 m sweep variants used
+  const half = wide / 2;
+  // the region inside BOTH bands: past the near gate's far edge is where the far gate's band already began
+  const overlapFrom = gates[1] - half;
+  const overlapTo = gates[0] + half;
+  assert.ok(overlapTo > overlapFrom, 'this width must actually overlap, or the test proves nothing');
+  const d = (overlapFrom + overlapTo) / 2;
+
+  // the hard cut puts this tree in rung 1: it is past the near gate and short of the far one
+  assert.equal(lodSlots(d, gates, wide, false)[0].level, 1);
+  // with overlapping bands the near gate wins the first-match loop, so it is drawn partly at rung 0 —
+  // a rung MORE detailed than the hard cut would ever give it, and nowhere near the 1→2 fade it is in
+  const slots = lodSlots(d, gates, wide, true);
+  assert.deepEqual(
+    slots.map((s) => s.level),
+    [0, 1],
+    'the near gate claims a tree that belongs to the 1→2 crossing',
+  );
+
+  // and the far gate itself is still fine, which is why this is silent rather than obvious
+  const atFar = lodSlots(gates[1], gates, wide, true);
+  assert.deepEqual(
+    atFar.map((s) => s.level),
+    [1, 2],
+    'the far gate still crosses over correctly — only the overlap region is wrong',
+  );
+  assert.ok(Math.abs(atFar[0].weight - 0.5) < 1e-9);
+});
+
 test('a zero band is the hard cut, even with the flag on', () => {
   for (const d of [GATES[0], GATES[0] - 0.1, GATES[1]]) {
     const slots = lodSlots(d, GATES, 0, true);
@@ -89,12 +144,49 @@ test('a zero band is the hard cut, even with the flag on', () => {
  */
 const indexSource = readFileSync(path.join(here, 'index.ts'), 'utf8');
 
+/**
+ * The weight key. `bucketFamily` stores a banded placement's weight under it and `fillFamily` reads it back;
+ * until 2026-09-30 both wrote the arithmetic out by hand, and if the two had ever drifted every banded tree
+ * would have fallen back to the default weight of 1 — the fade silently off, the frame still plausible.
+ */
+test('the weight key is injective over every rung and placement', () => {
+  for (const count of [1, 2, 11, 400, 28818]) {
+    const seen = new Map();
+    // dedup: for small counts these sample points coincide, and a value colliding with itself is not a bug
+    const indices = [...new Set([0, 1, Math.floor(count / 2), count - 1])].filter((i) => i >= 0 && i < count);
+    for (const level of [0, 1, 2]) {
+      for (const index of indices) {
+        const key = lodWeightKey(level, count, index);
+        assert.equal(seen.has(key), false, `count=${count}: (${level},${index}) collides with ${JSON.stringify(seen.get(key))}`);
+        seen.set(key, [level, index]);
+      }
+    }
+  }
+});
+
+test('a write and a read of the same placement agree, which is the point of sharing the function', () => {
+  const count = 400;
+  const weights = new Map();
+  // what bucketFamily does for a tree in a band: two rungs, complementary weights
+  const slots = lodSlots(32, GATES, 2.5, true);
+  for (const s of slots) weights.set(lodWeightKey(s.level, count, 137), s.weight);
+  // what fillFamily does when it fills each of those rungs
+  for (const s of slots) {
+    const read = weights.get(lodWeightKey(s.level, count, 137)) ?? 1;
+    assert.equal(read, s.weight, `rung ${s.level} read back ${read}, stored ${s.weight}`);
+    assert.ok(1 - read > 0 && 1 - read < 1, 'a banded tree must get a drop strictly between 0 and 1');
+  }
+  // a placement in no band has no entry, and the reader's default means "draw whole"
+  assert.equal(weights.get(lodWeightKey(2, count, 138)) ?? 1, 1);
+});
+
 test('the weight attribute is written only behind the flag', () => {
   const at = indexSource.indexOf('const fillFamily');
   assert.notEqual(at, -1, 'fillFamily is gone');
   const body = indexSource.slice(at, indexSource.indexOf('\n  };', at));
   assert.match(body, /if \(TREE_LOD_DITHER\) \{/, 'the attribute write must be guarded by the flag');
-  assert.match(body, /1 - \(w\.lodWeights\?\.get\(l \* w\.placements\.length \+ list\[k\]\) \?\? 1\)/, 'the attribute carries the DROP fraction, so an unrecorded tree writes 0 and draws whole');
+  assert.match(body, /1 - \(w\.lodWeights\?\.get\(lodWeightKey\(.*\)\) \?\? 1\)/, 'the attribute carries the DROP fraction, so an unrecorded tree writes 0 and draws whole');
+  assert.match(indexSource, /\.set\(lodWeightKey\(slot\.level, w\.placements\.length, i\), slot\.weight\)/, 'the write must use the shared key, not its own copy of the arithmetic');
 });
 
 test('the attribute is lazily attached and marked dynamic', () => {
@@ -137,4 +229,18 @@ test('the mask is colour-pass only', () => {
 
 test('a flag flip cannot reuse a cached program', () => {
   assert.match(matSource, /trees-\$\{key\}-v8\$\{TREE_LOD_DITHER \? '-drop' : ''\}/, 'the cache key must carry the flag');
+});
+
+/**
+ * The flag used to be pinned false here, because a weight that reaches no shader thins every banded tree
+ * into the background. Both halves are in now and it is on, so the assertion that matters is the
+ * conditional one: whichever way the flag is set, it must not be ON while either half is missing. The
+ * tests above already pin the halves in detail; this one fails loudly if someone turns the flag on in a
+ * tree where they have been deleted, or deletes one while it is on.
+ */
+test('the flag is never on without both halves of the drawing path', () => {
+  assert.equal(typeof TREE_LOD_DITHER, 'boolean', 'the flag must stay a compile-time constant');
+  if (!TREE_LOD_DITHER) return;
+  assert.match(indexSource, /if \(TREE_LOD_DITHER\) \{\s*\n\s*const attr = fadeAttribute\(mesh\);/, 'the flag is on but fillFamily writes no drop fraction');
+  assert.match(matSource, /if \(lodHash < vLodDrop\) discard;/, 'the flag is on but no colour program discards against the drop');
 });
