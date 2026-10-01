@@ -36,13 +36,13 @@ import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../
 import { inExpansionNorth } from '../layout';
 import { groveDeckDistance, groveGroundDistance, groveWalkDistance, northGroveClear, northGroveHuts } from '../terrain/north';
 import { groveNearXZ } from '../util/groveLocality';
-import { bandOverlaps, lodSlots, lodWeightKey, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
+import { bandOverlaps, lodSlots, lodWeightKey, oneMaterialWanted, TREE_LOD_DITHER, TREE_LOD_DITHER_BAND_M } from './lodFade';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, TREE_ONE_MATERIAL_FAR, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_FAR_LOD_M, MID_HEIGHTS, MID_SPECS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, ONE_MATERIAL_ENTER_M, ONE_MATERIAL_LEAVE_M, TREE_ONE_MATERIAL_FAR, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_FAR_LOD_M, MID_HEIGHTS, MID_SPECS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -4527,27 +4527,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   /**
    * Pick each distant / mid mesh's material for this frame: ONE material where its nearest bark fragment is
-   * past the window, both where it is not.
-   *
-   * `ONE_MATERIAL_ENTER_M` / `_LEAVE_M` are a hysteresis band, not a single threshold, so a mesh drifting
-   * across the edge does not flip every frame — the flip is sub-visible (`matswap/`) but it is a
-   * discontinuity, and this lane spent four rounds removing the LOD rungs' one-frame pop.
+   * past the window, both where it is not. The rule and its hysteresis band are `distant.ts
+   * oneMaterialWanted`, pinned by `gates.test.mjs` — the property that bark inside the window never draws on
+   * one material is the one `woodgain/` violated, and it is worth a test rather than a comment.
    */
-  const ONE_MATERIAL_ENTER_M = DISTANT_BARK_M[1] + 2;
-  const ONE_MATERIAL_LEAVE_M = DISTANT_BARK_M[1];
   const updateDistantMaterials = () => {
     if (!TREE_ONE_MATERIAL_FAR) return;
     const eye = ctx.camera.getWorldPosition(barkNear);
     for (const set of distantSets) {
       for (const l of [0, 1] as const) {
         const mesh = l === 0 ? set.near : set.far;
-        const one = Array.isArray(mesh.material) === false;
-        if (!mesh.visible || mesh.count === 0) {
-          // an empty mesh draws nothing either way; leave its state alone so it does not flip on re-entry
-          continue;
-        }
-        const closest = nearestBarkOf(set, l, eye);
-        const want = closest === Infinity ? one : one ? closest >= ONE_MATERIAL_LEAVE_M : closest >= ONE_MATERIAL_ENTER_M;
+        const one = !Array.isArray(mesh.material);
+        // an empty mesh draws nothing either way; leave its state alone so it does not flip on re-entry
+        if (!mesh.visible || mesh.count === 0) continue;
+        const want = oneMaterialWanted(one, nearestBarkOf(set, l, eye), ONE_MATERIAL_LEAVE_M, ONE_MATERIAL_ENTER_M);
         if (want === one) continue;
         mesh.material = want ? (mesh.userData.matCrown as Material) : (mesh.userData.matBoth as Material[]);
       }

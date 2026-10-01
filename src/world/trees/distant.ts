@@ -125,6 +125,13 @@ export const DISTANT_BARK_M: [number, number] = [22, 38];
  * closest bark is past 38 m, per pose: A 7, B 5, C 6, D 3, E 5, F 4.
  */
 export const TREE_ONE_MATERIAL_FAR = true;
+/**
+ * The hysteresis band `oneMaterialWanted` decides in. Entering costs a 2 m margin past the window's far
+ * edge — 1–2 draws a pose, measured — so a mesh drifting across the edge does not change material every
+ * frame; leaving is the edge itself, because that is where the treatment stops being zero.
+ */
+export const ONE_MATERIAL_ENTER_M = DISTANT_BARK_M[1] + 2;
+export const ONE_MATERIAL_LEAVE_M = DISTANT_BARK_M[1];
 /** the whole-crown sway's stiffness (WIND_GLSL windBranch): the far layer barely moves */
 export const CROWN_STIFFNESS = 0.78;
 /**
