@@ -860,9 +860,36 @@ function solidUv(writer: GeometryWriter) {
  */
 function markWood(geometry: BufferGeometry, woodVertices: number): BufferGeometry {
   const n = geometry.getAttribute('position').count;
+  const count = Math.min(woodVertices, n);
   const flag = new Float32Array(n);
-  flag.fill(1, 0, Math.min(woodVertices, n));
+  flag.fill(1, 0, count);
   geometry.setAttribute('aWood', new BufferAttribute(flag, 1));
+  // The WOOD's own bounding sphere, which is much smaller than the tree's: the crown cards reach
+  // `crownR` out in every direction, so the whole geometry's sphere puts its nearest point some 10 m
+  // in front of a bole that is a few decimetres wide. `index.ts updateDistantMaterials` asks how far
+  // the nearest BARK fragment is, and this is the sphere that answers it — the full one understates by
+  // the crown's radius and disqualifies meshes whose bark is comfortably past the window.
+  const pos = geometry.getAttribute('position');
+  if (count > 0) {
+    let lo = [Infinity, Infinity, Infinity];
+    let hi = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < count; i++) {
+      for (let a = 0; a < 3; a++) {
+        const v = pos.getComponent(i, a);
+        if (v < lo[a]) lo[a] = v;
+        if (v > hi[a]) hi[a] = v;
+      }
+    }
+    const centre = new Vector3((lo[0] + hi[0]) * 0.5, (lo[1] + hi[1]) * 0.5, (lo[2] + hi[2]) * 0.5);
+    let r2 = 0;
+    for (let i = 0; i < count; i++) {
+      const dx = pos.getComponent(i, 0) - centre.x;
+      const dy = pos.getComponent(i, 1) - centre.y;
+      const dz = pos.getComponent(i, 2) - centre.z;
+      r2 = Math.max(r2, dx * dx + dy * dy + dz * dz);
+    }
+    geometry.userData.woodSphere = { centre: [centre.x, centre.y, centre.z], radius: Math.sqrt(r2) };
+  }
   return geometry;
 }
 

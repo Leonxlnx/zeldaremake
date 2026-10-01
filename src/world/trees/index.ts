@@ -4506,13 +4506,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * that instance can be, so a mesh qualifies only if its closest possible bark is past the window.
    */
   const barkNear = new Vector3();
-  /** the nearest bark fragment of a mesh can be, per instance, |cam − centre| − radius */
+  const barkCentre = new Vector3();
+  /**
+   * How near the closest BARK fragment of a mesh can be: per submitted instance, |cam − centre| − radius of
+   * the geometry's WOOD sphere (distant.ts markWood). The whole geometry's sphere is the wrong one — the
+   * crown cards reach metres further out than the bole in every direction, so it would put a tree's nearest
+   * point ~10 m in front of its trunk and disqualify meshes whose bark is comfortably past the window.
+   */
   const nearestBarkOf = (set: DistantSet, l: 0 | 1, eye: Vector3) => {
-    const bs = (l === 0 ? set.variant.near : set.variant.far).boundingSphere!;
+    const geometry = l === 0 ? set.variant.near : set.variant.far;
+    const wood = geometry.userData.woodSphere as { centre: [number, number, number]; radius: number } | undefined;
+    const centre = wood ? barkCentre.fromArray(wood.centre) : geometry.boundingSphere!.center;
+    const radius = wood ? wood.radius : geometry.boundingSphere!.radius;
     let closest = Infinity;
     for (const i of set.submitted[l]) {
-      sphere.center.copy(bs.center).applyMatrix4(set.matrices[i]);
-      closest = Math.min(closest, eye.distanceTo(sphere.center) - bs.radius * set.placements[i].scale);
+      sphere.center.copy(centre).applyMatrix4(set.matrices[i]);
+      closest = Math.min(closest, eye.distanceTo(sphere.center) - radius * set.placements[i].scale);
     }
     return closest;
   };
