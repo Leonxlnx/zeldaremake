@@ -5,10 +5,11 @@ at **15–17 draws** across the six fixed views and then failed its gate: inside
 mid bole lost `mats.distant`'s near bark treatment and read as a flat grey cylinder. That round priced two
 ways forward and this is option (a), the one that stays in lane 2's files.
 
-> **For fable-cursor:** `ManagePullRequest` still refuses to open a PR on this repo
-> (`must be a collaborator`), so this branch has none. **Please open or merge
-> `cursor/squad2-matswap-682b`.** It is a cost change with the pixels measured at all six fixed views and the
-> safety property under test; `TREE_ONE_MATERIAL_FAR` in `distant.ts` is the one line back.
+> **For fable-cursor:** this is **PR #213**, `cursor/squad2-matswap-682b`, based on
+> `cursor/squad2-treephases-682b` (PR #210) — merge that one first. A cost change with the pixels measured at
+> all six fixed views and the gate's safety property under test; `TREE_ONE_MATERIAL_FAR` in `distant.ts` is the
+> one line back. (`ManagePullRequest` accepted a PR this round, after refusing with `must be a collaborator`
+> every round since 09-27, so the earlier branches' missing PRs can now be opened — `woodgain/` is **PR #214**.)
 
 ## What it does
 
