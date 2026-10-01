@@ -130,3 +130,26 @@ export function lodSlots(d: number, gates: readonly [number, number], band = TRE
   }
   return [{ level, weight: 1 }];
 }
+
+/**
+ * Should a distant / mid mesh draw with ONE material this frame, or with both?
+ *
+ * `isOne` is its current state, `nearestBarkM` how near its closest BARK fragment can be (index.ts
+ * `nearestBarkOf`, over the geometry's WOOD sphere), `leaveM` the far edge of `DISTANT_BARK_M` and `enterM`
+ * that edge plus a margin.
+ *
+ * One material instead of `[mats.distant, crown]` is one draw instead of two — 7 to 9 at the six fixed views
+ * (`matswap/`). The property that makes it safe, and the one the unconditional version violated: **bark
+ * inside the window never draws on one material.** Inside it, `mats.distant`'s near bark treatment is what
+ * the geometry's 4× `DISTANT_NEAR_GAIN` albedo exists for; the crown material does not carry it, and
+ * F_canopy's mid bole read as a flat grey cylinder (`woodgain/`).
+ *
+ * The rest is flicker control: entering costs a margin so a mesh drifting across the edge does not change
+ * material every frame, and a mesh with nothing submitted keeps its state rather than flipping on re-entry.
+ * The same reasoning as the rung band above — a per-frame discontinuity is worth a measured margin.
+ */
+export function oneMaterialWanted(isOne: boolean, nearestBarkM: number, leaveM: number, enterM: number): boolean {
+  if (!Number.isFinite(nearestBarkM)) return isOne;
+  if (nearestBarkM < leaveM) return false;
+  return isOne || nearestBarkM >= enterM;
+}

@@ -244,3 +244,46 @@ test('the flag is never on without both halves of the drawing path', () => {
   assert.match(indexSource, /if \(TREE_LOD_DITHER\) \{\s*\n\s*const attr = fadeAttribute\(mesh\);/, 'the flag is on but fillFamily writes no drop fraction');
   assert.match(matSource, /if \(lodHash < vLodDrop\) discard;/, 'the flag is on but no colour program discards against the drop');
 });
+
+/**
+ * `oneMaterialWanted` — the gate under `matswap/`'s one-material swap. The safety property is the first
+ * test: it is the one the unconditional version in `woodgain/` violated, and the cost was F_canopy's mid
+ * bole rendering as a flat grey cylinder because `mats.distant`'s near bark treatment went with the second
+ * material while the geometry's 4× `DISTANT_NEAR_GAIN` albedo stayed.
+ */
+const LEAVE_M = 38;
+const ENTER_M = 40;
+const wanted = (isOne, m) => mod.oneMaterialWanted(isOne, m, LEAVE_M, ENTER_M);
+
+test('bark inside the window NEVER draws on one material, whatever the mesh was doing before', () => {
+  for (const m of [0, 1, 11.5, 21.9, 22, 30, 36.3, 37.9, 37.999]) {
+    assert.equal(wanted(false, m), false, `${m} m: a two-material mesh must stay on two`);
+    assert.equal(wanted(true, m), false, `${m} m: a one-material mesh must fall back to two`);
+  }
+});
+
+test('entering costs the margin and leaving does not, so the band is hysteresis and not a threshold', () => {
+  // below the far edge: never one (above). Between the edge and the margin: keep whatever it was.
+  for (const m of [38, 38.5, 39.9, 39.999]) {
+    assert.equal(wanted(false, m), false, `${m} m: inside the band a two-material mesh must not enter`);
+    assert.equal(wanted(true, m), true, `${m} m: inside the band a one-material mesh must not leave`);
+  }
+  // at and past the margin: one, from either state
+  for (const m of [40, 40.001, 48, 70, 1e4]) {
+    assert.equal(wanted(false, m), true, `${m} m: past the margin a two-material mesh must enter`);
+    assert.equal(wanted(true, m), true, `${m} m: past the margin a one-material mesh must stay`);
+  }
+});
+
+test('a mesh with nothing submitted keeps its state rather than flipping on re-entry', () => {
+  for (const m of [Infinity, NaN, -Infinity]) {
+    assert.equal(wanted(true, m), true, `${m}: an empty one-material mesh must not flip`);
+    assert.equal(wanted(false, m), false, `${m}: an empty two-material mesh must not flip`);
+  }
+});
+
+test('the band is wide enough that a walking camera cannot flip a mesh every frame', () => {
+  // 4 m/s at 30 fps is 0.13 m a frame; the margin must hold a mesh for several frames either side
+  const perFrameM = 4 / 30;
+  assert.ok(ENTER_M - LEAVE_M >= perFrameM * 4, 'the hysteresis band is under four frames of walking');
+});
