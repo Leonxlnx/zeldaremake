@@ -76,6 +76,11 @@ before the canopy merge so it is not a paired comparison and the triangle column
 The walk is the part that matters for the gate: the swap happens under a moving camera, and a route is where a
 mesh crosses 38–40 m. Nothing stuck, nothing threw.
 
+`tsc --noEmit` green, `vite build` green, `node --test` **278 / 278** (274 before, plus this round's four
+cases). The refactor that moved the rule into `lodFade.ts` was proved behaviour-identical rather than assumed:
+a one-pose paired run of both builds gives A_stairs 547 / 8 724 803, trees 132 / 2 656 692, md5 `5b5db2f2` on
+both sides.
+
 ## The gate was measured before it was built, and the first version of it was too timid
 
 `barkwindow.mjs` reads a new report-only trees audit field, `barkWindow`: per distant / mid mesh, how far its
@@ -107,8 +112,7 @@ The saved draws come in 1–3 under the ceiling at each pose because the hystere
 ## The rule, and the property under test
 
 `lodFade.ts oneMaterialWanted(isOne, nearestBarkM, leaveM, enterM)` — extracted there because that file has no
-imports and its test transpiles it directly, the same reason `lodWeightKey` was extracted. Twelve assertions
-in `lodFade.test.mjs`, and the first is the one that matters:
+imports and its test transpiles it directly, the same reason `lodWeightKey` was extracted. Four test cases in `lodFade.test.mjs`, 43 executed assertions, and the first is the one that matters:
 
 * **bark inside the window never draws on one material**, from either state. That is the property the
   unconditional version violated and the reason F_canopy went flat.
